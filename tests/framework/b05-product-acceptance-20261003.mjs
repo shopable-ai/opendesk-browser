@@ -564,12 +564,12 @@ async function runNative(options, packageBefore, barriers) {
           if(!workerClient)await until(worker,'live native SW before physical stop');
           const old=session.worker;
           const version=await until(()=>swEvents.flatMap(x=>x.params.versions||[]).filter(x=>x.scriptURL===old.url&&x.targetId===old.targetId&&x.runningStatus==='running').at(-1),'exact running SW version/target');
-          const swEventStart=swEvents.length;
+          const swEventStart=swEvents.length,browserEventStart=browserEvents.length;
           const stop={version,targetId:old.targetId,requestedAt:new Date().toISOString()};evidence.workerStop=stop;
           if(recovery)recovery.expectReplacement();
           await tool.send('ServiceWorker.stopWorker',{versionId:version.versionId});
           await until(async()=>!(await browser.send('Target.getTargets')).targetInfos.some(x=>x.targetId===old.targetId),'original SW target disappearance');
-          stop.targetDestroyed=browserEvents.find(x=>x.method==='Target.targetDestroyed'&&x.params.targetId===old.targetId)??null;
+          stop.targetDestroyed=browserEvents.slice(browserEventStart).find(x=>x.method==='Target.targetDestroyed'&&x.params.targetId===old.targetId)??null;
           stop.versionStopped=await until(()=>swEvents.slice(swEventStart).flatMap(x=>x.params.versions||[]).find(x=>x.versionId===version.versionId&&x.scriptURL===old.url&&x.runningStatus==='stopped'),'exact native SW version stopped');
           stop.targetAbsent=true;stop.physicalTerminationObserved=true;
           retiredWorkers.add(workerClient);workerClient.close();workerClient=null;session.worker=null;
@@ -745,7 +745,7 @@ async function runNative(options, packageBefore, barriers) {
             try {return await until(()=>{if(failure)throw failure;return replacement;},'gated replacement native SW');}
             catch(error){gate.status='NOT_TESTED';throw error.code==='E_NATIVE_NOT_OBSERVED'?error:new NotObserved(`Replacement startup gate not observed: ${error.message}`);}
           },assertCoverage(){if(failure)throw failure;if(gate.status!=='OBSERVED')throw new NotObserved('Recovery startup KV coverage unavailable');},async close(){
-            closing=true;
+            closing=true;gate.coverageEndedAt=new Date().toISOString();
             // Release only owned startup waits. Debugger.disable is confined to
             // the replacement session; old native cut sessions are never resumed.
             for(const item of owned) {
