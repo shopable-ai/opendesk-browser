@@ -1,7 +1,7 @@
-import {invariant, newId, canonical, digestUtf8, iso} from '../protocol.js';
+import {invariant, newId, canonical, digestUtf8, iso, projectFoundationError} from '../protocol.js';
 import {httpUrl, permissionPattern} from '../../environment.js';
-import {canonicalValue, encodeValue} from '../page-port/codec.js';
-import {ADMITTED_METHODS, SDK_VERSION} from '../../framework/sdk/registry.js';
+import {canonicalValue, encodeValue, decodeValue} from '../page-port/codec.js';
+import {ADMITTED_METHODS, SDK_VERSION, validateSdkRequest} from '../../framework/sdk/registry.js';
 import {fields} from '../../framework/sdk/registry.js';
 
 // Methods of the one run authority; this module owns no connection, router or slot.
@@ -86,6 +86,33 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       return {sdkVersion:SDK_VERSION, ready:true, methods:Object.entries(ADMITTED_METHODS)
         .filter(([,method]) => grant.capabilities.includes(method.capability)).map(([name]) => name)};
     });
+  }
+  // Internal read-side of the existing authority, not a public SDK method.
+  // Preserve the former broker lookup's ordering and matching rules. In particular,
+  // deadlineAt remains part of the original digest, not a new admission deadline.
+  async function lookupSdkInvocation(payload, sender) {
+    await helloSdk({sdkVersion:SDK_VERSION},sender);
+    const principal = `sdk:${httpUrl(sender.url).origin}`;
+    const doc = [principal,sender.tab.id,sender.frameId,sender.documentId];
+    const request = validateSdkRequest({requestId:payload.requestId,method:payload.method,
+      args:decodeValue(payload.argsWire),deadlineAt:payload.deadlineAt});
+    const requestDigest = await digestUtf8(canonical([request.method,canonicalValue(request.args),request.deadlineAt]));
+    const operation = await storage.transaction(['commandJournal'],'readonly',async tx => {
+      const grant = await tx.get('commandJournal',grantKey({tabId:sender.tab.id,frameId:sender.frameId,documentId:sender.documentId}));
+      const lock = await tx.get('commandJournal',`sdk-request:${canonical([...doc,payload.requestId])}`);
+      if (!grant?.active || grant.browserSessionIncarnation !== session || grant.principal !== principal ||
+        lock?.tag !== 'sdk-request' || lock.grantIncarnation !== grant.grantIncarnation) return;
+      const original = await tx.get('commandJournal',lock.opKey);
+      if (original?.tag !== 'sdk-operation' || original.opKey !== lock.opKey ||
+        original.browserSessionIncarnation !== session || original.grantIncarnation !== grant.grantIncarnation ||
+        canonical([original.principal,original.tabId,original.frameId,original.documentId]) !== canonical(doc) ||
+        original.requestId !== payload.requestId || original.requestDigest !== requestDigest ||
+        !['dispatched','effect_unknown'].includes(original.state)) return;
+      return original;
+    });
+    // Distinguish no record from a matched record whose projection is undefined.
+    // The former handler assigned an own-undefined field in the latter case.
+    return operation ? {invocation:projectFoundationError({invocation:operation}).invocation} : undefined;
   }
   async function authorizeSdkInjection(request, sender, grantIncarnation) {
     const host = await assertHost(sender);
@@ -326,6 +353,6 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       }
     });
   }
-  return {grantSdk, helloSdk, authorizeSdkInjection, admitSdk, authorizeSdk, authorizeSdkInTransaction, recordSdkEffect,
+  return {grantSdk, helloSdk, lookupSdkInvocation, authorizeSdkInjection, admitSdk, authorizeSdk, authorizeSdkInTransaction, recordSdkEffect,
     recordSdkNativeReceipt, failSdk, revokeSdkGrants, recoverSdk, settleSdkDelivery};
 }

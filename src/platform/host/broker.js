@@ -4,10 +4,10 @@ import {createDownloadService} from '../downloads/index.js';
 import {createRunAuthority} from './authority.js';
 import {createSdkBroker} from './sdk-broker.js';
 import {createTabsService} from '../chrome/tabs.js';
-import {SDK_FILES, SDK_VERSION, validateSdkRequest} from '../../framework/sdk/registry.js';
-import {PROTOCOL, FoundationError, invariant, newId, canonical, digestUtf8, projectFoundationError} from '../protocol.js';
+import {SDK_FILES} from '../../framework/sdk/registry.js';
+import {PROTOCOL, FoundationError, invariant, newId, canonical} from '../protocol.js';
 import {httpUrl, isToolSender} from '../../environment.js';
-import {bytesToBase64, decodeValue, canonicalValue} from '../page-port/codec.js';
+import {bytesToBase64} from '../page-port/codec.js';
 import {BUDGETS} from '../protocol.js';
 
 const templateOperations = new Set(['claimRun','snapshotRun','prepareCommand','dispatchCommand','stopRun','abandonUnknown','finishRun',
@@ -16,34 +16,16 @@ const templateOperations = new Set(['claimRun','snapshotRun','prepareCommand','d
   'getTemplateRevision','renameTemplate','beginPage','stagePageBatch','sealPage','readRecords','openReaderPin','releaseReaderPin',
   'prepareExport','retryExport','abandonExport','getEntitlementSnapshot','entitlementStatus','installEntitlement','revokeEntitlement','deleteRun']);
 
-export function createSdkRequestHandler({sdk,authority,storage,session}) {
+export function createSdkRequestHandler({sdk,authority}) {
   return async (payload,sender) => {
     try { return await sdk.request(payload,sender); }
     catch (error) {
       if (error?.code === 'E_EFFECT_UNKNOWN') {
         try {
-          // Recheck native sender/grant facts. Never recover a reference from a
-          // page-supplied identity, or create another admission to find it.
-          await authority.helloSdk({sdkVersion:SDK_VERSION},sender);
-          const principal = `sdk:${httpUrl(sender.url).origin}`;
-          const doc = [principal,sender.tab.id,sender.frameId,sender.documentId];
-          const request = validateSdkRequest({requestId:payload.requestId,method:payload.method,
-            args:decodeValue(payload.argsWire),deadlineAt:payload.deadlineAt});
-          const requestDigest = await digestUtf8(canonical([request.method,canonicalValue(request.args),request.deadlineAt]));
-          const operation = await storage.transaction(['commandJournal'],'readonly',async tx => {
-            const grant = await tx.get('commandJournal',`sdk-grant:${canonical(doc.slice(1))}`);
-            const lock = await tx.get('commandJournal',`sdk-request:${canonical([...doc,payload.requestId])}`);
-            if (!grant?.active || grant.browserSessionIncarnation !== session || grant.principal !== principal ||
-              lock?.tag !== 'sdk-request' || lock.grantIncarnation !== grant.grantIncarnation) return;
-            const original = await tx.get('commandJournal',lock.opKey);
-            if (original?.tag !== 'sdk-operation' || original.opKey !== lock.opKey ||
-              original.browserSessionIncarnation !== session || original.grantIncarnation !== grant.grantIncarnation ||
-              canonical([original.principal,original.tabId,original.frameId,original.documentId]) !== canonical(doc) ||
-              original.requestId !== payload.requestId || original.requestDigest !== requestDigest ||
-              !['dispatched','effect_unknown'].includes(original.state)) return;
-            return original;
-          });
-          if (operation) error.invocation = projectFoundationError({invocation:operation}).invocation;
+          // Only the existing authority interprets persisted SDK identities.
+          // This lookup never admits a request or repeats its effect.
+          const reference = await authority.lookupSdkInvocation(payload,sender);
+          if (reference) error.invocation = reference.invocation;
         } catch { /* Preserve the original failure if reference lookup is unavailable. */ }
       }
       throw error;
@@ -100,7 +82,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock});
   const downloads = createDownloadService({storage,api,clock,assertHost:authority.assertHost});
   const sdk = createSdkBroker({authority,storage,api,clock});
-  const requestSdk = createSdkRequestHandler({sdk,authority,storage,session});
+  const requestSdk = createSdkRequestHandler({sdk,authority});
   await authority.recover();
   downloads.attach();
   await downloads.reconcilePending();

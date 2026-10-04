@@ -1,0 +1,394 @@
+TAP version 13
+# Subtest: SDK reference: dispatched projects only original public IDs
+ok 1 - SDK reference: dispatched projects only original public IDs
+  ---
+  duration_ms: 12.155224
+  type: 'test'
+  ...
+# Subtest: SDK reference: effect_unknown projects only original public IDs
+ok 2 - SDK reference: effect_unknown projects only original public IDs
+  ---
+  duration_ms: 1.896769
+  type: 'test'
+  ...
+# Subtest: SDK reference: authority lookup has no admission or side effects under 100 concurrent reads
+ok 3 - SDK reference: authority lookup has no admission or side effects under 100 concurrent reads
+  ---
+  duration_ms: 23.901457
+  type: 'test'
+  ...
+# Subtest: SDK reference: admitted does not expose an unknown-effect reference
+ok 4 - SDK reference: admitted does not expose an unknown-effect reference
+  ---
+  duration_ms: 2.575848
+  type: 'test'
+  ...
+# Subtest: SDK reference: durable does not expose an unknown-effect reference
+ok 5 - SDK reference: durable does not expose an unknown-effect reference
+  ---
+  duration_ms: 1.126867
+  type: 'test'
+  ...
+# Subtest: SDK reference: failed does not expose an unknown-effect reference
+ok 6 - SDK reference: failed does not expose an unknown-effect reference
+  ---
+  duration_ms: 0.71388
+  type: 'test'
+  ...
+# Subtest: SDK reference: cancelled does not expose an unknown-effect reference
+ok 7 - SDK reference: cancelled does not expose an unknown-effect reference
+  ---
+  duration_ms: 0.761059
+  type: 'test'
+  ...
+# Subtest: SDK reference: interrupted does not expose an unknown-effect reference
+ok 8 - SDK reference: interrupted does not expose an unknown-effect reference
+  ---
+  duration_ms: 0.701692
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation tag mismatch without writes
+ok 9 - SDK reference: rejects operation tag mismatch without writes
+  ---
+  duration_ms: 1.063434
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation key mismatch without writes
+ok 10 - SDK reference: rejects operation key mismatch without writes
+  ---
+  duration_ms: 1.143321
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation session mismatch without writes
+ok 11 - SDK reference: rejects operation session mismatch without writes
+  ---
+  duration_ms: 0.826685
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation grant mismatch without writes
+ok 12 - SDK reference: rejects operation grant mismatch without writes
+  ---
+  duration_ms: 1.023515
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation principal mismatch without writes
+ok 13 - SDK reference: rejects operation principal mismatch without writes
+  ---
+  duration_ms: 0.691828
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation tab mismatch without writes
+ok 14 - SDK reference: rejects operation tab mismatch without writes
+  ---
+  duration_ms: 1.863771
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation frame mismatch without writes
+ok 15 - SDK reference: rejects operation frame mismatch without writes
+  ---
+  duration_ms: 0.828899
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation document mismatch without writes
+ok 16 - SDK reference: rejects operation document mismatch without writes
+  ---
+  duration_ms: 0.701922
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation request ID mismatch without writes
+ok 17 - SDK reference: rejects operation request ID mismatch without writes
+  ---
+  duration_ms: 0.739938
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects operation digest mismatch without writes
+ok 18 - SDK reference: rejects operation digest mismatch without writes
+  ---
+  duration_ms: 0.730284
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects request lock tag mismatch without writes
+ok 19 - SDK reference: rejects request lock tag mismatch without writes
+  ---
+  duration_ms: 0.666049
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects request lock grant mismatch without writes
+ok 20 - SDK reference: rejects request lock grant mismatch without writes
+  ---
+  duration_ms: 0.611309
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects request lock key mismatch without writes
+ok 21 - SDK reference: rejects request lock key mismatch without writes
+  ---
+  duration_ms: 0.65325
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects missing operation mismatch without writes
+ok 22 - SDK reference: rejects missing operation mismatch without writes
+  ---
+  duration_ms: 0.789841
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects missing request lock mismatch without writes
+ok 23 - SDK reference: rejects missing request lock mismatch without writes
+  ---
+  duration_ms: 0.655935
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects missing grant mismatch without writes
+ok 24 - SDK reference: rejects missing grant mismatch without writes
+  ---
+  duration_ms: 0.57809
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects closed grant mismatch without writes
+ok 25 - SDK reference: rejects closed grant mismatch without writes
+  ---
+  duration_ms: 0.481838
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects grant session mismatch without writes
+ok 26 - SDK reference: rejects grant session mismatch without writes
+  ---
+  duration_ms: 0.539484
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects grant principal mismatch without writes
+ok 27 - SDK reference: rejects grant principal mismatch without writes
+  ---
+  duration_ms: 0.74193
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects grant tab epoch mismatch without writes
+ok 28 - SDK reference: rejects grant tab epoch mismatch without writes
+  ---
+  duration_ms: 1.810633
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects grant frame epoch mismatch without writes
+ok 29 - SDK reference: rejects grant frame epoch mismatch without writes
+  ---
+  duration_ms: 0.616797
+  type: 'test'
+  ...
+# Subtest: SDK reference: rejects grant permission epoch mismatch without writes
+ok 30 - SDK reference: rejects grant permission epoch mismatch without writes
+  ---
+  duration_ms: 0.697706
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks extension ID
+ok 31 - SDK reference: rechecks extension ID
+  ---
+  duration_ms: 0.538111
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks incognito
+ok 32 - SDK reference: rechecks incognito
+  ---
+  duration_ms: 0.465735
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks inactive lifecycle
+ok 33 - SDK reference: rechecks inactive lifecycle
+  ---
+  duration_ms: 0.494497
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks tab
+ok 34 - SDK reference: rechecks tab
+  ---
+  duration_ms: 0.464303
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks frame
+ok 35 - SDK reference: rechecks frame
+  ---
+  duration_ms: 0.583868
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks document
+ok 36 - SDK reference: rechecks document
+  ---
+  duration_ms: 0.478253
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks origin
+ok 37 - SDK reference: rechecks origin
+  ---
+  duration_ms: 0.440168
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks native document replaced
+ok 38 - SDK reference: rechecks native document replaced
+  ---
+  duration_ms: 0.526124
+  type: 'test'
+  ...
+# Subtest: SDK reference: rechecks native permission removed
+ok 39 - SDK reference: rechecks native permission removed
+  ---
+  duration_ms: 0.447829
+  type: 'test'
+  ...
+# Subtest: SDK reference: method must not match another request
+ok 40 - SDK reference: method must not match another request
+  ---
+  duration_ms: 1.910349
+  type: 'test'
+  ...
+# Subtest: SDK reference: arguments must not match another request
+ok 41 - SDK reference: arguments must not match another request
+  ---
+  duration_ms: 0.924589
+  type: 'test'
+  ...
+# Subtest: SDK reference: original deadline must not match another request
+ok 42 - SDK reference: original deadline must not match another request
+  ---
+  duration_ms: 0.74829
+  type: 'test'
+  ...
+# Subtest: SDK reference: malformed value wire must not match another request
+ok 43 - SDK reference: malformed value wire must not match another request
+  ---
+  duration_ms: 0.628344
+  type: 'test'
+  ...
+# Subtest: SDK reference: invalid request ID must not match another request
+ok 44 - SDK reference: invalid request ID must not match another request
+  ---
+  duration_ms: 0.538031
+  type: 'test'
+  ...
+# Subtest: SDK reference: expired original deadline is still a digest field, not renewed execution authority
+ok 45 - SDK reference: expired original deadline is still a digest field, not renewed execution authority
+  ---
+  duration_ms: 1.010216
+  type: 'test'
+  ...
+# Subtest: SDK reference: codec distinguishes undefined
+ok 46 - SDK reference: codec distinguishes undefined
+  ---
+  duration_ms: 2.349906
+  type: 'test'
+  ...
+# Subtest: SDK reference: codec distinguishes null
+ok 47 - SDK reference: codec distinguishes null
+  ---
+  duration_ms: 0.932601
+  type: 'test'
+  ...
+# Subtest: SDK reference: codec distinguishes false
+ok 48 - SDK reference: codec distinguishes false
+  ---
+  duration_ms: 1.025678
+  type: 'test'
+  ...
+# Subtest: SDK reference: codec distinguishes zero
+ok 49 - SDK reference: codec distinguishes zero
+  ---
+  duration_ms: 0.894676
+  type: 'test'
+  ...
+# Subtest: SDK reference: codec distinguishes negative zero
+ok 50 - SDK reference: codec distinguishes negative zero
+  ---
+  duration_ms: 0.947914
+  type: 'test'
+  ...
+# Subtest: SDK reference: codec distinguishes empty string
+ok 51 - SDK reference: codec distinguishes empty string
+  ---
+  duration_ms: 0.94522
+  type: 'test'
+  ...
+# Subtest: SDK reference: canonical object key order does not create a conflict
+ok 52 - SDK reference: canonical object key order does not create a conflict
+  ---
+  duration_ms: 0.847806
+  type: 'test'
+  ...
+# Subtest: SDK reference: frames failure preserves the original error
+ok 53 - SDK reference: frames failure preserves the original error
+  ---
+  duration_ms: 0.545683
+  type: 'test'
+  ...
+# Subtest: SDK reference: permission failure preserves the original error
+ok 54 - SDK reference: permission failure preserves the original error
+  ---
+  duration_ms: 0.427899
+  type: 'test'
+  ...
+# Subtest: SDK reference: first transaction failure preserves the original error
+ok 55 - SDK reference: first transaction failure preserves the original error
+  ---
+  duration_ms: 0.507166
+  type: 'test'
+  ...
+# Subtest: SDK reference: second transaction failure preserves the original error
+ok 56 - SDK reference: second transaction failure preserves the original error
+  ---
+  duration_ms: 0.643296
+  type: 'test'
+  ...
+# Subtest: SDK reference: closed grant between Hello and lookup cannot expose original IDs
+ok 57 - SDK reference: closed grant between Hello and lookup cannot expose original IDs
+  ---
+  duration_ms: 0.776602
+  type: 'test'
+  ...
+# Subtest: SDK reference: changing grant incarnation between reads cannot revive the old request
+ok 58 - SDK reference: changing grant incarnation between reads cannot revive the old request
+  ---
+  duration_ms: 0.793707
+  type: 'test'
+  ...
+# Subtest: SDK handler: a successful response never invokes the lookup
+ok 59 - SDK handler: a successful response never invokes the lookup
+  ---
+  duration_ms: 0.152204
+  type: 'test'
+  ...
+# Subtest: SDK handler: non-unknown errors bypass lookup and retain object identity
+ok 60 - SDK handler: non-unknown errors bypass lookup and retain object identity
+  ---
+  duration_ms: 0.125695
+  type: 'test'
+  ...
+# Subtest: SDK handler: lookup is optional on a failing mixed-version delegate
+ok 61 - SDK handler: lookup is optional on a failing mixed-version delegate
+  ---
+  duration_ms: 0.198122
+  type: 'test'
+  ...
+# Subtest: SDK handler: routing does not consume storage/session dependencies
+ok 62 - SDK handler: routing does not consume storage/session dependencies
+  ---
+  duration_ms: 0.159825
+  type: 'test'
+  ...
+# Subtest: SDK reference: lookup remains internal and router has no persistence matching logic
+ok 63 - SDK reference: lookup remains internal and router has no persistence matching logic
+  ---
+  duration_ms: 2.551031
+  type: 'test'
+  ...
+# Subtest: SDK reference: incomplete public reference preserves own-undefined without leaking the row
+ok 64 - SDK reference: incomplete public reference preserves own-undefined without leaking the row
+  ---
+  duration_ms: 0.936297
+  type: 'test'
+  ...
+1..64
+# tests 64
+# suites 0
+# pass 64
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 145.813567
