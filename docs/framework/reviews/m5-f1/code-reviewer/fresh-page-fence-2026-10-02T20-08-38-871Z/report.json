@@ -1,0 +1,745 @@
+{
+  "scope": "Independent targeted review, unchanged frozen fixture; no full matrix",
+  "candidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/fresh-page-fence-2026-10-02T20-08-38-871Z",
+  "runs": [
+    {
+      "version": "154.0.8037.92",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/fresh-page-fence-2026-10-02T20-08-38-871Z/profile-154.0.8037.92",
+      "cases": [
+        {
+          "id": "independent-no-recheck-USER_SCRIPT",
+          "world": "USER_SCRIPT",
+          "target": {
+            "tabId": 1984250986,
+            "frameId": 0,
+            "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+            "url": "http://127.0.0.1:62115/owned"
+          },
+          "before": {
+            "state": "pending",
+            "started": 1790971720306,
+            "target": {
+              "tabId": 1984250986,
+              "frameId": 0,
+              "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+              "url": "http://127.0.0.1:62115/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 5,
+              "results": [
+                {
+                  "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971720314
+          },
+          "off": {
+            "value": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "available": false,
+              "error": {
+                "name": "Error",
+                "message": "'userScripts.getScripts' is not available in this context.",
+                "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:62:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:20)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+              }
+            }
+          },
+          "on": {
+            "value": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971720306,
+            "target": {
+              "tabId": 1984250986,
+              "frameId": 0,
+              "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+              "url": "http://127.0.0.1:62115/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 5,
+              "results": [
+                {
+                  "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971720314,
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 5,
+                "results": [
+                  {
+                    "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "admission": {
+                "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62115/owned",
+                "origin": "http://127.0.0.1:62115",
+                "hostPermission": true
+              },
+              "settlement": {
+                "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62115/owned",
+                "origin": "http://127.0.0.1:62115",
+                "hostPermission": true
+              },
+              "accepted": {
+                "kind": "value",
+                "value": {
+                  "type": "boolean",
+                  "value": true
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971720879,
+            "settlementCount": 1
+          },
+          "events": [],
+          "effect": "independent-no-recheck-USER_SCRIPT",
+          "recheckCalled": false,
+          "requiredOldResultRejection": false
+        },
+        {
+          "id": "independent-no-recheck-MAIN",
+          "world": "MAIN",
+          "target": {
+            "tabId": 1984250986,
+            "frameId": 0,
+            "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+            "url": "http://127.0.0.1:62115/owned"
+          },
+          "before": {
+            "state": "pending",
+            "started": 1790971720883,
+            "target": {
+              "tabId": 1984250986,
+              "frameId": 0,
+              "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+              "url": "http://127.0.0.1:62115/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 0,
+              "results": [
+                {
+                  "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971720884
+          },
+          "off": {
+            "value": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "available": false,
+              "error": {
+                "name": "Error",
+                "message": "'userScripts.getScripts' is not available in this context.",
+                "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:62:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:20)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+              }
+            }
+          },
+          "on": {
+            "value": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971720883,
+            "target": {
+              "tabId": 1984250986,
+              "frameId": 0,
+              "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+              "url": "http://127.0.0.1:62115/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 0,
+              "results": [
+                {
+                  "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971720884,
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 0,
+                "results": [
+                  {
+                    "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "admission": {
+                "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62115/owned",
+                "origin": "http://127.0.0.1:62115",
+                "hostPermission": true
+              },
+              "settlement": {
+                "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62115/owned",
+                "origin": "http://127.0.0.1:62115",
+                "hostPermission": true
+              },
+              "accepted": {
+                "kind": "value",
+                "value": {
+                  "type": "boolean",
+                  "value": true
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971721304,
+            "settlementCount": 1
+          },
+          "events": [],
+          "effect": "independent-no-recheck-MAIN",
+          "recheckCalled": false,
+          "requiredOldResultRejection": false
+        }
+      ],
+      "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "actualVersion": "154.0.8037.92",
+      "identity": {
+        "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*",
+            "http://localhost/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 userScripts v2 fixture",
+          "permissions": [
+            "userScripts",
+            "scripting",
+            "tabs",
+            "webNavigation"
+          ],
+          "version": "0.0.2"
+        }
+      },
+      "resources": {
+        "pending": 0,
+        "acceptanceBarriers": 0,
+        "observationTimers": 0,
+        "rawPending": 0
+      },
+      "browserContextClosed": true
+    },
+    {
+      "version": "138.0.7204.183",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/fresh-page-fence-2026-10-02T20-08-38-871Z/profile-138.0.7204.183",
+      "cases": [
+        {
+          "id": "independent-no-recheck-USER_SCRIPT",
+          "world": "USER_SCRIPT",
+          "target": {
+            "tabId": 268354146,
+            "frameId": 0,
+            "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+            "url": "http://127.0.0.1:62115/owned"
+          },
+          "before": {
+            "state": "pending",
+            "started": 1790971722526,
+            "target": {
+              "tabId": 268354146,
+              "frameId": 0,
+              "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+              "url": "http://127.0.0.1:62115/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 3,
+              "results": [
+                {
+                  "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971722530
+          },
+          "off": {
+            "value": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "available": false,
+              "error": {
+                "name": "Error",
+                "message": "'userScripts.getScripts' is not available in this context.",
+                "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:62:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:20)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+              }
+            }
+          },
+          "on": {
+            "value": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971722526,
+            "target": {
+              "tabId": 268354146,
+              "frameId": 0,
+              "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+              "url": "http://127.0.0.1:62115/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 3,
+              "results": [
+                {
+                  "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971722530,
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 3,
+                "results": [
+                  {
+                    "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "admission": {
+                "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62115/owned",
+                "origin": "http://127.0.0.1:62115",
+                "hostPermission": true
+              },
+              "settlement": {
+                "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62115/owned",
+                "origin": "http://127.0.0.1:62115",
+                "hostPermission": true
+              },
+              "accepted": {
+                "kind": "value",
+                "value": {
+                  "type": "boolean",
+                  "value": true
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971722980,
+            "settlementCount": 1
+          },
+          "events": [],
+          "effect": "independent-no-recheck-USER_SCRIPT",
+          "recheckCalled": false,
+          "requiredOldResultRejection": false
+        },
+        {
+          "id": "independent-no-recheck-MAIN",
+          "world": "MAIN",
+          "target": {
+            "tabId": 268354146,
+            "frameId": 0,
+            "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+            "url": "http://127.0.0.1:62115/owned"
+          },
+          "before": {
+            "state": "pending",
+            "started": 1790971722983,
+            "target": {
+              "tabId": 268354146,
+              "frameId": 0,
+              "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+              "url": "http://127.0.0.1:62115/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 0,
+              "results": [
+                {
+                  "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971722984
+          },
+          "off": {
+            "value": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "available": false,
+              "error": {
+                "name": "Error",
+                "message": "'userScripts.getScripts' is not available in this context.",
+                "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:62:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:20)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+              }
+            }
+          },
+          "on": {
+            "value": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971722983,
+            "target": {
+              "tabId": 268354146,
+              "frameId": 0,
+              "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+              "url": "http://127.0.0.1:62115/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 0,
+              "results": [
+                {
+                  "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971722984,
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 0,
+                "results": [
+                  {
+                    "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "admission": {
+                "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62115/owned",
+                "origin": "http://127.0.0.1:62115",
+                "hostPermission": true
+              },
+              "settlement": {
+                "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62115/owned",
+                "origin": "http://127.0.0.1:62115",
+                "hostPermission": true
+              },
+              "accepted": {
+                "kind": "value",
+                "value": {
+                  "type": "boolean",
+                  "value": true
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971723241,
+            "settlementCount": 1
+          },
+          "events": [],
+          "effect": "independent-no-recheck-MAIN",
+          "recheckCalled": false,
+          "requiredOldResultRejection": false
+        }
+      ],
+      "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "actualVersion": "138.0.7204.183",
+      "identity": {
+        "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*",
+            "http://localhost/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 userScripts v2 fixture",
+          "permissions": [
+            "userScripts",
+            "scripting",
+            "tabs",
+            "webNavigation"
+          ],
+          "version": "0.0.2"
+        }
+      },
+      "resources": {
+        "pending": 0,
+        "acceptanceBarriers": 0,
+        "observationTimers": 0,
+        "rawPending": 0
+      },
+      "browserContextClosed": true
+    }
+  ],
+  "serverClosed": true,
+  "sourceHashes": {
+    "adapter.js": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+    "host.js": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+    "manifest.json": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+  }
+}

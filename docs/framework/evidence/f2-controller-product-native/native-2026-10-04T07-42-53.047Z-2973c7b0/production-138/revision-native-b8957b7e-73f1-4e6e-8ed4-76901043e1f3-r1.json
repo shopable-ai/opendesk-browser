@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-b8957b7e-73f1-4e6e-8ed4-76901043e1f3",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "ea3c7e6ff8b6749b5907106220b98471adc76e6078e9546a744187729fb70d14",
+  "sourceUtf8": "return {PageBrigeCode:9,ok:false,error:\"business\",message:\"data\"};"
+}

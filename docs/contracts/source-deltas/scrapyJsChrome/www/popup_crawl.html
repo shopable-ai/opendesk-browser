@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Scraper</title>
+    <meta charset="utf-8">
+    <meta name="description" content="网页爬虫scrapyjs可视化工具">
+    <script src="../assets/js/ai/crawl-profile.js" defer></script>
+    <script src="../assets/js/ai/selector-contract.js" defer></script>
+    <script src="popup_crawl.js" defer></script>
+    <script src="ai-selector-assist.js" defer></script>
+    <script src="../assets/js/core/tb-bridge.js" defer></script>
+
+    <link rel="stylesheet" href="popup_crawl.css">
+
+    <style>
+        /* Base styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            width: 800px;
+            height: 600px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 570px;
+            background: #ffffff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Section divider */
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #dfe3e8 20%, #dfe3e8 80%, transparent);
+            margin: 0;
+        }
+        
+        /* Control panel container */
+        .control-panel {
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+            border-bottom: 3px solid #e8ecf1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Section divider inside control panel */
+        .control-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 3%, #dfe3e8 10%, #dfe3e8 90%, transparent 97%);
+            margin: 1px 12px;
+        }
+        
+        /* Top action buttons */
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 16px;
+            gap: 10px;
+        }
+        
+        .action-button {
+            flex: 1;
+            padding: 10px 8px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .primary {
+            background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+            color: white;
+        }
+        
+        .primary:hover {
+            background: linear-gradient(135deg, #1557b0 0%, #0d3f7a 100%);
+        }
+
+        .action-divider {
+            width: 2px;
+            background: linear-gradient(180deg, transparent, #dfe3e8 20%, #dfe3e8 80%, transparent);
+            align-self: stretch;
+            margin: 4px 8px;
+        }
+        
+        /* Export and Status Bar Combined */
+        .export-status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+        }
+        
+        /* Export buttons */
+        .export-buttons {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .export-button {
+            padding: 6px 12px;
+            border-radius: 5px;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            background: linear-gradient(180deg, #ffffff 0%, #f6f8fa 100%);
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        
+        .export-button:hover {
+            background: linear-gradient(180deg, #f6f8fa 0%, #e8ecf1 100%);
+            border-color: #a8b3bf;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+        }
+        
+        .export-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Settings section */
+        .settings-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            padding: 0 16px;
+        }
+        
+        .settings-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+            font-size: 12px;
+            color: #586069;
+            padding: 3px 10px;
+            background: rgba(26, 115, 232, 0.04);
+            border-radius: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-row:hover {
+            background: rgba(26, 115, 232, 0.08);
+        }
+        
+        .settings-row label {
+            font-weight: 500;
+            color: #24292e;
+            cursor: pointer;
+        }
+        
+        .settings-row input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+            accent-color: #1a73e8;
+        }
+        
+        .settings-input {
+            width: 45px;
+            padding: 4px 6px;
+            border: 1px solid #d0d7de;
+            border-radius: 5px;
+            font-size: 12px;
+            text-align: center;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            font-weight: 500;
+            color: #1a73e8;
+        }
+        
+        .settings-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+            background: #ffffff;
+        }
+        
+        .settings-input:hover {
+            border-color: #1a73e8;
+        }
+        
+        /* Status info */
+        .status-info {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            font-size: 12px;
+            font-weight: 500;
+            color: #0366d6;
+        }
+        
+        .status-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            padding: 3px 9px;
+            background: rgba(26, 115, 232, 0.08);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .status-info span:hover {
+            background: rgba(26, 115, 232, 0.15);
+        }
+        
+        .status-info span::before {
+            content: '●';
+            color: #28a745;
+            font-size: 10px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Tabs section */
+        .tabs {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            background: #ffffff;
+        }
+        
+        .tab-header {
+            display: flex;
+            background: linear-gradient(180deg, #fafbfc 0%, #f6f8fa 100%);
+            border-bottom: 2px solid #e8ecf1;
+            padding: 0 8px;
+        }
+        
+        .tab-button {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+            color: #586069;
+            transition: all 0.3s ease;
+            border-radius: 6px 6px 0 0;
+            margin: 4px 4px 0 4px;
+        }
+        
+        .tab-button:hover {
+            color: #1a73e8;
+            background: rgba(26, 115, 232, 0.05);
+        }
+        
+        .tab-button.active {
+            background-color: #ffffff;
+            color: #1a73e8;
+            font-weight: 600;
+        }
+        
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #1a73e8 0%, #1557b0 100%);
+            border-radius: 3px 3px 0 0;
+        }
+        
+        /* Tab content */
+        .tab-content {
+            display: none;
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .tab-content.active {
+            display: block;
+            height: 100%;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .content-wrapper {
+            height: 100%;
+            overflow: auto;
+            position: relative;
+            max-height: 340px;
+            padding: 12px;
+        }
+        
+        /* Custom scrollbar */
+        .content-wrapper::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        .content-wrapper::-webkit-scrollbar-track {
+            background: #f1f3f5;
+            border-radius: 5px;
+        }
+        
+        .content-wrapper::-webkit-scrollbar-thumb {
+            background: #c1c8cd;
+            border-radius: 5px;
+        }
+        
+        .content-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #a8b3bf;
+        }
+        
+        /* Table styles */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+            background: #ffffff;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid #e1e4e8;
+            padding: 10px 12px;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 250px;
+            min-width: 80px;
+        }
+        
+        .data-table th {
+            background: linear-gradient(180deg, #f6f8fa 0%, #eef1f4 100%);
+            font-weight: 600;
+            color: #24292e;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            border-bottom: 2px solid #d0d7de;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f6f8fa;
+        }
+        
+        .data-table td {
+            color: #24292e;
+            font-size: 13px;
+        }
+        
+        /* Headers tab */
+        .headers-container {
+            padding: 16px;
+        }
+        
+        .header-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .header-settings label {
+            font-weight: 500;
+            color: #24292e;
+            font-size: 13px;
+            text-align: right;
+            padding-right: 8px;
+        }
+        
+        .header-settings input[type="text"] {
+            padding: 8px 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 13px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        
+        .header-settings input[type="text"]:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+        
+        /* Code editor */
+        .code-editor {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            padding: 16px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            resize: none;
+            white-space: pre;
+            box-sizing: border-box;
+            line-height: 1.6;
+            overflow: auto;
+            background: #f6f8fa;
+            color: #24292e;
+            transition: all 0.2s ease;
+        }
+        
+        .code-editor:focus {
+            outline: none;
+            border-color: #1a73e8;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Control Panel - All controls in one unified panel -->
+        <div class="control-panel">
+            <!-- Top action buttons -->
+            <div class="top-controls">
+                <button class="action-button primary" id="tryAnotherTable">下一个表格</button>
+                <button class="action-button primary" id="locateTableButton">定位 表格</button>
+                <button class="action-button primary" id="locateNextButton">定位 下一页</button>
+                <button class="action-button primary" id="aiAssistButton">AI 配置助手</button>
+                <button class="action-button primary" id="startButton">开始爬取</button>
+                <div class="action-divider"></div>
+                <button class="action-button primary" id="cloneExtractorButton">克隆网页区域</button>
+            </div>
+            
+            <!-- Divider line -->
+            <div class="control-divider"></div>
+            
+            <!-- Export buttons and Status bar combined -->
+            <div class="export-status-bar">
+                <div class="status-info">
+                    <span>Status: 就绪</span>
+                    <span>Pages scraped: 0</span>
+                    <span>Rows collected: 0</span>
+                    <span>Working time: 0s</span>
+                </div>
+                <div class="export-buttons">
+                    <button class="export-button" id="exportCsv">导出 CSV</button>
+                    <button class="export-button" id="exportJson">导出 JSON</button>
+                    <button class="export-button" id="copyAll">复制全部</button>
+                </div>
+            </div>
+            
+            <!-- Divider line -->
+            <div class="control-divider"></div>
+            
+            <!-- Settings section -->
+            <div class="settings-section">
+                <div class="settings-row"><label for="paginationMode">分页</label><select id="paginationMode"><option value="none">单页</option><option value="next">下一页按钮</option></select></div>
+                <div class="settings-row"><label for="paginationLimit">最多页数</label><input type="number" id="paginationLimit" value="1" min="1" max="500" class="settings-input"></div>
+                <div class="settings-row">
+                    <input type="checkbox" id="infiniteScroll">
+                    <label for="infiniteScroll">旧滚动选项（不支持）</label>
+                </div>
+                <div class="settings-row">
+                    <label>Min delay</label>
+                    <input type="number" class="settings-input" id="minDelay" value="1" min="0"> sec
+                </div>
+                <div class="settings-row">
+                    <label>Max delay</label>
+                    <input type="number" class="settings-input" id="maxDelay" value="3" min="0"> sec
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabs section -->
+        <div class="tabs">
+            <div class="tab-header">
+                <button class="tab-button active" data-tab="data">Data Preview</button>
+                <button class="tab-button" data-tab="ai">AI 助手</button>
+                <button class="tab-button" data-tab="config">Config</button>
+                <button class="tab-button" data-tab="headers">Headers</button>
+                <button class="tab-button" data-tab="code">Code</button>
+            </div>
+            
+            <!-- Data preview tab - Improved for dynamic data -->
+            <div id="dataTab" class="tab-content active">
+                <div class="content-wrapper">
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>标题</th>
+                                    <th>描述</th>
+                                    <th>价格</th>
+                                    <th>下载次数</th>
+                                    <th>作者</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Python数据分析实战教程</td>
+                                    <td>本教程详细介绍了Python数据分析的核心概念和实践应用</td>
+                                    <td>99.00</td>
+                                    <td>1250</td>
+                                    <td>张明</td>
+                                </tr>
+                                <tr>
+                                    <td>深度学习入门指南</td>
+                                    <td>从零开始学习深度学习，包含详细的理论讲解和代码实践</td>
+                                    <td>199.00</td>
+                                    <td>856</td>
+                                    <td>李华</td>
+                                </tr>
+                                <tr>
+                                    <td>Web开发实战手册</td>
+                                    <td>全栈开发技能提升，前后端开发技术详解</td>
+                                    <td>149.00</td>
+                                    <td>2103</td>
+                                    <td>王强</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="aiTab" class="tab-content">
+                <div class="content-wrapper ai-panel">
+                    <p>先确认字段并在目标页选择列表父区域。采样与验证只读取页面；通过验证后才能应用。</p>
+                    <div id="aiStatus" role="status" aria-live="polite">服务尚未检查。</div>
+                    <details><summary>业务服务器设置</summary>
+                        <label for="aiEndpoint">服务根地址（HTTPS 或本机 HTTP）</label><input id="aiEndpoint" type="url" placeholder="http://127.0.0.1:4318" autocomplete="off">
+                        <label for="aiToken">业务访问令牌（必需，非模型供应商密钥）</label><input id="aiToken" type="password" autocomplete="off">
+                        <div class="ai-actions"><button id="aiSaveSettings">保存设置</button><button id="aiHealth">健康检查 / 配额</button></div>
+                        <pre id="aiHealthResult"></pre>
+                    </details>
+                    <div class="ai-grid">
+                        <label>目标标签页<select id="aiTargetTab" aria-label="目标标签页"></select></label>
+                        <label>目标 frame<select id="aiTargetFrame" aria-label="目标 frame"></select></label>
+                    </div>
+                    <button id="aiRefreshTargets">刷新标签页</button>
+                    <label for="aiIntent">采集意图</label><textarea id="aiIntent" rows="2" maxlength="1500">采集当前列表中的标题和链接</textarea>
+                    <div class="ai-fields-heading">用户确认的字段 <button id="aiAddField">添加字段</button></div>
+                    <div id="aiRequestedFields"></div>
+                    <label for="aiScope">分析范围：唯一的列表父区域 CSS selector</label><input id="aiScope" placeholder="#products 或通过页面选择">
+                    <label><input type="checkbox" id="aiAllowPageScope">明确允许有界整页候选检测（仍最多 3 候选）</label>
+                    <div class="ai-actions"><button id="aiPickScope">在页面选择区域</button><button id="aiSample">本地采样</button><button id="aiPropose" disabled>发送样本并请求建议</button><button id="aiCancel">取消</button><button id="aiRetry" disabled>重试</button></div>
+                    <p id="aiSummary">尚未发送页面数据。默认去除表单值、隐藏内容、事件属性与 URL 查询参数；文本脱敏可能不完整，请检查样本。</p>
+                    <details><summary>实际将发送的脱敏样本</summary><pre id="aiSampleJSON"></pre></details>
+                    <div id="aiSuggestion" hidden>
+                        <p id="aiMode"></p><label>列表候选<select id="aiCandidate"></select></label>
+                        <div id="aiProposalFields"></div>
+                        <div class="ai-grid"><label>手动字段后代 selector<input id="aiManualSelector" placeholder="a.title"></label><button id="aiRegisterSource">在当前区域登记来源</button></div>
+                        <div class="ai-actions"><button id="aiValidate">本地验证</button><button id="aiApply" disabled>应用配置</button><button id="aiUndo">撤销最近应用</button></div>
+                        <p id="aiWarnings"></p><div id="aiValidation"></div>
+                        <details open><summary>与当前配置的差异</summary><pre id="aiDiff"></pre></details>
+                    </div>
+                    <button id="aiUndoOutside">撤销最近 AI 应用</button>
+                </div>
+            </div>
+            <!-- Configuration tab -->
+            <div id="configTab" class="tab-content">
+                <div class="content-wrapper">
+                    <textarea class="code-editor" id="configArea">{
+    "_listContainer": "div#app > div > div.main.pb-32 > div.page-container.page-component > div.layout-content.content-flex",
+    "author": "span.text.flex-1",
+    "count": "span.text.ml-24",
+    "description": "div.desc",
+    "price": "span.price",
+    "title": "a.title",
+    "url": "a.title::href"
+}</textarea>
+                </div>
+            </div>
+
+            <!-- Headers tab -->
+            <div id="headersTab" class="tab-content">
+                <div class="content-wrapper">
+                    <div class="headers-container">
+                        <div class="header-settings" id="headerSettingsContainer">
+                            <label>标题</label>
+                            <input type="text" value="a.title">
+                            <label>描述</label>
+                            <input type="text" value="div.desc">
+                            <label>URL</label>
+                            <input type="text" value="a.title::href">
+                            <label>价格</label>
+                            <input type="text" value="span.price">
+                            <label>下载次数</label>
+                            <input type="text" value="span.text.ml-24">
+                            <label>作者</label>
+                            <input type="text" value="span.text.flex-1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Code tab -->
+            <div id="codeTab" class="tab-content">
+                <div class="content-wrapper">
+                    <textarea class="code-editor" id="codeArea">const spider = new ListSpider({
+    name: 'data_spider',
+    start_urls: ['current_page_url'],
+    itemConfig: {
+        _listContainer: "div.file-content",
+        title: "a.title",
+        description: "div.desc",
+        url: "a.title::href",
+        price: "span.price",
+        countInfo: "span.text.ml-24",
+        author: "span.text.flex-1"
+    },
+    custom_settings: {
+        CLOSESPIDER_PAGECOUNT: 1
+    },
+    output: 'scraped_data.json'
+});</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

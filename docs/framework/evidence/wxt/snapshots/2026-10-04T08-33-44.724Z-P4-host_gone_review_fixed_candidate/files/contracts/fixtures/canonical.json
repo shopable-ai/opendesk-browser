@@ -1,0 +1,11 @@
+{
+  "input": {
+    "z": 0,
+    "a": false,
+    "text": "中文",
+    "empty": "",
+    "none": null
+  },
+  "canonicalUtf8": "{\"a\":false,\"empty\":\"\",\"none\":null,\"text\":\"中文\",\"z\":0}",
+  "sha256": "d34c01f2420389c80d3ef7413bec30f4ade538ba2805448f23ef50215eddefc5"
+}

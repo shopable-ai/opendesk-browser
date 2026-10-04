@@ -1,0 +1,257 @@
+{
+  "schemaVersion": "1.0",
+  "stage": "01",
+  "status": "ready",
+  "designStatus": "ready-for-implementation",
+  "generatedAt": "2026-10-01T20:50:53.811943+00:00",
+  "contractVersion": "1.0.0",
+  "compilerVersion": "1.0.0",
+  "contractHash": "1486ff9c442807c0d447e542252830731faeede5f81cd685c5f146daecdba2a1",
+  "contractHashRecipe": "docs/contracts/contract.json#/contractHashDefinition",
+  "sourceHash": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+  "sourceHashRecipe": "SHA-256 exact docs/contracts/source-ledger.json captured provenance bytes, not live checkout",
+  "sourceGenerations": {
+    "baseline": "2026-10-01T18:29:13.482003+00:00",
+    "delta": "2026-10-01T19:06:04.379902+00:00",
+    "overlay": "explicit baseline + captured delta, not atomic/current checkout"
+  },
+  "sourceFreshness": {
+    "liveCheckoutIsFrozenGeneration": false,
+    "changedCapturedPathsAtStage05Audit": 25,
+    "rule": "Downstream classify live deltas against baseline/overlay before reuse; no source overwrite or implicit SDK synchronize."
+  },
+  "buildHash": null,
+  "implementedInterfaces": [],
+  "testedCapabilities": [],
+  "productTestsExecuted": 0,
+  "productImplementationPassed": false,
+  "productAcceptance": "not-run",
+  "blockingDesignGaps": [],
+  "independentReviews": [
+    {
+      "reviewId": "protocol-final",
+      "verdict": "APPROVE",
+      "artifact": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reviews/protocol-final.json",
+        "sha256": "cc1a2248d2348829a61da12b4fff5084f88a7b352a7249e03e1b00eb3a44db53",
+        "bytes": 62342
+      }
+    },
+    {
+      "reviewId": "solution-final",
+      "verdict": "APPROVE",
+      "artifact": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reviews/solution-final.json",
+        "sha256": "dcb84af7404e794b766085f023ba94c636cf6435f62ad95de9c5584c9ffd711b",
+        "bytes": 63368
+      }
+    }
+  ],
+  "artifactIndex": {
+    "contract.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+      "sha256": "f0e6d74475dcae4148333f9397dd835889a79612027e65cf0004827917efd4bd",
+      "bytes": 29811
+    },
+    "schema.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+      "sha256": "eb95f9e9a7e54048377d551acce8c996dcc15f5fa87ed7ada19cb21b24c6d9b9",
+      "bytes": 82822
+    },
+    "semantics.md": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+      "sha256": "d3bd09974bc31e7dd88f41e226846f9e2871e95ad50bfdfd36f80739739134eb",
+      "bytes": 26073
+    },
+    "state-machines.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/state-machines.json",
+      "sha256": "0e10025550df39b1fa2b942dd6725a9d18c9388a916817598e103d112a322165",
+      "bytes": 11471
+    },
+    "solution-overview.md": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/solution-overview.md",
+      "sha256": "d4da2d597547ff2890ab8529389344921626b178a48124ceeb9cbee638acc65c",
+      "bytes": 11818
+    },
+    "framework-decision.md": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/framework-decision.md",
+      "sha256": "19ea38555fdf9e110ec6c29402bf23076ae423cce5b42ce8f878801f45f6e52f",
+      "bytes": 8224
+    },
+    "task-breakdown.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/task-breakdown.json",
+      "sha256": "2f9952a840553d201772886722893549e9b0f91ac134c1836dc1b4243dd875c8",
+      "bytes": 25097
+    },
+    "implementation-plan.md": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/implementation-plan.md",
+      "sha256": "e036df486337a41b265b752127ab0fc8cf0280377214eedbf9ee724e94c2309f",
+      "bytes": 4058
+    },
+    "migration.md": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/migration.md",
+      "sha256": "e31c3fb18b9d403ebf1b7ba3e448d475fd0c3927de17337c33e39593e9cc13d7",
+      "bytes": 15837
+    },
+    "test-plan.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+      "sha256": "53122dcfb612f772a0f0274dfd22f7b1368d9fc807fcc0a13303917780ba96fd",
+      "bytes": 553706
+    },
+    "test-plan.md": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.md",
+      "sha256": "e2fa8bb53169e546c0d354d5b8d5b15c6c0563cdac610f74d3935fb3e95a885f",
+      "bytes": 84948
+    },
+    "reuse-decision.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reuse-decision.json",
+      "sha256": "284b04286ae29aca213ef551e84af19664e8fa1ca4b8302e2e1c8e28a4643a28",
+      "bytes": 324253
+    },
+    "reuse-decision.md": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reuse-decision.md",
+      "sha256": "79f7dee230b8c48e6cf20cf978c27d7271cb69ed03d11443f9514c9a39214e41",
+      "bytes": 8443
+    },
+    "source-ledger.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+      "sha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+      "bytes": 90284
+    },
+    "source-delta-ledger.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-delta-ledger.json",
+      "sha256": "a395c8d57ca35e5b5e9f114547d58a0f71c94f2aa73c62abd1e35b27341402fb",
+      "bytes": 11969
+    },
+    "source-behaviors.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-behaviors.json",
+      "sha256": "a150af4ba283117e49c9cafb6266afacd50cf5bc899353191ddfaa0a4c28352f",
+      "bytes": 117793
+    },
+    "requirements-audit.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/requirements-audit.json",
+      "sha256": "f23677c3a2c6cf892cefdcc3bc5f859e4bb3c4ee5236561c89fb5d443212d813",
+      "bytes": 5762
+    },
+    "artifact-validation.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/artifact-validation.json",
+      "sha256": "506bfabddd851fbb607f1f7ecc6caaa42a69c0d7bf87a005c04d6b172b7a7491",
+      "bytes": 4638
+    },
+    "bundle-manifest.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/bundle-manifest.json",
+      "sha256": "dbbb804fd8442d69110a17b312fd45aed2fbc425e72923901ba397036e412e09",
+      "bytes": 32520
+    },
+    "delivery-manifest.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/delivery-manifest.json",
+      "sha256": "8fb5827d19de25b2be677eadbe1df87c894c20409209acbb1b43ded95f144dda",
+      "bytes": 137807
+    },
+    "closure-metadata.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/closure-metadata.json",
+      "sha256": "fc52bb90289aa905db706101306d2cefb156bbc1a68c59b0730534710afca61a",
+      "bytes": 2562
+    },
+    "messaging-authority.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/messaging-authority.json",
+      "sha256": "de474322123bfaf40f7e5d8ed02bd803fc48e6a41014c6cf928c725ea9af1200",
+      "bytes": 967
+    },
+    "effort-evidence.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/effort-evidence.json",
+      "sha256": "6418d4c5cedf6e4f46848ec1e360eab76d00029bb259f032dc5bc1ba9e53cde7",
+      "bytes": 1750
+    },
+    "parallel-browser-evidence.json": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/parallel-browser-evidence.json",
+      "sha256": "edddcb3bfd3e002324d89437fd9601cdef7e01e258883e57fec20d2aa9b08835",
+      "bytes": 2982
+    }
+  },
+  "staticValidation": {
+    "checks": 35,
+    "snapshotFiles": 442,
+    "productTests": "not-run",
+    "migrationVectors": 3,
+    "strictConversionVectors": 29,
+    "strictUrlVectors": 19,
+    "csvFormulaSafetyVectors": 45,
+    "templateRejectionVectors": 9,
+    "limitations": [
+      "No production implementation or Chrome product execution.",
+      "No complete JSON Schema conformance suite; only present keyword subset and rejection fixtures checked.",
+      "VM classic probe is loading-state initialization, not browser selection equivalence."
+    ]
+  },
+  "stage05": {
+    "handoff": {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/handoff.json",
+      "sha256": "20618db3c173f3abfe77f4578f4ea233e4424e1598029b8c0c636fc36e3301fb",
+      "received": true
+    },
+    "componentHashesVerified": 17,
+    "reuseDecisions": 54,
+    "dynamicEdges": 29,
+    "verifiedCapturedReferences": 232,
+    "criticalTransferChoicesUnresolved": 0,
+    "runtimeEdgesUntested": true
+  },
+  "stage06": {
+    "environmentReady": true,
+    "installedBuild": null,
+    "productSmokeStatus": "pending",
+    "readyPrerequisite": false,
+    "evidence": "docs/contracts/parallel-browser-evidence.json"
+  },
+  "implementationOrder": [
+    "01",
+    "02A",
+    "02B",
+    "03",
+    "04"
+  ],
+  "nextStage": {
+    "stage": "02A",
+    "threadId": "01a0f8b7-c03d-7460-b3dc-c7f2df804b60",
+    "model": "openai/gpt-6.1-sol",
+    "reasoningEffort": "xhigh",
+    "authorizationEvidence": "docs/contracts/messaging-authority.json",
+    "startPolicy": "Real authorized tool message only after this ready handoff and full integrity verification; dispatch evidence saved separately.",
+    "scope": [
+      "build/package/lock/manifest",
+      "singleton tool-window shell",
+      "static classic injection slot/module placeholder",
+      "target health probe"
+    ],
+    "excludedImplementation": [
+      "RunHost/PagePort production",
+      "command journal/stop/recovery",
+      "IDB stage/seal",
+      "downloads/Artifact/Entitlement",
+      "scraping domain"
+    ],
+    "requiredHandoff": "docs/environment/handoff.json",
+    "nextOnlyAfterEnvironmentHandoff": "02B"
+  },
+  "ownership": "Root/public/config author 02A until environment handoff;02B then owns common/root files;03 only domain/feature panel;04 serial integrated acceptance/fixes.",
+  "implementationTests": {
+    "M01-M11": "planned/not-run",
+    "M12": "independent commercial/publication gate pending",
+    "caseCounts": {
+      "scenarioCases": 36,
+      "supplementalCases": 92,
+      "migrationCases": 3,
+      "preciseFixtureCases": 14,
+      "newTypeVectors": 40
+    }
+  },
+  "explicitLimitations": [
+    "Across new browser-session incarnation a navigated target with no unique ownership proof cannot be automatically rebound/removed: first version freezes the slot, preserves sealed exports and does not replay effects.",
+    "SW restart retains trusted session incarnation; browser restart/extension reload requires conservative fencing.",
+    "Unknown Chrome effect/download mapping never auto-retries; late state belongs only to original run/attempt.",
+    "No ordinary Chrome120/stable product acceptance, production implementation, store review, distribution/license or charging gate is claimed.",
+    "Source license/vendor/derived SDK distribution rights remain release gates; live source deltas need downstream provenance classification.",
+    "AI/desktop host integrations and remote/executable template code remain future scope."
+  ]
+}

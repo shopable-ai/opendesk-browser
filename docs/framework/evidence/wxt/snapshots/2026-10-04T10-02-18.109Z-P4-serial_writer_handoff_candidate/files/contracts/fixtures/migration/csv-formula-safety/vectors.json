@@ -1,0 +1,2663 @@
+{
+  "fixtureVersion": "1.0.0",
+  "status": "planned",
+  "productResult": "not-run",
+  "cases": [
+    {
+      "id": "ecma-0009",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\t=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\t=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\t=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "\t=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\t=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-0009.json",
+          "encoding": "utf-8",
+          "byteLength": 20,
+          "sha256": "f5b83890d5ff21de7e29d0997cc9170c94a3eddd95b5c54e3011ab1de8be27a3",
+          "bytesBase64": "W3sidmFsdWUiOiJcdD0xKzEifV0=",
+          "text": "[{\"value\":\"\\t=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-0009.csv",
+          "encoding": "utf-8",
+          "byteLength": 13,
+          "sha256": "9a3f1b7a4738b3cd027e0a4c9555675912c25dafcaa78faa47e10401e780aa6c",
+          "bytesBase64": "5YC8DQonCT0xKzENCg==",
+          "text": "值\r\n'\t=1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-000b",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\u000b=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\u000b=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\u000b=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "\u000b=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\u000b=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-000b.json",
+          "encoding": "utf-8",
+          "byteLength": 24,
+          "sha256": "f80445340556eb2813b98dad0d736d94ef415336899a42e34aa85996c7db4a85",
+          "bytesBase64": "W3sidmFsdWUiOiJcdTAwMGI9MSsxIn1d",
+          "text": "[{\"value\":\"\\u000b=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-000b.csv",
+          "encoding": "utf-8",
+          "byteLength": 13,
+          "sha256": "24bf9b383b5f6669f8f2cac6f13acc6d4e4ff5300d63a4627898b74c9cf0655c",
+          "bytesBase64": "5YC8DQonCz0xKzENCg==",
+          "text": "值\r\n'\u000b=1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-000c",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\f=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\f=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\f=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "\f=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\f=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-000c.json",
+          "encoding": "utf-8",
+          "byteLength": 20,
+          "sha256": "c07efce2038080015c04fdbfd9ac6cc400f43d5d6fb2c17087f4b4983f6ef05b",
+          "bytesBase64": "W3sidmFsdWUiOiJcZj0xKzEifV0=",
+          "text": "[{\"value\":\"\\f=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-000c.csv",
+          "encoding": "utf-8",
+          "byteLength": 13,
+          "sha256": "5a4c7f5731d7fb838ce43706219f02ed70ffe3fd41c5db4d165c63a3bbe7f443",
+          "bytesBase64": "5YC8DQonDD0xKzENCg==",
+          "text": "值\r\n'\f=1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-0020",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-0020.json",
+          "encoding": "utf-8",
+          "byteLength": 19,
+          "sha256": "24104590cd354935912d4fc034378cf44601b6739d9bee7898b7f9d3c1e3184e",
+          "bytesBase64": "W3sidmFsdWUiOiIgPTErMSJ9XQ==",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-0020.csv",
+          "encoding": "utf-8",
+          "byteLength": 13,
+          "sha256": "46e0f68f0df55d157ddf7d57fda3c310381ef5cea464f429821564a0e388fb81",
+          "bytesBase64": "5YC8DQonID0xKzENCg==",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-00a0",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-00a0.json",
+          "encoding": "utf-8",
+          "byteLength": 20,
+          "sha256": "05035a9f588267ec2d40620b39e4dc9663cb24c7f85894079ccc11dc63409b56",
+          "bytesBase64": "W3sidmFsdWUiOiLCoD0xKzEifV0=",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-00a0.csv",
+          "encoding": "utf-8",
+          "byteLength": 14,
+          "sha256": "77674f978bbde8756485cf82108ea3429ea9eb7fc96d75ef0d0cc27607fa6b97",
+          "bytesBase64": "5YC8DQonwqA9MSsxDQo=",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-1680",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-1680.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "56aadbe563cb45cb4aa8909d097b38d2a54541ad8dc1bd5ce9c6969e486e124a",
+          "bytesBase64": "W3sidmFsdWUiOiLhmoA9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-1680.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "c61661b41765afab9d9503992d15cbcfdd576bc8510bf8e47553af2c4f8a65ab",
+          "bytesBase64": "5YC8DQon4ZqAPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2000",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2000.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "55ce09fd42bdc3aa655dd78ae84c3c59d6b7b3bf31eeb492b37a4e747fd2e35a",
+          "bytesBase64": "W3sidmFsdWUiOiLigIA9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2000.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "a3f1bf56d37a4e1d19fe251ccaa219b24daad6a56576f9b75cdae51ca45dcff6",
+          "bytesBase64": "5YC8DQon4oCAPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2001",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2001.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "bb6d74f28a5b6e184d5715234be3c6e44505c0b8d01bcd32e5f13d4958fde827",
+          "bytesBase64": "W3sidmFsdWUiOiLigIE9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2001.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "3653fcb9d6c38617ed2e05cd948ae653f4da10f4875e522d3302ed80d49aec3d",
+          "bytesBase64": "5YC8DQon4oCBPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2002",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2002.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "fb15186fb01aa2707091025e6b2dcd26499b21d1eb245d403d9fb44283cf4086",
+          "bytesBase64": "W3sidmFsdWUiOiLigII9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2002.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "1723397f3fffa5a7dd6edc38d6a85474768b2c730115d4d0d3f796b519d46175",
+          "bytesBase64": "5YC8DQon4oCCPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2003",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2003.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "a33df9e5686380a69a53d2b64bd81a36af9dd0ab9e264d6e5b06cb9ab08f6552",
+          "bytesBase64": "W3sidmFsdWUiOiLigIM9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2003.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "cecfb19d129f8ea7ba9544c97d0abecf6202bcb6c2c44cad3b0efc936380c524",
+          "bytesBase64": "5YC8DQon4oCDPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2004",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2004.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "6704b763d1c628c2129bdd096e5b8f9b4d0db31dab53a9ad6d8e256070babc21",
+          "bytesBase64": "W3sidmFsdWUiOiLigIQ9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2004.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "ce6e78472eec3c3c784fce29738e696caf8ad9c6f69bf673c9088d310dcaf551",
+          "bytesBase64": "5YC8DQon4oCEPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2005",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2005.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "5584a8fa66fdc57c0c5eb7835ab62fc583028c3c181bfff35281124e1f4df09e",
+          "bytesBase64": "W3sidmFsdWUiOiLigIU9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2005.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "90c69590f7b7e46e2a56a1316de4413e87f65fd01a7c8ea8ced2aa1c9a193fbb",
+          "bytesBase64": "5YC8DQon4oCFPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2006",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2006.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "70ddef42d01729ce177a7f5249023a7ed85d4105da2591fa75defc0b81240063",
+          "bytesBase64": "W3sidmFsdWUiOiLigIY9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2006.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "33a5de3eb23710990b037b5fa5310f6a6b7a5f529ba4c13c20421c6155eae49e",
+          "bytesBase64": "5YC8DQon4oCGPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2007",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2007.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "691bf4d07e65fdc3d987e79ca9dcd8b90d44a327962ff721aaaa7df8267b2fdc",
+          "bytesBase64": "W3sidmFsdWUiOiLigIc9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2007.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "ed49772d5c72d4e0e5261464a6a02364ed336f5c64166a65b0901def0f3b8a58",
+          "bytesBase64": "5YC8DQon4oCHPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2008",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2008.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "212bdd6cab73f3286325a0c7e3de24132fa995723c076d367342190f3764d925",
+          "bytesBase64": "W3sidmFsdWUiOiLigIg9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2008.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "4df0c075880f121cfc3f380359b549766aac77328b4c2c7c0d6df13200e5ea0b",
+          "bytesBase64": "5YC8DQon4oCIPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2009",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2009.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "790af455f245edb05153d6a637e15bd02965171087d3582cf7577bbc5c278672",
+          "bytesBase64": "W3sidmFsdWUiOiLigIk9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2009.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "1e684b1e68774ecc36b62e53f25c7d9e37736c72e00599927d009c44ba8acc87",
+          "bytesBase64": "5YC8DQon4oCJPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-200a",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-200a.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "3512484563f624dd4754164409341934bcf3f5de0a9d27739aacac3110dfc5cc",
+          "bytesBase64": "W3sidmFsdWUiOiLigIo9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-200a.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "11695303f6348245d062ffc7bab6a3c9b1d0edec327c70391580250cf00f5298",
+          "bytesBase64": "5YC8DQon4oCKPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-202f",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-202f.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "43cf1fca85c1c95c32b14ac06fd221582f0edbd624b3b432ffaefd80bcadadfd",
+          "bytesBase64": "W3sidmFsdWUiOiLigK89MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-202f.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "71ab67a301c592594724e04416607770f43413a767688aff51c9780c037d60df",
+          "bytesBase64": "5YC8DQon4oCvPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-205f",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-205f.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "11bbc54210da7cd90ca99a10311cdf7b53057e54bb79e5e7d58d61b0cb69f806",
+          "bytesBase64": "W3sidmFsdWUiOiLigZ89MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-205f.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "f286b7bfae8dd2d6c8a5472da21393ef2d0a7fcd5e07bf855399102ec39a9a35",
+          "bytesBase64": "5YC8DQon4oGfPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-3000",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "　=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "　=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'　=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "　=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "　=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-3000.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "5602746a733b645e881b0b1315372f0ccfc5848e5ba344fc9160b4bba37b462b",
+          "bytesBase64": "W3sidmFsdWUiOiLjgIA9MSsxIn1d",
+          "text": "[{\"value\":\"　=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-3000.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "ff0eba6400771438eabdbaeae4734925bb939cbff5c775f91d16ce37694653d3",
+          "bytesBase64": "5YC8DQon44CAPTErMQ0K",
+          "text": "值\r\n'　=1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-feff",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "﻿=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "﻿=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'﻿=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "﻿=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "﻿=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-feff.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "7521c4bda0aae15535735ab245427f5e6a51d53c8438552e9f00e394799c6310",
+          "bytesBase64": "W3sidmFsdWUiOiLvu789MSsxIn1d",
+          "text": "[{\"value\":\"﻿=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-feff.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "028d4d67af55da62dfb6aa8edd5468b709b151dc37968ee376a71c8676982bf9",
+          "bytesBase64": "5YC8DQon77u/PTErMQ0K",
+          "text": "值\r\n'﻿=1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-000a",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\n=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\n=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\n=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "\n=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\n=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-000a.json",
+          "encoding": "utf-8",
+          "byteLength": 20,
+          "sha256": "8d8ac6711b959dc54557d87424648cd9f42e221d4e3415b215fd586f9e0d484d",
+          "bytesBase64": "W3sidmFsdWUiOiJcbj0xKzEifV0=",
+          "text": "[{\"value\":\"\\n=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-000a.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "dc16ed3fe3c2845ebad5b658023ed11b037d8d7e6adf5e9339654867aec8c75c",
+          "bytesBase64": "5YC8DQoiJwo9MSsxIg0K",
+          "text": "值\r\n\"'\n=1+1\"\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-000d",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\r=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\r=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\r=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "\r=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\r=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-000d.json",
+          "encoding": "utf-8",
+          "byteLength": 20,
+          "sha256": "756960348ebbca8dca46f1d062e91828bbaad75870c22be06b8a58d35eba551d",
+          "bytesBase64": "W3sidmFsdWUiOiJccj0xKzEifV0=",
+          "text": "[{\"value\":\"\\r=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-000d.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "9365721c283d7b358e54940cd38e8db14d9f1f2b698c45f8c28a007b4ae48f63",
+          "bytesBase64": "5YC8DQoiJw09MSsxIg0K",
+          "text": "值\r\n\"'\r=1+1\"\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2028",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2028.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "964a2ff53698dda026909aaca301c2b14386a15e5c46a8fa5cf9630010c88484",
+          "bytesBase64": "W3sidmFsdWUiOiLigKg9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2028.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "c93ab1a725a5213aeef78dab2b045c91ca68ac69dfe684cdd9d7343e5dd15bad",
+          "bytesBase64": "5YC8DQon4oCoPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "ecma-2029",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' =1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " =1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/ecma-2029.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "26af727bf687d79a87b10e66956ce5b1ea9f4c9e75d281647b62839f6a6e0597",
+          "bytesBase64": "W3sidmFsdWUiOiLigKk9MSsxIn1d",
+          "text": "[{\"value\":\" =1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/ecma-2029.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "53081e72d0b9c1722b072ecf98f286a5530c640796f976859e69b1c8e9ef3b7e",
+          "bytesBase64": "5YC8DQon4oCpPTErMQ0K",
+          "text": "值\r\n' =1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "unicode-plus",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": " +SUM(A1:A2)"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " +SUM(A1:A2)"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "' +SUM(A1:A2)"
+        ],
+        "rawRecords": [
+          {
+            "value": " +SUM(A1:A2)"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": " +SUM(A1:A2)"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/unicode-plus.json",
+          "encoding": "utf-8",
+          "byteLength": 27,
+          "sha256": "2e5eef7a5deccb1f94f4086ee45b3096be880d9795940375336879673fe65029",
+          "bytesBase64": "W3sidmFsdWUiOiLCoCtTVU0oQTE6QTIpIn1d",
+          "text": "[{\"value\":\" +SUM(A1:A2)\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/unicode-plus.csv",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "b9f812421db6af36d62303cbe9f0a6f1b0e8d7ca9366d490a36178a5c1563345",
+          "bytesBase64": "5YC8DQonwqArU1VNKEExOkEyKQ0K",
+          "text": "值\r\n' +SUM(A1:A2)\r\n"
+        }
+      }
+    },
+    {
+      "id": "unicode-minus",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "　-2"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "　-2"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'　-2"
+        ],
+        "rawRecords": [
+          {
+            "value": "　-2"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "　-2"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/unicode-minus.json",
+          "encoding": "utf-8",
+          "byteLength": 19,
+          "sha256": "7e34571e7b4571089c0fedb2c091cc2428e80f4350c2291ee647670444491e05",
+          "bytesBase64": "W3sidmFsdWUiOiLjgIAtMiJ9XQ==",
+          "text": "[{\"value\":\"　-2\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/unicode-minus.csv",
+          "encoding": "utf-8",
+          "byteLength": 13,
+          "sha256": "b92dce831c22f0c61b5f4e94ce2a1f7ebd41b480dc72dbd4a39bf1bdd5844981",
+          "bytesBase64": "5YC8DQon44CALTINCg==",
+          "text": "值\r\n'　-2\r\n"
+        }
+      }
+    },
+    {
+      "id": "unicode-at",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "﻿@cmd"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "﻿@cmd"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'﻿@cmd"
+        ],
+        "rawRecords": [
+          {
+            "value": "﻿@cmd"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "﻿@cmd"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/unicode-at.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "a75bc9ec586170063c16197ea816fac9419d5fe469ab659947609d4589812b9d",
+          "bytesBase64": "W3sidmFsdWUiOiLvu79AY21kIn1d",
+          "text": "[{\"value\":\"﻿@cmd\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/unicode-at.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "341faae21311fc2ede373fc4477daf073a1db78c65197c2ce66de6cf6d9f26fd",
+          "bytesBase64": "5YC8DQon77u/QGNtZA0K",
+          "text": "值\r\n'﻿@cmd\r\n"
+        }
+      }
+    },
+    {
+      "id": "mixed-prefix",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "  　﻿\t+cmd"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "  　﻿\t+cmd"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'  　﻿\t+cmd"
+        ],
+        "rawRecords": [
+          {
+            "value": "  　﻿\t+cmd"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "  　﻿\t+cmd"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/mixed-prefix.json",
+          "encoding": "utf-8",
+          "byteLength": 29,
+          "sha256": "d43b37ddf247ffff366af27b7bdd1d398b4bc0a9df241bee86ea3412e9355720",
+          "bytesBase64": "W3sidmFsdWUiOiIgwqDjgIDvu79cdCtjbWQifV0=",
+          "text": "[{\"value\":\"  　﻿\\t+cmd\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/mixed-prefix.csv",
+          "encoding": "utf-8",
+          "byteLength": 22,
+          "sha256": "d7fbce94cc54fe00ff1041425a9b9d0e88e28f9e935c11199af7078343a8b288",
+          "bytesBase64": "5YC8DQonIMKg44CA77u/CStjbWQNCg==",
+          "text": "值\r\n'  　﻿\t+cmd\r\n"
+        }
+      }
+    },
+    {
+      "id": "tab-plain",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\tplain"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\tplain"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\tplain"
+        ],
+        "rawRecords": [
+          {
+            "value": "\tplain"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\tplain"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/tab-plain.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "ac276039801414f492ba762d0612c1407063bd93c23c695f4e8265669e67625b",
+          "bytesBase64": "W3sidmFsdWUiOiJcdHBsYWluIn1d",
+          "text": "[{\"value\":\"\\tplain\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/tab-plain.csv",
+          "encoding": "utf-8",
+          "byteLength": 14,
+          "sha256": "91033ad6d6bc3497983112e15a879282d28fbd9f66a6419e0d1882b9315e9ebb",
+          "bytesBase64": "5YC8DQonCXBsYWluDQo=",
+          "text": "值\r\n'\tplain\r\n"
+        }
+      }
+    },
+    {
+      "id": "cr-plain",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\rplain"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\rplain"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\rplain"
+        ],
+        "rawRecords": [
+          {
+            "value": "\rplain"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\rplain"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/cr-plain.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "b6018b1f73a1868affa8f2fa9295569b88314c81868d3853dcfb29b495236b25",
+          "bytesBase64": "W3sidmFsdWUiOiJccnBsYWluIn1d",
+          "text": "[{\"value\":\"\\rplain\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/cr-plain.csv",
+          "encoding": "utf-8",
+          "byteLength": 16,
+          "sha256": "161b85d57e74d2704e24163e34a095f6d7c2f70f305afce0d68f8588a2fe2c8b",
+          "bytesBase64": "5YC8DQoiJw1wbGFpbiINCg==",
+          "text": "值\r\n\"'\rplain\"\r\n"
+        }
+      }
+    },
+    {
+      "id": "tab-only",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\t"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\t"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\t"
+        ],
+        "rawRecords": [
+          {
+            "value": "\t"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\t"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/tab-only.json",
+          "encoding": "utf-8",
+          "byteLength": 16,
+          "sha256": "4463da307e4abc1f24825103a23b582706c6959f4a5c5217ec8190de7342883c",
+          "bytesBase64": "W3sidmFsdWUiOiJcdCJ9XQ==",
+          "text": "[{\"value\":\"\\t\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/tab-only.csv",
+          "encoding": "utf-8",
+          "byteLength": 9,
+          "sha256": "aae2f4ccbe726a695f3316706bf994c259d2164e04ad48b6424c5207b2dbaa23",
+          "bytesBase64": "5YC8DQonCQ0K",
+          "text": "值\r\n'\t\r\n"
+        }
+      }
+    },
+    {
+      "id": "cr-only",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\r"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\r"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": true,
+        "cells": [
+          "'\r"
+        ],
+        "rawRecords": [
+          {
+            "value": "\r"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\r"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/cr-only.json",
+          "encoding": "utf-8",
+          "byteLength": 16,
+          "sha256": "e5d27e5460de0316dd4e22036cca05a91b75eb08726e8c907a16ebcd82b7cd90",
+          "bytesBase64": "W3sidmFsdWUiOiJcciJ9XQ==",
+          "text": "[{\"value\":\"\\r\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/cr-only.csv",
+          "encoding": "utf-8",
+          "byteLength": 11,
+          "sha256": "c6a16198b7ef626be1f9778ee6567efb6919f02cd84208815730acf6c65a4564",
+          "bytesBase64": "5YC8DQoiJw0iDQo=",
+          "text": "值\r\n\"'\r\"\r\n"
+        }
+      }
+    },
+    {
+      "id": "lf-plain",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "\nplain"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\nplain"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "\nplain"
+        ],
+        "rawRecords": [
+          {
+            "value": "\nplain"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "\nplain"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/lf-plain.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "098b2e3f6ec8beee7849ca90effbdef7a2020372caf4bd033c341573b1507f4b",
+          "bytesBase64": "W3sidmFsdWUiOiJcbnBsYWluIn1d",
+          "text": "[{\"value\":\"\\nplain\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/lf-plain.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "5a1dbe115657083dcfef386d7f52e87a48109f07bbfaeddf8b10158720da0feb",
+          "bytesBase64": "5YC8DQoiCnBsYWluIg0K",
+          "text": "值\r\n\"\nplain\"\r\n"
+        }
+      }
+    },
+    {
+      "id": "unicode-plain",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "　plain"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "　plain"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "　plain"
+        ],
+        "rawRecords": [
+          {
+            "value": "　plain"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "　plain"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/unicode-plain.json",
+          "encoding": "utf-8",
+          "byteLength": 22,
+          "sha256": "64411a0a08b65206decc1dd128c69631d50429aeb5ea94ebfdc1aef3d05dd9ad",
+          "bytesBase64": "W3sidmFsdWUiOiLjgIBwbGFpbiJ9XQ==",
+          "text": "[{\"value\":\"　plain\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/unicode-plain.csv",
+          "encoding": "utf-8",
+          "byteLength": 15,
+          "sha256": "85f39397d122296d70f5dceeb17626d2caf69828989412ecc303605b4e23c63a",
+          "bytesBase64": "5YC8DQrjgIBwbGFpbg0K",
+          "text": "值\r\n　plain\r\n"
+        }
+      }
+    },
+    {
+      "id": "zero-width-space",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "​=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "​=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "​=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "​=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "​=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/zero-width-space.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "52c5a0355c0cbfe0d8377794b2d4bcc0fce030cd774097c30198edc19a69085c",
+          "bytesBase64": "W3sidmFsdWUiOiLigIs9MSsxIn1d",
+          "text": "[{\"value\":\"​=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/zero-width-space.csv",
+          "encoding": "utf-8",
+          "byteLength": 14,
+          "sha256": "7a34a745d89e068cd6c952eb90ee8d98563ef7bc067de7755fead6892278d80c",
+          "bytesBase64": "5YC8DQrigIs9MSsxDQo=",
+          "text": "值\r\n​=1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "mongolian-vowel-separator",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "᠎=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "᠎=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "᠎=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "᠎=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "᠎=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/mongolian-vowel-separator.json",
+          "encoding": "utf-8",
+          "byteLength": 21,
+          "sha256": "0a2d8ea2bdbeeac43616e5f2f25154e30de0bfebc47ab5761224e5fbd13dabae",
+          "bytesBase64": "W3sidmFsdWUiOiLhoI49MSsxIn1d",
+          "text": "[{\"value\":\"᠎=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/mongolian-vowel-separator.csv",
+          "encoding": "utf-8",
+          "byteLength": 14,
+          "sha256": "1be1c22ae42364940f07a756b072304255e9fa697dd2ad06f3c24926b73d2d66",
+          "bytesBase64": "5YC8DQrhoI49MSsxDQo=",
+          "text": "值\r\n᠎=1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "next-line-not-ecma",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": "=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "=1+1"
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "=1+1"
+        ],
+        "rawRecords": [
+          {
+            "value": "=1+1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "=1+1"
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/next-line-not-ecma.json",
+          "encoding": "utf-8",
+          "byteLength": 20,
+          "sha256": "0fa2e8390930b05419edc16870754d7c3b537791ccdf499c944e120956c92640",
+          "bytesBase64": "W3sidmFsdWUiOiLChT0xKzEifV0=",
+          "text": "[{\"value\":\"=1+1\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/next-line-not-ecma.csv",
+          "encoding": "utf-8",
+          "byteLength": 13,
+          "sha256": "6615560f64e43fc24f18396e06d0feefa3a07d0cc2d802c104c528fe8ba735bb",
+          "bytesBase64": "5YC8DQrChT0xKzENCg==",
+          "text": "值\r\n=1+1\r\n"
+        }
+      }
+    },
+    {
+      "id": "negative-number",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "number"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": -2
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": -2
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "-2"
+        ],
+        "rawRecords": [
+          {
+            "value": -2
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": -2
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/negative-number.json",
+          "encoding": "utf-8",
+          "byteLength": 14,
+          "sha256": "04e96ccb5c292b01b0149794ceb9bdb2ebf751a3bada556f28b63a8d8b88d689",
+          "bytesBase64": "W3sidmFsdWUiOi0yfV0=",
+          "text": "[{\"value\":-2}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/negative-number.csv",
+          "encoding": "utf-8",
+          "byteLength": 9,
+          "sha256": "56ed0a9b3a68aefa2eab5f2b72d724476672a2d14b9c5df1fee29ad65b872204",
+          "bytesBase64": "5YC8DQotMg0K",
+          "text": "值\r\n-2\r\n"
+        }
+      }
+    },
+    {
+      "id": "positive-number",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "number"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": 12.5
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 12.5
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "12.5"
+        ],
+        "rawRecords": [
+          {
+            "value": 12.5
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 12.5
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/positive-number.json",
+          "encoding": "utf-8",
+          "byteLength": 16,
+          "sha256": "5286d2749bef68198373aa2a74dbb8a473494360d1160e9af10e0b93fc270d44",
+          "bytesBase64": "W3sidmFsdWUiOjEyLjV9XQ==",
+          "text": "[{\"value\":12.5}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/positive-number.csv",
+          "encoding": "utf-8",
+          "byteLength": 11,
+          "sha256": "10c0ec82b2db66e5281e1c4d8930a3f4886b7670e71e0621bb68f976dfa65396",
+          "bytesBase64": "5YC8DQoxMi41DQo=",
+          "text": "值\r\n12.5\r\n"
+        }
+      }
+    },
+    {
+      "id": "number-zero",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "number"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": 0
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 0
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "0"
+        ],
+        "rawRecords": [
+          {
+            "value": 0
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 0
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/number-zero.json",
+          "encoding": "utf-8",
+          "byteLength": 13,
+          "sha256": "ce5c0785232f6532ee48d699cbe556db3b1d5fd16831ee354d57c58ebd756d12",
+          "bytesBase64": "W3sidmFsdWUiOjB9XQ==",
+          "text": "[{\"value\":0}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/number-zero.csv",
+          "encoding": "utf-8",
+          "byteLength": 8,
+          "sha256": "2cb382062a63e6ab7a395b52d9cff7dd7219c1a4e1feca1803d8bf236402b63c",
+          "bytesBase64": "5YC8DQowDQo=",
+          "text": "值\r\n0\r\n"
+        }
+      }
+    },
+    {
+      "id": "boolean-false",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "boolean"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": false
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": false
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          "false"
+        ],
+        "rawRecords": [
+          {
+            "value": false
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": false
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/boolean-false.json",
+          "encoding": "utf-8",
+          "byteLength": 17,
+          "sha256": "eb4096e955d43171add8ffdc3b1837d7145ee2cf3cf59aa28170c07e5fb9aa82",
+          "bytesBase64": "W3sidmFsdWUiOmZhbHNlfV0=",
+          "text": "[{\"value\":false}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/boolean-false.csv",
+          "encoding": "utf-8",
+          "byteLength": 12,
+          "sha256": "16439077ae03d72dee2c5699917110adc127c6756f9766c5c673b72c6f93ab62",
+          "bytesBase64": "5YC8DQpmYWxzZQ0K",
+          "text": "值\r\nfalse\r\n"
+        }
+      }
+    },
+    {
+      "id": "empty-string",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": ""
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": ""
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          ""
+        ],
+        "rawRecords": [
+          {
+            "value": ""
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": ""
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/empty-string.json",
+          "encoding": "utf-8",
+          "byteLength": 14,
+          "sha256": "2a710c9c20cbd24b9a9f1b251cac4b6a3933606dbcb425bc291f7d4e3177ff70",
+          "bytesBase64": "W3sidmFsdWUiOiIifV0=",
+          "text": "[{\"value\":\"\"}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/empty-string.csv",
+          "encoding": "utf-8",
+          "byteLength": 9,
+          "sha256": "c5ad91a88f098a0b833c9642023ff870018c7dc190a5778e82f1cad2a7ced9f3",
+          "bytesBase64": "5YC8DQoiIg0K",
+          "text": "值\r\n\"\"\r\n"
+        }
+      }
+    },
+    {
+      "id": "null-string",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "值",
+            "type": "string"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": null
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": null
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "cells": [
+          ""
+        ],
+        "rawRecords": [
+          {
+            "value": null
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": null
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/null-string.json",
+          "encoding": "utf-8",
+          "byteLength": 16,
+          "sha256": "812cca057c219e89853d74bc5de677c0c52f121ab7c01b4d1c9e1be6e353a1c9",
+          "bytesBase64": "W3sidmFsdWUiOm51bGx9XQ==",
+          "text": "[{\"value\":null}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/null-string.csv",
+          "encoding": "utf-8",
+          "byteLength": 9,
+          "sha256": "c5ad91a88f098a0b833c9642023ff870018c7dc190a5778e82f1cad2a7ced9f3",
+          "bytesBase64": "5YC8DQoiIg0K",
+          "text": "值\r\n\"\"\r\n"
+        }
+      }
+    },
+    {
+      "id": "unicode-formula-header",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "columns": [
+          "value"
+        ],
+        "fields": [
+          {
+            "id": "value",
+            "label": "　=header",
+            "type": "number"
+          }
+        ],
+        "rawRecords": [
+          {
+            "value": -2
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": -2
+          }
+        ]
+      },
+      "expected": {
+        "protectionApplied": false,
+        "headerProtectionApplied": true,
+        "cells": [
+          "-2"
+        ],
+        "rawRecords": [
+          {
+            "value": -2
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": -2
+          }
+        ],
+        "json": {
+          "path": "csv-formula-safety/unicode-formula-header.json",
+          "encoding": "utf-8",
+          "byteLength": 14,
+          "sha256": "04e96ccb5c292b01b0149794ceb9bdb2ebf751a3bada556f28b63a8d8b88d689",
+          "bytesBase64": "W3sidmFsdWUiOi0yfV0=",
+          "text": "[{\"value\":-2}]"
+        },
+        "csv": {
+          "path": "csv-formula-safety/unicode-formula-header.csv",
+          "encoding": "utf-8",
+          "byteLength": 17,
+          "sha256": "a962336ec3173b21f7b9c72321b229643caff1b8cdf3c339125f80c7e4ef2159",
+          "bytesBase64": "J+OAgD1oZWFkZXINCi0yDQo=",
+          "text": "'　=header\r\n-2\r\n"
+        }
+      }
+    }
+  ]
+}

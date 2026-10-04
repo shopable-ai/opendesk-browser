@@ -1,0 +1,1700 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-acceptance-mechanism-review",
+  "generatedAt": "2026-10-03 08:27:41 UTC",
+  "verdict": "REQUEST CHANGES",
+  "f3Review": false,
+  "f3Verdict": "pending—not performed",
+  "productImplementationReviewed": false,
+  "scope": {
+    "projectRoot": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "exclusiveOutputs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.md"
+    ],
+    "temporaryProbe": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/_acceptance-mechanism-probe.mjs",
+    "rolePromptRead": "/Users/shopme/.codex/prompts/code-reviewer.md",
+    "rolePromptReadCompletely": true,
+    "sourceEdits": [],
+    "nativeScenariosExecuted": [],
+    "existingTestsExecuted": [],
+    "buildsExecuted": [],
+    "browsersLaunched": false,
+    "candidateCreated": false,
+    "gateLedgerFrozenEvidenceModified": false,
+    "globalPlanChanged": false,
+    "wholeRepositoryAudit": false,
+    "temporaryReportVerifier": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/_acceptance-mechanism-report-check.mjs"
+  },
+  "snapshot": {
+    "checker": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+      "sha256": "dbb32d94f0e6a535a23386649f4519fb3766a790d8856b2153f24db0c8449124",
+      "sha256After": "dbb32d94f0e6a535a23386649f4519fb3766a790d8856b2153f24db0c8449124",
+      "unchangedDuringProbe": true,
+      "lines": 265
+    },
+    "test": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+      "sha256": "fc5bc1fdb66ff80098fcc85d339d41daf4afb4b7c700e01f1d512100c3ff26c5",
+      "sha256After": "fc5bc1fdb66ff80098fcc85d339d41daf4afb4b7c700e01f1d512100c3ff26c5",
+      "unchangedDuringProbe": true
+    },
+    "workflow": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+      "sha256": "9e596821aa38829397b2d5c3d4cf3ab431352b586788a8edcc8243aac4b4f52d"
+    },
+    "probeSha256": "3c5a1c14a8ccd81b4e8751c85a9a75ddf5015f7414874fb643fba59d11d5aff8"
+  },
+  "facts": {
+    "counts": {
+      "original": 603,
+      "additional": 19,
+      "validCaseRecords": 0,
+      "accepted": 0
+    },
+    "accepted": false,
+    "mode": "readiness",
+    "issueCount": 2704,
+    "gate": {
+      "currentPlanApproved": true,
+      "currentPlanManifest": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+      "currentPlanManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+      "frameworkFunctionalMigrationComplete": false
+    },
+    "spec": {
+      "total": 603,
+      "required": 603,
+      "uniqueIds": 603,
+      "sourcePathCount": 540
+    },
+    "ledger": {
+      "originalKeys": 603,
+      "additionalIds": [
+        "F2-K2-SDK-001",
+        "F2-K2-SDK-002",
+        "F2-K2-SDK-003",
+        "F2-K2-SDK-004",
+        "F2-K2-SDK-005",
+        "F2-K2-SDK-006",
+        "F2-K2-SDK-007",
+        "F2-K2-SDK-008",
+        "F2-K2-SDK-009",
+        "F2-K2-SDK-010",
+        "F2-K2-SDK-011",
+        "F2-K2-SDK-012",
+        "F2-K2-SDK-013",
+        "F2-K2-SDK-014",
+        "F2-K2-SDK-015",
+        "F2-K2-SDK-016",
+        "F2-K2-SDK-017",
+        "F2-K2-SDK-018",
+        "F2-K2-SDK-019"
+      ],
+      "lastDenominator": {
+        "version": 1,
+        "requiredCapabilityCount": 191
+      }
+    },
+    "mapping": {
+      "R1_R8": 8,
+      "historical17": 17
+    }
+  },
+  "verification": {
+    "runnerCommand": "node /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/_acceptance-mechanism-probe.mjs",
+    "exitCode": 0,
+    "scope": "48 pure-helper mutations + exact current reference/report branches + 5 in-memory ZIP descriptor checks; readiness reads current approved baseline. No full-candidate validation.",
+    "fixtureSource": "Current supplied acceptance-evidence.test.mjs fixture definitions only; no test() body executed and no synthetic candidate persisted.",
+    "fullCandidateAcceptedClaim": false,
+    "userReportedTargetedTests": "17/17; supplied by user, not rerun or independently claimed here.",
+    "subagents": [
+      {
+        "role": "review sequence/identity/input closure",
+        "agentId": "01a100ca-6005-7f80-b548-0bd44cc7eafb",
+        "mode": "read-only static",
+        "resultsIntegrated": true
+      },
+      {
+        "role": "denominator/additional/historical mapping",
+        "agentId": "01a100ca-61f3-7602-acfa-8183e51feeb0",
+        "mode": "read-only static",
+        "resultsIntegrated": true
+      }
+    ],
+    "limitations": "Every accepted=true in probes is a synthetic helper/isolated-branch result, not an observed native product PASS or an end-to-end final-candidate result. Old findings were reevaluated after live updates; conclusions apply only to listed SHA snapshots. 本次定稿只静态核对用户声明的loadedInputs/source delta；不将先前48个动态mutation冒充对新SHA重新执行。",
+    "reportValidation": "Final report validator checks finalized delivery snapshot hashes and the preserved dynamic probe source hash; dynamic probes belong to the prior separately identified snapshot."
+  },
+  "findings": [
+    {
+      "id": "AMR-01",
+      "severity": "HIGH",
+      "title": "一条合格观测掩盖同 campaign 内的明确违规观测",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 103,
+          "end": 119
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+          "line": 99,
+          "end": 113
+        }
+      ],
+      "classification": "automatic-predicate-defect",
+      "probeIds": [
+        "sdk-bad-record-masked-by-one-good",
+        "unknown-replay-masked-by-one-good",
+        "termination-failure-masked-by-one-good",
+        "download-failure-masked-by-one-good"
+      ],
+      "reproduction": "在每次全新合成 fixture 中保留原合格记录，再追加独立 id、同 kind、完整双环境且 pass=true 的记录；分别把其 measurements 改成 controllerRuns=1/httpWrites=2、unknown replay=true、terminatedMs=60000/borrowedPageClosed=true，或 download.state=interrupted。",
+      "observed": "四个 mutation 都返回 accepted=true、issues=[]。",
+      "judgment": "inEveryEnvironment 使用 some，只证明每个环境至少有一条合格记录，未拒绝其余已纳入成功 campaign 的违规 measurements。该缺陷属于自动结构/数值谓词，不需要机器理解任意 JS 业务语义。",
+      "minimalFix": "覆盖率检查保留，但对每个声明为成功的目标 kind/环境 observation 都执行对应谓词，任何失败立即加 issue；确需保留失败历史时单列且不可计入当前成功 campaign。加入上述混合合格/违规记录回归。"
+    },
+    {
+      "id": "AMR-02",
+      "severity": "HIGH",
+      "title": "不同结果 ID 可复用同一物理轮次并虚报 1000 次",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 85,
+          "end": 101
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+          "line": 102
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+          "line": 90,
+          "end": 97
+        }
+      ],
+      "classification": "automatic-occurrence-binding-gap",
+      "probeIds": [
+        "campaign-repeat-one-raw-round"
+      ],
+      "reproduction": "克隆 mixed-0 的原始引用和 observations 为1000条；仅保留不同 id 与五种 kind 标签；所有 observation 都声明同一 roundId、相同开始/结束时间、相同原始证据。",
+      "observed": "accepted=true、issues=[]。旧的跨 campaign/原 case 同 ID 复用已经被拒绝，此 mutation 使用不同 ID。",
+      "judgment": "当前唯一性约束覆盖结果 ID，未覆盖其对应的实际事件位置/轮次。该探针证明缺少 occurrence 绑定，不证明本次真的执行过1000个 native轮次；轮次真实性仍需独立语义审阅。",
+      "minimalFix": "要求每环境每轮具有可定位的 occurrence identity，例如 run/session/roundId 和 raw artifact hash+JSON pointer/event offset；校验其与记录 ID 的绑定及全 campaign 唯一性。允许同一聚合日志文件复用，但不能复用同一事件片段。"
+    },
+    {
+      "id": "AMR-03",
+      "severity": "HIGH",
+      "title": "当前19个 SDK 增项没有不可变预期合同绑定",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 63,
+          "end": 72
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 159,
+          "end": 161
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+          "line": 123
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+          "line": 20,
+          "end": 24
+        }
+      ],
+      "classification": "automatic-contract-binding-gap",
+      "probeIds": [
+        "additional-no-contract"
+      ],
+      "reproduction": "删除 EXPLICIT-ADD 的 contractSha256 并将 expected/actual 改成相互矛盾的任意对象。",
+      "observed": "accepted=true、issues=[]。当前实际19个SDK增项均不在批准的603 case规格中，contract 查找失败会跳过 contractSha256 校验。",
+      "judgment": "001–019 ID存在性保护已补好；剩余问题是预期合同未冻结，不是当前必选19数量可被删除。无需自动比较任意 actual/expected，仍应保证评审所使用的 expected 来自不可变增项合同。",
+      "minimalFix": "为登记的19项建立独立、批准且哈希固定的 supplemental case catalog；原 case 与增项都必须找到合同，并校验完整合同 hash 与来源。结果账本只保存结果，不作为预期合同源。"
+    },
+    {
+      "id": "AMR-04",
+      "severity": "HIGH",
+      "title": "评审批准没有绑定被审证据快照或前序 architect 报告",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 126,
+          "end": 136
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 235,
+          "end": 241
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+          "line": 103
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+          "line": 118
+        }
+      ],
+      "classification": "automatic-review-input-binding-gap",
+      "probeIds": [
+        "reviews-unbound-evidence-union"
+      ],
+      "reproduction": "保持两份 APPROVE 及 productPackageSha256 不变，声明其 reviewedEvidenceSha256/reviewedSpecSha256/reviewedSourceSha256 为另一个摘要；结构检查不读取这些值。也可在评审后替换同包的 resultReports/raw引用，重新声明真实文件SHA而保留旧批准。",
+      "observed": "内存 mutation accepted=true；当前报告分支仅比较8个字段，均不含被审输入清单或 architect 前序报告摘要。",
+      "judgment": "时间正序已经可靠拒绝倒序，但无法证明 critic 看的是当前 architect 报告以及当前 case/raw/campaign/closure 证据。文件哈希证明当前文件的完整性，不能代替批准对这些文件的绑定。后半种全候选替换为静态控制流判断，未创建或运行实际候选。",
+      "minimalFix": "两份报告都绑定相同 canonical review-input manifest SHA，覆盖批准规格、增项合同、构建来源、包/ZIP、环境、结果和全部原始证据引用、historicalClosures；critic 另绑定实际 architect 报告SHA。输入变化即使包不变也使旧审阅失效。"
+    },
+    {
+      "id": "AMR-05",
+      "severity": "HIGH",
+      "title": "非字符串 reviewerId 绕过作者排除和两位审阅者身份分离",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 124,
+          "end": 136
+        }
+      ],
+      "classification": "automatic-schema-defect",
+      "probeIds": [
+        "review-object-identity-bypass"
+      ],
+      "reproduction": "令两份 review.reviewerId 分别为新建数组 ['product-author']。",
+      "observed": "accepted=true；authors.includes(array) 不匹配字符串，两个数组引用也不相等。",
+      "judgment": "这不是要求检查器证明真实身份；这是现有身份比较接受错误 JSON 类型导致的确定性绕过。真实身份及作者名单完整性仍须独立核验。",
+      "minimalFix": "productAuthors 与 reviewerId 都要求规范化非空字符串，拒绝对象/数组，按规范化值检查唯一性/作者排除。真实身份来源由既定独立过程核验，不用自填 independent:true 替代。"
+    },
+    {
+      "id": "AMR-06",
+      "severity": "HIGH",
+      "title": "同角色追加阻断评审被第一条 APPROVE 遮蔽",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 126,
+          "end": 135
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 235,
+          "end": 241
+        }
+      ],
+      "classification": "automatic-cardinality-defect",
+      "probeIds": [
+        "duplicate-authoritative-review"
+      ],
+      "reproduction": "保留首个 architect APPROVE，追加同角色 REQUEST CHANGES 且 blockers=['open-native-blocker']。",
+      "observed": "accepted=true、issues=[]。",
+      "judgment": "find() 选第一条，额外 report 即使字段与文件一致也不参与最终批准判定。完整性检查不会补上角色唯一性。",
+      "minimalFix": "当前候选 architect/critic 各且仅一条有效 review；多轮历史应另列并显式绑定 supersedes 链，不以数组顺序选择有效批准。"
+    },
+    {
+      "id": "AMR-07",
+      "severity": "HIGH",
+      "title": "下载文件双 SHA 一致不等于与原 artifact 字节一致",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 113,
+          "end": 115
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+          "line": 59
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+          "line": 127
+        }
+      ],
+      "classification": "automatic-artifact-binding-gap",
+      "probeIds": [
+        "artifact-download-two-hash-mismatch",
+        "artifact-real-file-hash-contradiction"
+      ],
+      "reproduction": "保留 download.sha256===diskFile.sha256，同时声明 artifactSha256/源 artifact.sha256 为不同的合法64位SHA；独立文件探针以本探针文件的实际字节作为 diskFile，核验文件SHA后再执行 helper。",
+      "observed": "纯内存检查 accepted=true；实际临时文件 SHA 校验成功且 helperAccepted=true，而 artifactHash 与 downloadHash 不同。未启动 native下载，未运行最终候选。",
+      "judgment": "目前只将磁盘文件绑定到 download 的自填SHA，没有把下载绑定到 originating artifactId/run/持久payload的SHA及字节长度。错误磁盘SHA本身会被拒绝，本缺陷不构成突破 SHA256。",
+      "minimalFix": "要求 source artifactId/runId 与持久 artifact record/payloadRef 的实际引用；验证 artifact payload实际SHA/长度、declared artifact SHA、download SHA、diskFile实际SHA/长度全部一致，并将 native downloadId/终态回执绑定该 artifact。"
+    },
+    {
+      "id": "AMR-08",
+      "severity": "HIGH",
+      "title": "stable versionEvidence 只有SHA、没有文件路径仍通过",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 31,
+          "end": 41
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 190,
+          "end": 195
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+          "line": 115
+        }
+      ],
+      "classification": "automatic-required-file-reference-gap",
+      "probeIds": [
+        "stable-version-evidence-hash-only"
+      ],
+      "reproduction": "将 stable.versionEvidence 改成 {sha256:'a'.repeat(64)}，删除 path，保留其余环境字段。",
+      "observed": "accepted=true、issues=[]。references() 只处理同时拥有 path/sha256 的对象，所以最终遍历也不会访问该声明。",
+      "judgment": "缺少按规范应交付的 actual discovery evidence 文件，不是要求自动推断执行时 stable渠道。实际版本、渠道、时间及binary相关性仍需独立语义审阅。",
+      "minimalFix": "对 stable.versionEvidence 使用严格完整 file-ref schema 并显式调用 reference；稳定版发现记录应包含观察时间/渠道/版本及原始来源，交由独立评审核对。"
+    },
+    {
+      "id": "AMR-09",
+      "severity": "MEDIUM",
+      "title": "original/additional ID相交会重复计数并遮蔽增项失败",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 20,
+          "end": 24
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 63,
+          "end": 75
+        }
+      ],
+      "classification": "automatic-denominator-uniqueness-defect",
+      "probeIds": [
+        "additional-overlaps-original"
+      ],
+      "reproduction": "在 fixture.additionalCaseResults 加入 CASE-A:{status:'not-tested',pass:false}。",
+      "observed": "accepted=true；counts.original=2、additional=2、accepted=4，同一 CASE-A 记录计入两次且增项失败行未被读到。",
+      "judgment": "原603与191冻结未被单独突破，但最终成功分母/计数可被重复ID污染。生产入口对001–019存在性的检查不拒绝额外的相交ID。",
+      "minimalFix": "校验整个 required ID集合唯一性，拒绝 originals/additional 交集；按所属集合读取对应账本行，避免 original优先fallback。"
+    },
+    {
+      "id": "AMR-10",
+      "severity": "MEDIUM",
+      "title": "null 引用或容器造成 TypeError，无法返回结构化拒绝报告",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 31,
+          "end": 41
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 49,
+          "end": 58
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 126,
+          "end": 135
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+          "line": 76,
+          "end": 84
+        }
+      ],
+      "classification": "automatic-malformed-input-diagnostic-defect",
+      "probeIds": [
+        "null-evidence-reference",
+        "null-observation",
+        "null-environment",
+        "null-review",
+        "null-download-disk-reference"
+      ],
+      "reproduction": "分别替换 observation.evidence=[null]、observations[0]=null、environments[0]=null、reviews[0]=null、download.diskFile=null。",
+      "observed": "五项均抛 TypeError，未返回 accepted:false/issues结构；独立文件 reference(null) 本身会正常生成 INVALID_REFERENCE。",
+      "judgment": "CLI 外层 catch 会失败关闭/exit1，未发现null导致错误放行。问题是纯helper/API的错误报告合同与可诊断性；空对象 workerIdentity 也会通过现有truthiness检查。",
+      "minimalFix": "先验证容器数组及每个元素为非null plain object；引用要求 path/sha256 都是非空规范字符串；统一返回 INVALID_* issue。workerIdentity 应使用明确的可关联标识schema，不能仅检查truthiness。"
+    },
+    {
+      "id": "AMR-11",
+      "severity": "MEDIUM",
+      "title": "review报告内的原始证据引用不进入完整性校验",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 190,
+          "end": 195
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 235,
+          "end": 241
+        }
+      ],
+      "classification": "automatic-reference-closure-gap",
+      "probeIds": [
+        "review-nested-reference-not-read"
+      ],
+      "reproduction": "用当前 review-report 分支及内存 reference()，两份合法review JSON各增加 evidence:[{path:'missing-review-input.json',sha256:合法SHA}]，更新报告自身的真实SHA；不提供该嵌套文件。",
+      "observed": "分支issues=[]，只读两份review外壳，missingNestedReferenceVisited=false。",
+      "judgment": "报告外壳哈希正确，不保证报告声明的证据存在。为精确隔离该分支，未运行全候选/产品验收。",
+      "minimalFix": "对review报告明确 reviewedInputs/evidence schema并校验这些引用；解析后遍历规定的引用域，结合 AMR-04 验证输入覆盖和review快照一致性。"
+    }
+  ],
+  "resolved": [
+    {
+      "subject": "原603/必需标记与191能力分母",
+      "status": "resolved-or-retained",
+      "evidence": "当前checkAcceptance校验批准manifest/spec/frozen ledger实际SHA，确认603全required与191唯一ID；传入冻结分母，拒绝活动分母漂移。",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 148,
+          "end": 161
+        }
+      ],
+      "probeIds": [
+        "control-original-denominator-rejected",
+        "capability-denominator-erased"
+      ]
+    },
+    {
+      "subject": "SDK017–019必需存在性",
+      "status": "resolved",
+      "evidence": "explicitSdk 已为001–019。仅helper的 additional-removable-after-first16 mutation不能作为生产入口可删017–019的证据。",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 159,
+          "end": 161
+        }
+      ]
+    },
+    {
+      "subject": "campaign完整矩阵与相同ID跨campaign/原case复用",
+      "status": "resolved",
+      "evidence": "缺stable与ID复用返回矩阵/复用issue；尚未覆盖同事件不同ID，见AMR-02。",
+      "probeIds": [
+        "campaign-one-environment",
+        "control-cross-campaign-reuse-rejected",
+        "control-case-campaign-reuse-rejected"
+      ]
+    },
+    {
+      "subject": "逐环境measurements与review时间正序",
+      "status": "resolved",
+      "evidence": "不再读取顶层成功数抵扣环境；单独坏环境/unknown replay/3001ms/borrowed close/倒序时间均拒绝；多个记录的some遮蔽另见AMR-01。",
+      "probeIds": [
+        "sdk-per-environment-contradiction",
+        "crash-per-environment-replayed",
+        "termination-per-environment-failed",
+        "control-unknown-replay-rejected",
+        "control-termination-3001-rejected",
+        "control-borrowed-page-close-rejected",
+        "critic-completes-before-start",
+        "architect-start-invalid"
+      ]
+    },
+    {
+      "subject": "capability非hash引用及实际caprefs",
+      "status": "resolved",
+      "evidence": "当前item.evidence使用validRefs，并对191能力引用调用reference；字符串与{length:1}都拒绝。冻结case到能力的实际语义仍由独立评审判断。",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 80,
+          "end": 83
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 197,
+          "end": 200
+        }
+      ],
+      "probeIds": [
+        "capability-evidence-unhashed",
+        "capability-malformed-evidence-container"
+      ]
+    },
+    {
+      "subject": "实际文件SHA与production ZIP/目录双hash闭包",
+      "status": "retained-no-bypass-reproduced",
+      "evidence": "reference对实际临时探针文件的错误SHA、数组SHA、缺path/对象path均拒绝；当前ZIP descriptor算法内存探针拒绝改字节/多文件/少文件/重复项，exact通过；pack receipt另比较archive实际SHA和length、production packageHash。未检查真实production候选。",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 170,
+          "end": 177
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 223,
+          "end": 233
+        }
+      ]
+    },
+    {
+      "subject": "校验结束重读",
+      "status": "present-static-reviewed",
+      "evidence": "checked refs逐个重读SHA，production包重核hash。没有人为改写产品/证据，也没有执行并发竞态；普通终态漂移保护已存在，不将旧静态缺口继续列为未修。",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 248,
+          "end": 257
+        }
+      ]
+    },
+    {
+      "subject": "原case来源精确路径/SHA及全部sourceHashes实际文件字节",
+      "status": "resolved-or-strengthened",
+      "evidence": "当前对contract.source.path使用精确key/hash匹配，并对所有record.sourceHashes逐项调用实际reference；独立冻结路径换名探针返回SOURCE_BINDING_MISSING。旧fixture只带source.sha、无path的路径交换结果不能作为真实来源路径绑定绕过；540个冻结case含source.path，其他来源形态未扩展审计。",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 68,
+          "end": 72
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 196
+        }
+      ],
+      "probeIds": [
+        "control-contract-source-path-rejected"
+      ]
+    },
+    {
+      "subject": "loadedInputs台账/gates/history/candidate读后漂移保护",
+      "status": "present-static-verified",
+      "evidence": "read()记录输入绝对路径/首读SHA，最终重读ledger/gates/history/candidate及该函数加载的manifest；变动/缺失写入ACCEPTANCE_INPUT_CHANGED_DURING_CHECK。此保护不是reviewed-input manifest绑定，不能关闭AMR-04。未通过改写台账或门禁做动态竞态试验。",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 142,
+          "end": 145
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 244,
+          "end": 247
+        }
+      ]
+    }
+  ],
+  "semanticReviewPending": [
+    {
+      "subject": "module替代native",
+      "probeIds": [
+        "module-evidence-relabeled-native",
+        "download-evidence-contradiction"
+      ],
+      "status": "pending",
+      "judgment": "自填native-product/pass标签、任意actual/expected仍可能通过结构检查，这是工作流132行明确的自动检查边界。不得把helper accepted当native发生；独立semantic review须审阅原CDP/UI/HTTP/IDB记录，并通过AMR-04绑定精确输入。诚实module layer标签仍被拒绝。"
+    },
+    {
+      "subject": "包/源码hash与每次native运行来源",
+      "probeIds": [
+        "control-contract-source-path-rejected"
+      ],
+      "status": "pending",
+      "judgment": "当前已校验build.sourceInputs当前实际字节闭包、全部record.sourceHashes实际文件字节、原case精确冻结source.path/hash以及production包fingerprint。540个冻结case有source.path；独立路径调换控制探针被拒绝。旧source-hash-path-swapped使用无source.path的简化fixture，不能宣称当前生产source路径未绑定。实际native加载的extension/package与这些报告的运行关联仍需独立原始证据核对。"
+    },
+    {
+      "subject": "controller-free SDK/100并发/4 crash barriers/unknown不重放",
+      "status": "pending",
+      "judgment": "已自动验证逐环境数值字段；本聊天没有native sender/IDB/真实HTTP入站和写数、原身份/真实SW死亡边界观察。17/17机制测试不能关闭这些场景。"
+    },
+    {
+      "subject": "≤3s物理终止与借用页/资源清理",
+      "probeIds": [
+        "termination-empty-identity",
+        "cleanup-positive-leak-baseline"
+      ],
+      "status": "pending",
+      "judgment": "空对象workerIdentity与任意等值before/after可通过helper，不能证明target/run/CPU关联、单调stop起点、持续不增长或borrowed-page身份。等值999不自行证明漏泄，baseline语义需要原始前置与生命周期记录。真实CPU/TargetDestroyed/存活host/borrowed与owned处理均未测。"
+    },
+    {
+      "subject": "R1–R8/历史17正确关闭映射",
+      "probeIds": [
+        "historical-unrelated-one-case"
+      ],
+      "status": "pending",
+      "judgment": "映射任意存在必需case即可通过自动结构；工作流117行明确其语义由独立评审核查。批准603含25项必需回归，此probe单独不能绕过它们。评审须按冻结mapping核REGRESSION-R1-pointer/REGRESSION-HIST01等实际对应，不把映射存在当问题实关。"
+    },
+    {
+      "subject": "实际stable版本/渠道、作者与审阅者真实身份",
+      "probeIds": [
+        "environment-same-binary-version",
+        "missing-author-declaration"
+      ],
+      "status": "pending",
+      "judgment": "相同binary/version与不完整自声明author表属于真实性核验边界；机器不能凭标签解决。可自动封堵的缺引用/错误类型另列AMR-05/08。"
+    },
+    {
+      "subject": "真实download/artifact闭环",
+      "status": "pending",
+      "judgment": "本次没有产生、读取或验收native下载。AMR-07只是独立机制的hash链缺口；所有complete/cancel/interrupted及Blob/URL资源清理实测仍pending。"
+    }
+  ],
+  "independentProbeEvidence": {
+    "kind": "mechanism-only",
+    "nativeScenarios": "pending",
+    "checker": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+      "sha256": "dbb32d94f0e6a535a23386649f4519fb3766a790d8856b2153f24db0c8449124",
+      "sha256After": "dbb32d94f0e6a535a23386649f4519fb3766a790d8856b2153f24db0c8449124",
+      "unchangedDuringProbe": true,
+      "lines": 265
+    },
+    "test": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+      "sha256": "fc5bc1fdb66ff80098fcc85d339d41daf4afb4b7c700e01f1d512100c3ff26c5",
+      "sha256After": "fc5bc1fdb66ff80098fcc85d339d41daf4afb4b7c700e01f1d512100c3ff26c5",
+      "unchangedDuringProbe": true
+    },
+    "observations": {
+      "counts": {
+        "original": 603,
+        "additional": 19,
+        "validCaseRecords": 0,
+        "accepted": 0
+      },
+      "accepted": false,
+      "mode": "readiness",
+      "issueCount": 2704,
+      "gate": {
+        "currentPlanApproved": true,
+        "currentPlanManifest": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+        "currentPlanManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+        "frameworkFunctionalMigrationComplete": false
+      },
+      "spec": {
+        "total": 603,
+        "required": 603,
+        "uniqueIds": 603,
+        "sourcePathCount": 540
+      },
+      "ledger": {
+        "originalKeys": 603,
+        "additionalIds": [
+          "F2-K2-SDK-001",
+          "F2-K2-SDK-002",
+          "F2-K2-SDK-003",
+          "F2-K2-SDK-004",
+          "F2-K2-SDK-005",
+          "F2-K2-SDK-006",
+          "F2-K2-SDK-007",
+          "F2-K2-SDK-008",
+          "F2-K2-SDK-009",
+          "F2-K2-SDK-010",
+          "F2-K2-SDK-011",
+          "F2-K2-SDK-012",
+          "F2-K2-SDK-013",
+          "F2-K2-SDK-014",
+          "F2-K2-SDK-015",
+          "F2-K2-SDK-016",
+          "F2-K2-SDK-017",
+          "F2-K2-SDK-018",
+          "F2-K2-SDK-019"
+        ],
+        "lastDenominator": {
+          "version": 1,
+          "requiredCapabilityCount": 191
+        }
+      },
+      "mapping": {
+        "R1_R8": 8,
+        "historical17": 17
+      }
+    },
+    "workflow": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+      "sha256": "9e596821aa38829397b2d5c3d4cf3ab431352b586788a8edcc8243aac4b4f52d"
+    },
+    "outcomes": [
+      {
+        "id": "baseline",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Supplied synthetic fixture, not product evidence",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "campaign-one-environment",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Every campaign lacks stable observations; regular cases retain both",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1026,
+        "issueCodes": [
+          "OBSERVATION_MATRIX_MISSING",
+          "SDK_100_NOT_PROVEN",
+          "SDK_CRASH_NOT_PROVEN",
+          "DISK_DOWNLOAD_NOT_PROVEN",
+          "WORKER_TERMINATION_NOT_PROVEN"
+        ],
+        "issues": [
+          {
+            "code": "OBSERVATION_MATRIX_MISSING",
+            "subject": "mixed:mixed-0"
+          },
+          {
+            "code": "OBSERVATION_MATRIX_MISSING",
+            "subject": "mixed:mixed-1"
+          },
+          {
+            "code": "OBSERVATION_MATRIX_MISSING",
+            "subject": "mixed:mixed-2"
+          }
+        ]
+      },
+      {
+        "id": "campaign-repeat-one-raw-round",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "1000 unique result IDs share one raw reference and physical round identity",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "sdk-per-environment-contradiction",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Top-level SDK success counters contradict both environments",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "SDK_100_NOT_PROVEN"
+        ],
+        "issues": [
+          {
+            "code": "SDK_100_NOT_PROVEN",
+            "subject": "sdkConcurrency"
+          }
+        ]
+      },
+      {
+        "id": "crash-per-environment-replayed",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Top-level unknown/no-replay contradicts both environment observations",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "SDK_CRASH_NOT_PROVEN"
+        ],
+        "issues": [
+          {
+            "code": "SDK_CRASH_NOT_PROVEN",
+            "subject": "write-before-receipt"
+          }
+        ]
+      },
+      {
+        "id": "termination-per-environment-failed",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Both environments deny physical stop and preserve top-level happy measurements",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "WORKER_TERMINATION_NOT_PROVEN"
+        ],
+        "issues": [
+          {
+            "code": "WORKER_TERMINATION_NOT_PROVEN",
+            "subject": "workerTermination"
+          }
+        ]
+      },
+      {
+        "id": "module-evidence-relabeled-native",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Only layer/pass labels claim native; actual/preconditions explicitly say module-only",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "source-hash-path-swapped",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Contract source SHA appears under unrelated key; extra product source hash is unbound",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "control-contract-source-path-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "A contract with a frozen source.path must bind that exact key, not merely the SHA value",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 2,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "SOURCE_BINDING_MISSING"
+        ],
+        "issues": [
+          {
+            "code": "SOURCE_BINDING_MISSING",
+            "subject": "CASE-A"
+          }
+        ]
+      },
+      {
+        "id": "additional-no-contract",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Additional case has no frozen contract and arbitrary contradictory expectation",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "additional-removable-after-first16",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "New supplemental denominator entry disappears with no frozen supplementary catalog check",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "capability-denominator-erased",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Latest live history removes all required capabilities",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 2,
+        "issueCodes": [
+          "CAPABILITY_DENOMINATOR_CHANGED",
+          "CAPABILITY_NOT_ACCEPTED"
+        ],
+        "issues": [
+          {
+            "code": "CAPABILITY_DENOMINATOR_CHANGED",
+            "subject": "requiredCapabilityIds"
+          },
+          {
+            "code": "CAPABILITY_NOT_ACCEPTED",
+            "subject": "CAP"
+          }
+        ]
+      },
+      {
+        "id": "capability-evidence-unhashed",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Capability requires length only, not a raw native evidence reference",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "CAPABILITY_NOT_ACCEPTED"
+        ],
+        "issues": [
+          {
+            "code": "CAPABILITY_NOT_ACCEPTED",
+            "subject": "CAP"
+          }
+        ]
+      },
+      {
+        "id": "historical-unrelated-one-case",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Every historical failure mapped to the same existing unrelated case",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "critic-completes-before-start",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Critic completion precedes own start and Architect completion",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "INDEPENDENT_REVIEW_MISSING"
+        ],
+        "issues": [
+          {
+            "code": "INDEPENDENT_REVIEW_MISSING",
+            "subject": "critic"
+          }
+        ]
+      },
+      {
+        "id": "architect-start-invalid",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Architect start is not validated",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "INDEPENDENT_REVIEW_MISSING"
+        ],
+        "issues": [
+          {
+            "code": "INDEPENDENT_REVIEW_MISSING",
+            "subject": "architect"
+          }
+        ]
+      },
+      {
+        "id": "reviews-unbound-evidence-union",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Reviews claim another evidence/spec/source union; only productPackageSha256 is checked",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "missing-author-declaration",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Candidate omits true author from self-declared author list",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "review-object-identity-bypass",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Reviewer arrays represent author identity; includes and === compare distinct references",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "duplicate-authoritative-review",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "find() takes first APPROVE and ignores duplicate authoritative blocker",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "environment-same-binary-version",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Same 138 version and binary declared for minimum and stable",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "cleanup-positive-leak-baseline",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Arbitrary preexisting resource counts pass without approved baseline/owner/borrowed-page identity",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "termination-empty-identity",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "An empty object satisfies workerIdentity; no run/target/timeline/CPU sample correlation exists",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "download-evidence-contradiction",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Top-level download complete contradicts both environment actuals",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "additional-overlaps-original",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Same original result counts twice and hides failing additional row",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 2,
+          "validCaseRecords": 4,
+          "accepted": 4
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "artifact-download-two-hash-mismatch",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Downloaded disk hash matches download.sha256 but contradicts recorded source artifact hash",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "null-evidence-reference",
+        "details": "null-evidence-reference",
+        "threw": "Cannot read properties of null (reading 'path')"
+      },
+      {
+        "id": "null-observation",
+        "details": "null-observation",
+        "threw": "Cannot read properties of null (reading 'environmentId')"
+      },
+      {
+        "id": "null-environment",
+        "details": "null-environment",
+        "threw": "Cannot read properties of null (reading 'id')"
+      },
+      {
+        "id": "null-review",
+        "details": "null-review",
+        "threw": "Cannot read properties of null (reading 'role')"
+      },
+      {
+        "id": "null-download-disk-reference",
+        "details": "null-download-disk-reference",
+        "threw": "Cannot read properties of null (reading 'path')"
+      },
+      {
+        "id": "ref-path-object",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "ref-path-object",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 2,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "OBSERVATION_INCOMPLETE"
+        ],
+        "issues": [
+          {
+            "code": "OBSERVATION_INCOMPLETE",
+            "subject": "CASE-A"
+          }
+        ]
+      },
+      {
+        "id": "ref-hash-array",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "ref-hash-array",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "capability-malformed-evidence-container",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "capability-malformed-evidence-container",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "CAPABILITY_NOT_ACCEPTED"
+        ],
+        "issues": [
+          {
+            "code": "CAPABILITY_NOT_ACCEPTED",
+            "subject": "CAP"
+          }
+        ]
+      },
+      {
+        "id": "minimum-version-evidence-hash-only",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "minimum-version-evidence-hash-only",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "stable-version-evidence-hash-only",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "stable-version-evidence-hash-only",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "control-module-label-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Honest module label",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 2,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "NATIVE_RESULT_MISSING_OR_STALE"
+        ],
+        "issues": [
+          {
+            "code": "NATIVE_RESULT_MISSING_OR_STALE",
+            "subject": "CASE-A"
+          }
+        ]
+      },
+      {
+        "id": "control-foreign-package-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Foreign product hash label",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 2,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "NATIVE_RESULT_MISSING_OR_STALE"
+        ],
+        "issues": [
+          {
+            "code": "NATIVE_RESULT_MISSING_OR_STALE",
+            "subject": "CASE-A"
+          }
+        ]
+      },
+      {
+        "id": "control-original-denominator-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Original case key missing",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 2,
+          "accepted": 0
+        },
+        "issueCount": 2,
+        "issueCodes": [
+          "DENOMINATOR_CHANGED",
+          "LEDGER_NOT_ACCEPTED"
+        ],
+        "issues": [
+          {
+            "code": "DENOMINATOR_CHANGED",
+            "subject": "caseResults"
+          },
+          {
+            "code": "LEDGER_NOT_ACCEPTED",
+            "subject": "CASE-A"
+          }
+        ]
+      },
+      {
+        "id": "control-unknown-replay-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Environment replay true",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "SDK_CRASH_NOT_PROVEN"
+        ],
+        "issues": [
+          {
+            "code": "SDK_CRASH_NOT_PROVEN",
+            "subject": "write-before-receipt"
+          }
+        ]
+      },
+      {
+        "id": "control-termination-3001-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Environment physical deadline greater than 3000",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "WORKER_TERMINATION_NOT_PROVEN"
+        ],
+        "issues": [
+          {
+            "code": "WORKER_TERMINATION_NOT_PROVEN",
+            "subject": "workerTermination"
+          }
+        ]
+      },
+      {
+        "id": "control-borrowed-page-close-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Environment borrowed-page close true",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "WORKER_TERMINATION_NOT_PROVEN"
+        ],
+        "issues": [
+          {
+            "code": "WORKER_TERMINATION_NOT_PROVEN",
+            "subject": "workerTermination"
+          }
+        ]
+      },
+      {
+        "id": "control-cross-campaign-reuse-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Same record ID in two campaigns",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "CAMPAIGN_RESULT_REUSED"
+        ],
+        "issues": [
+          {
+            "code": "CAMPAIGN_RESULT_REUSED",
+            "subject": "reconnect:mixed-0"
+          }
+        ]
+      },
+      {
+        "id": "control-case-campaign-reuse-rejected",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "Original case counted as campaign",
+        "accepted": false,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 0
+        },
+        "issueCount": 1,
+        "issueCodes": [
+          "CAMPAIGN_RESULT_REUSED"
+        ],
+        "issues": [
+          {
+            "code": "CAMPAIGN_RESULT_REUSED",
+            "subject": "mixed:CASE-A"
+          }
+        ]
+      },
+      {
+        "id": "sdk-bad-record-masked-by-one-good",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "One passing SDK record hides another record with controller use and duplicate writes",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "unknown-replay-masked-by-one-good",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "One no-replay row hides another unknown-effect replay",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "termination-failure-masked-by-one-good",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "One passing stop hides another 60-second stop and borrowed page closure",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      },
+      {
+        "id": "download-failure-masked-by-one-good",
+        "target": "validateAcceptance (pure in-memory)",
+        "details": "One passing download hides another interrupted download labeled pass",
+        "accepted": true,
+        "counts": {
+          "original": 2,
+          "additional": 1,
+          "validCaseRecords": 3,
+          "accepted": 3
+        },
+        "issueCount": 0,
+        "issueCodes": [],
+        "issues": []
+      }
+    ],
+    "branchProbe": {
+      "id": "review-nested-reference-not-read",
+      "target": "exact extracted current review-report branch with memory reference()",
+      "issues": [],
+      "reads": [
+        "memory-architect-review.json",
+        "memory-critic-review.json"
+      ],
+      "missingNestedReferenceVisited": false
+    },
+    "fileProbes": [
+      {
+        "id": "strict-exact-self-file",
+        "returnedBytes": true,
+        "issues": []
+      },
+      {
+        "id": "strict-wrong-byte-hash",
+        "returnedBytes": false,
+        "issues": [
+          {
+            "code": "EVIDENCE_HASH_MISMATCH",
+            "subject": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/_acceptance-mechanism-probe.mjs"
+          }
+        ]
+      },
+      {
+        "id": "strict-hash-array",
+        "returnedBytes": false,
+        "issues": [
+          {
+            "code": "EVIDENCE_HASH_MISMATCH",
+            "subject": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/_acceptance-mechanism-probe.mjs"
+          }
+        ]
+      },
+      {
+        "id": "strict-null-reference",
+        "returnedBytes": false,
+        "issues": [
+          {
+            "code": "INVALID_REFERENCE"
+          }
+        ]
+      },
+      {
+        "id": "strict-path-object",
+        "returnedBytes": false,
+        "issues": [
+          {
+            "code": "EVIDENCE_FILE_MISSING",
+            "subject": {
+              "bad": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "strict-missing-path",
+        "returnedBytes": false,
+        "issues": [
+          {
+            "code": "INVALID_REFERENCE"
+          }
+        ]
+      },
+      {
+        "id": "strict-dotdot-alias",
+        "returnedBytes": true,
+        "issues": []
+      }
+    ],
+    "artifactFileProbe": {
+      "id": "artifact-real-file-hash-contradiction",
+      "downloadFileHashVerified": true,
+      "helperAccepted": true,
+      "artifactHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "downloadHash": "3c5a1c14a8ccd81b4e8751c85a9a75ddf5015f7414874fb643fba59d11d5aff8",
+      "note": "File reference + helper only, not full candidate or native download"
+    },
+    "zipProbes": [
+      {
+        "variant": "exact",
+        "closureMatches": true,
+        "archiveSha256": "80fc1e66ec927367fd8618e257940b1f7eae9c7738ff2d2205613c4bdaa02f84"
+      },
+      {
+        "variant": "changed-byte",
+        "closureMatches": false,
+        "archiveSha256": "bd0ba651dfd6e3396ee94faec7f2e0a2eb124fad1407dd48052843c1739f53c9"
+      },
+      {
+        "variant": "extra",
+        "closureMatches": false,
+        "archiveSha256": "02fa41d1e99541fb76a815fd9fb92663e5d369b0f54690eb3103b6006e455a1e"
+      },
+      {
+        "variant": "missing",
+        "closureMatches": false,
+        "archiveSha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85"
+      },
+      {
+        "variant": "duplicate",
+        "closureMatches": false,
+        "archiveSha256": "de12cb9e02aad42e0bc4238f2c39a6214c7fac2daec7fc06f96894b928e7c35d"
+      }
+    ]
+  },
+  "filePathHashJudgment": "未复现实际文件SHA绕过：wrong SHA/array SHA/path object/missing path被当前reference拒绝。../alias解析到同一真实文件且hash正确可接受，不把路径别名自行定性为漏洞；浏览器binary可合理位于工程外。稳定版hash-only引用的缺文件漏洞单列AMR-08。",
+  "archiveDualHashJudgment": "归档ZIP哈希与目录packageHash是不同recipe；当前代码分别校验archive SHA/length和path-sorted实际entry描述闭包，不将两者直接相等。5项内存ZIP检查符合预期；未复现包/ZIP双hash欺骗。下载源artifact链缺口另见AMR-07。",
+  "stopCondition": "Requested bounded mechanism review and exclusive report complete. Implementation fixes, final product candidate, native validation, semantic F3 approval remain with authorized owners.",
+  "deliveryStatus": "finalized-for-leader-repair",
+  "finalizedAt": "2026-10-03 08:31:36 UTC",
+  "deliverySnapshot": {
+    "checker": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+      "sha256": "d87563798162b9e86b0fa00951ea18f6b556ef50677c1d16ef51fffb95b3bcbe"
+    },
+    "test": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+      "sha256": "fc5bc1fdb66ff80098fcc85d339d41daf4afb4b7c700e01f1d512100c3ff26c5"
+    },
+    "workflow": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+      "sha256": "901096147939aff4925a5cc4bf2332cfdd594f1acd1a01269169e21a0aece870"
+    },
+    "method": "Bounded static verification of declared loadedInputs/source binding delta only; dynamic probe snapshot preserved separately; no rerun or scope expansion."
+  },
+  "finalizationDelta": {
+    "loadedInputs": {
+      "status": "present-static-verified",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 142,
+          "end": 145
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 244,
+          "end": 247
+        }
+      ],
+      "judgment": "read()记录输入绝对路径/首读SHA，最终重读ledger/gates/history/candidate及该函数加载的manifest；变动/缺失写入ACCEPTANCE_INPUT_CHANGED_DURING_CHECK。此保护不是reviewed-input manifest绑定，不能关闭AMR-04。未通过改写台账或门禁做动态竞态试验。"
+    },
+    "sourceBinding": {
+      "status": "retained",
+      "judgment": "contract.source.path精确绑定及全部record.sourceHashes实际读SHA已纳入前版resolved；本次确认仍在。"
+    },
+    "outsideScope": {
+      "browserLauncher": "用户最新AGENTS的global launcher要求记录为将来browser launch约束；本聊天未启动任何浏览器。",
+      "B05Runner": "其他子代理修改B05 runner，未在本聊天审阅或运行。",
+      "smoke": "leader报告无extension smoke 2/2；未独立复测、不纳入机制证据、不能折算native/F3通过。"
+    },
+    "findingDisposition": "保留当前11项发现供leader修复；本次新增loadedInputs不改变此前helper谓词、review身份/角色、artifact、null等控制流。未扩大查找面。"
+  }
+}

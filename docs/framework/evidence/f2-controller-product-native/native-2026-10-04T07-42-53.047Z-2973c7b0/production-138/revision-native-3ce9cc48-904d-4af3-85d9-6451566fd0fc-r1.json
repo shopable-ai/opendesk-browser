@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-3ce9cc48-904d-4af3-85d9-6451566fd0fc",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b",
+  "sourceUtf8": "await page.waitForSelector('#never-arrives'); await page.click('#submit'); return 'late';"
+}

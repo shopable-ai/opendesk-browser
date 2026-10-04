@@ -1,0 +1,189 @@
+[
+  {
+    "id": "HIST01",
+    "exactName": "frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs",
+        "line": 24,
+        "sha256": "ff43e117c1430847cc15ddf0e33d7e00c6a25f69eee71e4d7fbc1d8caa663e2f"
+      }
+    ]
+  },
+  {
+    "id": "HIST02",
+    "exactName": "stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs",
+        "line": 32,
+        "sha256": "ff43e117c1430847cc15ddf0e33d7e00c6a25f69eee71e4d7fbc1d8caa663e2f"
+      }
+    ]
+  },
+  {
+    "id": "HIST03",
+    "exactName": "post-dispatch epoch/target/grant fences prevent stale Chrome use",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs",
+        "line": 42,
+        "sha256": "ff43e117c1430847cc15ddf0e33d7e00c6a25f69eee71e4d7fbc1d8caa663e2f"
+      }
+    ]
+  },
+  {
+    "id": "HIST04",
+    "exactName": "script or command callback failure records unknown and cannot be blindly retried",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs",
+        "line": 57,
+        "sha256": "ff43e117c1430847cc15ddf0e33d7e00c6a25f69eee71e4d7fbc1d8caa663e2f"
+      }
+    ]
+  },
+  {
+    "id": "HIST05",
+    "exactName": "packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs",
+        "line": 121,
+        "sha256": "ff43e117c1430847cc15ddf0e33d7e00c6a25f69eee71e4d7fbc1d8caa663e2f"
+      }
+    ]
+  },
+  {
+    "id": "HIST06",
+    "exactName": "preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs",
+        "line": 181,
+        "sha256": "ff43e117c1430847cc15ddf0e33d7e00c6a25f69eee71e4d7fbc1d8caa663e2f"
+      }
+    ]
+  },
+  {
+    "id": "HIST07",
+    "exactName": "three batches: first two durable ACKs, third exact-byte failure hides whole page",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 118,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST08",
+    "exactName": "exact staged duplicate does not add bytes; conflicting valid digest aborts page",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 130,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST09",
+    "exactName": "stage may acknowledge authenticated raw frames before end; seal requires complete end",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 157,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST10",
+    "exactName": "seal recomputes all six rows; prefix-only signature fails",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 165,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST11",
+    "exactName": "batch gap, record key/field mismatch, and raw-end evidence mismatch reject",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 172,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST12",
+    "exactName": "stop wins before seal; seal wins before stop and preserves historic original ACK",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 183,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST13",
+    "exactName": "reader pins freeze watermark/count, paginate long typed values, and reject other cursors",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 207,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST14",
+    "exactName": "zero-batch empty page requires authenticated allowed-empty proof",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 221,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST15",
+    "exactName": "repeated full page signature without end is rejected and left invisible",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 228,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST16",
+    "exactName": "whole-page run limits, two pending ACKs, profile budget and injected disk quota",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 235,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  },
+  {
+    "id": "HIST17",
+    "exactName": "delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data",
+    "testSources": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs",
+        "line": 248,
+        "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+      }
+    ]
+  }
+]

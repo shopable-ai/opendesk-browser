@@ -1,0 +1,37 @@
+{
+  "id": "DOWNLOAD-FALSE",
+  "families": "DLGEN01/DLGEN02",
+  "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "66b244eff34b6f657ffb57f4cd0f589413f1ce9e2063cea63df87b38fe13d011",
+  "verificationInputsSha256": "7908725113607b9e2bd8f673c64a5e112349c24fe94cfa0cda111ba9134afcd1",
+  "packageSha256": "16f0b527f09beda7b9d284ba6c9fd7e2fea579c975c22f58ab798a52be9feb25",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791097373769,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "Required durable typed case failed; download blocked by product prerequisite",
+    "stack": "AssertionError [ERR_ASSERTION]: Required durable typed case failed; download blocked by product prerequisite\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:703:9\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:406:58)\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:702:81)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:367:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:197:3",
+    "actual": null
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "error",
+    "text": "E_EFFECT_UNKNOWN：Unsettled controller effects prevent success",
+    "result": "{\"runId\": \"6aa8321a-2713-46a4-82a7-4efa7e763b24\", \"revision\": {\"scriptId\": \"native-8b8d7ffd-12a3-44d0-a6ad-fb61f6e63743\", \"revision\": 1, \"sourceHash\": \"0027fc31ca6c157e5b63b8cb4c24bb9ef9b4a2b225dd8029c67ff338b68634d3\", \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"6aa8321a-2713-46a4-82a7-4efa7e763b24\\\",\\\"c6466093-34ec-4c07-99ed-9c4a1af247e3\\\",\\\"native-8b8d7ffd-12a3-44d0-a6ad-fb61f6e63743\\\",1]\"}}",
+    "version": "已保存 r1 · 0027fc31ca6c157e5b63b8cb4c24bb9ef9b4a2b225dd8029c67ff338b68634d3",
+    "runId": "6aa8321a-2713-46a4-82a7-4efa7e763b24",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": true,
+    "stopDisabled": true
+  },
+  "elapsedMs": 1.0325839999713935
+}

@@ -1,0 +1,521 @@
+{
+  "databases": [
+    {
+      "name": "opendesk-browser",
+      "version": 2
+    }
+  ],
+  "data": {
+    "version": 2,
+    "stores": {
+      "commandJournal": [
+        {
+          "key": "host:dc541f0d-8619-4eb8-a0f5-645d77cbe4b5",
+          "value": {
+            "tag": "host",
+            "registrationId": "dc541f0d-8619-4eb8-a0f5-645d77cbe4b5",
+            "hostInstanceId": "60c1e284-8e16-4218-9410-a4b13ad8e94f",
+            "hostDocumentId": "AF69FA8D219797C8BDDE2264B4E99987",
+            "hostUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+            "hostTabId": 1669973069,
+            "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+            "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "active": true,
+            "revoked": false,
+            "registeredAt": "2026-10-04T09:35:35.766Z"
+          }
+        },
+        {
+          "key": "sdk-grant:[1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\"]",
+          "value": {
+            "tag": "sdk-grant",
+            "tabId": 1669973067,
+            "frameId": 0,
+            "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+            "origin": "http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "tabEpoch": 1,
+            "frameEpoch": 0,
+            "permissionEpoch": 0,
+            "notificationEpoch": 0,
+            "key": "sdk-grant:[1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\"]",
+            "namespace": "page:http://127.0.0.1:61120",
+            "capabilities": [
+              "network",
+              "storage.persistent",
+              "storage.session"
+            ],
+            "allowedOrigins": [
+              "http://127.0.0.1:61120"
+            ],
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "active": true,
+            "grantedAt": "2026-10-04T09:38:11.284Z",
+            "registrationId": "dc541f0d-8619-4eb8-a0f5-645d77cbe4b5"
+          }
+        },
+        {
+          "key": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4\"]",
+          "value": {
+            "tag": "sdk-operation",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4\"]",
+            "tabId": 1669973067,
+            "frameId": 0,
+            "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+            "origin": "http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "namespace": "page:http://127.0.0.1:61120",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "runId": "d1e073f2-2951-4919-b672-9349d4ad323f",
+            "opId": "b372c760-22b3-4e65-9ee1-c48bca6e1c18",
+            "resultId": "49af626b-52d3-4f53-8135-1d782e324c69",
+            "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+            "requestDigest": "2ae7912478dcad5c22b516aded3429fbacb33604296f8a6487eba9fe31f5a3fc",
+            "method": "AXIOS_POST",
+            "capability": "network",
+            "effect": "write",
+            "deadlineAt": 1791106706352,
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "durable",
+            "cancelSeq": 0,
+            "submissionCount": 1,
+            "admittedAt": "2026-10-04T09:38:11.352Z",
+            "dispatchAt": "2026-10-04T09:38:11.388Z",
+            "nativeReceiptWire": {
+              "type": "object",
+              "value": [
+                [
+                  "config",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "method",
+                        {
+                          "type": "string",
+                          "value": "post"
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "type": "string",
+                          "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "data",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "effect",
+                        {
+                          "type": "boolean",
+                          "value": true
+                        }
+                      ],
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "headers",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "connection",
+                        {
+                          "type": "string",
+                          "value": "keep-alive"
+                        }
+                      ],
+                      [
+                        "content-type",
+                        {
+                          "type": "string",
+                          "value": "application/json"
+                        }
+                      ],
+                      [
+                        "date",
+                        {
+                          "type": "string",
+                          "value": "Sun, 04 Oct 2026 09:38:11 GMT"
+                        }
+                      ],
+                      [
+                        "keep-alive",
+                        {
+                          "type": "string",
+                          "value": "timeout=5"
+                        }
+                      ],
+                      [
+                        "transfer-encoding",
+                        {
+                          "type": "string",
+                          "value": "chunked"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "status",
+                  {
+                    "type": "number",
+                    "value": 200
+                  }
+                ],
+                [
+                  "statusText",
+                  {
+                    "type": "string",
+                    "value": "OK"
+                  }
+                ]
+              ]
+            },
+            "nativeReceiptAt": "2026-10-04T09:38:11.438Z",
+            "receiptAt": "2026-10-04T09:38:11.439Z",
+            "deliveryState": "response_ready",
+            "responseReadyAt": "2026-10-04T09:38:11.522Z"
+          }
+        },
+        {
+          "key": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6\"]",
+          "value": {
+            "tag": "sdk-operation",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6\"]",
+            "tabId": 1669973067,
+            "frameId": 0,
+            "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+            "origin": "http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "namespace": "page:http://127.0.0.1:61120",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+            "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+            "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+            "requestId": "b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6",
+            "requestDigest": "4d7559d764b6e3f477dc05f383a82061bbb6c38fbc3bb5e29a1bc0c7a7a0ec98",
+            "method": "APPSTORAGE_SETITEM",
+            "capability": "storage.persistent",
+            "effect": "write",
+            "deadlineAt": 1791106706604,
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "durable",
+            "cancelSeq": 0,
+            "submissionCount": 0,
+            "admittedAt": "2026-10-04T09:38:11.604Z",
+            "storageRequestDigest": "d158ba85b0a22bbe67cbf5b9ae498d79e8c70639324b9ee7a515e713cea7e9e6",
+            "durableAt": 1791106691645,
+            "receiptAt": "2026-10-04T09:38:11.645Z",
+            "receipt": {
+              "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+              "state": "durable"
+            }
+          }
+        },
+        {
+          "key": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"f3cfcdd7-8272-41f9-b044-b4e5133349a3\"]",
+          "value": {
+            "tag": "sdk-operation",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"f3cfcdd7-8272-41f9-b044-b4e5133349a3\"]",
+            "tabId": 1669973067,
+            "frameId": 0,
+            "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+            "origin": "http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "namespace": "page:http://127.0.0.1:61120",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "runId": "1dcf022a-6f86-4a85-926a-6de8f8f0bce4",
+            "opId": "2be33f5d-ba36-40a7-ad06-6a2c45bdf808",
+            "resultId": "7a46fbc7-95ac-4464-b390-400c3563623f",
+            "requestId": "f3cfcdd7-8272-41f9-b044-b4e5133349a3",
+            "requestDigest": "ca8cb1e56b068fbe9c53798df55d92e6a7a1e160402b6b0ef01625ab141fa288",
+            "method": "AXIOS_POST",
+            "capability": "network",
+            "effect": "write",
+            "deadlineAt": 1791106818788,
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "dispatched",
+            "cancelSeq": 0,
+            "submissionCount": 1,
+            "admittedAt": "2026-10-04T09:40:03.788Z",
+            "dispatchAt": "2026-10-04T09:40:03.789Z"
+          }
+        },
+        {
+          "key": "sdk-request:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4\"]",
+          "value": {
+            "tag": "sdk-request",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4\"]"
+          }
+        },
+        {
+          "key": "sdk-request:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6\"]",
+          "value": {
+            "tag": "sdk-request",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6\"]"
+          }
+        },
+        {
+          "key": "sdk-request:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"f3cfcdd7-8272-41f9-b044-b4e5133349a3\"]",
+          "value": {
+            "tag": "sdk-request",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"f3cfcdd7-8272-41f9-b044-b4e5133349a3\"]"
+          }
+        }
+      ],
+      "runs": [
+        {
+          "key": "1dcf022a-6f86-4a85-926a-6de8f8f0bce4",
+          "value": {
+            "tag": "sdk-service",
+            "driver": "framework.sdk-service.v1",
+            "runId": "1dcf022a-6f86-4a85-926a-6de8f8f0bce4",
+            "opId": "2be33f5d-ba36-40a7-ad06-6a2c45bdf808",
+            "namespace": "page:http://127.0.0.1:61120",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "preparing",
+            "createdAt": "2026-10-04T09:40:03.788Z"
+          }
+        },
+        {
+          "key": "568e5897-7088-46a8-8a76-8ef14e99a425",
+          "value": {
+            "tag": "sdk-service",
+            "driver": "framework.sdk-service.v1",
+            "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+            "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+            "namespace": "page:http://127.0.0.1:61120",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "completed",
+            "createdAt": "2026-10-04T09:38:11.606Z",
+            "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92"
+          }
+        },
+        {
+          "key": "d1e073f2-2951-4919-b672-9349d4ad323f",
+          "value": {
+            "tag": "sdk-service",
+            "driver": "framework.sdk-service.v1",
+            "runId": "d1e073f2-2951-4919-b672-9349d4ad323f",
+            "opId": "b372c760-22b3-4e65-9ee1-c48bca6e1c18",
+            "namespace": "page:http://127.0.0.1:61120",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "completed",
+            "createdAt": "2026-10-04T09:38:11.352Z",
+            "resultId": "49af626b-52d3-4f53-8135-1d782e324c69",
+            "completedAt": "2026-10-04T09:38:11.439Z"
+          }
+        }
+      ],
+      "results": [
+        {
+          "key": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+          "value": {
+            "tag": "sdk-result",
+            "namespace": "page:http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+            "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+            "requestId": "b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6",
+            "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6\"]",
+            "requestDigest": "4d7559d764b6e3f477dc05f383a82061bbb6c38fbc3bb5e29a1bc0c7a7a0ec98",
+            "storageRequestDigest": "d158ba85b0a22bbe67cbf5b9ae498d79e8c70639324b9ee7a515e713cea7e9e6",
+            "state": "durable",
+            "outcomeWire": {
+              "protocol": "opendesk.value.v1",
+              "ok": true,
+              "value": {
+                "type": "undefined"
+              }
+            },
+            "committedAt": 1791106691645,
+            "receiptAt": "2026-10-04T09:38:11.645Z",
+            "valueWire": {
+              "type": "undefined"
+            }
+          }
+        },
+        {
+          "key": "49af626b-52d3-4f53-8135-1d782e324c69",
+          "value": {
+            "tag": "sdk-result",
+            "state": "durable",
+            "resultId": "49af626b-52d3-4f53-8135-1d782e324c69",
+            "opId": "b372c760-22b3-4e65-9ee1-c48bca6e1c18",
+            "runId": "d1e073f2-2951-4919-b672-9349d4ad323f",
+            "namespace": "page:http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4\"]",
+            "requestDigest": "2ae7912478dcad5c22b516aded3429fbacb33604296f8a6487eba9fe31f5a3fc",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "config",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "method",
+                        {
+                          "type": "string",
+                          "value": "post"
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "type": "string",
+                          "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "data",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "effect",
+                        {
+                          "type": "boolean",
+                          "value": true
+                        }
+                      ],
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "headers",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "connection",
+                        {
+                          "type": "string",
+                          "value": "keep-alive"
+                        }
+                      ],
+                      [
+                        "content-type",
+                        {
+                          "type": "string",
+                          "value": "application/json"
+                        }
+                      ],
+                      [
+                        "date",
+                        {
+                          "type": "string",
+                          "value": "Sun, 04 Oct 2026 09:38:11 GMT"
+                        }
+                      ],
+                      [
+                        "keep-alive",
+                        {
+                          "type": "string",
+                          "value": "timeout=5"
+                        }
+                      ],
+                      [
+                        "transfer-encoding",
+                        {
+                          "type": "string",
+                          "value": "chunked"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "status",
+                  {
+                    "type": "number",
+                    "value": 200
+                  }
+                ],
+                [
+                  "statusText",
+                  {
+                    "type": "string",
+                    "value": "OK"
+                  }
+                ]
+              ]
+            },
+            "receiptAt": "2026-10-04T09:38:11.439Z",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d"
+          }
+        }
+      ],
+      "frameworkKV": [
+        {
+          "key": "kv:[\"page:http://127.0.0.1:61120\",\"user\",\"storage-cut-3422a796-e6de-44b3-9253-0276442bbb2f\"]",
+          "value": {
+            "tag": "framework-kv",
+            "namespace": "page:http://127.0.0.1:61120",
+            "area": "user",
+            "key": "storage-cut-3422a796-e6de-44b3-9253-0276442bbb2f",
+            "valueWire": {
+              "type": "string",
+              "value": "false"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "permissions": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "sessionStorage": {
+    "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0"
+  }
+}

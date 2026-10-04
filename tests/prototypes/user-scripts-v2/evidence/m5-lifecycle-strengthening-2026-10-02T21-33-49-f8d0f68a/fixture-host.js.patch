@@ -1,0 +1,204 @@
+--- 2ed/fixture/host.js
++++ current/fixture/host.js
+@@ -7,15 +7,107 @@
+ const permissionEvents = [];
+ const acceptanceBarriers = new Map();
+ let observationTimers = 0;
++const activeOperations = new Set();
++const ownGrantEvents = [];
++let ownGrantEpoch = 1;
++let ownGrantEnabled = true;
++let authorizationMonitors = 0;
++let authorizationProbes = 0;
++let deadlineTimers = 0;
++
++function invalidate(entry, error, observedBy) {
++  // Only operation/native/browser/UI lifecycle code calls this. Renewal never
++  // clears the first invalidation, even if a later current check succeeds.
++  if (!entry.fence) entry.fence = {...errorRecord(error), observedBy, at: Date.now()};
++}
++
++function checkEntry(entry) {
++  if (entry.deadlineAt !== undefined && Date.now() >= entry.deadlineAt) {
++    invalidate(entry, new Error('E_OPERATION_DEADLINE'), 'operation-owned deadline');
++  }
++  if (!ownGrantEnabled || entry.ownGrantEpoch !== ownGrantEpoch) {
++    invalidate(entry, new Error('E_OWN_GRANT_REVOKED'), 'trusted host grant epoch');
++  }
++  if (entry.fence) throw new Error(entry.fence.message);
++}
++
++async function currentAuthority(entry, stage) {
++  checkEntry(entry);
++  try {
++    const actual = await verifyCurrent(entry.target);
++    entry.actualOrigin = actual.origin;
++    entry.authorityChecks.push({stage, at: Date.now(), actual});
++    checkEntry(entry);
++    return actual;
++  } catch (error) {
++    invalidate(entry, error, `operation-owned ${stage} authorization`);
++    throw error;
++  }
++}
++
++function startMonitor(entry) {
++  entry.monitorStopped = false;
++  authorizationMonitors++;
++  const probe = async () => {
++    if (entry.monitorStopped) return;
++    const observation = {api: 'chrome.userScripts.getScripts', stage: 'pending-monitor', started: Date.now()};
++    entry.availabilityObservations.push(observation);
++    authorizationProbes++;
++    try {
++      const scripts = await chrome.userScripts.getScripts();
++      Object.assign(observation, {available: true, scriptsCount: scripts.length});
++    } catch (error) {
++      Object.assign(observation, {available: false, error: errorRecord(error)});
++      invalidate(entry, error, 'operation-owned chrome.userScripts.getScripts');
++    } finally {
++      observation.finished = Date.now();
++      authorizationProbes--;
++      if (!entry.monitorStopped && !entry.fence) {
++        entry.monitorTimer = setTimeout(() => {
++          entry.monitorTimer = undefined;
++          entry.monitorTask = probe();
++        }, 25);
++      }
++    }
++  };
++  entry.monitorTask = probe();
++}
++
++async function stopMonitor(entry) {
++  if (entry.monitorStopped === undefined) return;
++  entry.monitorStopped = true;
++  clearTimeout(entry.monitorTimer);
++  await entry.monitorTask;
++  authorizationMonitors--;
++  delete entry.monitorTimer;
++  delete entry.monitorTask;
++}
++
+ chrome.permissions.onRemoved.addListener(value => {
+   permissionEvents.push({event: 'removed', value, at: Date.now()});
+-  for (const entry of operations.values()) {
+-    if (entry.state === 'pending' && value.origins?.some(pattern => new URL(pattern).hostname === new URL(entry.target.url).hostname)) {
+-      entry.fence = {name: 'Error', message: 'E_HOST_PERMISSION_REVOKED', observedBy: 'chrome.permissions.onRemoved', at: Date.now()};
++  for (const entry of activeOperations) {
++    if (value.origins?.some(pattern => !entry.actualOrigin || new URL(pattern).hostname === new URL(entry.actualOrigin).hostname)) {
++      invalidate(entry, new Error('E_HOST_PERMISSION_REVOKED'), 'chrome.permissions.onRemoved');
+     }
+   }
+ });
+ chrome.permissions.onAdded.addListener(value => permissionEvents.push({event: 'added', value, at: Date.now()}));
++chrome.webNavigation.onCommitted.addListener(details => {
++  for (const entry of activeOperations) {
++    if (details.tabId === entry.target.tabId && details.frameId === entry.target.frameId && details.documentId !== entry.target.documentId) {
++      invalidate(entry, new Error('E_DOCUMENT_STALE'), 'chrome.webNavigation.onCommitted');
++    }
++  }
++});
++chrome.tabs.onRemoved.addListener(tabId => {
++  for (const entry of activeOperations) if (entry.target.tabId === tabId) invalidate(entry, new Error('E_TARGET_CLOSED'), 'chrome.tabs.onRemoved');
++});
++chrome.tabs.onReplaced.addListener((_added, removed) => {
++  for (const entry of activeOperations) if (entry.target.tabId === removed) invalidate(entry, new Error('E_TARGET_REPLACED'), 'chrome.tabs.onReplaced');
++});
++addEventListener('pagehide', () => {
++  for (const entry of activeOperations) invalidate(entry, new Error('E_HOST_DOCUMENT_CLOSED'), 'host pagehide');
++});
+ 
+ async function raw(injection) {
+   const entry = {injection, started: Date.now(), apiInvoked: false};
+@@ -36,23 +128,48 @@
+   return entry.outcome;
+ }
+ 
+-async function evaluate({target, source, args = [], world, worldId, acceptanceBarrier}, entry) {
++async function evaluate({target, source, args = [], world, worldId, acceptanceBarrier, deadlineMs}, entry = {target}) {
+   const traceStart = trace.length;
+   let native;
++  Object.assign(entry, {ownGrantEpoch, availabilityObservations: [], authorityChecks: []});
++  activeOperations.add(entry);
+   try {
+     const injection = {target: exactTarget(target), world, ...(worldId ? {worldId} : {}), js: [{code: functionCode(source, args)}]};
+-    const admission = await verifyCurrent(target);
++    if (deadlineMs !== undefined) {
++      if (!Number.isFinite(deadlineMs) || deadlineMs < 0) throw new Error('E_DEADLINE_INVALID');
++      entry.deadlineAt = Date.now() + deadlineMs;
++      deadlineTimers++;
++      entry.deadlineTimer = setTimeout(() => {
++        entry.deadlineTimer = undefined;
++        deadlineTimers--;
++        invalidate(entry, new Error('E_OPERATION_DEADLINE'), 'operation-owned deadline');
++      }, deadlineMs);
++    }
++    startMonitor(entry);
++    const admission = await currentAuthority(entry, 'dispatch');
++    checkEntry(entry);
+     native = await raw(injection);
+     if (acceptanceBarrier) {
+       entry.native = native;
+       entry.nativeCompletedAt = Date.now();
+       await new Promise(resolve => acceptanceBarriers.set(acceptanceBarrier, resolve));
+     }
+-    const settlement = await verifyCurrent(target);
+-    if (entry?.fence) throw new Error(entry.fence.message);
++    const settlement = await currentAuthority(entry, 'acceptance');
++    // Drain an already-issued native probe before accepting; its real OFF
++    // observation must not arrive after a success has been delivered.
++    await entry.monitorTask;
++    checkEntry(entry);
+     return {native, admission, settlement, accepted: accept(native, target), dispatchCount: trace.length - traceStart};
+   } catch (error) {
+     return {native, accepted: {kind: 'rejected', error: errorRecord(error)}, dispatchCount: trace.length - traceStart};
++  } finally {
++    await stopMonitor(entry);
++    if (entry.deadlineTimer !== undefined) {
++      clearTimeout(entry.deadlineTimer);
++      deadlineTimers--;
++      delete entry.deadlineTimer;
++    }
++    activeOperations.delete(entry);
+   }
+ }
+ 
+@@ -105,16 +222,10 @@
+     return {id, state: entry.state};
+   },
+   poll(id) { return operations.get(id); },
+-  async recheck(id) {
+-    const entry = operations.get(id);
+-    if (!entry || entry.state !== 'pending') throw new Error('E_PENDING_REQUIRED');
+-    const check = await window.fixture.authorization(entry.target);
+-    if (check.kind === 'rejected') entry.fence = {...check.error, observedBy: 'actual browser authorization recheck', at: Date.now()};
+-    return {check, fence: entry.fence};
+-  },
+   releaseAcceptance(id) { const release = acceptanceBarriers.get(id); if (!release) throw new Error('E_ACCEPTANCE_BARRIER'); acceptanceBarriers.delete(id); release(); },
+   operationSnapshots() { return [...operations.entries()].map(([id, entry]) => ({id, ...entry})); },
+-  resources() { return {pending: [...operations.values()].filter(item => item.state === 'pending').length, acceptanceBarriers: acceptanceBarriers.size, observationTimers, rawPending: trace.filter(item => !item.outcome).length}; },
++  resources() { return {pending: [...operations.values()].filter(item => item.state === 'pending').length, activeOperations: activeOperations.size, acceptanceBarriers: acceptanceBarriers.size, observationTimers, authorizationMonitors, authorizationProbes, deadlineTimers, rawPending: trace.filter(item => !item.outcome).length}; },
++  ownGrantState() { return {enabled: ownGrantEnabled, epoch: ownGrantEpoch, events: ownGrantEvents}; },
+   trace() { return trace; },
+   packagedTrace() { return packagedTrace; },
+   permissionEvents() { return permissionEvents; },
+@@ -140,4 +251,18 @@
+   try { window.restoreResult = {granted: await chrome.permissions.request({origins: ['http://127.0.0.1/*', 'http://localhost/*']})}; }
+   catch (error) { window.restoreResult = {error: errorRecord(error)}; }
+ });
++for (const [id, enabled] of [['revoke-own-grant', false], ['renew-own-grant', true]]) {
++  document.querySelector(`#${id}`).addEventListener('click', event => {
++    if (!event.isTrusted) return;
++    ownGrantEpoch++;
++    ownGrantEnabled = enabled;
++    ownGrantEvents.push({action: enabled ? 'renew' : 'revoke', epoch: ownGrantEpoch, at: Date.now(), isTrusted: event.isTrusted});
++    if (!enabled) for (const entry of activeOperations) invalidate(entry, new Error('E_OWN_GRANT_REVOKED'), 'trusted host grant UI');
++  });
++}
++document.querySelector('#cancel-operations').addEventListener('click', event => {
++  if (!event.isTrusted) return;
++  ownGrantEvents.push({action: 'cancel-pending', at: Date.now(), isTrusted: event.isTrusted});
++  for (const entry of activeOperations) invalidate(entry, new Error('E_OPERATION_CANCELLED'), 'trusted host cancel UI');
++});
+ window.fixture.show({ready: true});

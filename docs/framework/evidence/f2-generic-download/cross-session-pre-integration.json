@@ -1,0 +1,46 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/framework/k2-generic-download.test.mjs",
+    "tests/foundation/download-service.test.mjs",
+    "tests/foundation/storage.test.mjs",
+    "tests/framework/k2-codec.test.mjs",
+    "tests/framework/k3-controller-authority.test.mjs"
+  ],
+  "exitCode": 0,
+  "summary": {
+    "tests": 86,
+    "pass": 86,
+    "fail": 0
+  },
+  "before": {
+    "src/platform/downloads/index.js": "741f2a85cfbee87de515f53a2299e8ab5ee1a908dbc5ddc1ce5a1338ccd3da9e",
+    "src/platform/downloads/blob-lifecycle.js": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66",
+    "tests/framework/k2-generic-download.test.mjs": "f21221d182ae13969aef2980cb28eee5e33a402e4a9673c24742f4cde43b1e9c",
+    "tests/foundation/download-service.test.mjs": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936",
+    "src/platform/host/controller-methods.js": "93b8acfcf5a69d983bdc4cc491b78e1002a4a2112ccb35bc37069d03aae37402",
+    "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/host/broker.js": "5d27f3f2cfadfb007a618dfa02ef0fc3ca4b068d7c6774c545c96eab7bf7bcb6",
+    "src/platform/page-port/codec.js": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124",
+    "src/ui/tool.html": "7f966fa92d3412e641a967d46a15e65f4fbd57678fc6c861dcb15af9ee9ece13",
+    "src/ui/tool-shell.js": "37199af1af93f398b331ecadeadcc2a7acc01be77af6e4c1e524d78cbfa90d59"
+  },
+  "after": {
+    "src/platform/downloads/index.js": "741f2a85cfbee87de515f53a2299e8ab5ee1a908dbc5ddc1ce5a1338ccd3da9e",
+    "src/platform/downloads/blob-lifecycle.js": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66",
+    "tests/framework/k2-generic-download.test.mjs": "f21221d182ae13969aef2980cb28eee5e33a402e4a9673c24742f4cde43b1e9c",
+    "tests/foundation/download-service.test.mjs": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936",
+    "src/platform/host/controller-methods.js": "93b8acfcf5a69d983bdc4cc491b78e1002a4a2112ccb35bc37069d03aae37402",
+    "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/host/broker.js": "5d27f3f2cfadfb007a618dfa02ef0fc3ca4b068d7c6774c545c96eab7bf7bcb6",
+    "src/platform/page-port/codec.js": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124",
+    "src/ui/tool.html": "7f966fa92d3412e641a967d46a15e65f4fbd57678fc6c861dcb15af9ee9ece13",
+    "src/ui/tool-shell.js": "37199af1af93f398b331ecadeadcc2a7acc01be77af6e4c1e524d78cbfa90d59"
+  },
+  "sourceDrift": {}
+}

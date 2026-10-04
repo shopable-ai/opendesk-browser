@@ -1,0 +1,20 @@
+{
+  "syntax": "PASS",
+  "commands": [
+    "node --check run-native.mjs",
+    "node --check run.mjs",
+    "node --check fixture/host.js",
+    "node --check fixture/sw.js",
+    "node --check fixture/worker-harness.js",
+    "compile sandbox inline script via node vm.Script without executing"
+  ],
+  "frozenSourceCurrentHashesVerified": true,
+  "sameSourceTwoFullRuns": true,
+  "bothStatusesCountedUsingStatus": true,
+  "bothFullMatrices46Pass": true,
+  "oldRound4ArtifactsByteUnchanged": 119,
+  "ownedProcessesGone": true,
+  "backendPrototypePassed": false,
+  "F2": false,
+  "independentAcceptance": "pending main writer frozen-union functional/code review"
+}

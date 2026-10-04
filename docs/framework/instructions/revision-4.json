@@ -1,0 +1,45 @@
+{
+  "revision": 4,
+  "purpose": "Restore src-bex core framework migration as the main objective; keep workbench flow as required integration acceptance",
+  "requestedBy": "Current user correction: compare original src-bex core and improve relevance and verifiability",
+  "updatedAt": "2026-10-02T15:38:46.185452+00:00",
+  "previousRevision": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/instructions/revision-3.json",
+    "sha256": "36b4081e11e5430824c4326b5cfefdc868c8afb2ea1b89ddbea0637c0352fc1a",
+    "revision": 3,
+    "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+    "promptSha256": "d240b8af383ff1033a3ebe97ac20026a92c4c4173335fe963166b8daad605b93",
+    "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+    "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+  },
+  "previousPrompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/instructions/revision-4-before-goal-prompt.md",
+  "previousPromptSha256": "d240b8af383ff1033a3ebe97ac20026a92c4c4173335fe963166b8daad605b93",
+  "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+  "promptSha256": "6ca6d01c3210721f2b2ed76fa8699491bfe9f031dda6d33d23d2e027ecfb6b56",
+  "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+  "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96",
+  "evidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/migration-focus.md",
+  "evidenceSha256": "f949d83cc2425f2ff0bc5d1e91e55b042971387b1002d98527443dcd761cc672",
+  "progress": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/progress.md",
+  "progressSha256": "cfe44142045353112a9c61edd89e686940aed08bf64c801b9d3c87e5a1e8a871",
+  "preserved": {
+    "frozenContracts": true,
+    "72SourceRows": true,
+    "48MemberItems": true,
+    "workbenchAcceptance": true,
+    "originalF1F2F3Gates": true,
+    "boundedResearchOnly": true
+  },
+  "nativeGoalObservedStatus": "paused",
+  "nativeGoalResumed": false,
+  "nativeGoalObjectiveChanged": false,
+  "productFilesMatchPrePrototypeBaseline": true,
+  "gateFlags": {
+    "designApproved": true,
+    "boundedPrototypeResearchAllowed": true,
+    "backendPrototypePassed": false,
+    "fullImplementationReleased": false,
+    "frameworkFunctionalMigrationComplete": false
+  },
+  "newPassClaims": false
+}

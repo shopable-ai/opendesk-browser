@@ -1,0 +1,53 @@
+{
+  "at": "2026-10-04T07:11:43.621936+00:00",
+  "layer": "component-and-package-only",
+  "fullNativeAcceptance": false,
+  "componentsPassed": 410,
+  "logs": [
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-targeted.log",
+      "sha256": "02e0a20c7c06459cf080f6d1dca43fe65bdf3b2215f3f11693dfeb5d8166e8dd"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-sdk-targeted.log",
+      "sha256": "29be713d7459d46c20c741eef4d037f48282d83bd91c98ccbebe41f17a90e422"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-p5-components.log",
+      "sha256": "bc8763ac5aef1c677c8628ede054aa6213a35f69f4ec323c3994e3dbd9c7cb6e"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-build-prod.log",
+      "sha256": "d84c19cca210acc21a84327d19a8571698dc4ae1fc9442b40145e6ad1c00f2a0"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-build-dev.log",
+      "sha256": "a80bf39cecdff26a190d165b23bf4a1edf93451ec8fd56afa92066aec699ff22"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-pack-prod.log",
+      "sha256": "feef9643dcba0dff07362a76f24c163dc5fe23a17976cd8d9536ab935ae324d9"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-pack-dev.log",
+      "sha256": "cfae71cd8c7bcb140baed6311001692c2181d2a50061426806445022006d0559"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-verify.log",
+      "sha256": "98b5aa86a618b037f93790192dcd962eecaa05c0fc7b7c94dd9b635ac5d61718"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-p5-candidate-components.log",
+      "sha256": "5a6efed5f5908962277f238464004d401e0699ec2df174c89a250cafaf0d6f94"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-p5-final-source-check.log",
+      "sha256": "0aa9cce7514ce5f8278b1c3fcbbeefbd2704c1141cbfcfd6b4001179441ba108"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-p5-observers-safety.log",
+      "sha256": "c9c5026123af6cd481510594c510b8a4c56aa709b779dc33a62e6f8564c560e6"
+    }
+  ],
+  "nativeDiagnostic": "docs/framework/evidence/wxt/p4-p5/p4-native-first-diagnostic.json"
+}

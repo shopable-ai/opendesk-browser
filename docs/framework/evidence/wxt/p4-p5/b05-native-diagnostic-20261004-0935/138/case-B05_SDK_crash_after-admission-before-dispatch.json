@@ -1,0 +1,20 @@
+{
+  "id": "B05.SDK.crash.after-admission-before-dispatch",
+  "label": "138",
+  "startedAt": "2026-10-04T09:39:23.734Z",
+  "status": "FAIL",
+  "evidence": {},
+  "error": {
+    "message": "138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out",
+    "stack": "Error: 138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out\n    at Timeout._onTimeout (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:265:67)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)"
+  },
+  "reason": "138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out",
+  "measurements": {
+    "elapsedMs": 40006.681374999986,
+    "rawCdpSequenceStart": 7705,
+    "rawCdpSequenceEnd": 7707,
+    "httpRecordCountStart": 5,
+    "httpRecordCountEnd": 5
+  },
+  "endedAt": "2026-10-04T09:40:03.740Z"
+}

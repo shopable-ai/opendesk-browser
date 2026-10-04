@@ -1,0 +1,16 @@
+{
+  "sourceReview": "docs/framework/reviews/m5-f1/code-reviewer/control-review.json",
+  "blocker": "CR-F1-CTRL-001",
+  "originalProbeSha256": "c865fa1e83fe06e97b2dd8615e38424054a8a5315eef7540ba768ad565be55f2",
+  "adaptedProbeSha256": "03af2d2a6810c06e857b351aa52ecbe4967f9b41125008aceb3750843e083cf7",
+  "changes": [
+    "candidate/scope metadata",
+    "owned profiles inside K1 evidence scope",
+    "read original tab after prevented navigation",
+    "exact extension manifest selection"
+  ],
+  "expected": "native-permission-request < host-stop-returned < native-permission-resolved; zero native-tabs-update dispatch and zero server destination hits",
+  "candidateSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+  "planHash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "previousAuthorProbe": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-native-promise-race-2026-10-02T21-47-31.254341Z"
+}

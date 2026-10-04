@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "K3 product-module targeted proof",
+  "version": "1.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAs0SKpCaUNJ1eVAEdEt818Zdp1NIJluGYjwhKU+YeFyvZSntzCQpPBnEVQDoYdUqSYBW4idsyqgC/R9tyhrFBiJ2rS7XfR7IqSRKzqDsOATnmQZn5nna/4DJwEBlRBv72eGe48the3xKahj4fNAIWkLRQ2T9CCUcfWy4e2CttdZ/kOKC8mwnVsPkEGDlXKv5vDVdVFByTQwxjPq30CY+nmiwIow3vVjDyDVMw3TrLTCu0wtnHYkX8pDoey6LsxVnDtVwVQsilAXqbMlWx9V2oSYrZ4ZkwnHkPb3d95sxkfnPbK0hLXnb/niT1mM0Oq3ojKvMtTY5GsnQcpKO+PZWUDQIDAQAB",
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "sandbox": {
+    "pages": [
+      "src/scripting/sandbox/sandbox.html"
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'",
+    "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+  }
+}

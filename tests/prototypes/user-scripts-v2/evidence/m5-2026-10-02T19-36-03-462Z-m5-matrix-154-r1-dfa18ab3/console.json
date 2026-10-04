@@ -1,0 +1,38 @@
+[
+  {
+    "event": "serviceworker-console",
+    "level": "log",
+    "text": "F1 userScripts fixture installed",
+    "at": 1790969764171
+  },
+  {
+    "at": 1790969764171,
+    "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+    "event": "console",
+    "level": "log",
+    "text": "F1 userScripts fixture installed",
+    "location": {
+      "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/sw.js",
+      "line": 1,
+      "column": 53,
+      "lineNumber": 1,
+      "columnNumber": 53
+    }
+  },
+  {
+    "at": 1790969825316,
+    "url": "http://127.0.0.1:55823/top?id=target",
+    "event": "pageerror",
+    "name": "TypeError",
+    "message": "native-sync-error",
+    "stack": "TypeError: native-sync-error\n    at <anonymous>:1:13\n    at <anonymous>:1:50"
+  },
+  {
+    "at": 1790969826222,
+    "url": "http://127.0.0.1:55823/top?id=target",
+    "event": "pageerror",
+    "name": "TypeError",
+    "message": "native-sync-error",
+    "stack": "TypeError: native-sync-error\n    at <anonymous>:1:13\n    at <anonymous>:1:50"
+  }
+]

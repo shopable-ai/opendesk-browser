@@ -1,0 +1,12 @@
+{
+  "state": "project-level-MIT-evidence",
+  "path": "/Users/shopme/Documents/workspace/todo-user-vue/LICENSE",
+  "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+  "license": "MIT",
+  "copyright": "2021 cool-team-official",
+  "scope": "project-source SDK/service/loader modules; no extension to excluded vendor overrides",
+  "sourceSnapshot": "docs/framework/stage0/legacy-project-license.txt",
+  "packagedNoticeRequired": "licenses/todo-user-vue-MIT.txt",
+  "runtimePass": false,
+  "thirdPartyVendor": "excluded; per-file overriding license requires separate proof"
+}

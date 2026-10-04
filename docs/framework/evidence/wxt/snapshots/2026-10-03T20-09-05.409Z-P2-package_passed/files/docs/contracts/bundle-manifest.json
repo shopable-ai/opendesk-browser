@@ -1,0 +1,715 @@
+{
+  "contractVersion": "1.0.0",
+  "contractHash": "1486ff9c442807c0d447e542252830731faeede5f81cd685c5f146daecdba2a1",
+  "manifestEncoding": "od-json-1 canonical UTF-8 of manifest, SHA-256",
+  "manifest": {
+    "contractVersion": "1.0.0",
+    "components": [
+      {
+        "path": "contracts/fixtures/canonical.json",
+        "sha256": "9aaed413aff8dba7452b31a9f15765a2e6f543bf9ea60737123b834ba81799f8"
+      },
+      {
+        "path": "contracts/fixtures/download-attempts.json",
+        "sha256": "01a3572a1416c8e2185dc7838b85e5604b5efe93cab164188a5548d81c136ef1"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/boolean-false.csv",
+        "sha256": "16439077ae03d72dee2c5699917110adc127c6756f9766c5c673b72c6f93ab62"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/boolean-false.json",
+        "sha256": "eb4096e955d43171add8ffdc3b1837d7145ee2cf3cf59aa28170c07e5fb9aa82"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/cr-only.csv",
+        "sha256": "c6a16198b7ef626be1f9778ee6567efb6919f02cd84208815730acf6c65a4564"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/cr-only.json",
+        "sha256": "e5d27e5460de0316dd4e22036cca05a91b75eb08726e8c907a16ebcd82b7cd90"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/cr-plain.csv",
+        "sha256": "161b85d57e74d2704e24163e34a095f6d7c2f70f305afce0d68f8588a2fe2c8b"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/cr-plain.json",
+        "sha256": "b6018b1f73a1868affa8f2fa9295569b88314c81868d3853dcfb29b495236b25"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-0009.csv",
+        "sha256": "9a3f1b7a4738b3cd027e0a4c9555675912c25dafcaa78faa47e10401e780aa6c"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-0009.json",
+        "sha256": "f5b83890d5ff21de7e29d0997cc9170c94a3eddd95b5c54e3011ab1de8be27a3"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-000a.csv",
+        "sha256": "dc16ed3fe3c2845ebad5b658023ed11b037d8d7e6adf5e9339654867aec8c75c"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-000a.json",
+        "sha256": "8d8ac6711b959dc54557d87424648cd9f42e221d4e3415b215fd586f9e0d484d"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-000b.csv",
+        "sha256": "24bf9b383b5f6669f8f2cac6f13acc6d4e4ff5300d63a4627898b74c9cf0655c"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-000b.json",
+        "sha256": "f80445340556eb2813b98dad0d736d94ef415336899a42e34aa85996c7db4a85"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-000c.csv",
+        "sha256": "5a4c7f5731d7fb838ce43706219f02ed70ffe3fd41c5db4d165c63a3bbe7f443"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-000c.json",
+        "sha256": "c07efce2038080015c04fdbfd9ac6cc400f43d5d6fb2c17087f4b4983f6ef05b"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-000d.csv",
+        "sha256": "9365721c283d7b358e54940cd38e8db14d9f1f2b698c45f8c28a007b4ae48f63"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-000d.json",
+        "sha256": "756960348ebbca8dca46f1d062e91828bbaad75870c22be06b8a58d35eba551d"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-0020.csv",
+        "sha256": "46e0f68f0df55d157ddf7d57fda3c310381ef5cea464f429821564a0e388fb81"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-0020.json",
+        "sha256": "24104590cd354935912d4fc034378cf44601b6739d9bee7898b7f9d3c1e3184e"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-00a0.csv",
+        "sha256": "77674f978bbde8756485cf82108ea3429ea9eb7fc96d75ef0d0cc27607fa6b97"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-00a0.json",
+        "sha256": "05035a9f588267ec2d40620b39e4dc9663cb24c7f85894079ccc11dc63409b56"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-1680.csv",
+        "sha256": "c61661b41765afab9d9503992d15cbcfdd576bc8510bf8e47553af2c4f8a65ab"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-1680.json",
+        "sha256": "56aadbe563cb45cb4aa8909d097b38d2a54541ad8dc1bd5ce9c6969e486e124a"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2000.csv",
+        "sha256": "a3f1bf56d37a4e1d19fe251ccaa219b24daad6a56576f9b75cdae51ca45dcff6"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2000.json",
+        "sha256": "55ce09fd42bdc3aa655dd78ae84c3c59d6b7b3bf31eeb492b37a4e747fd2e35a"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2001.csv",
+        "sha256": "3653fcb9d6c38617ed2e05cd948ae653f4da10f4875e522d3302ed80d49aec3d"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2001.json",
+        "sha256": "bb6d74f28a5b6e184d5715234be3c6e44505c0b8d01bcd32e5f13d4958fde827"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2002.csv",
+        "sha256": "1723397f3fffa5a7dd6edc38d6a85474768b2c730115d4d0d3f796b519d46175"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2002.json",
+        "sha256": "fb15186fb01aa2707091025e6b2dcd26499b21d1eb245d403d9fb44283cf4086"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2003.csv",
+        "sha256": "cecfb19d129f8ea7ba9544c97d0abecf6202bcb6c2c44cad3b0efc936380c524"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2003.json",
+        "sha256": "a33df9e5686380a69a53d2b64bd81a36af9dd0ab9e264d6e5b06cb9ab08f6552"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2004.csv",
+        "sha256": "ce6e78472eec3c3c784fce29738e696caf8ad9c6f69bf673c9088d310dcaf551"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2004.json",
+        "sha256": "6704b763d1c628c2129bdd096e5b8f9b4d0db31dab53a9ad6d8e256070babc21"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2005.csv",
+        "sha256": "90c69590f7b7e46e2a56a1316de4413e87f65fd01a7c8ea8ced2aa1c9a193fbb"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2005.json",
+        "sha256": "5584a8fa66fdc57c0c5eb7835ab62fc583028c3c181bfff35281124e1f4df09e"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2006.csv",
+        "sha256": "33a5de3eb23710990b037b5fa5310f6a6b7a5f529ba4c13c20421c6155eae49e"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2006.json",
+        "sha256": "70ddef42d01729ce177a7f5249023a7ed85d4105da2591fa75defc0b81240063"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2007.csv",
+        "sha256": "ed49772d5c72d4e0e5261464a6a02364ed336f5c64166a65b0901def0f3b8a58"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2007.json",
+        "sha256": "691bf4d07e65fdc3d987e79ca9dcd8b90d44a327962ff721aaaa7df8267b2fdc"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2008.csv",
+        "sha256": "4df0c075880f121cfc3f380359b549766aac77328b4c2c7c0d6df13200e5ea0b"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2008.json",
+        "sha256": "212bdd6cab73f3286325a0c7e3de24132fa995723c076d367342190f3764d925"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2009.csv",
+        "sha256": "1e684b1e68774ecc36b62e53f25c7d9e37736c72e00599927d009c44ba8acc87"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2009.json",
+        "sha256": "790af455f245edb05153d6a637e15bd02965171087d3582cf7577bbc5c278672"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-200a.csv",
+        "sha256": "11695303f6348245d062ffc7bab6a3c9b1d0edec327c70391580250cf00f5298"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-200a.json",
+        "sha256": "3512484563f624dd4754164409341934bcf3f5de0a9d27739aacac3110dfc5cc"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2028.csv",
+        "sha256": "c93ab1a725a5213aeef78dab2b045c91ca68ac69dfe684cdd9d7343e5dd15bad"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2028.json",
+        "sha256": "964a2ff53698dda026909aaca301c2b14386a15e5c46a8fa5cf9630010c88484"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2029.csv",
+        "sha256": "53081e72d0b9c1722b072ecf98f286a5530c640796f976859e69b1c8e9ef3b7e"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-2029.json",
+        "sha256": "26af727bf687d79a87b10e66956ce5b1ea9f4c9e75d281647b62839f6a6e0597"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-202f.csv",
+        "sha256": "71ab67a301c592594724e04416607770f43413a767688aff51c9780c037d60df"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-202f.json",
+        "sha256": "43cf1fca85c1c95c32b14ac06fd221582f0edbd624b3b432ffaefd80bcadadfd"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-205f.csv",
+        "sha256": "f286b7bfae8dd2d6c8a5472da21393ef2d0a7fcd5e07bf855399102ec39a9a35"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-205f.json",
+        "sha256": "11bbc54210da7cd90ca99a10311cdf7b53057e54bb79e5e7d58d61b0cb69f806"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-3000.csv",
+        "sha256": "ff0eba6400771438eabdbaeae4734925bb939cbff5c775f91d16ce37694653d3"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-3000.json",
+        "sha256": "5602746a733b645e881b0b1315372f0ccfc5848e5ba344fc9160b4bba37b462b"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-feff.csv",
+        "sha256": "028d4d67af55da62dfb6aa8edd5468b709b151dc37968ee376a71c8676982bf9"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/ecma-feff.json",
+        "sha256": "7521c4bda0aae15535735ab245427f5e6a51d53c8438552e9f00e394799c6310"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/empty-string.csv",
+        "sha256": "c5ad91a88f098a0b833c9642023ff870018c7dc190a5778e82f1cad2a7ced9f3"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/empty-string.json",
+        "sha256": "2a710c9c20cbd24b9a9f1b251cac4b6a3933606dbcb425bc291f7d4e3177ff70"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/lf-plain.csv",
+        "sha256": "5a1dbe115657083dcfef386d7f52e87a48109f07bbfaeddf8b10158720da0feb"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/lf-plain.json",
+        "sha256": "098b2e3f6ec8beee7849ca90effbdef7a2020372caf4bd033c341573b1507f4b"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/mixed-prefix.csv",
+        "sha256": "d7fbce94cc54fe00ff1041425a9b9d0e88e28f9e935c11199af7078343a8b288"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/mixed-prefix.json",
+        "sha256": "d43b37ddf247ffff366af27b7bdd1d398b4bc0a9df241bee86ea3412e9355720"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/mongolian-vowel-separator.csv",
+        "sha256": "1be1c22ae42364940f07a756b072304255e9fa697dd2ad06f3c24926b73d2d66"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/mongolian-vowel-separator.json",
+        "sha256": "0a2d8ea2bdbeeac43616e5f2f25154e30de0bfebc47ab5761224e5fbd13dabae"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/negative-number.csv",
+        "sha256": "56ed0a9b3a68aefa2eab5f2b72d724476672a2d14b9c5df1fee29ad65b872204"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/negative-number.json",
+        "sha256": "04e96ccb5c292b01b0149794ceb9bdb2ebf751a3bada556f28b63a8d8b88d689"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/next-line-not-ecma.csv",
+        "sha256": "6615560f64e43fc24f18396e06d0feefa3a07d0cc2d802c104c528fe8ba735bb"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/next-line-not-ecma.json",
+        "sha256": "0fa2e8390930b05419edc16870754d7c3b537791ccdf499c944e120956c92640"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/null-string.csv",
+        "sha256": "c5ad91a88f098a0b833c9642023ff870018c7dc190a5778e82f1cad2a7ced9f3"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/null-string.json",
+        "sha256": "812cca057c219e89853d74bc5de677c0c52f121ab7c01b4d1c9e1be6e353a1c9"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/number-zero.csv",
+        "sha256": "2cb382062a63e6ab7a395b52d9cff7dd7219c1a4e1feca1803d8bf236402b63c"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/number-zero.json",
+        "sha256": "ce5c0785232f6532ee48d699cbe556db3b1d5fd16831ee354d57c58ebd756d12"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/positive-number.csv",
+        "sha256": "10c0ec82b2db66e5281e1c4d8930a3f4886b7670e71e0621bb68f976dfa65396"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/positive-number.json",
+        "sha256": "5286d2749bef68198373aa2a74dbb8a473494360d1160e9af10e0b93fc270d44"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/tab-only.csv",
+        "sha256": "aae2f4ccbe726a695f3316706bf994c259d2164e04ad48b6424c5207b2dbaa23"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/tab-only.json",
+        "sha256": "4463da307e4abc1f24825103a23b582706c6959f4a5c5217ec8190de7342883c"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/tab-plain.csv",
+        "sha256": "91033ad6d6bc3497983112e15a879282d28fbd9f66a6419e0d1882b9315e9ebb"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/tab-plain.json",
+        "sha256": "ac276039801414f492ba762d0612c1407063bd93c23c695f4e8265669e67625b"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-at.csv",
+        "sha256": "341faae21311fc2ede373fc4477daf073a1db78c65197c2ce66de6cf6d9f26fd"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-at.json",
+        "sha256": "a75bc9ec586170063c16197ea816fac9419d5fe469ab659947609d4589812b9d"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-formula-header.csv",
+        "sha256": "a962336ec3173b21f7b9c72321b229643caff1b8cdf3c339125f80c7e4ef2159"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-formula-header.json",
+        "sha256": "04e96ccb5c292b01b0149794ceb9bdb2ebf751a3bada556f28b63a8d8b88d689"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-minus.csv",
+        "sha256": "b92dce831c22f0c61b5f4e94ce2a1f7ebd41b480dc72dbd4a39bf1bdd5844981"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-minus.json",
+        "sha256": "7e34571e7b4571089c0fedb2c091cc2428e80f4350c2291ee647670444491e05"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-plain.csv",
+        "sha256": "85f39397d122296d70f5dceeb17626d2caf69828989412ecc303605b4e23c63a"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-plain.json",
+        "sha256": "64411a0a08b65206decc1dd128c69631d50429aeb5ea94ebfdc1aef3d05dd9ad"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-plus.csv",
+        "sha256": "b9f812421db6af36d62303cbe9f0a6f1b0e8d7ca9366d490a36178a5c1563345"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/unicode-plus.json",
+        "sha256": "2e5eef7a5deccb1f94f4086ee45b3096be880d9795940375336879673fe65029"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/vectors.json",
+        "sha256": "75f5c272db0fa9b24354cf202f948baff20afd5a02addc9a2fa7c97547b6aa96"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/zero-width-space.csv",
+        "sha256": "7a34a745d89e068cd6c952eb90ee8d98563ef7bc067de7755fead6892278d80c"
+      },
+      {
+        "path": "contracts/fixtures/migration/csv-formula-safety/zero-width-space.json",
+        "sha256": "52c5a0355c0cbfe0d8377794b2d4bcc0fce030cd774097c30198edc19a69085c"
+      },
+      {
+        "path": "contracts/fixtures/migration/illegal-config-backup/dom.html",
+        "sha256": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af"
+      },
+      {
+        "path": "contracts/fixtures/migration/illegal-config-backup/expected-csv-emitted.bin",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "contracts/fixtures/migration/illegal-config-backup/expected-json-emitted.bin",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "contracts/fixtures/migration/illegal-config-backup/legacy-config.json",
+        "sha256": "09ea23cf2f199c9efa3c0ea5a4431837ca217f4b1df7b8aa8279a2855c7318d6"
+      },
+      {
+        "path": "contracts/fixtures/migration/illegal-config-backup/vector.json",
+        "sha256": "9d75a02796207a53fc8b9e296d73d06d226bd8c500ab298abdd115b5e943ef2c"
+      },
+      {
+        "path": "contracts/fixtures/migration/manifest.json",
+        "sha256": "97009163051e3bc09bf71a05dd8817fdc0b475456dfbe21a38ecdbb8f3d2b533"
+      },
+      {
+        "path": "contracts/fixtures/migration/pagination-information-lost/dom.html",
+        "sha256": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af"
+      },
+      {
+        "path": "contracts/fixtures/migration/pagination-information-lost/expected-csv-emitted.bin",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "contracts/fixtures/migration/pagination-information-lost/expected-json-emitted.bin",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "contracts/fixtures/migration/pagination-information-lost/legacy-config.json",
+        "sha256": "17760099cb31a8d6d49305f34b609884a92c213710ce40b1cc07e4b51094bccf"
+      },
+      {
+        "path": "contracts/fixtures/migration/pagination-information-lost/vector.json",
+        "sha256": "82b56e011cb9845fa732e7ea6a516cde0ed0af9bb39d275d36a299a5736427de"
+      },
+      {
+        "path": "contracts/fixtures/migration/single-page/dom.html",
+        "sha256": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af"
+      },
+      {
+        "path": "contracts/fixtures/migration/single-page/expected-template.json",
+        "sha256": "949d1037f77e8f69f5f6cd4d0b474a72d02b120390991d1637ce0960779bec01"
+      },
+      {
+        "path": "contracts/fixtures/migration/single-page/expected.csv",
+        "sha256": "5b49bf1d179ff7e5f32d31385a188f53ffa81648c79d0f4f1a601711d4619c65"
+      },
+      {
+        "path": "contracts/fixtures/migration/single-page/expected.json",
+        "sha256": "19b0eb395ad83c589793896971fe116497579fbc17acdd1d2e1f34b1a3372c30"
+      },
+      {
+        "path": "contracts/fixtures/migration/single-page/legacy-config.json",
+        "sha256": "b7b1d4b617b7ebb8427809199aeee3ef42c6813b3d3b79172492d07afe79913f"
+      },
+      {
+        "path": "contracts/fixtures/migration/single-page/template.canonical.json",
+        "sha256": "3475cba7ddc43506711b82a1865ae0228c056f074b45b364706322c057d681fa"
+      },
+      {
+        "path": "contracts/fixtures/migration/single-page/vector.json",
+        "sha256": "b718cb214357212c73a6587ec5e90303e0fcc379994ce87f1c5bbf74db0eab78"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/boolean-0.html",
+        "sha256": "8949a55f0011de0f4beda30f417ded98b15a8ab5278394077706fa3341dae04a"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/boolean-1.html",
+        "sha256": "548dc3136ef1b0c823b8397b5f4ca9b287aa3fe6add70f4f1e38ad1ff3fc2b5f"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/boolean-2.html",
+        "sha256": "79c96894204b2c2a61a92719b3e29f264cc81c97e256e758f63dc0cfb0262407"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/boolean-3.html",
+        "sha256": "746e76f4dc721b1d24f1e7ae5c3e1eedfe279c3f4fbf3fbc83fb63c5b865e08d"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/boolean-4.html",
+        "sha256": "946603e9f65d7bb9d2e6d8f054a2646c140c852b5aab6bead1c9e81a16613982"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/boolean-5.html",
+        "sha256": "1adcf905b39c0555a1c285da1d6c0be9719e2b404788b1fa2699add2ba522591"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/boolean-6.html",
+        "sha256": "adffced4d7f1e2bb838e4188d71b69f3e9e574ac08b4af298be3bee36096efaa"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/boolean-7.html",
+        "sha256": "ca6917385d983ce40605c6be8ac4be5d85593182c2b2a4e47d4ec0a4708656a5"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-0.html",
+        "sha256": "946603e9f65d7bb9d2e6d8f054a2646c140c852b5aab6bead1c9e81a16613982"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-1.html",
+        "sha256": "b88f0dae0cf2b885714f320c01c7943d50a4d16d6573c93711f4eecd660b41ee"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-10.html",
+        "sha256": "34952aa16af6c45d80124d2b598e39effafbf26555ef93f437490159024df5ec"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-11.html",
+        "sha256": "60dc14895249217db3f2ac3f91a92838f1fd2df60ec565381f5551562065504f"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-12.html",
+        "sha256": "1de03b444d8ced40de4b4a8f9fdb48f4c5b5f5c25f9d30a8aee250bdcadd6474"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-2.html",
+        "sha256": "f0b234a59671884414249ff23dabacda57a718eab6594570ad30e568bd38b177"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-3.html",
+        "sha256": "88c3039fa20e83af9c92fa11ef4a083dd7b44ac21d01ed3fc4d255f96fe542bf"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-4.html",
+        "sha256": "79c96894204b2c2a61a92719b3e29f264cc81c97e256e758f63dc0cfb0262407"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-5.html",
+        "sha256": "c9d1e93556f64b4698e921c0049958564f3b9f9480c0017cb98f3f32abcf9e78"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-6.html",
+        "sha256": "21a55adb6a0c883322ecbf67668c5dcaea3ee87afa4814fb52a202b042b49959"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-7.html",
+        "sha256": "426eb156d77646fc245bfc98b347bf67d1fa5fa3bf301d19b940b4ff6cba7eaa"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-8.html",
+        "sha256": "30f4424ab71fdbe998d4cc637b0919e6ec11a2e533139241e434c41b86000faa"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-9.html",
+        "sha256": "8e5c5ce43130f141381b35ece76b908afc3118fc3b4bd68a5f9c4ba5523e9251"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-fractional-exponent.html",
+        "sha256": "d3fbce31bcde7ef093946e4be8ecd36e57ebb120c13b5318d62b2676bf2a74ac"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-fractional-negative.html",
+        "sha256": "4fda772dd1294b07127d8eee5d65a4d315b74cacf5d6250bcbf07a64b17c6706"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-integral-exponent.html",
+        "sha256": "3ef40f60b2ae970b8137cc659cac53422429b9bcd2eac73582d1fbf4bb044b92"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-rounds-to-unsafe-integer.html",
+        "sha256": "8d69c0aff293383d940b5f5c83f047f044813912b447d48a77e5a0e5382c0aff"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-safe-negative-boundary.html",
+        "sha256": "9d8c2ad0bcba24df7667264e2967daece04385c6e0253a03d81c2cd58f41cb31"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-unsafe-integral-decimal.html",
+        "sha256": "38edbf8d864f2baeb5bf74890c93fee74e030b8d0cec4222a2790e68437fb9e1"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-unsafe-negative-exponent.html",
+        "sha256": "74c1c1bff8d5ece685955aafc0e0081335af98e7f78eab8d8191c0e354ccdb34"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/number-unsafe-negative-integer.html",
+        "sha256": "21aca8287c6e2aed1e33694c1ed28c367c361da63d8c1282fbbf0b12fe2d1f82"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-conversion/vectors.json",
+        "sha256": "a1f698cc82e03a613f3e62da3d67231a0377d9de909feb4679736748f44eb7f1"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/cross-http.html",
+        "sha256": "dfc0edc5b66e8ef293eb34e85bb90cc33da279f46e43b51c85ef01a41c80b53d"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/empty.html",
+        "sha256": "6e7a3a1449fdddc2b2d7b50eb3aeaa62ea74ac0f7f6748a2a83241fc36c2f252"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/encoded-credentials.html",
+        "sha256": "df678fa6a50595c9b2d248580bb81e591390ab39222a540d6609161a32dde50e"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/execution-credentials.html",
+        "sha256": "0311f5343b61598d7301b8e897043aa7ba86a90e6f2182bd29094db626e89c27"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/execution-cross-origin.html",
+        "sha256": "3c0480f25d23964ff859b773de83f044d95886d5cb23bd309d7d4ff293e14653"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/ftp-scheme.html",
+        "sha256": "782a46a3bf4d4b90c879846faa9693361ed2b530d820c6c948e3998b204314c4"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/invalid-host.html",
+        "sha256": "ab7408bd66ab1cf4998756abaaa254a6e2f92c1e5713d5da7fc046ce1f9b9c09"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/javascript-scheme.html",
+        "sha256": "915f383a7c3f3a8ae0a7c8833380cfdb7ad853c64625e9a6a747b448bc5e8c18"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/optional-missing.html",
+        "sha256": "1939c0a1ee72bdb8282d4df6784a028d59197c31d547e3c1e4badef1282864b3"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/pagination-credentials.html",
+        "sha256": "fcd1e7f1006af2a2bed22a39ba1dbd20506bb41bff93508914589152374b28d6"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/pagination-cross-origin.html",
+        "sha256": "276daef92cf5bcc4cb259bc93deb6d298e189c0dbed988dfe87ca6d498f18805"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/pagination-same-origin.html",
+        "sha256": "e13f08777637d7ab7c6787db4d74f6ca84ad5252ae95ec440631cd1e02c06b78"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/password-only.html",
+        "sha256": "fe37b5c5a405059d288707e4bed7165305558618b7c65ae0b11042d59707acc8"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/protocol-relative-cross.html",
+        "sha256": "be9c83ef75a5f40688eed70544f4ba0e0e2df67a3d1b7d13fa4325f2214c4a58"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/relative-base-uri.html",
+        "sha256": "51036abc03aefd0bf4a962334ea384b9be8d60ae1e5bb10aa31243d2b2b08dca"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/unicode-only.html",
+        "sha256": "a98750a31296bb1f2ef2d44cf24895dba36f0613e4f8e317a3e2c0bef44973f0"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/unicode-trim-cross-https.html",
+        "sha256": "104f3d4f965ceae664eb48454ff34b91634295aae274b03e1560c113ef12887f"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/username-only.html",
+        "sha256": "de66892b63dc93cc3694edf7d1584b544f2de824bb332721f16f55dd84edb935"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/username-password.html",
+        "sha256": "86a156f0b851bdf74cbc89068554f3eb1760cc6ff8d9e7b3cbdb21631f3dd5b4"
+      },
+      {
+        "path": "contracts/fixtures/migration/strict-url/vectors.json",
+        "sha256": "6287b59358d9794a3069be6cd0a22c05d594dc9b4b0ef7bea132545a76d16de4"
+      },
+      {
+        "path": "contracts/fixtures/migration/template-rejection-vectors.json",
+        "sha256": "0ecf6ab5601f32246ceb30fa6fdc42ad5cb1784ae2c057f32604292141ef31a2"
+      },
+      {
+        "path": "contracts/fixtures/migration/template-revision.schema.json",
+        "sha256": "af61c01f5d6deaaf2a37da8853f9c8696ccfd012a6773b8e4438b6ffe3e27597"
+      },
+      {
+        "path": "contracts/fixtures/page-read-frames.json",
+        "sha256": "be97624789f37e1bd36dc58ac5f4df5a0b4f7deec0a5248fe471ade9af6fff4b"
+      },
+      {
+        "path": "contracts/fixtures/page-signature.json",
+        "sha256": "6c8e3fa85b846cfd4e86b1a849d7765cc37826fd11a9639314ad5da14a49f118"
+      },
+      {
+        "path": "contracts/fixtures/page-transaction.json",
+        "sha256": "76933e856b419fec9ac5dc6ea83354365d2a4f005fc4e9996f9d9658e5c4f969"
+      },
+      {
+        "path": "contracts/fixtures/protocol-repair-vectors.json",
+        "sha256": "3dd64b804eb779401d80dc97938c93ad8d289b03ecc0df2da1f69b734acc63a2"
+      },
+      {
+        "path": "contracts/fixtures/read-command.json",
+        "sha256": "f583b61eccd9edb88f407f1e4462e345145c8f0b5a8a85933970b96c041ec23e"
+      },
+      {
+        "path": "contracts/fixtures/scenarios.json",
+        "sha256": "d9e4a3569a6b2e806366b102787730d58414f7e42125c6600568612e8e490b7c"
+      },
+      {
+        "path": "contracts/fixtures/source-selection.json",
+        "sha256": "e862456759385883effab806cf5bba6c7d4f85876addcf39e63eb976f1a3cf08"
+      },
+      {
+        "path": "contracts/fixtures/transaction-template.json",
+        "sha256": "72acdcb069e50467a8d4c63e43a64cd6dbdf8473c15b449125fe61c7cf5441e3"
+      },
+      {
+        "path": "docs/contracts/contract.json",
+        "sha256": "f0e6d74475dcae4148333f9397dd835889a79612027e65cf0004827917efd4bd"
+      },
+      {
+        "path": "docs/contracts/migration.md",
+        "sha256": "e31c3fb18b9d403ebf1b7ba3e448d475fd0c3927de17337c33e39593e9cc13d7"
+      },
+      {
+        "path": "docs/contracts/schema.json",
+        "sha256": "eb95f9e9a7e54048377d551acce8c996dcc15f5fa87ed7ada19cb21b24c6d9b9"
+      },
+      {
+        "path": "docs/contracts/semantics.md",
+        "sha256": "d3bd09974bc31e7dd88f41e226846f9e2871e95ad50bfdfd36f80739739134eb"
+      },
+      {
+        "path": "docs/contracts/state-machines.json",
+        "sha256": "0e10025550df39b1fa2b942dd6725a9d18c9388a916817598e103d112a322165"
+      }
+    ]
+  },
+  "productAcceptance": false
+}

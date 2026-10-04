@@ -1,0 +1,739 @@
+{
+  "at": "2026-10-02T17:37:34.240332+00:00",
+  "stage": "stage0",
+  "goalNativeStatusObserved": "active",
+  "targetGitRepository": false,
+  "baselineSourcesCount": 72,
+  "baselineAPIItemsCount": 48,
+  "boundedSources": [
+    {
+      "id": "F030",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/.DS_Store",
+      "baselineSha256": "0621e38ab33666b5e793a0458b09f26723a4b0645bd6442ea0c2a3abb2e369fe",
+      "currentSha256": "0621e38ab33666b5e793a0458b09f26723a4b0645bd6442ea0c2a3abb2e369fe",
+      "changed": false
+    },
+    {
+      "id": "F001",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/ChromePage.ts",
+      "baselineSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "currentSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "changed": false
+    },
+    {
+      "id": "F022",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/TimeReview.ts",
+      "baselineSha256": "7a8f488e14f067c16668aff872d39ccac6c84046990cbd3f2272bb044b62d0d4",
+      "currentSha256": "7a8f488e14f067c16668aff872d39ccac6c84046990cbd3f2272bb044b62d0d4",
+      "changed": false
+    },
+    {
+      "id": "F031",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/.DS_Store",
+      "baselineSha256": "69b087e9af3e3194af850bc6ed431f55991720d5cb28d87f55ce3bf4733de5ed",
+      "currentSha256": "69b087e9af3e3194af850bc6ed431f55991720d5cb28d87f55ce3bf4733de5ed",
+      "changed": false
+    },
+    {
+      "id": "F032",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/css/colored-theme.min.css",
+      "baselineSha256": "072a4e57ebbdae8e534b57d3faa4150b2506a68cc45ad2fb135423e5f22fd4e8",
+      "currentSha256": "072a4e57ebbdae8e534b57d3faa4150b2506a68cc45ad2fb135423e5f22fd4e8",
+      "changed": false
+    },
+    {
+      "id": "F033",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/css/content-css.css",
+      "baselineSha256": "1a6859a972f4a9b685b89db47f3ef5592ac72f23b6aa16912a757960291d58de",
+      "currentSha256": "1a6859a972f4a9b685b89db47f3ef5592ac72f23b6aa16912a757960291d58de",
+      "changed": false
+    },
+    {
+      "id": "F034",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/css/dark-theme.min.css",
+      "baselineSha256": "f96eaa88c7181174f4554cd240b00d86fd02cbbbb9faa653c762cc6864de9c49",
+      "currentSha256": "f96eaa88c7181174f4554cd240b00d86fd02cbbbb9faa653c762cc6864de9c49",
+      "changed": false
+    },
+    {
+      "id": "F035",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/css/light-theme.min.css",
+      "baselineSha256": "3e285d080b91aab0984838fedb8662a97ece919aab83a9f40c393aca906bcdda",
+      "currentSha256": "3e285d080b91aab0984838fedb8662a97ece919aab83a9f40c393aca906bcdda",
+      "changed": false
+    },
+    {
+      "id": "F036",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/css/loader.css",
+      "baselineSha256": "faa84b73a1c6c71835b11918f8b7d26a92b07ef40bf29a5a570bafa5f5f1adce",
+      "currentSha256": "faa84b73a1c6c71835b11918f8b7d26a92b07ef40bf29a5a570bafa5f5f1adce",
+      "changed": false
+    },
+    {
+      "id": "F037",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/css/quasar.addon.css",
+      "baselineSha256": "fc751c9b5e7feabf2b083236a1cc3953e8467966bfae9550e54ef9ee96217b28",
+      "currentSha256": "fc751c9b5e7feabf2b083236a1cc3953e8467966bfae9550e54ef9ee96217b28",
+      "changed": false
+    },
+    {
+      "id": "F038",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/css/quasar.font.css",
+      "baselineSha256": "9c81facaa026ad2c0eed425ac800375f1a4ad3b0c784819acb09d237c7e0b850",
+      "currentSha256": "9c81facaa026ad2c0eed425ac800375f1a4ad3b0c784819acb09d237c7e0b850",
+      "changed": false
+    },
+    {
+      "id": "F039",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/css/quasarNoH16.css",
+      "baselineSha256": "335dc7e3a3c8814bb9566534df18e7ff3b70e0102a0679a853445919e8196d78",
+      "currentSha256": "335dc7e3a3c8814bb9566534df18e7ff3b70e0102a0679a853445919e8196d78",
+      "changed": false
+    },
+    {
+      "id": "F040",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/env.json",
+      "baselineSha256": "95901b7aedb666d48ce040a4a14c044f180c1251632a37311d9b461738502708",
+      "currentSha256": "95901b7aedb666d48ce040a4a14c044f180c1251632a37311d9b461738502708",
+      "changed": false
+    },
+    {
+      "id": "F041",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/head/1.jpg",
+      "baselineSha256": "0b2420896772d1e5ad3b0ac76ae2105e2b964665bcd51fa8dc24fa41319b1a47",
+      "currentSha256": "0b2420896772d1e5ad3b0ac76ae2105e2b964665bcd51fa8dc24fa41319b1a47",
+      "changed": false
+    },
+    {
+      "id": "F042",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/head/2.jpg",
+      "baselineSha256": "4df7211a7e49cf3e60c5086766a50a6cc24a1e0ea54dbc989e3946c5e84bf5ce",
+      "currentSha256": "4df7211a7e49cf3e60c5086766a50a6cc24a1e0ea54dbc989e3946c5e84bf5ce",
+      "changed": false
+    },
+    {
+      "id": "F043",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/danger-outline.svg",
+      "baselineSha256": "a2c5bfbb99f8fb26cc91ab2fd6b9269a02f160f05eab7748342f54fbe0e99acc",
+      "currentSha256": "a2c5bfbb99f8fb26cc91ab2fd6b9269a02f160f05eab7748342f54fbe0e99acc",
+      "changed": false
+    },
+    {
+      "id": "F044",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/danger.png",
+      "baselineSha256": "8c2e2dd2c3f70b300116d2aac20d633fc0b8014b6e5916d37ffdb354fea20d7e",
+      "currentSha256": "8c2e2dd2c3f70b300116d2aac20d633fc0b8014b6e5916d37ffdb354fea20d7e",
+      "changed": false
+    },
+    {
+      "id": "F045",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/default-outline.svg",
+      "baselineSha256": "fd5ef9edc87ee987cf0d6c27250d8ecdffe247b280fb3b29d137d675097f2c21",
+      "currentSha256": "fd5ef9edc87ee987cf0d6c27250d8ecdffe247b280fb3b29d137d675097f2c21",
+      "changed": false
+    },
+    {
+      "id": "F046",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/default.png",
+      "baselineSha256": "2bf9fe7ca88d34c47eeb501a54e10eb07132077943bbfc914e0a5f7aecba0a18",
+      "currentSha256": "2bf9fe7ca88d34c47eeb501a54e10eb07132077943bbfc914e0a5f7aecba0a18",
+      "changed": false
+    },
+    {
+      "id": "F047",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/info-outline.svg",
+      "baselineSha256": "816a93f5ae10568651dd13d33c127cbc9574cf0debc727b99d9d8adedcb5489d",
+      "currentSha256": "816a93f5ae10568651dd13d33c127cbc9574cf0debc727b99d9d8adedcb5489d",
+      "changed": false
+    },
+    {
+      "id": "F048",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/info.png",
+      "baselineSha256": "b5b84e9f923a10103595b174e6a5fbfd20e19df25edbde149905ed471d0385ce",
+      "currentSha256": "b5b84e9f923a10103595b174e6a5fbfd20e19df25edbde149905ed471d0385ce",
+      "changed": false
+    },
+    {
+      "id": "F049",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/success-outline.svg",
+      "baselineSha256": "4353d55901e8ff166a66c427c4983c22324c1f71a341302cc0cc819099ff2fc4",
+      "currentSha256": "4353d55901e8ff166a66c427c4983c22324c1f71a341302cc0cc819099ff2fc4",
+      "changed": false
+    },
+    {
+      "id": "F050",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/success.png",
+      "baselineSha256": "38e23ccb3c208abfa0712dde37c29109c636b232be186e7d59640232a9e0adfc",
+      "currentSha256": "38e23ccb3c208abfa0712dde37c29109c636b232be186e7d59640232a9e0adfc",
+      "changed": false
+    },
+    {
+      "id": "F051",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/warning-outline.svg",
+      "baselineSha256": "6671ca03631a79ee4852a963b104a66e635d95ed6775cd1bdf78eca1b5447fcb",
+      "currentSha256": "6671ca03631a79ee4852a963b104a66e635d95ed6775cd1bdf78eca1b5447fcb",
+      "changed": false
+    },
+    {
+      "id": "F052",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/img/warning.png",
+      "baselineSha256": "1bcb232d766ddd77112b03e95392cdad3e29af2feb0bc201a7f193f28a27058b",
+      "currentSha256": "1bcb232d766ddd77112b03e95392cdad3e29af2feb0bc201a7f193f28a27058b",
+      "changed": false
+    },
+    {
+      "id": "F053",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/.DS_Store",
+      "baselineSha256": "86837862b527a6263aead1ce878e037e055d494f4247926dbc21d7fd9510f5ed",
+      "currentSha256": "86837862b527a6263aead1ce878e037e055d494f4247926dbc21d7fd9510f5ed",
+      "changed": false
+    },
+    {
+      "id": "F002",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/Env.js",
+      "baselineSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "currentSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "changed": false
+    },
+    {
+      "id": "F025",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/TraceTimeCore.js",
+      "baselineSha256": "b08ef7530fd4a41bd1cf83e77a313c2b4deed07b0e588c71741e8c7042f747ef",
+      "currentSha256": "b08ef7530fd4a41bd1cf83e77a313c2b4deed07b0e588c71741e8c7042f747ef",
+      "changed": false
+    },
+    {
+      "id": "F023",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/TraceTimeUtil.js",
+      "baselineSha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+      "currentSha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+      "changed": false
+    },
+    {
+      "id": "F054",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/axios.min.js",
+      "baselineSha256": "48106a6db52931958f232a527e036fbdec1ae1b3ee95e42acaf1893c12abe084",
+      "currentSha256": "48106a6db52931958f232a527e036fbdec1ae1b3ee95e42acaf1893c12abe084",
+      "changed": false
+    },
+    {
+      "id": "F027",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/controller/csdn.js",
+      "baselineSha256": "b29cd2fa803bc01086c47b7fdfcd2cd33235af5b9068316478013618cab608ab",
+      "currentSha256": "b29cd2fa803bc01086c47b7fdfcd2cd33235af5b9068316478013618cab608ab",
+      "changed": false
+    },
+    {
+      "id": "F003",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/appLocal.js",
+      "baselineSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "currentSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "changed": false
+    },
+    {
+      "id": "F004",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/appStorage.js",
+      "baselineSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "currentSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "changed": false
+    },
+    {
+      "id": "F005",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/axiosx.js",
+      "baselineSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "currentSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "changed": false
+    },
+    {
+      "id": "F006",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/brige.js",
+      "baselineSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "currentSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "changed": false
+    },
+    {
+      "id": "F007",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/common.js",
+      "baselineSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "currentSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "changed": false
+    },
+    {
+      "id": "F008",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/serverUtils.js",
+      "baselineSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "currentSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "changed": false
+    },
+    {
+      "id": "F009",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/utils.js",
+      "baselineSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "currentSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "changed": false
+    },
+    {
+      "id": "F010",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/custom_event.js",
+      "baselineSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "currentSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "changed": false
+    },
+    {
+      "id": "F024",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/detect_focus.js",
+      "baselineSha256": "0f7cf85ea6d0d08f847f7ab2ea7d5ccec61925c38ee5607d3d45f62e9b384e9f",
+      "currentSha256": "0f7cf85ea6d0d08f847f7ab2ea7d5ccec61925c38ee5607d3d45f62e9b384e9f",
+      "changed": false
+    },
+    {
+      "id": "F055",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/growl-notification.min.js",
+      "baselineSha256": "2c2a5f5eb4c8880e1fb8885fab3b18428adf3a6d237835c10ed50c26c68e55a4",
+      "currentSha256": "2c2a5f5eb4c8880e1fb8885fab3b18428adf3a6d237835c10ed50c26c68e55a4",
+      "changed": false
+    },
+    {
+      "id": "F056",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/jquery.min.js",
+      "baselineSha256": "87083882cc6015984eb0411a99d3981817f5dc5c90ba24f0940420c5548d82de",
+      "currentSha256": "87083882cc6015984eb0411a99d3981817f5dc5c90ba24f0940420c5548d82de",
+      "changed": false
+    },
+    {
+      "id": "F057",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/js.cookie.min.js",
+      "baselineSha256": "582cc085dd8fea044917d1efde838e77e845262fd025bbfe0339f808607c81f6",
+      "currentSha256": "582cc085dd8fea044917d1efde838e77e845262fd025bbfe0339f808607c81f6",
+      "changed": false
+    },
+    {
+      "id": "F058",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/lodash.min.js",
+      "baselineSha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+      "currentSha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+      "changed": false
+    },
+    {
+      "id": "F059",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/moment.min.js",
+      "baselineSha256": "d618d4869738e0dc22360f0ec0cbb6433257843f24723fac240dda0906685238",
+      "currentSha256": "d618d4869738e0dc22360f0ec0cbb6433257843f24723fac240dda0906685238",
+      "changed": false
+    },
+    {
+      "id": "F060",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/psl.min.js",
+      "baselineSha256": "a8796612f4cc8ea76489e6fcafeff6a48050b5e83ea83039daf0e311a6c6e3ec",
+      "currentSha256": "a8796612f4cc8ea76489e6fcafeff6a48050b5e83ea83039daf0e311a6c6e3ec",
+      "changed": false
+    },
+    {
+      "id": "F061",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/quasar.umd.js",
+      "baselineSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "currentSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "changed": false
+    },
+    {
+      "id": "F062",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/query-string.min.js",
+      "baselineSha256": "63091f36b5a961fb09507dd1d3fae3bff7eb6c59c53616b52d77ec796e00032a",
+      "currentSha256": "63091f36b5a961fb09507dd1d3fae3bff7eb6c59c53616b52d77ec796e00032a",
+      "changed": false
+    },
+    {
+      "id": "F063",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/socket.io.min.js",
+      "baselineSha256": "3030e83ceb32702ada126cb0a3703d29a425ea8e4d46614cfeb94aa1b91cc566",
+      "currentSha256": "3030e83ceb32702ada126cb0a3703d29a425ea8e4d46614cfeb94aa1b91cc566",
+      "changed": false
+    },
+    {
+      "id": "F064",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/store.legacy.min.js",
+      "baselineSha256": "5b70a52d159d5b5ae8cd55c2e89b3b1856cd7a0810292bc264c0cef2ec8da1b8",
+      "currentSha256": "5b70a52d159d5b5ae8cd55c2e89b3b1856cd7a0810292bc264c0cef2ec8da1b8",
+      "changed": false
+    },
+    {
+      "id": "F029",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/testMonkey.esm.js",
+      "baselineSha256": "190592ff7bf574e532a0ccdc33ebb431242e9c0ee4c7a0194f06703996fa902c",
+      "currentSha256": "190592ff7bf574e532a0ccdc33ebb431242e9c0ee4c7a0194f06703996fa902c",
+      "changed": false
+    },
+    {
+      "id": "F011",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/utils.js",
+      "baselineSha256": "8941e8bad5bb2720b88bd306d7605c05e01db596fb0ad76d7f4055e76646de70",
+      "currentSha256": "8941e8bad5bb2720b88bd306d7605c05e01db596fb0ad76d7f4055e76646de70",
+      "changed": false
+    },
+    {
+      "id": "F065",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/vue.global.prod.js",
+      "baselineSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "currentSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "changed": false
+    },
+    {
+      "id": "F020",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "baselineSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "currentSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "changed": false
+    },
+    {
+      "id": "F028",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/bex-flag.d.ts",
+      "baselineSha256": "63c5ae6aaa942e70645b319e83f076f7deccef9d6da9efc7fef86357362dec8f",
+      "currentSha256": "63c5ae6aaa942e70645b319e83f076f7deccef9d6da9efc7fef86357362dec8f",
+      "changed": false
+    },
+    {
+      "id": "F012",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/chrome-local-storage-api.js",
+      "baselineSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "currentSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "changed": false
+    },
+    {
+      "id": "F026",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/controller/csdn.ts",
+      "baselineSha256": "05926333c2b4ddddddb16bb97dcf5488c4632f15d95f2ad309975778695bcff9",
+      "currentSha256": "05926333c2b4ddddddb16bb97dcf5488c4632f15d95f2ad309975778695bcff9",
+      "changed": false
+    },
+    {
+      "id": "F013",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/dom/detect-quasar.js",
+      "baselineSha256": "313a35730fc79dcb8a24bbb2b6eb5077f4f28df03541ba9a0c8b7877e769e198",
+      "currentSha256": "313a35730fc79dcb8a24bbb2b6eb5077f4f28df03541ba9a0c8b7877e769e198",
+      "changed": false
+    },
+    {
+      "id": "F014",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/dom.ts",
+      "baselineSha256": "e74331d604da371d7d4a44f6fa9f93487a2a4e80ac50e5162d2246fa816e5b87",
+      "currentSha256": "e74331d604da371d7d4a44f6fa9f93487a2a4e80ac50e5162d2246fa816e5b87",
+      "changed": false
+    },
+    {
+      "id": "F066",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/icons/icon-128x128.png",
+      "baselineSha256": "1debc6b0c2f34dd33dee8ff29ad7e760fa972559cde62b38cb6414d063bd2954",
+      "currentSha256": "1debc6b0c2f34dd33dee8ff29ad7e760fa972559cde62b38cb6414d063bd2954",
+      "changed": false
+    },
+    {
+      "id": "F067",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/icons/icon-16x16.png",
+      "baselineSha256": "29e04e98026dfd73e8dfca446e94c080c2f753495f7eaebd243b995a1ea22050",
+      "currentSha256": "29e04e98026dfd73e8dfca446e94c080c2f753495f7eaebd243b995a1ea22050",
+      "changed": false
+    },
+    {
+      "id": "F068",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/icons/icon-48x48.png",
+      "baselineSha256": "4cea03fc4461ae87ef6beb7eadae1ef1c8113f92c24463b5d7291f13c1421096",
+      "currentSha256": "4cea03fc4461ae87ef6beb7eadae1ef1c8113f92c24463b5d7291f13c1421096",
+      "changed": false
+    },
+    {
+      "id": "F069",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/icons/icon-logout.png",
+      "baselineSha256": "7f373313d14144130add789c9653a92557ff8eba7f9da2e525a097ae5ab16f6b",
+      "currentSha256": "7f373313d14144130add789c9653a92557ff8eba7f9da2e525a097ae5ab16f6b",
+      "changed": false
+    },
+    {
+      "id": "F070",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/icons/icon-stop.png",
+      "baselineSha256": "f5b33384912feaff600bfa578f22890e0ee4a21c03462af4665db6a1f1408e98",
+      "currentSha256": "f5b33384912feaff600bfa578f22890e0ee4a21c03462af4665db6a1f1408e98",
+      "changed": false
+    },
+    {
+      "id": "F071",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/logo.png",
+      "baselineSha256": "db4c8d89e50e9e9f6a7992ad6d84ea7b32ca355d4968cda7a7c764afd604a64e",
+      "currentSha256": "db4c8d89e50e9e9f6a7992ad6d84ea7b32ca355d4968cda7a7c764afd604a64e",
+      "changed": false
+    },
+    {
+      "id": "F072",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/manifest.json",
+      "baselineSha256": "c158b95002c3a6070ccbb610e672602d1f398014bdfa6bc7caf97d6db7a9e267",
+      "currentSha256": "c158b95002c3a6070ccbb610e672602d1f398014bdfa6bc7caf97d6db7a9e267",
+      "changed": false
+    },
+    {
+      "id": "F021",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/my-content-script.ts",
+      "baselineSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "currentSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "changed": false
+    },
+    {
+      "id": "F015",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/Device.cst.ts",
+      "baselineSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "currentSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "changed": false
+    },
+    {
+      "id": "F016",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/EventOperate.cst.ts",
+      "baselineSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "currentSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "changed": false
+    },
+    {
+      "id": "F017",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilDevice.ts",
+      "baselineSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "currentSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "changed": false
+    },
+    {
+      "id": "F018",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilInfo.ts",
+      "baselineSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "currentSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "changed": false
+    },
+    {
+      "id": "F019",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilScrpt.ts",
+      "baselineSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "currentSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "changed": false
+    }
+  ],
+  "sourceDriftCount": 0,
+  "historicalFreshnessPreserved": {
+    "same": 153,
+    "drift": 7,
+    "extras": 4,
+    "selectedGenerationCount": 11,
+    "selectedGenerationNewDrift": 6,
+    "scope": "not re-audited; current unrelated scraping sources not reused in F1-F3"
+  },
+  "priorAnchorComparisons": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/run-host.js",
+      "priorSha256": "eff17d2253d8ac287e0c82557ecf705c4f88c333d66e0dcf0a16634e277b3294",
+      "currentSha256": "eff17d2253d8ac287e0c82557ecf705c4f88c333d66e0dcf0a16634e277b3294",
+      "changed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/sw.js",
+      "priorSha256": "db7067ecd80cc99f822d1e99a90edbac00db41d83bad7e5335dcea7c962908f7",
+      "currentSha256": "db7067ecd80cc99f822d1e99a90edbac00db41d83bad7e5335dcea7c962908f7",
+      "changed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/source-compatibility-ledger.json",
+      "priorSha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1",
+      "currentSha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1",
+      "changed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-gates.json",
+      "priorSha256": "195804d8fc1104395c12c00bddcdc5b0f3e2befc3d25f807dbc4e8a8af7ee59d",
+      "currentSha256": "195804d8fc1104395c12c00bddcdc5b0f3e2befc3d25f807dbc4e8a8af7ee59d",
+      "changed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/framework-handoff.json",
+      "priorSha256": "9b2305e208e45fa326053e94694288d133ef851203d1ac4e7aa3880f37ec3d2c",
+      "currentSha256": "9b2305e208e45fa326053e94694288d133ef851203d1ac4e7aa3880f37ec3d2c",
+      "changed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/public-owner.json",
+      "priorSha256": "6ec732bcf1076361aa61286ac2f9416a2153b0d4eba89c76c50b443a4cbc6e5c",
+      "currentSha256": "6ec732bcf1076361aa61286ac2f9416a2153b0d4eba89c76c50b443a4cbc6e5c",
+      "changed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "priorSha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+      "currentSha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+      "changed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+      "priorSha256": "6ca6d01c3210721f2b2ed76fa8699491bfe9f031dda6d33d23d2e027ecfb6b56",
+      "currentSha256": "6ca6d01c3210721f2b2ed76fa8699491bfe9f031dda6d33d23d2e027ecfb6b56",
+      "changed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+      "priorSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96",
+      "currentSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96",
+      "changed": false
+    }
+  ],
+  "productHashes": [
+    {
+      "path": "manifest.json",
+      "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+    },
+    {
+      "path": "webpack.config.cjs",
+      "sha256": "9327d598f23852ba03857c2776f88f382361622f44925a374d3dd2455a7329c5"
+    },
+    {
+      "path": "package.json",
+      "sha256": "74b90118949b661ffe9f5002d82318c872447229d8fd0613f2837ef0b450777c"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "3a7ccce04fe0bb9b355ce885cb8a7c6a5e8567b467022ed6a6f90a00940edc3b"
+    },
+    {
+      "path": "src/agents/bootstrap.js",
+      "sha256": "dc607f0df2c53932345cafd44420ad64fb5e7c40dc85198bb9d71444ed1f89d7"
+    },
+    {
+      "path": "src/agents/health.js",
+      "sha256": "c14df03a64c908fa800b9ba4cdb0287a5d6ae12e25b0de8b8d599c273c874f0f"
+    },
+    {
+      "path": "src/agents/page-agent.js",
+      "sha256": "d26f1b3531b783ea907f859850c8defe3b4118491fb2ee9c12cd14ecb9d1c966"
+    },
+    {
+      "path": "src/agents/selection-entry.js",
+      "sha256": "7af5313c7b2fb484ab7e0b8d7357600ba9dbfce5ef763f45441c1d7b019f5ae0"
+    },
+    {
+      "path": "src/environment.js",
+      "sha256": "3b5e5d6fdc1a45d9024c75aff3676cc8f68a94717463a9b4fe4e52e2c8cd2dd6"
+    },
+    {
+      "path": "src/features/scraping/index.js",
+      "sha256": "45bac1dfb4463206a2be48104b276bff4a15dd8a34f530b891bc662596ececed"
+    },
+    {
+      "path": "src/platform/downloads/blob-lifecycle.js",
+      "sha256": "7cd6786a9fedd5cec869944aa9e473082d550e08ea0737aea72d52fd0e756e45"
+    },
+    {
+      "path": "src/platform/downloads/index.js",
+      "sha256": "0cd7bb5f610c26d7a23f8bc221b7dd0e3bfacfac64c1cfb5be820fecb0942b44"
+    },
+    {
+      "path": "src/platform/entitlement/crypto.js",
+      "sha256": "1caa42b88037a977fc7fd223fe74d35be206ebb0e32f090a59f63f6e46b521ad"
+    },
+    {
+      "path": "src/platform/entitlement/index.js",
+      "sha256": "6d1f1d007b3c5e39e40d9e8f90e81493bf3522a97eec980e1b646d6bd6600d81"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "sha256": "9702343a7099722890c8f52d5034c864fe1a838dfc6834bbc5c71bd463224d11"
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "sha256": "4755a3b608f7b0af0146514a9ee5d2cc793c25a0d9abbdbb123fce2059992c5a"
+    },
+    {
+      "path": "src/platform/host/client.js",
+      "sha256": "1e235f735cede75a6d5f7cce0cfcfc9dc7131fad4ac88307899b1d6603372a59"
+    },
+    {
+      "path": "src/platform/page-port/index.js",
+      "sha256": "ca33704b03d7aec838d5fe92f592961c590d6f9d70410d22805d737907f5c691"
+    },
+    {
+      "path": "src/platform/page-port/source.js",
+      "sha256": "ef55098b6f515a12187ffa7c3874942849b9231bd95fc9f0a7ce9781c71bbab8"
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "sha256": "39ae55cdfbc75e2d9e8d2e00b0b07c42ab34ef585b9357436c1fee7e19621f43"
+    },
+    {
+      "path": "src/platform/schema.js",
+      "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+    },
+    {
+      "path": "src/platform/storage/idb.js",
+      "sha256": "1016aa470bd0ece215e7a11c6bfe0df7998d2c87ff480ebb8d981102194b23f9"
+    },
+    {
+      "path": "src/platform/storage/index.js",
+      "sha256": "3bc726648e15bb2741e784e02eda1a8c99068259d33c8d4a153a3981762f1936"
+    },
+    {
+      "path": "src/platform/storage/regression.js",
+      "sha256": "ed27368f25df5230e547653edfbbdf54a69c9f85acba5e536d165cbed76e4ab6"
+    },
+    {
+      "path": "src/platform/storage/repository.js",
+      "sha256": "5851a52643fd84f98dee4efe2bd554ce52e813e4c6c436e209b934d95dd1b5d4"
+    },
+    {
+      "path": "src/platform/target/index.js",
+      "sha256": "e1896d62230571e01347dcd548be51c236d7f44fcf140ff5c9c514c036f5055d"
+    },
+    {
+      "path": "src/run-host.js",
+      "sha256": "eff17d2253d8ac287e0c82557ecf705c4f88c333d66e0dcf0a16634e277b3294"
+    },
+    {
+      "path": "src/sw.js",
+      "sha256": "db7067ecd80cc99f822d1e99a90edbac00db41d83bad7e5335dcea7c962908f7"
+    },
+    {
+      "path": "src/ui/target-bootstrap.html",
+      "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "sha256": "c79258ab1f1749a2e13b95883f617026b72ddd81962ca1f5a43c10c538b7ab61"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "4ec6bd61c5d14f8bffeadebdea090b5b1870118bb00baa6ea3c24ceeaff7a02b"
+    },
+    {
+      "path": "scripts/check-source.mjs",
+      "sha256": "11bfa068d480dea4a918ceffeff0d53b2e3856fed18be4ed5a5baa96e7541659"
+    },
+    {
+      "path": "scripts/pack.mjs",
+      "sha256": "456f97c445427478b3817ee94d6e14f5c68ae13f8bbd8e4b6d26977359239717"
+    },
+    {
+      "path": "scripts/verify-package.mjs",
+      "sha256": "5e422a900876c4ee4645988e422394328c58b2cdd592de2ff498d92b2b4aabc1"
+    },
+    {
+      "path": "scripts/zip-package.py",
+      "sha256": "419af524727e618bf143b95375deb2882f47385f694d7f927c8d5d896aa7999a"
+    }
+  ],
+  "productCodeEdited": false,
+  "gates": {
+    "designApproved": true,
+    "backendPrototypePassed": false,
+    "fullImplementationReleased": false,
+    "frameworkFunctionalMigrationComplete": false
+  },
+  "currentPlanApproved": false,
+  "historicalR1R8Closed": 0,
+  "historical17Closed": 0
+}

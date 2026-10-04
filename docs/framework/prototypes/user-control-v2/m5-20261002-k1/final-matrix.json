@@ -1,0 +1,404 @@
+[
+  {
+    "report": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/report.json",
+    "sourceSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/138.0.7204.183",
+      "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.0.0 Safari/537.36",
+      "jsVersion": "13.8.258.30",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/profile",
+      "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+      "headed": false,
+      "os": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64"
+      },
+      "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f"
+    },
+    "statuses": {
+      "PASS": 46
+    },
+    "caseIds": [
+      "F1-INFINITE-LOOP-STOP",
+      "F1-AFTER-TERMINATION-STOP",
+      "F1-INFINITE-LOOP-DEADLINE",
+      "F1-AFTER-TERMINATION-DEADLINE",
+      "F1-INFINITE-LOOP-HOST-CLOSE",
+      "F1-AFTER-TERMINATION-HOST-CLOSE",
+      "F1-USER-GOTO-TITLE-URL",
+      "F1-USER-TYPE-CLICK-WAIT-READ",
+      "F1-USER-THROW",
+      "F1-USER-SYNTAX",
+      "F1-ADAPTER-REJECTION",
+      "F1-RETURN-false",
+      "F1-RETURN-0",
+      "F1-RETURN-null",
+      "F1-RETURN-undefined",
+      "F1-UNSERIALIZABLE",
+      "F1-GLOBAL-FORGERY-PATCH",
+      "F1-DEADLINE",
+      "F1-PENDING-PAGE-DEADLINE",
+      "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+      "F1-FAKE-PEER",
+      "F1-CSP-NETWORK-ATTRIBUTION",
+      "F1-RESOURCE-SUCCESS-0",
+      "F1-RESOURCE-THROW-0",
+      "F1-RESOURCE-TIMEOUT-0",
+      "F1-RESOURCE-CANCEL-0",
+      "F1-RESOURCE-SUCCESS-1",
+      "F1-RESOURCE-THROW-1",
+      "F1-RESOURCE-TIMEOUT-1",
+      "F1-RESOURCE-CANCEL-1",
+      "F1-RESOURCE-SUCCESS-2",
+      "F1-RESOURCE-THROW-2",
+      "F1-RESOURCE-TIMEOUT-2",
+      "F1-RESOURCE-CANCEL-2",
+      "F1-RESOURCE-SUCCESS-3",
+      "F1-RESOURCE-THROW-3",
+      "F1-RESOURCE-TIMEOUT-3",
+      "F1-RESOURCE-CANCEL-3",
+      "F1-RESOURCE-SUCCESS-4",
+      "F1-RESOURCE-THROW-4",
+      "F1-RESOURCE-TIMEOUT-4",
+      "F1-RESOURCE-CANCEL-4",
+      "F1-AFTER-CLEANUP-VALID",
+      "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+      "F1-SW-HOST-RECONNECT",
+      "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+    ],
+    "termination": [
+      {
+        "id": "F1-INFINITE-LOOP-STOP",
+        "status": "PASS",
+        "old2sContractStatus": "FAIL",
+        "runId": "b7dffd3d-da1c-4462-a94d-4e64aeef0e46",
+        "blobURL": "blob:null/3c96a4f1-0f29-46ff-a649-06af05678ee5",
+        "workerTargetId": "5A6603FEC306ADB618DABFAB27D7536B",
+        "hostTargetId": "D5ADDCFD81FF53EB76B861CEFAAB1E07",
+        "pid": 86290,
+        "threadId": 37720867,
+        "creatorFrameId": "7E835B3519C3C02D2031276F3FCA2D03",
+        "hostFrameId": "D5ADDCFD81FF53EB76B861CEFAAB1E07",
+        "monotonicCalibrationUncertaintyMs": 0.49795938146985463,
+        "destroyedMilliseconds": 2006.6219170953675,
+        "absenceMilliseconds": 2054.9336250953675,
+        "physicalCessationObservedMilliseconds": 2428.5191670953673,
+        "preStopCPUSeconds": 0.374311,
+        "earlyCPUSeconds": 0.14906799999999992,
+        "postCPUValuesSeconds": [
+          null,
+          null,
+          null
+        ],
+        "postCPUDeltasSeconds": [
+          null,
+          null
+        ],
+        "independentOSExit": true,
+        "workerInspectorAttached": false,
+        "creatorInspectorAttached": false
+      },
+      {
+        "id": "F1-INFINITE-LOOP-DEADLINE",
+        "status": "PASS",
+        "old2sContractStatus": "FAIL",
+        "runId": "294edefc-08e7-4e42-a517-87cd476a483e",
+        "blobURL": "blob:null/937ba863-ceb5-43bd-ae44-9a8d1b67e0d1",
+        "workerTargetId": "C2881E3B2C728A250B8584BF2BA1D079",
+        "hostTargetId": "EE8F32228E17F7DF5A36B4217DB77EF7",
+        "pid": 86313,
+        "threadId": 37721067,
+        "creatorFrameId": "C6DF21F3C91C3A53762F426863D492C3",
+        "hostFrameId": "EE8F32228E17F7DF5A36B4217DB77EF7",
+        "monotonicCalibrationUncertaintyMs": 0.5864170953664143,
+        "destroyedMilliseconds": 2005.4276669046321,
+        "absenceMilliseconds": 2055.2572089046325,
+        "physicalCessationObservedMilliseconds": 2426.956458904632,
+        "preStopCPUSeconds": 0.37514400000000003,
+        "earlyCPUSeconds": 0.15033200000000002,
+        "postCPUValuesSeconds": [
+          null,
+          null,
+          null
+        ],
+        "postCPUDeltasSeconds": [
+          null,
+          null
+        ],
+        "independentOSExit": true,
+        "workerInspectorAttached": false,
+        "creatorInspectorAttached": false
+      },
+      {
+        "id": "F1-INFINITE-LOOP-HOST-CLOSE",
+        "status": "PASS",
+        "old2sContractStatus": "PASS",
+        "runId": "f874aa68-9d11-4ef7-8a2b-5a8e8cd2b67b",
+        "blobURL": "blob:null/b3888016-16a4-4b6f-8508-34f0e80e57fd",
+        "workerTargetId": "F6C509550E5B419AF3E28D3DD95BBF63",
+        "hostTargetId": "2AAA4183474F995EFBAD56320EBEBE66",
+        "pid": 86349,
+        "threadId": 37721356,
+        "creatorFrameId": "4E1F38B073EE0A7345D6B49D9687B170",
+        "hostFrameId": "2AAA4183474F995EFBAD56320EBEBE66",
+        "monotonicCalibrationUncertaintyMs": 0.4977913814691419,
+        "destroyedMilliseconds": 6.1880829999990965,
+        "absenceMilliseconds": 161.56883299999936,
+        "physicalCessationObservedMilliseconds": 559.6109579999993,
+        "preStopCPUSeconds": 0.37302199999999996,
+        "earlyCPUSeconds": null,
+        "postCPUValuesSeconds": [
+          null,
+          null,
+          null
+        ],
+        "postCPUDeltasSeconds": [
+          null,
+          null
+        ],
+        "independentOSExit": true,
+        "workerInspectorAttached": false,
+        "creatorInspectorAttached": false
+      }
+    ],
+    "siteAccess": {
+      "contains": true,
+      "actual": {
+        "origins": [
+          "http://127.0.0.1/*"
+        ],
+        "permissions": [
+          "tabs",
+          "scripting"
+        ]
+      }
+    },
+    "disposedResources": {
+      "pending": 0,
+      "timer": 0,
+      "port": 0,
+      "frame": 0,
+      "pageWaits": 0,
+      "resourceReplies": 0
+    },
+    "workerTargetsAfterDispose": [],
+    "cleanup": {
+      "ownedBrowserExited": true,
+      "ownedBrowserPid": 86255,
+      "exitCode": 0,
+      "signalCode": null,
+      "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/profile",
+      "ownedTargets": [
+        "DA842FC148F88F1543A4FF6591D437F9"
+      ],
+      "serverClosed": true,
+      "cdpWaiters": 0,
+      "abortedCdpRequests": 0
+    }
+  },
+  {
+    "report": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/report.json",
+    "sourceSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/154.0.8037.92",
+      "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "jsVersion": "15.4.80.19",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/profile",
+      "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+      "headed": false,
+      "os": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64"
+      },
+      "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349"
+    },
+    "statuses": {
+      "PASS": 46
+    },
+    "caseIds": [
+      "F1-INFINITE-LOOP-STOP",
+      "F1-AFTER-TERMINATION-STOP",
+      "F1-INFINITE-LOOP-DEADLINE",
+      "F1-AFTER-TERMINATION-DEADLINE",
+      "F1-INFINITE-LOOP-HOST-CLOSE",
+      "F1-AFTER-TERMINATION-HOST-CLOSE",
+      "F1-USER-GOTO-TITLE-URL",
+      "F1-USER-TYPE-CLICK-WAIT-READ",
+      "F1-USER-THROW",
+      "F1-USER-SYNTAX",
+      "F1-ADAPTER-REJECTION",
+      "F1-RETURN-false",
+      "F1-RETURN-0",
+      "F1-RETURN-null",
+      "F1-RETURN-undefined",
+      "F1-UNSERIALIZABLE",
+      "F1-GLOBAL-FORGERY-PATCH",
+      "F1-DEADLINE",
+      "F1-PENDING-PAGE-DEADLINE",
+      "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+      "F1-FAKE-PEER",
+      "F1-CSP-NETWORK-ATTRIBUTION",
+      "F1-RESOURCE-SUCCESS-0",
+      "F1-RESOURCE-THROW-0",
+      "F1-RESOURCE-TIMEOUT-0",
+      "F1-RESOURCE-CANCEL-0",
+      "F1-RESOURCE-SUCCESS-1",
+      "F1-RESOURCE-THROW-1",
+      "F1-RESOURCE-TIMEOUT-1",
+      "F1-RESOURCE-CANCEL-1",
+      "F1-RESOURCE-SUCCESS-2",
+      "F1-RESOURCE-THROW-2",
+      "F1-RESOURCE-TIMEOUT-2",
+      "F1-RESOURCE-CANCEL-2",
+      "F1-RESOURCE-SUCCESS-3",
+      "F1-RESOURCE-THROW-3",
+      "F1-RESOURCE-TIMEOUT-3",
+      "F1-RESOURCE-CANCEL-3",
+      "F1-RESOURCE-SUCCESS-4",
+      "F1-RESOURCE-THROW-4",
+      "F1-RESOURCE-TIMEOUT-4",
+      "F1-RESOURCE-CANCEL-4",
+      "F1-AFTER-CLEANUP-VALID",
+      "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+      "F1-SW-HOST-RECONNECT",
+      "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+    ],
+    "termination": [
+      {
+        "id": "F1-INFINITE-LOOP-STOP",
+        "status": "PASS",
+        "old2sContractStatus": "FAIL",
+        "runId": "c3952ea2-6bb4-4b8b-b1b0-7a0ca9c10c84",
+        "blobURL": "blob:null/7b92b2e5-9ad7-4fb7-a3eb-4609e083367f",
+        "workerTargetId": "E8BB6A35A0E6C3ED90D77F65E74BBD60",
+        "hostTargetId": "E4B30F7B8ED86615F2AE77B05B992377",
+        "pid": 86288,
+        "threadId": 37720839,
+        "creatorFrameId": "AD051808CB19F345E2B52D0166042BAC",
+        "hostFrameId": "E4B30F7B8ED86615F2AE77B05B992377",
+        "monotonicCalibrationUncertaintyMs": 0.5610830953675077,
+        "destroyedMilliseconds": 2003.0983749046325,
+        "absenceMilliseconds": 2024.0899159046328,
+        "physicalCessationObservedMilliseconds": 2328.992957904633,
+        "preStopCPUSeconds": 0.37521499999999997,
+        "earlyCPUSeconds": 0.15126300000000004,
+        "postCPUValuesSeconds": [
+          2.33589,
+          2.336024,
+          2.336091
+        ],
+        "postCPUDeltasSeconds": [
+          0.0001340000000000785,
+          6.700000000003925e-05
+        ],
+        "independentOSExit": false,
+        "workerInspectorAttached": false,
+        "creatorInspectorAttached": false
+      },
+      {
+        "id": "F1-INFINITE-LOOP-DEADLINE",
+        "status": "PASS",
+        "old2sContractStatus": "FAIL",
+        "runId": "ed127650-aef0-4d15-a294-38e0673b8064",
+        "blobURL": "blob:null/15f572cf-c76c-4ec1-9fc0-81014618be91",
+        "workerTargetId": "1769F6AD062F0F3507B33F8B957E1513",
+        "hostTargetId": "03056493236CE475780946B066019B94",
+        "pid": 86305,
+        "threadId": 37721036,
+        "creatorFrameId": "F070027CFBA728C4A52D60621C283726",
+        "hostFrameId": "03056493236CE475780946B066019B94",
+        "monotonicCalibrationUncertaintyMs": 0.7382920000000013,
+        "destroyedMilliseconds": 2004.464833,
+        "absenceMilliseconds": 2014.7202500000003,
+        "physicalCessationObservedMilliseconds": 2320.674167,
+        "preStopCPUSeconds": 0.350109,
+        "earlyCPUSeconds": 0.14521399999999995,
+        "postCPUValuesSeconds": [
+          2.804644,
+          2.804644,
+          2.804644
+        ],
+        "postCPUDeltasSeconds": [
+          0,
+          0
+        ],
+        "independentOSExit": false,
+        "workerInspectorAttached": false,
+        "creatorInspectorAttached": false
+      },
+      {
+        "id": "F1-INFINITE-LOOP-HOST-CLOSE",
+        "status": "PASS",
+        "old2sContractStatus": "PASS",
+        "runId": "3fca4b80-2530-4dee-8c53-bd4756f7fd69",
+        "blobURL": "blob:null/9f7ff85a-28f0-45ba-a2ae-2f01b890c19f",
+        "workerTargetId": "BA28578AD1DB89D0D73A4B34CEE270EF",
+        "hostTargetId": "0142096D21A3EEFE442C929D5C054D2A",
+        "pid": 86341,
+        "threadId": 37721309,
+        "creatorFrameId": "8E532E755F49995283A11D1CD9A62EE1",
+        "hostFrameId": "0142096D21A3EEFE442C929D5C054D2A",
+        "monotonicCalibrationUncertaintyMs": 0.6675828092647862,
+        "destroyedMilliseconds": 9.081999999999425,
+        "absenceMilliseconds": 165.4552909999993,
+        "physicalCessationObservedMilliseconds": 517.3201249999993,
+        "preStopCPUSeconds": 0.37145399999999995,
+        "earlyCPUSeconds": null,
+        "postCPUValuesSeconds": [
+          null,
+          null,
+          null
+        ],
+        "postCPUDeltasSeconds": [
+          null,
+          null
+        ],
+        "independentOSExit": true,
+        "workerInspectorAttached": false,
+        "creatorInspectorAttached": false
+      }
+    ],
+    "siteAccess": {
+      "contains": true,
+      "actual": {
+        "origins": [
+          "http://127.0.0.1/*"
+        ],
+        "permissions": [
+          "tabs",
+          "scripting"
+        ]
+      }
+    },
+    "disposedResources": {
+      "pending": 0,
+      "timer": 0,
+      "port": 0,
+      "frame": 0,
+      "pageWaits": 0,
+      "resourceReplies": 0
+    },
+    "workerTargetsAfterDispose": [],
+    "cleanup": {
+      "ownedBrowserExited": true,
+      "ownedBrowserPid": 86256,
+      "exitCode": 0,
+      "signalCode": null,
+      "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/profile",
+      "ownedTargets": [
+        "FCE36725A9940C6BD2B60E645C0BF701"
+      ],
+      "serverClosed": true,
+      "cdpWaiters": 0,
+      "abortedCdpRequests": 0
+    }
+  }
+]

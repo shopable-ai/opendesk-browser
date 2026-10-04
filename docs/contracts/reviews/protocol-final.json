@@ -1,0 +1,1025 @@
+{
+  "reviewId": "protocol-final",
+  "reviewType": "independent-incremental-protocol-critic",
+  "reviewFormatVersion": "1.0",
+  "contractVersion": "1.0.0",
+  "status": "completed-requested-review-scope",
+  "verdict": "APPROVE",
+  "architecturalStatus": "READY_FOR_IMPLEMENTATION_WITH_EXPLICIT_LIMITATIONS",
+  "summary": "仅复核PF-01/PF-02两项delta，原关闭条件均满足。9项初审均在本协议设计范围关闭；当前剩余P1/P2及blockingDesignGaps均为0。跨incarnation无归属已导航目标首版冻结限制继续接受；不代替产品测试或05/solution综合放行。",
+  "observedAt": "2026-10-01T20:23:21.482566+00:00",
+  "scope": {
+    "root": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "reviewedFiles": [
+      "docs/contracts/contract.json",
+      "docs/contracts/schema.json",
+      "docs/contracts/semantics.md",
+      "docs/contracts/state-machines.json",
+      "docs/contracts/solution-overview.md"
+    ],
+    "fixtures": "contracts/fixtures",
+    "fixtureFileCount": 174,
+    "initialReview": "docs/contracts/reviews/protocol-initial.json",
+    "findingIds": [
+      "PIC-01",
+      "PIC-02",
+      "PIC-04",
+      "PIC-06",
+      "PIC-07",
+      "PIC-09",
+      "PIC-10",
+      "PIC-11",
+      "PIC-12"
+    ],
+    "addedInputs": [
+      "contracts/fixtures/protocol-repair-vectors.json",
+      "contracts/fixtures/page-read-frames.json",
+      "contracts/fixtures/page-signature.json",
+      "contracts/fixtures/source-selection.json"
+    ],
+    "targetedTestPlanScope": "本次仅复核pagination-signature scenarioCases/30、既有PIC06 supplementalCases/42、PF02-complete-abandoned supplementalCases/90与PF02-abandoned-unknown supplementalCases/91；既有22映射检查结论保留，不重新扩大测试计划审查。",
+    "referenceContext": {
+      "previouslyReviewed": [
+        "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/product-extension-architecture-v3.md",
+        "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-01-contracts.txt",
+        "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-common.txt"
+      ],
+      "freshFullReferenceAudit": false
+    },
+    "sourceProtocolBoundary": "SOL-P1-01新增方法/defs/semantics/四案例纳入当前输入hash，只复查不改变本轮PIC target/stop/stage边界；不代替另一初审的SOL关闭审查。",
+    "excluded": [
+      "生产实现和产品测试",
+      "递归spawn/新子代理/旧模型覆盖或降档",
+      "framework/task/05映射/人类方案/全套测试计划综合放行",
+      "为跨incarnation已导航无归属目标增加自动恢复承诺"
+    ],
+    "writeScope": [
+      "docs/contracts/reviews/protocol-final.json",
+      "docs/contracts/reviews/protocol-final.md"
+    ],
+    "latestDeltaOnly": [
+      "PF-01",
+      "PF-02"
+    ],
+    "fullCoreHashUpdatedWithoutBroadReaudit": true
+  },
+  "reviewExecution": {
+    "mode": "solo-independent-incremental-review",
+    "spawnedAgentsThisRound": 0,
+    "recursiveSpawn": false,
+    "modelOverride": null,
+    "requestedReasoningEffort": "xhigh",
+    "productionFilesEdited": false,
+    "productTestsExecuted": false
+  },
+  "evidenceSnapshot": {
+    "observedAt": "2026-10-01T20:23:21.482566+00:00",
+    "coreSha256": {
+      "docs/contracts/contract.json": "f0e6d74475dcae4148333f9397dd835889a79612027e65cf0004827917efd4bd",
+      "docs/contracts/schema.json": "eb95f9e9a7e54048377d551acce8c996dcc15f5fa87ed7ada19cb21b24c6d9b9",
+      "docs/contracts/semantics.md": "d3bd09974bc31e7dd88f41e226846f9e2871e95ad50bfdfd36f80739739134eb",
+      "docs/contracts/state-machines.json": "0e10025550df39b1fa2b942dd6725a9d18c9388a916817598e103d112a322165",
+      "docs/contracts/solution-overview.md": "d4da2d597547ff2890ab8529389344921626b178a48124ceeb9cbee638acc65c"
+    },
+    "coreManifestSha256": "eb797c56d4e376ba917936de3d93fa16eb7101f38146cdaf9e3572e933f118ac",
+    "fixtureManifest": {
+      "contracts/fixtures/canonical.json": "9aaed413aff8dba7452b31a9f15765a2e6f543bf9ea60737123b834ba81799f8",
+      "contracts/fixtures/download-attempts.json": "01a3572a1416c8e2185dc7838b85e5604b5efe93cab164188a5548d81c136ef1",
+      "contracts/fixtures/migration/csv-formula-safety/boolean-false.csv": "16439077ae03d72dee2c5699917110adc127c6756f9766c5c673b72c6f93ab62",
+      "contracts/fixtures/migration/csv-formula-safety/boolean-false.json": "eb4096e955d43171add8ffdc3b1837d7145ee2cf3cf59aa28170c07e5fb9aa82",
+      "contracts/fixtures/migration/csv-formula-safety/cr-only.csv": "c6a16198b7ef626be1f9778ee6567efb6919f02cd84208815730acf6c65a4564",
+      "contracts/fixtures/migration/csv-formula-safety/cr-only.json": "e5d27e5460de0316dd4e22036cca05a91b75eb08726e8c907a16ebcd82b7cd90",
+      "contracts/fixtures/migration/csv-formula-safety/cr-plain.csv": "161b85d57e74d2704e24163e34a095f6d7c2f70f305afce0d68f8588a2fe2c8b",
+      "contracts/fixtures/migration/csv-formula-safety/cr-plain.json": "b6018b1f73a1868affa8f2fa9295569b88314c81868d3853dcfb29b495236b25",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-0009.csv": "9a3f1b7a4738b3cd027e0a4c9555675912c25dafcaa78faa47e10401e780aa6c",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-0009.json": "f5b83890d5ff21de7e29d0997cc9170c94a3eddd95b5c54e3011ab1de8be27a3",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-000a.csv": "dc16ed3fe3c2845ebad5b658023ed11b037d8d7e6adf5e9339654867aec8c75c",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-000a.json": "8d8ac6711b959dc54557d87424648cd9f42e221d4e3415b215fd586f9e0d484d",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-000b.csv": "24bf9b383b5f6669f8f2cac6f13acc6d4e4ff5300d63a4627898b74c9cf0655c",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-000b.json": "f80445340556eb2813b98dad0d736d94ef415336899a42e34aa85996c7db4a85",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-000c.csv": "5a4c7f5731d7fb838ce43706219f02ed70ffe3fd41c5db4d165c63a3bbe7f443",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-000c.json": "c07efce2038080015c04fdbfd9ac6cc400f43d5d6fb2c17087f4b4983f6ef05b",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-000d.csv": "9365721c283d7b358e54940cd38e8db14d9f1f2b698c45f8c28a007b4ae48f63",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-000d.json": "756960348ebbca8dca46f1d062e91828bbaad75870c22be06b8a58d35eba551d",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-0020.csv": "46e0f68f0df55d157ddf7d57fda3c310381ef5cea464f429821564a0e388fb81",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-0020.json": "24104590cd354935912d4fc034378cf44601b6739d9bee7898b7f9d3c1e3184e",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-00a0.csv": "77674f978bbde8756485cf82108ea3429ea9eb7fc96d75ef0d0cc27607fa6b97",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-00a0.json": "05035a9f588267ec2d40620b39e4dc9663cb24c7f85894079ccc11dc63409b56",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-1680.csv": "c61661b41765afab9d9503992d15cbcfdd576bc8510bf8e47553af2c4f8a65ab",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-1680.json": "56aadbe563cb45cb4aa8909d097b38d2a54541ad8dc1bd5ce9c6969e486e124a",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2000.csv": "a3f1bf56d37a4e1d19fe251ccaa219b24daad6a56576f9b75cdae51ca45dcff6",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2000.json": "55ce09fd42bdc3aa655dd78ae84c3c59d6b7b3bf31eeb492b37a4e747fd2e35a",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2001.csv": "3653fcb9d6c38617ed2e05cd948ae653f4da10f4875e522d3302ed80d49aec3d",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2001.json": "bb6d74f28a5b6e184d5715234be3c6e44505c0b8d01bcd32e5f13d4958fde827",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2002.csv": "1723397f3fffa5a7dd6edc38d6a85474768b2c730115d4d0d3f796b519d46175",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2002.json": "fb15186fb01aa2707091025e6b2dcd26499b21d1eb245d403d9fb44283cf4086",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2003.csv": "cecfb19d129f8ea7ba9544c97d0abecf6202bcb6c2c44cad3b0efc936380c524",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2003.json": "a33df9e5686380a69a53d2b64bd81a36af9dd0ab9e264d6e5b06cb9ab08f6552",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2004.csv": "ce6e78472eec3c3c784fce29738e696caf8ad9c6f69bf673c9088d310dcaf551",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2004.json": "6704b763d1c628c2129bdd096e5b8f9b4d0db31dab53a9ad6d8e256070babc21",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2005.csv": "90c69590f7b7e46e2a56a1316de4413e87f65fd01a7c8ea8ced2aa1c9a193fbb",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2005.json": "5584a8fa66fdc57c0c5eb7835ab62fc583028c3c181bfff35281124e1f4df09e",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2006.csv": "33a5de3eb23710990b037b5fa5310f6a6b7a5f529ba4c13c20421c6155eae49e",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2006.json": "70ddef42d01729ce177a7f5249023a7ed85d4105da2591fa75defc0b81240063",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2007.csv": "ed49772d5c72d4e0e5261464a6a02364ed336f5c64166a65b0901def0f3b8a58",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2007.json": "691bf4d07e65fdc3d987e79ca9dcd8b90d44a327962ff721aaaa7df8267b2fdc",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2008.csv": "4df0c075880f121cfc3f380359b549766aac77328b4c2c7c0d6df13200e5ea0b",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2008.json": "212bdd6cab73f3286325a0c7e3de24132fa995723c076d367342190f3764d925",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2009.csv": "1e684b1e68774ecc36b62e53f25c7d9e37736c72e00599927d009c44ba8acc87",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2009.json": "790af455f245edb05153d6a637e15bd02965171087d3582cf7577bbc5c278672",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-200a.csv": "11695303f6348245d062ffc7bab6a3c9b1d0edec327c70391580250cf00f5298",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-200a.json": "3512484563f624dd4754164409341934bcf3f5de0a9d27739aacac3110dfc5cc",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2028.csv": "c93ab1a725a5213aeef78dab2b045c91ca68ac69dfe684cdd9d7343e5dd15bad",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2028.json": "964a2ff53698dda026909aaca301c2b14386a15e5c46a8fa5cf9630010c88484",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2029.csv": "53081e72d0b9c1722b072ecf98f286a5530c640796f976859e69b1c8e9ef3b7e",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-2029.json": "26af727bf687d79a87b10e66956ce5b1ea9f4c9e75d281647b62839f6a6e0597",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-202f.csv": "71ab67a301c592594724e04416607770f43413a767688aff51c9780c037d60df",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-202f.json": "43cf1fca85c1c95c32b14ac06fd221582f0edbd624b3b432ffaefd80bcadadfd",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-205f.csv": "f286b7bfae8dd2d6c8a5472da21393ef2d0a7fcd5e07bf855399102ec39a9a35",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-205f.json": "11bbc54210da7cd90ca99a10311cdf7b53057e54bb79e5e7d58d61b0cb69f806",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-3000.csv": "ff0eba6400771438eabdbaeae4734925bb939cbff5c775f91d16ce37694653d3",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-3000.json": "5602746a733b645e881b0b1315372f0ccfc5848e5ba344fc9160b4bba37b462b",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-feff.csv": "028d4d67af55da62dfb6aa8edd5468b709b151dc37968ee376a71c8676982bf9",
+      "contracts/fixtures/migration/csv-formula-safety/ecma-feff.json": "7521c4bda0aae15535735ab245427f5e6a51d53c8438552e9f00e394799c6310",
+      "contracts/fixtures/migration/csv-formula-safety/empty-string.csv": "c5ad91a88f098a0b833c9642023ff870018c7dc190a5778e82f1cad2a7ced9f3",
+      "contracts/fixtures/migration/csv-formula-safety/empty-string.json": "2a710c9c20cbd24b9a9f1b251cac4b6a3933606dbcb425bc291f7d4e3177ff70",
+      "contracts/fixtures/migration/csv-formula-safety/lf-plain.csv": "5a1dbe115657083dcfef386d7f52e87a48109f07bbfaeddf8b10158720da0feb",
+      "contracts/fixtures/migration/csv-formula-safety/lf-plain.json": "098b2e3f6ec8beee7849ca90effbdef7a2020372caf4bd033c341573b1507f4b",
+      "contracts/fixtures/migration/csv-formula-safety/mixed-prefix.csv": "d7fbce94cc54fe00ff1041425a9b9d0e88e28f9e935c11199af7078343a8b288",
+      "contracts/fixtures/migration/csv-formula-safety/mixed-prefix.json": "d43b37ddf247ffff366af27b7bdd1d398b4bc0a9df241bee86ea3412e9355720",
+      "contracts/fixtures/migration/csv-formula-safety/mongolian-vowel-separator.csv": "1be1c22ae42364940f07a756b072304255e9fa697dd2ad06f3c24926b73d2d66",
+      "contracts/fixtures/migration/csv-formula-safety/mongolian-vowel-separator.json": "0a2d8ea2bdbeeac43616e5f2f25154e30de0bfebc47ab5761224e5fbd13dabae",
+      "contracts/fixtures/migration/csv-formula-safety/negative-number.csv": "56ed0a9b3a68aefa2eab5f2b72d724476672a2d14b9c5df1fee29ad65b872204",
+      "contracts/fixtures/migration/csv-formula-safety/negative-number.json": "04e96ccb5c292b01b0149794ceb9bdb2ebf751a3bada556f28b63a8d8b88d689",
+      "contracts/fixtures/migration/csv-formula-safety/next-line-not-ecma.csv": "6615560f64e43fc24f18396e06d0feefa3a07d0cc2d802c104c528fe8ba735bb",
+      "contracts/fixtures/migration/csv-formula-safety/next-line-not-ecma.json": "0fa2e8390930b05419edc16870754d7c3b537791ccdf499c944e120956c92640",
+      "contracts/fixtures/migration/csv-formula-safety/null-string.csv": "c5ad91a88f098a0b833c9642023ff870018c7dc190a5778e82f1cad2a7ced9f3",
+      "contracts/fixtures/migration/csv-formula-safety/null-string.json": "812cca057c219e89853d74bc5de677c0c52f121ab7c01b4d1c9e1be6e353a1c9",
+      "contracts/fixtures/migration/csv-formula-safety/number-zero.csv": "2cb382062a63e6ab7a395b52d9cff7dd7219c1a4e1feca1803d8bf236402b63c",
+      "contracts/fixtures/migration/csv-formula-safety/number-zero.json": "ce5c0785232f6532ee48d699cbe556db3b1d5fd16831ee354d57c58ebd756d12",
+      "contracts/fixtures/migration/csv-formula-safety/positive-number.csv": "10c0ec82b2db66e5281e1c4d8930a3f4886b7670e71e0621bb68f976dfa65396",
+      "contracts/fixtures/migration/csv-formula-safety/positive-number.json": "5286d2749bef68198373aa2a74dbb8a473494360d1160e9af10e0b93fc270d44",
+      "contracts/fixtures/migration/csv-formula-safety/tab-only.csv": "aae2f4ccbe726a695f3316706bf994c259d2164e04ad48b6424c5207b2dbaa23",
+      "contracts/fixtures/migration/csv-formula-safety/tab-only.json": "4463da307e4abc1f24825103a23b582706c6959f4a5c5217ec8190de7342883c",
+      "contracts/fixtures/migration/csv-formula-safety/tab-plain.csv": "91033ad6d6bc3497983112e15a879282d28fbd9f66a6419e0d1882b9315e9ebb",
+      "contracts/fixtures/migration/csv-formula-safety/tab-plain.json": "ac276039801414f492ba762d0612c1407063bd93c23c695f4e8265669e67625b",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-at.csv": "341faae21311fc2ede373fc4477daf073a1db78c65197c2ce66de6cf6d9f26fd",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-at.json": "a75bc9ec586170063c16197ea816fac9419d5fe469ab659947609d4589812b9d",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-formula-header.csv": "a962336ec3173b21f7b9c72321b229643caff1b8cdf3c339125f80c7e4ef2159",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-formula-header.json": "04e96ccb5c292b01b0149794ceb9bdb2ebf751a3bada556f28b63a8d8b88d689",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-minus.csv": "b92dce831c22f0c61b5f4e94ce2a1f7ebd41b480dc72dbd4a39bf1bdd5844981",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-minus.json": "7e34571e7b4571089c0fedb2c091cc2428e80f4350c2291ee647670444491e05",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-plain.csv": "85f39397d122296d70f5dceeb17626d2caf69828989412ecc303605b4e23c63a",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-plain.json": "64411a0a08b65206decc1dd128c69631d50429aeb5ea94ebfdc1aef3d05dd9ad",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-plus.csv": "b9f812421db6af36d62303cbe9f0a6f1b0e8d7ca9366d490a36178a5c1563345",
+      "contracts/fixtures/migration/csv-formula-safety/unicode-plus.json": "2e5eef7a5deccb1f94f4086ee45b3096be880d9795940375336879673fe65029",
+      "contracts/fixtures/migration/csv-formula-safety/vectors.json": "75f5c272db0fa9b24354cf202f948baff20afd5a02addc9a2fa7c97547b6aa96",
+      "contracts/fixtures/migration/csv-formula-safety/zero-width-space.csv": "7a34a745d89e068cd6c952eb90ee8d98563ef7bc067de7755fead6892278d80c",
+      "contracts/fixtures/migration/csv-formula-safety/zero-width-space.json": "52c5a0355c0cbfe0d8377794b2d4bcc0fce030cd774097c30198edc19a69085c",
+      "contracts/fixtures/migration/illegal-config-backup/dom.html": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af",
+      "contracts/fixtures/migration/illegal-config-backup/expected-csv-emitted.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "contracts/fixtures/migration/illegal-config-backup/expected-json-emitted.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "contracts/fixtures/migration/illegal-config-backup/legacy-config.json": "09ea23cf2f199c9efa3c0ea5a4431837ca217f4b1df7b8aa8279a2855c7318d6",
+      "contracts/fixtures/migration/illegal-config-backup/vector.json": "9d75a02796207a53fc8b9e296d73d06d226bd8c500ab298abdd115b5e943ef2c",
+      "contracts/fixtures/migration/manifest.json": "97009163051e3bc09bf71a05dd8817fdc0b475456dfbe21a38ecdbb8f3d2b533",
+      "contracts/fixtures/migration/pagination-information-lost/dom.html": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af",
+      "contracts/fixtures/migration/pagination-information-lost/expected-csv-emitted.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "contracts/fixtures/migration/pagination-information-lost/expected-json-emitted.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "contracts/fixtures/migration/pagination-information-lost/legacy-config.json": "17760099cb31a8d6d49305f34b609884a92c213710ce40b1cc07e4b51094bccf",
+      "contracts/fixtures/migration/pagination-information-lost/vector.json": "82b56e011cb9845fa732e7ea6a516cde0ed0af9bb39d275d36a299a5736427de",
+      "contracts/fixtures/migration/reference-check.cjs": "8cc6438a1af3e32ae4fe2632035ad0502155b1e01bab81db8d95f9fc7ff91407",
+      "contracts/fixtures/migration/single-page/dom.html": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af",
+      "contracts/fixtures/migration/single-page/expected-template.json": "949d1037f77e8f69f5f6cd4d0b474a72d02b120390991d1637ce0960779bec01",
+      "contracts/fixtures/migration/single-page/expected.csv": "5b49bf1d179ff7e5f32d31385a188f53ffa81648c79d0f4f1a601711d4619c65",
+      "contracts/fixtures/migration/single-page/expected.json": "19b0eb395ad83c589793896971fe116497579fbc17acdd1d2e1f34b1a3372c30",
+      "contracts/fixtures/migration/single-page/legacy-config.json": "b7b1d4b617b7ebb8427809199aeee3ef42c6813b3d3b79172492d07afe79913f",
+      "contracts/fixtures/migration/single-page/template.canonical.json": "3475cba7ddc43506711b82a1865ae0228c056f074b45b364706322c057d681fa",
+      "contracts/fixtures/migration/single-page/vector.json": "b718cb214357212c73a6587ec5e90303e0fcc379994ce87f1c5bbf74db0eab78",
+      "contracts/fixtures/migration/strict-conversion/boolean-0.html": "8949a55f0011de0f4beda30f417ded98b15a8ab5278394077706fa3341dae04a",
+      "contracts/fixtures/migration/strict-conversion/boolean-1.html": "548dc3136ef1b0c823b8397b5f4ca9b287aa3fe6add70f4f1e38ad1ff3fc2b5f",
+      "contracts/fixtures/migration/strict-conversion/boolean-2.html": "79c96894204b2c2a61a92719b3e29f264cc81c97e256e758f63dc0cfb0262407",
+      "contracts/fixtures/migration/strict-conversion/boolean-3.html": "746e76f4dc721b1d24f1e7ae5c3e1eedfe279c3f4fbf3fbc83fb63c5b865e08d",
+      "contracts/fixtures/migration/strict-conversion/boolean-4.html": "946603e9f65d7bb9d2e6d8f054a2646c140c852b5aab6bead1c9e81a16613982",
+      "contracts/fixtures/migration/strict-conversion/boolean-5.html": "1adcf905b39c0555a1c285da1d6c0be9719e2b404788b1fa2699add2ba522591",
+      "contracts/fixtures/migration/strict-conversion/boolean-6.html": "adffced4d7f1e2bb838e4188d71b69f3e9e574ac08b4af298be3bee36096efaa",
+      "contracts/fixtures/migration/strict-conversion/boolean-7.html": "ca6917385d983ce40605c6be8ac4be5d85593182c2b2a4e47d4ec0a4708656a5",
+      "contracts/fixtures/migration/strict-conversion/number-0.html": "946603e9f65d7bb9d2e6d8f054a2646c140c852b5aab6bead1c9e81a16613982",
+      "contracts/fixtures/migration/strict-conversion/number-1.html": "b88f0dae0cf2b885714f320c01c7943d50a4d16d6573c93711f4eecd660b41ee",
+      "contracts/fixtures/migration/strict-conversion/number-10.html": "34952aa16af6c45d80124d2b598e39effafbf26555ef93f437490159024df5ec",
+      "contracts/fixtures/migration/strict-conversion/number-11.html": "60dc14895249217db3f2ac3f91a92838f1fd2df60ec565381f5551562065504f",
+      "contracts/fixtures/migration/strict-conversion/number-12.html": "1de03b444d8ced40de4b4a8f9fdb48f4c5b5f5c25f9d30a8aee250bdcadd6474",
+      "contracts/fixtures/migration/strict-conversion/number-2.html": "f0b234a59671884414249ff23dabacda57a718eab6594570ad30e568bd38b177",
+      "contracts/fixtures/migration/strict-conversion/number-3.html": "88c3039fa20e83af9c92fa11ef4a083dd7b44ac21d01ed3fc4d255f96fe542bf",
+      "contracts/fixtures/migration/strict-conversion/number-4.html": "79c96894204b2c2a61a92719b3e29f264cc81c97e256e758f63dc0cfb0262407",
+      "contracts/fixtures/migration/strict-conversion/number-5.html": "c9d1e93556f64b4698e921c0049958564f3b9f9480c0017cb98f3f32abcf9e78",
+      "contracts/fixtures/migration/strict-conversion/number-6.html": "21a55adb6a0c883322ecbf67668c5dcaea3ee87afa4814fb52a202b042b49959",
+      "contracts/fixtures/migration/strict-conversion/number-7.html": "426eb156d77646fc245bfc98b347bf67d1fa5fa3bf301d19b940b4ff6cba7eaa",
+      "contracts/fixtures/migration/strict-conversion/number-8.html": "30f4424ab71fdbe998d4cc637b0919e6ec11a2e533139241e434c41b86000faa",
+      "contracts/fixtures/migration/strict-conversion/number-9.html": "8e5c5ce43130f141381b35ece76b908afc3118fc3b4bd68a5f9c4ba5523e9251",
+      "contracts/fixtures/migration/strict-conversion/number-fractional-exponent.html": "d3fbce31bcde7ef093946e4be8ecd36e57ebb120c13b5318d62b2676bf2a74ac",
+      "contracts/fixtures/migration/strict-conversion/number-fractional-negative.html": "4fda772dd1294b07127d8eee5d65a4d315b74cacf5d6250bcbf07a64b17c6706",
+      "contracts/fixtures/migration/strict-conversion/number-integral-exponent.html": "3ef40f60b2ae970b8137cc659cac53422429b9bcd2eac73582d1fbf4bb044b92",
+      "contracts/fixtures/migration/strict-conversion/number-rounds-to-unsafe-integer.html": "8d69c0aff293383d940b5f5c83f047f044813912b447d48a77e5a0e5382c0aff",
+      "contracts/fixtures/migration/strict-conversion/number-safe-negative-boundary.html": "9d8c2ad0bcba24df7667264e2967daece04385c6e0253a03d81c2cd58f41cb31",
+      "contracts/fixtures/migration/strict-conversion/number-unsafe-integral-decimal.html": "38edbf8d864f2baeb5bf74890c93fee74e030b8d0cec4222a2790e68437fb9e1",
+      "contracts/fixtures/migration/strict-conversion/number-unsafe-negative-exponent.html": "74c1c1bff8d5ece685955aafc0e0081335af98e7f78eab8d8191c0e354ccdb34",
+      "contracts/fixtures/migration/strict-conversion/number-unsafe-negative-integer.html": "21aca8287c6e2aed1e33694c1ed28c367c361da63d8c1282fbbf0b12fe2d1f82",
+      "contracts/fixtures/migration/strict-conversion/vectors.json": "a1f698cc82e03a613f3e62da3d67231a0377d9de909feb4679736748f44eb7f1",
+      "contracts/fixtures/migration/strict-url/cross-http.html": "dfc0edc5b66e8ef293eb34e85bb90cc33da279f46e43b51c85ef01a41c80b53d",
+      "contracts/fixtures/migration/strict-url/empty.html": "6e7a3a1449fdddc2b2d7b50eb3aeaa62ea74ac0f7f6748a2a83241fc36c2f252",
+      "contracts/fixtures/migration/strict-url/encoded-credentials.html": "df678fa6a50595c9b2d248580bb81e591390ab39222a540d6609161a32dde50e",
+      "contracts/fixtures/migration/strict-url/execution-credentials.html": "0311f5343b61598d7301b8e897043aa7ba86a90e6f2182bd29094db626e89c27",
+      "contracts/fixtures/migration/strict-url/execution-cross-origin.html": "3c0480f25d23964ff859b773de83f044d95886d5cb23bd309d7d4ff293e14653",
+      "contracts/fixtures/migration/strict-url/ftp-scheme.html": "782a46a3bf4d4b90c879846faa9693361ed2b530d820c6c948e3998b204314c4",
+      "contracts/fixtures/migration/strict-url/invalid-host.html": "ab7408bd66ab1cf4998756abaaa254a6e2f92c1e5713d5da7fc046ce1f9b9c09",
+      "contracts/fixtures/migration/strict-url/javascript-scheme.html": "915f383a7c3f3a8ae0a7c8833380cfdb7ad853c64625e9a6a747b448bc5e8c18",
+      "contracts/fixtures/migration/strict-url/optional-missing.html": "1939c0a1ee72bdb8282d4df6784a028d59197c31d547e3c1e4badef1282864b3",
+      "contracts/fixtures/migration/strict-url/pagination-credentials.html": "fcd1e7f1006af2a2bed22a39ba1dbd20506bb41bff93508914589152374b28d6",
+      "contracts/fixtures/migration/strict-url/pagination-cross-origin.html": "276daef92cf5bcc4cb259bc93deb6d298e189c0dbed988dfe87ca6d498f18805",
+      "contracts/fixtures/migration/strict-url/pagination-same-origin.html": "e13f08777637d7ab7c6787db4d74f6ca84ad5252ae95ec440631cd1e02c06b78",
+      "contracts/fixtures/migration/strict-url/password-only.html": "fe37b5c5a405059d288707e4bed7165305558618b7c65ae0b11042d59707acc8",
+      "contracts/fixtures/migration/strict-url/protocol-relative-cross.html": "be9c83ef75a5f40688eed70544f4ba0e0e2df67a3d1b7d13fa4325f2214c4a58",
+      "contracts/fixtures/migration/strict-url/relative-base-uri.html": "51036abc03aefd0bf4a962334ea384b9be8d60ae1e5bb10aa31243d2b2b08dca",
+      "contracts/fixtures/migration/strict-url/unicode-only.html": "a98750a31296bb1f2ef2d44cf24895dba36f0613e4f8e317a3e2c0bef44973f0",
+      "contracts/fixtures/migration/strict-url/unicode-trim-cross-https.html": "104f3d4f965ceae664eb48454ff34b91634295aae274b03e1560c113ef12887f",
+      "contracts/fixtures/migration/strict-url/username-only.html": "de66892b63dc93cc3694edf7d1584b544f2de824bb332721f16f55dd84edb935",
+      "contracts/fixtures/migration/strict-url/username-password.html": "86a156f0b851bdf74cbc89068554f3eb1760cc6ff8d9e7b3cbdb21631f3dd5b4",
+      "contracts/fixtures/migration/strict-url/vectors.json": "6287b59358d9794a3069be6cd0a22c05d594dc9b4b0ef7bea132545a76d16de4",
+      "contracts/fixtures/migration/template-rejection-vectors.json": "0ecf6ab5601f32246ceb30fa6fdc42ad5cb1784ae2c057f32604292141ef31a2",
+      "contracts/fixtures/migration/template-revision.schema.json": "af61c01f5d6deaaf2a37da8853f9c8696ccfd012a6773b8e4438b6ffe3e27597",
+      "contracts/fixtures/migration/validation-report.json": "5e240896b5cda8cbcaef652573558f94551e6d72b88c9f70468cdebb05d6b11b",
+      "contracts/fixtures/migration/verify.py": "498c56eda48f80beff0ec861fd6bfd4d9baef289e28c54cf81b883e245c572ce",
+      "contracts/fixtures/page-read-frames.json": "be97624789f37e1bd36dc58ac5f4df5a0b4f7deec0a5248fe471ade9af6fff4b",
+      "contracts/fixtures/page-signature.json": "6c8e3fa85b846cfd4e86b1a849d7765cc37826fd11a9639314ad5da14a49f118",
+      "contracts/fixtures/page-transaction.json": "76933e856b419fec9ac5dc6ea83354365d2a4f005fc4e9996f9d9658e5c4f969",
+      "contracts/fixtures/protocol-repair-vectors.json": "3dd64b804eb779401d80dc97938c93ad8d289b03ecc0df2da1f69b734acc63a2",
+      "contracts/fixtures/read-command.json": "f583b61eccd9edb88f407f1e4462e345145c8f0b5a8a85933970b96c041ec23e",
+      "contracts/fixtures/scenarios.json": "d9e4a3569a6b2e806366b102787730d58414f7e42125c6600568612e8e490b7c",
+      "contracts/fixtures/source-selection.json": "e862456759385883effab806cf5bba6c7d4f85876addcf39e63eb976f1a3cf08",
+      "contracts/fixtures/transaction-template.json": "72acdcb069e50467a8d4c63e43a64cd6dbdf8473c15b449125fe61c7cf5441e3"
+    },
+    "fixtureFileCount": 174,
+    "fixtureTreeSha256": "71c3c8bdbf669d13fab4d6ef7965250d131dc0f13236d8f644f2c5cb0db253fd",
+    "relatedSha256": {
+      "docs/contracts/test-plan.json": "9f3829efb536aedaf6062f236a1b184fa5da567f8b001dea152c5d855598c9de",
+      "docs/contracts/reviews/protocol-initial.json": "b9c8e25fb8e0cfa903915fd74c6fed3ba6e3435fcc03b59744b8670a9a621242",
+      "docs/contracts/reviews/protocol-initial.md": "60814efd22f25016626bc72c3996bbe05f05cc94bf51b9e2815fb59b5714de38"
+    },
+    "coreManifestDefinition": "SHA256(UTF8 Python json.dumps(coreSha256, sort_keys=True, separators=(',',':')))",
+    "fixtureTreeDefinition": "SHA256(UTF8 Python json.dumps(fixtureManifest, sort_keys=True, separators=(',',':'))); manifest keys are repository-relative regular file paths, including all 174 fixture files.",
+    "boundary": "完整core/174 fixture/test-plan hash刷新至此快照；本次只审核PF-01/PF-02 delta，其余关闭和已做验证继承上一轮。未复核05/solution整体handoff。"
+  },
+  "closureCounts": {
+    "initialFindings": 9,
+    "closedOriginalGaps": 9,
+    "partiallyClosed": 0,
+    "openOriginalP1Defects": 0
+  },
+  "severityCounts": {
+    "P1": 0,
+    "P2": 0,
+    "blocking": 0,
+    "nonBlocking": 0
+  },
+  "blockingDesignGaps": [],
+  "nonBlockingWatchItems": [],
+  "closures": [
+    {
+      "findingId": "PIC-01",
+      "originalSeverity": "P1",
+      "status": "closed-at-design-level",
+      "reason": "PageSnapshot持久保存sealIdentity/immutableSealAck；seal同事务写入历史累计计数与checkpoint；stop只改revision时原host可读历史ACK，target/epoch变更、host重载或tombstone拒绝，历史ACK不改当前Projection。",
+      "evidence": [
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1586,
+          "end": 1628,
+          "observation": "完整历史身份和SealAck均在PageSnapshot中有必需字段，open时可null。",
+          "pointer": "/$defs/PageSnapshot"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 193,
+          "end": 197,
+          "observation": "seal事务保存历史ACK。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 77,
+          "end": 77,
+          "observation": "重复分支认证、允许与拒绝边界及S1/S2/stop计数已明确。"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC01-history-after-next-and-stop",
+        "PIC01-history-mutated-identity",
+        "PIC01-history-after-retirement"
+      ],
+      "counterexampleDisposition": "原S1 ACK丢失后S2+stop，规范返回保存的count6/pages1/S1/seq1，当前count12/pages2/S2不变。不同当前target/epoch时明确拒绝，未承诺跨导航或退役仍重ACK。"
+    },
+    {
+      "findingId": "PIC-02",
+      "originalSeverity": "P1",
+      "status": "closed-at-design-level",
+      "reason": "beginPage先分配snapshot并预留readCommandId，prepare随后绑定不可变payload；sourceIdentity/readCommandId/readEnd固定，顺序与checkpoint CAS明确；0批空页有open入口及认证end依据。",
+      "evidence": [
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 298,
+          "end": 302,
+          "observation": "先分配/预留再prepare。"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 65,
+          "end": 69,
+          "observation": "[runId,pageSequence]唯一及read命令索引。"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1561,
+          "end": 1628,
+          "observation": "固定来源、readCommandId、checkpoint预期与readEnd。",
+          "pointer": "/$defs/PageSnapshot"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 2873,
+          "end": 2919,
+          "observation": "BeginPageRequest/Response具体结构。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 75,
+          "end": 75,
+          "observation": "分配、prepare、dispatch、新写身份准入、空页与已seal页checkpoint定义。"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 154,
+          "end": 160,
+          "observation": "absent→open由begin-page-CAS触发。"
+        },
+        {
+          "file": "contracts/fixtures/protocol-repair-vectors.json",
+          "start": 4,
+          "end": 171,
+          "observation": "0批完整Template/DOM/begin/openSnapshot/end和摘要。"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC02-empty-page",
+        "PIC02-empty-missing-container",
+        "PIC02-snapshot-not-created",
+        "PIC02-mixed-document",
+        "PIC02-sequence-checkpoint-CAS"
+      ],
+      "counterexampleDisposition": "D2身份不能向D1 sourceIdentity页写入；新sequence必须为committedPages+1，checkpoint预期不符拒绝；空页先open、dispatch read、固定agent证实end后0批seal。",
+      "duringReviewRepair": "第一轮增量曾发现beginPage要求已prepare命令而Command要求未分配snapshotId；已现场改为reserve→prepare，当前不保留该P1。"
+    },
+    {
+      "findingId": "PIC-04",
+      "originalSeverity": "P2",
+      "status": "closed-at-design-level",
+      "reason": "旧A/B晚到回执隔离与whole-job abandon不复活保持；本次单卷abandoned→delivery_failed、优先于unknown/delivering，0attempt准备态排除全complete聚合，PF-02关闭。",
+      "evidence": [
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 249,
+          "end": 253,
+          "observation": "旧job聚合可变化、新job隔离。"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1161,
+          "end": 1172,
+          "observation": "ExportJob允许abandoned。",
+          "pointer": "/$defs/ExportJob/properties/state"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 89,
+          "end": 89,
+          "observation": "attempt+receipt+原job同事务聚合及冻结边界。"
+        },
+        {
+          "file": "contracts/fixtures/protocol-repair-vectors.json",
+          "start": 281,
+          "end": 303,
+          "observation": "旧A迟到complete/B不变与已放弃A仅审计。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 106,
+          "end": 106,
+          "observation": "限定prepare非空集；0attempt准备态保持；两种混合组合failed，晚到audit-only。"
+        },
+        {
+          "file": "docs/contracts/test-plan.json",
+          "start": 5854,
+          "end": 5881,
+          "observation": "PF02-complete-abandoned：两卷complete/abandoned，无整job abandon；late abandoned证据audit-only/newjob不变。",
+          "pointer": "/supplementalCases/90"
+        },
+        {
+          "file": "docs/contracts/test-plan.json",
+          "start": 5883,
+          "end": 5910,
+          "observation": "PF02-abandoned-unknown：两卷abandoned/deadline_unknown，无整job abandon；断言failed与late隔离。",
+          "pointer": "/supplementalCases/91"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 289,
+          "end": 294,
+          "observation": "attempt放弃后固定abandoned，晚到只审计的既有规则未改变。"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC04-old-late-new-job",
+        "PIC04-abandon-late",
+        "PF02-complete-abandoned",
+        "PF02-abandoned-unknown"
+      ],
+      "counterexampleDisposition": "A late complete只改变原A并保留timeout历史，B仍delivering；已整体放弃A不复活。 complete+abandoned以及abandoned+deadline_unknown（均无whole-job abandon）现在均delivery_failed；abandoned卷晚到complete仅审计，不复活原job/新job。0attempt不满足全complete聚合入口。",
+      "deltaClosureId": "PF-02",
+      "repairInputsNote": "PF02新增两案例实际位于test-plan supplementalCases/90、/91；不是protocol-repair-vectors的新文件案例。"
+    },
+    {
+      "findingId": "PIC-06",
+      "originalSeverity": "P1",
+      "status": "closed-at-design-level",
+      "reason": "identity-independent raw+values签名及精确字节向量已修复；本次旧/新重复页输入与test-plan状态统一paused_unknown，slot保持且0新增/0盲重试，PF-01关闭。",
+      "evidence": [
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 431,
+          "end": 434,
+          "observation": "页摘要只取normalized pageIdentity和有序raw+values。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 79,
+          "end": 79,
+          "observation": "URL不含fragment、全页签名及unchanged的paused_unknown规则。"
+        },
+        {
+          "file": "contracts/fixtures/page-signature.json",
+          "start": 4,
+          "end": 85,
+          "observation": "基准canonical UTF-8、SHA-256与换snapshot/第六行变化向量。"
+        },
+        {
+          "file": "contracts/fixtures/page-signature.json",
+          "start": 87,
+          "end": 152,
+          "observation": "变化包络与精确hash。"
+        },
+        {
+          "file": "contracts/fixtures/page-transaction.json",
+          "start": 192,
+          "end": 208,
+          "observation": "seal使用修正后的raw+values签名。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 106,
+          "end": 106,
+          "observation": "明确统一旧场景，slot保持，不seal、不盲click，禁止另以failed期待同一输入。"
+        },
+        {
+          "file": "contracts/fixtures/scenarios.json",
+          "start": 557,
+          "end": 573,
+          "observation": "secondRepeatedPage改paused_unknown；repeatPage要求无末页依据/slot held/no seal/no retry。",
+          "pointer": "/cases/30"
+        },
+        {
+          "file": "docs/contracts/test-plan.json",
+          "start": 2376,
+          "end": 2429,
+          "observation": "复现、expected与新增assertion一致：slot held、second-page0 new records、0 blind retries。",
+          "pointer": "/scenarioCases/30"
+        },
+        {
+          "file": "docs/contracts/test-plan.json",
+          "start": 4355,
+          "end": 4384,
+          "observation": "既有修复映射仍对应同一paused_unknown预期。",
+          "pointer": "/supplementalCases/42"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC06-same-content-different-snapshot",
+        "PIC06-sixth-row-changed"
+      ],
+      "counterexampleDisposition": "同URL同全页内容且无自然末页依据时，所有本轮对应输入只要求paused_unknown；不seal第二页、不completed、slot保持、0盲重试。前5行相同第6行变化仍应识别真正变化。",
+      "deltaClosureId": "PF-01"
+    },
+    {
+      "findingId": "PIC-07",
+      "originalSeverity": "P1",
+      "status": "closed-at-design-level",
+      "reason": "Projection.run允许null且idle pending为空；registerHost和snapshotRun绑定具体响应；slotAvailable取真实slot，idle不建立伪run。",
+      "evidence": [
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 2090,
+          "end": 2156,
+          "observation": "nullable Run及idle pending约束。",
+          "pointer": "/$defs/Projection"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 2844,
+          "end": 2872,
+          "observation": "RegisterHostResponse与SnapshotRunResponse精确绑定。"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 123,
+          "end": 127,
+          "observation": "登记返回具体response且不claim。"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 221,
+          "end": 225,
+          "observation": "snapshotRun严格嵌套Projection。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 81,
+          "end": 81,
+          "observation": "idle和可见旧jobs来源约束。"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC07-idle-projection"
+      ],
+      "counterexampleDisposition": "空DB登记可以返回run:null/pending:[]/slotAvailable:true而不建业务run；run:null并不自动推导可抢占slot。"
+    },
+    {
+      "findingId": "PIC-09",
+      "originalSeverity": "P2",
+      "status": "closed-at-design-level",
+      "reason": "新增quota/profile-quota专门interrupted转移；一般known-failure排除quota；stop先提交时保留stopping，未提交batch不ACK，已seal数据可导出。",
+      "evidence": [
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 43,
+          "end": 54,
+          "observation": "失败分类与E_QUOTA专门转移。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 81,
+          "end": 81,
+          "observation": "quota/stop优先级明确。"
+        },
+        {
+          "file": "contracts/fixtures/protocol-repair-vectors.json",
+          "start": 346,
+          "end": 374,
+          "observation": "第3批quota与stop-first两个输入。"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC09-quota-third-batch",
+        "PIC09-quota-after-stop"
+      ],
+      "counterexampleDisposition": "第3批失败保持P0 count2/pages1/checkpointP0，P1 aborted、无b2 ACK；取消已先提交不被quota改为另一终态。"
+    },
+    {
+      "findingId": "PIC-10",
+      "originalSeverity": "P1",
+      "status": "closed-at-design-level",
+      "reason": "createTarget有持久TargetCreationIntent、creationId、session与exact bootstrap URL；取消/dispatch排序、最多一次tabs.create、bootstrap认证后才导航、0/多候选冻结、迟到callback归原retirement，以及never-created证据均明确。 最终新增initial navigation同日志准入和真实新文档握手进一步封住bootstrap→业务target间的效果边界。",
+      "evidence": [
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 2920,
+          "end": 3051,
+          "observation": "TargetCreationIntent提供state、submissionCount、dispatchAt、known tab/document、candidates、retirementId。"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 305,
+          "end": 316,
+          "observation": "创建与只读对账公开接口。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 83,
+          "end": 85,
+          "observation": "创建gap不重放，target:null不足以证明未创建。"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 318,
+          "end": 348,
+          "observation": "prepared/cancel/dispatched/unknown/known转移。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 104,
+          "end": 104,
+          "observation": "bootstrap→startUrl初次导航在同target-create日志独立admit，cancel/epoch/session/grant核后最多一次location.assign；gap不重放，真实新文档agent握手后才bind/read。"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC10-cancel-before-create",
+        "PIC10-create-gap",
+        "PIC10-late-create-after-fence",
+        "PIC10-creation-zero-or-many"
+      ],
+      "counterexampleDisposition": "获准创建而ID未知继续占slot；迟到旧bootstrap只登记原退役目标，不绑定后继run；只有取消早于dispatch且无dispatch历史才可never-created。"
+    },
+    {
+      "findingId": "PIC-11",
+      "originalSeverity": "P1",
+      "status": "closed-with-explicit-first-version-limitation",
+      "reason": "Target/RetirementEvidence携带session/creation；同session有归属才numeric remove，跨session旧ID不授权关闭或认领absence。仅唯一包内bootstrap经真实sender可退役重绑；无唯一凭据的已导航target冻结、禁止自动恢复，已seal数据仍可导出。",
+      "evidence": [
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 400,
+          "end": 423,
+          "observation": "Target强制browserSessionIncarnation/creationId。"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1891,
+          "end": 1937,
+          "observation": "RetirementEvidence含session、creation、identityStatus。"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 557,
+          "end": 565,
+          "observation": "明确unsupported automatic recovery、no numeric remove/release、exportable结果。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 85,
+          "end": 85,
+          "observation": "旧数字ID被无关tab复用/移除不能释放旧slot。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 91,
+          "end": 91,
+          "observation": "storage.session是保守扩展加载会话身份；所有入口await同初始化promise。"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 349,
+          "end": 354,
+          "observation": "session change时unknown、slot保持。"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC11-old-ID-reused-new-session",
+        "PIC11-restored-bootstrap-unique"
+      ],
+      "counterexampleDisposition": "S2用户tab42不能被S1 retirement关闭，其onRemoved不释放S1 slot；唯一重识别的bootstrap只退役不恢复采集。",
+      "acceptedLimitation": "扩展disable/reload/update或browser restart都会使session token重新生成；无唯一归属的已导航执行页可能使后续任务长期不可claim。首版明确不自动reset、删除或接管；结果导出仍允许。"
+    },
+    {
+      "findingId": "PIC-12",
+      "originalSeverity": "P2",
+      "status": "closed-at-design-level",
+      "reason": "release与claim有对称slot-owner CAS；同runs+journal事务检查currentRunId/fencedEpoch/retirementId/releaseCount0，保存不可变结果、count1并清匹配slot；迟到重复只读历史。",
+      "evidence": [
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 87,
+          "end": 87,
+          "observation": "完整CAS和原子释放条件。"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1903,
+          "end": 1937,
+          "observation": "releaseId/releaseCount结构。"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 91,
+          "end": 107,
+          "observation": "未知与正常终态均使用CAS，duplicate不清新slot。"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 214,
+          "end": 218,
+          "observation": "retireTarget公开幂等边界。"
+        },
+        {
+          "file": "contracts/fixtures/protocol-repair-vectors.json",
+          "start": 455,
+          "end": 468,
+          "observation": "A释放R1、R2claim、B晚到的反例。"
+        }
+      ],
+      "repairVectorIds": [
+        "PIC12-release-late-duplicate"
+      ],
+      "counterexampleDisposition": "B的旧release即使有原absence证据，也不能写R2 slot；R1 releaseCount始终1，R3claim拒绝。"
+    }
+  ],
+  "findings": [],
+  "resolvedDuringReview": [
+    {
+      "id": "PF-TEMP-BEGIN-CYCLE",
+      "severity": "P1",
+      "status": "closed-before-final",
+      "counterexample": "旧增量beginPage要求已prepare的read命令，但ReadPagePayload要求尚未分配的snapshotId，无法启动包括0批页。",
+      "resolution": "当前contract302/semantics75先beginPage分配并预留readCommandId，再prepare绑定snapshot/plan，再dispatch。0批模板/DOM/openSnapshot/end均已落盘；不计入剩余P1。"
+    }
+  ],
+  "acceptedDesignChoices": [
+    "cancel与dispatched的IDB提交顺序是授权线性化点；已获准效果可能在stop之后发生，gap只读对账、不盲重放。",
+    "历史seal ACK保存原累计计数/checkpoint，仅忽略请求runRevision；原host与完整原target/document/version/session仍需认证。当前owner/target变更明确拒绝，不承诺任意退役后重复ACK。",
+    "beginPage固定完整来源身份、readCommandId和连续页序；stage ACK仅暂存，完整seal才可见，配套0批输入有真实读取end与empty依据。",
+    "同incarnation有完整归属及真实absence证据才可退役释放；跨incarnation无唯一归属的已导航执行tab首版unsupported automatic recovery，slot冻结、已seal结果仍exportable。",
+    "storage.session清空覆盖disable/reload/update/browser restart；新incarnation不证明旧tab不存在，不赋予同数字tabId关闭权限。仅唯一恢复的包内bootstrap可真实sender重绑为退役目标。",
+    "旧job/attempt/Blob身份隔离，晚到唯一回执只解析原job并保留timeout/resource历史；整体abandon/tombstone后只审计。",
+    "Artifact hash不解释为磁盘文件读取校验；downloadId仅启动、无唯一映射不自动重下。"
+  ],
+  "validation": {
+    "evidenceLevel": "文件合同交叉核对、反例规则推演、独立字节/摘要复算及fixture自校验；不是产品验证。",
+    "localSchemaPointers": {
+      "currentCount": 53,
+      "unresolved": []
+    },
+    "focusedSchemaProbe": {
+      "sampleCount": 16,
+      "errors": [],
+      "coverage": "BeginPageRequest、3 raw frames+end、0批Template/begin/open/end、idle Projection、Command/RulePlan、3 StageRequest、SealRequest",
+      "limitations": "定向内存keyword探针；不是完整Draft2020-12 validator，未验证format。对应PIC defs在source扩充中未变化。"
+    },
+    "canonicalChecks": {
+      "stageDigests": 3,
+      "stageBytesEach": 252,
+      "sealBytes": 756,
+      "pageSignature": "68d21e66fd66dc6db1f20f368fdd008b15953ec839e19e794487bad6c6a56625",
+      "changedSixthRowSignature": "24e182bd975c96c9e76d3abf478eb4db9a97ba5c20bee79b2efb7617841a0e6d",
+      "sameContentNewSnapshotInvariant": true,
+      "canonicalUTF8Matches": true,
+      "templatePlanCommandHashesMatch": true
+    },
+    "rawFrames": {
+      "dataFrames": 3,
+      "fullCanonicalBytesEach": 670,
+      "rowStart": [
+        0,
+        2,
+        4
+      ],
+      "rowsPerFrame": 2,
+      "allWithin128KiB": true,
+      "frameDigestsIdentityCommandAndEndCountsMatch": true,
+      "rawRowsEqualStageRaw": true,
+      "negativeVectorsAuthored": 4,
+      "negativeProductExecution": false
+    },
+    "emptyPage": {
+      "completeTemplateDOMBeginOpenSnapshotEndPresent": true,
+      "templateRawPageHashesMatch": true,
+      "identityAndReadCommandBindingMatch": true,
+      "productExecution": false
+    },
+    "repairVectors": {
+      "cases": 22,
+      "mappedCases": 22,
+      "missingMappings": [],
+      "allPlannedNotRun": true,
+      "allHaveOwnerLayersGatesFixtureRef": true,
+      "mappingPointers": {
+        "PIC01-history-after-next-and-stop": "/supplementalCases/32",
+        "PIC01-history-mutated-identity": "/supplementalCases/33",
+        "PIC01-history-after-retirement": "/supplementalCases/34",
+        "PIC02-empty-page": "/supplementalCases/35",
+        "PIC02-empty-missing-container": "/supplementalCases/36",
+        "PIC02-snapshot-not-created": "/supplementalCases/37",
+        "PIC02-mixed-document": "/supplementalCases/38",
+        "PIC02-sequence-checkpoint-CAS": "/supplementalCases/39",
+        "PIC04-old-late-new-job": "/supplementalCases/40",
+        "PIC04-abandon-late": "/supplementalCases/41",
+        "PIC06-same-content-different-snapshot": "/supplementalCases/42",
+        "PIC06-sixth-row-changed": "/supplementalCases/43",
+        "PIC07-idle-projection": "/supplementalCases/44",
+        "PIC09-quota-third-batch": "/supplementalCases/45",
+        "PIC09-quota-after-stop": "/supplementalCases/46",
+        "PIC10-cancel-before-create": "/supplementalCases/47",
+        "PIC10-create-gap": "/supplementalCases/48",
+        "PIC10-late-create-after-fence": "/supplementalCases/49",
+        "PIC10-creation-zero-or-many": "/supplementalCases/50",
+        "PIC11-old-ID-reused-new-session": "/supplementalCases/51",
+        "PIC11-restored-bootstrap-unique": "/supplementalCases/52",
+        "PIC12-release-late-duplicate": "/supplementalCases/53"
+      },
+      "behaviorExecution": false
+    },
+    "migrationFixtureSelfCheck": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B contracts/fixtures/migration/verify.py",
+      "result": "fixtureIntegrity verified",
+      "migrationVectors": 3,
+      "strictConversionVectors": 29,
+      "strictUrlVectors": 19,
+      "csvFormulaSafetyVectors": 45,
+      "templateRejectionVectors": 9,
+      "referenceCanonicalHash": "3475cba7ddc43506711b82a1865ae0228c056f074b45b364706322c057d681fa",
+      "productConverterExecuted": false,
+      "chromeAcceptanceExecuted": false
+    },
+    "notExecuted": [
+      "Chrome extension/runtime产品测试",
+      "真实IDB原子性/故障屏障测试",
+      "22反例产品行为与4帧负例执行",
+      "下载回执/退役/slot并发实测",
+      "生产lint/typecheck/build"
+    ],
+    "testPlanWholeReviewed": false,
+    "latestDeltaReview": {
+      "method": "实际文件交叉核对与聚合规则反例推演",
+      "findingIds": [
+        "PF-01",
+        "PF-02"
+      ],
+      "negativeInputs": [
+        "同URL同全页内容无自然末页证据",
+        "complete+abandoned无whole-job放弃",
+        "abandoned+deadline_unknown无whole-job放弃",
+        "0attempt准备中"
+      ],
+      "rulesSatisfied": true,
+      "newAuthoredTestCases": 2,
+      "newCasesStatus": "planned / not-run",
+      "productExecuted": false,
+      "priorByteHashChecksReused": "page-signature/page-transaction/page-read/repair fixture与schema/contract/state hash未改变，沿用上一轮对应检查；没有重新执行产品或迁移测试。"
+    },
+    "inheritedEvidenceBoundary": "本轮除latestDeltaReview外的既有schema/hash/22映射/迁移自检证据继承上一轮；当前hash只证明输入版本，不证明重新执行验证。"
+  },
+  "externalReferences": [
+    {
+      "title": "Chrome Storage API",
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/storage",
+      "supports": "storage.session在disable/reload/update/browser restart清空，支持保守扩展加载incarnation围栏。",
+      "inferenceBoundary": "session变化不会直接证明旧tab消失；实际Chrome恢复/事件排序仍需后续产品验收。"
+    },
+    {
+      "title": "Chrome Tabs API",
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/tabs",
+      "supports": "数字tabId只在浏览器session内唯一；来源为初审已核官方边界。",
+      "inferenceBoundary": "同数字用户tab被误关是反例推断，未跑产品复现。"
+    }
+  ],
+  "protocolReadyForImplementation": true,
+  "readinessMeaning": "仅本协议设计范围9项及PF-01/PF-02关闭；保留明确首版跨incarnation恢复限制。不是普通Chrome/IDB运行验收，不代替05/solution/framework/task/全测试计划综合放行。",
+  "handoff": {
+    "nextRequired": "本轮protocol delta已收束，无未关闭协议阻断项；主代理与solution reviewer处理另行授权的整合map和最终handoff。",
+    "noFurtherRecursiveReviewRequested": true,
+    "integratedReviewNotPerformed": true
+  },
+  "lateCoreDeltaReviewed": {
+    "changes": [
+      "pagePort.subscribeSourceSelection包内认证事件订阅",
+      "TargetCreationIntent navigationState/navigationSubmissionCount/navigationDispatchAt",
+      "initialNavigation cancel/epoch/session/grant准入、最多一次location.assign、gap未知不重放、真实新document握手后bind"
+    ],
+    "newP1": false,
+    "impact": "强化PIC-10；不改变seal/stage、PF-01或PF-02结论。"
+  },
+  "resolvedDeltaFindings": [
+    {
+      "id": "PF-01",
+      "originalSeverity": "P2",
+      "previouslyBlocking": true,
+      "status": "closed-at-design-level",
+      "relatedInitialFindingId": "PIC-06",
+      "reason": "旧pagination-signature与其test-plan expected/reproduction已统一paused_unknown；补slot held、第二页0记录、0盲重试，与既有semantics/修复向量一致。raw+values签名包络与exact fixture未改。",
+      "counterexampleDisposition": "同URL同全页内容且无自然末页依据时，所有本轮对应输入只要求paused_unknown；不seal第二页、不completed、slot保持、0盲重试。前5行相同第6行变化仍应识别真正变化。",
+      "evidence": [
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 79,
+          "end": 79,
+          "observation": "identity-independent raw+values签名及unchanged→paused_unknown保持。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 106,
+          "end": 106,
+          "observation": "明确统一旧场景，slot保持，不seal、不盲click，禁止另以failed期待同一输入。"
+        },
+        {
+          "file": "contracts/fixtures/scenarios.json",
+          "start": 557,
+          "end": 573,
+          "observation": "secondRepeatedPage改paused_unknown；repeatPage要求无末页依据/slot held/no seal/no retry。",
+          "pointer": "/cases/30"
+        },
+        {
+          "file": "docs/contracts/test-plan.json",
+          "start": 2376,
+          "end": 2429,
+          "observation": "复现、expected与新增assertion一致：slot held、second-page0 new records、0 blind retries。",
+          "pointer": "/scenarioCases/30"
+        },
+        {
+          "file": "contracts/fixtures/protocol-repair-vectors.json",
+          "start": 305,
+          "end": 317,
+          "observation": "既有PIC06向量仍paused_unknown、secondPageVisible0、newClicks0。"
+        },
+        {
+          "file": "docs/contracts/test-plan.json",
+          "start": 4355,
+          "end": 4384,
+          "observation": "既有修复映射仍对应同一paused_unknown预期。",
+          "pointer": "/supplementalCases/42"
+        }
+      ],
+      "acceptanceMet": [
+        "旧/新相同输入只有一个相容状态预期。",
+        "未知时slot保持、0新增记录、0盲重试；签名算法及其fixture未改变。"
+      ],
+      "productExecuted": false
+    },
+    {
+      "id": "PF-02",
+      "originalSeverity": "P2",
+      "previouslyBlocking": false,
+      "status": "closed-at-design-level",
+      "relatedInitialFindingId": "PIC-04",
+      "reason": "单卷attempt abandoned加入delivery_failed聚合，优先于unknown/delivering；whole-job显式abandon原子标未决attempt abandoned且job保持abandoned。聚合限定已prepare非空attempt集，0attempt准备中保留preparing/ready。",
+      "counterexampleDisposition": "complete+abandoned以及abandoned+deadline_unknown（均无whole-job abandon）现在均delivery_failed；abandoned卷晚到complete仅审计，不复活原job/新job。0attempt不满足全complete聚合入口。",
+      "evidence": [
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 89,
+          "end": 89,
+          "observation": "任意单卷abandoned/interrupted/conflict→delivery_failed；显式job放弃→abandoned并原子标未决attempt；late/tombstone隔离保持。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 106,
+          "end": 106,
+          "observation": "限定prepare非空集；0attempt准备态保持；两种混合组合failed，晚到audit-only。"
+        },
+        {
+          "file": "docs/contracts/test-plan.json",
+          "start": 5854,
+          "end": 5881,
+          "observation": "PF02-complete-abandoned：两卷complete/abandoned，无整job abandon；late abandoned证据audit-only/newjob不变。",
+          "pointer": "/supplementalCases/90"
+        },
+        {
+          "file": "docs/contracts/test-plan.json",
+          "start": 5883,
+          "end": 5910,
+          "observation": "PF02-abandoned-unknown：两卷abandoned/deadline_unknown，无整job abandon；断言failed与late隔离。",
+          "pointer": "/supplementalCases/91"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 289,
+          "end": 294,
+          "observation": "attempt放弃后固定abandoned，晚到只审计的既有规则未改变。"
+        }
+      ],
+      "acceptanceMet": [
+        "无活动下载且至少一卷abandoned不会回落delivering。",
+        "abandoned+unknown优先failed；whole-job放弃仍abandoned。",
+        "abandoned晚到complete只审计，新旧job隔离保持；0attempt准备态不错误complete。"
+      ],
+      "authoredNewCaseIds": [
+        "PF02-complete-abandoned",
+        "PF02-abandoned-unknown"
+      ],
+      "productExecuted": false
+    }
+  ],
+  "reviewHistory": [
+    {
+      "previousVerdict": "REQUEST_CHANGES",
+      "previousObservedAt": "2026-10-01T20:13:08.878023+00:00",
+      "previousCoreManifestSha256": "f78dddfe7ff158f750309409bf63fed62f29cf64b0f969102046232e8b69f00d",
+      "previousFixtureTreeSha256": "33a9f0a6ded2cd19d605cc257d93dbf577bc2af7228a988c2381d432e915b1dc",
+      "resolvedFindings": [
+        "PF-01",
+        "PF-02"
+      ],
+      "note": "保留上一轮REQUEST_CHANGES历史；本轮无新广泛复审。"
+    }
+  ],
+  "hashRefreshOnly": {
+    "files": [
+      "docs/contracts/solution-overview.md",
+      "docs/contracts/test-plan.json"
+    ],
+    "note": "同期overview/测试输入hash更新已刷新完整corehash；相关四个delta testcase值再次核对未变，不承担05或solution整合复审。"
+  }
+}

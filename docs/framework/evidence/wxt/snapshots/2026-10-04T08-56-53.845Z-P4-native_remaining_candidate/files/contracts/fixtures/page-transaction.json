@@ -1,0 +1,376 @@
+{
+  "contractVersion": "1.0.0",
+  "status": "planned-not-executed",
+  "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+  "initialProjection": {
+    "committedCount": 2,
+    "committedPages": 1,
+    "checkpoint": {
+      "pageNumber": 1,
+      "url": "https://fixture.example/list?page=1",
+      "lastSnapshotId": "P0"
+    },
+    "P0VisibleRecordKeys": [
+      "P0:0",
+      "P0:1"
+    ]
+  },
+  "stageRequests": [
+    {
+      "identity": {
+        "runId": "run-transaction-1",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+        "target": {
+          "targetSessionId": "target-1",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-1"
+        }
+      },
+      "snapshotId": "P1",
+      "batchIndex": 0,
+      "batchId": "P1:0",
+      "digest": "8c611581baa8877ca70594bf9e4794d9bb2acdc775bed141845e9baba66dd3c0",
+      "records": [
+        {
+          "rowIndex": 0,
+          "recordKey": "P1:0",
+          "raw": {
+            "name": "\u884c0",
+            "count": "0"
+          },
+          "values": {
+            "name": "\u884c0",
+            "count": 0
+          }
+        },
+        {
+          "rowIndex": 1,
+          "recordKey": "P1:1",
+          "raw": {
+            "name": "\u884c1",
+            "count": "1"
+          },
+          "values": {
+            "name": "\u884c1",
+            "count": 1
+          }
+        }
+      ],
+      "utf8Bytes": 252
+    },
+    {
+      "identity": {
+        "runId": "run-transaction-1",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+        "target": {
+          "targetSessionId": "target-1",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-1"
+        }
+      },
+      "snapshotId": "P1",
+      "batchIndex": 1,
+      "batchId": "P1:1",
+      "digest": "d37cd8d4162be9ed62ab4b49492e50beabde0b0786762153217907815531e482",
+      "records": [
+        {
+          "rowIndex": 2,
+          "recordKey": "P1:2",
+          "raw": {
+            "name": "\u884c2",
+            "count": "2"
+          },
+          "values": {
+            "name": "\u884c2",
+            "count": 2
+          }
+        },
+        {
+          "rowIndex": 3,
+          "recordKey": "P1:3",
+          "raw": {
+            "name": "\u884c3",
+            "count": "3"
+          },
+          "values": {
+            "name": "\u884c3",
+            "count": 3
+          }
+        }
+      ],
+      "utf8Bytes": 252
+    },
+    {
+      "identity": {
+        "runId": "run-transaction-1",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+        "target": {
+          "targetSessionId": "target-1",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-1"
+        }
+      },
+      "snapshotId": "P1",
+      "batchIndex": 2,
+      "batchId": "P1:2",
+      "digest": "fea3aa307a729139c6a8bc96b900335bc8086a78944d04bd8dc02c451bf32766",
+      "records": [
+        {
+          "rowIndex": 4,
+          "recordKey": "P1:4",
+          "raw": {
+            "name": "\u884c4",
+            "count": "4"
+          },
+          "values": {
+            "name": "\u884c4",
+            "count": 4
+          }
+        },
+        {
+          "rowIndex": 5,
+          "recordKey": "P1:5",
+          "raw": {
+            "name": "\u884c5",
+            "count": "5"
+          },
+          "values": {
+            "name": "\u884c5",
+            "count": 5
+          }
+        }
+      ],
+      "utf8Bytes": 252
+    }
+  ],
+  "sealRequest": {
+    "identity": {
+      "runId": "run-transaction-1",
+      "hostInstanceId": "host-1",
+      "hostDocumentId": "host-doc-1",
+      "ownerEpoch": 1,
+      "runRevision": 1,
+      "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+      "target": {
+        "targetSessionId": "target-1",
+        "tabId": 20,
+        "frameId": 0,
+        "documentId": "document-1",
+        "allowedOrigin": "https://fixture.example",
+        "targetVersion": 1,
+        "browserSessionIncarnation": "browser-fixture-1",
+        "creationId": "create-target-1"
+      }
+    },
+    "snapshotId": "P1",
+    "batchCount": 3,
+    "rowCount": 6,
+    "byteCount": 756,
+    "batchDigests": [
+      "8c611581baa8877ca70594bf9e4794d9bb2acdc775bed141845e9baba66dd3c0",
+      "d37cd8d4162be9ed62ab4b49492e50beabde0b0786762153217907815531e482",
+      "fea3aa307a729139c6a8bc96b900335bc8086a78944d04bd8dc02c451bf32766"
+    ],
+    "pageSignature": "68d21e66fd66dc6db1f20f368fdd008b15953ec839e19e794487bad6c6a56625",
+    "pageIdentity": "https://fixture.example/list?page=2",
+    "nextCheckpoint": {
+      "pageNumber": 2,
+      "url": "https://fixture.example/list?page=2",
+      "lastSnapshotId": "P1"
+    },
+    "emptyEvidence": null
+  },
+  "oracles": {
+    "lastBatchFailure": {
+      "failedBatchIndex": 2,
+      "visibleRecordKeys": [
+        "P0:0",
+        "P0:1"
+      ],
+      "committedCount": 2,
+      "committedPages": 1,
+      "checkpointSnapshotId": "P0",
+      "openPageState": "aborted",
+      "P1ExportCount": 0,
+      "P1DurableStagedRowCount": 4,
+      "P1StagedBytes": 504,
+      "runState": "interrupted",
+      "error": "E_QUOTA"
+    },
+    "allSealed": {
+      "visibleRecordKeys": [
+        "P0:0",
+        "P0:1",
+        "P1:0",
+        "P1:1",
+        "P1:2",
+        "P1:3",
+        "P1:4",
+        "P1:5"
+      ],
+      "committedCount": 8,
+      "committedPages": 2,
+      "checkpointSnapshotId": "P1"
+    },
+    "stopFirst": {
+      "stopRunRevision": 2,
+      "cancelSeq": 1,
+      "sealError": "E_CANCELLED",
+      "visibleRecordKeys": [
+        "P0:0",
+        "P0:1"
+      ],
+      "committedCount": 2,
+      "committedPages": 1,
+      "checkpointSnapshotId": "P0"
+    },
+    "sealFirst": {
+      "cancelSeq": 1,
+      "visibleRecordKeys": [
+        "P0:0",
+        "P0:1",
+        "P1:0",
+        "P1:1",
+        "P1:2",
+        "P1:3",
+        "P1:4",
+        "P1:5"
+      ],
+      "committedCount": 8,
+      "committedPages": 2,
+      "checkpointSnapshotId": "P1"
+    },
+    "duplicateStage": {
+      "stageIndex": 0,
+      "ackLostThenResent": true,
+      "durableStagedRows": 2,
+      "committedCount": 2
+    },
+    "digestConflict": {
+      "sameBatchId": "P1:0",
+      "replacementRecords": "different bytes",
+      "error": "E_BATCH_CONFLICT",
+      "P1State": "aborted",
+      "committedCount": 2
+    }
+  },
+  "recordTemplate": "contracts/fixtures/transaction-template.json",
+  "pageSignatureEnvelope": {
+    "pageIdentity": "https://fixture.example/list?page=2",
+    "records": [
+      {
+        "raw": {
+          "name": "\u884c0",
+          "count": "0"
+        },
+        "values": {
+          "name": "\u884c0",
+          "count": 0
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c1",
+          "count": "1"
+        },
+        "values": {
+          "name": "\u884c1",
+          "count": 1
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c2",
+          "count": "2"
+        },
+        "values": {
+          "name": "\u884c2",
+          "count": 2
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c3",
+          "count": "3"
+        },
+        "values": {
+          "name": "\u884c3",
+          "count": 3
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c4",
+          "count": "4"
+        },
+        "values": {
+          "name": "\u884c4",
+          "count": 4
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c5",
+          "count": "5"
+        },
+        "values": {
+          "name": "\u884c5",
+          "count": 5
+        }
+      }
+    ]
+  },
+  "pageSignatureCanonicalUtf8": "{\"pageIdentity\":\"https://fixture.example/list?page=2\",\"records\":[{\"raw\":{\"count\":\"0\",\"name\":\"\u884c0\"},\"values\":{\"count\":0,\"name\":\"\u884c0\"}},{\"raw\":{\"count\":\"1\",\"name\":\"\u884c1\"},\"values\":{\"count\":1,\"name\":\"\u884c1\"}},{\"raw\":{\"count\":\"2\",\"name\":\"\u884c2\"},\"values\":{\"count\":2,\"name\":\"\u884c2\"}},{\"raw\":{\"count\":\"3\",\"name\":\"\u884c3\"},\"values\":{\"count\":3,\"name\":\"\u884c3\"}},{\"raw\":{\"count\":\"4\",\"name\":\"\u884c4\"},\"values\":{\"count\":4,\"name\":\"\u884c4\"}},{\"raw\":{\"count\":\"5\",\"name\":\"\u884c5\"},\"values\":{\"count\":5,\"name\":\"\u884c5\"}}]}",
+  "beginPageRequest": {
+    "identity": {
+      "runId": "run-transaction-1",
+      "hostInstanceId": "host-1",
+      "hostDocumentId": "host-doc-1",
+      "ownerEpoch": 1,
+      "runRevision": 1,
+      "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+      "target": {
+        "targetSessionId": "target-1",
+        "tabId": 20,
+        "frameId": 0,
+        "documentId": "document-1",
+        "allowedOrigin": "https://fixture.example",
+        "targetVersion": 1,
+        "browserSessionIncarnation": "browser-fixture-1",
+        "creationId": "create-target-1"
+      }
+    },
+    "requestId": "begin-P1",
+    "readCommandId": "read-P1",
+    "pageSequence": 2,
+    "expectedPageIdentity": "https://fixture.example/list?page=2",
+    "expectedCheckpointSnapshotId": "P0"
+  }
+}

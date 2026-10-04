@@ -1,0 +1,2029 @@
+{
+  "label": "138",
+  "completeVersion": "Google Chrome for Testing 138.0.7204.183",
+  "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "extensionId": "fogaknjaaikalihoiofflibmdhogoamg",
+  "cdpVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/138.0.7204.183",
+    "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.0.0 Safari/537.36",
+    "jsVersion": "13.8.258.30"
+  },
+  "targetId": "AEA7DB142E7B889BA437FFEE7C76686D",
+  "browserPid": 33288,
+  "cases": [
+    {
+      "id": "ordinary-js-typed-dom",
+      "status": "PASS",
+      "actual": {
+        "runId": "d74943d7-95fc-43b4-a3ac-e13156432060",
+        "state": "completed",
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "absent",
+              {
+                "type": "undefined"
+              }
+            ],
+            [
+              "list",
+              {
+                "type": "array",
+                "value": [
+                  {
+                    "type": "undefined"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            ],
+            [
+              "no",
+              {
+                "type": "boolean",
+                "value": false
+              }
+            ],
+            [
+              "title",
+              {
+                "type": "string",
+                "value": "Top fixture"
+              }
+            ],
+            [
+              "zero",
+              {
+                "type": "number",
+                "value": 0
+              }
+            ]
+          ]
+        },
+        "target": {
+          "tabId": 1783284645,
+          "frameId": 0,
+          "documentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+          "url": "http://127.0.0.1:64206/page",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "targetSessionId": "68d46be2-198b-40d0-a352-582040df57e0",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        }
+      }
+    },
+    {
+      "id": "borrowed-child-exact-document",
+      "status": "PASS",
+      "actual": {
+        "target": {
+          "tabId": 1783284645,
+          "frameId": 4,
+          "documentId": "79E136AA53DDDAE08977B850EF63173A",
+          "url": "http://127.0.0.1:64206/child",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+          "targetSessionId": "14a15d98-7e93-40e7-b388-f7d52905b4c7",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "userScripts": "E_USER_SCRIPTS_UNAVAILABLE",
+        "domRun": "750b29e9-2c0b-4cae-9058-a640e58e1ce1"
+      }
+    },
+    {
+      "id": "headcas-r1-pinned-during-r2-save",
+      "status": "PASS",
+      "actual": {
+        "runId": "17a3f605-3652-443b-82a6-899b45b9d307",
+        "pin": {
+          "scriptId": "pin-race",
+          "revision": 1,
+          "sourceHash": "74d2eb4ea6f58e4fef0bc16479f2fe8edf6229d8895f78af6ccc271b514839d3",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"17a3f605-3652-443b-82a6-899b45b9d307\",\"7913c2d9-cb05-473e-b27c-5bc13c77d9bc\",\"pin-race\",1]"
+        },
+        "head": 2,
+        "conflict": "E_REVISION"
+      }
+    },
+    {
+      "id": "owned-navigation-handoff-old-element-fenced",
+      "status": "PASS",
+      "actual": {
+        "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+        "originalTarget": {
+          "tabId": 1783284646,
+          "frameId": 0,
+          "documentId": "8FCBD680C56952EE63BD1CDEEB3B3E42",
+          "url": "http://127.0.0.1:64206/page",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "creationId": "5766359b-d065-473c-a5da-414a90521bfc",
+          "targetSessionId": "542badfd-c6af-42dc-90ba-5789316c0170",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "value": {
+          "code": "E_DOCUMENT_REPLACED",
+          "title": "Next fixture"
+        },
+        "ownedAbsent": true
+      }
+    },
+    {
+      "id": "throw-durable-once",
+      "status": "PASS",
+      "actual": {
+        "runId": "291b4048-9ae7-4fba-a3e8-23d9346ae571",
+        "result": {
+          "tag": "controller-result",
+          "resultId": "b3229b49-cadf-4695-9444-0ae8a064805d",
+          "runId": "291b4048-9ae7-4fba-a3e8-23d9346ae571",
+          "namespace": "tool:fogaknjaaikalihoiofflibmdhogoamg",
+          "principal": "extension-tool:fogaknjaaikalihoiofflibmdhogoamg",
+          "revision": {
+            "scriptId": "native-5",
+            "revision": 1,
+            "sourceHash": "4d8a614e782c4395186f61d84006a793f5afc5c02bce6cbea73d3a7d4c2b3a26",
+            "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"291b4048-9ae7-4fba-a3e8-23d9346ae571\",\"8b6ff0f6-8955-4a41-977a-bbd0496b4694\",\"native-5\",1]"
+          },
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "native boom"
+            }
+          },
+          "committedAt": 1791014100582
+        }
+      }
+    },
+    {
+      "id": "busy-worker-stop-durable-then-retire",
+      "status": "PASS",
+      "actual": {
+        "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+        "trigger": {
+          "at": 1791014101262,
+          "monoMs": 3363
+        },
+        "retired": {
+          "kind": "retired",
+          "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+          "ownerEpoch": 1,
+          "reason": "stopped",
+          "url": "blob:null/b950a631-8605-48ee-b5a9-ec4ec2831228",
+          "terminateAt": 1791014101270,
+          "terminateMonoMs": 575.2999997138977,
+          "retiredAt": 1791014101270,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          },
+          "hostObservedMonoMs": 3370.800000190735
+        },
+        "result": {
+          "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+          "state": "stopped",
+          "result": {
+            "tag": "controller-result",
+            "resultId": "5044c58e-ef1b-4d99-ab86-a6846cab38f4",
+            "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+            "namespace": "tool:fogaknjaaikalihoiofflibmdhogoamg",
+            "principal": "extension-tool:fogaknjaaikalihoiofflibmdhogoamg",
+            "revision": {
+              "scriptId": "native-6",
+              "revision": 1,
+              "sourceHash": "3be27a91a59f62fcd5ff9b4b0610461a5cda4f714e048b1de022f0c3ed294047",
+              "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"ee4ded09-9652-4e4b-8ea9-0e1912f88c0d\",\"e9a20290-3627-47ac-8ace-2202692d692b\",\"native-6\",1]"
+            },
+            "state": "stopped",
+            "outcome": {
+              "ok": false,
+              "error": {
+                "code": "E_CANCELLED",
+                "name": "FoundationError",
+                "message": "Controller fenced"
+              }
+            },
+            "committedAt": 1791014101274
+          },
+          "retirement": {
+            "state": "released",
+            "releaseCount": 1,
+            "retirementId": "7f0e2277-bdeb-450b-8df1-8f2c95757416"
+          }
+        }
+      }
+    },
+    {
+      "id": "deadline-forces-worker-stop",
+      "status": "PASS",
+      "actual": {
+        "runId": "8f69584d-034e-4d46-b86f-61a82b116ccb",
+        "result": {
+          "runId": "8f69584d-034e-4d46-b86f-61a82b116ccb",
+          "state": "stopped",
+          "result": {
+            "tag": "controller-result",
+            "resultId": "2b511e5c-c1ce-4d51-9c59-d8a1c0bc3a66",
+            "runId": "8f69584d-034e-4d46-b86f-61a82b116ccb",
+            "namespace": "tool:fogaknjaaikalihoiofflibmdhogoamg",
+            "principal": "extension-tool:fogaknjaaikalihoiofflibmdhogoamg",
+            "revision": {
+              "scriptId": "native-7",
+              "revision": 1,
+              "sourceHash": "3be27a91a59f62fcd5ff9b4b0610461a5cda4f714e048b1de022f0c3ed294047",
+              "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"8f69584d-034e-4d46-b86f-61a82b116ccb\",\"7c3ea620-b4fb-4fed-ae95-55332e8df9f5\",\"native-7\",1]"
+            },
+            "state": "stopped",
+            "outcome": {
+              "ok": false,
+              "error": {
+                "code": "E_TIMEOUT",
+                "name": "FoundationError",
+                "message": "Controller fenced"
+              }
+            },
+            "committedAt": 1791014104649
+          },
+          "retirement": {
+            "state": "released",
+            "releaseCount": 1,
+            "retirementId": "a44889a5-dfa0-41c4-9995-3512f7698c7b"
+          }
+        }
+      }
+    },
+    {
+      "id": "borrowed-tab-survives-all-retirements",
+      "status": "PASS",
+      "actual": {
+        "tabId": 1783284645
+      }
+    }
+  ],
+  "events": [
+    {
+      "kind": "worker-created",
+      "runId": "d74943d7-95fc-43b4-a3ac-e13156432060",
+      "ownerEpoch": 1,
+      "url": "blob:null/95f1ebea-b341-418f-ae70-0a81936efb3f",
+      "name": "OpenDesk-Control-d74943d7-95fc-43b4-a3ac-e13156432060",
+      "origin": "null",
+      "hostObservedMonoMs": 377.30000019073486
+    },
+    {
+      "kind": "bound",
+      "runId": "d74943d7-95fc-43b4-a3ac-e13156432060",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/95f1ebea-b341-418f-ae70-0a81936efb3f",
+        "name": "OpenDesk-Control-d74943d7-95fc-43b4-a3ac-e13156432060",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 382.40000009536743
+    },
+    {
+      "kind": "operation",
+      "runId": "d74943d7-95fc-43b4-a3ac-e13156432060",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "abfa43e359dff63b312b2017e9594ebf",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "d74943d7-95fc-43b4-a3ac-e13156432060",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "native-1",
+          "revision": 1,
+          "contentHash": "afd6cb5c502a16b4b5207e4f0401b9b971b7e06dbf5b98c434aceb12bb5971e1",
+          "target": {
+            "tabId": 1783284645,
+            "frameId": 0,
+            "documentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+            "url": "http://127.0.0.1:64206/page",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "targetSessionId": "68d46be2-198b-40d0-a352-582040df57e0",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "native-1",
+          "revision": 1,
+          "sourceHash": "afd6cb5c502a16b4b5207e4f0401b9b971b7e06dbf5b98c434aceb12bb5971e1",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"d74943d7-95fc-43b4-a3ac-e13156432060\",\"4203a4dc-c283-49c8-9bee-5d81cf220d83\",\"native-1\",1]"
+        },
+        "target": {
+          "tabId": 1783284645,
+          "frameId": 0,
+          "documentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+          "url": "http://127.0.0.1:64206/page",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "targetSessionId": "68d46be2-198b-40d0-a352-582040df57e0",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "title",
+          "args": {
+            "t": "array",
+            "v": []
+          }
+        }
+      },
+      "hostObservedMonoMs": 383.69999980926514
+    },
+    {
+      "kind": "result",
+      "runId": "d74943d7-95fc-43b4-a3ac-e13156432060",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "object",
+        "v": [
+          [
+            "title",
+            {
+              "t": "string",
+              "v": "Top fixture"
+            }
+          ],
+          [
+            "no",
+            {
+              "t": "boolean",
+              "v": false
+            }
+          ],
+          [
+            "zero",
+            {
+              "t": "number",
+              "v": 0
+            }
+          ],
+          [
+            "absent",
+            {
+              "t": "undefined"
+            }
+          ],
+          [
+            "list",
+            {
+              "t": "array",
+              "v": [
+                {
+                  "t": "undefined"
+                },
+                {
+                  "t": "null"
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      "hostObservedMonoMs": 438.5
+    },
+    {
+      "kind": "retired",
+      "runId": "d74943d7-95fc-43b4-a3ac-e13156432060",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/95f1ebea-b341-418f-ae70-0a81936efb3f",
+      "terminateAt": 1791014098338,
+      "terminateMonoMs": 128.7000002861023,
+      "retiredAt": 1791014098338,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 439.09999990463257
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "d74943d7-95fc-43b4-a3ac-e13156432060",
+      "reason": "succeeded",
+      "observedAt": 1791014098339,
+      "observedMonoMs": 439.19999980926514,
+      "hostObservedMonoMs": 439.19999980926514
+    },
+    {
+      "kind": "worker-created",
+      "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "ownerEpoch": 1,
+      "url": "blob:null/2f4375ea-3120-47eb-9a24-4d9d8f5f5366",
+      "name": "OpenDesk-Control-419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "origin": "null",
+      "hostObservedMonoMs": 524
+    },
+    {
+      "kind": "bound",
+      "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/2f4375ea-3120-47eb-9a24-4d9d8f5f5366",
+        "name": "OpenDesk-Control-419c6ccf-6dbf-417f-98d2-a257fd33630f",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 527.9000000953674
+    },
+    {
+      "kind": "operation",
+      "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "518c1360eca3a37e2b27d773b13a6ff4",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "native-2",
+          "revision": 1,
+          "contentHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "target": {
+            "tabId": 1783284645,
+            "frameId": 4,
+            "documentId": "79E136AA53DDDAE08977B850EF63173A",
+            "url": "http://127.0.0.1:64206/child",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+            "targetSessionId": "14a15d98-7e93-40e7-b388-f7d52905b4c7",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "native-2",
+          "revision": 1,
+          "sourceHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"419c6ccf-6dbf-417f-98d2-a257fd33630f\",\"4c748be6-7c64-4c85-aeb0-b67dc974303c\",\"native-2\",1]"
+        },
+        "target": {
+          "tabId": 1783284645,
+          "frameId": 4,
+          "documentId": "79E136AA53DDDAE08977B850EF63173A",
+          "url": "http://127.0.0.1:64206/child",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+          "targetSessionId": "14a15d98-7e93-40e7-b388-f7d52905b4c7",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "type",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "#input"
+              },
+              {
+                "t": "string",
+                "v": "子页"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "delay",
+                    {
+                      "t": "number",
+                      "v": 0
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "hostObservedMonoMs": 528.9000000953674
+    },
+    {
+      "kind": "operation",
+      "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "ownerEpoch": 1,
+      "id": 2,
+      "envelope": {
+        "requestId": "3d4e0c4a1bba61af63fae1ed02499ae0",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "native-2",
+          "revision": 1,
+          "contentHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "target": {
+            "tabId": 1783284645,
+            "frameId": 4,
+            "documentId": "79E136AA53DDDAE08977B850EF63173A",
+            "url": "http://127.0.0.1:64206/child",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+            "targetSessionId": "14a15d98-7e93-40e7-b388-f7d52905b4c7",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "native-2",
+          "revision": 1,
+          "sourceHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"419c6ccf-6dbf-417f-98d2-a257fd33630f\",\"4c748be6-7c64-4c85-aeb0-b67dc974303c\",\"native-2\",1]"
+        },
+        "target": {
+          "tabId": 1783284645,
+          "frameId": 4,
+          "documentId": "79E136AA53DDDAE08977B850EF63173A",
+          "url": "http://127.0.0.1:64206/child",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+          "targetSessionId": "14a15d98-7e93-40e7-b388-f7d52905b4c7",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "title",
+          "args": {
+            "t": "array",
+            "v": []
+          }
+        }
+      },
+      "hostObservedMonoMs": 579.1999998092651
+    },
+    {
+      "kind": "operation",
+      "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "ownerEpoch": 1,
+      "id": 3,
+      "envelope": {
+        "requestId": "386954effbb5c50cfc414189b2170d3b",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "native-2",
+          "revision": 1,
+          "contentHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "target": {
+            "tabId": 1783284645,
+            "frameId": 4,
+            "documentId": "79E136AA53DDDAE08977B850EF63173A",
+            "url": "http://127.0.0.1:64206/child",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+            "targetSessionId": "14a15d98-7e93-40e7-b388-f7d52905b4c7",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "native-2",
+          "revision": 1,
+          "sourceHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"419c6ccf-6dbf-417f-98d2-a257fd33630f\",\"4c748be6-7c64-4c85-aeb0-b67dc974303c\",\"native-2\",1]"
+        },
+        "target": {
+          "tabId": 1783284645,
+          "frameId": 4,
+          "documentId": "79E136AA53DDDAE08977B850EF63173A",
+          "url": "http://127.0.0.1:64206/child",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+          "targetSessionId": "14a15d98-7e93-40e7-b388-f7d52905b4c7",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "user-script",
+          "method": "$eval",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "#input"
+              },
+              {
+                "t": "string",
+                "v": "e=>e.value"
+              },
+              {
+                "t": "array",
+                "v": []
+              }
+            ]
+          }
+        }
+      },
+      "hostObservedMonoMs": 615.9000000953674
+    },
+    {
+      "kind": "error",
+      "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_USER_SCRIPTS_UNAVAILABLE",
+        "name": "PageError",
+        "message": "E_USER_SCRIPTS_UNAVAILABLE"
+      },
+      "hostObservedMonoMs": 627.0999999046326
+    },
+    {
+      "kind": "retired",
+      "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "ownerEpoch": 1,
+      "reason": "error",
+      "url": "blob:null/2f4375ea-3120-47eb-9a24-4d9d8f5f5366",
+      "terminateAt": 1791014098527,
+      "terminateMonoMs": 167.2000002861023,
+      "retiredAt": 1791014098527,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 627.5
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "419c6ccf-6dbf-417f-98d2-a257fd33630f",
+      "reason": "error",
+      "observedAt": 1791014098527,
+      "observedMonoMs": 627.5999999046326,
+      "hostObservedMonoMs": 627.5999999046326
+    },
+    {
+      "kind": "worker-created",
+      "runId": "750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+      "ownerEpoch": 1,
+      "url": "blob:null/f44266da-780d-4c26-a72f-4ff3818040e3",
+      "name": "OpenDesk-Control-750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+      "origin": "null",
+      "hostObservedMonoMs": 756.4000000953674
+    },
+    {
+      "kind": "bound",
+      "runId": "750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/f44266da-780d-4c26-a72f-4ff3818040e3",
+        "name": "OpenDesk-Control-750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 762.5999999046326
+    },
+    {
+      "kind": "operation",
+      "runId": "750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "0d281c89dc4d4ce69cf78f881dc1c371",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "native-3",
+          "revision": 1,
+          "contentHash": "4fdfe390c445d509877bb8bb869b373f9d8c8b417b39a6e908717e4e93f78c4d",
+          "target": {
+            "tabId": 1783284645,
+            "frameId": 4,
+            "documentId": "79E136AA53DDDAE08977B850EF63173A",
+            "url": "http://127.0.0.1:64206/child",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+            "targetSessionId": "9f3513e4-46df-4113-9d05-3cf0bdb19db2",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "native-3",
+          "revision": 1,
+          "sourceHash": "4fdfe390c445d509877bb8bb869b373f9d8c8b417b39a6e908717e4e93f78c4d",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"750b29e9-2c0b-4cae-9058-a640e58e1ce1\",\"b6afa83f-dcc7-4449-af94-80d5cdb82fdb\",\"native-3\",1]"
+        },
+        "target": {
+          "tabId": 1783284645,
+          "frameId": 4,
+          "documentId": "79E136AA53DDDAE08977B850EF63173A",
+          "url": "http://127.0.0.1:64206/child",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "rootDocumentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+          "targetSessionId": "9f3513e4-46df-4113-9d05-3cf0bdb19db2",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "title",
+          "args": {
+            "t": "array",
+            "v": []
+          }
+        }
+      },
+      "hostObservedMonoMs": 763.6999998092651
+    },
+    {
+      "kind": "result",
+      "runId": "750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "string",
+        "v": "Child fixture"
+      },
+      "hostObservedMonoMs": 795.9000000953674
+    },
+    {
+      "kind": "retired",
+      "runId": "750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/f44266da-780d-4c26-a72f-4ff3818040e3",
+      "terminateAt": 1791014098696,
+      "terminateMonoMs": 129.59999990463257,
+      "retiredAt": 1791014098696,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 796.4000000953674
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "750b29e9-2c0b-4cae-9058-a640e58e1ce1",
+      "reason": "succeeded",
+      "observedAt": 1791014098696,
+      "observedMonoMs": 796.4000000953674,
+      "hostObservedMonoMs": 796.4000000953674
+    },
+    {
+      "kind": "worker-created",
+      "runId": "17a3f605-3652-443b-82a6-899b45b9d307",
+      "ownerEpoch": 1,
+      "url": "blob:null/5b971212-6e73-4385-aaea-5d0503850bd3",
+      "name": "OpenDesk-Control-17a3f605-3652-443b-82a6-899b45b9d307",
+      "origin": "null",
+      "hostObservedMonoMs": 874.5999999046326
+    },
+    {
+      "kind": "bound",
+      "runId": "17a3f605-3652-443b-82a6-899b45b9d307",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/5b971212-6e73-4385-aaea-5d0503850bd3",
+        "name": "OpenDesk-Control-17a3f605-3652-443b-82a6-899b45b9d307",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 882
+    },
+    {
+      "kind": "operation",
+      "runId": "17a3f605-3652-443b-82a6-899b45b9d307",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "17d045ae6ad6471ed37962d9fd31d3c9",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "17a3f605-3652-443b-82a6-899b45b9d307",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "pin-race",
+          "revision": 1,
+          "contentHash": "74d2eb4ea6f58e4fef0bc16479f2fe8edf6229d8895f78af6ccc271b514839d3",
+          "target": {
+            "tabId": 1783284645,
+            "frameId": 0,
+            "documentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+            "url": "http://127.0.0.1:64206/page",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "targetSessionId": "d8db9213-c5d8-49cf-9526-e5721afbfa8d",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "pin-race",
+          "revision": 1,
+          "sourceHash": "74d2eb4ea6f58e4fef0bc16479f2fe8edf6229d8895f78af6ccc271b514839d3",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"17a3f605-3652-443b-82a6-899b45b9d307\",\"7913c2d9-cb05-473e-b27c-5bc13c77d9bc\",\"pin-race\",1]"
+        },
+        "target": {
+          "tabId": 1783284645,
+          "frameId": 0,
+          "documentId": "4BDD3E2B1E21623993C5B6F00B4E1375",
+          "url": "http://127.0.0.1:64206/page",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "targetSessionId": "d8db9213-c5d8-49cf-9526-e5721afbfa8d",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "waitForTimeout",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "number",
+                "v": 300
+              }
+            ]
+          }
+        }
+      },
+      "hostObservedMonoMs": 882.8000001907349
+    },
+    {
+      "kind": "result",
+      "runId": "17a3f605-3652-443b-82a6-899b45b9d307",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "boolean",
+        "v": false
+      },
+      "hostObservedMonoMs": 2013.4000000953674
+    },
+    {
+      "kind": "retired",
+      "runId": "17a3f605-3652-443b-82a6-899b45b9d307",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/5b971212-6e73-4385-aaea-5d0503850bd3",
+      "terminateAt": 1791014099913,
+      "terminateMonoMs": 1200.9000000953674,
+      "retiredAt": 1791014099913,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 2013.6999998092651
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "17a3f605-3652-443b-82a6-899b45b9d307",
+      "reason": "succeeded",
+      "observedAt": 1791014099913,
+      "observedMonoMs": 2013.6999998092651,
+      "hostObservedMonoMs": 2013.8000001907349
+    },
+    {
+      "kind": "worker-created",
+      "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+      "ownerEpoch": 1,
+      "url": "blob:null/47159d74-1b93-46e0-a74d-a3a79e285761",
+      "name": "OpenDesk-Control-6e055721-5efd-4db8-9111-054c833ca713",
+      "origin": "null",
+      "hostObservedMonoMs": 2324.699999809265
+    },
+    {
+      "kind": "bound",
+      "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/47159d74-1b93-46e0-a74d-a3a79e285761",
+        "name": "OpenDesk-Control-6e055721-5efd-4db8-9111-054c833ca713",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 2332
+    },
+    {
+      "kind": "operation",
+      "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "c74a2ce6ffd552e06fd9fe0f71995e58",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "native-4",
+          "revision": 1,
+          "contentHash": "fe1d54e308320aaf2a284f9c7c3cf7ff75deccb407d78a8f0cbf41cb71a792ed",
+          "target": {
+            "tabId": 1783284646,
+            "frameId": 0,
+            "documentId": "8FCBD680C56952EE63BD1CDEEB3B3E42",
+            "url": "http://127.0.0.1:64206/page",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "creationId": "5766359b-d065-473c-a5da-414a90521bfc",
+            "targetSessionId": "542badfd-c6af-42dc-90ba-5789316c0170",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "native-4",
+          "revision": 1,
+          "sourceHash": "fe1d54e308320aaf2a284f9c7c3cf7ff75deccb407d78a8f0cbf41cb71a792ed",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"6e055721-5efd-4db8-9111-054c833ca713\",\"6a33d05a-81dc-4113-b204-b08437582a45\",\"native-4\",1]"
+        },
+        "target": {
+          "tabId": 1783284646,
+          "frameId": 0,
+          "documentId": "8FCBD680C56952EE63BD1CDEEB3B3E42",
+          "url": "http://127.0.0.1:64206/page",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "creationId": "5766359b-d065-473c-a5da-414a90521bfc",
+          "targetSessionId": "542badfd-c6af-42dc-90ba-5789316c0170",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "waitForSelector",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "#button"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "visible",
+                    {
+                      "t": "boolean",
+                      "v": false
+                    }
+                  ],
+                  [
+                    "hidden",
+                    {
+                      "t": "boolean",
+                      "v": false
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 30000
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "hostObservedMonoMs": 2333.0999999046326
+    },
+    {
+      "kind": "operation",
+      "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+      "ownerEpoch": 1,
+      "id": 2,
+      "envelope": {
+        "requestId": "6f04dcef99ffae7afb50a76108e40c09",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "native-4",
+          "revision": 1,
+          "contentHash": "fe1d54e308320aaf2a284f9c7c3cf7ff75deccb407d78a8f0cbf41cb71a792ed",
+          "target": {
+            "tabId": 1783284646,
+            "frameId": 0,
+            "documentId": "8FCBD680C56952EE63BD1CDEEB3B3E42",
+            "url": "http://127.0.0.1:64206/page",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "creationId": "5766359b-d065-473c-a5da-414a90521bfc",
+            "targetSessionId": "542badfd-c6af-42dc-90ba-5789316c0170",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "native-4",
+          "revision": 1,
+          "sourceHash": "fe1d54e308320aaf2a284f9c7c3cf7ff75deccb407d78a8f0cbf41cb71a792ed",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"6e055721-5efd-4db8-9111-054c833ca713\",\"6a33d05a-81dc-4113-b204-b08437582a45\",\"native-4\",1]"
+        },
+        "target": {
+          "tabId": 1783284646,
+          "frameId": 0,
+          "documentId": "8FCBD680C56952EE63BD1CDEEB3B3E42",
+          "url": "http://127.0.0.1:64206/page",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "creationId": "5766359b-d065-473c-a5da-414a90521bfc",
+          "targetSessionId": "542badfd-c6af-42dc-90ba-5789316c0170",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "browser",
+          "method": "goto",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "http://127.0.0.1:64206/next"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 5000
+                    }
+                  ],
+                  [
+                    "waitUntil",
+                    {
+                      "t": "string",
+                      "v": "complete"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "hostObservedMonoMs": 2386.0999999046326
+    },
+    {
+      "kind": "operation",
+      "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+      "ownerEpoch": 1,
+      "id": 3,
+      "envelope": {
+        "requestId": "7af6686c76cbbeaaa75879dc55320853",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+          "hostInstanceId": "6ab7cdbe-6d05-4c0b-a660-9b7e36207ba3",
+          "hostDocumentId": "3288DE6EA6E5CD1F2E5C985932384519",
+          "ownerEpoch": 1,
+          "scriptId": "native-4",
+          "revision": 1,
+          "contentHash": "fe1d54e308320aaf2a284f9c7c3cf7ff75deccb407d78a8f0cbf41cb71a792ed",
+          "target": {
+            "tabId": 1783284646,
+            "frameId": 0,
+            "documentId": "D8B39A82DEB38DABEB5FDE36CD62EB87",
+            "url": "http://127.0.0.1:64206/next",
+            "allowedOrigin": "http://127.0.0.1:64206",
+            "creationId": "5766359b-d065-473c-a5da-414a90521bfc",
+            "targetSessionId": "542badfd-c6af-42dc-90ba-5789316c0170",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+          }
+        },
+        "revision": {
+          "scriptId": "native-4",
+          "revision": 1,
+          "sourceHash": "fe1d54e308320aaf2a284f9c7c3cf7ff75deccb407d78a8f0cbf41cb71a792ed",
+          "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"6e055721-5efd-4db8-9111-054c833ca713\",\"6a33d05a-81dc-4113-b204-b08437582a45\",\"native-4\",1]"
+        },
+        "target": {
+          "tabId": 1783284646,
+          "frameId": 0,
+          "documentId": "D8B39A82DEB38DABEB5FDE36CD62EB87",
+          "url": "http://127.0.0.1:64206/next",
+          "allowedOrigin": "http://127.0.0.1:64206",
+          "creationId": "5766359b-d065-473c-a5da-414a90521bfc",
+          "targetSessionId": "542badfd-c6af-42dc-90ba-5789316c0170",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "f3f45e44-e62d-497f-9b88-8db8f920d68a"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "title",
+          "args": {
+            "t": "array",
+            "v": []
+          }
+        }
+      },
+      "hostObservedMonoMs": 2504.5999999046326
+    },
+    {
+      "kind": "result",
+      "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "object",
+        "v": [
+          [
+            "title",
+            {
+              "t": "string",
+              "v": "Next fixture"
+            }
+          ],
+          [
+            "code",
+            {
+              "t": "string",
+              "v": "E_DOCUMENT_REPLACED"
+            }
+          ]
+        ]
+      },
+      "hostObservedMonoMs": 2546.0999999046326
+    },
+    {
+      "kind": "retired",
+      "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/47159d74-1b93-46e0-a74d-a3a79e285761",
+      "terminateAt": 1791014100446,
+      "terminateMonoMs": 283.59999990463257,
+      "retiredAt": 1791014100446,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 2546.699999809265
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "6e055721-5efd-4db8-9111-054c833ca713",
+      "reason": "succeeded",
+      "observedAt": 1791014100446,
+      "observedMonoMs": 2546.699999809265,
+      "hostObservedMonoMs": 2546.699999809265
+    },
+    {
+      "kind": "worker-created",
+      "runId": "291b4048-9ae7-4fba-a3e8-23d9346ae571",
+      "ownerEpoch": 1,
+      "url": "blob:null/4b168734-02ce-4cff-8893-6ce8a11c241b",
+      "name": "OpenDesk-Control-291b4048-9ae7-4fba-a3e8-23d9346ae571",
+      "origin": "null",
+      "hostObservedMonoMs": 2666
+    },
+    {
+      "kind": "bound",
+      "runId": "291b4048-9ae7-4fba-a3e8-23d9346ae571",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/4b168734-02ce-4cff-8893-6ce8a11c241b",
+        "name": "OpenDesk-Control-291b4048-9ae7-4fba-a3e8-23d9346ae571",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 2678.0999999046326
+    },
+    {
+      "kind": "error",
+      "runId": "291b4048-9ae7-4fba-a3e8-23d9346ae571",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "native boom"
+      },
+      "hostObservedMonoMs": 2678.4000000953674
+    },
+    {
+      "kind": "retired",
+      "runId": "291b4048-9ae7-4fba-a3e8-23d9346ae571",
+      "ownerEpoch": 1,
+      "reason": "error",
+      "url": "blob:null/4b168734-02ce-4cff-8893-6ce8a11c241b",
+      "terminateAt": 1791014100578,
+      "terminateMonoMs": 96.59999990463257,
+      "retiredAt": 1791014100578,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 2678.699999809265
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "291b4048-9ae7-4fba-a3e8-23d9346ae571",
+      "reason": "error",
+      "observedAt": 1791014100578,
+      "observedMonoMs": 2678.800000190735,
+      "hostObservedMonoMs": 2678.800000190735
+    },
+    {
+      "kind": "worker-created",
+      "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+      "ownerEpoch": 1,
+      "url": "blob:null/b950a631-8605-48ee-b5a9-ec4ec2831228",
+      "name": "OpenDesk-Control-ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+      "origin": "null",
+      "hostObservedMonoMs": 2869
+    },
+    {
+      "kind": "bound",
+      "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/b950a631-8605-48ee-b5a9-ec4ec2831228",
+        "name": "OpenDesk-Control-ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 2873.5
+    },
+    {
+      "kind": "retired",
+      "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+      "ownerEpoch": 1,
+      "reason": "stopped",
+      "url": "blob:null/b950a631-8605-48ee-b5a9-ec4ec2831228",
+      "terminateAt": 1791014101270,
+      "terminateMonoMs": 575.2999997138977,
+      "retiredAt": 1791014101270,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 3370.800000190735
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+      "reason": "stopped",
+      "observedAt": 1791014101270,
+      "observedMonoMs": 3370.800000190735,
+      "hostObservedMonoMs": 3370.800000190735
+    },
+    {
+      "kind": "worker-created",
+      "runId": "8f69584d-034e-4d46-b86f-61a82b116ccb",
+      "ownerEpoch": 1,
+      "url": "blob:null/f3b058f9-f8a6-4b9e-ad66-109086bade08",
+      "name": "OpenDesk-Control-8f69584d-034e-4d46-b86f-61a82b116ccb",
+      "origin": "null",
+      "hostObservedMonoMs": 5625.900000095367
+    },
+    {
+      "kind": "bound",
+      "runId": "8f69584d-034e-4d46-b86f-61a82b116ccb",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/f3b058f9-f8a6-4b9e-ad66-109086bade08",
+        "name": "OpenDesk-Control-8f69584d-034e-4d46-b86f-61a82b116ccb",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 5637.699999809265
+    },
+    {
+      "kind": "retired",
+      "runId": "8f69584d-034e-4d46-b86f-61a82b116ccb",
+      "ownerEpoch": 1,
+      "reason": "timeout",
+      "url": "blob:null/f3b058f9-f8a6-4b9e-ad66-109086bade08",
+      "terminateAt": 1791014104645,
+      "terminateMonoMs": 1194.3000001907349,
+      "retiredAt": 1791014104645,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 6745.5
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "8f69584d-034e-4d46-b86f-61a82b116ccb",
+      "reason": "timeout",
+      "observedAt": 1791014104645,
+      "observedMonoMs": 6745.699999809265,
+      "hostObservedMonoMs": 6745.699999809265
+    }
+  ],
+  "summary": {
+    "PASS": 8,
+    "FAIL": 0
+  },
+  "finalProductPassed": false,
+  "physical": {
+    "exactTarget": {
+      "targetId": "0F25D67EC533A5F66004E938EC569F60",
+      "type": "worker",
+      "title": "",
+      "url": "",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+    },
+    "baselineWorkers": [],
+    "bound": {
+      "kind": "bound",
+      "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/b950a631-8605-48ee-b5a9-ec4ec2831228",
+        "name": "OpenDesk-Control-ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 2873.5
+    },
+    "association": "unique fresh target at private bound barrier; native URL empty",
+    "triggerBefore": 6729.369208,
+    "probe": {
+      "stage": "stopped",
+      "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+      "bound": {
+        "kind": "bound",
+        "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+        "ownerEpoch": 1,
+        "identity": {
+          "url": "blob:null/b950a631-8605-48ee-b5a9-ec4ec2831228",
+          "name": "OpenDesk-Control-ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+          "origin": "null"
+        },
+        "hostObservedMonoMs": 2873.5
+      },
+      "hostMonoMs": 3381.9000000953674,
+      "trigger": {
+        "at": 1791014101262,
+        "monoMs": 3363
+      },
+      "result": {
+        "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+        "state": "stopped",
+        "result": {
+          "tag": "controller-result",
+          "resultId": "5044c58e-ef1b-4d99-ab86-a6846cab38f4",
+          "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+          "namespace": "tool:fogaknjaaikalihoiofflibmdhogoamg",
+          "principal": "extension-tool:fogaknjaaikalihoiofflibmdhogoamg",
+          "revision": {
+            "scriptId": "native-6",
+            "revision": 1,
+            "sourceHash": "3be27a91a59f62fcd5ff9b4b0610461a5cda4f714e048b1de022f0c3ed294047",
+            "pinKey": "script-pin:[\"tool:fogaknjaaikalihoiofflibmdhogoamg\",\"ee4ded09-9652-4e4b-8ea9-0e1912f88c0d\",\"e9a20290-3627-47ac-8ace-2202692d692b\",\"native-6\",1]"
+          },
+          "state": "stopped",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CANCELLED",
+              "name": "FoundationError",
+              "message": "Controller fenced"
+            }
+          },
+          "committedAt": 1791014101274
+        },
+        "retirement": {
+          "state": "released",
+          "releaseCount": 1,
+          "retirementId": "7f0e2277-bdeb-450b-8df1-8f2c95757416"
+        }
+      },
+      "retired": {
+        "kind": "retired",
+        "runId": "ee4ded09-9652-4e4b-8ea9-0e1912f88c0d",
+        "ownerEpoch": 1,
+        "reason": "stopped",
+        "url": "blob:null/b950a631-8605-48ee-b5a9-ec4ec2831228",
+        "terminateAt": 1791014101270,
+        "terminateMonoMs": 575.2999997138977,
+        "retiredAt": 1791014101270,
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "hostObservedMonoMs": 3370.800000190735
+      }
+    },
+    "causalTrace": {
+      "args": {
+        "data": {
+          "frame": "CA156294B01A99AD219CD4626BFB0E08",
+          "url": "blob:null/b950a631-8605-48ee-b5a9-ec4ec2831228",
+          "workerId": "0F25D67EC533A5F66004E938EC569F60",
+          "workerThreadId": 39000352
+        }
+      },
+      "cat": "disabled-by-default-devtools.timeline",
+      "name": "TracingSessionIdForWorker",
+      "ph": "I",
+      "pid": 33486,
+      "s": "t",
+      "tid": 39000352,
+      "ts": 3010896873127,
+      "tts": 828
+    },
+    "cpuBefore": {
+      "monoMs": 6374.169166,
+      "sample": {
+        "processInfo": [
+          {
+            "type": "browser",
+            "id": 33288,
+            "cpuTime": 1.758741
+          },
+          {
+            "type": "renderer",
+            "id": 33472,
+            "cpuTime": 0.08038
+          },
+          {
+            "type": "renderer",
+            "id": 33469,
+            "cpuTime": 0.074881
+          },
+          {
+            "type": "renderer",
+            "id": 33468,
+            "cpuTime": 0.063473
+          },
+          {
+            "type": "renderer",
+            "id": 33452,
+            "cpuTime": 0.083163
+          },
+          {
+            "type": "renderer",
+            "id": 33486,
+            "cpuTime": 0.187431
+          },
+          {
+            "type": "renderer",
+            "id": 33420,
+            "cpuTime": 0.587364
+          },
+          {
+            "type": "renderer",
+            "id": 33399,
+            "cpuTime": 0.11155
+          },
+          {
+            "type": "renderer",
+            "id": 33471,
+            "cpuTime": 0.065132
+          },
+          {
+            "type": "renderer",
+            "id": 33398,
+            "cpuTime": 0.100082
+          },
+          {
+            "type": "GPU",
+            "id": 33383,
+            "cpuTime": 0.373846
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 33385,
+            "cpuTime": 0.142126
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 33394,
+            "cpuTime": 0.063775
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 33473,
+            "cpuTime": 0.045742
+          }
+        ]
+      }
+    },
+    "cpuLoop": {
+      "monoMs": 6728.119583,
+      "sample": {
+        "processInfo": [
+          {
+            "type": "browser",
+            "id": 33288,
+            "cpuTime": 1.763586
+          },
+          {
+            "type": "renderer",
+            "id": 33472,
+            "cpuTime": 0.081543
+          },
+          {
+            "type": "renderer",
+            "id": 33469,
+            "cpuTime": 0.074904
+          },
+          {
+            "type": "renderer",
+            "id": 33468,
+            "cpuTime": 0.063494
+          },
+          {
+            "type": "renderer",
+            "id": 33452,
+            "cpuTime": 0.084176
+          },
+          {
+            "type": "renderer",
+            "id": 33486,
+            "cpuTime": 0.538393
+          },
+          {
+            "type": "renderer",
+            "id": 33420,
+            "cpuTime": 0.589093
+          },
+          {
+            "type": "renderer",
+            "id": 33399,
+            "cpuTime": 0.111591
+          },
+          {
+            "type": "renderer",
+            "id": 33471,
+            "cpuTime": 0.065286
+          },
+          {
+            "type": "renderer",
+            "id": 33398,
+            "cpuTime": 0.100108
+          },
+          {
+            "type": "GPU",
+            "id": 33383,
+            "cpuTime": 0.37457
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 33385,
+            "cpuTime": 0.144334
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 33394,
+            "cpuTime": 0.063775
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 33473,
+            "cpuTime": 0.045742
+          }
+        ]
+      }
+    },
+    "loopCPU": 0.350962,
+    "postCPU": [
+      {
+        "monoMs": 7758.408333,
+        "sample": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 33288,
+              "cpuTime": 1.788293
+            },
+            {
+              "type": "renderer",
+              "id": 33472,
+              "cpuTime": 0.084946
+            },
+            {
+              "type": "renderer",
+              "id": 33469,
+              "cpuTime": 0.075055
+            },
+            {
+              "type": "renderer",
+              "id": 33468,
+              "cpuTime": 0.063647
+            },
+            {
+              "type": "renderer",
+              "id": 33486,
+              "cpuTime": 0.633737
+            },
+            {
+              "type": "renderer",
+              "id": 33420,
+              "cpuTime": 0.602367
+            },
+            {
+              "type": "renderer",
+              "id": 33399,
+              "cpuTime": 0.11257
+            },
+            {
+              "type": "renderer",
+              "id": 33471,
+              "cpuTime": 0.065503
+            },
+            {
+              "type": "renderer",
+              "id": 33398,
+              "cpuTime": 0.100591
+            },
+            {
+              "type": "GPU",
+              "id": 33383,
+              "cpuTime": 0.379798
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 33385,
+              "cpuTime": 0.147254
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 33394,
+              "cpuTime": 0.063946
+            },
+            {
+              "type": "tracing.mojom.TracingService",
+              "id": 33473,
+              "cpuTime": 0.047336
+            }
+          ]
+        }
+      },
+      {
+        "monoMs": 7911.385833,
+        "sample": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 33288,
+              "cpuTime": 1.789985
+            },
+            {
+              "type": "renderer",
+              "id": 33472,
+              "cpuTime": 0.085057
+            },
+            {
+              "type": "renderer",
+              "id": 33469,
+              "cpuTime": 0.075119
+            },
+            {
+              "type": "renderer",
+              "id": 33468,
+              "cpuTime": 0.063716
+            },
+            {
+              "type": "renderer",
+              "id": 33486,
+              "cpuTime": 0.672049
+            },
+            {
+              "type": "renderer",
+              "id": 33420,
+              "cpuTime": 0.602418
+            },
+            {
+              "type": "renderer",
+              "id": 33399,
+              "cpuTime": 0.112641
+            },
+            {
+              "type": "renderer",
+              "id": 33471,
+              "cpuTime": 0.065565
+            },
+            {
+              "type": "renderer",
+              "id": 33398,
+              "cpuTime": 0.100676
+            },
+            {
+              "type": "GPU",
+              "id": 33383,
+              "cpuTime": 0.380301
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 33385,
+              "cpuTime": 0.14752
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 33394,
+              "cpuTime": 0.063996
+            },
+            {
+              "type": "tracing.mojom.TracingService",
+              "id": 33473,
+              "cpuTime": 0.0476
+            }
+          ]
+        }
+      },
+      {
+        "monoMs": 8063.560791,
+        "sample": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 33288,
+              "cpuTime": 1.794901
+            },
+            {
+              "type": "renderer",
+              "id": 33468,
+              "cpuTime": 0.063716
+            },
+            {
+              "type": "renderer",
+              "id": 33486,
+              "cpuTime": 0.672049
+            },
+            {
+              "type": "renderer",
+              "id": 33420,
+              "cpuTime": 0.602536
+            },
+            {
+              "type": "renderer",
+              "id": 33399,
+              "cpuTime": 0.112641
+            },
+            {
+              "type": "renderer",
+              "id": 33471,
+              "cpuTime": 0.065565
+            },
+            {
+              "type": "renderer",
+              "id": 33398,
+              "cpuTime": 0.100676
+            },
+            {
+              "type": "GPU",
+              "id": 33383,
+              "cpuTime": 0.381352
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 33385,
+              "cpuTime": 0.147772
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 33394,
+              "cpuTime": 0.063996
+            },
+            {
+              "type": "tracing.mojom.TracingService",
+              "id": 33473,
+              "cpuTime": 0.048636
+            }
+          ]
+        }
+      }
+    ],
+    "postDeltas": [
+      0.03831200000000001,
+      0
+    ],
+    "targetSamples": [
+      {
+        "monoMs": 7757.538583,
+        "targets": [
+          {
+            "targetId": "430D9A4E8FD23EA7D49A628E6FBF30E5",
+            "type": "service_worker",
+            "title": "Service Worker chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/sw.js",
+            "url": "chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/sw.js",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "0F25D67EC533A5F66004E938EC569F60",
+            "type": "worker",
+            "title": "",
+            "url": "",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "994A184863C20C31ABFE887F1A7DD1CE",
+            "type": "page",
+            "title": "Top fixture",
+            "url": "http://127.0.0.1:64206/page",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "7645BBC2AFB953B7386EEEF82815C3BA",
+            "type": "page",
+            "title": "about:blank",
+            "url": "about:blank",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "AEA7DB142E7B889BA437FFEE7C76686D",
+            "type": "page",
+            "title": "F2 controller proof",
+            "url": "chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/ui/tool.html",
+            "attached": true,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          }
+        ]
+      },
+      {
+        "monoMs": 7910.296791,
+        "targets": [
+          {
+            "targetId": "430D9A4E8FD23EA7D49A628E6FBF30E5",
+            "type": "service_worker",
+            "title": "Service Worker chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/sw.js",
+            "url": "chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/sw.js",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "0F25D67EC533A5F66004E938EC569F60",
+            "type": "worker",
+            "title": "",
+            "url": "",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "994A184863C20C31ABFE887F1A7DD1CE",
+            "type": "page",
+            "title": "Top fixture",
+            "url": "http://127.0.0.1:64206/page",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "7645BBC2AFB953B7386EEEF82815C3BA",
+            "type": "page",
+            "title": "about:blank",
+            "url": "about:blank",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "AEA7DB142E7B889BA437FFEE7C76686D",
+            "type": "page",
+            "title": "F2 controller proof",
+            "url": "chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/ui/tool.html",
+            "attached": true,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          }
+        ]
+      },
+      {
+        "monoMs": 8062.745791,
+        "targets": [
+          {
+            "targetId": "430D9A4E8FD23EA7D49A628E6FBF30E5",
+            "type": "service_worker",
+            "title": "Service Worker chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/sw.js",
+            "url": "chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/sw.js",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "0F25D67EC533A5F66004E938EC569F60",
+            "type": "worker",
+            "title": "",
+            "url": "",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "994A184863C20C31ABFE887F1A7DD1CE",
+            "type": "page",
+            "title": "Top fixture",
+            "url": "http://127.0.0.1:64206/page",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "7645BBC2AFB953B7386EEEF82815C3BA",
+            "type": "page",
+            "title": "about:blank",
+            "url": "about:blank",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          },
+          {
+            "targetId": "AEA7DB142E7B889BA437FFEE7C76686D",
+            "type": "page",
+            "title": "F2 controller proof",
+            "url": "chrome-extension://fogaknjaaikalihoiofflibmdhogoamg/ui/tool.html",
+            "attached": true,
+            "canAccessOpener": false,
+            "browserContextId": "D05F27780C11F23E6941B8D303983E8B"
+          }
+        ]
+      }
+    ],
+    "destroyed": {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "0F25D67EC533A5F66004E938EC569F60"
+      },
+      "observedMonoMs": 8747.173458
+    },
+    "inspectorAttached": false,
+    "passed": false
+  },
+  "scope": "Actual product SW/broker/authority/storage/client/RunHost/ctx/opaque sandbox/native driver. Fixture tool consumer and static localhost test permission. F2 targeted evidence only.",
+  "cleanup": {
+    "browserExit": {
+      "code": 0,
+      "signal": null
+    },
+    "browserPidAlive": false,
+    "ownedProfileRemoved": true
+  }
+}

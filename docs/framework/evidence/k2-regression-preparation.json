@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-02T22:05:46.351621+00:00",
+  "scope": "K2 test preparation only; product unchanged; serial oracle is not native IDB/sender proof",
+  "runs": [
+    {
+      "command": "node --test tests/framework/k2-protocol-regressions.test.mjs",
+      "tests": 3,
+      "pass": 0,
+      "fail": 3,
+      "regressions": [
+        "R1 nested pointer",
+        "R2 inherited properties",
+        "R7 calendar/timezone"
+      ]
+    },
+    {
+      "command": "node --test tests/framework/k2-control-state-regressions.test.mjs",
+      "tests": 5,
+      "pass": 0,
+      "fail": 5,
+      "regressions": [
+        "R3 host loss lacks retirement",
+        "R4 late stop replaces retirement",
+        "R4 cross-session recovery replaces retirement",
+        "R5 terminal commits before fence",
+        "R6 unbound caller naturalEnd completes"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "path": "tests/framework/k2-protocol-regressions.test.mjs",
+      "sha256": "9b44dd2ac994b4c7a6e45290cc212924eaa67c321b3ae60dbcbd7ca8dc7a3999"
+    },
+    {
+      "path": "tests/framework/k2-control-state-regressions.test.mjs",
+      "sha256": "1f5eba346da7f4f83763d4208530bcf5a45e98a98a2b66d99f27838bfa092a82"
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "sha256": "39ae55cdfbc75e2d9e8d2e00b0b07c42ab34ef585b9357436c1fee7e19621f43"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "sha256": "9702343a7099722890c8f52d5034c864fe1a838dfc6834bbc5c71bd463224d11"
+    }
+  ],
+  "implementationPassClaimed": false,
+  "historicalFailureClosed": false,
+  "nativeF3ProofStillRequired": true,
+  "executionHistory": [
+    {
+      "createdAt": "2026-10-02T22:09:18.413845+00:00",
+      "command": "node --test tests/framework/k2-control-state-regressions.test.mjs",
+      "pass": 0,
+      "fail": 6,
+      "testSha256": "36c5fda06131eef375beb691e1b302d2cc445036ec07068adf3b3cdd083100ea",
+      "actualLog": "docs/framework/evidence/k2-state-regressions-before-f2.log",
+      "actualLogSha256": "8c751f092884e60314a26b8ed4fba0494437fd735b28ff69bd3fdd905c744a50",
+      "newActualFailure": "R8 caller commandId replaces trusted host journal metadata; subsequent genuine host authentication rejects E_OWNER"
+    }
+  ],
+  "latestPreparedRedRegressions": 9
+}

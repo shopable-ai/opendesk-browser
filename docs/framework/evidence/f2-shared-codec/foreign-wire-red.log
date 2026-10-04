@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: foreign-realm tagged wires preserve original decode behavior and the Chrome JSON hop
+not ok 1 - foreign-realm tagged wires preserve original decode behavior and the Chrome JSON hop
+  ---
+  duration_ms: 1.756417
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-shared-codec.test.mjs:119:1'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_VALUE_SERIALIZATION'
+  name: 'FoundationError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    Module.decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-shared-codec.test.mjs:124:31)
+    Test.runInAsyncScope (node:async_hooks:226:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 109.276875

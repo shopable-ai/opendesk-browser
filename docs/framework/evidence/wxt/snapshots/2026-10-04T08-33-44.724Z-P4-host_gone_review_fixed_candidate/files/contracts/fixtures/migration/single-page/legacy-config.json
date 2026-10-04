@@ -1,0 +1,10 @@
+{
+  "_listContainer": ".rows",
+  "name": ".name",
+  "name-url": ".name::href",
+  "count": ".count",
+  "enabled": ".enabled",
+  "empty": ".empty",
+  "missing": ".missing",
+  "note": ".note"
+}

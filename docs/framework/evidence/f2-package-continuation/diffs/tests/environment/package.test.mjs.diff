@@ -1,0 +1,20 @@
+--- tests/environment/package.test.mjs before
+
++++ tests/environment/package.test.mjs
+
+@@ -5,9 +5,13 @@
+
+ 
+ // These checks use the actual built package to detect regressions in the release scanner.
+ async function mutatedPackage(change, expectation) {
++  // Reject stale/broken baselines before applying the mutation; the assertions below remain unchanged.
++  await verifyPackage('dist/production');
+   await mkdir('work/package-tests', {recursive: true});
+   const root = await mkdtemp('work/package-tests/case-');
+-  try { await cp('dist/production', root, {recursive: true}); await change(root); await assert.rejects(verifyPackage(root), expectation); }
++  try { await cp('dist/production', root, {recursive: true}); await change(root); let rejection;
++    await assert.rejects(verifyPackage(root).catch(error => { rejection = error; throw error; }), expectation);
++    console.log(JSON.stringify({kind: 'historical-package-mutation', expectedPattern: expectation.source, actualError: rejection.message})); }
+   finally { await rm(root, {recursive: true, force: true}); }
+ }
+ test('final classic scanner rejects eval alias and function-constructor references', async () => {

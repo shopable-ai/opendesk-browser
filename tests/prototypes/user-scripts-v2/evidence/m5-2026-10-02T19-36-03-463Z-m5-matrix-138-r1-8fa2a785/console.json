@@ -1,0 +1,24 @@
+[
+  {
+    "event": "serviceworker-console",
+    "level": "log",
+    "text": "F1 userScripts fixture installed",
+    "at": 1790969764246
+  },
+  {
+    "at": 1790969765693,
+    "url": "http://127.0.0.1:55824/top?id=target",
+    "event": "pageerror",
+    "name": "TypeError",
+    "message": "native-sync-error",
+    "stack": "TypeError: native-sync-error\n    at <anonymous>:1:13\n    at <anonymous>:1:50"
+  },
+  {
+    "at": 1790969766490,
+    "url": "http://127.0.0.1:55824/top?id=target",
+    "event": "pageerror",
+    "name": "TypeError",
+    "message": "native-sync-error",
+    "stack": "TypeError: native-sync-error\n    at <anonymous>:1:13\n    at <anonymous>:1:50"
+  }
+]

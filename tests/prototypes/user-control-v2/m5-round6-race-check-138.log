@@ -1,0 +1,53 @@
+{
+  "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-138-permission-race-check-2026-10-02T21-37-46.184Z/report.json",
+  "cases": [
+    {
+      "id": "F1-PERMISSION-AWAIT-STOP-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-STOP-CLICK",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+      "status": "FAIL",
+      "error": {
+        "message": "Owned host did not actually close",
+        "stack": "Error: Owned host did not actually close\n    at assert (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs:51:42)\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs:255:9"
+      }
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+      "status": "FAIL",
+      "error": {
+        "message": "Owned host did not actually close",
+        "stack": "Error: Owned host did not actually close\n    at assert (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs:51:42)\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs:255:9"
+      }
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+      "status": "PASS"
+    }
+  ]
+}

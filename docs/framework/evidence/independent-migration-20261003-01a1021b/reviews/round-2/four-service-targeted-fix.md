@@ -1,0 +1,29 @@
+# 四公共服务定点补丁与验收形状（writer只读准备）
+
+本文件取代未送评的临时提案；实施方案采用原writer的具体接口/能力/固定资源选择。本轮仅细化原 execution-plan 缺口，不另造开发规划。四服务正式状态均NOT_TESTED。真实映射已修正两个符号和无消费者dispatcher；双评后先关键框架与必要消费者/资源，再普通JS/SDK定点验收。
+
+新提议 background-services.js、ADMITTED_METHODS、BACKGROUND_SERVICE_METHODS 和 framework/sdk-resources.json 尚不存在，以下是开修边界而非虚构实际文件。新清单使产物集合发生变化，writer必须同步 strict FIXED_ASSETS 验证，不能把旧18资产/hash当新包；清单只服务两个固定资源，不扩大注入/WAR/CSP。第三方必要消费者策略沿原合同；新增驱动不引入新依赖。日志安全投影仅输出事件名/字节数/项数，不保留任意原日志文本，这是与旧console的明确兼容差异；需按原“不泄秘密”合同独立审查，不隐藏为行为完全不变。
+
+四服务只读准备已收束。以下是供双独立评审的具体最小补丁形状；尚未写产品/构建/启动浏览器，不自评放行。
+
+1）已核实的旧接口与兼容出口：background.ts:798–799声明log输入{message:string,data?:any[]}、getTime无输入；811–818 respond(undefined)/Date.now()；my-content-script.ts:108实际 await bridge.send('requestResource',{url}) 后取response.data，再取{success:true,data:content}；129实际 await bridge.send('bexUrl') 后取response.data.url。旧log/getTime未发现同范围实际调用者，不能编造service.log(message,data)为已存在签名。拟在当前entry.js:96扩展冻结service：log(args)→call('log',args)，getTime()→call('getTime',{})，bexUrl()→call('bexUrl',{})，requestResource(args)→call('requestResource',args)。同一闭包增加兼容send(name,args={})：严格仅这4个旧名字，return call(name,args).then(data=>({data}))；service.bridge=Object.freeze({send})。迁入的确切旧消费者绑定 const bridge=service.bridge 后原 bridge.send('bexUrl') / bridge.send('requestResource',{url}) 语句及.data层不变。不要恢复Quasar全局bridge/第二transport，不把call的legacyResult包装再加两层，也不新增全局bridge冲突。
+
+2）注册/授权/回程最小接点：保留SDK_METHODS原18项名字与行为，新增BACKGROUND_SERVICE_METHODS四个精确旧名字，统一的ADMITTED_METHODS=冻结18+4表供normalizeMethod、grantSdk支持集、helloSdk grantSubset、admitSdk、bridge.ready严格方法校验和tool UI勾选消费。log capability service.log/effect write；getTime service.time/read；bexUrl与requestResource resources.packaged/read。只由真实工具明确勾选授予，不从网页payload产生capability/grant。registry现fields/key/jsonValue、唯一encodeValue/decodeValue复用；SDK_VERSION/Hello payload形状不变。service.js注入background服务并只分派这4个分支；sdk-broker.js:11注入api/clock/fetch/logger给拟新增单一src/platform/chrome/background-services.js，不新建router/authority/DB。仍entry.call→bridge/transport→page-relay→broker.SDK_REQUEST→sdk.requestSdk→authority.admitSdk（sdk-methods.js:198）→同commandJournal/runs/results→driver→context.recordEffect→settleSdkDelivery→valueWire→ChromeBridgeOperationCompleted→原Promise。工具host普通SDK安装不新建controller。
+
+3）不可遗漏的现有接口约束：sdk-methods.js:116 authorizeSdk(request.url)只接受HTTP URL，故包内chrome-extension URL必须由resource driver严格验证，授权hook只传{capability:'resources.packaged',phase:'pre'|'post'}，不能伪装network origin或放宽httpUrl。当前pre dispatch只标network/notifications/storage.session；新增capabilities须接入同一durable dispatched/submissionCount规则，特别log在sink前必须pre事务+context.assertDispatch，防SW中断后重复日志效果；四项沿原15s fence及permission/document失效，效果落盘后再post/交付，不抹已发生效果。clock必须broker已有clock，bexUrl必须api.runtime.getURL('/')，不能页面Date/location/root代替可信驱动。
+
+4）参数与输出：log只允许{message,data?}，message UTF8≤4096byte，data若有必须array≤100项，值沿现codec depth12及整请求64KiB限额；非法E_SCHEMA/超限E_LIMIT，无sink提交。为保证“不泄秘密”，sink仅输出固定事件名+message字节数+data项数，不打印任意message/data/token/raw request；此安全投影写明compatibility差异，成功真正recordEffect(undefined)并保留own undefined。getTime空对象，可信clock.now()有限number，0直接保留。bexUrl空对象，返回{url:api.runtime.getURL('/')}，伪造location/root字段typed拒绝。requestResource只{url:string}（旧token仅被解构却未使用，实际消费者只传url），成功raw value沿旧{success:true,data:UTF8文本}；missing/哈希不符E_RESOURCE_UNAVAILABLE，非法路径/远程地址typed拒绝，禁止动态eval/innerHTML/textContent注入。错误走foundation外层typed error，不伪成功{success:false}掩盖。
+
+5）固定资源/旧别名→现包：旧my-content-script.ts:148–153确切6个core入口 brige.js/common.js/axiosx.js/appStorage.js/appLocal.js/utils.js，以及161的assets/js/Env.js，职责已被现framework/sdk-main.js组装；兼容URL别名可显式列这7个→framework/sdk-main.js，说明返回新组合bundle不是旧文件逐字节copy。规范framework/sdk-main.js→自身；agents/page-relay.js→自身（新ISOLATED配套，没有虚构旧同名别名）。不加入lodash/moment/axios/js.cookie/fingerprint、SW/UI/sandbox/Worker或任意目录glob。旧appendScript的远程fetch→文本执行分支不能迁回；实际加载继续broker.installSdk:59→tabs.injectFixed:16按同allowlist ISOLATED relay然后MAIN，不能反复把6个别名文本执行6次。资源读取消费者是上述service.bridge/send；加载消费者为已有固定installSdk。
+当前production MAIN 24,289bytes sha e9e091da6bc172996f7e7356bd83a1378e9670c6b9e015d802c56daa92ae9755；relay13,913bytes sha 8ee5fa5882733a82dd3ddcac92e6f9b9269f71bc8508ee8c90d127b275111c72。两者改包后必须重新生成，不能硬编码旧hash。拟在build.mjs现产物生成后写固定framework/sdk-resources.json仅含这2路径/bytes/sha256；verify-package按严格schema复算并绑定exact consumer/别名。SW driver只取可信getURL此固定清单及清单允许的资源，size/hash/UTF8验证后recordEffect再交付；不修改源码产生构建漂移、不新增第三方依赖、不放宽CSP/WAR/预算。现notification.png595bytes sha efb5cadd.../MIT1096bytes sha e301f131...继续各自消费者，不因此暴露给requestResource。migration-map里sdk-injection.js是旧计划路径，实际该文件不存在；复用现broker.installSdk/tabs.injectFixed，不能冒称已迁或再造injector。
+
+6）逐项可执行断言，后续仅production138串行：log合法[0,false]原Promise own undefined，非法data对象/未知key/超限typed拒绝，sink无原始secret，重复request仅1提交/持久回执；getTime原生t1..returned..t2+finite，同id读同receipt，0用组件clock fixture证明而不能伪造native时钟；bexUrl等于本SW actual runtime.getURL('/')，页location不同/恶意root拒绝且无额外效果；资源规范URL与固定旧别名读回bytes/hash匹配新清单，原{data:{success:true,data:text}}Promise shape，missing typed，../编码逃逸/其他extension/query/hash/http远端/延期vendor拒绝且外部HTTP计数0；真实固定installSdk消费+Hello正确，禁止远程文本执行。四项都复核真实sender/grant/doc、同IDB durable/duplicate/conflict、无controller。新包变化仅复验相关门禁，原603这4条状态按真实结果更新，不能由组件或评分关闭。
+
+上述方案只读，双独立评分仍由你拿真实报告；未≥95不声称已批准。旧Goal保持paused，当前src/dist/原runner/gates/ledger都未动。
+
+writer补充的两项接口/生命周期约束同属实施边界：
+
+- getTime/bexUrl facade 必须 `(args={})=>call(旧名字,args)`，由 empty schema 拒绝未知字段/伪造 location/root；不能先丢弃参数再假装已经拒绝。原生逐项测试恶意参数，并记录没有额外副作用。
+- entry.ownInstallation 必须精确核验冻结 service/bridge 接口或私有 ABI 版本。旧安装缺四项时 E_SDK_GLOBAL_CONFLICT，不能静默复用旧 service/声称 ready，不能替换冻结 globals 或再建身份。新包同一document重复注入仍使用既有 refresh/Hello关联；新增组件与原生断言分别覆盖旧ABI拒绝、新ABI重注入、旧Hello/timeout不能污染新桥、pending/timer/listener清理。
+
+开修顺序：修正候选具体缺项并取得两名独立评分≥95且无方案blocker→原writer四服务框架补丁/组件检查→原writer串行production构建并交回文件与包hash→本对话独立源码复验及当前production138原生断言→普通JS基本主链/版本/终态/持久下载/采集未注册→无controller旧SDK/B05并发崩溃→原603+19/故障/资源基线/F3同最终包。原writer仍唯一产品writer，旧Goal保持paused，本对话不并发构建、不抢浏览器；包变更后旧PASS不自动迁移。任何适用FAIL/BLOCKED/NOT_TESTED或F3未通过，当前Goal不得完成。

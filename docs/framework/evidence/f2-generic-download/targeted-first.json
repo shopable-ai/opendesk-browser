@@ -1,0 +1,10 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "argv": [
+    "node",
+    "--test",
+    "tests/framework/k2-generic-download.test.mjs",
+    "tests/foundation/download-service.test.mjs"
+  ],
+  "exitCode": 1
+}

@@ -1,0 +1,71 @@
+继续 OpenDesk Browser 的旧功能迁移。请直接执行，不停在规划；先完善旧功能和实际消费者，再做当前改动的关键验证。汇报必须让我能从旧项目的接口理解进度。
+
+一、目标及工程
+创建并执行“OpenDesk Browser 旧功能迁移与可核对验收”原生 Goal，沿用原 T01–T13/K0–K6/F1–F3 和唯一账本。目标是本轮约定的旧类库、浏览器控制、普通JS、独立网页SDK、公共服务及必要资源真实运行，并完成原合同最终同包F3；四服务只是第一个可交付里程碑，不能据此宣告整轮完成。
+新工程 /Users/shopme/Documents/workspace/opendesk-browser；旧工程 /Users/shopme/Documents/workspace/todo-user-vue/src-bex 只读。每条工程命令指定新工程cwd。
+当前实际构建是WXT 0.21.4/Vite，保留现有MV3、11固定入口、权限、CSP及构建预算。不要按陈旧提示词恢复webpack，不重新迁移构建体系、不初始化Git、不新增未请求依赖。
+
+二、先串行交接，避免两个聊天改同一工程
+本提示词由人类发送到新聊天时，授权新聊天在完成串行交接后接续唯一产品writer，并授权向下列聊天发送与写权移交、在途操作、原始证据、具体产品修复及独立复验有关的协调消息：
+当前产品writer 01a10590-e67c-7631-8254-0736c469d974，标题“WXT P4—P5 控制与独立 SDK 完善”；
+独立协作聊天 01a1021b-a6df-7a63-a9b0-d1049f342b35。
+先读取public-owner和当前writer状态，联系其停止新增产品写入/构建/测试，安全收尾正在运行的操作，交付最新变更、包hash、原始失败和未完成项。确认无在途写入/构建/浏览器冲突后，再登记新writer并开修。不得抢浏览器窗口或终止他人PID，不并发构建。
+旧聊天01a1007d-556c-7783-b5dd-c09312a10236的旧Goal保持暂停；01a10590-5bc1-7d03-bad6-58f306a2b790处于blocked且未修改产品，不恢复这些旧Goal，也不要把它们当当前writer。独立协作聊天不接管产品。
+普通可逆工作无需再问人类“是否继续”。实际写权冲突没有解除时不并发开修，先做有用的只读交接。
+
+三、基线必须按功能理解
+截至本提示词生成时：
+1. 旧background.ts执行普通JS，现由工作台保存revision→RunHost→sandbox Worker执行。WXT生产/开发历史包已有return 7、持久保存、重开工具页读取同一runId的原生记录。
+2. 旧ChromePage.ts的goto/type/click/wait/读取、明确目标及child frame：当前production原生单项记录已有PASS；r1在途保存r2/删除head、false/0/undefined等持久结果和部分实际下载也已有PASS。这是运行中单项记录，整轮报告尚未结束，不能写P4/P5或F3已通过。
+3. P4-API48-WORKER-SEMANTICS仍有FAIL：ChromePage.addScriptTag写入后读到undefined。当前writer判断写入MAIN、断言通过USER_SCRIPT读取。接续后先核实实际执行世界与原合同，再只修错误环节；保留原FAIL，不删除断言或把它直接改PASS。
+4. 已落地版本pin和准入同事务、SDK错误保留原调用引用、目标Cookie授权入口。复用已有修复，不重复造实现。
+5. 旧AppStorage/AppLocal/axiosx等仍有同名网页facade，完整独立SDK原生验收尚未完成。
+6. 旧background.ts四项log/getTime/bexUrl/requestResource仍缺；entry.js的service只有storage，src/platform/chrome/background-services.js及framework/sdk-resources.json仍不存在。
+7. 直接new ChromePage()现在需要受信运行上下文；网页executeScript/executeInBg明确E_CAPABILITY。必须写明这些兼容变化，不能声称所有旧调用方式完全保留。
+8. 正式603项仍全部not-tested；19增项仍unit-passed-native-pending；F3未通过。不要用文件数、组件测试数或阶段数折算整体完成百分比。
+生产包读取快照hash faad7957d67832a3ce767cbc371f503edde1837734a191b38d7327825b2cec9a。当前writer仍活跃，必须重核交接后的实际包；旧552d、WXT历史d2c及其他候选证据都只属于各自包。
+
+先完整读本目录continuation-baseline-20261004.json；
+docs/framework/wxt-status.md、wxt-progress.json、public-owner.json及当前writer的最新交接；
+docs/framework/prompts/goal-migration-v5.txt、continue-product-implementation-first-20261003.txt及它们要求的原合同/历史附件；
+docs/framework/execution-plan.md、execution-tasks.json、execution-gates.json、source-compatibility-ledger.json；
+docs/framework/evidence/independent-migration-20261003-01a1021b/{actual-code-map.md,four-service-targeted-fix.md,preimplementation-review-receipt.json}及其冻结双评正文；
+当前相关原始case/构建回执。陈旧webpack/旧owner表述被本文当前WXT和实际移交要求取代。完整读取合同不等于重做全库审计；随后只读当前修复相关源码和消费者。
+阶段0/F1已通过，不重审；四服务实施方案同候选独立97/96已放行，不重新等待方案评分，也不把评分当新产品PASS。
+
+四、实施顺序和具体步骤
+步骤1：完成上面的串行交接。用一张短表列旧功能、当前实际新文件/接口、已证明范围和剩余缺口。
+步骤2：第一批产品实施补四公共服务、固定资源和真实旧消费者。主要接点为：
+src/framework/sdk/{registry,service,bridge,entry}.js；
+src/platform/host/{sdk-broker,sdk-methods}.js；
+src/ui/tool-shell.js；
+src/platform/chrome/background-services.js（开修前仅为拟新增）；
+scripts/{build,verify-package}.mjs与当前WXT产物映射。
+按已评审four-service-targeted-fix.md落实四精确旧方法、统一ADMITTED_METHODS、授权/Hello/准入/回程、可信clock/runtime/logger、两固定资源/七旧别名、实际bytes/SHA清单。适配当前WXT构建，不新增第二authority、broker、journal或IDB。
+旧消费者 const bridge=service.bridge; await bridge.send('bexUrl') / bridge.send('requestResource',{url})及.data层保持兼容；service直接方法保持原Promise。参数交给schema，不先丢弃非法字段。log成功own undefined、getTime有限number且0保真、bexUrl为真实runtime根、requestResource返回原success/data形状；路径/远程资源拒绝、一次效果与unknown不重放等沿批准方案。
+必要第三方有实际消费者且无等价实现时才原版本/文件名迁入，保留许可，不修改第三方源码。不复制无人消费的目录、不自动执行assets/js所有JS。
+步骤3：补普通JS尚未闭环部分，并处理addScriptTag当前FAIL。复用工作台/RunHost和已证明行为，补版本选择/pin/tombstone、返回/异常/stop/deadline、精确目标、持久读取、下载与资源清理。每次针对具体缺口修复，不重新造运行器。
+步骤4：补独立网页SDK。使用旧AppStorage/AppLocal/axiosx/ChromeBridgeOperationCompleted及旧bridge调用，真实网页无controller→授权→固定注入→Hello→Chrome真实sender→同broker/IDB→原Promise。基本主链通过后再补原合同并发/崩溃恢复。
+步骤5：冻结最终production包，按原合同完成剩余适用验收、唯一账本、故障矩阵、资源基线和顺序独立F3评审。任何适用FAIL/BLOCKED/NOT_TESTED或F3未通过，不能标完整Goal完成。
+
+五、关键测试条件和检查方式
+只验证当前实现能否证明旧功能。先接代码，再相关组件检查，再一次串行production构建/严格包校验，最后真实产品断言。通过即推进下一缺口；仅新改动、失败或具体未消除疑点才重跑受影响检查。不重复四环境整套测试，不新增无合同依据压力测试；最终F3保留原必需覆盖与次数。
+A. 浏览器控制：工作台保存原脚本、读取真实版本选择值、明确tab/frame/document、真实授权；旧page.goto/type/click/wait/title/url操作正确目标并返回预期值。MAIN、ISOLATED、USER_SCRIPT断言必须与原合同的执行世界对应。
+B. 版本：r1运行中保存r2/删除head仍执行已pin的r1；新启动按tombstone合同拒绝，不残留违规run。
+C. 终态与资源：throw/rejection、false/0/undefined/own-undefined保真；stop/deadline证明真实Worker按原合同物理终止，资源返回baseline，不能只看“停止”日志。
+D. 持久与下载：关闭并重开工具页读取相同runId/resultId；浏览器同profile重启另作验证，不能用工具页重开冒充。原生下载complete，磁盘bytes与SHA256匹配artifact，关联run/result正确，Blob释放。receipt.diskHashVerified=false不能当已验disk；以实际磁盘读回证据说明。
+E. 四服务：用旧bridge.send调用证明四项结果及.data层，非法参数/越界/远程资源typed拒绝且无外部fetch，固定资源真实加载及hash正确，重复无二次效果、重注入兼容。
+F. 独立SDK：旧网页接口通过真实授权/原Promise调用共享存储与短服务；AppStorage持久、AppLocal会话寿命、axiosx原参数/结果/错误符合原合同；再做原B05要求的100并发及四崩溃点、unknown不重放和资源清理。
+G. 模板独立：实际证明采集/template未注册或禁用时普通JS仍能运行。
+节点未到产品断言时记录工具/前置BLOCKED，停止依赖测试并修根因；组件fixture、构建、源码存在、演示接口都不能登记原生PASS。浏览器只用本run确认归属的受控实例，执行前读chrome-testing-keychain技能；不操作个人Chrome或他人窗口。
+源码改动后旧包PASS不能自动算新包PASS；保留全部原始失败和修复后对应复验。最终证据属于同一冻结候选。
+
+六、让我能看懂和核对的交付方式
+用户报告以旧功能名字组织，不要主要报告P编号、lane、测试数量、目录数量或大段JSON。
+每行固定为：
+旧功能及原调用 → 旧文件/符号 → 新实际文件/符号 → 实际加载入口和消费者 → 本轮改了什么 → 实际结果 → PASS/FAIL/BLOCKED/NOT_TESTED → 证据链接 → 剩余缺口。
+实现状态与验收状态分开；不存在的新文件只写“缺失/拟新增”。源码对应、成功加载、功能运行、最终验收分别陈述。
+每个已交付功能附最短操作步骤/原调用示例、预期值与实际值、真实结果页截图、原始case和持久结果/下载文件。截图必须显示该项结果；SDK安装截图不能代替return 7结果截图。原始IDB/包hash保存在技术证据层，主报告先说功能结果。
+给用户一份按旧功能索引的验收清单，并提供可点击的旧代码、新代码、实际结果证据；不要只给一堆文件让用户自己找。正式case ID和分母不改；RESOURCE01.F021.getResourceByUrl仍保留原ID，实际旧符号requestResourceByBridge。
+首次读取及交接结束后立即执行第一项缺口。持续推进，不询问“是否继续”；只有真正未解除的写权冲突、缺失授权或破坏性分支才必要澄清。
+

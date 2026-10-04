@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-10-03T09:02:23.897122+00:00",
+  "lane": "cooperative acceptance mechanism only",
+  "productWriterThreadId": "01a1007d-556c-7783-b5dd-c09312a10236",
+  "changes": "Only new isolated acceptance documents/checker/tests/runner/evidence; no shared source, ledger, gates, handoff, build scripts or frozen evidence edited",
+  "checks": [
+    {
+      "command": "node --test tests/framework/acceptance-evidence.test.mjs",
+      "exitCode": 0,
+      "tests": 24,
+      "passed": 24,
+      "failed": 0,
+      "meaning": "Evidence mechanism regression only; synthetic/file fixtures are not native product evidence"
+    },
+    {
+      "command": "node --check new checker, regression tests and B05 runner",
+      "exitCode": 0,
+      "meaning": "Syntax only"
+    },
+    {
+      "command": "/usr/bin/python3 docs/framework/evidence/continuation-20261003-current/browser-launcher-smoke.py",
+      "exitCode": 0,
+      "passed": 2,
+      "meaning": "No extension; global launcher actual argv, CFT version, fresh profile and cleanup only"
+    },
+    {
+      "command": "node tests/framework/verify-product-acceptance.mjs --full",
+      "exitCode": 0,
+      "mode": "readiness",
+      "accepted": false,
+      "counts": {
+        "original": 603,
+        "additional": 19,
+        "validCaseRecords": 0,
+        "accepted": 0
+      },
+      "meaning": "Readiness read only; exit0 does not mean acceptance"
+    }
+  ],
+  "nativeProductTestsExecutedByThisLane": 0,
+  "frameworkFunctionalMigrationComplete": false,
+  "F3": false,
+  "remaining": [
+    "Native ordinary JS/workbench lifecycle, exact document and durable download validation by sole product writer",
+    "Controller-free B05 four crash windows, SDK018 storage cut, public unknown reference and all resource baselines",
+    "Same final production original603/all explicit additions/historical17/R1-R8/1000 mixed/10 reconnect/2 plugin disabled/full native matrix",
+    "Independent final package architect followed by critic; this mechanism review is not F3"
+  ],
+  "fileReferences": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+      "bytes": 27598,
+      "sha256": "e8aeaa949f982e8a72289b3f5bb990db6447417f2335e7ea8d0835b656760efc"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+      "bytes": 19246,
+      "sha256": "3ce6d0a3ab20aa8a54353c63647b82ae3d3eeee19a2d0421a3b8d69364aada1b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs",
+      "bytes": 74809,
+      "sha256": "9fd9406a834fc6c01e6c4c99c2a7b5bc3e60bcecc15623819deca3f1b1006d16"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+      "bytes": 20353,
+      "sha256": "54b3067b605fe5b95edfcbc58d5d6d540cd342e8d9cad0d45190f7015b01010c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/supplemental-sdk-cases.json",
+      "bytes": 20016,
+      "sha256": "5a5c7fc207cf4ef3fac2861a41203dbd86034fe05f87e24fe1e8b3debd36fa61"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-regressions.log",
+      "bytes": 2529,
+      "sha256": "cd2ae37bbec292d49388cd58a75a16629b0658fc0169845a62637cc144196f5e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/browser-launcher-smoke.json",
+      "bytes": 7975,
+      "sha256": "daaa23ff8c589dcb27e046b362d28067cd4613d4c32a2ccebec3b5f3ab354cf3"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/source-behavior-map.md",
+      "bytes": 438819,
+      "sha256": "35bfc03045705ec9662d8a2da4bf7b973ba9de79d80fcc8d8f30255c3c1afd39"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/source-ledger-read-receipt.json",
+      "bytes": 17463864,
+      "sha256": "09bf364a4de3bacc8c1ad3bdca18b01f72fbf7695fd9a80a1273d3786a1ea6b7"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/sdk-runner-notes.md",
+      "bytes": 20028,
+      "sha256": "844099917fb121f3d1a7bebd49d85f2d651b7ef222b76eddb8df1cada9a2c55e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/product-readiness.json",
+      "bytes": 306534,
+      "sha256": "9c81b2ef13c1c3d8499d6c2d92b67d92b9d0a53a52e7dc5abcace1bc7cede202"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.json",
+      "bytes": 65535,
+      "sha256": "e5c12226071dbb4cd6d1c0c86db51d1f4e8d689f5849053d4d871a599a07aa2e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.md",
+      "bytes": 24034,
+      "sha256": "56cb88a04a48bcc866c367601920b627a343274e38a51bbd25d56cf1ac7861c2"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-followup.json",
+      "bytes": 68150,
+      "sha256": "f76725f599783da19ddb87456ed7827f943838f7f61a9b339450eeaba3aa5174"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-followup.md",
+      "bytes": 6085,
+      "sha256": "0c58844c535c962d43cf6c9e614f8642a315484250764c15bff0bf1485e12421"
+    }
+  ],
+  "independentMechanismReview": {
+    "initial": "REQUEST CHANGES; prior report preserved",
+    "followup": "AMR-01 through AMR-11 closed at mechanism level; no remaining IDs within bounded review",
+    "meaning": "Not final product candidate review; native and F3 pending"
+  }
+}

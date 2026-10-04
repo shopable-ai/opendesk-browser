@@ -1,0 +1,2569 @@
+{
+  "schema": "m5-k1-bounded-diagnostic-contract-difference-v1",
+  "status": "BLOCK",
+  "caseIDs": [
+    "F1-PAGE-AUTH-CSP"
+  ],
+  "approvedPagePlanManifestSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "priorPageCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "diagnosticCandidateSha256": "0726cdf8e49880f9c516f95f48b35f273d9e0204749174bd1a3cf35bc2f5a576",
+  "candidateMeaning": "Diagnostic-only candidate, unchanged page mechanism; no F1 qualification",
+  "evidenceDirectory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3",
+  "reportSha256": "5a39c45d8db035ad13bb1106689699274d695b4dccc5b481193e722d4f5a1e4c",
+  "runs": [
+    {
+      "version": "138.0.7204.183",
+      "actualVersion": "138.0.7204.183",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+      "os": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64"
+      },
+      "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-138.0.7204.183-edba5f6b-15b5-481c-b4a4-a46ece83f1b9",
+      "target": {
+        "tabId": 2123924782,
+        "frameId": 0,
+        "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+        "url": "http://127.0.0.1:55139/owned"
+      },
+      "hostDocumentId": "A11C53549C434F7560DF522AF133EEB3",
+      "hostTimeOrigin": 1790973731740,
+      "executeCalls": 12,
+      "apiInvoked": 12,
+      "contractFailures": 4,
+      "cases": [
+        {
+          "caseId": "history-USER_SCRIPT-native-completed",
+          "world": "USER_SCRIPT",
+          "phase": "native-completed",
+          "contractMet": false,
+          "oldAcceptedKind": "value",
+          "freshAcceptedKind": "value",
+          "settlementCount": 1,
+          "sameHost": true,
+          "runnerRecheckCalled": false,
+          "nativeWhileOffResolved": false,
+          "input": {
+            "target": {
+              "tabId": 2123924782,
+              "frameId": 0,
+              "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "world": "USER_SCRIPT",
+            "source": "()=>{document.body.dataset.effect=\"history-USER_SCRIPT-native-completed\";return true;}",
+            "acceptanceBarrier": "history-USER_SCRIPT-native-completed"
+          },
+          "expected": "Old outcome rejected after actual switch OFF/ON; newly admitted restored operation succeeds",
+          "actualOldAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "actualFreshAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "effect": "history-USER_SCRIPT-native-completed",
+          "offUI": {
+            "before": "true",
+            "after": "false",
+            "t0": 1790973732146,
+            "confirmedAt": 1790973732166
+          },
+          "onUI": {
+            "before": "false",
+            "after": "true",
+            "t0": 1790973732169,
+            "confirmedAt": 1790973732190
+          },
+          "nativeWhileOff": null,
+          "oldNative": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "caseId": "history-USER_SCRIPT-pending",
+          "world": "USER_SCRIPT",
+          "phase": "pending",
+          "contractMet": false,
+          "oldAcceptedKind": "value",
+          "freshAcceptedKind": "value",
+          "settlementCount": 1,
+          "sameHost": true,
+          "runnerRecheckCalled": false,
+          "nativeWhileOffResolved": true,
+          "input": {
+            "target": {
+              "tabId": 2123924782,
+              "frameId": 0,
+              "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "world": "USER_SCRIPT",
+            "source": "async()=>{document.body.dataset.pending=\"history-USER_SCRIPT-pending\";const v=await(await fetch(\"http://127.0.0.1:55139/hold?token=history-USER_SCRIPT-pending\")).json();document.body.dataset.effect=\"history-USER_SCRIPT-pending\";return v;}",
+            "acceptanceBarrier": "history-USER_SCRIPT-pending"
+          },
+          "expected": "Old outcome rejected after actual switch OFF/ON; newly admitted restored operation succeeds",
+          "actualOldAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "token",
+                  {
+                    "type": "string",
+                    "value": "history-USER_SCRIPT-pending"
+                  }
+                ]
+              ]
+            }
+          },
+          "actualFreshAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "effect": "history-USER_SCRIPT-pending",
+          "offUI": {
+            "before": "true",
+            "after": "false",
+            "t0": 1790973732209,
+            "confirmedAt": 1790973732231
+          },
+          "onUI": {
+            "before": "false",
+            "after": "true",
+            "t0": 1790973732237,
+            "confirmedAt": 1790973732257
+          },
+          "nativeWhileOff": {
+            "state": "pending",
+            "started": 1790973732199,
+            "target": {
+              "tabId": 2123924782,
+              "frameId": 0,
+              "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 35,
+              "results": [
+                {
+                  "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "object",
+                      "value": [
+                        [
+                          "token",
+                          {
+                            "type": "string",
+                            "value": "history-USER_SCRIPT-pending"
+                          }
+                        ]
+                      ]
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790973732234
+          },
+          "oldNative": {
+            "kind": "resolved",
+            "elapsedMs": 35,
+            "results": [
+              {
+                "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "history-USER_SCRIPT-pending"
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "caseId": "history-MAIN-native-completed",
+          "world": "MAIN",
+          "phase": "native-completed",
+          "contractMet": false,
+          "oldAcceptedKind": "value",
+          "freshAcceptedKind": "value",
+          "settlementCount": 1,
+          "sameHost": true,
+          "runnerRecheckCalled": false,
+          "nativeWhileOffResolved": false,
+          "input": {
+            "target": {
+              "tabId": 2123924782,
+              "frameId": 0,
+              "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "world": "MAIN",
+            "source": "()=>{document.body.dataset.effect=\"history-MAIN-native-completed\";return true;}",
+            "acceptanceBarrier": "history-MAIN-native-completed"
+          },
+          "expected": "Old outcome rejected after actual switch OFF/ON; newly admitted restored operation succeeds",
+          "actualOldAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "actualFreshAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "effect": "history-MAIN-native-completed",
+          "offUI": {
+            "before": "true",
+            "after": "false",
+            "t0": 1790973732270,
+            "confirmedAt": 1790973732290
+          },
+          "onUI": {
+            "before": "false",
+            "after": "true",
+            "t0": 1790973732293,
+            "confirmedAt": 1790973732316
+          },
+          "nativeWhileOff": null,
+          "oldNative": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "caseId": "history-MAIN-pending",
+          "world": "MAIN",
+          "phase": "pending",
+          "contractMet": false,
+          "oldAcceptedKind": "value",
+          "freshAcceptedKind": "value",
+          "settlementCount": 1,
+          "sameHost": true,
+          "runnerRecheckCalled": false,
+          "nativeWhileOffResolved": true,
+          "input": {
+            "target": {
+              "tabId": 2123924782,
+              "frameId": 0,
+              "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "world": "MAIN",
+            "source": "async()=>{document.body.dataset.pending=\"history-MAIN-pending\";const v=await(await fetch(\"http://127.0.0.1:55139/hold?token=history-MAIN-pending\")).json();document.body.dataset.effect=\"history-MAIN-pending\";return v;}",
+            "acceptanceBarrier": "history-MAIN-pending"
+          },
+          "expected": "Old outcome rejected after actual switch OFF/ON; newly admitted restored operation succeeds",
+          "actualOldAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "token",
+                  {
+                    "type": "string",
+                    "value": "history-MAIN-pending"
+                  }
+                ]
+              ]
+            }
+          },
+          "actualFreshAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "effect": "history-MAIN-pending",
+          "offUI": {
+            "before": "true",
+            "after": "false",
+            "t0": 1790973732326,
+            "confirmedAt": 1790973732347
+          },
+          "onUI": {
+            "before": "false",
+            "after": "true",
+            "t0": 1790973732353,
+            "confirmedAt": 1790973732373
+          },
+          "nativeWhileOff": {
+            "state": "pending",
+            "started": 1790973732322,
+            "target": {
+              "tabId": 2123924782,
+              "frameId": 0,
+              "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 27,
+              "results": [
+                {
+                  "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "object",
+                      "value": [
+                        [
+                          "token",
+                          {
+                            "type": "string",
+                            "value": "history-MAIN-pending"
+                          }
+                        ]
+                      ]
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790973732349
+          },
+          "oldNative": {
+            "kind": "resolved",
+            "elapsedMs": 27,
+            "results": [
+              {
+                "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "history-MAIN-pending"
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        }
+      ],
+      "registryPreserved": true,
+      "worldConfigurationsPreserved": true,
+      "hostPreserved": true,
+      "nativeEventsObserved": 0,
+      "namespacePreserved": true,
+      "cachedMethodPreserved": true,
+      "availabilitySequence": [
+        true,
+        false,
+        true
+      ],
+      "instancesAfterRestore": {
+        "USER_SCRIPT": {
+          "kind": "resolved",
+          "elapsedMs": 0,
+          "results": [
+            {
+              "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+              "frameId": 0,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "marker": "m5-user-instance-marker",
+                "portDefined": true
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "MAIN": {
+          "kind": "resolved",
+          "elapsedMs": 0,
+          "results": [
+            {
+              "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+              "frameId": 0,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "marker": "m5-main-instance-marker"
+              },
+              "hasError": false
+            }
+          ]
+        }
+      },
+      "portsDuringOff": [
+        {
+          "name": "m5-history-port",
+          "sender": {
+            "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "http://127.0.0.1:55139/owned",
+            "origin": "http://127.0.0.1:55139",
+            "frameId": 0,
+            "documentId": "EFBC8B311A5276AADA8A1FEC600F401B",
+            "documentLifecycle": "active",
+            "tab": {
+              "active": true,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": true,
+              "id": 2123924782,
+              "incognito": false,
+              "index": 3,
+              "lastAccessed": 1790973731806.417,
+              "mutedInfo": {
+                "muted": false
+              },
+              "pinned": false,
+              "selected": true,
+              "status": "complete",
+              "title": "K1 owned history probe",
+              "url": "http://127.0.0.1:55139/owned",
+              "width": 1282,
+              "windowId": 2123924778
+            }
+          },
+          "connectedAt": 1790973731864,
+          "messages": [
+            {
+              "value": {
+                "ready": true
+              },
+              "at": 1790973731864
+            },
+            {
+              "value": {
+                "echo": {
+                  "ping": "while-OFF"
+                }
+              },
+              "at": 1790973731934
+            }
+          ],
+          "disconnectedAt": null
+        }
+      ],
+      "resources": {
+        "pending": 0,
+        "acceptanceBarriers": 0,
+        "observationTimers": 0,
+        "rawPending": 0
+      },
+      "markerCleanup": {
+        "scripts": [],
+        "worlds": []
+      },
+      "browserContextClosed": true,
+      "initializationFailure": null,
+      "portEchoWhileOff": true,
+      "portDisconnectWhileOff": false,
+      "permissionsUnchangedDuringOff": true,
+      "permissionsWhileOff": {
+        "origins": [
+          "http://127.0.0.1/*",
+          "http://localhost/*"
+        ],
+        "permissions": [
+          "tabs",
+          "webNavigation",
+          "scripting",
+          "userScripts"
+        ]
+      }
+    },
+    {
+      "version": "154.0.8037.92",
+      "actualVersion": "154.0.8037.92",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+      "os": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64"
+      },
+      "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-154.0.8037.92-2a34247a-6dcb-4902-8327-1822da382289",
+      "target": {
+        "tabId": 1231476225,
+        "frameId": 0,
+        "documentId": "AA590624805FCB020150FC90AC4061AC",
+        "url": "http://127.0.0.1:55139/owned"
+      },
+      "hostDocumentId": "CA4B6BEBE9A32620954D3AD26D379148",
+      "hostTimeOrigin": 1790973733081.4,
+      "executeCalls": 12,
+      "apiInvoked": 12,
+      "contractFailures": 4,
+      "cases": [
+        {
+          "caseId": "history-USER_SCRIPT-native-completed",
+          "world": "USER_SCRIPT",
+          "phase": "native-completed",
+          "contractMet": false,
+          "oldAcceptedKind": "value",
+          "freshAcceptedKind": "value",
+          "settlementCount": 1,
+          "sameHost": true,
+          "runnerRecheckCalled": false,
+          "nativeWhileOffResolved": false,
+          "input": {
+            "target": {
+              "tabId": 1231476225,
+              "frameId": 0,
+              "documentId": "AA590624805FCB020150FC90AC4061AC",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "world": "USER_SCRIPT",
+            "source": "()=>{document.body.dataset.effect=\"history-USER_SCRIPT-native-completed\";return true;}",
+            "acceptanceBarrier": "history-USER_SCRIPT-native-completed"
+          },
+          "expected": "Old outcome rejected after actual switch OFF/ON; newly admitted restored operation succeeds",
+          "actualOldAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "actualFreshAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "effect": "history-USER_SCRIPT-native-completed",
+          "offUI": {
+            "before": "true",
+            "after": "false",
+            "t0": 1790973733478,
+            "confirmedAt": 1790973733499
+          },
+          "onUI": {
+            "before": "false",
+            "after": "true",
+            "t0": 1790973733503,
+            "confirmedAt": 1790973733528
+          },
+          "nativeWhileOff": null,
+          "oldNative": {
+            "kind": "resolved",
+            "elapsedMs": 2,
+            "results": [
+              {
+                "documentId": "AA590624805FCB020150FC90AC4061AC",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "caseId": "history-USER_SCRIPT-pending",
+          "world": "USER_SCRIPT",
+          "phase": "pending",
+          "contractMet": false,
+          "oldAcceptedKind": "value",
+          "freshAcceptedKind": "value",
+          "settlementCount": 1,
+          "sameHost": true,
+          "runnerRecheckCalled": false,
+          "nativeWhileOffResolved": true,
+          "input": {
+            "target": {
+              "tabId": 1231476225,
+              "frameId": 0,
+              "documentId": "AA590624805FCB020150FC90AC4061AC",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "world": "USER_SCRIPT",
+            "source": "async()=>{document.body.dataset.pending=\"history-USER_SCRIPT-pending\";const v=await(await fetch(\"http://127.0.0.1:55139/hold?token=history-USER_SCRIPT-pending\")).json();document.body.dataset.effect=\"history-USER_SCRIPT-pending\";return v;}",
+            "acceptanceBarrier": "history-USER_SCRIPT-pending"
+          },
+          "expected": "Old outcome rejected after actual switch OFF/ON; newly admitted restored operation succeeds",
+          "actualOldAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "token",
+                  {
+                    "type": "string",
+                    "value": "history-USER_SCRIPT-pending"
+                  }
+                ]
+              ]
+            }
+          },
+          "actualFreshAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "effect": "history-USER_SCRIPT-pending",
+          "offUI": {
+            "before": "true",
+            "after": "false",
+            "t0": 1790973733551,
+            "confirmedAt": 1790973733576
+          },
+          "onUI": {
+            "before": "false",
+            "after": "true",
+            "t0": 1790973733581,
+            "confirmedAt": 1790973733599
+          },
+          "nativeWhileOff": {
+            "state": "pending",
+            "started": 1790973733540,
+            "target": {
+              "tabId": 1231476225,
+              "frameId": 0,
+              "documentId": "AA590624805FCB020150FC90AC4061AC",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 38,
+              "results": [
+                {
+                  "documentId": "AA590624805FCB020150FC90AC4061AC",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "object",
+                      "value": [
+                        [
+                          "token",
+                          {
+                            "type": "string",
+                            "value": "history-USER_SCRIPT-pending"
+                          }
+                        ]
+                      ]
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790973733579
+          },
+          "oldNative": {
+            "kind": "resolved",
+            "elapsedMs": 38,
+            "results": [
+              {
+                "documentId": "AA590624805FCB020150FC90AC4061AC",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "history-USER_SCRIPT-pending"
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "caseId": "history-MAIN-native-completed",
+          "world": "MAIN",
+          "phase": "native-completed",
+          "contractMet": false,
+          "oldAcceptedKind": "value",
+          "freshAcceptedKind": "value",
+          "settlementCount": 1,
+          "sameHost": true,
+          "runnerRecheckCalled": false,
+          "nativeWhileOffResolved": false,
+          "input": {
+            "target": {
+              "tabId": 1231476225,
+              "frameId": 0,
+              "documentId": "AA590624805FCB020150FC90AC4061AC",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "world": "MAIN",
+            "source": "()=>{document.body.dataset.effect=\"history-MAIN-native-completed\";return true;}",
+            "acceptanceBarrier": "history-MAIN-native-completed"
+          },
+          "expected": "Old outcome rejected after actual switch OFF/ON; newly admitted restored operation succeeds",
+          "actualOldAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "actualFreshAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "effect": "history-MAIN-native-completed",
+          "offUI": {
+            "before": "true",
+            "after": "false",
+            "t0": 1790973733611,
+            "confirmedAt": 1790973733633
+          },
+          "onUI": {
+            "before": "false",
+            "after": "true",
+            "t0": 1790973733635,
+            "confirmedAt": 1790973733659
+          },
+          "nativeWhileOff": null,
+          "oldNative": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "AA590624805FCB020150FC90AC4061AC",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "caseId": "history-MAIN-pending",
+          "world": "MAIN",
+          "phase": "pending",
+          "contractMet": false,
+          "oldAcceptedKind": "value",
+          "freshAcceptedKind": "value",
+          "settlementCount": 1,
+          "sameHost": true,
+          "runnerRecheckCalled": false,
+          "nativeWhileOffResolved": true,
+          "input": {
+            "target": {
+              "tabId": 1231476225,
+              "frameId": 0,
+              "documentId": "AA590624805FCB020150FC90AC4061AC",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "world": "MAIN",
+            "source": "async()=>{document.body.dataset.pending=\"history-MAIN-pending\";const v=await(await fetch(\"http://127.0.0.1:55139/hold?token=history-MAIN-pending\")).json();document.body.dataset.effect=\"history-MAIN-pending\";return v;}",
+            "acceptanceBarrier": "history-MAIN-pending"
+          },
+          "expected": "Old outcome rejected after actual switch OFF/ON; newly admitted restored operation succeeds",
+          "actualOldAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "token",
+                  {
+                    "type": "string",
+                    "value": "history-MAIN-pending"
+                  }
+                ]
+              ]
+            }
+          },
+          "actualFreshAccepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "effect": "history-MAIN-pending",
+          "offUI": {
+            "before": "true",
+            "after": "false",
+            "t0": 1790973733670,
+            "confirmedAt": 1790973733693
+          },
+          "onUI": {
+            "before": "false",
+            "after": "true",
+            "t0": 1790973733703,
+            "confirmedAt": 1790973733727
+          },
+          "nativeWhileOff": {
+            "state": "pending",
+            "started": 1790973733668,
+            "target": {
+              "tabId": 1231476225,
+              "frameId": 0,
+              "documentId": "AA590624805FCB020150FC90AC4061AC",
+              "url": "http://127.0.0.1:55139/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 27,
+              "results": [
+                {
+                  "documentId": "AA590624805FCB020150FC90AC4061AC",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "object",
+                      "value": [
+                        [
+                          "token",
+                          {
+                            "type": "string",
+                            "value": "history-MAIN-pending"
+                          }
+                        ]
+                      ]
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790973733695
+          },
+          "oldNative": {
+            "kind": "resolved",
+            "elapsedMs": 27,
+            "results": [
+              {
+                "documentId": "AA590624805FCB020150FC90AC4061AC",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "history-MAIN-pending"
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        }
+      ],
+      "registryPreserved": true,
+      "worldConfigurationsPreserved": true,
+      "hostPreserved": true,
+      "nativeEventsObserved": 0,
+      "namespacePreserved": true,
+      "cachedMethodPreserved": true,
+      "availabilitySequence": [
+        true,
+        false,
+        true
+      ],
+      "instancesAfterRestore": {
+        "USER_SCRIPT": {
+          "kind": "resolved",
+          "elapsedMs": 1,
+          "results": [
+            {
+              "documentId": "AA590624805FCB020150FC90AC4061AC",
+              "frameId": 0,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "marker": "m5-user-instance-marker",
+                "portDefined": true
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "MAIN": {
+          "kind": "resolved",
+          "elapsedMs": 0,
+          "results": [
+            {
+              "documentId": "AA590624805FCB020150FC90AC4061AC",
+              "frameId": 0,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "marker": "m5-main-instance-marker"
+              },
+              "hasError": false
+            }
+          ]
+        }
+      },
+      "portsDuringOff": [
+        {
+          "name": "m5-history-port",
+          "sender": {
+            "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "http://127.0.0.1:55139/owned",
+            "origin": "http://127.0.0.1:55139",
+            "frameId": 0,
+            "documentId": "AA590624805FCB020150FC90AC4061AC",
+            "documentLifecycle": "active",
+            "tab": {
+              "active": true,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": true,
+              "id": 1231476225,
+              "incognito": false,
+              "index": 3,
+              "lastAccessed": 1790973733126.625,
+              "mutedInfo": {
+                "muted": false
+              },
+              "openerTabId": 1231476224,
+              "pinned": false,
+              "selected": true,
+              "splitViewId": -1,
+              "status": "complete",
+              "title": "K1 owned history probe",
+              "url": "http://127.0.0.1:55139/owned",
+              "width": 1282,
+              "windowId": 1231476221
+            }
+          },
+          "connectedAt": 1790973733146,
+          "messages": [
+            {
+              "value": {
+                "ready": true
+              },
+              "at": 1790973733146
+            },
+            {
+              "value": {
+                "echo": {
+                  "ping": "while-OFF"
+                }
+              },
+              "at": 1790973733262
+            }
+          ],
+          "disconnectedAt": null
+        }
+      ],
+      "resources": {
+        "pending": 0,
+        "acceptanceBarriers": 0,
+        "observationTimers": 0,
+        "rawPending": 0
+      },
+      "markerCleanup": {
+        "scripts": [],
+        "worlds": []
+      },
+      "browserContextClosed": true,
+      "initializationFailure": null,
+      "portEchoWhileOff": true,
+      "portDisconnectWhileOff": false,
+      "permissionsUnchangedDuringOff": true,
+      "permissionsWhileOff": {
+        "origins": [
+          "http://127.0.0.1/*",
+          "http://localhost/*"
+        ],
+        "permissions": [
+          "tabs",
+          "webNavigation",
+          "scripting",
+          "userScripts"
+        ]
+      }
+    }
+  ],
+  "sourceChanges": [
+    "tests/prototypes/user-scripts-v2/probe-switch-history.mjs (diagnostic only)"
+  ],
+  "unchanged2edSources": [
+    {
+      "path": "run-headed.mjs",
+      "sha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "matches2ed": true
+    },
+    {
+      "path": "fixture/adapter.js",
+      "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "matches2ed": true
+    },
+    {
+      "path": "fixture/file-source.js",
+      "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "matches2ed": true
+    },
+    {
+      "path": "fixture/host.html",
+      "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "matches2ed": true
+    },
+    {
+      "path": "fixture/host.js",
+      "sha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "matches2ed": true
+    },
+    {
+      "path": "fixture/manifest.json",
+      "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "matches2ed": true
+    },
+    {
+      "path": "fixture/sw.js",
+      "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "matches2ed": true
+    }
+  ],
+  "preserved2edEvidence": [
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+      "candidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "evidenceManifestSha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7",
+      "filesChecked": 34,
+      "allMatched": true
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+      "candidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "evidenceManifestSha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790",
+      "filesChecked": 34,
+      "allMatched": true
+    }
+  ],
+  "preservedReviewAndCheckpointDigests": [
+    {
+      "path": "docs/framework/reviews/m5-f1/code-reviewer/provisional-page-review.md",
+      "sha256": "7823c0e8595f131b2b649629ba5dd62e8eefbb7bcdd8db2fc9ecb0a19ad1399e"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/architect/page-provisional-review.json",
+      "sha256": "2a679e62128a53674a0f896af6d0f25e1ddc2a3651a51a1a223a0189c907bb4e"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/code-reviewer/fresh-page-fence-2026-10-02T20-08-38-871Z/report.json",
+      "sha256": "229c09c1bf381012d17c24771ec1dd0e38493a3dbaadccee32e99470035e46e6"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/report.json",
+      "sha256": "a3688fe2138ee62225f589203576339d5719bf3436a2cd67a789a5e54e51b53b"
+    },
+    {
+      "path": "docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.md",
+      "sha256": "ff2c83d5794463e37f1a4670b8028536fc81256cbbbebe90f790d4ded38b0c37"
+    },
+    {
+      "path": "docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.json",
+      "sha256": "453d779d6a7d95f0a4e4214ad2ae01f84294ddf9b392ca9b74f9614b4debc0e4"
+    },
+    {
+      "path": "docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.sha256",
+      "sha256": "6649f234f52a94dc7808b41e81333d6037afc1f75c3ba8ff0a1b2005467a10ff"
+    }
+  ],
+  "diagnosticHistory": [
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-38-48-738Z-defe2304",
+      "reportSha256": "40fcfb76b8f0c7925ba89512dfd61354af7365b9c518088b64160213a43058c7",
+      "errors": [
+        {
+          "name": "Error",
+          "message": "page.evaluate: TypeError: Cannot read properties of null (reading 'documentId')\n    at eval (eval at evaluate (:311:30), <anonymous>:3:90)\n    at async <anonymous>:337:30",
+          "stack": "page.evaluate: TypeError: Cannot read properties of null (reading 'documentId')\n    at eval (eval at evaluate (:311:30), <anonymous>:3:90)\n    at async <anonymous>:337:30\n    at state (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:80:26)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:89:23"
+        },
+        {
+          "name": "Error",
+          "message": "page.evaluate: TypeError: Cannot read properties of null (reading 'documentId')\n    at eval (eval at evaluate (:311:30), <anonymous>:3:90)\n    at async <anonymous>:337:30",
+          "stack": "page.evaluate: TypeError: Cannot read properties of null (reading 'documentId')\n    at eval (eval at evaluate (:311:30), <anonymous>:3:90)\n    at async <anonymous>:337:30\n    at state (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:80:26)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:89:23"
+        }
+      ]
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-39-33-968Z-53423ec8",
+      "reportSha256": "e025bc5fcb9595f6fd063ea103e58085ec9495f653c7148dd5c27dd4f6da9fd6",
+      "errors": [
+        {
+          "name": "Error",
+          "message": "page.evaluate: TypeError: Error in invocation of userScripts.resetWorldConfiguration(optional string worldId, function callback): No matching signature.\n    at eval (eval at evaluate (:311:30), <anonymous>:1:107)\n    at async <anonymous>:337:30",
+          "stack": "page.evaluate: TypeError: Error in invocation of userScripts.resetWorldConfiguration(optional string worldId, function callback): No matching signature.\n    at eval (eval at evaluate (:311:30), <anonymous>:1:107)\n    at async <anonymous>:337:30\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:127:16"
+        },
+        {
+          "name": "Error",
+          "message": "page.evaluate: TypeError: Error in invocation of userScripts.resetWorldConfiguration(optional string worldId, optional function callback): No matching signature.\n    at eval (eval at evaluate (:311:30), <anonymous>:1:107)\n    at async <anonymous>:337:30",
+          "stack": "page.evaluate: TypeError: Error in invocation of userScripts.resetWorldConfiguration(optional string worldId, optional function callback): No matching signature.\n    at eval (eval at evaluate (:311:30), <anonymous>:1:107)\n    at async <anonymous>:337:30\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:127:16"
+        }
+      ]
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3",
+      "reportSha256": "5a39c45d8db035ad13bb1106689699274d695b4dccc5b481193e722d4f5a1e4c",
+      "errors": [
+        null,
+        null
+      ]
+    }
+  ],
+  "officialNativeSourceFetches": [
+    {
+      "version": "138.0.7204.183",
+      "path": "extensions/browser/user_script_manager.cc",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/browser/user_script_manager.cc",
+      "sha256": "a86cbe32f05264eca8dd1fc97d7efe2655508b69d74bd59a1200dd58ba58fb35",
+      "bytes": 12268,
+      "matches": [
+        {
+          "line": 111,
+          "text": "map_entry.second->SetSourceEnabled(source, enabled);"
+        },
+        {
+          "line": 157,
+          "text": "void UserScriptManager::SetUserScriptPrefEnabled("
+        },
+        {
+          "line": 188,
+          "text": "loader->SetSourceEnabled(UserScript::Source::kDynamicUserScript, enabled);"
+        },
+        {
+          "line": 191,
+          "text": "->OnUserScriptsAllowedChanged(extension_id, /*allowed=*/enabled);"
+        },
+        {
+          "line": 257,
+          "text": "loader->SetSourceEnabled(UserScript::Source::kDynamicUserScript,"
+        },
+        {
+          "line": 298,
+          "text": "SetUserScriptPrefEnabled(extension.id(), permission_granted && dev_mode_on);"
+        }
+      ]
+    },
+    {
+      "version": "138.0.7204.183",
+      "path": "extensions/browser/extension_user_script_loader.cc",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/browser/extension_user_script_loader.cc",
+      "sha256": "6b7f01a5fe2d98fce560afa0d24eed74eae9e0b6a9a6543ebeefe7150f9974bc",
+      "bytes": 39463,
+      "matches": [
+        {
+          "line": 670,
+          "text": "void ExtensionUserScriptLoader::SetSourceEnabled(UserScript::Source source,"
+        }
+      ]
+    },
+    {
+      "version": "138.0.7204.183",
+      "path": "extensions/renderer/dispatcher.cc",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/renderer/dispatcher.cc",
+      "error": "The read operation timed out"
+    },
+    {
+      "version": "138.0.7204.183",
+      "path": "extensions/common/api/user_scripts.idl",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/common/api/user_scripts.idl",
+      "sha256": "4e4f0c6eca94037292b40fbdef81feaadcf88bc57ad40b8f42b6674aab96e2ad",
+      "bytes": 10003,
+      "matches": [
+        {
+          "line": 7,
+          "text": "namespace userScripts {"
+        },
+        {
+          "line": 178,
+          "text": "static void getScripts("
+        },
+        {
+          "line": 222,
+          "text": "static void getWorldConfigurations("
+        }
+      ]
+    },
+    {
+      "version": "154.0.8037.92",
+      "path": "extensions/browser/user_script_manager.cc",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/browser/user_script_manager.cc",
+      "sha256": "8a0c286b6aeaeffb73e1f5ce5fd2270f21269f6e62a89962367a8986c5b9007e",
+      "bytes": 9964,
+      "matches": [
+        {
+          "line": 95,
+          "text": "map_entry.second->SetSourceEnabled(source, enabled);"
+        },
+        {
+          "line": 130,
+          "text": "void UserScriptManager::SetUserScriptPrefEnabled("
+        },
+        {
+          "line": 161,
+          "text": "loader->SetSourceEnabled(UserScript::Source::kDynamicUserScript, enabled);"
+        },
+        {
+          "line": 164,
+          "text": "->OnUserScriptsAllowedChanged(extension_id, /*allowed=*/enabled);"
+        },
+        {
+          "line": 230,
+          "text": "loader->SetSourceEnabled(UserScript::Source::kDynamicUserScript,"
+        }
+      ]
+    },
+    {
+      "version": "154.0.8037.92",
+      "path": "extensions/browser/extension_user_script_loader.cc",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/browser/extension_user_script_loader.cc",
+      "sha256": "847bd0c72ce0ac95520ccfa664ee9895631f5d8f08c3c78fef78bf4a87e4b87c",
+      "bytes": 40077,
+      "matches": [
+        {
+          "line": 684,
+          "text": "void ExtensionUserScriptLoader::SetSourceEnabled(UserScript::Source source,"
+        }
+      ]
+    },
+    {
+      "version": "154.0.8037.92",
+      "path": "extensions/renderer/dispatcher.cc",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/renderer/dispatcher.cc",
+      "sha256": "3c6d1b2328a485461039a479661e1b0d7d9e07df9f7f5f9ad64c6bca2243cf61",
+      "bytes": 66731,
+      "matches": [
+        {
+          "line": 1304,
+          "text": "void Dispatcher::SetUserScriptsAllowed(const ExtensionId& extension_id,"
+        }
+      ]
+    },
+    {
+      "version": "154.0.8037.92",
+      "path": "extensions/common/api/user_scripts.idl",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/common/api/user_scripts.idl",
+      "error": "HTTP Error 404: Not Found"
+    }
+  ],
+  "observerRecheck": false,
+  "publicGatesWritten": false,
+  "productCodeWritten": false,
+  "serverClosed": true,
+  "ownedProfileCleanup": [
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-138.0.7204.183-6d2985b0-5ebe-4bd1-9d1a-c70523cff22a",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-154.0.8037.92-6f3dd5c2-d478-4582-a48c-30535bb055c4",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-138.0.7204.183-179a3892-1782-4be9-9b7d-f13b07b10a1f",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-154.0.8037.92-baf6f0e8-7e5f-4b88-99e1-e3565f7fc126",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-138.0.7204.183-edba5f6b-15b5-481c-b4a4-a46ece83f1b9",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-154.0.8037.92-2a34247a-6dcb-4902-8327-1822da382289",
+      "existed": true,
+      "removed": true
+    }
+  ],
+  "proposedCompatibilityLimit": {
+    "approval": "PROPOSED ONLY; original contract remains BLOCK",
+    "boundary": "Unobserved Allow User Scripts OFF→ON within an unchanged host/document is not a revocation generation witness. Public current-state checks cannot prove uninterrupted authorization.",
+    "minimumChange": "If independently approved, distinguish revocation observed by operation-owned native availability checks, actual site-permission events, or actual host/document replacement from unobserved global switch history. Exclude only the latter from the historical-result fence guarantee.",
+    "implementationAfterApproval": "Latch an old-operation invalidation on native unavailability observed by the operation lifecycle or actual browser permission/document lifecycle events; regrant creates new authorization generation and never unsets old invalidation. Do not move runner recheck into observers or use polling as universal history proof.",
+    "ifOriginalHistoryRequired": "Remain BLOCK pending a documented browser-backed historical witness; no prototype/backend qualification."
+  },
+  "evidenceManifestSha256": "50906af99dfd647cd8bec89d76ec1a45f00ad0e806d424f8eb9837da6015fe2c",
+  "originalContract": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/f1-cases.json",
+    "sha256": "bf763f22a2182dbaba4b56ba08647fd0cd16e36bdea8694514ba687107ff3173",
+    "round4FrozenPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json",
+    "round4FrozenSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+    "originalCase": {
+      "id": "F1-PAGE-AUTH-CSP",
+      "phase": "F1",
+      "layer": "actual Chrome prototype",
+      "required": true,
+      "families": [
+        "EX01",
+        "EX04",
+        "AUTH01"
+      ],
+      "input": {
+        "worlds": [
+          "USER_SCRIPT",
+          "MAIN"
+        ],
+        "UI": [
+          "Allow User Scripts OFF/ON",
+          "actual site access revoke/restore"
+        ],
+        "barrier": [
+          "before dispatch",
+          "pending slow page response",
+          "after native effect before accepted result"
+        ],
+        "pageCSP": [
+          "baseline",
+          "restrictive"
+        ],
+        "legacyFailure": "HOST-PERMISSION-REVOKE required permission removal failed"
+      },
+      "expected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+      "status": "not-tested",
+      "actual": null,
+      "prototypeCandidateSha256": null,
+      "productPackageSha256": null,
+      "evidence": []
+    },
+    "currentExpectedUnchanged": true
+  },
+  "frozenDenominatorsPreserved": {
+    "members": 48,
+    "sdk": 183,
+    "resources": 63,
+    "allOriginalEntriesAndOtherFrozenDenominatorsRetained": true,
+    "caseRemoved": false,
+    "counterexamplesRelabeledPass": false,
+    "publicScopeChanged": false
+  },
+  "reviewSequenceRequired": [
+    "Affected-scope independent Architect review",
+    "Affected-scope independent Critic review",
+    "Explicit release for affected-scope implementation",
+    "Real affected cases rerun without runner recheck or injected fence",
+    "Independent F1 functional review"
+  ],
+  "scopeDifferenceHistory": [
+    {
+      "state": "PROPOSED_UNREVIEWED",
+      "from": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+      "to": [
+        "OFF new native calls reject; existing current availability gate only",
+        "Actual origin/site grant, document and ownGrant revocation remain monotonic fences",
+        "Operation-owned native observation of OFF may latch old-generation invalidation; not implemented or validated in this diagnostic",
+        "Unobserved OFF→ON in unchanged host/document cannot guarantee cancellation of old native result using the signals checked; already-issued effects may complete"
+      ],
+      "reason": "Registry/configuration/realm/port/reference/lifecycle signals checked in both Chrome versions did not provide a historical witness, and original contract failed in all 8 targeted UI cycles. Polling or runner recheck cannot prove uninterrupted authorization.",
+      "authorityPath": "docs/framework/prompts/goal-migration-v5.txt:240",
+      "automaticScopeOrGateChange": false
+    }
+  ],
+  "unexaminedSignals": "No claim that all possible Chrome APIs/signals were disproved; no further broad API scan performed.",
+  "ownGrantStatus": "Existing contract retained; product implementation and validation not authorized in this K1 diagnostic.",
+  "observedOffLatchingStatus": "Proposed operation-owned mechanism, not implemented or validated; test observer must never inject a fence.",
+  "offNewNativeRejectionEvidence": {
+    "source": "Preserved R4 actual evidence, not a new call in 20:42 run",
+    "count": 4,
+    "records": [
+      {
+        "version": "138.0.7204.183",
+        "world": "USER_SCRIPT",
+        "caseId": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+        "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/report.json",
+        "reportSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+        "rawInjections": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/raw-injections.json",
+        "rawInjectionsSha256": "666b1d5caf5e3373003d9408fa38652a074783bc3d7b910702f6758b2d536a0c",
+        "rawTraceIndex": 56,
+        "input": {
+          "target": {
+            "tabId": 2137036493,
+            "documentIds": [
+              "83A371C9A94900CF86B4E8EC42546A72"
+            ]
+          },
+          "world": "USER_SCRIPT",
+          "js": [
+            {
+              "code": "document.body.dataset.postRevoke=\"revoke-USER_SCRIPT\";1"
+            }
+          ]
+        },
+        "actualRaw": {
+          "injection": {
+            "target": {
+              "tabId": 2137036493,
+              "documentIds": [
+                "83A371C9A94900CF86B4E8EC42546A72"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "document.body.dataset.postRevoke=\"revoke-USER_SCRIPT\";1"
+              }
+            ]
+          },
+          "started": 1790970697561,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "rejected",
+            "elapsedMs": 0,
+            "error": {
+              "name": "Error",
+              "message": "'userScripts.execute' is not available in this context.",
+              "stack": "Error: 'userScripts.execute' is not available in this context.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:27:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+            }
+          }
+        },
+        "UI": {
+          "before": "true",
+          "after": "false",
+          "hostBefore": {
+            "tabId": 2137036491,
+            "runtimeId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+            "timeOrigin": 1790970695341.7,
+            "operations": [
+              {
+                "id": "revoke-USER_SCRIPT",
+                "state": "pending",
+                "started": 1790970697377,
+                "target": {
+                  "tabId": 2137036493,
+                  "frameId": 0,
+                  "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                  "url": "http://127.0.0.1:59072/top?id=target"
+                }
+              }
+            ]
+          },
+          "hostAfter": {
+            "tabId": 2137036491,
+            "runtimeId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+            "timeOrigin": 1790970695341.7,
+            "operations": [
+              {
+                "id": "revoke-USER_SCRIPT",
+                "state": "pending",
+                "started": 1790970697377,
+                "target": {
+                  "tabId": 2137036493,
+                  "frameId": 0,
+                  "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                  "url": "http://127.0.0.1:59072/top?id=target"
+                }
+              }
+            ]
+          },
+          "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "method": "rendered Chrome extension details UI click"
+        },
+        "effects": {
+          "finished": "revoke-USER_SCRIPT",
+          "postRevoke": null
+        },
+        "interpretation": "OFF rejects new actual native execute and has no new effect; does not prove old-operation history fence. Ignore runner authorizationRecheck for that separate claim."
+      },
+      {
+        "version": "138.0.7204.183",
+        "world": "MAIN",
+        "caseId": "MAIN-SWITCH-REVOKE-INFLIGHT",
+        "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/report.json",
+        "reportSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+        "rawInjections": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/raw-injections.json",
+        "rawInjectionsSha256": "666b1d5caf5e3373003d9408fa38652a074783bc3d7b910702f6758b2d536a0c",
+        "rawTraceIndex": 61,
+        "input": {
+          "target": {
+            "tabId": 2137036493,
+            "documentIds": [
+              "4A9E021832C39780EDE45B18ADC147A5"
+            ]
+          },
+          "world": "MAIN",
+          "js": [
+            {
+              "code": "document.body.dataset.postRevoke=\"revoke-MAIN\";1"
+            }
+          ]
+        },
+        "actualRaw": {
+          "injection": {
+            "target": {
+              "tabId": 2137036493,
+              "documentIds": [
+                "4A9E021832C39780EDE45B18ADC147A5"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "document.body.dataset.postRevoke=\"revoke-MAIN\";1"
+              }
+            ]
+          },
+          "started": 1790970698119,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "rejected",
+            "elapsedMs": 0,
+            "error": {
+              "name": "Error",
+              "message": "'userScripts.execute' is not available in this context.",
+              "stack": "Error: 'userScripts.execute' is not available in this context.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:27:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+            }
+          }
+        },
+        "UI": {
+          "before": "true",
+          "after": "false",
+          "hostBefore": {
+            "tabId": 2137036491,
+            "runtimeId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+            "timeOrigin": 1790970695341.7,
+            "operations": [
+              {
+                "id": "revoke-USER_SCRIPT",
+                "state": "settled",
+                "started": 1790970697377,
+                "target": {
+                  "tabId": 2137036493,
+                  "frameId": 0,
+                  "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                  "url": "http://127.0.0.1:59072/top?id=target"
+                },
+                "fence": {
+                  "name": "Error",
+                  "message": "'userScripts.getScripts' is not available in this context.",
+                  "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at Object.authorization (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:72:81)\n    at Object.recheck (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:111:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                  "observedBy": "actual browser authorization recheck",
+                  "at": 1790970697560
+                },
+                "result": {
+                  "native": {
+                    "kind": "resolved",
+                    "elapsedMs": 185,
+                    "results": [
+                      {
+                        "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                        "frameId": 0,
+                        "keys": [
+                          "documentId",
+                          "frameId",
+                          "result"
+                        ],
+                        "hasResult": true,
+                        "resultIsUndefined": false,
+                        "result": {
+                          "ok": true,
+                          "protocol": "opendesk.f1.user-scripts-v2",
+                          "value": {
+                            "type": "object",
+                            "value": [
+                              [
+                                "token",
+                                {
+                                  "type": "string",
+                                  "value": "revoke-USER_SCRIPT"
+                                }
+                              ],
+                              [
+                                "released",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ]
+                            ]
+                          }
+                        },
+                        "hasError": false
+                      }
+                    ]
+                  },
+                  "accepted": {
+                    "kind": "rejected",
+                    "error": {
+                      "name": "Error",
+                      "message": "'userScripts.getScripts' is not available in this context.",
+                      "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:51:30)"
+                    }
+                  },
+                  "dispatchCount": 2
+                },
+                "finished": 1790970697562,
+                "settlementCount": 1
+              },
+              {
+                "id": "navigate-USER_SCRIPT",
+                "state": "settled",
+                "started": 1790970697770,
+                "target": {
+                  "tabId": 2137036493,
+                  "frameId": 0,
+                  "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                  "url": "http://127.0.0.1:59072/top?id=target"
+                },
+                "result": {
+                  "native": {
+                    "kind": "resolved",
+                    "elapsedMs": 45,
+                    "results": [
+                      {
+                        "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                        "frameId": 0,
+                        "keys": [
+                          "documentId",
+                          "frameId",
+                          "result"
+                        ],
+                        "hasResult": true,
+                        "resultIsUndefined": false,
+                        "result": {
+                          "error": {
+                            "message": "Failed to fetch",
+                            "name": "TypeError"
+                          },
+                          "ok": false,
+                          "protocol": "opendesk.f1.user-scripts-v2"
+                        },
+                        "hasError": false
+                      }
+                    ]
+                  },
+                  "accepted": {
+                    "kind": "rejected",
+                    "error": {
+                      "name": "Error",
+                      "message": "E_DOCUMENT_STALE",
+                      "stack": "Error: E_DOCUMENT_STALE\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:69:11)\n    at async evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:51:24)"
+                    }
+                  },
+                  "dispatchCount": 1
+                },
+                "finished": 1790970697817,
+                "settlementCount": 1
+              },
+              {
+                "id": "revoke-MAIN",
+                "state": "pending",
+                "started": 1790970697923,
+                "target": {
+                  "tabId": 2137036493,
+                  "frameId": 0,
+                  "documentId": "4A9E021832C39780EDE45B18ADC147A5",
+                  "url": "http://127.0.0.1:59072/top?id=after-USER_SCRIPT"
+                }
+              }
+            ]
+          },
+          "hostAfter": {
+            "tabId": 2137036491,
+            "runtimeId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+            "timeOrigin": 1790970695341.7,
+            "operations": [
+              {
+                "id": "revoke-USER_SCRIPT",
+                "state": "settled",
+                "started": 1790970697377,
+                "target": {
+                  "tabId": 2137036493,
+                  "frameId": 0,
+                  "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                  "url": "http://127.0.0.1:59072/top?id=target"
+                },
+                "fence": {
+                  "name": "Error",
+                  "message": "'userScripts.getScripts' is not available in this context.",
+                  "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at Object.authorization (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:72:81)\n    at Object.recheck (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:111:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                  "observedBy": "actual browser authorization recheck",
+                  "at": 1790970697560
+                },
+                "result": {
+                  "native": {
+                    "kind": "resolved",
+                    "elapsedMs": 185,
+                    "results": [
+                      {
+                        "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                        "frameId": 0,
+                        "keys": [
+                          "documentId",
+                          "frameId",
+                          "result"
+                        ],
+                        "hasResult": true,
+                        "resultIsUndefined": false,
+                        "result": {
+                          "ok": true,
+                          "protocol": "opendesk.f1.user-scripts-v2",
+                          "value": {
+                            "type": "object",
+                            "value": [
+                              [
+                                "token",
+                                {
+                                  "type": "string",
+                                  "value": "revoke-USER_SCRIPT"
+                                }
+                              ],
+                              [
+                                "released",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ]
+                            ]
+                          }
+                        },
+                        "hasError": false
+                      }
+                    ]
+                  },
+                  "accepted": {
+                    "kind": "rejected",
+                    "error": {
+                      "name": "Error",
+                      "message": "'userScripts.getScripts' is not available in this context.",
+                      "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:51:30)"
+                    }
+                  },
+                  "dispatchCount": 2
+                },
+                "finished": 1790970697562,
+                "settlementCount": 1
+              },
+              {
+                "id": "navigate-USER_SCRIPT",
+                "state": "settled",
+                "started": 1790970697770,
+                "target": {
+                  "tabId": 2137036493,
+                  "frameId": 0,
+                  "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                  "url": "http://127.0.0.1:59072/top?id=target"
+                },
+                "result": {
+                  "native": {
+                    "kind": "resolved",
+                    "elapsedMs": 45,
+                    "results": [
+                      {
+                        "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                        "frameId": 0,
+                        "keys": [
+                          "documentId",
+                          "frameId",
+                          "result"
+                        ],
+                        "hasResult": true,
+                        "resultIsUndefined": false,
+                        "result": {
+                          "error": {
+                            "message": "Failed to fetch",
+                            "name": "TypeError"
+                          },
+                          "ok": false,
+                          "protocol": "opendesk.f1.user-scripts-v2"
+                        },
+                        "hasError": false
+                      }
+                    ]
+                  },
+                  "accepted": {
+                    "kind": "rejected",
+                    "error": {
+                      "name": "Error",
+                      "message": "E_DOCUMENT_STALE",
+                      "stack": "Error: E_DOCUMENT_STALE\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:69:11)\n    at async evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:51:24)"
+                    }
+                  },
+                  "dispatchCount": 1
+                },
+                "finished": 1790970697817,
+                "settlementCount": 1
+              },
+              {
+                "id": "revoke-MAIN",
+                "state": "pending",
+                "started": 1790970697923,
+                "target": {
+                  "tabId": 2137036493,
+                  "frameId": 0,
+                  "documentId": "4A9E021832C39780EDE45B18ADC147A5",
+                  "url": "http://127.0.0.1:59072/top?id=after-USER_SCRIPT"
+                }
+              }
+            ]
+          },
+          "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "method": "rendered Chrome extension details UI click"
+        },
+        "effects": {
+          "finished": "revoke-MAIN",
+          "postRevoke": null
+        },
+        "interpretation": "OFF rejects new actual native execute and has no new effect; does not prove old-operation history fence. Ignore runner authorizationRecheck for that separate claim."
+      },
+      {
+        "version": "154.0.8037.92",
+        "world": "USER_SCRIPT",
+        "caseId": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+        "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/report.json",
+        "reportSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+        "rawInjections": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/raw-injections.json",
+        "rawInjectionsSha256": "44797f34f6a11cc9feba8da27769f0d74ca4be1215a3eef33682865306a27867",
+        "rawTraceIndex": 56,
+        "input": {
+          "target": {
+            "tabId": 1243656837,
+            "documentIds": [
+              "502FEF6A0C05A5D72B75D04ABC6A49E8"
+            ]
+          },
+          "world": "USER_SCRIPT",
+          "js": [
+            {
+              "code": "document.body.dataset.postRevoke=\"revoke-USER_SCRIPT\";1"
+            }
+          ]
+        },
+        "actualRaw": {
+          "injection": {
+            "target": {
+              "tabId": 1243656837,
+              "documentIds": [
+                "502FEF6A0C05A5D72B75D04ABC6A49E8"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "document.body.dataset.postRevoke=\"revoke-USER_SCRIPT\";1"
+              }
+            ]
+          },
+          "started": 1790970698063,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "rejected",
+            "elapsedMs": 0,
+            "error": {
+              "name": "Error",
+              "message": "'userScripts.execute' is not available in this context.",
+              "stack": "Error: 'userScripts.execute' is not available in this context.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:27:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+            }
+          }
+        },
+        "UI": {
+          "before": "true",
+          "after": "false",
+          "hostBefore": {
+            "tabId": 1243656835,
+            "runtimeId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+            "timeOrigin": 1790970695643.5,
+            "operations": [
+              {
+                "id": "revoke-USER_SCRIPT",
+                "state": "pending",
+                "started": 1790970697829,
+                "target": {
+                  "tabId": 1243656837,
+                  "frameId": 0,
+                  "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                  "url": "http://127.0.0.1:59073/top?id=target"
+                }
+              }
+            ]
+          },
+          "hostAfter": {
+            "tabId": 1243656835,
+            "runtimeId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+            "timeOrigin": 1790970695643.5,
+            "operations": [
+              {
+                "id": "revoke-USER_SCRIPT",
+                "state": "pending",
+                "started": 1790970697829,
+                "target": {
+                  "tabId": 1243656837,
+                  "frameId": 0,
+                  "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                  "url": "http://127.0.0.1:59073/top?id=target"
+                }
+              }
+            ]
+          },
+          "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "method": "rendered Chrome extension details UI click"
+        },
+        "effects": {
+          "finished": "revoke-USER_SCRIPT",
+          "postRevoke": null
+        },
+        "interpretation": "OFF rejects new actual native execute and has no new effect; does not prove old-operation history fence. Ignore runner authorizationRecheck for that separate claim."
+      },
+      {
+        "version": "154.0.8037.92",
+        "world": "MAIN",
+        "caseId": "MAIN-SWITCH-REVOKE-INFLIGHT",
+        "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/report.json",
+        "reportSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+        "rawInjections": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/raw-injections.json",
+        "rawInjectionsSha256": "44797f34f6a11cc9feba8da27769f0d74ca4be1215a3eef33682865306a27867",
+        "rawTraceIndex": 61,
+        "input": {
+          "target": {
+            "tabId": 1243656837,
+            "documentIds": [
+              "3B86AA9A4079594189FD0C07AD1EDF6B"
+            ]
+          },
+          "world": "MAIN",
+          "js": [
+            {
+              "code": "document.body.dataset.postRevoke=\"revoke-MAIN\";1"
+            }
+          ]
+        },
+        "actualRaw": {
+          "injection": {
+            "target": {
+              "tabId": 1243656837,
+              "documentIds": [
+                "3B86AA9A4079594189FD0C07AD1EDF6B"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "document.body.dataset.postRevoke=\"revoke-MAIN\";1"
+              }
+            ]
+          },
+          "started": 1790970698427,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "rejected",
+            "elapsedMs": 0,
+            "error": {
+              "name": "Error",
+              "message": "'userScripts.execute' is not available in this context.",
+              "stack": "Error: 'userScripts.execute' is not available in this context.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:27:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+            }
+          }
+        },
+        "UI": {
+          "before": "true",
+          "after": "false",
+          "hostBefore": {
+            "tabId": 1243656835,
+            "runtimeId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+            "timeOrigin": 1790970695643.5,
+            "operations": [
+              {
+                "id": "revoke-USER_SCRIPT",
+                "state": "settled",
+                "started": 1790970697829,
+                "target": {
+                  "tabId": 1243656837,
+                  "frameId": 0,
+                  "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                  "url": "http://127.0.0.1:59073/top?id=target"
+                },
+                "fence": {
+                  "name": "Error",
+                  "message": "'userScripts.getScripts' is not available in this context.",
+                  "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at Object.authorization (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:72:81)\n    at Object.recheck (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:111:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                  "observedBy": "actual browser authorization recheck",
+                  "at": 1790970698062
+                },
+                "result": {
+                  "native": {
+                    "kind": "resolved",
+                    "elapsedMs": 234,
+                    "results": [
+                      {
+                        "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                        "frameId": 0,
+                        "keys": [
+                          "documentId",
+                          "frameId",
+                          "result"
+                        ],
+                        "hasResult": true,
+                        "resultIsUndefined": false,
+                        "result": {
+                          "ok": true,
+                          "protocol": "opendesk.f1.user-scripts-v2",
+                          "value": {
+                            "type": "object",
+                            "value": [
+                              [
+                                "token",
+                                {
+                                  "type": "string",
+                                  "value": "revoke-USER_SCRIPT"
+                                }
+                              ],
+                              [
+                                "released",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ]
+                            ]
+                          }
+                        },
+                        "hasError": false
+                      }
+                    ]
+                  },
+                  "accepted": {
+                    "kind": "rejected",
+                    "error": {
+                      "name": "Error",
+                      "message": "'userScripts.getScripts' is not available in this context.",
+                      "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:51:30)"
+                    }
+                  },
+                  "dispatchCount": 2
+                },
+                "finished": 1790970698064,
+                "settlementCount": 1
+              },
+              {
+                "id": "navigate-USER_SCRIPT",
+                "state": "settled",
+                "started": 1790970698224,
+                "target": {
+                  "tabId": 1243656837,
+                  "frameId": 0,
+                  "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                  "url": "http://127.0.0.1:59073/top?id=target"
+                },
+                "result": {
+                  "native": {
+                    "kind": "resolved",
+                    "elapsedMs": 14,
+                    "results": [
+                      {
+                        "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                        "frameId": 0,
+                        "keys": [
+                          "documentId",
+                          "frameId",
+                          "result"
+                        ],
+                        "hasResult": true,
+                        "resultIsUndefined": false,
+                        "result": null,
+                        "hasError": false
+                      }
+                    ]
+                  },
+                  "accepted": {
+                    "kind": "rejected",
+                    "error": {
+                      "name": "Error",
+                      "message": "E_DOCUMENT_STALE",
+                      "stack": "Error: E_DOCUMENT_STALE\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:69:11)\n    at async evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:51:24)"
+                    }
+                  },
+                  "dispatchCount": 1
+                },
+                "finished": 1790970698245,
+                "settlementCount": 1
+              },
+              {
+                "id": "revoke-MAIN",
+                "state": "pending",
+                "started": 1790970698283,
+                "target": {
+                  "tabId": 1243656837,
+                  "frameId": 0,
+                  "documentId": "3B86AA9A4079594189FD0C07AD1EDF6B",
+                  "url": "http://127.0.0.1:59073/top?id=after-USER_SCRIPT"
+                }
+              }
+            ]
+          },
+          "hostAfter": {
+            "tabId": 1243656835,
+            "runtimeId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+            "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+            "timeOrigin": 1790970695643.5,
+            "operations": [
+              {
+                "id": "revoke-USER_SCRIPT",
+                "state": "settled",
+                "started": 1790970697829,
+                "target": {
+                  "tabId": 1243656837,
+                  "frameId": 0,
+                  "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                  "url": "http://127.0.0.1:59073/top?id=target"
+                },
+                "fence": {
+                  "name": "Error",
+                  "message": "'userScripts.getScripts' is not available in this context.",
+                  "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at Object.authorization (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:72:81)\n    at Object.recheck (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:111:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                  "observedBy": "actual browser authorization recheck",
+                  "at": 1790970698062
+                },
+                "result": {
+                  "native": {
+                    "kind": "resolved",
+                    "elapsedMs": 234,
+                    "results": [
+                      {
+                        "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                        "frameId": 0,
+                        "keys": [
+                          "documentId",
+                          "frameId",
+                          "result"
+                        ],
+                        "hasResult": true,
+                        "resultIsUndefined": false,
+                        "result": {
+                          "ok": true,
+                          "protocol": "opendesk.f1.user-scripts-v2",
+                          "value": {
+                            "type": "object",
+                            "value": [
+                              [
+                                "token",
+                                {
+                                  "type": "string",
+                                  "value": "revoke-USER_SCRIPT"
+                                }
+                              ],
+                              [
+                                "released",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ]
+                            ]
+                          }
+                        },
+                        "hasError": false
+                      }
+                    ]
+                  },
+                  "accepted": {
+                    "kind": "rejected",
+                    "error": {
+                      "name": "Error",
+                      "message": "'userScripts.getScripts' is not available in this context.",
+                      "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:51:30)"
+                    }
+                  },
+                  "dispatchCount": 2
+                },
+                "finished": 1790970698064,
+                "settlementCount": 1
+              },
+              {
+                "id": "navigate-USER_SCRIPT",
+                "state": "settled",
+                "started": 1790970698224,
+                "target": {
+                  "tabId": 1243656837,
+                  "frameId": 0,
+                  "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                  "url": "http://127.0.0.1:59073/top?id=target"
+                },
+                "result": {
+                  "native": {
+                    "kind": "resolved",
+                    "elapsedMs": 14,
+                    "results": [
+                      {
+                        "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                        "frameId": 0,
+                        "keys": [
+                          "documentId",
+                          "frameId",
+                          "result"
+                        ],
+                        "hasResult": true,
+                        "resultIsUndefined": false,
+                        "result": null,
+                        "hasError": false
+                      }
+                    ]
+                  },
+                  "accepted": {
+                    "kind": "rejected",
+                    "error": {
+                      "name": "Error",
+                      "message": "E_DOCUMENT_STALE",
+                      "stack": "Error: E_DOCUMENT_STALE\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:69:11)\n    at async evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:51:24)"
+                    }
+                  },
+                  "dispatchCount": 1
+                },
+                "finished": 1790970698245,
+                "settlementCount": 1
+              },
+              {
+                "id": "revoke-MAIN",
+                "state": "pending",
+                "started": 1790970698283,
+                "target": {
+                  "tabId": 1243656837,
+                  "frameId": 0,
+                  "documentId": "3B86AA9A4079594189FD0C07AD1EDF6B",
+                  "url": "http://127.0.0.1:59073/top?id=after-USER_SCRIPT"
+                }
+              }
+            ]
+          },
+          "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "method": "rendered Chrome extension details UI click"
+        },
+        "effects": {
+          "finished": "revoke-MAIN",
+          "postRevoke": null
+        },
+        "interpretation": "OFF rejects new actual native execute and has no new effect; does not prove old-operation history fence. Ignore runner authorizationRecheck for that separate claim."
+      }
+    ]
+  },
+  "fixtureMechanismStatus": "Unchanged 2ed, original F1-PAGE-AUTH-CSP remains BLOCK; no claimed fix.",
+  "primaryDocumentReference": "https://developer.chrome.com/docs/extensions/reference/api/userScripts",
+  "sourceEvidenceLimit": "Six version-tagged files fetched; 138 dispatcher timed out and 154 IDL returned 404. These failures do not support absence of signals.",
+  "realSiteRevocationControls": {
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/report.json",
+    "reportSha256": "a3688fe2138ee62225f589203576339d5719bf3436a2cd67a789a5e54e51b53b",
+    "records": [
+      {
+        "version": "138.0.7204.183",
+        "world": "USER_SCRIPT",
+        "contractMet": true,
+        "injectedOperationRecheck": false,
+        "fence": {
+          "name": "Error",
+          "message": "E_HOST_PERMISSION_REVOKED",
+          "observedBy": "chrome.permissions.onRemoved",
+          "at": 1790971737454
+        },
+        "accepted": {
+          "kind": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:52:29)"
+          }
+        }
+      },
+      {
+        "version": "138.0.7204.183",
+        "world": "MAIN",
+        "contractMet": true,
+        "injectedOperationRecheck": false,
+        "fence": {
+          "name": "Error",
+          "message": "E_HOST_PERMISSION_REVOKED",
+          "observedBy": "chrome.permissions.onRemoved",
+          "at": 1790971737596
+        },
+        "accepted": {
+          "kind": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:52:29)"
+          }
+        }
+      },
+      {
+        "version": "154.0.8037.92",
+        "world": "USER_SCRIPT",
+        "contractMet": true,
+        "injectedOperationRecheck": false,
+        "fence": {
+          "name": "Error",
+          "message": "E_HOST_PERMISSION_REVOKED",
+          "observedBy": "chrome.permissions.onRemoved",
+          "at": 1790971739054
+        },
+        "accepted": {
+          "kind": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:52:29)"
+          }
+        }
+      },
+      {
+        "version": "154.0.8037.92",
+        "world": "MAIN",
+        "contractMet": true,
+        "injectedOperationRecheck": false,
+        "fence": {
+          "name": "Error",
+          "message": "E_HOST_PERMISSION_REVOKED",
+          "observedBy": "chrome.permissions.onRemoved",
+          "at": 1790971739212
+        },
+        "accepted": {
+          "kind": "rejected",
+          "error": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:52:29)"
+          }
+        }
+      }
+    ],
+    "scope": "Existing independent actual site revoke/restore controls; not a proof of ownGrant product implementation or all document/race cases."
+  }
+}

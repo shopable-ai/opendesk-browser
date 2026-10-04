@@ -1,0 +1,13 @@
+{
+  "sourceReview": "docs/framework/reviews/m5-f1/code-reviewer/control-review.json",
+  "blocker": "CR-F1-CTRL-001",
+  "originalProbeSha256": "c865fa1e83fe06e97b2dd8615e38424054a8a5315eef7540ba768ad565be55f2",
+  "adaptedProbeSha256": "48acd62c2aad77e3599b5f9592982883cae37a24cb05b50102027c674bc68c9c",
+  "changes": [
+    "candidate/scope metadata",
+    "owned profiles inside K1 evidence scope",
+    "read original tab after prevented navigation",
+    "exact extension manifest selection"
+  ],
+  "expected": "native-permission-request < host-stop-returned < native-permission-resolved; zero native-tabs-update dispatch and zero server destination hits"
+}

@@ -1,0 +1,13 @@
+{
+  "origin": "http://127.0.0.1:62707",
+  "request": "Native Chrome dialog: read and change data on 127.0.0.1",
+  "surface": "CUA native app exact Chrome138 path",
+  "action": "clicked AX button8 允许",
+  "outcomeObservation": "CUA state read returned App quit as fail-fast runner teardown finished; CDP and IDB prove native origin grant and subsequent controller runs",
+  "nativeEvidence": [
+    "raw-cdp.jsonl",
+    "production-138/case-MINIMAL-RETURN7.json",
+    "production-138/case-OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN.json"
+  ],
+  "noPermissionPayloadOrProfileMutation": true
+}

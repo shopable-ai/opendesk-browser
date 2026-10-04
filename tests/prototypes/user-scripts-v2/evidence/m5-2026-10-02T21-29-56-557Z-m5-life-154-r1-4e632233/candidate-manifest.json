@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "scope": "F1 userScripts only; fixture, no F2",
+  "sources": [
+    {
+      "path": "run-headed.mjs",
+      "bytes": 59171,
+      "sha256": "676ef81f0db9874d33972014e32f6572d3e8dffaef4c000d016e92f7e7979a5b"
+    },
+    {
+      "path": "fixture/adapter.js",
+      "bytes": 4444,
+      "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+    },
+    {
+      "path": "fixture/file-source.js",
+      "bytes": 206,
+      "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+    },
+    {
+      "path": "fixture/host.html",
+      "bytes": 622,
+      "sha256": "9fa43cf7eda700056b7b24208469a77e5f1ca36ddf46f12894bca2a266977211"
+    },
+    {
+      "path": "fixture/host.js",
+      "bytes": 13453,
+      "sha256": "c4dc9e662bda70c6908459a1a20637464fd85287f78887ec3f8b5043b22959db"
+    },
+    {
+      "path": "fixture/manifest.json",
+      "bytes": 408,
+      "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+    },
+    {
+      "path": "fixture/sw.js",
+      "bytes": 176,
+      "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+    }
+  ],
+  "frozenInputs": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/candidate-manifest.json",
+      "bytes": 16633,
+      "sha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/execution-plan.md",
+      "bytes": 17472,
+      "sha256": "6f6aa2912c75809b6049d27da3c7e8abec63c56b7db08224cdbfb7d2c40bed1d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/f1-cases.json",
+      "bytes": 11219,
+      "sha256": "bf763f22a2182dbaba4b56ba08647fd0cd16e36bdea8694514ba687107ff3173"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/goal-constraints.md",
+      "bytes": 7870,
+      "sha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "bytes": 31648,
+      "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+      "bytes": 13767,
+      "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4"
+    }
+  ],
+  "approvedPlanManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f"
+}

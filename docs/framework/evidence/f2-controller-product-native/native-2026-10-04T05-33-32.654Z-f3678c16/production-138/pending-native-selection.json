@@ -1,0 +1,47 @@
+{
+  "state": "selection-observed",
+  "mode": "production",
+  "label": "138",
+  "pid": 15671,
+  "launcherPid": 15670,
+  "endpoint": "ws://127.0.0.1:53185/devtools/browser/cc7b8589-d2a5-4cdb-aaf3-fd60b43f26f2",
+  "targetId": "014C53E82EDBD1BF483D22FD77861591",
+  "selector": "#sdk-document",
+  "desired": "FB8269F11A3A6D05B9C37EB453E35C1F",
+  "optionIndex": 1,
+  "before": {
+    "selectedIndex": 0,
+    "value": "",
+    "focused": false,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择当前精确文档",
+        "disabled": false
+      },
+      {
+        "value": "FB8269F11A3A6D05B9C37EB453E35C1F",
+        "text": "frame 0 · FB8269F11A3A6D05B9C37EB453E35C1F · http://127.0.0.1:53176/form?seed=257c89cc-aa40-49cc-a788-40cec1306d2c&role=borrowed",
+        "disabled": false
+      }
+    ]
+  },
+  "instruction": "Use the bound live native Chrome window to commit this exact option; no DOM assignment or synthetic events",
+  "after": {
+    "selectedIndex": 1,
+    "value": "FB8269F11A3A6D05B9C37EB453E35C1F",
+    "focused": true,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择当前精确文档",
+        "disabled": false
+      },
+      {
+        "value": "FB8269F11A3A6D05B9C37EB453E35C1F",
+        "text": "frame 0 · FB8269F11A3A6D05B9C37EB453E35C1F · http://127.0.0.1:53176/form?seed=257c89cc-aa40-49cc-a788-40cec1306d2c&role=borrowed",
+        "disabled": false
+      }
+    ]
+  }
+}

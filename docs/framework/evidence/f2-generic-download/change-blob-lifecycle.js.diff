@@ -1,0 +1,11 @@
+--- slice-baseline/blob-lifecycle.js
++++ src/platform/downloads/blob-lifecycle.js
+@@ -21,7 +21,7 @@
+     create(bytes, mime) {
+       invariant(bytes instanceof Uint8Array && bytes.byteLength <= BUDGETS.maxArtifactBytes,
+         'E_SCHEMA', 'Invalid artifact bytes');
+-      invariant(['application/json', 'text/csv;charset=utf-8'].includes(mime), 'E_SCHEMA', 'Invalid artifact MIME');
++      invariant(['application/json', 'text/csv;charset=utf-8', 'text/plain;charset=utf-8', 'application/octet-stream'].includes(mime), 'E_SCHEMA', 'Invalid artifact MIME');
+       const blobUrl = url.createObjectURL(new BlobClass([bytes.slice()], { type: mime }));
+       invariant(/^blob:chrome-extension:\/\//.test(blobUrl) && !used.has(blobUrl), 'E_TARGET', 'A fresh extension Blob URL is required');
+       used.add(blobUrl);

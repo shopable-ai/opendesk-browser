@@ -1,0 +1,1108 @@
+{
+  "mode": "development",
+  "label": "138",
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+  "requestedVersion": "138.0.7204.183",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+  "sourceHash": "1e11e9f512bdd2e53d6e6b0b48a868648edeff16fc7b6ba882f076757b9fbdbe",
+  "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+  "stage": "F2",
+  "f3Accepted": false,
+  "original603Closed": false,
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "manifest": {
+    "manifest_version": 3,
+    "name": "OpenDesk Browser",
+    "version": "0.1.0",
+    "description": "OpenDesk Browser 浏览器自动化框架。",
+    "minimum_chrome_version": "138",
+    "permissions": [
+      "storage",
+      "scripting",
+      "activeTab",
+      "downloads",
+      "tabs",
+      "webNavigation",
+      "userScripts"
+    ],
+    "optional_permissions": [
+      "cookies",
+      "notifications"
+    ],
+    "optional_host_permissions": [
+      "http://*/*",
+      "https://*/*"
+    ],
+    "background": {
+      "service_worker": "sw.js"
+    },
+    "action": {
+      "default_title": "打开 OpenDesk Browser"
+    },
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'",
+      "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+    },
+    "incognito": "not_allowed",
+    "sandbox": {
+      "pages": [
+        "scripting/sandbox/sandbox.html"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+      "families": "A01/NAV01/CMP09",
+      "expected": "Real owned page navigates; BaseAlice, Typed/clicked; HTTP effect and durable typed return agree",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018822785,
+      "input": {
+        "source": "await page.goto(params.url); const typed=await page.type('#name',params.name); const clicked=await page.click('#submit'); await page.waitForSelector('#result[data-done=\"true\"]'); return {typed,clicked,read:await page.snapshot('#result'),title:await page.title(),url:await page.url(),revision:params.revision,f:false,z:0,u:undefined};",
+        "params": {
+          "url": "http://127.0.0.1:49256/form?seed=3e4f9346-ff5a-44b7-b7dd-1440e2dd81f1&role=goto",
+          "name": "Alice",
+          "revision": "r1"
+        }
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-cceb23880fe5'\n- 'native-40510d4b-61cc-4f68-b40b-cceb23880fe5'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-cceb23880fe5'\n- 'native-40510d4b-61cc-4f68-b40b-cceb23880fe5'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:539:22\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:537:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-cceb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 62.63591599999927
+    },
+    {
+      "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+      "families": "USC01/USC02/USC03",
+      "expected": "Running r1 remains pinned while UI saves r2 and tombstones head; r1 source/params/result stay unchanged until retirement; new start from another real host holding r2 is rejected E_TOMBSTONE",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018822848,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-dc62d8d1-734b-4168-8ff1-e9b5b4848506'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-dc62d8d1-734b-4168-8ff1-e9b5b4848506'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:547:18\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:545:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 46.61666700000205
+    },
+    {
+      "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+      "families": "A01/A02/AUTH01",
+      "expected": "Explicit borrowed document changes; activated decoy and other documents do not; borrowed target survives",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018822896,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinative-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-0db7e54e-e9a2-4749-a7c1-218335dcca4e'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinative-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-0db7e54e-e9a2-4749-a7c1-218335dcca4e'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:575:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:572:40)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinative-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 59.8025000000016
+    },
+    {
+      "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+      "families": "A02/AUTH01",
+      "expected": "Actual child document selected from native frame inventory; only child changes; top/decoy survive",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018822957,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnative-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-47c46e58-3aa9-476b-8d3d-e2590fde2995'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnative-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-47c46e58-3aa9-476b-8d3d-e2590fde2995'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:575:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:572:40)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnative-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 37.56737500000236
+    },
+    {
+      "id": "DURABLE-FALSE",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018822995,
+      "input": {
+        "source": "return false;",
+        "expectedWire": {
+          "type": "boolean",
+          "value": false
+        }
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnative-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-aa838ed8-d4aa-49fe-8b00-c05cec3d9974'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnative-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-aa838ed8-d4aa-49fe-8b00-c05cec3d9974'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:593:83\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:592:22)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnative-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 21.560999999997875
+    },
+    {
+      "id": "DURABLE-ZERO",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823019,
+      "input": {
+        "source": "return 0;",
+        "expectedWire": {
+          "type": "number",
+          "value": 0
+        }
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinative-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-63b109d3-144f-4823-a931-a873162d14eb'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinative-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-63b109d3-144f-4823-a931-a873162d14eb'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:593:83\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:592:22)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinative-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 37.36283299999923
+    },
+    {
+      "id": "DURABLE-UNDEFINED",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823061,
+      "input": {
+        "source": "return undefined;",
+        "expectedWire": {
+          "type": "undefined"
+        }
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnative-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-72d343c8-055b-4aa3-8ffe-16b89e568823'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnative-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-72d343c8-055b-4aa3-8ffe-16b89e568823'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:593:83\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:592:22)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnative-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 18.13970799999879
+    },
+    {
+      "id": "DURABLE-OWN-UNDEFINED",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823081,
+      "input": {
+        "source": "return {f:false,z:0,u:undefined};",
+        "expectedWire": {
+          "type": "object",
+          "value": [
+            [
+              "f",
+              {
+                "type": "boolean",
+                "value": false
+              }
+            ],
+            [
+              "u",
+              {
+                "type": "undefined"
+              }
+            ],
+            [
+              "z",
+              {
+                "type": "number",
+                "value": 0
+              }
+            ]
+          ]
+        }
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinative-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-3afab6f1-1e2d-46c0-94b6-5e71e660edb3'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinative-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-3afab6f1-1e2d-46c0-94b6-5e71e660edb3'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:593:83\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:592:22)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinative-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 36.89116699999795
+    },
+    {
+      "id": "DURABLE-TRUE",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823121,
+      "input": {
+        "source": "return true;",
+        "expectedWire": {
+          "type": "boolean",
+          "value": true
+        }
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinative-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-a2d34a32-488c-4a12-b011-4f13ec277c0a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinative-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-a2d34a32-488c-4a12-b011-4f13ec277c0a'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:593:83\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:592:22)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinative-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 45.1573750000025
+    },
+    {
+      "id": "DURABLE-BUSINESS",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823167,
+      "input": {
+        "source": "return {PageBrigeCode:9,ok:false,error:\"business\",message:\"data\"};",
+        "expectedWire": {
+          "type": "object",
+          "value": [
+            [
+              "PageBrigeCode",
+              {
+                "type": "number",
+                "value": 9
+              }
+            ],
+            [
+              "error",
+              {
+                "type": "string",
+                "value": "business"
+              }
+            ],
+            [
+              "message",
+              {
+                "type": "string",
+                "value": "data"
+              }
+            ],
+            [
+              "ok",
+              {
+                "type": "boolean",
+                "value": false
+              }
+            ]
+          ]
+        }
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinative-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-e80d722e-8d18-4d4e-80c7-381595fe4b42'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinative-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-e80d722e-8d18-4d4e-80c7-381595fe4b42'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:593:83\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:592:22)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinative-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 53.506499999999505
+    },
+    {
+      "id": "DOWNLOAD-FALSE",
+      "families": "DLGEN01/DLGEN02",
+      "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823018,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Required durable typed case failed; download blocked by product prerequisite",
+        "stack": "AssertionError [ERR_ASSERTION]: Required durable typed case failed; download blocked by product prerequisite\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:600:9\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:58)\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:599:81)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": null
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 0.9136250000010477
+    },
+    {
+      "id": "DOWNLOAD-ZERO",
+      "families": "DLGEN01/DLGEN02",
+      "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823058,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Required durable typed case failed; download blocked by product prerequisite",
+        "stack": "AssertionError [ERR_ASSERTION]: Required durable typed case failed; download blocked by product prerequisite\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:600:9\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:58)\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:599:81)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": null
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 1.3364169999986188
+    },
+    {
+      "id": "DOWNLOAD-UNDEFINED",
+      "families": "DLGEN01/DLGEN02",
+      "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823080,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Required durable typed case failed; download blocked by product prerequisite",
+        "stack": "AssertionError [ERR_ASSERTION]: Required durable typed case failed; download blocked by product prerequisite\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:600:9\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:58)\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:599:81)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": null
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 0.6681250000001455
+    },
+    {
+      "id": "DOWNLOAD-OWN-UNDEFINED",
+      "families": "DLGEN01/DLGEN02",
+      "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823119,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Required durable typed case failed; download blocked by product prerequisite",
+        "stack": "AssertionError [ERR_ASSERTION]: Required durable typed case failed; download blocked by product prerequisite\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:600:9\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:58)\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:599:81)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": null
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 1.102708000002167
+    },
+    {
+      "id": "THROW",
+      "families": "USC03/EX02",
+      "expected": "Actual Worker throw persists failed typed error exactly once",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823221,
+      "input": {
+        "source": "throw new TypeError('native-throw');"
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinative-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-d2663bcc-1608-4af3-a121-480b9759ce07'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinative-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-d2663bcc-1608-4af3-a121-480b9759ce07'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:625:44\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:623:43)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinative-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 46.443624999999884
+    },
+    {
+      "id": "REJECTION",
+      "families": "USC03/EX02",
+      "expected": "Actual rejected Promise persists failed typed error exactly once",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823269,
+      "input": {
+        "source": "await Promise.reject(new RangeError('native-rejection'));"
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinative-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinative-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:625:44\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:623:43)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinative-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 52.903832999996666
+    },
+    {
+      "id": "MULTI-HOST-SLOT-COMPETITION",
+      "families": "CTRL03/AUTH01",
+      "expected": "Two real product hosts contend; loser gets E_OWNER; no loser run/effect; winner retains slot",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823323,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanative-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-134a6911-0d53-4e00-9413-40b2b6c13265'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanative-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-134a6911-0d53-4e00-9413-40b2b6c13265'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:630:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:629:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanative-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 41.14379199999894
+    },
+    {
+      "id": "STOP-PENDING-FENCE",
+      "families": "CTRL01/LEAK01",
+      "expected": "Real UI stop during native page wait; durable cancel; no late page operation; borrowed target survives",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823365,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-1e8d0a44-ae51-4d5b-8ba8-b1173b06982a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-1e8d0a44-ae51-4d5b-8ba8-b1173b06982a'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:643:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:641:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 32.87708399999974
+    },
+    {
+      "id": "WORKER-INFINITE-STOP",
+      "families": "CTRL03/EX03/LEAK01",
+      "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823399,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-0ef66da8-9336-4f37-86c2-443fcc67f040'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-0ef66da8-9336-4f37-86c2-443fcc67f040'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:655:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:650:63)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 223.77687499999956
+    },
+    {
+      "id": "WORKER-INFINITE-DEADLINE",
+      "families": "CTRL03/EX03/LEAK01",
+      "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823625,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-72a06c8f-bc0f-40a4-8bd8-a4c10d65cbfdnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-72a06c8f-bc0f-40a4-8bd8-a4c10d65cbfd'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-72a06c8f-bc0f-40a4-8bd8-a4c10d65cbfdnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-72a06c8f-bc0f-40a4-8bd8-a4c10d65cbfd'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:655:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:650:63)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-72a06c8f-bc0f-40a4-8bd8-a4c10d65cbfdnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 201.05583300000217
+    },
+    {
+      "id": "WORKER-INFINITE-HOST-CLOSE",
+      "families": "CTRL03/EX03/LEAK01",
+      "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018823827,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-a890cb91-9f09-465c-a0cd-7ca6d21782fbnative-72a06c8f-bc0f-40a4-8bd8-a4c10d65cbfdnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-a890cb91-9f09-465c-a0cd-7ca6d21782fb'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-a890cb91-9f09-465c-a0cd-7ca6d21782fbnative-72a06c8f-bc0f-40a4-8bd8-a4c10d65cbfdnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-a890cb91-9f09-465c-a0cd-7ca6d21782fb'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:655:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:650:63)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+        "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnative-a890cb91-9f09-465c-a0cd-7ca6d21782fbnative-72a06c8f-bc0f-40a4-8bd8-a4c10d65cbfdnative-0ef66da8-9336-4f37-86c2-443fcc67f040natinativnativnatinativnatinatinatinatinatinanativnative-1e8d0a44-ae51-4d5b-8ba8-b1173b06982ae-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 195.30070799999885
+    },
+    {
+      "id": "REOPEN-PERSISTENT-RESULT",
+      "families": "USC03/CTRL03",
+      "expected": "Closing/reopening actual tool reads original durable outcome without executing old source",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018824023,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(original)\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(original)\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:719:57\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:58)\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:718:11)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 1.6667080000006536
+    },
+    {
+      "id": "CLEANUP-NO-SCRAPING-RECORDS",
+      "families": "A01/LEAK01",
+      "expected": "Controller targets/frames retired, slot released; no template/row/seal/business run prerequisite",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "startedAt": 1791018824026,
+      "input": {},
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "ERR_ASSERTION",
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- null\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- null\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:729:14\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:726:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "ready",
+        "text": "公共运行入口已就绪，请保存脚本并选择目标",
+        "result": "",
+        "version": "尚未保存",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": true,
+        "stopDisabled": true
+      },
+      "elapsedMs": 7.0008750000015425
+    }
+  ],
+  "environment": {
+    "origin": "http://127.0.0.1:49256"
+  },
+  "launcherPid": 63947,
+  "launcher": {
+    "command": {
+      "at": 1791018808251,
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 63947,
+      "executable": "/usr/bin/python3",
+      "args": [
+        "/Users/shopme/.codex/browser-testing/launch.py",
+        "--executable",
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--report",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-13-12.403Z-31778dfb/development-138/launcher-metadata.json",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "about:blank"
+      ],
+      "chromeArgs": [
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "about:blank"
+      ],
+      "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+    },
+    "metadata": {
+      "pid": 63949,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "args": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "about:blank"
+      ],
+      "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4/chrome.log"
+    },
+    "profileStat": {
+      "birthtimeMs": 1791018808348.9924,
+      "mode": 448
+    },
+    "actualMainProcess": {
+      "psExecutable": "/bin/ps",
+      "psArgs": [
+        "-p",
+        "63949",
+        "-ww",
+        "-o",
+        "pid=,ppid=,command="
+      ],
+      "stdout": "63949 63947 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4 --enable-automation --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development about:blank\n",
+      "pid": 63949,
+      "ppid": 63947
+    },
+    "endpoint": "ws://127.0.0.1:49596/devtools/browser/3d95d76c-23c2-48e6-97bf-78e17d58cdf9"
+  },
+  "endpoint": "ws://127.0.0.1:49596/devtools/browser/3d95d76c-23c2-48e6-97bf-78e17d58cdf9",
+  "pid": 63949,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+  "browserArgs": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+    "--enable-automation",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "about:blank"
+  ],
+  "debuggingURL": "http://127.0.0.1:49596",
+  "cdpVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/138.0.7204.183",
+    "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "jsVersion": "13.8.258.30"
+  },
+  "completeVersion": "Chrome/138.0.7204.183",
+  "actualBrowserCommandLine": {
+    "arguments": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+      "--enable-automation",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--flag-switches-begin",
+      "--flag-switches-end",
+      "about:blank"
+    ]
+  },
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "actualSW": {
+    "targetId": "950C8E8335C26BF6AEB046840BC99808",
+    "id": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "manifest": {
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+      },
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "incognito": "not_allowed",
+      "manifest_version": 3,
+      "minimum_chrome_version": "138",
+      "name": "OpenDesk Browser",
+      "optional_host_permissions": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "optional_permissions": [
+        "cookies",
+        "notifications"
+      ],
+      "permissions": [
+        "storage",
+        "scripting",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts"
+      ],
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html"
+        ]
+      },
+      "version": "0.1.0"
+    },
+    "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js"
+  },
+  "cleanup": {
+    "exit": {
+      "at": 1791018828276,
+      "code": 0,
+      "signal": null
+    },
+    "pidAlive": false,
+    "launcherPidAlive": false,
+    "launcherPid": 63947,
+    "chromePid": 63949,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+    "profileOwner": "global launcher",
+    "profileRemoved": true,
+    "profileRetainedForRawEvidence": false,
+    "nativeLogBytes": 98,
+    "nativeLogSha256": "575bd4ab0e6ba5f405c37178b0e670c3b8f838471cfa4e234ba5c74d08357db3",
+    "nativeLogPreservedAfterLauncherExit": true,
+    "launcherStdoutBytes": 1087,
+    "launcherStderrBytes": 0,
+    "errors": []
+  },
+  "launcherAfterSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "launcherDrift": false,
+  "packageDrift": false,
+  "summary": {
+    "PASS": 0,
+    "FAIL": 23,
+    "BLOCKED": 0,
+    "NOT_TESTED": 0
+  }
+}

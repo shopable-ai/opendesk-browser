@@ -1,0 +1,26 @@
+{
+  "id": "NATIVE-REVOCATION-PENDING-FENCE",
+  "families": "NAV01/AUTH01",
+  "expected": "Actual native document or permission loss cancels the pending operation; no late effect, released slot and borrowed target survives",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "167a86738d821602a6092f76de37ceefc68613a39f988a92b19c4a32315991df",
+  "verificationInputsSha256": "079e0879f377d0705d86e013a402cd49abc3fbf5235cc47f8d0bb0323fd44f6a",
+  "packageSha256": "faad7957d67832a3ce767cbc371f503edde1837734a191b38d7327825b2cec9a",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791101517714,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "name": "Error",
+    "message": "production-138-1B10190258F76459B7D50FD21FE9035C socket closed",
+    "stack": "Error: production-138-1B10190258F76459B7D50FD21FE9035C socket closed\n    at socket.onclose (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:218:111)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:776:26)\n    at fireEvent (node:internal/deps/undici/undici:14186:14)\n    at #onSocketClose (node:internal/deps/undici/undici:15502:9)\n    at Socket.onSocketClose (node:internal/deps/undici/undici:15202:72)\n    at Socket.emit (node:events:521:24)\n    at TCP.<anonymous> (node:net:350:12)"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": null,
+  "elapsedMs": 173379.51270800014
+}

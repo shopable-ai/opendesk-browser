@@ -1,0 +1,185 @@
+✔ typed wire wrapper depth does not shorten the declared value depth budget (4.708958ms)
+✔ R1: cyclic and malformed local schema references produce bounded typed rejection (1.523292ms)
+✔ R1: long acyclic reference chains have a schema traversal depth budget (5.362875ms)
+✔ R1: the inherited RulePlan resolves its nested local JSON pointer (34.979958ms)
+✔ R2: closed shapes reject names inherited by the schema properties object (148.996584ms)
+✔ R7: durable timestamps require an actual calendar date and explicit timezone (4.363666ms)
+✖ typed depth 4: params, operation args and immutable result survive wider JSON envelopes (99.29375ms)
+✖ typed depth 5: params, operation args and immutable result survive wider JSON envelopes (13.570542ms)
+✖ typed depth 6: params, operation args and immutable result survive wider JSON envelopes (8.672ms)
+✖ typed depth 7: params, operation args and immutable result survive wider JSON envelopes (45.169708ms)
+✖ typed depth 8: params, operation args and immutable result survive wider JSON envelopes (52.746416ms)
+✖ typed depth 9: params, operation args and immutable result survive wider JSON envelopes (12.713292ms)
+✖ typed depth 10: params, operation args and immutable result survive wider JSON envelopes (11.295542ms)
+✖ typed depth 11: params, operation args and immutable result survive wider JSON envelopes (11.667584ms)
+✖ typed depth 12: params, operation args and immutable result survive wider JSON envelopes (10.723542ms)
+✔ JSON envelope depth 48 never widens the typed depth-12 admission/result/args budgets (8.468417ms)
+✔ controller script deletion is CAS tombstone only; GC waits for terminal, Worker and target retirement (20.835584ms)
+✔ each controller lease pin binding is required; forged retired lease cannot authorize GC (8.462708ms)
+✔ recovery upgrades old terminal lease bindings without reviving its result, Worker or slot (6.164083ms)
+✔ public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates (8.184459ms)
+✔ borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does (21.956791ms)
+✔ worker retirement gates durable result then borrowed release, without closing borrowed tab (5.049792ms)
+✔ owned retirement closes only exact created tab after durable terminal commit (12.645166ms)
+✔ new registered host reads old namespace result without acquiring its owner or replaying (7.413292ms)
+✔ permission removal matches exact origin patterns and remains fenced after regrant (3.981792ms)
+✔ native receipt survives post-dispatch permission loss; request is never resubmitted (8.38575ms)
+✔ public recovery pauses controller, holds slot and never replays committed source (6.201417ms)
+✔ public hostGone interruption retires borrowed target and exact pin once (12.019708ms)
+✔ hostGone after completed result preserves the immutable result and finishes pending retirement (6.830833ms)
+✔ SDK short persistent service completes while controller owns the same unique slot (7.862167ms)
+✔ injected foundationClient registers once; forced harnessWorker termination precedes durable result and slot release (42.459041ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 22
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 804.1705
+
+✖ failing tests:
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 4: params, operation args and immutable result survive wider JSON envelopes (99.29375ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 5: params, operation args and immutable result survive wider JSON envelopes (13.570542ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 6: params, operation args and immutable result survive wider JSON envelopes (8.672ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 7: params, operation args and immutable result survive wider JSON envelopes (45.169708ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 8: params, operation args and immutable result survive wider JSON envelopes (52.746416ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 9: params, operation args and immutable result survive wider JSON envelopes (12.713292ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 10: params, operation args and immutable result survive wider JSON envelopes (11.295542ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 11: params, operation args and immutable result survive wider JSON envelopes (11.667584ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }
+
+test at tests/framework/k3-controller-authority.test.mjs:81:44
+✖ typed depth 12: params, operation args and immutable result survive wider JSON envelopes (10.723542ms)
+  Error [PageError]: Invalid wire shape
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+      at inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+      at decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+      at decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+      at readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+      at userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+      at async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+      at async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+      at async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15) {
+    code: 'E_RESULT_FORMAT'
+  }

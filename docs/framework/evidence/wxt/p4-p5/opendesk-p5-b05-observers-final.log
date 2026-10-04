@@ -1,0 +1,14 @@
+✔ actual WXT AST exposes exact CP1/CP2/CP4/storage and native KV observation ranges (735.768459ms)
+✔ storage cut rejects missing or ambiguous immutable source anchors (374.100167ms)
+✔ native KV submission selector refuses a changed or duplicate native put (487.54425ms)
+✔ unknown must expose only the original public request reference (1.206458ms)
+✔ bounded slices add prerequisites while retaining the full required case list (0.268625ms)
+✔ preparation retains the frozen denominator and binds its actual helper bytes (83.352375ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1827.792

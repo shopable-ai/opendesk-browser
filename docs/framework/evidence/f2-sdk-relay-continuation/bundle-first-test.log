@@ -1,0 +1,50 @@
+TAP version 13
+# Subtest: production actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello
+not ok 1 - production actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello
+  ---
+  duration_ms: 419.791375
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k4-sdk-bundle-reinjection.test.mjs:17:51'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    ReferenceError: TextEncoder is not defined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k4-sdk-bundle-reinjection.test.mjs:47:12)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: development actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello
+not ok 2 - development actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello
+  ---
+  duration_ms: 46.908458
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k4-sdk-bundle-reinjection.test.mjs:17:51'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    ReferenceError: TextEncoder is not defined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k4-sdk-bundle-reinjection.test.mjs:47:12)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 576.789292

@@ -1,0 +1,145 @@
+{
+  "candidateSha256": "99e01dc5fd75a6b3a99425ae62913b270752c6e9e18013839706c57c398c1d09",
+  "files": [
+    {
+      "path": "candidate-manifest.json",
+      "bytes": 2281,
+      "sha256": "99e01dc5fd75a6b3a99425ae62913b270752c6e9e18013839706c57c398c1d09"
+    },
+    {
+      "path": "cases-live.json",
+      "bytes": 444602,
+      "sha256": "9361a7a31c3f08b4668f891504552093e7f1064cbabb889826a650ee9ce8a9da"
+    },
+    {
+      "path": "console.json",
+      "bytes": 5118,
+      "sha256": "4b816978df53f33c9849d07f51fff929866d134686a3d7516f0b0cde252dd902"
+    },
+    {
+      "path": "fixture-resources.json",
+      "bytes": 46,
+      "sha256": "e764c3e23ecf08087998842e64e46eb19520a3656e40961035a5906418be8983"
+    },
+    {
+      "path": "host-off-MAIN.png",
+      "bytes": 91799,
+      "sha256": "801853ad64e3f614ebb3aab1a1e35d0d1ae5c741b19599f2c6608cd0fbe585e1"
+    },
+    {
+      "path": "host-off-USER_SCRIPT.png",
+      "bytes": 91511,
+      "sha256": "3957b2b6e09e1d58a4945e81c9e20c41062ea13e6a345b4991f49c4def9c4ce9"
+    },
+    {
+      "path": "host-on-MAIN.png",
+      "bytes": 91182,
+      "sha256": "ee762ca5cf4cc34a7dbee81663f7cda5b441fda2317d7e50e40cb2c090f39534"
+    },
+    {
+      "path": "host-on-USER_SCRIPT.png",
+      "bytes": 91268,
+      "sha256": "8373057378cb66840edc4ceed43b6aace564d052212d86e54f1dbc132a5fcc49"
+    },
+    {
+      "path": "http.json",
+      "bytes": 5118,
+      "sha256": "7c68e40a4d1c8d9d9ea7a392bc8ea0bf8b9cf3e2580e1b2e03354c60c1756486"
+    },
+    {
+      "path": "initial-details.png",
+      "bytes": 91156,
+      "sha256": "456ec60397a1bd1e2e0914029559b7f1ea2ca390db20be831d06f8610eda2ed0"
+    },
+    {
+      "path": "owned-target.png",
+      "bytes": 15024,
+      "sha256": "192b2702256e2df95a6368072cb76d4efe7f2e1e25073c36466f882ee71cc420"
+    },
+    {
+      "path": "race-off-native-completed-MAIN.png",
+      "bytes": 91788,
+      "sha256": "564f07ca441bd05232c02ce9454cb8c4563c5b8793e01a363f66af5bc9068db4"
+    },
+    {
+      "path": "race-off-native-completed-USER_SCRIPT.png",
+      "bytes": 91493,
+      "sha256": "0ad4982d2744d169e7daca8eb5c621b4dd431ba6d2138331d1278f95f717c5a2"
+    },
+    {
+      "path": "race-off-pending-MAIN.png",
+      "bytes": 91844,
+      "sha256": "b3c5474e8f81d17d109aa0cb2d5f208c67272a7b085d241be11ce92513df94fe"
+    },
+    {
+      "path": "race-off-pending-USER_SCRIPT.png",
+      "bytes": 91826,
+      "sha256": "c4bab54652aa036789c7b4b8081e91e4783b479bd24a34db02d21d18825624a7"
+    },
+    {
+      "path": "race-on-native-completed-MAIN.png",
+      "bytes": 91277,
+      "sha256": "50b3e2fef016d6c404741ebaf87968959d4c504ab60f166812421e8cd79685bb"
+    },
+    {
+      "path": "race-on-native-completed-USER_SCRIPT.png",
+      "bytes": 91283,
+      "sha256": "0b6d841bb2a7f668adead9c7efffd6a507e62d9082952f5ace0010ffc4b47467"
+    },
+    {
+      "path": "race-on-pending-MAIN.png",
+      "bytes": 91343,
+      "sha256": "5358a04c41cba4a7ab688a41f1e1c64553451a780069753e910e453d54871435"
+    },
+    {
+      "path": "race-on-pending-USER_SCRIPT.png",
+      "bytes": 91276,
+      "sha256": "c547c2aba224034f26df606819b83b0acbaf54d364db4179fe2c0094b4d76f07"
+    },
+    {
+      "path": "raw-injections.json",
+      "bytes": 190343,
+      "sha256": "60f7e724d4f9378896b2746e629a04b47f7f895aa26ab6f3877a5b8fec7d217e"
+    },
+    {
+      "path": "re-enabled-MAIN.png",
+      "bytes": 90833,
+      "sha256": "69a0e8d239b827986fb81795521f728d9d5373526d177e1a090043b171a9369b"
+    },
+    {
+      "path": "re-enabled-USER_SCRIPT.png",
+      "bytes": 90826,
+      "sha256": "e768cf1d58a3cddbde455c61987af457930995d4a0ed198e785794fa54963e2f"
+    },
+    {
+      "path": "report.json",
+      "bytes": 473921,
+      "sha256": "fc3ff2d64bb21b44505662b6bfd8414b0d8184e1a0a0da7dfb94d9f80f4ef7b9"
+    },
+    {
+      "path": "results.png",
+      "bytes": 667589,
+      "sha256": "9b3a8ffb0ef281bb0e7e338f3bb231200f56b8a5787dd7358fe96bad226b05ea"
+    },
+    {
+      "path": "revoke-MAIN.png",
+      "bytes": 90817,
+      "sha256": "9b5740414b58346072982e36917ffdf87a919b3785dbf656b86f3c2c46c91ba9"
+    },
+    {
+      "path": "revoke-USER_SCRIPT.png",
+      "bytes": 90812,
+      "sha256": "bf00d3fafcf48c9cd7fef2aa931197a068100524abc649fd60c301dd759889e3"
+    },
+    {
+      "path": "switch-off.png",
+      "bytes": 90251,
+      "sha256": "823174a6c1609d714d947b612e7b00bf34fd8498c82397ebd9d936eb0705fad1"
+    },
+    {
+      "path": "switch-on.png",
+      "bytes": 90795,
+      "sha256": "fa09fe67935d9e9fb30fb878056e6bf6d0b7eecf8d6ac0e8b176da1ebffaa902"
+    }
+  ]
+}

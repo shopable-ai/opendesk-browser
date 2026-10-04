@@ -1,0 +1,24 @@
+{
+  "verifiedDirectHumanMessages": [
+    {
+      "threadId": "01a0f838-0e08-7b40-a156-d18399fc7732",
+      "messageId": "01a0f8b3-ad79-7a82-89bf-1f8ad69c818b",
+      "scope": "create necessary chats and coordination, same model/effort",
+      "readEarlierInThisSession": true
+    },
+    {
+      "threadId": "01a0f8d7-1dfd-7683-b54d-4dbcff087fa8",
+      "messageId": "01a0f8d7-f9c3-75f0-af91-84cbd15f761b",
+      "scope": "split environment02A and critical migration02B",
+      "readEarlierInThisSession": true
+    },
+    {
+      "threadId": "01a0f838-0e08-7b40-a156-d18399fc7732",
+      "messageId": "01a0f8f5-3190-7dc1-bd57-fde08d550136",
+      "scope": "create developer browser chat and autonomously perform local loading/testing",
+      "directReadAt": "2026-10-01T19:52:55.657787+00:00"
+    }
+  ],
+  "authorizationNotDerivedFromPeerMessage": true,
+  "approvedStage01Release": "only02A after actual design ready; downstream sequential handoffs remain required"
+}

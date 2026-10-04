@@ -1,0 +1,54 @@
+{
+  "mode": "production",
+  "status": "passed",
+  "report": {
+    "status": "passed",
+    "manifestVersion": 3,
+    "classicEntries": [
+      "agents/health.js",
+      "agents/selection-entry.js",
+      "sw.js",
+      "ui/tool-shell.js"
+    ],
+    "dynamicExecutionFound": false,
+    "packageHash": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+    "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+    "files": [
+      {
+        "path": "agents/health.js",
+        "bytes": 656,
+        "sha256": "641edccc816cb398d49a6bf946befa3ea92af23385bf046cf6cf2b00e446086d"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 203,
+        "sha256": "e50cab8ddf0c4a3ec03b59b0366f87651df8465fdeea39db380b0f5051d32f1f"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 556,
+        "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 7403,
+        "sha256": "2c826557eeea9145d30472b7ce65b29d2bdc7a89f6d02d02d1b95dc6e64b4623"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 885,
+        "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 2840,
+        "sha256": "a7a1162dfb52fcfcc86de024f1f06d8c483e0b7fa55c1b950a444cd2f8dba720"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 1256,
+        "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "stage": "F2",
+  "task": "T09",
+  "scope": [
+    "SDK-REVIEW-03",
+    "SDK-REVIEW-04"
+  ],
+  "steps": [
+    "Preserve exact entry reproducer and relay race sequence, record baseline red.",
+    "Recognize immutable own lifecycle across fresh entry evaluations; replace cached bridge with native Hello while keeping stable exports and in-flight callback codec.",
+    "Track each relay dispatch independently, canonical normalized digest plus original deadline; admit all100 duplicates at main broker.",
+    "Run regressions, syntax and native current-product targeted evidence with before/after source hashes."
+  ],
+  "requestedModel": "gpt-6.1-sol",
+  "requestedReasoningEffort": "xhigh",
+  "resolvedModel": "unknown",
+  "resolvedReasoningEffort": "unknown",
+  "F3": false,
+  "original603": false
+}

@@ -1,0 +1,55 @@
+{
+  "planManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "files": [
+    {
+      "path": "run.mjs",
+      "bytes": 14271,
+      "sha256": "af9935bc5d4862e1c0f65848ada1831585c2e42669288a059cb2bb3afbc58863"
+    },
+    {
+      "path": "run-native.mjs",
+      "bytes": 55866,
+      "sha256": "74e51292baaf5e3e55e311d05a73f40900c454488abe8326bae5d5df2848d52a"
+    },
+    {
+      "path": "fixture/manifest.json",
+      "bytes": 580,
+      "sha256": "1e8b0e56ff73a6b11a69abeafeb92f267fdf626b2112714c5cc5b306bba5637b"
+    },
+    {
+      "path": "fixture/sw.js",
+      "bytes": 268,
+      "sha256": "01ef704876ed81591589d93da9a7eb6d67a4b477275c254e9594515c6478c595"
+    },
+    {
+      "path": "fixture/host.html",
+      "bytes": 191,
+      "sha256": "7d6413e1134abe3b3cb1ba81766272ce4613b53d60e5600d6151aba67dc58900"
+    },
+    {
+      "path": "fixture/host.js",
+      "bytes": 17736,
+      "sha256": "3b7ed9bbf01cae58ca2b8898775e58b0c0911e8509598f4ec46eb4e57dde9c16"
+    },
+    {
+      "path": "fixture/sandbox.html",
+      "bytes": 6215,
+      "sha256": "9c9305423cb7ea0ab5a102a48de184959787c81f15f0901dd8930b4838de9f13"
+    },
+    {
+      "path": "fixture/worker-harness.js",
+      "bytes": 3185,
+      "sha256": "630ab92f6a629d8027d11c0f47c0b5c21a2c60f86a6d859b8ef0d78cabcd39ee"
+    },
+    {
+      "path": "fixture/attacker.html",
+      "bytes": 51,
+      "sha256": "bbdedb61777e02b607304c0ee783a515908f7a41435d7eb33f5cc313d72a321a"
+    },
+    {
+      "path": "fixture/attacker.js",
+      "bytes": 426,
+      "sha256": "7a1df07d40ab780d8a56fbe9e3bd06312ccf46514f70765256d8512364c1ca16"
+    }
+  ]
+}

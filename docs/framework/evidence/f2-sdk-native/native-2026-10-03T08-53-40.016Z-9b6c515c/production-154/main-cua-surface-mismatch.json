@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-03T09:02:55.566Z",
+  "source": "Main same-thread native CUA report",
+  "ownedPid": 40368,
+  "psVerifiedByMain": true,
+  "actualMainFlagsVerifiedByMain": true,
+  "cuaBinding": "full cached 154 .app",
+  "reportedSurface": "single about:blank tab; omnibox Value h; no tool and no permission dialog",
+  "surfaceMatchesOwnedTool": false,
+  "uiActionTaken": false,
+  "permissionConclusion": "No denial or allow observed; pending native UI authorization remains separate from SDK results",
+  "followup": "Owned CDP Target.activateTarget succeeded and native Browser.getWindowForTarget saved separately"
+}

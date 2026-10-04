@@ -1,0 +1,195 @@
+{
+  "contractVersion": "1.0.0",
+  "status": "planned-not-executed",
+  "attemptA": {
+    "attemptId": "attempt-A",
+    "exportJobId": "job-A",
+    "runId": "run-transaction-1",
+    "artifactId": "artifact-A",
+    "artifactHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "artifactBytes": 100,
+    "rowCount": 2,
+    "hostInstanceId": "host-1",
+    "hostDocumentId": "host-doc-1",
+    "ownerEpochAtCreation": 1,
+    "blobUrl": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+    "filename": "rows-A.csv",
+    "preparedAt": "2026-10-01T18:00:00Z",
+    "dispatchAt": "2026-10-01T18:00:00Z",
+    "mappingDeadline": "2026-10-01T18:01:00Z",
+    "downloadDeadline": "2026-10-01T18:10:00Z",
+    "state": "dispatched",
+    "downloadId": null,
+    "resourceReleasedAt": null,
+    "timedOutAt": null,
+    "candidateDownloadIds": [],
+    "mappedAt": null,
+    "submissionCount": 1
+  },
+  "attemptB": {
+    "attemptId": "attempt-B",
+    "exportJobId": "job-B",
+    "runId": "run-transaction-1",
+    "artifactId": "artifact-B",
+    "artifactHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "artifactBytes": 100,
+    "rowCount": 2,
+    "hostInstanceId": "host-1",
+    "hostDocumentId": "host-doc-1",
+    "ownerEpochAtCreation": 1,
+    "blobUrl": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-B-fresh",
+    "filename": "rows-B.csv",
+    "preparedAt": "2026-10-01T18:11:00Z",
+    "dispatchAt": "2026-10-01T18:11:00Z",
+    "mappingDeadline": "2026-10-01T18:12:00Z",
+    "downloadDeadline": "2026-10-01T18:21:00Z",
+    "state": "dispatched",
+    "downloadId": null,
+    "resourceReleasedAt": null,
+    "timedOutAt": null,
+    "candidateDownloadIds": [],
+    "mappedAt": null,
+    "submissionCount": 1
+  },
+  "candidateCases": [
+    {
+      "id": "0",
+      "items": [],
+      "now": "2026-10-01T18:01:01Z",
+      "expected": "mapping_unknown, no retry"
+    },
+    {
+      "id": "1",
+      "items": [
+        {
+          "id": 7,
+          "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+          "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+          "startTime": "2026-10-01T18:00:01Z",
+          "state": "in_progress"
+        }
+      ],
+      "expected": "bind id7, still not complete"
+    },
+    {
+      "id": "duplicate-event",
+      "items": [
+        {
+          "id": 7,
+          "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+          "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+          "startTime": "2026-10-01T18:00:01Z",
+          "state": "in_progress"
+        },
+        {
+          "id": 7,
+          "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+          "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+          "startTime": "2026-10-01T18:00:01Z",
+          "state": "in_progress"
+        }
+      ],
+      "expected": "dedupe id7 then bind"
+    },
+    {
+      "id": "many",
+      "items": [
+        {
+          "id": 7,
+          "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+          "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+          "startTime": "2026-10-01T18:00:01Z",
+          "state": "in_progress"
+        },
+        {
+          "id": 8,
+          "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+          "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+          "startTime": "2026-10-01T18:00:01Z",
+          "state": "in_progress"
+        }
+      ],
+      "expected": "conflict, bind none"
+    },
+    {
+      "id": "wrong-extension",
+      "items": [
+        {
+          "id": 7,
+          "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+          "byExtensionId": "different",
+          "startTime": "2026-10-01T18:00:01Z",
+          "state": "in_progress"
+        }
+      ],
+      "expected": "0 matches"
+    },
+    {
+      "id": "wrong-url",
+      "items": [
+        {
+          "id": 7,
+          "url": "https://fixture.example/rows-A.csv",
+          "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+          "startTime": "2026-10-01T18:00:01Z",
+          "state": "in_progress"
+        }
+      ],
+      "expected": "0 matches despite filename"
+    },
+    {
+      "id": "outside-window",
+      "items": [
+        {
+          "id": 7,
+          "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+          "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+          "startTime": "2026-10-01T17:59:00Z",
+          "state": "in_progress"
+        }
+      ],
+      "expected": "0 matches"
+    }
+  ],
+  "lateCompleteSequence": [
+    {
+      "at": "2026-10-01T18:10:00Z",
+      "observation": {
+        "id": 7,
+        "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+        "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+        "startTime": "2026-10-01T18:00:01Z",
+        "state": "in_progress"
+      },
+      "A": "deadline_unknown",
+      "resourceReleasedAt": "2026-10-01T18:10:00Z",
+      "timedOutAt": "2026-10-01T18:10:00Z"
+    },
+    {
+      "at": "2026-10-01T18:11:00Z",
+      "event": "user reexports B",
+      "B": "dispatched"
+    },
+    {
+      "at": "2026-10-01T18:11:03Z",
+      "observation": {
+        "id": 7,
+        "url": "blob:chrome-extension://abcdefghijklmnopabcdefghijklmnop/attempt-A-fresh",
+        "byExtensionId": "abcdefghijklmnopabcdefghijklmnop",
+        "startTime": "2026-10-01T18:00:01Z",
+        "state": "complete"
+      },
+      "A": "complete",
+      "late": true,
+      "jobA": "delivery_complete",
+      "jobB": "delivering",
+      "B": "dispatched",
+      "AResolvesB": false
+    }
+  ],
+  "receiptInvariant": {
+    "diskHashVerified": false,
+    "knownCompleteOverriddenByHostClose": false,
+    "abandonedProjectionResurrected": false
+  }
+}

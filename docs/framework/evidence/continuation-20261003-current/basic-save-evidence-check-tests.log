@@ -1,0 +1,15 @@
+test_actual_chrome154_launcher_drift_is_rejected (__main__.EvidenceChecks) ... ok
+test_claimed_ui_echo_requires_actual_raw_response (__main__.EvidenceChecks) ... ok
+test_idb_row_without_native_save_click_cannot_prove_workbench_save (__main__.EvidenceChecks) ... ok
+test_partial_native_selection_cannot_claim_replacement (__main__.EvidenceChecks) ... ok
+test_real_saved_prefix_does_not_pass_blocked_parent_or_f3 (__main__.EvidenceChecks) ... ok
+test_repeating_chrome138_cannot_replace_required_chrome154 (__main__.EvidenceChecks) ... ok
+test_revision_file_without_matching_raw_idb_cannot_prove_save (__main__.EvidenceChecks) ... ok
+test_same_script_id_in_wrong_namespace_cannot_supply_committed_head (__main__.EvidenceChecks) ... ok
+test_saved_ui_identity_must_match_committed_revision (__main__.EvidenceChecks) ... ok
+test_source_tamper_cannot_reuse_native_revision_hash (__main__.EvidenceChecks) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.797s
+
+OK

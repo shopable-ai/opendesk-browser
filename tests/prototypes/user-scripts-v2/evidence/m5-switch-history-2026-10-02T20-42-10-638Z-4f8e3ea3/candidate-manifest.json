@@ -1,0 +1,47 @@
+{
+  "scope": "Bounded K1 switch history probe; unchanged fixture mechanism",
+  "sources": [
+    {
+      "path": "run-headed.mjs",
+      "bytes": 48436,
+      "sha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d"
+    },
+    {
+      "path": "probe-switch-history.mjs",
+      "bytes": 13655,
+      "sha256": "7898fb548383390ebba3684fcf3af7f4aec7cecbb32564b798e3a727cdb086bf"
+    },
+    {
+      "path": "fixture/adapter.js",
+      "bytes": 4444,
+      "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+    },
+    {
+      "path": "fixture/file-source.js",
+      "bytes": 206,
+      "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+    },
+    {
+      "path": "fixture/host.html",
+      "bytes": 410,
+      "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4"
+    },
+    {
+      "path": "fixture/host.js",
+      "bytes": 8302,
+      "sha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e"
+    },
+    {
+      "path": "fixture/manifest.json",
+      "bytes": 408,
+      "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+    },
+    {
+      "path": "fixture/sw.js",
+      "bytes": 176,
+      "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+    }
+  ],
+  "priorCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "pageContractPlanManifestSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1"
+}

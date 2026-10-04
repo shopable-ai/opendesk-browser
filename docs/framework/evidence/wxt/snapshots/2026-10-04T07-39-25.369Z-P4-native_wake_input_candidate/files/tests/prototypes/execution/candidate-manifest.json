@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "scope": "bounded-F1-EX08-real-Chrome-fixture",
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+  "createdAt": "2026-10-02T14:05:58.274336+00:00",
+  "files": [
+    {
+      "path": "run-ex08.mjs",
+      "bytes": 4069,
+      "sha256": "2e67410c3ef2de1bd5cd0cdc380627220367467782caf3df344c159c972c64f7"
+    },
+    {
+      "path": "fixture/host.html",
+      "bytes": 365,
+      "sha256": "ad280826490107dfe10df44bb2ac268e8335271e036a8ecf9cc560b70485401c"
+    },
+    {
+      "path": "fixture/host.js",
+      "bytes": 3057,
+      "sha256": "2d0ed6e004069aca862afe03b2f19a5eaab377caa122ebfaa7bb8a9f7662df5d"
+    },
+    {
+      "path": "fixture/manifest.json",
+      "bytes": 670,
+      "sha256": "15e0cd6a3ab24e7f1ec35c2ccea7ddc0d047864bb57457b78feaa89d0f09ce9f"
+    },
+    {
+      "path": "fixture/sandbox.html",
+      "bytes": 5845,
+      "sha256": "80a94ee79a3cd6c8f8ebaaa4714bb455c789a6e5806fb4edea8ceaf194275faf"
+    },
+    {
+      "path": "fixture/sw.js",
+      "bytes": 127,
+      "sha256": "ea39456563bd080fe25a54adc3b8ec6d02f9a86f08cc53d5b12e010fdebe320a"
+    },
+    {
+      "path": "fixture/worker-classic.js",
+      "bytes": 975,
+      "sha256": "f00d98971ceaf76f51162dc5ba8862490a1a706989cb7e6e1f301bf039c4e621"
+    },
+    {
+      "path": "fixture/worker-module.js",
+      "bytes": 105,
+      "sha256": "f7bfb59d1f392402880f26f344a9ca847988f967defc7dbefb417a70d121b0e3"
+    }
+  ],
+  "entryResourceConsumers": {
+    "fixture/sw.js": "manifest background",
+    "fixture/host.html": "explicit extension page opened by test",
+    "fixture/host.js": "host.html fixed packaged script",
+    "fixture/sandbox.html": "manifest sandbox page / host iframe",
+    "fixture/worker-classic.js": "positive control, sandbox packaged classic, module import, fixed bytes used for Blob variants",
+    "fixture/worker-module.js": "sandbox packaged module"
+  },
+  "dependencies": {
+    "playwright": "existing bundled runtime reused; no install/package change"
+  },
+  "productImplementation": false,
+  "secondAuthorityRouterJournalIDB": false,
+  "unsafeEvalScope": "sandbox CSP only; fixture has no eval/new Function anywhere",
+  "forbiddenAllowSameOrigin": false,
+  "expectedHardGate": "Worker construct/load, private RPC, connect restriction and actual while(true) termination; errors retained; downstream not-tested if prerequisite fails"
+}

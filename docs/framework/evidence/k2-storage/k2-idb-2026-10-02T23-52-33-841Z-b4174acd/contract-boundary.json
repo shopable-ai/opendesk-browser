@@ -1,0 +1,5448 @@
+{
+  "preparationAssertions": [
+    {
+      "id": "K2-NATIVE-FRESH-IDENTITY",
+      "expected": "Fresh isolated HTTP origin with actual native factory and no databases",
+      "actual": {
+        "origin": "http://localhost:51095",
+        "databases": [],
+        "open": "function open() { [native code] }"
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-V1-TYPED-BACKUP",
+      "expected": "Original 80 unusual keys/JSON values and a verified reversible UTF8 hash",
+      "actual": {
+        "comparisons": [
+          {
+            "store": "templates",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "templates",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "templates",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "templates",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "templates",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "templates",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "templates",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "templates",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "templates",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "runs",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "runs",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "runs",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "runs",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "runs",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "runs",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "runs",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "runs",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "runs",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "commandJournal",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "commandJournal",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "commandJournal",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "commandJournal",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "commandJournal",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "commandJournal",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "commandJournal",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "commandJournal",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "commandJournal",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "pageSnapshots",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "pageSnapshots",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "pageSnapshots",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "pageSnapshots",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "pageSnapshots",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "pageSnapshots",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "pageSnapshots",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "pageSnapshots",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "pageSnapshots",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "records",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "records",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "records",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "records",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "records",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "records",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "records",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "records",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "records",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "batches",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "batches",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "batches",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "batches",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "batches",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "batches",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "batches",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "batches",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "batches",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "exportJobs",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "exportJobs",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "exportJobs",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "exportJobs",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "exportJobs",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "exportJobs",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "exportJobs",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "exportJobs",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "exportJobs",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "artifacts",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "artifacts",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "artifacts",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "artifacts",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "artifacts",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "artifacts",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "artifacts",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "artifacts",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "artifacts",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "downloadReceipts",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "downloadReceipts",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "downloadReceipts",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "downloadReceipts",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "downloadReceipts",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "downloadReceipts",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "downloadReceipts",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "downloadReceipts",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "downloadReceipts",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "entitlements",
+            "inputId": "string",
+            "inputKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "nativePrimaryKey": {
+              "type": "string",
+              "value": "k2:string:\u0000中文"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "string",
+              "json": null
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "string",
+              "json": null
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "entitlements",
+            "inputId": "number-negative",
+            "inputKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": -17.25
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "number-negative",
+              "json": false
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "entitlements",
+            "inputId": "number-zero",
+            "inputKey": {
+              "type": "number",
+              "value": 0
+            },
+            "nativePrimaryKey": {
+              "type": "number",
+              "value": 0
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "number-zero",
+              "json": 0
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "entitlements",
+            "inputId": "date",
+            "inputKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "nativePrimaryKey": {
+              "type": "date",
+              "epochMs": 1767323045123,
+              "iso": "2026-01-02T03:04:05.123Z"
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "date",
+              "json": ""
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "date",
+              "json": ""
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "entitlements",
+            "inputId": "binary-arraybuffer",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                0,
+                1,
+                127,
+                128,
+                255
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "binary-arraybuffer",
+              "json": "中文\\\"\n"
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "entitlements",
+            "inputId": "binary-window",
+            "inputKey": {
+              "type": "binary",
+              "nativeConstructor": "Uint8Array",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "binary",
+              "nativeConstructor": "ArrayBuffer",
+              "bytes": [
+                5,
+                0,
+                254,
+                8
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "binary-window",
+              "json": [
+                null,
+                false,
+                0,
+                ""
+              ]
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "entitlements",
+            "inputId": "array",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:array"
+                },
+                {
+                  "type": "number",
+                  "value": 17.5
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "array",
+              "json": {
+                "nested": {
+                  "empty": [],
+                  "count": 0
+                }
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          },
+          {
+            "store": "entitlements",
+            "inputId": "compound",
+            "inputKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "nativePrimaryKey": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "string",
+                  "value": "k2:compound"
+                },
+                {
+                  "type": "number",
+                  "value": 7
+                },
+                {
+                  "type": "date",
+                  "epochMs": 1767225599999,
+                  "iso": "2025-12-31T23:59:59.999Z"
+                },
+                {
+                  "type": "binary",
+                  "nativeConstructor": "ArrayBuffer",
+                  "bytes": [
+                    0,
+                    129,
+                    255
+                  ]
+                },
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "string",
+                      "value": "nested"
+                    },
+                    {
+                      "type": "number",
+                      "value": -3
+                    }
+                  ]
+                }
+              ]
+            },
+            "originalValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "actualValue": {
+              "tag": "k2-native-idb-input",
+              "store": "entitlements",
+              "inputId": "compound",
+              "json": {
+                "array": [
+                  {
+                    "ok": true
+                  },
+                  null
+                ]
+              }
+            },
+            "nativeKeyEqual": true,
+            "valueEqual": true
+          }
+        ],
+        "hash": "e82f6a9ce37992579735c60330a1e798e4b8b37196ff0a7149249410ee5fa4b4"
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-UPGRADE-ABORT-READONLY",
+      "expected": "Real upgrade abort rolls back temporary store, version, indexes and all original data; recovery refuses writes",
+      "actual": {
+        "version": 1,
+        "readOnly": true,
+        "migrationError": {
+          "code": "E_VERSION",
+          "message": "Upgrade failed; previous database preserved read-only",
+          "cause": {
+            "name": "InvalidStateError",
+            "code": 11,
+            "message": "Failed to execute 'objectStore' on 'IDBTransaction': The transaction has finished."
+          }
+        },
+        "denial": {
+          "entered": false,
+          "error": {
+            "name": "FoundationError",
+            "code": "E_VERSION",
+            "message": "Recovery database is read-only; preserve backup before migration"
+          },
+          "refused": true
+        },
+        "schema": [
+          {
+            "name": "artifacts",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "artifactId",
+                "keyPath": "artifact.artifactId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "exportJobId",
+                "keyPath": "artifact.exportJobId",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "batches",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "batchId",
+                "keyPath": "batchId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotBatch",
+                "keyPath": [
+                  "snapshotId",
+                  "batchIndex"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "commandJournal",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "commandId",
+                "keyPath": "commandId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "identity.runId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runOwnerState",
+                "keyPath": [
+                  "identity.runId",
+                  "identity.ownerEpoch",
+                  "state"
+                ],
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "downloadReceipts",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "downloadId",
+                "keyPath": "attempt.downloadId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "fullBlobUrl",
+                "keyPath": "fullBlobUrl",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "entitlements",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "subject",
+                "keyPath": "subject",
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "exportJobs",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "exportJobId",
+                "keyPath": "exportJobId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "pageSnapshots",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "readCommandId",
+                "keyPath": "readCommandId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runPageSequence",
+                "keyPath": [
+                  "runId",
+                  "pageSequence"
+                ],
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runSealSeq",
+                "keyPath": [
+                  "runId",
+                  "sealSeq"
+                ],
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotId",
+                "keyPath": "snapshotId",
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "records",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotRow",
+                "keyPath": [
+                  "snapshotId",
+                  "rowIndex"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "runs",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "retirementId",
+                "keyPath": "retirementId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "slotKey",
+                "keyPath": "slotKey",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "state",
+                "keyPath": "state",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "templates",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "contentHash",
+                "keyPath": "template.contentHash",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "templateRevision",
+                "keyPath": [
+                  "template.templateId",
+                  "template.revision"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          }
+        ],
+        "events": [
+          {
+            "type": "open",
+            "at": 87.5,
+            "id": 8,
+            "name": "opendesk-browser",
+            "requestedVersion": null
+          },
+          {
+            "type": "open-success",
+            "at": 87.80000019073486,
+            "id": 8,
+            "version": 1,
+            "stores": [
+              "artifacts",
+              "batches",
+              "commandJournal",
+              "downloadReceipts",
+              "entitlements",
+              "exportJobs",
+              "pageSnapshots",
+              "records",
+              "runs",
+              "templates"
+            ],
+            "isTrusted": true
+          },
+          {
+            "type": "close",
+            "at": 89.30000019073486,
+            "id": 8,
+            "version": 1
+          },
+          {
+            "type": "open",
+            "at": 89.30000019073486,
+            "id": 11,
+            "name": "opendesk-browser",
+            "requestedVersion": 2
+          },
+          {
+            "type": "upgradeneeded",
+            "at": 89.5,
+            "id": 11,
+            "oldVersion": 1,
+            "newVersion": 2,
+            "isTrusted": true
+          },
+          {
+            "type": "fault-injection",
+            "at": 89.5,
+            "id": 11,
+            "action": "native createObjectStore then actual versionchange transaction.abort",
+            "temporaryStores": [
+              "@k2-abort-marker",
+              "artifacts",
+              "batches",
+              "commandJournal",
+              "downloadReceipts",
+              "entitlements",
+              "exportJobs",
+              "pageSnapshots",
+              "records",
+              "runs",
+              "templates"
+            ]
+          },
+          {
+            "type": "upgrade-abort",
+            "at": 89.59999990463257,
+            "id": 11,
+            "isTrusted": true
+          },
+          {
+            "type": "open-error",
+            "at": 89.59999990463257,
+            "id": 11,
+            "error": {
+              "name": "AbortError",
+              "code": 20,
+              "message": "Version change transaction was aborted in upgradeneeded event handler."
+            },
+            "isTrusted": true
+          },
+          {
+            "type": "open",
+            "at": 89.59999990463257,
+            "id": 16,
+            "name": "opendesk-browser",
+            "requestedVersion": null
+          },
+          {
+            "type": "open-success",
+            "at": 89.80000019073486,
+            "id": 16,
+            "version": 1,
+            "stores": [
+              "artifacts",
+              "batches",
+              "commandJournal",
+              "downloadReceipts",
+              "entitlements",
+              "exportJobs",
+              "pageSnapshots",
+              "records",
+              "runs",
+              "templates"
+            ],
+            "isTrusted": true
+          },
+          {
+            "type": "open",
+            "at": 91.30000019073486,
+            "id": 18,
+            "name": "opendesk-browser",
+            "requestedVersion": null
+          },
+          {
+            "type": "open-success",
+            "at": 91.40000009536743,
+            "id": 18,
+            "version": 1,
+            "stores": [
+              "artifacts",
+              "batches",
+              "commandJournal",
+              "downloadReceipts",
+              "entitlements",
+              "exportJobs",
+              "pageSnapshots",
+              "records",
+              "runs",
+              "templates"
+            ],
+            "isTrusted": true
+          },
+          {
+            "type": "close",
+            "at": 91.40000009536743,
+            "id": 18,
+            "version": 1
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-BLOCKED-SETTLED",
+      "expected": "Blocked promise rejects with complete backup; no writable/recovery service published",
+      "actual": {
+        "error": {
+          "name": "FoundationError",
+          "code": "E_VERSION",
+          "message": "Storage upgrade blocked by another connection"
+        },
+        "blocked": true,
+        "backupHash": "e82f6a9ce37992579735c60330a1e798e4b8b37196ff0a7149249410ee5fa4b4"
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-NO-LATE-UPGRADE",
+      "expected": "Releasing blocker causes already-settled request to abort before schema installation; v1 keys/data/version intact",
+      "actual": {
+        "version": 1,
+        "schema": [
+          {
+            "name": "artifacts",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "artifactId",
+                "keyPath": "artifact.artifactId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "exportJobId",
+                "keyPath": "artifact.exportJobId",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "batches",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "batchId",
+                "keyPath": "batchId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotBatch",
+                "keyPath": [
+                  "snapshotId",
+                  "batchIndex"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "commandJournal",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "commandId",
+                "keyPath": "commandId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "identity.runId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runOwnerState",
+                "keyPath": [
+                  "identity.runId",
+                  "identity.ownerEpoch",
+                  "state"
+                ],
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "downloadReceipts",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "downloadId",
+                "keyPath": "attempt.downloadId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "fullBlobUrl",
+                "keyPath": "fullBlobUrl",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "entitlements",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "subject",
+                "keyPath": "subject",
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "exportJobs",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "exportJobId",
+                "keyPath": "exportJobId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "pageSnapshots",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "readCommandId",
+                "keyPath": "readCommandId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runPageSequence",
+                "keyPath": [
+                  "runId",
+                  "pageSequence"
+                ],
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runSealSeq",
+                "keyPath": [
+                  "runId",
+                  "sealSeq"
+                ],
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotId",
+                "keyPath": "snapshotId",
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "records",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotRow",
+                "keyPath": [
+                  "snapshotId",
+                  "rowIndex"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "runs",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "retirementId",
+                "keyPath": "retirementId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "slotKey",
+                "keyPath": "slotKey",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "state",
+                "keyPath": "state",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "templates",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "contentHash",
+                "keyPath": "template.contentHash",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "templateRevision",
+                "keyPath": [
+                  "template.templateId",
+                  "template.revision"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          }
+        ],
+        "events": [
+          {
+            "type": "open",
+            "at": 91.80000019073486,
+            "id": 24,
+            "name": "opendesk-browser",
+            "requestedVersion": null
+          },
+          {
+            "type": "open-success",
+            "at": 91.90000009536743,
+            "id": 24,
+            "version": 1,
+            "stores": [
+              "artifacts",
+              "batches",
+              "commandJournal",
+              "downloadReceipts",
+              "entitlements",
+              "exportJobs",
+              "pageSnapshots",
+              "records",
+              "runs",
+              "templates"
+            ],
+            "isTrusted": true
+          },
+          {
+            "type": "close",
+            "at": 93.2000002861023,
+            "id": 24,
+            "version": 1
+          },
+          {
+            "type": "open",
+            "at": 93.2000002861023,
+            "id": 27,
+            "name": "opendesk-browser",
+            "requestedVersion": 2
+          },
+          {
+            "type": "blocker-kept-open",
+            "at": 93.59999990463257,
+            "oldVersion": 1,
+            "newVersion": 2,
+            "isTrusted": true
+          },
+          {
+            "type": "blocked",
+            "at": 93.59999990463257,
+            "id": 27,
+            "isTrusted": true
+          },
+          {
+            "type": "close",
+            "at": 93.59999990463257,
+            "id": 22,
+            "version": 1
+          },
+          {
+            "type": "upgradeneeded",
+            "at": 93.7000002861023,
+            "id": 27,
+            "oldVersion": 1,
+            "newVersion": 2,
+            "isTrusted": true
+          },
+          {
+            "type": "upgrade-abort",
+            "at": 93.80000019073486,
+            "id": 27,
+            "isTrusted": true
+          },
+          {
+            "type": "open-error",
+            "at": 93.90000009536743,
+            "id": 27,
+            "error": {
+              "name": "AbortError",
+              "code": 20,
+              "message": "Version change transaction was aborted in upgradeneeded event handler."
+            },
+            "isTrusted": true
+          },
+          {
+            "type": "open",
+            "at": 105.90000009536743,
+            "id": 34,
+            "name": "opendesk-browser",
+            "requestedVersion": null
+          },
+          {
+            "type": "open-success",
+            "at": 106.30000019073486,
+            "id": 34,
+            "version": 1,
+            "stores": [
+              "artifacts",
+              "batches",
+              "commandJournal",
+              "downloadReceipts",
+              "entitlements",
+              "exportJobs",
+              "pageSnapshots",
+              "records",
+              "runs",
+              "templates"
+            ],
+            "isTrusted": true
+          },
+          {
+            "type": "open",
+            "at": 107.7000002861023,
+            "id": 36,
+            "name": "opendesk-browser",
+            "requestedVersion": null
+          },
+          {
+            "type": "open-success",
+            "at": 107.7000002861023,
+            "id": 36,
+            "version": 1,
+            "stores": [
+              "artifacts",
+              "batches",
+              "commandJournal",
+              "downloadReceipts",
+              "entitlements",
+              "exportJobs",
+              "pageSnapshots",
+              "records",
+              "runs",
+              "templates"
+            ],
+            "isTrusted": true
+          },
+          {
+            "type": "close",
+            "at": 107.90000009536743,
+            "id": 36,
+            "version": 1
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-BACKUP-RACE-FENCE",
+      "expected": "A real competing commit after backup aborts upgrade; competing value and old v1 records are retained read-only",
+      "actual": {
+        "version": 1,
+        "readOnly": true,
+        "migrationError": {
+          "code": "E_VERSION",
+          "message": "Upgrade failed; previous database preserved read-only",
+          "cause": {
+            "name": "FoundationError",
+            "code": "E_VERSION",
+            "message": "Database changed after migration backup"
+          }
+        },
+        "raceValue": {
+          "tag": "k2-competing-write",
+          "value": false
+        },
+        "backupHash": "e82f6a9ce37992579735c60330a1e798e4b8b37196ff0a7149249410ee5fa4b4",
+        "afterHash": "2161818852908677e521b8f14da0de6a0760810d7540b5819061241db4c0326f"
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SAME-DATABASE-V2",
+      "expected": "Same name v1→v2 retains every old store/key/value; adds four stores; compound unique sparse command index",
+      "actual": {
+        "version": 2,
+        "schema": [
+          {
+            "name": "artifacts",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "artifactId",
+                "keyPath": "artifact.artifactId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "exportJobId",
+                "keyPath": "artifact.exportJobId",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "batches",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "batchId",
+                "keyPath": "batchId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotBatch",
+                "keyPath": [
+                  "snapshotId",
+                  "batchIndex"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "commandJournal",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "commandId",
+                "keyPath": [
+                  "identity.runId",
+                  "commandId"
+                ],
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "identity.runId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runOwnerState",
+                "keyPath": [
+                  "identity.runId",
+                  "identity.ownerEpoch",
+                  "state"
+                ],
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "downloadReceipts",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "downloadId",
+                "keyPath": "attempt.downloadId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "fullBlobUrl",
+                "keyPath": "fullBlobUrl",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "entitlements",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "subject",
+                "keyPath": "subject",
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "exportJobs",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "exportJobId",
+                "keyPath": "exportJobId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "frameworkKV",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": []
+          },
+          {
+            "name": "pageSnapshots",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "readCommandId",
+                "keyPath": "readCommandId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runPageSequence",
+                "keyPath": [
+                  "runId",
+                  "pageSequence"
+                ],
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "runSealSeq",
+                "keyPath": [
+                  "runId",
+                  "sealSeq"
+                ],
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotId",
+                "keyPath": "snapshotId",
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "records",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "snapshotRow",
+                "keyPath": [
+                  "snapshotId",
+                  "rowIndex"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "results",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": []
+          },
+          {
+            "name": "runs",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "retirementId",
+                "keyPath": "retirementId",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "runId",
+                "keyPath": "runId",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "slotKey",
+                "keyPath": "slotKey",
+                "unique": true,
+                "multiEntry": false
+              },
+              {
+                "name": "state",
+                "keyPath": "state",
+                "unique": false,
+                "multiEntry": false
+              }
+            ]
+          },
+          {
+            "name": "scriptHeads",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": []
+          },
+          {
+            "name": "scriptRevisions",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": []
+          },
+          {
+            "name": "templates",
+            "keyPath": null,
+            "autoIncrement": false,
+            "indexes": [
+              {
+                "name": "contentHash",
+                "keyPath": "template.contentHash",
+                "unique": false,
+                "multiEntry": false
+              },
+              {
+                "name": "templateRevision",
+                "keyPath": [
+                  "template.templateId",
+                  "template.revision"
+                ],
+                "unique": true,
+                "multiEntry": false
+              }
+            ]
+          }
+        ],
+        "databaseList": [
+          {
+            "name": "opendesk-browser",
+            "version": 2
+          }
+        ],
+        "migrationBackupHash": "2161818852908677e521b8f14da0de6a0760810d7540b5819061241db4c0326f"
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-COMPOUND-UNIQUE-SPARSE",
+      "expected": "Same commandId across runs and metadata coexist; same-run collision aborts atomically",
+      "actual": {
+        "duplicate": {
+          "name": "FoundationError",
+          "code": "E_SCHEMA",
+          "message": "IndexedDB operation failed",
+          "cause": "ConstraintError"
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-REPOSITORY-CANONICAL-KEY",
+      "expected": "Actual repository beginPage uses sole shared per-run key; two reservations cannot overwrite host metadata; no bare fallback",
+      "actual": {
+        "commandId": "host:registration-canonical-one",
+        "reservations": [
+          {
+            "snapshotId": "fb3355cb-4981-440b-b74a-4cd2a9a4363f",
+            "runId": "run-canonical-one",
+            "ownerEpoch": 1,
+            "pageSequence": 1,
+            "state": "open",
+            "pageIdentity": "https://storage-fixture.example/list",
+            "batchCount": 0,
+            "stagedRowCount": 0,
+            "stagedBytes": 0,
+            "sealSeq": null,
+            "sealDigest": null,
+            "pageSignature": null,
+            "abortReason": null,
+            "sourceIdentity": {
+              "runId": "run-canonical-one",
+              "hostInstanceId": "host-canonical-one",
+              "hostDocumentId": "host-doc-canonical-one",
+              "ownerEpoch": 1,
+              "runRevision": 1,
+              "templateHash": "336053fc3901ba48feae0744f03093d3237768875f0465809677686bcacd1ad0",
+              "target": {
+                "targetSessionId": "target-canonical-one",
+                "tabId": 20,
+                "frameId": 0,
+                "documentId": "doc-canonical-one",
+                "allowedOrigin": "https://storage-fixture.example",
+                "targetVersion": 1,
+                "browserSessionIncarnation": "session-canonical-one",
+                "creationId": "creation-canonical-one"
+              }
+            },
+            "readCommandId": "host:registration-canonical-one",
+            "expectedCheckpointSnapshotId": null,
+            "readEnd": null,
+            "sealIdentity": null,
+            "immutableSealAck": null
+          },
+          {
+            "snapshotId": "8c0ac4ca-e6da-48c2-b2f5-a723c85fb604",
+            "runId": "run-canonical-two",
+            "ownerEpoch": 1,
+            "pageSequence": 1,
+            "state": "open",
+            "pageIdentity": "https://storage-fixture.example/list",
+            "batchCount": 0,
+            "stagedRowCount": 0,
+            "stagedBytes": 0,
+            "sealSeq": null,
+            "sealDigest": null,
+            "pageSignature": null,
+            "abortReason": null,
+            "sourceIdentity": {
+              "runId": "run-canonical-two",
+              "hostInstanceId": "host-canonical-two",
+              "hostDocumentId": "host-doc-canonical-two",
+              "ownerEpoch": 1,
+              "runRevision": 1,
+              "templateHash": "60c7d6f624ecf8a14cd629f4d71721cb4a706327a2ea6031a9ee2cd9bf436312",
+              "target": {
+                "targetSessionId": "target-canonical-two",
+                "tabId": 20,
+                "frameId": 0,
+                "documentId": "doc-canonical-two",
+                "allowedOrigin": "https://storage-fixture.example",
+                "targetVersion": 1,
+                "browserSessionIncarnation": "session-canonical-two",
+                "creationId": "creation-canonical-two"
+              }
+            },
+            "readCommandId": "host:registration-canonical-one",
+            "expectedCheckpointSnapshotId": null,
+            "readEnd": null,
+            "sealIdentity": null,
+            "immutableSealAck": null
+          }
+        ],
+        "actualRows": {
+          "host": {
+            "tag": "host",
+            "registrationId": "registration-canonical-one",
+            "hostInstanceId": "host-canonical-one",
+            "hostDocumentId": "host-doc-canonical-one",
+            "active": true,
+            "browserSessionIncarnation": "session-canonical-one"
+          },
+          "commands": [
+            {
+              "tag": "read-reservation",
+              "commandId": "host:registration-canonical-one",
+              "identity": {
+                "runId": "run-canonical-one",
+                "hostInstanceId": "host-canonical-one",
+                "hostDocumentId": "host-doc-canonical-one",
+                "ownerEpoch": 1,
+                "runRevision": 1,
+                "templateHash": "336053fc3901ba48feae0744f03093d3237768875f0465809677686bcacd1ad0",
+                "target": {
+                  "targetSessionId": "target-canonical-one",
+                  "tabId": 20,
+                  "frameId": 0,
+                  "documentId": "doc-canonical-one",
+                  "allowedOrigin": "https://storage-fixture.example",
+                  "targetVersion": 1,
+                  "browserSessionIncarnation": "session-canonical-one",
+                  "creationId": "creation-canonical-one"
+                }
+              },
+              "runId": "run-canonical-one",
+              "ownerEpoch": 1,
+              "snapshotId": "fb3355cb-4981-440b-b74a-4cd2a9a4363f",
+              "requestId": "canonical-request",
+              "beginDigest": "fb049c7e1ba3767db613851d13cfe6eaa10f2226ac4b8826a89baf3bd216b927"
+            },
+            {
+              "tag": "read-reservation",
+              "commandId": "host:registration-canonical-one",
+              "identity": {
+                "runId": "run-canonical-two",
+                "hostInstanceId": "host-canonical-two",
+                "hostDocumentId": "host-doc-canonical-two",
+                "ownerEpoch": 1,
+                "runRevision": 1,
+                "templateHash": "60c7d6f624ecf8a14cd629f4d71721cb4a706327a2ea6031a9ee2cd9bf436312",
+                "target": {
+                  "targetSessionId": "target-canonical-two",
+                  "tabId": 20,
+                  "frameId": 0,
+                  "documentId": "doc-canonical-two",
+                  "allowedOrigin": "https://storage-fixture.example",
+                  "targetVersion": 1,
+                  "browserSessionIncarnation": "session-canonical-two",
+                  "creationId": "creation-canonical-two"
+                }
+              },
+              "runId": "run-canonical-two",
+              "ownerEpoch": 1,
+              "snapshotId": "8c0ac4ca-e6da-48c2-b2f5-a723c85fb604",
+              "requestId": "canonical-request",
+              "beginDigest": "fba4aa5be257dc6cae1a7d9c2a902a353a377df532b7989eff3d498495cebcf4"
+            }
+          ],
+          "legacy": {
+            "tag": "legacy-raw",
+            "opaque": "do not authorize"
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SDK-CONTEXT-REQUIRED",
+      "expected": "Missing trusted callbacks fail closed without any database effects",
+      "actual": {
+        "noContext": {
+          "name": "FoundationError",
+          "code": "E_OWNER",
+          "message": "Trusted storage authorization callbacks required"
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SDK-ATOMIC-DURABLE-DUPLICATE",
+      "expected": "String conversion, missing null, undefined receipt, immutable duplicate and digest conflict share one durable native commit",
+      "actual": {
+        "appMissing": null,
+        "appGet": "0",
+        "appSetWire": {
+          "type": "undefined"
+        },
+        "duplicateWire": {
+          "type": "undefined"
+        },
+        "digestConflict": {
+          "name": "FoundationError",
+          "code": "E_REQUEST_CONFLICT",
+          "message": "SDK request digest conflict"
+        },
+        "op": {
+          "namespace": "sdk-a",
+          "principal": "fixture-principal",
+          "grantIncarnation": "fixture-grant-1",
+          "runId": "native-sdk-2",
+          "opId": "native-sdk-2",
+          "requestId": "native-sdk-2",
+          "opKey": "sdk-operation:native-sdk-2",
+          "resultId": "sdk-result:native-sdk-2",
+          "browserSessionIncarnation": "fixture-session-1",
+          "deadlineAt": 1790985214312,
+          "tag": "sdk-operation",
+          "state": "durable",
+          "storageRequestDigest": "b14a33da16fc74ff86aa08ac278105ff62cd2b274a70ca7ffa2afdf9925661ce",
+          "durableAt": 1790985154313,
+          "receipt": {
+            "resultId": "sdk-result:native-sdk-2",
+            "state": "durable"
+          }
+        },
+        "result": {
+          "tag": "sdk-result",
+          "namespace": "sdk-a",
+          "principal": "fixture-principal",
+          "grantIncarnation": "fixture-grant-1",
+          "runId": "native-sdk-2",
+          "opId": "native-sdk-2",
+          "requestId": "native-sdk-2",
+          "resultId": "sdk-result:native-sdk-2",
+          "browserSessionIncarnation": "fixture-session-1",
+          "opKey": "sdk-operation:native-sdk-2",
+          "requestDigest": "b14a33da16fc74ff86aa08ac278105ff62cd2b274a70ca7ffa2afdf9925661ce",
+          "state": "durable",
+          "outcomeWire": {
+            "protocol": "opendesk.value.v1",
+            "ok": true,
+            "value": {
+              "type": "undefined"
+            }
+          },
+          "committedAt": 1790985154313,
+          "valueWire": {
+            "type": "undefined"
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SDK-TYPED-NAMESPACE",
+      "expected": "Native KV retains false/zero/null/undefined/objects; get(null) returns only own namespace values array",
+      "actual": {
+        "typedWire": [
+          {
+            "tag": "framework-kv",
+            "namespace": "sdk-a",
+            "area": "user",
+            "key": "app-string",
+            "valueWire": {
+              "type": "string",
+              "value": "0"
+            }
+          },
+          {
+            "tag": "framework-kv",
+            "namespace": "sdk-a",
+            "area": "user",
+            "key": "bool",
+            "valueWire": {
+              "type": "boolean",
+              "value": false
+            }
+          },
+          {
+            "tag": "framework-kv",
+            "namespace": "sdk-a",
+            "area": "user",
+            "key": "empty",
+            "valueWire": {
+              "type": "string",
+              "value": ""
+            }
+          },
+          {
+            "tag": "framework-kv",
+            "namespace": "sdk-a",
+            "area": "user",
+            "key": "nil",
+            "valueWire": {
+              "type": "null"
+            }
+          },
+          {
+            "tag": "framework-kv",
+            "namespace": "sdk-a",
+            "area": "user",
+            "key": "object",
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "a",
+                  {
+                    "type": "array",
+                    "value": [
+                      {
+                        "type": "number",
+                        "value": 1
+                      },
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "boolean",
+                        "value": false
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "tag": "framework-kv",
+            "namespace": "sdk-a",
+            "area": "user",
+            "key": "undef",
+            "valueWire": {
+              "type": "undefined"
+            }
+          },
+          {
+            "tag": "framework-kv",
+            "namespace": "sdk-a",
+            "area": "user",
+            "key": "zero",
+            "valueWire": {
+              "type": "number",
+              "value": 0
+            }
+          },
+          {
+            "tag": "framework-kv",
+            "namespace": "sdk-b",
+            "area": "user",
+            "key": "secret",
+            "valueWire": {
+              "type": "string",
+              "value": "other namespace"
+            }
+          }
+        ],
+        "allValuesWire": [
+          {
+            "type": "string",
+            "value": "0"
+          },
+          {
+            "type": "boolean",
+            "value": false
+          },
+          {
+            "type": "string",
+            "value": ""
+          },
+          {
+            "type": "object",
+            "value": null
+          },
+          {
+            "type": "object",
+            "value": {
+              "a": [
+                1,
+                null,
+                false
+              ]
+            }
+          },
+          {
+            "type": "undefined"
+          },
+          {
+            "type": "number",
+            "value": 0
+          }
+        ],
+        "typedMissing": true
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SDK-FINAL-AUTH-ROLLBACK",
+      "expected": "Final in-transaction callback rejection aborts actual already-issued KV writes, result and op CAS",
+      "actual": {
+        "denied": {
+          "name": "FoundationError",
+          "code": "E_OWNER",
+          "message": "fixture final authorization revoked"
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SDK-POSTCOMMIT-DELIVERY-FENCE",
+      "expected": "Postcommit native/doc callback denial rejects delivery and preserves durable effect/result facts",
+      "actual": {
+        "deliveryDenied": {
+          "name": "FoundationError",
+          "code": "E_OWNER",
+          "message": "fixture delivery revoked"
+        },
+        "op": {
+          "namespace": "sdk-a",
+          "principal": "fixture-principal",
+          "grantIncarnation": "fixture-grant-1",
+          "runId": "native-sdk-15",
+          "opId": "native-sdk-15",
+          "requestId": "native-sdk-15",
+          "opKey": "sdk-operation:native-sdk-15",
+          "resultId": "sdk-result:native-sdk-15",
+          "browserSessionIncarnation": "fixture-session-1",
+          "deadlineAt": 1790985214340,
+          "tag": "sdk-operation",
+          "state": "durable",
+          "storageRequestDigest": "39623086f4ff1321146b186a209f94d4c6241adb267fa38a5766080d6036bc9c",
+          "durableAt": 1790985154341,
+          "receipt": {
+            "resultId": "sdk-result:native-sdk-15",
+            "state": "durable"
+          }
+        },
+        "result": {
+          "tag": "sdk-result",
+          "namespace": "sdk-a",
+          "principal": "fixture-principal",
+          "grantIncarnation": "fixture-grant-1",
+          "runId": "native-sdk-15",
+          "opId": "native-sdk-15",
+          "requestId": "native-sdk-15",
+          "resultId": "sdk-result:native-sdk-15",
+          "browserSessionIncarnation": "fixture-session-1",
+          "opKey": "sdk-operation:native-sdk-15",
+          "requestDigest": "39623086f4ff1321146b186a209f94d4c6241adb267fa38a5766080d6036bc9c",
+          "state": "durable",
+          "outcomeWire": {
+            "protocol": "opendesk.value.v1",
+            "ok": true,
+            "value": {
+              "type": "undefined"
+            }
+          },
+          "committedAt": 1790985154341,
+          "valueWire": {
+            "type": "undefined"
+          }
+        },
+        "delivered": false
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SDK-PERSISTED-GRANT-REVOKE",
+      "expected": "Actual fixture grant row revocation rejects old operation without effect or receipt",
+      "actual": {
+        "revokedError": {
+          "name": "FoundationError",
+          "code": "E_OWNER",
+          "message": "fixture grant revoked"
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SDK-DEVICE-CAS-CLEAR",
+      "expected": "Concurrent deviceID CAS has one namespace value; user remove/clear preserves device metadata and other namespace",
+      "actual": {
+        "ids": [
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e",
+          "1d704775-ba2a-469e-886d-8b1f81149b2e"
+        ],
+        "beforeClearId": "1d704775-ba2a-469e-886d-8b1f81149b2e",
+        "afterClearId": "1d704775-ba2a-469e-886d-8b1f81149b2e",
+        "ownValues": [],
+        "preservedOther": "other namespace",
+        "deviceRows": [
+          {
+            "tag": "device-id",
+            "namespace": "sdk-a",
+            "area": "device",
+            "key": "deviceID",
+            "valueWire": {
+              "type": "string",
+              "value": "1d704775-ba2a-469e-886d-8b1f81149b2e"
+            }
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-SDK-100-NATIVE-TRANSACTIONS",
+      "expected": "100 fixture-authorized operations serialize through native overlapping readwrite scopes; one effect/result per op",
+      "actual": {
+        "effects": 100,
+        "durableResults": 100
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-RESULT-CODEC",
+      "expected": "Result codec distinguishes business success:false value from execution error and retains data:null",
+      "actual": {
+        "committedOutcome": {
+          "ok": true,
+          "value": {
+            "data": null,
+            "success": false
+          }
+        },
+        "originalOutcome": {
+          "ok": true,
+          "value": {
+            "data": null,
+            "success": false
+          }
+        },
+        "errorOutcome": {
+          "ok": false,
+          "error": {
+            "name": "Error",
+            "code": "E_FIXTURE",
+            "message": "fixture"
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-REVISION-CAS-PIN-TOMBSTONE-GC",
+      "expected": "Head CAS loser leaves no orphan; exact UTF8 hash and r1 pin survive r2/tombstone; pin/unknown block GC until release and delivered durable fact",
+      "actual": {
+        "cas": [
+          {
+            "status": "fulfilled"
+          },
+          {
+            "status": "rejected",
+            "error": {
+              "name": "FoundationError",
+              "code": "E_REVISION",
+              "message": "Script head CAS conflict"
+            }
+          }
+        ],
+        "r1": {
+          "tag": "script-revision",
+          "namespace": "revision-native",
+          "scriptId": "script-a",
+          "revision": 1,
+          "parentRevision": 0,
+          "contentHash": "225057c1cb6738930811bb49ed77434acbd60b1278e1e141ca9a0a5f6dffe259",
+          "sourceUtf8": "return \"α\";\n"
+        },
+        "r2": {
+          "tag": "script-revision",
+          "namespace": "revision-native",
+          "scriptId": "script-a",
+          "revision": 2,
+          "parentRevision": 1,
+          "contentHash": "4903bb33de010addf26d0644f5308f0c205649abd73fa1abfd4989d987b8ece2",
+          "sourceUtf8": "return 2;"
+        },
+        "pin": {
+          "pinKey": "script-pin:[\"revision-native\",\"native-sdk-145\",\"native-sdk-145\",\"script-a\",1]",
+          "revision": {
+            "tag": "script-revision",
+            "namespace": "revision-native",
+            "scriptId": "script-a",
+            "revision": 1,
+            "parentRevision": 0,
+            "contentHash": "225057c1cb6738930811bb49ed77434acbd60b1278e1e141ca9a0a5f6dffe259",
+            "sourceUtf8": "return \"α\";\n"
+          }
+        },
+        "pinnedGc": {
+          "name": "FoundationError",
+          "code": "E_OWNER",
+          "message": "Pinned or unresolved operation blocks GC"
+        },
+        "unknownGc": {
+          "name": "FoundationError",
+          "code": "E_OWNER",
+          "message": "Pinned or unresolved operation blocks GC"
+        },
+        "revisionFacts": {
+          "heads": [
+            {
+              "tag": "script-head",
+              "namespace": "revision-native",
+              "scriptId": "script-a",
+              "revision": 2,
+              "contentHash": "4903bb33de010addf26d0644f5308f0c205649abd73fa1abfd4989d987b8ece2",
+              "tombstoned": true
+            }
+          ],
+          "revisions": [
+            {
+              "tag": "script-revision",
+              "namespace": "revision-native",
+              "scriptId": "script-a",
+              "revision": 1,
+              "parentRevision": 0,
+              "contentHash": "225057c1cb6738930811bb49ed77434acbd60b1278e1e141ca9a0a5f6dffe259",
+              "sourceUtf8": "return \"α\";\n"
+            },
+            {
+              "tag": "script-revision",
+              "namespace": "revision-native",
+              "scriptId": "script-a",
+              "revision": 2,
+              "parentRevision": 1,
+              "contentHash": "4903bb33de010addf26d0644f5308f0c205649abd73fa1abfd4989d987b8ece2",
+              "sourceUtf8": "return 2;"
+            }
+          ]
+        },
+        "gc": {
+          "removed": 2
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-OLD-JS-READONLY",
+      "expected": "Actual frozen v1 implementation opens v2 read-only; cannot rewrite new schema",
+      "actual": {
+        "version": 2,
+        "readOnly": true,
+        "migrationError": {
+          "code": "E_VERSION",
+          "message": "Upgrade failed; previous database preserved read-only"
+        },
+        "denial": {
+          "entered": false,
+          "error": {
+            "name": "FoundationError",
+            "code": "E_VERSION",
+            "message": "Recovery database is read-only; preserve backup before migration"
+          },
+          "refused": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-CURRENT-SCHEMA-READONLY",
+      "expected": "Current v2 explicit readonly diagnostic exports all stores and rejects writes",
+      "actual": {
+        "version": 2,
+        "denial": {
+          "entered": false,
+          "error": {
+            "name": "FoundationError",
+            "code": "E_VERSION",
+            "message": "Recovery database is read-only; preserve backup before migration"
+          },
+          "refused": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "K2-NATIVE-VERSIONCHANGE-CLOSE",
+      "expected": "Native versionchange closes old owned service; aborted diagnostic v3 preserves v2 and new owner registry can reopen",
+      "actual": {
+        "versionchangeError": {
+          "name": "AbortError",
+          "code": 20,
+          "message": "Version change transaction was aborted in upgradeneeded event handler."
+        },
+        "staleError": {
+          "name": "FoundationError",
+          "code": "E_VERSION",
+          "message": "Storage connection closed"
+        },
+        "version": 2
+      },
+      "pass": true
+    }
+  ],
+  "relatedUnclosedContracts": [
+    "SVC01-IDB-TRANSACTIONS",
+    "SVC01-IDB-RECOVERY"
+  ],
+  "qualification": "test-input/native failure-recovery preparation only; no production case status changed",
+  "notTested": [
+    "extension startup/SDK sender admission",
+    "quota",
+    "SW restart",
+    "revision/KV/result repository methods pending trusted context/codec",
+    "all original 17/R3–R8 closure"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-7b3f93a9-3f59-424e-a72e-b0245900121a",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "23635ec815bc598a357ae3c82bdcf4994795969b20b330c7c224fd5866d3de5a",
+  "sourceUtf8": "await page.waitForTimeout(500); await page.type('#name',params.name); await page.click('#submit'); await page.waitForSelector('#result[data-done=\"true\"]'); return await page.snapshot('#result');"
+}

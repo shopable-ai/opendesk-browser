@@ -1,0 +1,26 @@
+{
+  "at": 1791021925113,
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "pid": 29215,
+  "executable": "/usr/bin/python3",
+  "args": [
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-basic-20261003-coop/native-2026-10-03T10-05-25.019Z-982bb2b6/production-138/launcher-metadata.json",
+    "--enable-automation",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "about:blank"
+  ],
+  "chromeArgs": [
+    "--enable-automation",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "about:blank"
+  ],
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74"
+}

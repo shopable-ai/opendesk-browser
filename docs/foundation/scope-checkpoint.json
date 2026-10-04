@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 1,
+  "stage": "02B",
+  "status": "scope-checkpoint-awaiting-revised-contracts",
+  "at": "2026-10-02T07:44:18.855289+00:00",
+  "productDirectory": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "scopeCorrection": {
+    "receivedFromThreadId": "01a0fb76-9c06-7ca2-b335-c190339a3d7e",
+    "reason": "src-bex generic browser automation framework is the product body; scraping is a plugin. The prior scraping MVP scope is not a complete migration criterion.",
+    "requestedBoundary": "Preserve current code/evidence, stop old-scope additions and downstream automatic handoffs, await revised framework-first scope and contracts.",
+    "allChildWritersStopped": true,
+    "rootWritesStopped": true,
+    "downstreamReleased": false,
+    "rollbackOrDeletionPerformed": false
+  },
+  "nativeGoal": {
+    "status": "active",
+    "statusChanged": false,
+    "legacyObjectiveIsNotExecutionAuthority": true,
+    "nextScopeProvided": false
+  },
+  "readiness": {
+    "foundationReady": false,
+    "frameworkMigrationComplete": false,
+    "foundationBuildExecuted": false,
+    "nativeIndexedDBExecuted": false,
+    "realChromeFoundationExecuted": false,
+    "completeIndependentReview": false
+  },
+  "contractBasis": {
+    "version": "1.0.0",
+    "semanticHash": "1486ff9c442807c0d447e542252830731faeede5f81cd685c5f146daecdba2a1",
+    "state": "old scraping-oriented contract preserved; revised framework-first contract pending"
+  },
+  "changedSourceAndTestFiles": [
+    {
+      "path": "src/agents/bootstrap.js",
+      "change": "added",
+      "sha256": "dc607f0df2c53932345cafd44420ad64fb5e7c40dc85198bb9d71444ed1f89d7"
+    },
+    {
+      "path": "src/agents/page-agent.js",
+      "change": "added",
+      "sha256": "d26f1b3531b783ea907f859850c8defe3b4118491fb2ee9c12cd14ecb9d1c966"
+    },
+    {
+      "path": "src/platform/downloads/blob-lifecycle.js",
+      "change": "added",
+      "sha256": "7cd6786a9fedd5cec869944aa9e473082d550e08ea0737aea72d52fd0e756e45"
+    },
+    {
+      "path": "src/platform/downloads/index.js",
+      "change": "added",
+      "sha256": "0cd7bb5f610c26d7a23f8bc221b7dd0e3bfacfac64c1cfb5be820fecb0942b44"
+    },
+    {
+      "path": "src/platform/entitlement/crypto.js",
+      "change": "added",
+      "sha256": "1caa42b88037a977fc7fd223fe74d35be206ebb0e32f090a59f63f6e46b521ad"
+    },
+    {
+      "path": "src/platform/entitlement/index.js",
+      "change": "added",
+      "sha256": "6d1f1d007b3c5e39e40d9e8f90e81493bf3522a97eec980e1b646d6bd6600d81"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "change": "added",
+      "sha256": "9702343a7099722890c8f52d5034c864fe1a838dfc6834bbc5c71bd463224d11"
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "change": "added",
+      "sha256": "4755a3b608f7b0af0146514a9ee5d2cc793c25a0d9abbdbb123fce2059992c5a"
+    },
+    {
+      "path": "src/platform/host/client.js",
+      "change": "added",
+      "sha256": "1e235f735cede75a6d5f7cce0cfcfc9dc7131fad4ac88307899b1d6603372a59"
+    },
+    {
+      "path": "src/platform/page-port/index.js",
+      "change": "added",
+      "sha256": "ca33704b03d7aec838d5fe92f592961c590d6f9d70410d22805d737907f5c691"
+    },
+    {
+      "path": "src/platform/page-port/source.js",
+      "change": "added",
+      "sha256": "ef55098b6f515a12187ffa7c3874942849b9231bd95fc9f0a7ce9781c71bbab8"
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "change": "added",
+      "sha256": "39ae55cdfbc75e2d9e8d2e00b0b07c42ab34ef585b9357436c1fee7e19621f43"
+    },
+    {
+      "path": "src/platform/schema.js",
+      "change": "added",
+      "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+    },
+    {
+      "path": "src/platform/storage/idb.js",
+      "change": "added",
+      "sha256": "1016aa470bd0ece215e7a11c6bfe0df7998d2c87ff480ebb8d981102194b23f9"
+    },
+    {
+      "path": "src/platform/storage/index.js",
+      "change": "added",
+      "sha256": "3bc726648e15bb2741e784e02eda1a8c99068259d33c8d4a153a3981762f1936"
+    },
+    {
+      "path": "src/platform/storage/regression.js",
+      "change": "added",
+      "sha256": "ed27368f25df5230e547653edfbbdf54a69c9f85acba5e536d165cbed76e4ab6"
+    },
+    {
+      "path": "src/platform/storage/repository.js",
+      "change": "added",
+      "sha256": "5851a52643fd84f98dee4efe2bd554ce52e813e4c6c436e209b934d95dd1b5d4"
+    },
+    {
+      "path": "src/platform/target/index.js",
+      "change": "added",
+      "sha256": "e1896d62230571e01347dcd548be51c236d7f44fcf140ff5c9c514c036f5055d"
+    },
+    {
+      "path": "src/run-host.js",
+      "change": "modified",
+      "sha256": "eff17d2253d8ac287e0c82557ecf705c4f88c333d66e0dcf0a16634e277b3294",
+      "beforeSha256": "2ceb51a19cf837e80f68ce1fffca6a5caae2207fa9ba7ac6e17e20ff255211b2"
+    },
+    {
+      "path": "src/ui/target-bootstrap.html",
+      "change": "added",
+      "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+    },
+    {
+      "path": "tests/foundation/download-service.test.mjs",
+      "change": "added",
+      "sha256": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936"
+    },
+    {
+      "path": "tests/foundation/page-port-fixtures.test.mjs",
+      "change": "added",
+      "sha256": "43953e2222611f8586ecc66eeb148860e43cfafb2a68deb29ea20157e06599ea"
+    },
+    {
+      "path": "tests/foundation/page-port-service.test.mjs",
+      "change": "added",
+      "sha256": "ff43e117c1430847cc15ddf0e33d7e00c6a25f69eee71e4d7fbc1d8caa663e2f"
+    },
+    {
+      "path": "tests/foundation/policy-entitlement.test.mjs",
+      "change": "added",
+      "sha256": "cbb22dc9be908758bb64142a59c1a432b0bd1a6578afe2c234d05c4bf072839c"
+    },
+    {
+      "path": "tests/foundation/protocol.test.mjs",
+      "change": "added",
+      "sha256": "409cd07af61d6a21d16bfbc10895d1f35d3c0277a88bd89126e3afcf12478e49"
+    },
+    {
+      "path": "tests/foundation/runtime.test.mjs",
+      "change": "added",
+      "sha256": "a23ddb13e892d48faf4986315bbcb009f38715b33fba2a496f97c337e21647e2"
+    },
+    {
+      "path": "tests/foundation/storage.test.mjs",
+      "change": "added",
+      "sha256": "a1431e1c2082f8f918688d62489d03d4bba8b4f09d41273c7777be7b82d62ebe"
+    },
+    {
+      "path": "tests/foundation/target-service.test.mjs",
+      "change": "added",
+      "sha256": "8c382156c1b98997b190749074eeb03a5f543a38f4efe64f4cb3245ba7144362"
+    }
+  ],
+  "unchanged02ABaselineFiles": [
+    "manifest.json",
+    "package-lock.json",
+    "package.json",
+    "scripts/build.mjs",
+    "scripts/check-source.mjs",
+    "scripts/pack.mjs",
+    "scripts/verify-package.mjs",
+    "scripts/zip-package.py",
+    "src/agents/health.js",
+    "src/agents/selection-entry.js",
+    "src/environment.js",
+    "src/features/scraping/index.js",
+    "src/sw.js",
+    "src/ui/tool-shell.css",
+    "src/ui/tool-shell.js",
+    "src/ui/tool.html",
+    "tests/environment/boundaries.test.mjs",
+    "tests/environment/package.test.mjs",
+    "webpack.config.cjs"
+  ],
+  "additionalProductDocuments": [
+    "docs/migration/migration-ledger.json",
+    "docs/foundation/downloads-implementation.json",
+    "docs/foundation/entitlement-implementation.json",
+    "docs/foundation/scope-checkpoint.json"
+  ],
+  "runtimeIntegration": {
+    "swEntry": "src/sw.js remains 02A environment-only; foundation broker not connected.",
+    "toolEntry": "src/ui/tool-shell.js still uses createEnvironmentHost.",
+    "build": "webpack entries, copied assets, package verifier and scripts remain 02A configuration; added agent/bootstrap assets are not integrated into dist.",
+    "runHost": "createRunHost is added but unconnected. Its productionRunHostImplemented=true property is an implementation flag, not proof of operational readiness.",
+    "domain": "src/features/scraping/index.js remains MODULE_NOT_INSTALLED; no stage03 domain implementation.",
+    "existingPackage": "dist/ZIPs remain prior 02A environment artifacts; they are not a tested foundation package."
+  },
+  "reusableCandidates": [
+    {
+      "area": "Storage",
+      "files": [
+        "src/platform/storage/index.js",
+        "src/platform/storage/idb.js",
+        "src/platform/storage/repository.js",
+        "src/platform/storage/regression.js"
+      ],
+      "api": "createStorage; transaction/close/rawBackup; template CAS; begin/stage/seal; reader pins; delete/retention/backup",
+      "qualification": "Connection/transaction/backup mechanics are candidates. Page/template data models remain coupled to old contracts. Real IDB and failed-test closure pending."
+    },
+    {
+      "area": "Host and journal",
+      "files": [
+        "src/platform/host/authority.js",
+        "src/platform/host/client.js",
+        "src/platform/host/broker.js",
+        "src/run-host.js"
+      ],
+      "api": "Actual host registration; identity admission; prepare/dispatch/stop; durable slot/fence/recovery; host RPC client",
+      "qualification": "Reusable concepts and scaffolding; eight reproduced defects and incomplete broker/client integration prevent acceptance."
+    },
+    {
+      "area": "Target and PagePort",
+      "files": [
+        "src/platform/target/index.js",
+        "src/platform/page-port/index.js",
+        "src/platform/page-port/source.js",
+        "src/agents/page-agent.js",
+        "src/agents/bootstrap.js",
+        "src/ui/target-bootstrap.html"
+      ],
+      "api": "Target creation/bootstrap/reconciliation/retirement; fixed packaged agent; command/raw-frame ACK; source context/selection/preview lifecycle",
+      "qualification": "Authenticated transport/lifecycle candidates; operations and RulePlan currently read-page/pagination-oriented, not proof of generic src-bex automation migration."
+    },
+    {
+      "area": "Downloads",
+      "files": [
+        "src/platform/downloads/index.js",
+        "src/platform/downloads/blob-lifecycle.js"
+      ],
+      "api": "prepareExport/prepareAttempts/readArtifact/dispatch/reconcile/retry/abandon; actual-host Blob registry",
+      "qualification": "26 unit cases passed over injected Chrome/transaction seams; no actual downloads, IDB, SW wakeup or host URL-lifetime acceptance."
+    },
+    {
+      "area": "Entitlement",
+      "files": [
+        "src/platform/entitlement/index.js",
+        "src/platform/entitlement/crypto.js"
+      ],
+      "api": "Real P256 verification; Free/Pro budgets; snapshot and atomic template quota bridge; signed revocation/time policy",
+      "qualification": "32 actual crypto unit cases passed with injected policy clocks/storage. Production key allowlist empty, so default Free; no paid service or browser acceptance."
+    },
+    {
+      "area": "Protocol and schema",
+      "files": [
+        "src/platform/protocol.js",
+        "src/platform/schema.js"
+      ],
+      "api": "Canonical JSON/hash oracle, exact identity comparisons, projections, generated frozen schema",
+      "qualification": "Schema copy matches old frozen input, but validator has reproduced reference/property/time flaws; framework-first contract must be reconsidered."
+    }
+  ],
+  "validation": {
+    "at": "2026-10-02T07:44:18.855289+00:00",
+    "nodeVersion": "v24.16.0",
+    "sourceInputsStable": true,
+    "syntax": {
+      "checkedFiles": 40,
+      "failedFiles": []
+    },
+    "tests": {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/environment/boundaries.test.mjs",
+        "tests/environment/package.test.mjs",
+        "tests/foundation/download-service.test.mjs",
+        "tests/foundation/page-port-fixtures.test.mjs",
+        "tests/foundation/page-port-service.test.mjs",
+        "tests/foundation/policy-entitlement.test.mjs",
+        "tests/foundation/protocol.test.mjs",
+        "tests/foundation/runtime.test.mjs",
+        "tests/foundation/storage.test.mjs",
+        "tests/foundation/target-service.test.mjs"
+      ],
+      "exitCode": 1,
+      "tests": 135,
+      "suites": 0,
+      "pass": 118,
+      "fail": 17,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failedTestNames": [
+        "frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority",
+        "stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed",
+        "post-dispatch epoch/target/grant fences prevent stale Chrome use",
+        "script or command callback failure records unknown and cannot be blindly retried",
+        "packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature",
+        "preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written",
+        "three batches: first two durable ACKs, third exact-byte failure hides whole page",
+        "exact staged duplicate does not add bytes; conflicting valid digest aborts page",
+        "stage may acknowledge authenticated raw frames before end; seal requires complete end",
+        "seal recomputes all six rows; prefix-only signature fails",
+        "batch gap, record key/field mismatch, and raw-end evidence mismatch reject",
+        "stop wins before seal; seal wins before stop and preserves historic original ACK",
+        "reader pins freeze watermark/count, paginate long typed values, and reject other cursors",
+        "zero-batch empty page requires authenticated allowed-empty proof",
+        "repeated full page signature without end is rejected and left invisible",
+        "whole-page run limits, two pending ACKs, profile budget and injected disk quota",
+        "delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data"
+      ],
+      "level": "Node tests; injected transaction/Chrome seams, actual WebCrypto; no native IDB or real browser acceptance"
+    },
+    "partialReview": {
+      "command": "node work/review-authority/repro.mjs",
+      "exitCode": 0,
+      "completedReview": false
+    }
+  },
+  "knownDefects": [
+    {
+      "id": "R1-pointer",
+      "summary": "Nested schema $ref resolution fails for valid RulePlan/Command.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint"
+    },
+    {
+      "id": "R2-unknown-properties",
+      "summary": "Inherited object-property names pass strict unknown-property checks.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint"
+    },
+    {
+      "id": "R3-host-gone",
+      "summary": "Closed host leaves an interrupted run/held slot without an admitted replacement retirement path.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint"
+    },
+    {
+      "id": "R4-control-states",
+      "summary": "Host loss, late stop and session recovery overwrite control states.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint"
+    },
+    {
+      "id": "R5-terminal-fence-gap",
+      "summary": "A crash between terminal commit and fencing leaves a held slot without retirement recovery.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint"
+    },
+    {
+      "id": "R6-false-completion",
+      "summary": "Caller naturalEnd=true can complete a run with no target or committed page.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint"
+    },
+    {
+      "id": "R7-invalid-date-time",
+      "summary": "General schema validator accepts impossible or timezone-less date-time values.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint"
+    },
+    {
+      "id": "R8-journal-key-collision",
+      "summary": "Unnamespaced commandId can overwrite a host journal key.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint"
+    }
+  ],
+  "independentReviewLimitation": "Reviewer subagent stopped by tool automatic safety screening for possible cybersecurity risk. Partial reproduction artifacts exist, were rerun with unchanged input hashes, and are not a completed review.",
+  "pendingWork": [
+    "New framework-first inventory, source selection, product boundaries and contracts from parent; no implementation started under that scope.",
+    "Resolve preserved validator and run-state/retirement defects against revised contracts; close 17 current failed tests.",
+    "Reconcile storage/target/host/broker API and persistence shapes; historical seal/command admission, source preview iterator and export Blob bridge remain incomplete.",
+    "Connect actual SW listeners/host ports/page agents, source gestures and visible RunHost after new scope confirms interfaces.",
+    "Update build/package/static asset checks and test entry only after new scope; produce a candidate with actual hashes.",
+    "Run real IndexedDB/Chrome stop, dispatch-gap, recovery, target lifecycle, stage/seal, download and policy acceptance.",
+    "Complete independent review, migration ledger mapping and any revised handoff; no 03 or 06 automatic release occurred."
+  ],
+  "preservation": {
+    "noOldRepoCodeCopied": true,
+    "oldSourceReposReadOnly": true,
+    "newDependenciesAdded": false,
+    "gitCommitCreated": false,
+    "archive": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-critical-migration/outputs/scope-checkpoint/source-checkpoint.tar.gz"
+  }
+}

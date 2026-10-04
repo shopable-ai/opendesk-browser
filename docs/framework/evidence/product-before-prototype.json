@@ -1,0 +1,191 @@
+{
+  "observedAt": "2026-10-02T14:01:28.942505+00:00",
+  "files": [
+    {
+      "path": "manifest.json",
+      "bytes": 556,
+      "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+    },
+    {
+      "path": "webpack.config.cjs",
+      "bytes": 949,
+      "sha256": "9327d598f23852ba03857c2776f88f382361622f44925a374d3dd2455a7329c5"
+    },
+    {
+      "path": "package.json",
+      "bytes": 827,
+      "sha256": "74b90118949b661ffe9f5002d82318c872447229d8fd0613f2837ef0b450777c"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 53720,
+      "sha256": "3a7ccce04fe0bb9b355ce885cb8a7c6a5e8567b467022ed6a6f90a00940edc3b"
+    },
+    {
+      "path": "src/run-host.js",
+      "bytes": 4759,
+      "sha256": "eff17d2253d8ac287e0c82557ecf705c4f88c333d66e0dcf0a16634e277b3294"
+    },
+    {
+      "path": "src/environment.js",
+      "bytes": 10944,
+      "sha256": "3b5e5d6fdc1a45d9024c75aff3676cc8f68a94717463a9b4fe4e52e2c8cd2dd6"
+    },
+    {
+      "path": "src/sw.js",
+      "bytes": 1921,
+      "sha256": "db7067ecd80cc99f822d1e99a90edbac00db41d83bad7e5335dcea7c962908f7"
+    },
+    {
+      "path": "src/ui/target-bootstrap.html",
+      "bytes": 200,
+      "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "bytes": 2300,
+      "sha256": "c79258ab1f1749a2e13b95883f617026b72ddd81962ca1f5a43c10c538b7ab61"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "bytes": 1256,
+      "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "bytes": 885,
+      "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "bytes": 7556,
+      "sha256": "39ae55cdfbc75e2d9e8d2e00b0b07c42ab34ef585b9357436c1fee7e19621f43"
+    },
+    {
+      "path": "src/platform/schema.js",
+      "bytes": 43891,
+      "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+    },
+    {
+      "path": "src/agents/health.js",
+      "bytes": 1107,
+      "sha256": "c14df03a64c908fa800b9ba4cdb0287a5d6ae12e25b0de8b8d599c273c874f0f"
+    },
+    {
+      "path": "src/agents/page-agent.js",
+      "bytes": 12719,
+      "sha256": "d26f1b3531b783ea907f859850c8defe3b4118491fb2ee9c12cd14ecb9d1c966"
+    },
+    {
+      "path": "src/agents/bootstrap.js",
+      "bytes": 1028,
+      "sha256": "dc607f0df2c53932345cafd44420ad64fb5e7c40dc85198bb9d71444ed1f89d7"
+    },
+    {
+      "path": "src/agents/selection-entry.js",
+      "bytes": 277,
+      "sha256": "7af5313c7b2fb484ab7e0b8d7357600ba9dbfce5ef763f45441c1d7b019f5ae0"
+    },
+    {
+      "path": "src/features/scraping/index.js",
+      "bytes": 708,
+      "sha256": "45bac1dfb4463206a2be48104b276bff4a15dd8a34f530b891bc662596ececed"
+    },
+    {
+      "path": "src/platform/host/client.js",
+      "bytes": 3621,
+      "sha256": "1e235f735cede75a6d5f7cce0cfcfc9dc7131fad4ac88307899b1d6603372a59"
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "bytes": 8580,
+      "sha256": "4755a3b608f7b0af0146514a9ee5d2cc793c25a0d9abbdbb123fce2059992c5a"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "bytes": 18642,
+      "sha256": "9702343a7099722890c8f52d5034c864fe1a838dfc6834bbc5c71bd463224d11"
+    },
+    {
+      "path": "src/platform/target/index.js",
+      "bytes": 22242,
+      "sha256": "e1896d62230571e01347dcd548be51c236d7f44fcf140ff5c9c514c036f5055d"
+    },
+    {
+      "path": "src/platform/storage/idb.js",
+      "bytes": 8320,
+      "sha256": "1016aa470bd0ece215e7a11c6bfe0df7998d2c87ff480ebb8d981102194b23f9"
+    },
+    {
+      "path": "src/platform/storage/index.js",
+      "bytes": 2984,
+      "sha256": "3bc726648e15bb2741e784e02eda1a8c99068259d33c8d4a153a3981762f1936"
+    },
+    {
+      "path": "src/platform/storage/regression.js",
+      "bytes": 15239,
+      "sha256": "ed27368f25df5230e547653edfbbdf54a69c9f85acba5e536d165cbed76e4ab6"
+    },
+    {
+      "path": "src/platform/storage/repository.js",
+      "bytes": 43815,
+      "sha256": "5851a52643fd84f98dee4efe2bd554ce52e813e4c6c436e209b934d95dd1b5d4"
+    },
+    {
+      "path": "src/platform/page-port/index.js",
+      "bytes": 15968,
+      "sha256": "ca33704b03d7aec838d5fe92f592961c590d6f9d70410d22805d737907f5c691"
+    },
+    {
+      "path": "src/platform/page-port/source.js",
+      "bytes": 24766,
+      "sha256": "ef55098b6f515a12187ffa7c3874942849b9231bd95fc9f0a7ce9781c71bbab8"
+    },
+    {
+      "path": "src/platform/entitlement/index.js",
+      "bytes": 14537,
+      "sha256": "6d1f1d007b3c5e39e40d9e8f90e81493bf3522a97eec980e1b646d6bd6600d81"
+    },
+    {
+      "path": "src/platform/entitlement/crypto.js",
+      "bytes": 4573,
+      "sha256": "1caa42b88037a977fc7fd223fe74d35be206ebb0e32f090a59f63f6e46b521ad"
+    },
+    {
+      "path": "src/platform/downloads/index.js",
+      "bytes": 33754,
+      "sha256": "0cd7bb5f610c26d7a23f8bc221b7dd0e3bfacfac64c1cfb5be820fecb0942b44"
+    },
+    {
+      "path": "src/platform/downloads/blob-lifecycle.js",
+      "bytes": 2325,
+      "sha256": "7cd6786a9fedd5cec869944aa9e473082d550e08ea0737aea72d52fd0e756e45"
+    },
+    {
+      "path": "scripts/pack.mjs",
+      "bytes": 1018,
+      "sha256": "456f97c445427478b3817ee94d6e14f5c68ae13f8bbd8e4b6d26977359239717"
+    },
+    {
+      "path": "scripts/verify-package.mjs",
+      "bytes": 5292,
+      "sha256": "5e422a900876c4ee4645988e422394328c58b2cdd592de2ff498d92b2b4aabc1"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "bytes": 1293,
+      "sha256": "4ec6bd61c5d14f8bffeadebdea090b5b1870118bb00baa6ea3c24ceeaff7a02b"
+    },
+    {
+      "path": "scripts/check-source.mjs",
+      "bytes": 488,
+      "sha256": "11bfa068d480dea4a918ceffeff0d53b2e3856fed18be4ed5a5baa96e7541659"
+    },
+    {
+      "path": "scripts/zip-package.py",
+      "bytes": 596,
+      "sha256": "419af524727e618bf143b95375deb2882f47385f694d7f927c8d5d896aa7999a"
+    }
+  ],
+  "purpose": "Verify no F2 product code or dependency edits before prototype gate"
+}

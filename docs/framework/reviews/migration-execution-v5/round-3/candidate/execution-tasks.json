@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "goal": "OpenDesk Browser 通用框架迁移 Goal",
+  "candidateId": "M5-C1",
+  "updatedAt": "2026-10-02T18:43:00.179927+00:00",
+  "taskAuthority": "关键执行顺序；source-compatibility-ledger.json仍为唯一逐项完成账本",
+  "scheduling": "K0审批后立即执行K1；K1通过后执行K2；K3与K4底座就绪后可按互斥写范围并行；K5再K6",
+  "tasks": [
+    {
+      "id": "K0",
+      "phase": "stage0",
+      "title": "冻结现有迁移方案并完成同候选独立审批",
+      "dependsOn": [],
+      "status": "in-progress",
+      "writeScope": [
+        "docs/framework",
+        "tests/framework/stage0-ledger.test.mjs"
+      ],
+      "deliverable": "候选manifest与独立Architect→Critic报告；不再扩充清单",
+      "acceptance": "同一候选hash，双方APPROVE且≥95、零阻断；产品源码无提前修改"
+    },
+    {
+      "id": "K1",
+      "phase": "F1",
+      "title": "修通两个执行后端的关键基本功能",
+      "dependsOn": [
+        "K0"
+      ],
+      "status": "blocked-by-K0",
+      "writeScope": [
+        "tests/prototypes",
+        "docs/framework/prototypes"
+      ],
+      "deliverable": "现有v2控制Worker与userScripts runner补齐真实终止、资源、CSP、返回/错误、精确document与撤权；版本矩阵",
+      "acceptance": "最低候选138与执行时Stable实际验证；原生失败如实保留；独立复核后backendPrototypePassed"
+    },
+    {
+      "id": "K2",
+      "phase": "F2",
+      "title": "把后台公共底座接入现有工程",
+      "dependsOn": [
+        "K1"
+      ],
+      "status": "queued",
+      "writeScope": [
+        "src/platform",
+        "src/sw.js",
+        "tests/foundation",
+        "tests/framework"
+      ],
+      "legacyTasks": [
+        "T02",
+        "T04",
+        "T03",
+        "T05",
+        "T06",
+        "T12"
+      ],
+      "deliverable": "实际迁入协议/codec、存储升级、授权与准入、目标导航、通用artifact/download；唯一broker装配",
+      "acceptance": "真实sender/IDB/重启/CAS与撤权验证；修复17失败及R1–R8对应底座问题；不引入第二authority/数据库"
+    },
+    {
+      "id": "K3",
+      "phase": "F2",
+      "title": "迁入ChromePage及控制脚本并跑通基本浏览器操作",
+      "dependsOn": [
+        "K2"
+      ],
+      "status": "queued",
+      "writeScope": [
+        "src/framework/ChromePage.js",
+        "src/framework/context.js",
+        "src/framework/control",
+        "src/scripting",
+        "src/run-host.js",
+        "tests/framework"
+      ],
+      "legacyTasks": [
+        "T07",
+        "T10",
+        "T01"
+      ],
+      "deliverable": "实际48成员门面/context、隔离控制Worker与page-proxy、脚本版本/参数/运行/停止/持久结果；真实goto→type→click→wait→读取→return链",
+      "acceptance": "逐48成员正例/异常/限制验证；r1/r2固定版本、双run不串页、停止与一次结算；无需采集模块运行"
+    },
+    {
+      "id": "K4",
+      "phase": "F2",
+      "title": "迁入独立页面SDK、公共服务与必要资源",
+      "dependsOn": [
+        "K2"
+      ],
+      "status": "queued",
+      "writeScope": [
+        "src/framework/sdk",
+        "src/framework/utils",
+        "src/framework/events.js",
+        "src/platform/page-port",
+        "docs/contracts/licenses",
+        "tests/framework",
+        "src/agents/sdk-relay.js",
+        "src/ui/tool-shell.js",
+        "src/ui/tool.html"
+      ],
+      "legacyTasks": [
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "deliverable": "真实MAIN SDK/ISOLATED relay，bridge/http/storage/notifications/servers/utils按职责迁入；固定资源及MIT notice入包；K4同时在现tool-shell提供最小allowPageSdk授权入口和固定relay装配，独立SDK从真实入口获授权；K5仅在其后扩展完整脚本工作台",
+      "acceptance": "不启动controller独立跑通；B05真实HTTP100并发/四崩溃点、两种存储寿命、错误/撤权/导航/资源装载与unknown不重放"
+    },
+    {
+      "id": "K5",
+      "phase": "F2",
+      "title": "将框架接入现有工作台的真实入口",
+      "dependsOn": [
+        "K3",
+        "K4"
+      ],
+      "status": "queued",
+      "writeScope": [
+        "src/ui",
+        "src/run-host.js",
+        "src/environment.js",
+        "src/sw.js",
+        "src/plugins/automation-example",
+        "scripts",
+        "tests/framework"
+      ],
+      "legacyTasks": [
+        "T11",
+        "T13"
+      ],
+      "deliverable": "现UI目标授权、脚本/参数/版本保存选择、run/stop、持久结果和真实下载；仅必要采集去耦",
+      "acceptance": "用户从真实入口完成基本操作，关闭重开结果仍在、download complete及文件hash；不替代独立API/SDK验收"
+    },
+    {
+      "id": "K6",
+      "phase": "F3",
+      "title": "同一最终包逐项验收并独立确认迁移完成",
+      "dependsOn": [
+        "K5"
+      ],
+      "status": "queued",
+      "writeScope": [
+        "docs/framework",
+        "tests/framework",
+        "dist"
+      ],
+      "deliverable": "development/production build-pack-verify；一个最终production包全部必选功能证据与独立复核",
+      "acceptance": "72来源处置、48API与全部必需SDK/服务/资源逐项实证；17失败及R1–R8实关；1000轮/10重连/2禁插件baseline；无失败/缺失/stale后完成Goal"
+    }
+  ],
+  "revision": 3,
+  "correction": "Round-3: synthetic Backspace auxiliary assertions aligned; K4 owns fixed relay and minimal SDK grant UI before independent SDK acceptance. No product write yet."
+}

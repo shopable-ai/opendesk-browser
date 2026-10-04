@@ -1,0 +1,23 @@
+**APPROVE。C3 独立 Critic：100/100；阻断列表：空。**
+
+|评分项|得分|
+|---|---:|
+|需求来源|25/25|
+|职责边界|25/25|
+|依赖可执行|20/20|
+|验收追溯|20/20|
+|风险恢复|10/10|
+|**总分**|**100/100**|
+
+复用此前完整评审，独立核对确认：C2→C3严格只有指定三处替换；当前正文与C3冻结副本逐字节一致，计算hash与manifest及指定值一致。
+
+两类问题均已关闭：
+
+- [第27、28行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:27)明确使用“若当前处于”，消除了两种模式同时成立的措辞歧义。
+- [第355行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:355)改为 `npm run check`，与此前核定的脚本调用方式一致，测试要求完整保留。
+
+原98分的两项扣分依据已消除；本次差异未引入新问题，因此独立评为100分，未继承Architect分数。
+
+SHA256：`f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d`
+
+结论仅批准提示词及迁移组织方案，不代表阶段0方案或产品验收通过。本次仅作定点增量复核，未扩大研究、写文件或执行迁移。

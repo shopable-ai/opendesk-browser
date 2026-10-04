@@ -1,0 +1,12 @@
+{
+  "id": "THROW",
+  "families": "USC03/EX02",
+  "expected": "Actual Worker throw persists failed typed error exactly once",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791102999085,
+  "elapsedMs": 0.001125000009778887
+}

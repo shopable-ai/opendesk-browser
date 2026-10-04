@@ -1,0 +1,68 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "argv": [
+    "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+    "--mode=production",
+    "--chrome=138",
+    "--headed",
+    "--native-ui-assist",
+    "--permission-timeout=300000"
+  ],
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-04T09-07-10.495Z-d3734cc5",
+  "reports": [
+    {
+      "mode": "production",
+      "label": "138",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "packageHash": "99d6d07876c765701b4b2f4ee1470bc859588173151dc0f043f1bb9bdbafacbd",
+      "summary": {
+        "PASS": 15,
+        "FAIL": 2,
+        "BLOCKED": 0,
+        "NOT_TESTED": 0
+      },
+      "packageDrift": false
+    }
+  ],
+  "candidateDrift": false,
+  "inputBefore": {
+    "productInputsSha256": "a35612438d3362b2d6ffe5d363712b6c9245d44a0246d853b4cf6b8952faa71f",
+    "verificationInputsSha256": "7b46513d6a01829e9e418425a4e3a67eb925e99c9d5b4184dc11086be94861be",
+    "packageHashes": {
+      "production": "99d6d07876c765701b4b2f4ee1470bc859588173151dc0f043f1bb9bdbafacbd",
+      "development": "ea1a596897d713aa861463938cb908f05ad1216695baef9069f6a60e8c51f676"
+    },
+    "zipHashes": {
+      "production": "abe7b4388c7407014c790f0e644eed32b3dc27ca81688d59f33e5e7e23bbdab4",
+      "development": "439f549fc5b432556e6fd8913377aed257b632c97a975769c745738ed0b3e323"
+    }
+  },
+  "inputAfter": {
+    "productInputsSha256": "a35612438d3362b2d6ffe5d363712b6c9245d44a0246d853b4cf6b8952faa71f",
+    "verificationInputsSha256": "7b46513d6a01829e9e418425a4e3a67eb925e99c9d5b4184dc11086be94861be",
+    "packageHashes": {
+      "production": "99d6d07876c765701b4b2f4ee1470bc859588173151dc0f043f1bb9bdbafacbd",
+      "development": "ea1a596897d713aa861463938cb908f05ad1216695baef9069f6a60e8c51f676"
+    },
+    "zipHashes": {
+      "production": "abe7b4388c7407014c790f0e644eed32b3dc27ca81688d59f33e5e7e23bbdab4",
+      "development": "439f549fc5b432556e6fd8913377aed257b632c97a975769c745738ed0b3e323"
+    }
+  },
+  "sourceDrift": [],
+  "classification": "targeted-native-current-package",
+  "serverClosed": true,
+  "finalProductPassed": false,
+  "f3Accepted": false,
+  "original603Closed": false,
+  "notClaimed": [
+    "All original603 families",
+    "four native crash points",
+    "1000 mixed rounds",
+    "10 reconnect rounds",
+    "2 plugin disables",
+    "independent same-final-package F3 review"
+  ],
+  "boundary": "Current production/development package targeted native SDK evidence, original raw server/CDP/result/storage observations preserved"
+}

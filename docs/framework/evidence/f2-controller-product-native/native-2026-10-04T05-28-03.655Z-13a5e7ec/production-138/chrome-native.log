@@ -1,0 +1,8 @@
+
+DevTools listening on ws://127.0.0.1:51402/devtools/browser/96912ef7-3343-4ab5-8126-56a8e98a0bee
+2026-10-03 22:28:05.062 Google Chrome for Testing[7130:42959512] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[7130:42959639:1003/222808.316761:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[7130:42959639:1003/222834.592609:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[7130:42959639:1003/222908.337708:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:483] ConnectionHandler failed with net error: -2
+[7130:42959639:1003/222919.038398:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED
+[7130:42959639:1003/223008.469621:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:483] ConnectionHandler failed with net error: -2

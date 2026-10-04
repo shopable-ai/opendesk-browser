@@ -1,0 +1,64 @@
+{
+  "at": "2026-10-03T09:07:52.916102+00:00",
+  "pid": 54161,
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+  "runnerUnchanged": true,
+  "sourceHash": "1e11e9f512bdd2e53d6e6b0b48a868648edeff16fc7b6ba882f076757b9fbdbe",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "readyPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T09-07-52.435Z-f9931b09/ready.json",
+  "packages": {
+    "production": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+    "development": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60"
+  },
+  "sourceDrift": false,
+  "packageDrift": {
+    "production": false,
+    "development": false
+  },
+  "validation": [
+    {
+      "at": "2026-10-03T09:07:52.141936+00:00",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 54175,
+      "args": [
+        "node",
+        "--check",
+        "tests/framework/k5-controller-product-native.mjs"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+      "nativeExecuted": false
+    },
+    {
+      "at": "2026-10-03T09:07:52.913984+00:00",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 54178,
+      "args": [
+        "node",
+        "tests/framework/k5-controller-product-native.mjs",
+        "--contract-check",
+        "--mode=all",
+        "--chrome=all"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 8251,
+      "stderrBytes": 0,
+      "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+      "nativeExecuted": false
+    }
+  ],
+  "receiptPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/main-rebuild-receipt.json",
+  "receiptSha256": "bf8f068dd178dac78c0cc898667ba58bdd24d861fb9d36c064062f4f15ceee26",
+  "window": "pending-exclusive-window",
+  "nativeExecuted": false,
+  "stage": "F2",
+  "f3Accepted": false,
+  "original603Closed": false,
+  "cases": {
+    "NOT_TESTED": 23
+  },
+  "f3SidecarReadOrWritten": false
+}

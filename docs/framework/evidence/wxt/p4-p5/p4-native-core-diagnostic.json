@@ -1,0 +1,25 @@
+{
+  "status": "INTERRUPTED_NATIVE_DIAGNOSTIC",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-04T08-33-49.135Z-2b20d50d",
+  "passed": [
+    "STOP-PENDING-FENCE",
+    "NATIVE-NAVIGATION-PENDING-FENCE",
+    "NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES",
+    "P4-API48-WORKER-SEMANTICS",
+    "MULTI-HOST-SLOT-COMPETITION"
+  ],
+  "failed": [
+    "NATIVE-REVOCATION-PENDING-FENCE",
+    "WORKER-INFINITE-STOP"
+  ],
+  "caseCounts": {
+    "PASS": 5,
+    "FAIL": 2,
+    "NOT_TESTED": 20
+  },
+  "reason": "Revocation test removed a port-qualified pattern rather than actual portless grant; infinite Worker observer parsed first partial input event. Halted to fix verification and rerun. Native source/package bindings preserved in output.",
+  "profileRemoved": true,
+  "chromePid": 52696,
+  "fullP4Accepted": false,
+  "at": "2026-10-04T08:55:37.113781+00:00"
+}

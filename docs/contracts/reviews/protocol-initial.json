@@ -1,0 +1,789 @@
+{
+  "reviewId": "phase01-protocol-initial",
+  "reviewType": "independent-critic-initial",
+  "reviewFormatVersion": "1.0.0",
+  "contractVersion": "1.0.0",
+  "status": "complete-for-requested-initial-scope",
+  "verdict": "REQUEST_CHANGES",
+  "architecturalStatus": "BLOCK",
+  "observedAt": "2026-10-01T19:27:30.935138+00:00",
+  "scope": {
+    "root": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "reviewedFiles": [
+      "docs/contracts/contract.json",
+      "docs/contracts/schema.json",
+      "docs/contracts/semantics.md",
+      "docs/contracts/state-machines.json",
+      "docs/contracts/solution-overview.md"
+    ],
+    "fixtures": "contracts/fixtures",
+    "fixtureFileCount": 170,
+    "references": [
+      "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/product-extension-architecture-v3.md",
+      "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-01-contracts.txt",
+      "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-common.txt"
+    ],
+    "excluded": [
+      "主代理同期补充的framework-decision/task-breakdown/test-plan及最终handoff综合审查",
+      "生产功能实现、原三来源项目修改、产品Chrome验收、商业放行"
+    ],
+    "writeScope": [
+      "docs/contracts/reviews/protocol-initial.json",
+      "docs/contracts/reviews/protocol-initial.md"
+    ]
+  },
+  "reviewExecution": {
+    "skill": "code-review",
+    "leaderRole": "independent critic",
+    "nativeSubagents": [
+      {
+        "rolePrompt": "code-reviewer（default承载，避免安装角色旧模型配置）",
+        "agentId": "01a0f8cd-370f-7be0-9605-99ce57e17402",
+        "modelOverride": "omitted; inherit current parent model",
+        "reasoningEffort": "xhigh",
+        "writeAccessUsed": false,
+        "verdict": "REQUEST_CHANGES"
+      },
+      {
+        "rolePrompt": "architect（default承载，避免安装角色旧模型配置）",
+        "agentId": "01a0f8cd-382d-7630-bf0d-33c9f2f491c3",
+        "modelOverride": "omitted; inherit current parent model",
+        "reasoningEffort": "xhigh",
+        "writeAccessUsed": false,
+        "architecturalStatus": "BLOCK"
+      }
+    ],
+    "externalModelCLIUsed": false,
+    "productionImplementation": false
+  },
+  "evidenceSnapshot": {
+    "coreSha256": {
+      "docs/contracts/contract.json": "0f346bf239be5ae747cba2e16b0e0b92297eab1d12363d595a280c653abe684d",
+      "docs/contracts/schema.json": "a70eef15898f3cf3a6a36b821fa858def2e9e74d6c214b2a6da683b8759d2f5a",
+      "docs/contracts/semantics.md": "911e187551d1ba971c1d4c8e886555223118f4236996c232ba2479b647e79274",
+      "docs/contracts/state-machines.json": "3308fe8f0842dbfe39ef0fa100d91aafa3ea08416687cf0129ec05009b1a51e5",
+      "docs/contracts/solution-overview.md": "d6d8144c591250cd9c507ac987322f730c29b662401f2953c1cd416dcf5162fc"
+    },
+    "referenceSha256": {
+      "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/product-extension-architecture-v3.md": "079fbd02bba191ba0f5aeeed5beb568bd830e91a99f801153e777481b59a70d7",
+      "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-01-contracts.txt": "d9f52abe19c9cd70fcdc2b61426e097542385106b9916d523d4f02b49c5c5670",
+      "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-common.txt": "7ffbde2d7342048c8d2bacdddcdb77d643af8c42f40fcba4754d3114e2407ad2"
+    },
+    "fixtureTreeSha256": "00c8a52c1f8b670ca9735b16c194a4333e19f11e5a72f8270a3b0eb6217f76c3",
+    "fixtureTreeHashDefinition": "SHA-256 of UTF-8 json.dumps({sorted relative fixture paths: each file SHA-256},sort_keys=True,separators=(',',':')); no whitespace",
+    "fixtureSha256": {
+      "contracts/fixtures/scenarios.json": "5c986ae95c1c004c2a5948ca4d540b2c5fc7861b692688c0e731b2bbc5146041",
+      "contracts/fixtures/canonical.json": "9aaed413aff8dba7452b31a9f15765a2e6f543bf9ea60737123b834ba81799f8",
+      "contracts/fixtures/page-transaction.json": "77142e9a00efa1be0c82f5a4f6c5daafef147f5efa29a25d22ba8337614cc2f6",
+      "contracts/fixtures/download-attempts.json": "01a3572a1416c8e2185dc7838b85e5604b5efe93cab164188a5548d81c136ef1",
+      "contracts/fixtures/transaction-template.json": "72acdcb069e50467a8d4c63e43a64cd6dbdf8473c15b449125fe61c7cf5441e3",
+      "contracts/fixtures/migration/manifest.json": "97009163051e3bc09bf71a05dd8817fdc0b475456dfbe21a38ecdbb8f3d2b533",
+      "contracts/fixtures/migration/single-page/vector.json": "b718cb214357212c73a6587ec5e90303e0fcc379994ce87f1c5bbf74db0eab78",
+      "contracts/fixtures/migration/pagination-information-lost/vector.json": "82b56e011cb9845fa732e7ea6a516cde0ed0af9bb39d275d36a299a5736427de",
+      "contracts/fixtures/migration/illegal-config-backup/vector.json": "9d75a02796207a53fc8b9e296d73d06d226bd8c500ab298abdd115b5e943ef2c",
+      "contracts/fixtures/read-command.json": "a1bff93119c74ade3ae5bd03a28a3591c357dc57ea54b6a88916ca9f3ae39591"
+    },
+    "concurrentEdits": "已响应主代理payload/PagePort更新；落盘校验后发现solution-overview并发改动，已重新完整读取raw→typed/退役顺序与阶段边界并刷新hash，不改变本轮发现。本初审仅对所列hash快照成立，后续增量须重新审查。"
+  },
+  "severityCounts": {
+    "P0": 0,
+    "P1": 6,
+    "P2": 3,
+    "P3": 0,
+    "total": 9,
+    "blocking": 8
+  },
+  "blockingDesignGaps": [
+    {
+      "findingId": "PIC-01",
+      "severity": "P1",
+      "gap": "历史seal ACK没有可持久表达的结构，重ACK与当前身份围栏的检查顺序未闭合",
+      "closureCriteria": [
+        "S1→S2→stop后重ACK S1仍是count6/pages1/checkpointS1/sealSeq1，run投影保持count12/pages2/checkpointS2；eventSeq/commitSeq和row集合不变。",
+        "原请求只改变runRevision可按约定返回历史ACK；改变hostDocumentId/target.documentId/targetVersion/ownerEpoch/templateHash或内容不能命中重ACK；旧epoch不得新seal。"
+      ]
+    },
+    {
+      "findingId": "PIC-02",
+      "severity": "P1",
+      "gap": "新增read协议仍预先要求snapshotId，零批空页入口及持久document/checkpoint绑定未闭合",
+      "closureCriteria": [
+        "有合法empty依据的0批页通过；缺container/不存在snapshot/伪造empty依据均拒绝且计数不动。",
+        "D1/v1与D2/v2的批次不得混页；逆序/重复sequence seal拒绝，不回退checkpoint；同页同内容请求幂等。"
+      ]
+    },
+    {
+      "findingId": "PIC-06",
+      "severity": "P1",
+      "gap": "新三批页fixture用含snapshotId的完整Record计算pageSignature，和规范raw+values定义不一致并破坏重复页检测",
+      "closureCriteria": [
+        "该三批页按所选envelope静态hash与fixture一致；next-button没有真实内容变化时不得seal第二页、不得盲click重试；真正第6行变化可识别。"
+      ]
+    },
+    {
+      "findingId": "PIC-07",
+      "severity": "P1",
+      "gap": "首次registerHost没有run时无法生成合法Projection，snapshotRun响应也与绑定结构不一致",
+      "closureCriteria": [
+        "干净profile登记返回合法idle projection且runs中不新建业务run；snapshotRun和registerHost响应均可按声明schema验证。"
+      ]
+    },
+    {
+      "findingId": "PIC-09",
+      "severity": "P2",
+      "gap": "E_QUOTA要求interrupted，但run状态机没有对应转移",
+      "closureCriteria": [
+        "第3批E_QUOTA时P1 aborted，无该批ACK；保留P0 count2/pages1/checkpointP0，run返回interrupted/E_QUOTA；若stop先提交按既定stopping规则结算。"
+      ]
+    },
+    {
+      "findingId": "PIC-10",
+      "severity": "P1",
+      "gap": "尚未绑定的tabs.create也有外部效果gap，never-created不能从target=null推得",
+      "closureCriteria": [
+        "分别在创建前、调用后未存ID、callback迟到的位置stop或终止SW；未知创建期间claim拒绝；精确旧tab退役并持久absence后仅释放一次。"
+      ]
+    },
+    {
+      "findingId": "PIC-11",
+      "severity": "P1",
+      "gap": "持久tabId不带浏览器session身份，恢复retireTarget可能关闭无关用户tab",
+      "closureCriteria": [
+        "持久retirement跨session恢复，用无关tab占同数字ID：无关tab不得关闭，其移除事件不得释放旧slot；唯一确认的旧目标可退役。"
+      ]
+    },
+    {
+      "findingId": "PIC-12",
+      "severity": "P2",
+      "gap": "退役释放缺少当前slot归属CAS，重复absence结果可清空新run的slot",
+      "closureCriteria": [
+        "A释放R1→R2claim→B重复提交：slot仍属于R2，R3claim被拒绝，R1release只发生一次。"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "PIC-01",
+      "severity": "P1",
+      "blocking": true,
+      "topic": "seal历史ACK与修订",
+      "title": "历史seal ACK没有可持久表达的结构，重ACK与当前身份围栏的检查顺序未闭合",
+      "evidence": [
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 15,
+          "end": 15,
+          "section": "整页digest与原owner重复seal例外",
+          "observation": "同一已sealed的原始owner请求即使stop后来改变runRevision，只允许核完全相同digest并返回历史ACK"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 19,
+          "end": 21,
+          "section": "停止后拒新seal；runRevision控制CAS"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1469,
+          "end": 1563,
+          "pointer": "/$defs/PageSnapshot",
+          "observation": "只有sealSeq/sealDigest/pageSignature和页内staged计数，没有原SealAck、原checkpoint或seal身份"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 2023,
+          "end": 2067,
+          "pointer": "/$defs/SealAck",
+          "observation": "ACK必需committedCount/committedPages/checkpoint/sealSeq"
+        },
+        {
+          "file": "contracts/fixtures/scenarios.json",
+          "start": 273,
+          "end": 288,
+          "pointer": "/cases[id=seal-duplicate]",
+          "observation": "只重复同一页，没有后续seal、控制revision变化、旧document/围栏组合"
+        }
+      ],
+      "counterexample": [
+        "S1在revision=1、target=D1/v1时seal，ACK={count:6,pages:1,checkpoint:S1,sealSeq:1}丢失。",
+        "S2提交后run为count=12/pages=2/checkpoint=S2；stop令revision增加。",
+        "原host重发S1的原始SealRequest。先用当前revision/target检查会拒绝规范要求的历史重ACK；用当前run投影重建则返回count12/checkpointS2；要求的原checkpoint/累计计数未落在PageSnapshot结构中。"
+      ],
+      "impact": "基础阶段与领域阶段可各自实现看似合理却不兼容的重ACK；UI可能把历史页ACK当最新投影，或把成功seal误报失败。当前文件无法直接持久保存规范要求的完整历史返回值。",
+      "minimalFix": [
+        "在现有pageSnapshots store的PageSnapshot中增加sealIdentity（完整host/run/template/epoch/target tuple）和immutableSealAck，seal与计数/checkpoint同事务保存；不新建store。",
+        "明确重复分支：先验证真实请求来源与原snapshot.runId/tombstone策略，再比较排除runRevision的完整原sealDigest；只返回原ACK并置duplicate=true。所有非重复stage/seal仍按当前完整Identity/cancel/epoch拒绝。",
+        "明确stop仅改revision、target重绑、正常退役改epoch、旧host重载、已删run分别允许历史读ACK还是E_OWNER/E_TOMBSTONE；任何例外不得新写或更新run投影。"
+      ],
+      "acceptance": [
+        "S1→S2→stop后重ACK S1仍是count6/pages1/checkpointS1/sealSeq1，run投影保持count12/pages2/checkpointS2；eventSeq/commitSeq和row集合不变。",
+        "原请求只改变runRevision可按约定返回历史ACK；改变hostDocumentId/target.documentId/targetVersion/ownerEpoch/templateHash或内容不能命中重ACK；旧epoch不得新seal。"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "PIC-02",
+      "severity": "P1",
+      "blocking": true,
+      "topic": "snapshot分配、来源身份与checkpoint",
+      "title": "新增read协议仍预先要求snapshotId，零批空页入口及持久document/checkpoint绑定未闭合",
+      "evidence": [
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 15,
+          "end": 15,
+          "observation": "snapshotId由底座分配绑定run+pageSequence"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 184,
+          "end": 196,
+          "section": "stagePageBatch/sealPage接口",
+          "observation": "两个请求都预先要求snapshotId；接口清单无分配snapshot的操作"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 148,
+          "end": 155,
+          "pointer": "/page[0]",
+          "observation": "absent -- first-stage --> open"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 34,
+          "end": 36,
+          "observation": "空页必须0批、0行、0字节；分页checkpoint合法且同origin"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1469,
+          "end": 1563,
+          "pointer": "/$defs/PageSnapshot",
+          "observation": "保存runId/ownerEpoch/pageSequence/pageIdentity，未保存host、target.documentId/targetVersion或read命令绑定"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1564,
+          "end": 1588,
+          "pointer": "/$defs/Checkpoint",
+          "observation": "pageNumber/url/lastSnapshotId；未定义它们与该页sequence/当前或下一URL的精确关系"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 2296,
+          "end": 2324,
+          "pointer": "/$defs/ReadPagePayload",
+          "observation": "新read-page仍必须先带snapshotId/pageSequence；接口未定义底座何时分配并open该snapshot。"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 64,
+          "end": 68,
+          "section": "新增raw PagePort",
+          "observation": "真实sender/document和原command认证已经明确；StageRequest/SealRequest及持久PageSnapshot仍未提供readCommandId与原文档的一致性验证路径。"
+        }
+      ],
+      "counterexample": [
+        "合法empty marker匹配，0条记录：不能发first-stage（规范要求0批），也没有接口让底座先分配open snapshotId；直接seal不存在的ID的状态转换未定义。",
+        "D1/v1的raw帧已按原readCommand认证，但仍在RunHost等待转换/持久化；导航后绑定D2/v2。若host把旧raw转成stage时附当前Identity，StageRequest没有readCommandId、PageSnapshot没有原文档身份，底座无法从公开结构核出它源于D1。文本已禁止stale写入，但持久绑定和检查路径仍缺失。",
+        "两个snapshot同pageSequence或逆序seal均可满足局部连续批、同origin和count/hash；没有唯一[runId,pageSequence]、单open页/expected checkpoint的强制规则，checkpoint可以退回或重复计入。"
+      ],
+      "impact": "新增sender检查有效，但不能替代每个snapshot固定读命令/文档的持久绑定；合法零批空页仍无明确状态入口，序号/checkpoint核验也依赖下游自行补合同。",
+      "minimalFix": [
+        "明确一个底座page准入事务：增加beginPage/openPage请求与ACK，或让read命令准入原子分配并open snapshot，再返回ID。输入完整Identity、readCommandId、expectedCheckpoint/pageSequence、幂等requestId；0批empty页同样先open。解决当前read请求预先要求未分配snapshotId的循环。",
+        "PageSnapshot固定原host、targetSession/tab/frame/document/targetVersion、templateHash与read命令身份；stage/seal必须和该绑定一致，旧document仅对账原命令而不得借当前Identity写页。",
+        "在原stores内声明唯一[runId,pageSequence]和每run至多一个可提交open页；seal核checkpoint CAS及pageSequence=committedPages+1，精确定义checkpoint是已seal页还是下一页，并说明末页/第50页。"
+      ],
+      "acceptance": [
+        "有合法empty依据的0批页通过；缺container/不存在snapshot/伪造empty依据均拒绝且计数不动。",
+        "D1/v1与D2/v2的批次不得混页；逆序/重复sequence seal拒绝，不回退checkpoint；同页同内容请求幂等。"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "PIC-04",
+      "severity": "P2",
+      "blocking": false,
+      "topic": "多次导出旧job状态",
+      "title": "retryExport把旧job描述为冻结审计，与旧attempt迟到complete更新旧job互相冲突",
+      "evidence": [
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 246,
+          "end": 251,
+          "section": "retryExport",
+          "observation": "old job frozen audit. Old receipt cannot complete new job"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 48,
+          "end": 50,
+          "observation": "旧attempt迟到complete仅更新旧job"
+        },
+        {
+          "file": "contracts/fixtures/scenarios.json",
+          "start": 441,
+          "end": 460,
+          "pointer": "/cases[id=download-reexport-isolation]",
+          "observation": "jobA: delivery_complete-with-late-history；jobB: delivering"
+        }
+      ],
+      "counterexample": [
+        "A到deadline_unknown，用户retryExport创建B；此后A的唯一downloadId显示complete，B仍in_progress。",
+        "照contract的old job frozen audit，A投影永远unknown；照semantics和fixture，A须变为delivery_complete。两者都不污染B，但旧job最终显示和生命周期不一致。"
+      ],
+      "impact": "迟到完成是否可见和何时释放旧job pins/清理资格没有单一规范，用户可能看不到实际上已完成的旧下载。",
+      "minimalFix": [
+        "将freeze精确限定为A的artifact/activeAttemptIds和提交权限不可再变；原A delivery聚合仍可按原attempt证据更新。只有explicit abandon/tombstone才冻结projection。",
+        "给ExportJob一个确定的按本job attempts聚合规则，明确0/部分complete、unknown、interrupted、abandoned组合；更新attempt+receipt+其job的原stores事务。"
+      ],
+      "acceptance": [
+        "A late complete只使A完成并保留timeout/resourceReleased历史，B不变；A已explicit abandon则仅新增审计，A/B投影均不复活。"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "PIC-06",
+      "severity": "P1",
+      "blocking": true,
+      "topic": "whole-page signature字节向量与重复页检测",
+      "title": "新三批页fixture用含snapshotId的完整Record计算pageSignature，和规范raw+values定义不一致并破坏重复页检测",
+      "evidence": [
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 15,
+          "end": 15,
+          "observation": "pageSignature=SHA256(canonical({pageIdentity,records:整页完整raw+values按rowIndex排列}))；button同URL时仍由完整signature检测换页"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 373,
+          "end": 376,
+          "pointer": "/recordDigests/page",
+          "observation": "sha256 canonical({pageIdentity,records:all rows raw+values in rowIndex order})"
+        },
+        {
+          "file": "contracts/fixtures/page-transaction.json",
+          "start": 165,
+          "end": 203,
+          "pointer": "/sealRequest/pageSignature",
+          "observation": "87a410292821abdb761ecce2187c0e7a43ac8840078c4f03774f43addad202f1仅与完整Record（包含recordKey/rowIndex）envelope匹配"
+        },
+        {
+          "file": "contracts/fixtures/scenarios.json",
+          "start": 557,
+          "end": 572,
+          "pointer": "/cases[id=pagination-signature]",
+          "observation": "repeat full page all rows identical→failed E_SEMANTIC"
+        }
+      ],
+      "counterexample": [
+        "只读Node复算新page-transaction向量：所有3个stage digest/utf8Bytes和templateHash均匹配；pageSignature按{raw,values}投影应为68d21e66fd66dc6db1f20f368fdd008b15953ec839e19e794487bad6c6a56625，文件却为87a410...，后者包含rowIndex和recordKey。",
+        "next-button同URL实际6行完全没变化，但为第二次观测分配新snapshotId S2而recordKey从S1:i变S2:i；按fixture算法完整Record的hash改变，误认换页成功并重复采集。",
+        "semantics的pageIdentity=origin+规范URL也未定义为精确字符串/envelope；fixture使用单一规范URL，直接origin拼接会得到第三个不兼容hash。"
+      ],
+      "impact": "按规范实现的signature无法通过向量；按向量实现会把snapshotId变化当页面变化，破坏用户明确要求的完整重复页保护。",
+      "minimalFix": [
+        "定义唯一PageSignatureEnvelope，records仅为按rowIndex排序的{raw,values}（排除recordKey/snapshotId/owner/epoch及其他观测身份）；它不能依赖为每次观测新生成的ID。",
+        "明确pageIdentity采用规范URL本身或结构{origin,url}，给出固定canonical字节，替换所有不匹配hash和相关引用。",
+        "补同URL相同raw/values但snapshotId不同→signature相同；前5行同、第6行改变→signature不同的独立向量。"
+      ],
+      "acceptance": [
+        "该三批页按所选envelope静态hash与fixture一致；next-button没有真实内容变化时不得seal第二页、不得盲click重试；真正第6行变化可识别。"
+      ],
+      "confidence": "high",
+      "verification": {
+        "stage": [
+          {
+            "index": 0,
+            "digestMatches": true,
+            "byteCount": 252,
+            "declaredBytes": 252
+          },
+          {
+            "index": 1,
+            "digestMatches": true,
+            "byteCount": 252,
+            "declaredBytes": 252
+          },
+          {
+            "index": 2,
+            "digestMatches": true,
+            "byteCount": 252,
+            "declaredBytes": 252
+          }
+        ],
+        "sealBytes": 756,
+        "declaredSignature": "87a410292821abdb761ecce2187c0e7a43ac8840078c4f03774f43addad202f1",
+        "fullRecordSignature": "87a410292821abdb761ecce2187c0e7a43ac8840078c4f03774f43addad202f1",
+        "rawValuesSignature": "68d21e66fd66dc6db1f20f368fdd008b15953ec839e19e794487bad6c6a56625",
+        "newSnapshotFullRecordSignature": "3565eb822ca156c363e5d47678a92074f7a06e4c74442d3dbf35735de6c658a7",
+        "planHashMatches": true,
+        "commandHashMatches": true
+      }
+    },
+    {
+      "id": "PIC-07",
+      "severity": "P1",
+      "blocking": true,
+      "topic": "RunHost空闲投影",
+      "title": "首次registerHost没有run时无法生成合法Projection，snapshotRun响应也与绑定结构不一致",
+      "evidence": [
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 121,
+          "end": 125,
+          "pointer": "/interfaces/0",
+          "observation": "registration alone does not claim run；返回projection"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1947,
+          "end": 1988,
+          "pointer": "/$defs/Projection/properties/run",
+          "observation": "run只$ref Run；required包含run，不能为null"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 219,
+          "end": 223,
+          "pointer": "/interfaces/14/output",
+          "observation": "snapshotRun输出扁平state/counts/checkpoint/pendingCommands/downloadProjection/runRevision"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 385,
+          "end": 390,
+          "pointer": "/schemaBindings/RunHostProjection",
+          "observation": "RunHostProjection绑定Projection嵌套结构"
+        }
+      ],
+      "counterexample": [
+        "干净profile首次工具窗口registerHost，不应claim run；自然空闲投影为{run:null,pendingCommandIds:[],exportJobIds:[],eventSeq:0,slotAvailable:true}，但Projection.run必须object。",
+        "snapshotRun按文字返回扁平对象则不能通过Projection schema，按schema返回嵌套对象则不符接口output。"
+      ],
+      "impact": "正常启动和UI重同步的公共接口没有同一可验证返回，迫使下游伪造run或私加兼容分支。",
+      "minimalFix": [
+        "Projection.run改为Run|null，并约束null时pending为空和slotAvailable真实；不创建伪造Run。",
+        "定义并绑定RegisterHostResponse与SnapshotRunResponse，明确idle/active/terminal/tombstone状态；把接口output统一到确切schema。"
+      ],
+      "acceptance": [
+        "干净profile登记返回合法idle projection且runs中不新建业务run；snapshotRun和registerHost响应均可按声明schema验证。"
+      ],
+      "confidence": "high",
+      "independentLane": "code-reviewer"
+    },
+    {
+      "id": "PIC-09",
+      "severity": "P2",
+      "blocking": true,
+      "topic": "quota状态一致性",
+      "title": "E_QUOTA要求interrupted，但run状态机没有对应转移",
+      "evidence": [
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 38,
+          "end": 38,
+          "observation": "磁盘quota与profile配额不足为interrupted并标E_QUOTA"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 43,
+          "end": 53,
+          "pointer": "/run/5",
+          "observation": "running|preparing -- known-failure --> failed；interrupted路径只列host-loss"
+        },
+        {
+          "file": "contracts/fixtures/scenarios.json",
+          "start": 138,
+          "end": 163,
+          "pointer": "/cases[id=three-batch-last-fails]/expected/run",
+          "observation": "run: interrupted with E_QUOTA"
+        }
+      ],
+      "counterexample": [
+        "running下P0已seal2行，P1前两批ACK，第3批发生quota不足。照run表归为known-failure得到failed，照semantics/fixture必须interrupted/E_QUOTA。"
+      ],
+      "impact": "规范状态表和既定验收预期不同，UI恢复/导出标签及自动退役处理可能不同。",
+      "minimalFix": [
+        "添加quota/profile-quota专属转移至interrupted，和一般known-failure区分；明确与stop先提交的终态优先级。"
+      ],
+      "acceptance": [
+        "第3批E_QUOTA时P1 aborted，无该批ACK；保留P0 count2/pages1/checkpointP0，run返回interrupted/E_QUOTA；若stop先提交按既定stopping规则结算。"
+      ],
+      "confidence": "high",
+      "independentLane": "code-reviewer"
+    },
+    {
+      "id": "PIC-10",
+      "severity": "P1",
+      "blocking": true,
+      "topic": "执行tab创建gap与never-created证据",
+      "title": "尚未绑定的tabs.create也有外部效果gap，never-created不能从target=null推得",
+      "evidence": [
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 142,
+          "end": 153,
+          "pointer": "/interfaces/3",
+          "observation": "claim为preparing，bindTarget接收createdTabId；没有持久创建准入/未知创建协议"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1787,
+          "end": 1815,
+          "pointer": "/$defs/RetirementEvidence",
+          "observation": "oldTarget允许null；targetAbsenceEvidence允许never-created"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 27,
+          "end": 30,
+          "observation": "只在围栏+旧执行tab不存在一起持久提交后释放slot"
+        }
+      ],
+      "counterexample": [
+        "R1 claim→tabs.create已调用但callback/ID登记未到→stop/host失联进入退役。",
+        "若把target=null当never-created并释放slot，R2可创建执行tab；随后R1创建结果迟到，epoch只能拒绝bind，却没有旧tab持久归属供关闭；profile同时存在两个执行tab。",
+        "若永不使用never-created且无唯一恢复证据，则旧slot永久卡住；两种实现均无法兑现完整恢复。"
+      ],
+      "impact": "现有围栏阻止旧命令，不能撤回已经开始的tab创建；安全释放和可恢复退役缺少创建阶段。",
+      "minimalFix": [
+        "在现有commandJournal持久化target-create意图、不可复用creationId、browserSession身份和prepared/dispatched/known/unknown状态；创建最多获准一次，DB/Chrome gap不重放。",
+        "never-created只允许从未获准创建的持久证据。未知创建保持slot；迟到callback必须归属旧retirement，登记精确tab并关闭/验证absence，不得绑定新run。",
+        "选定可恢复的唯一创建证据，例如包内bootstrap URL+creationId再握手；0/多候选保持unknown，不以activeTab/最近tab猜测。"
+      ],
+      "acceptance": [
+        "分别在创建前、调用后未存ID、callback迟到的位置stop或终止SW；未知创建期间claim拒绝；精确旧tab退役并持久absence后仅释放一次。"
+      ],
+      "confidence": "high",
+      "independentLane": "architect"
+    },
+    {
+      "id": "PIC-11",
+      "severity": "P1",
+      "blocking": true,
+      "topic": "跨浏览器session恢复的tab身份",
+      "title": "持久tabId不带浏览器session身份，恢复retireTarget可能关闭无关用户tab",
+      "evidence": [
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 369,
+          "end": 409,
+          "pointer": "/$defs/Target",
+          "observation": "targetSessionId为应用会话；无browserSessionIncarnation"
+        },
+        {
+          "file": "docs/contracts/schema.json",
+          "start": 1767,
+          "end": 1835,
+          "pointer": "/$defs/RetirementEvidence",
+          "observation": "持久oldTarget仅引用Target"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 212,
+          "end": 216,
+          "pointer": "/interfaces/13",
+          "observation": "Chrome remove exact old tab；按tabId remove/get/onRemoved取absence"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/extensions/reference/api/tabs",
+          "section": "Tab.id; remove(); onRemoved",
+          "evidenceType": "official-api-documentation",
+          "observation": "Tab ID仅保证browser session内唯一；remove只收数字tabIds，onRemoved提供tabId/windowId"
+        }
+      ],
+      "counterexample": [
+        "R1保存tabId42并完成围栏，但absence未提交；Chrome退出/重启。",
+        "新browser session用户无关tab获得数字42；新host读取旧retirement执行remove(42)，关闭无关tab并误把onRemoved/get-not-found当旧目标消失。",
+        "应用targetSessionId/旧documentId仍在IDB，不能让tabs.remove原子检查新session的数字42是否真是原tab。"
+      ],
+      "impact": "设计可能关闭用户已有tab，属于真实可实施安全边界；这是协议反例推断，未声称已在Chrome复现ID重用。",
+      "minimalFix": [
+        "Target、create intent与RetirementEvidence绑定browserSessionIncarnation，并明确生成/保留机制（SW重启不变，浏览器session重建变化）。",
+        "跨session禁止仅凭旧数字ID remove/get认领absence；选择固定agent/唯一创建凭据的重新识别或人工退役路径。会话结束本身不证明恢复tab不存在。",
+        "只有当前session和目标真实归属证据齐全才删除；身份不明保持slot并解释，不能删除同数字无关tab。"
+      ],
+      "acceptance": [
+        "持久retirement跨session恢复，用无关tab占同数字ID：无关tab不得关闭，其移除事件不得释放旧slot；唯一确认的旧目标可退役。"
+      ],
+      "confidence": "high",
+      "independentLane": "architect",
+      "externalEvidenceNote": "API事实已查官方文档；数字ID复用trace为符合API边界的反例推断。"
+    },
+    {
+      "id": "PIC-12",
+      "severity": "P2",
+      "blocking": true,
+      "topic": "slot释放幂等与当前owner CAS",
+      "title": "退役释放缺少当前slot归属CAS，重复absence结果可清空新run的slot",
+      "evidence": [
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 54,
+          "end": 58,
+          "pointer": "/db/indexes/runs",
+          "observation": "slotKey singleton for profile"
+        },
+        {
+          "file": "docs/contracts/contract.json",
+          "start": 94,
+          "end": 94,
+          "pointer": "/db/note",
+          "observation": "runs singleton slot row stores slot owner + retired target evidence"
+        },
+        {
+          "file": "docs/contracts/state-machines.json",
+          "start": 85,
+          "end": 101,
+          "pointer": "/run/12",
+          "observation": "IDB retirement evidence commits then global slot release；正常终态retire-resources仍保持同终态"
+        },
+        {
+          "file": "docs/contracts/semantics.md",
+          "start": 29,
+          "end": 30,
+          "observation": "围栏和absence持久后释放；未明确release必须匹配当前slot owner且与写released同事务"
+        }
+      ],
+      "counterexample": [
+        "同一R1 retirement的tabs.get与onRemoved各引发一份完成结果A/B。A先提交release；R2随后claim。",
+        "B迟到时旧R1围栏/absence证据仍成立，正常终态也仍满足retire-resources的before=terminal；若按当前文字再次清singleton slot，R3可claim，而R2仍在跑。"
+      ],
+      "impact": "claim有CAS但release无对称合同，两个实际run可能同时获准；不能靠回调只到一次保证单任务。",
+      "minimalFix": [
+        "同一runs/journal IDB事务核slot.currentRunId/ownerEpoch/retirementId和old retirement未released，再写absence/retirementState=released与清slot。",
+        "已释放或owner不匹配的重复回调仅返回原历史退役结果，不改slot；为retireTarget定义持久幂等结果。"
+      ],
+      "acceptance": [
+        "A释放R1→R2claim→B重复提交：slot仍属于R2，R3claim被拒绝，R1release只发生一次。"
+      ],
+      "confidence": "high",
+      "independentLane": "architect"
+    }
+  ],
+  "resolvedDuringReview": [
+    {
+      "candidateId": "PIC-03",
+      "topic": "targetVersion原为optional",
+      "status": "closed-in-current-snapshot",
+      "evidence": "schema.json /$defs/Target/required 已包含targetVersion；完整page来源绑定仍见PIC-02。"
+    },
+    {
+      "candidateId": "PIC-05",
+      "topic": "v3每Record64KiB遗漏",
+      "status": "closed-in-current-snapshot",
+      "evidence": "semantics.md:60已明确raw+values canonical UTF-8 64KiB；生产边界验证仍pending。"
+    },
+    {
+      "topic": "DownloadAttempt timedOutAt/candidates/mappedAt/deadline结构",
+      "status": "closed-in-current-snapshot",
+      "evidence": "DownloadAttempt已新增timedOutAt/candidateDownloadIds/mappedAt/submissionCount，prepared阶段deadline可null。"
+    },
+    {
+      "topic": "v3授权语义",
+      "status": "aligned-in-current-snapshot",
+      "evidence": "free1模板/单页100行，Pro50模板，72h离线，已批run按授权快照至本轮结束；签名编码与tier分支已明确。"
+    },
+    {
+      "topic": "迁移数值/URL/CSV语义",
+      "status": "aligned-in-current-snapshot",
+      "evidence": "number exponent/安全整数结果，resolve-url按documentBaseURI，CSV null/empty均零长度单元（不是空格字符）；3类主向量和补充向量完整性通过。"
+    },
+    {
+      "topic": "3批stage/download基础wire向量",
+      "status": "added-during-review-and-read",
+      "evidence": "page-transaction.json/transaction-template.json/download-attempts.json已加入；不再报不存在wire向量。其pageSignature冲突见PIC-06。"
+    },
+    {
+      "candidateId": "PIC-08",
+      "topic": "Command payload/timeout和固定raw读协议",
+      "status": "closed-in-current-snapshot",
+      "evidence": "Command新增kind匹配ReadPagePayload/NextLinkPayload/NextButtonPayload，NextButtonPayload要求timeoutMs；PageReadData/End、rawOnlyAgent、RunHost同compiler转换、plan绑定、128KiB frame、2待stageACK和精确documentId导航已定义。remaining snapshot admission/provenance gap见PIC-02。",
+      "latestChangeVerifiedBy": "leader read-only review; original two peer lanes completed before this latest edit"
+    }
+  ],
+  "acceptedDesignChoices": [
+    "cancel/dispatched IDB提交顺序已定义；dispatch→Chrome gap效果未知且不盲重放，停止后可能出现已获准外部效果。",
+    "paused_unknown不自动接管；旧epoch围栏+真实tab absence持久后才可释放slot；剩余创建/session/release CAS见阻断项。",
+    "stage ACK只暂存；3批第3批失败整页不可见，不推进计数/checkpoint；seal-before-stop保留完整页。",
+    "downloadId仅启动；完整URL/扩展/时间唯一映射且downloadId去重；0/多候选不自动重下。",
+    "deadline_unknown/mapping_unknown迟到唯一complete可解析原attempt并保留timeout/release历史，新job/attempt/Blob URL独立；explicit abandon仅审计不复活。",
+    "diskHashVerified=false，不把Artifact提交前hash或浏览器complete解释为读取磁盘文件。"
+  ],
+  "validation": {
+    "performed": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B contracts/fixtures/migration/verify.py",
+        "result": "fixture-static-integrity-verified",
+        "counts": {
+          "migrationVectors": 3,
+          "strictConversionVectors": 29,
+          "strictUrlVectors": 19,
+          "csvFormulaSafetyVectors": 45,
+          "templateRejectionVectors": 9
+        },
+        "productConverterExecuted": false,
+        "chromeAcceptanceExecuted": false
+      },
+      {
+        "kind": "focused read-only schema-declaration probes",
+        "result": "确认idle Projection.run不接受null；当前Command discriminator/NextButtonPayload.timeoutMs/Target.targetVersion/DownloadAttempt及64KiB约束存在。未再保留已关闭payload问题。",
+        "fullDraft202012Validation": false
+      },
+      {
+        "kind": "read-only Node canonical SHA-256 probes for newly added 3-batch fixture",
+        "result": "3 stage digest和252 bytes各匹配，总756 bytes；read-command planHash/command digest匹配；pageSignature匹配含recordKey的完整Record而不匹配规范raw+values，换snapshotId即改变该hash。",
+        "productExecuted": false,
+        "details": {
+          "stage": [
+            {
+              "index": 0,
+              "digestMatches": true,
+              "byteCount": 252,
+              "declaredBytes": 252
+            },
+            {
+              "index": 1,
+              "digestMatches": true,
+              "byteCount": 252,
+              "declaredBytes": 252
+            },
+            {
+              "index": 2,
+              "digestMatches": true,
+              "byteCount": 252,
+              "declaredBytes": 252
+            }
+          ],
+          "sealBytes": 756,
+          "declaredSignature": "87a410292821abdb761ecce2187c0e7a43ac8840078c4f03774f43addad202f1",
+          "fullRecordSignature": "87a410292821abdb761ecce2187c0e7a43ac8840078c4f03774f43addad202f1",
+          "rawValuesSignature": "68d21e66fd66dc6db1f20f368fdd008b15953ec839e19e794487bad6c6a56625",
+          "newSnapshotFullRecordSignature": "3565eb822ca156c363e5d47678a92074f7a06e4c74442d3dbf35735de6c658a7",
+          "planHashMatches": true,
+          "commandHashMatches": true
+        }
+      }
+    ],
+    "limitations": [
+      "系统Python无jsonschema，未安装依赖，也未声称执行完整Draft2020-12校验。",
+      "所有race counterexample是协议推演；未执行生产Chrome竞态、浏览器重启或tabId复用实验。",
+      "未运行生产代码、lint/typecheck/build/pack/M01–M11；本范围没有生产实现可验收。",
+      "M12商业和签发运营证据仍独立pending，不作为本轮协议审查阻断理由。"
+    ]
+  },
+  "externalReferences": [
+    {
+      "title": "Chrome Tabs API",
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/tabs",
+      "supports": "Tab IDs unique only within browser session; tabs.remove accepts numeric tabIds; onRemoved carries numeric tabId/windowId",
+      "appliesTo": "PIC-11",
+      "inferenceBoundary": "实际tabId复用和错误关闭的trace为反例推断，并非已复现产品缺陷。"
+    }
+  ],
+  "handoff": "本协议初审范围已完成；8项blockingDesignGaps须补明确结构/事务/状态规则及反例验收，再参加用户预告的最终增量综合review。未评同期framework/task/test/registry，不将02A/02B命名变化当作修复，不实施生产。",
+  "protocolReadyForImplementation": false,
+  "phaseNamingNote": "02A基础环境、02B关键迁移可靠底座与03领域的命名不改变协议阻断判断；本轮未评估registry或主代理同期计划。"
+}

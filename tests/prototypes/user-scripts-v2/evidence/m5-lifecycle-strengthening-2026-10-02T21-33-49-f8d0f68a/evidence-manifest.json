@@ -1,0 +1,30 @@
+{
+  "candidateSha256": "587a05918e2b7d19c7a513be05c2e82430d7aafc3e659ef4f98f53282361cf40",
+  "files": [
+    {
+      "path": "checkpoint.json",
+      "bytes": 52541,
+      "sha256": "81c6f71f3d9b2d2681d8c0c271900925dccd859108e0e9220560d1219a62f152"
+    },
+    {
+      "path": "checkpoint.md",
+      "bytes": 3497,
+      "sha256": "3ec839b3da8a13c86f408becd330d089f152096860a7c69376333ab60d69c6a4"
+    },
+    {
+      "path": "fixture-host.html.patch",
+      "bytes": 581,
+      "sha256": "46209ba0fdcb7266d2a13a57724c3d87f0b2ae54cde00c4c994402cc7c6cb7c3"
+    },
+    {
+      "path": "fixture-host.js.patch",
+      "bytes": 9770,
+      "sha256": "9b4c153d2d6808877ad954438ce1f973801b32a41ac050d854206dd7a14ed937"
+    },
+    {
+      "path": "run-headed.mjs.patch",
+      "bytes": 23001,
+      "sha256": "6c3ee916137ee1fd98cb7b95388621be630930d5f8ed6d0a2a15817d7eb7d54a"
+    }
+  ]
+}

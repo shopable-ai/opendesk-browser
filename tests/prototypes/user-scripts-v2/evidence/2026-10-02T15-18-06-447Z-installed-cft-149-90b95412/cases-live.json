@@ -1,0 +1,2317 @@
+[
+  {
+    "id": "SWITCH-OFF",
+    "phase": "F1",
+    "required": true,
+    "expectation": "UI off; real userScripts method unavailable and injection has no side effect",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "ui": {
+        "before": "false",
+        "after": "false",
+        "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "method": "rendered Chrome extension details UI click"
+      },
+      "availability": {
+        "defined": false,
+        "executeType": "undefined",
+        "available": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read properties of undefined (reading 'getScripts')",
+          "stack": "TypeError: Cannot read properties of undefined (reading 'getScripts')\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:43:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+        }
+      },
+      "raw": {
+        "kind": "rejected",
+        "elapsedMs": 0,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read properties of undefined (reading 'execute')",
+          "stack": "TypeError: Cannot read properties of undefined (reading 'execute')\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:14:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+        }
+      },
+      "denied": null
+    },
+    "elapsedMs": 416,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "SWITCH-ON",
+    "phase": "F1",
+    "required": true,
+    "expectation": "UI on + context reload; execute available, messaging remains disabled",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "ui": {
+        "before": "false",
+        "after": "true",
+        "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "method": "rendered Chrome extension details UI click"
+      },
+      "availability": {
+        "defined": true,
+        "executeType": "function",
+        "scripts": [],
+        "available": true
+      },
+      "configurations": []
+    },
+    "elapsedMs": 719,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-RAW-PROMISE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Native execute waits for Promise and returns exact document/frame",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 224,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "page": "target",
+            "value": "awaited"
+          },
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 235,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-RAW-THROW",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Record native throw/rejection error shape; no adapter error hiding",
+    "status": "failed",
+    "pass": false,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 2,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 12,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-RAW-REJECT",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Record native throw/rejection error shape; no adapter error hiding",
+    "status": "failed",
+    "pass": false,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 2,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 4,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-RAW-UNDEFINED",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Record native undefined presence and serialization separately",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 3,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-CODE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Generated code awaits typed JSON args, including quotes, Unicode and undefined",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "source": "async (text, absent, obj) => { await new Promise(r=>setTimeout(r,60)); return {text, absent: absent === undefined, proto: obj['__proto__'], missing: undefined, page: document.body.dataset.page}; }",
+      "result": {
+        "native": {
+          "kind": "resolved",
+          "elapsedMs": 67,
+          "results": [
+            {
+              "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+              "frameId": 0,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "ok": true,
+                "protocol": "opendesk.f1.user-scripts-v2",
+                "value": {
+                  "type": "object",
+                  "value": [
+                    [
+                      "text",
+                      {
+                        "type": "string",
+                        "value": "\"'\\\n中文 </script>"
+                      }
+                    ],
+                    [
+                      "absent",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ],
+                    [
+                      "proto",
+                      {
+                        "type": "string",
+                        "value": "safe"
+                      }
+                    ],
+                    [
+                      "missing",
+                      {
+                        "type": "undefined"
+                      }
+                    ],
+                    [
+                      "page",
+                      {
+                        "type": "string",
+                        "value": "target"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "object",
+            "value": [
+              [
+                "text",
+                {
+                  "type": "string",
+                  "value": "\"'\\\n中文 </script>"
+                }
+              ],
+              [
+                "absent",
+                {
+                  "type": "boolean",
+                  "value": true
+                }
+              ],
+              [
+                "proto",
+                {
+                  "type": "string",
+                  "value": "safe"
+                }
+              ],
+              [
+                "missing",
+                {
+                  "type": "undefined"
+                }
+              ],
+              [
+                "page",
+                {
+                  "type": "string",
+                  "value": "target"
+                }
+              ]
+            ]
+          }
+        },
+        "dispatchCount": 1
+      }
+    },
+    "elapsedMs": 134,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-ADAPTER-PROMISE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 105,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "ok": true,
+              "protocol": "opendesk.f1.user-scripts-v2",
+              "value": {
+                "type": "object",
+                "value": [
+                  [
+                    "ok",
+                    {
+                      "type": "string",
+                      "value": "awaited"
+                    }
+                  ]
+                ]
+              }
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "value",
+        "value": {
+          "type": "object",
+          "value": [
+            [
+              "ok",
+              {
+                "type": "string",
+                "value": "awaited"
+              }
+            ]
+          ]
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 108,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-ADAPTER-THROW",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 4,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "error": {
+                "message": "wrapped-sync-error",
+                "name": "TypeError"
+              },
+              "ok": false,
+              "protocol": "opendesk.f1.user-scripts-v2"
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "evaluation-error",
+        "error": {
+          "message": "wrapped-sync-error",
+          "name": "TypeError"
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 8,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-ADAPTER-REJECT",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 1,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "error": {
+                "message": "wrapped-promise-error",
+                "name": "RangeError"
+              },
+              "ok": false,
+              "protocol": "opendesk.f1.user-scripts-v2"
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "evaluation-error",
+        "error": {
+          "message": "wrapped-promise-error",
+          "name": "RangeError"
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 2,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-ADAPTER-UNDEFINED",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 2,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "ok": true,
+              "protocol": "opendesk.f1.user-scripts-v2",
+              "value": {
+                "type": "undefined"
+              }
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "value",
+        "value": {
+          "type": "undefined"
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 4,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-ADAPTER-CLOSURE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 1,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "error": {
+                "message": "missingClosureVariableF1 is not defined",
+                "name": "ReferenceError"
+              },
+              "ok": false,
+              "protocol": "opendesk.f1.user-scripts-v2"
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "evaluation-error",
+        "error": {
+          "message": "missingClosureVariableF1 is not defined",
+          "name": "ReferenceError"
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 3,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-FILE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "ScriptSource file only executes actual packaged file and awaits result",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "raw": {
+        "kind": "resolved",
+        "elapsedMs": 79,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "href": "http://127.0.0.1:62886/top?id=target",
+              "kind": "file",
+              "page": "target"
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "effect": "executed"
+    },
+    "elapsedMs": 81,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-WORLD",
+    "phase": "F1",
+    "required": true,
+    "expectation": "USER_SCRIPT isolates page globals; MAIN sees page globals; messaging not exposed",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 40,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "extensionRuntime": "undefined",
+            "pageGlobal": "undefined"
+          },
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 42,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-LEGACY",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Legacy statements ignore args and return true without awaiting detached work",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 3,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": true,
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 4,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-DOCUMENT-SAME",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Only selected real iframe document receives mutation; parent/sibling/other tab unchanged",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "target": {
+        "tabId": 695341053,
+        "frameId": 6,
+        "documentId": "ED5184FFC079A15164BFE08EB6B7AC58",
+        "url": "http://127.0.0.1:62886/frame?id=same"
+      },
+      "result": {
+        "native": {
+          "kind": "resolved",
+          "elapsedMs": 5,
+          "results": [
+            {
+              "documentId": "ED5184FFC079A15164BFE08EB6B7AC58",
+              "frameId": 6,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "ok": true,
+                "protocol": "opendesk.f1.user-scripts-v2",
+                "value": {
+                  "type": "string",
+                  "value": "same"
+                }
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "string",
+            "value": "same"
+          }
+        },
+        "dispatchCount": 1
+      },
+      "observed": [
+        {
+          "url": "http://127.0.0.1:62886/top?id=target",
+          "page": "target",
+          "marker": null
+        },
+        {
+          "url": "http://127.0.0.1:62886/frame?id=same",
+          "page": "same",
+          "marker": "USER_SCRIPT-same"
+        },
+        {
+          "url": "http://localhost:62886/frame?id=cross",
+          "page": "cross",
+          "marker": null
+        }
+      ],
+      "otherMarker": null
+    },
+    "elapsedMs": 19,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-DOCUMENT-CROSS",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Only selected real iframe document receives mutation; parent/sibling/other tab unchanged",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "target": {
+        "tabId": 695341053,
+        "frameId": 7,
+        "documentId": "BFC053CAD3CDD30906C528930B5B8917",
+        "url": "http://localhost:62886/frame?id=cross"
+      },
+      "result": {
+        "native": {
+          "kind": "resolved",
+          "elapsedMs": 126,
+          "results": [
+            {
+              "documentId": "BFC053CAD3CDD30906C528930B5B8917",
+              "frameId": 7,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "ok": true,
+                "protocol": "opendesk.f1.user-scripts-v2",
+                "value": {
+                  "type": "string",
+                  "value": "cross"
+                }
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "string",
+            "value": "cross"
+          }
+        },
+        "dispatchCount": 1
+      },
+      "observed": [
+        {
+          "url": "http://127.0.0.1:62886/top?id=target",
+          "page": "target",
+          "marker": null
+        },
+        {
+          "url": "http://127.0.0.1:62886/frame?id=same",
+          "page": "same",
+          "marker": "USER_SCRIPT-same"
+        },
+        {
+          "url": "http://localhost:62886/frame?id=cross",
+          "page": "cross",
+          "marker": "USER_SCRIPT-cross"
+        }
+      ],
+      "otherMarker": null
+    },
+    "elapsedMs": 147,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-RAW-PROMISE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Native execute waits for Promise and returns exact document/frame",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 109,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "page": "target",
+            "value": "awaited"
+          },
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 111,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-RAW-THROW",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Record native throw/rejection error shape; no adapter error hiding",
+    "status": "failed",
+    "pass": false,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 9,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 37,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-RAW-REJECT",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Record native throw/rejection error shape; no adapter error hiding",
+    "status": "failed",
+    "pass": false,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-RAW-UNDEFINED",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Record native undefined presence and serialization separately",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 12,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 13,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-CODE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Generated code awaits typed JSON args, including quotes, Unicode and undefined",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "source": "async (text, absent, obj) => { await new Promise(r=>setTimeout(r,60)); return {text, absent: absent === undefined, proto: obj['__proto__'], missing: undefined, page: document.body.dataset.page}; }",
+      "result": {
+        "native": {
+          "kind": "resolved",
+          "elapsedMs": 61,
+          "results": [
+            {
+              "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+              "frameId": 0,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "ok": true,
+                "protocol": "opendesk.f1.user-scripts-v2",
+                "value": {
+                  "type": "object",
+                  "value": [
+                    [
+                      "text",
+                      {
+                        "type": "string",
+                        "value": "\"'\\\n中文 </script>"
+                      }
+                    ],
+                    [
+                      "absent",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ],
+                    [
+                      "proto",
+                      {
+                        "type": "string",
+                        "value": "safe"
+                      }
+                    ],
+                    [
+                      "missing",
+                      {
+                        "type": "undefined"
+                      }
+                    ],
+                    [
+                      "page",
+                      {
+                        "type": "string",
+                        "value": "target"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "object",
+            "value": [
+              [
+                "text",
+                {
+                  "type": "string",
+                  "value": "\"'\\\n中文 </script>"
+                }
+              ],
+              [
+                "absent",
+                {
+                  "type": "boolean",
+                  "value": true
+                }
+              ],
+              [
+                "proto",
+                {
+                  "type": "string",
+                  "value": "safe"
+                }
+              ],
+              [
+                "missing",
+                {
+                  "type": "undefined"
+                }
+              ],
+              [
+                "page",
+                {
+                  "type": "string",
+                  "value": "target"
+                }
+              ]
+            ]
+          }
+        },
+        "dispatchCount": 1
+      }
+    },
+    "elapsedMs": 83,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-ADAPTER-PROMISE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 109,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "ok": true,
+              "protocol": "opendesk.f1.user-scripts-v2",
+              "value": {
+                "type": "object",
+                "value": [
+                  [
+                    "ok",
+                    {
+                      "type": "string",
+                      "value": "awaited"
+                    }
+                  ]
+                ]
+              }
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "value",
+        "value": {
+          "type": "object",
+          "value": [
+            [
+              "ok",
+              {
+                "type": "string",
+                "value": "awaited"
+              }
+            ]
+          ]
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 112,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-ADAPTER-THROW",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 1,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "error": {
+                "message": "wrapped-sync-error",
+                "name": "TypeError"
+              },
+              "ok": false,
+              "protocol": "opendesk.f1.user-scripts-v2"
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "evaluation-error",
+        "error": {
+          "message": "wrapped-sync-error",
+          "name": "TypeError"
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 3,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-ADAPTER-REJECT",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 1,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "error": {
+                "message": "wrapped-promise-error",
+                "name": "RangeError"
+              },
+              "ok": false,
+              "protocol": "opendesk.f1.user-scripts-v2"
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "evaluation-error",
+        "error": {
+          "message": "wrapped-promise-error",
+          "name": "RangeError"
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 3,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-ADAPTER-UNDEFINED",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 0,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "ok": true,
+              "protocol": "opendesk.f1.user-scripts-v2",
+              "value": {
+                "type": "undefined"
+              }
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "value",
+        "value": {
+          "type": "undefined"
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 2,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-ADAPTER-CLOSURE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Typed wrapper preserves awaited value/error/undefined; no closure capture",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "native": {
+        "kind": "resolved",
+        "elapsedMs": 1,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "error": {
+                "message": "missingClosureVariableF1 is not defined",
+                "name": "ReferenceError"
+              },
+              "ok": false,
+              "protocol": "opendesk.f1.user-scripts-v2"
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "accepted": {
+        "kind": "evaluation-error",
+        "error": {
+          "message": "missingClosureVariableF1 is not defined",
+          "name": "ReferenceError"
+        }
+      },
+      "dispatchCount": 1
+    },
+    "elapsedMs": 2,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-FILE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "ScriptSource file only executes actual packaged file and awaits result",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "raw": {
+        "kind": "resolved",
+        "elapsedMs": 77,
+        "results": [
+          {
+            "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": {
+              "href": "http://127.0.0.1:62886/top?id=target",
+              "kind": "file",
+              "page": "target"
+            },
+            "hasError": false
+          }
+        ]
+      },
+      "effect": "executed"
+    },
+    "elapsedMs": 80,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-WORLD",
+    "phase": "F1",
+    "required": true,
+    "expectation": "USER_SCRIPT isolates page globals; MAIN sees page globals; messaging not exposed",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "extensionRuntime": "undefined",
+            "pageGlobal": "string"
+          },
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-LEGACY",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Legacy statements ignore args and return true without awaiting detached work",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": true,
+          "hasError": false
+        }
+      ]
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-DOCUMENT-SAME",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Only selected real iframe document receives mutation; parent/sibling/other tab unchanged",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "target": {
+        "tabId": 695341053,
+        "frameId": 6,
+        "documentId": "ED5184FFC079A15164BFE08EB6B7AC58",
+        "url": "http://127.0.0.1:62886/frame?id=same"
+      },
+      "result": {
+        "native": {
+          "kind": "resolved",
+          "elapsedMs": 0,
+          "results": [
+            {
+              "documentId": "ED5184FFC079A15164BFE08EB6B7AC58",
+              "frameId": 6,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "ok": true,
+                "protocol": "opendesk.f1.user-scripts-v2",
+                "value": {
+                  "type": "string",
+                  "value": "same"
+                }
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "string",
+            "value": "same"
+          }
+        },
+        "dispatchCount": 1
+      },
+      "observed": [
+        {
+          "url": "http://127.0.0.1:62886/top?id=target",
+          "page": "target",
+          "marker": null
+        },
+        {
+          "url": "http://127.0.0.1:62886/frame?id=same",
+          "page": "same",
+          "marker": "MAIN-same"
+        },
+        {
+          "url": "http://localhost:62886/frame?id=cross",
+          "page": "cross",
+          "marker": "USER_SCRIPT-cross"
+        }
+      ],
+      "otherMarker": null
+    },
+    "elapsedMs": 5,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-DOCUMENT-CROSS",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Only selected real iframe document receives mutation; parent/sibling/other tab unchanged",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "target": {
+        "tabId": 695341053,
+        "frameId": 7,
+        "documentId": "BFC053CAD3CDD30906C528930B5B8917",
+        "url": "http://localhost:62886/frame?id=cross"
+      },
+      "result": {
+        "native": {
+          "kind": "resolved",
+          "elapsedMs": 1,
+          "results": [
+            {
+              "documentId": "BFC053CAD3CDD30906C528930B5B8917",
+              "frameId": 7,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "ok": true,
+                "protocol": "opendesk.f1.user-scripts-v2",
+                "value": {
+                  "type": "string",
+                  "value": "cross"
+                }
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "string",
+            "value": "cross"
+          }
+        },
+        "dispatchCount": 1
+      },
+      "observed": [
+        {
+          "url": "http://127.0.0.1:62886/top?id=target",
+          "page": "target",
+          "marker": null
+        },
+        {
+          "url": "http://127.0.0.1:62886/frame?id=same",
+          "page": "same",
+          "marker": "MAIN-same"
+        },
+        {
+          "url": "http://localhost:62886/frame?id=cross",
+          "page": "cross",
+          "marker": "MAIN-cross"
+        }
+      ],
+      "otherMarker": null
+    },
+    "elapsedMs": 4,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "SOURCE-BOTH",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Real Chrome rejects invalid ScriptSource or conflicting document/frame target",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "User script must specify exactly one of 'code' or 'file' as a js source.",
+        "stack": "Error: User script must specify exactly one of 'code' or 'file' as a js source."
+      }
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "SOURCE-NEITHER",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Real Chrome rejects invalid ScriptSource or conflicting document/frame target",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "User script must specify exactly one of 'code' or 'file' as a js source.",
+        "stack": "Error: User script must specify exactly one of 'code' or 'file' as a js source."
+      }
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "SOURCE-FUNC-ARGS",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Real Chrome rejects invalid ScriptSource or conflicting document/frame target",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "TypeError",
+        "message": "Error in invocation of userScripts.execute(userScripts.UserScriptInjection injection, optional function callback): Error at parameter 'injection': Error at property 'js': Error at index 0: Unexpected property: 'func'.",
+        "stack": "TypeError: Error in invocation of userScripts.execute(userScripts.UserScriptInjection injection, optional function callback): Error at parameter 'injection': Error at property 'js': Error at index 0: Unexpected property: 'func'.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:14:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      }
+    },
+    "elapsedMs": 0,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "TARGET-DOC-FRAME",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Real Chrome rejects invalid ScriptSource or conflicting document/frame target",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "Cannot specify both 'frameIds' and 'documentIds'.",
+        "stack": "Error: Cannot specify both 'frameIds' and 'documentIds'."
+      }
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "SOURCE-MISSING-FILE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Real Chrome rejects invalid ScriptSource or conflicting document/frame target",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "kind": "rejected",
+      "elapsedMs": 1,
+      "error": {
+        "name": "Error",
+        "message": "Could not load file: 'does-not-exist.js'.",
+        "stack": "Error: Could not load file: 'does-not-exist.js'."
+      }
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "PRE-DISPATCH-NATIVE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Invalid function/value/target rejected before actual Chrome dispatch (adapter validation, not browser backend proof)",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "error": {
+        "name": "TypeError",
+        "message": "E_FUNCTION_SOURCE",
+        "stack": "TypeError: E_FUNCTION_SOURCE\n    at functionCode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:38:77)\n    at Object.native (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:79:21)\n    at Object.codecProbe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:88:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      },
+      "dispatchCount": 0
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "PRE-DISPATCH-BOUND",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Invalid function/value/target rejected before actual Chrome dispatch (adapter validation, not browser backend proof)",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "error": {
+        "name": "TypeError",
+        "message": "E_FUNCTION_SOURCE",
+        "stack": "TypeError: E_FUNCTION_SOURCE\n    at functionCode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:38:77)\n    at Object.bound (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:80:20)\n    at Object.codecProbe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:88:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      },
+      "dispatchCount": 0
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "PRE-DISPATCH-NONFINITE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Invalid function/value/target rejected before actual Chrome dispatch (adapter validation, not browser backend proof)",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "error": {
+        "name": "TypeError",
+        "message": "E_VALUE_UNSERIALIZABLE",
+        "stack": "TypeError: E_VALUE_UNSERIALIZABLE\n    at encode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:9:40)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:15:56\n    at Array.from (<anonymous>)\n    at encode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:15:36)\n    at functionCode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:40:23)\n    at Object.nonfinite (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:81:24)\n    at Object.codecProbe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:88:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      },
+      "dispatchCount": 0
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "PRE-DISPATCH-FUNCTIONARG",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Invalid function/value/target rejected before actual Chrome dispatch (adapter validation, not browser backend proof)",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "error": {
+        "name": "TypeError",
+        "message": "E_VALUE_UNSERIALIZABLE",
+        "stack": "TypeError: E_VALUE_UNSERIALIZABLE\n    at encode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:9:40)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:15:56\n    at Array.from (<anonymous>)\n    at encode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:15:36)\n    at functionCode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:40:23)\n    at Object.functionArg (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:82:26)\n    at Object.codecProbe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:88:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      },
+      "dispatchCount": 0
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "PRE-DISPATCH-BIGINT",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Invalid function/value/target rejected before actual Chrome dispatch (adapter validation, not browser backend proof)",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "error": {
+        "name": "TypeError",
+        "message": "E_VALUE_UNSERIALIZABLE",
+        "stack": "TypeError: E_VALUE_UNSERIALIZABLE\n    at encode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:9:40)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:15:56\n    at Array.from (<anonymous>)\n    at encode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:15:36)\n    at functionCode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:40:23)\n    at Object.bigint (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:83:21)\n    at Object.codecProbe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:88:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      },
+      "dispatchCount": 0
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "PRE-DISPATCH-CYCLE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Invalid function/value/target rejected before actual Chrome dispatch (adapter validation, not browser backend proof)",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "error": {
+        "name": "TypeError",
+        "message": "E_VALUE_CYCLE",
+        "stack": "TypeError: E_VALUE_CYCLE\n    at encode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:10:30)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:19:20\n    at Array.map (<anonymous>)\n    at encode (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:16:50)\n    at Object.cycle (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:84:64)\n    at Object.codecProbe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:88:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      },
+      "dispatchCount": 0
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "PRE-DISPATCH-MISSINGTARGET",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Invalid function/value/target rejected before actual Chrome dispatch (adapter validation, not browser backend proof)",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "error": {
+        "name": "TypeError",
+        "message": "E_TARGET_EXACT_REQUIRED",
+        "stack": "TypeError: E_TARGET_EXACT_REQUIRED\n    at exactTarget (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:59:11)\n    at Object.missingTarget (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:85:28)\n    at Object.codecProbe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:88:40)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      },
+      "dispatchCount": 0
+    },
+    "elapsedMs": 1,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "PACKAGED-MAIN-CALLBACK",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Fixed packaged scripting func/args delivers same document callback once; separate API from userScripts",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "raw": [
+        {
+          "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+          "frameId": 0,
+          "result": {
+            "delivered": true,
+            "eventId": "fixed-return"
+          }
+        }
+      ],
+      "observed": [
+        {
+          "id": "fixed-return",
+          "value": {
+            "text": "中文\"\\\n",
+            "type": "fixture"
+          }
+        }
+      ]
+    },
+    "elapsedMs": 3,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+    "phase": "F1",
+    "required": true,
+    "expectation": "UI switch revocation blocks new injection; already-dispatched outcome kept raw and fenced from accepted result",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "ui": {
+        "before": "true",
+        "after": "false",
+        "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "method": "rendered Chrome extension details UI click"
+      },
+      "availability": {
+        "defined": true,
+        "executeType": "function",
+        "available": false,
+        "error": {
+          "name": "Error",
+          "message": "'userScripts.getScripts' is not available in this context.",
+          "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:43:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+        }
+      },
+      "next": {
+        "kind": "rejected",
+        "elapsedMs": 0,
+        "error": {
+          "name": "Error",
+          "message": "'userScripts.execute' is not available in this context.",
+          "stack": "Error: 'userScripts.execute' is not available in this context.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:14:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+        }
+      },
+      "released": {
+        "released": true
+      },
+      "settled": {
+        "state": "settled",
+        "started": 1790954290493,
+        "result": {
+          "native": {
+            "kind": "resolved",
+            "elapsedMs": 320,
+            "results": [
+              {
+                "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "revoke-USER_SCRIPT"
+                        }
+                      ],
+                      [
+                        "released",
+                        {
+                          "type": "boolean",
+                          "value": true
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          },
+          "accepted": {
+            "kind": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "'userScripts.getScripts' is not available in this context.",
+              "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:33:11)"
+            }
+          },
+          "dispatchCount": 2
+        },
+        "finished": 1790954290813
+      },
+      "effects": {
+        "finished": "revoke-USER_SCRIPT",
+        "postRevoke": null
+      }
+    },
+    "elapsedMs": 534,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Navigation at actual pending barrier changes real document; no old result completes new target; no stale mutation reaches new doc",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "old": {
+        "tabId": 695341053,
+        "frameId": 0,
+        "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+        "url": "http://127.0.0.1:62886/top?id=target"
+      },
+      "current": {
+        "tabId": 695341053,
+        "frameId": 0,
+        "documentId": "EFDEA351E1FF46D6405DC139108B9664",
+        "url": "http://127.0.0.1:62886/top?id=after-USER_SCRIPT"
+      },
+      "released": {
+        "released": false,
+        "reason": "document fetch already ended"
+      },
+      "settled": {
+        "state": "settled",
+        "started": 1790954291029,
+        "result": {
+          "native": {
+            "kind": "resolved",
+            "elapsedMs": 41,
+            "results": [
+              {
+                "documentId": "C65404E4CD897D98E1EBC0B8C0DAAF8D",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "accepted": {
+            "kind": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "E_DOCUMENT_STALE",
+              "stack": "Error: E_DOCUMENT_STALE\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:69:11)\n    at async evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:33:5)"
+            }
+          },
+          "dispatchCount": 1
+        },
+        "finished": 1790954291077
+      },
+      "stale": {
+        "kind": "rejected",
+        "elapsedMs": 1,
+        "error": {
+          "name": "Error",
+          "message": "No document with id C65404E4CD897D98E1EBC0B8C0DAAF8D in tab with id 695341053",
+          "stack": "Error: No document with id C65404E4CD897D98E1EBC0B8C0DAAF8D in tab with id 695341053"
+        }
+      },
+      "fresh": {
+        "native": {
+          "kind": "resolved",
+          "elapsedMs": 0,
+          "results": [
+            {
+              "documentId": "EFDEA351E1FF46D6405DC139108B9664",
+              "frameId": 0,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "ok": true,
+                "protocol": "opendesk.f1.user-scripts-v2",
+                "value": {
+                  "type": "string",
+                  "value": "after-USER_SCRIPT"
+                }
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "string",
+            "value": "after-USER_SCRIPT"
+          }
+        },
+        "dispatchCount": 1
+      },
+      "staleEffect": null,
+      "oldCallback": {
+        "kind": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "page.evaluate: Error: No document with id C65404E4CD897D98E1EBC0B8C0DAAF8D in tab with id 695341053",
+          "stack": "page.evaluate: Error: No document with id C65404E4CD897D98E1EBC0B8C0DAAF8D in tab with id 695341053\n    at call (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:79:41)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:311:35\n    at async runCase (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:90:24)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:299:7"
+        }
+      },
+      "callbacks": []
+    },
+    "elapsedMs": 133,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+    "phase": "F1",
+    "required": true,
+    "expectation": "UI switch revocation blocks new injection; already-dispatched outcome kept raw and fenced from accepted result",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "ui": {
+        "before": "true",
+        "after": "false",
+        "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "method": "rendered Chrome extension details UI click"
+      },
+      "availability": {
+        "defined": true,
+        "executeType": "function",
+        "available": false,
+        "error": {
+          "name": "Error",
+          "message": "'userScripts.getScripts' is not available in this context.",
+          "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:43:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+        }
+      },
+      "next": {
+        "kind": "rejected",
+        "elapsedMs": 0,
+        "error": {
+          "name": "Error",
+          "message": "'userScripts.execute' is not available in this context.",
+          "stack": "Error: 'userScripts.execute' is not available in this context.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:14:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+        }
+      },
+      "released": {
+        "released": true
+      },
+      "settled": {
+        "state": "settled",
+        "started": 1790954291161,
+        "result": {
+          "native": {
+            "kind": "resolved",
+            "elapsedMs": 222,
+            "results": [
+              {
+                "documentId": "EFDEA351E1FF46D6405DC139108B9664",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "revoke-MAIN"
+                        }
+                      ],
+                      [
+                        "released",
+                        {
+                          "type": "boolean",
+                          "value": true
+                        }
+                      ]
+                    ]
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          },
+          "accepted": {
+            "kind": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "'userScripts.getScripts' is not available in this context.",
+              "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:66:28)\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:33:11)"
+            }
+          },
+          "dispatchCount": 2
+        },
+        "finished": 1790954291383
+      },
+      "effects": {
+        "finished": "revoke-MAIN",
+        "postRevoke": null
+      }
+    },
+    "elapsedMs": 427,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "MAIN-OLD-DOCUMENT-RACE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Navigation at actual pending barrier changes real document; no old result completes new target; no stale mutation reaches new doc",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "old": {
+        "tabId": 695341053,
+        "frameId": 0,
+        "documentId": "EFDEA351E1FF46D6405DC139108B9664",
+        "url": "http://127.0.0.1:62886/top?id=after-USER_SCRIPT"
+      },
+      "current": {
+        "tabId": 695341053,
+        "frameId": 0,
+        "documentId": "B911936FD1CF6D59CBC0C2E132207C08",
+        "url": "http://127.0.0.1:62886/top?id=after-MAIN"
+      },
+      "released": {
+        "released": false,
+        "reason": "document fetch already ended"
+      },
+      "settled": {
+        "state": "settled",
+        "started": 1790954291590,
+        "result": {
+          "native": {
+            "kind": "resolved",
+            "elapsedMs": 41,
+            "results": [
+              {
+                "documentId": "EFDEA351E1FF46D6405DC139108B9664",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "accepted": {
+            "kind": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "E_DOCUMENT_STALE",
+              "stack": "Error: E_DOCUMENT_STALE\n    at verifyCurrent (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/adapter.js:69:11)\n    at async evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:33:5)"
+            }
+          },
+          "dispatchCount": 1
+        },
+        "finished": 1790954291638
+      },
+      "stale": {
+        "kind": "rejected",
+        "elapsedMs": 0,
+        "error": {
+          "name": "Error",
+          "message": "No document with id EFDEA351E1FF46D6405DC139108B9664 in tab with id 695341053",
+          "stack": "Error: No document with id EFDEA351E1FF46D6405DC139108B9664 in tab with id 695341053"
+        }
+      },
+      "fresh": {
+        "native": {
+          "kind": "resolved",
+          "elapsedMs": 1,
+          "results": [
+            {
+              "documentId": "B911936FD1CF6D59CBC0C2E132207C08",
+              "frameId": 0,
+              "keys": [
+                "documentId",
+                "frameId",
+                "result"
+              ],
+              "hasResult": true,
+              "resultIsUndefined": false,
+              "result": {
+                "ok": true,
+                "protocol": "opendesk.f1.user-scripts-v2",
+                "value": {
+                  "type": "string",
+                  "value": "after-MAIN"
+                }
+              },
+              "hasError": false
+            }
+          ]
+        },
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "string",
+            "value": "after-MAIN"
+          }
+        },
+        "dispatchCount": 1
+      },
+      "staleEffect": null,
+      "oldCallback": {
+        "kind": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "page.evaluate: Error: No document with id EFDEA351E1FF46D6405DC139108B9664 in tab with id 695341053",
+          "stack": "page.evaluate: Error: No document with id EFDEA351E1FF46D6405DC139108B9664 in tab with id 695341053\n    at call (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:79:41)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:311:35\n    at async runCase (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:90:24)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:299:7"
+        }
+      },
+      "callbacks": []
+    },
+    "elapsedMs": 129,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "HOST-PERMISSION-REVOKE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Actual host permission removal rejects execute, independent of userScripts switch",
+    "status": "failed",
+    "pass": false,
+    "error": {
+      "name": "Error",
+      "message": "page.evaluate: Error: You cannot remove required permissions.",
+      "stack": "page.evaluate: Error: You cannot remove required permissions.\n    at call (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:79:41)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:320:29\n    at async runCase (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:90:24)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:318:5"
+    },
+    "elapsedMs": 2,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  },
+  {
+    "id": "HOST-PERMISSION-RESTORE",
+    "phase": "F1",
+    "required": true,
+    "expectation": "Trusted button gesture restores browser host permission and permits both worlds",
+    "status": "actual",
+    "pass": true,
+    "actual": {
+      "restore": {
+        "granted": true
+      },
+      "permissions": {
+        "origins": [
+          "http://127.0.0.1/*",
+          "http://localhost/*"
+        ],
+        "permissions": [
+          "tabs",
+          "webNavigation",
+          "scripting",
+          "userScripts"
+        ]
+      },
+      "results": [
+        {
+          "native": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "B911936FD1CF6D59CBC0C2E132207C08",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          },
+          "accepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "dispatchCount": 1
+        },
+        {
+          "native": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "B911936FD1CF6D59CBC0C2E132207C08",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          },
+          "accepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "dispatchCount": 1
+        }
+      ]
+    },
+    "elapsedMs": 24,
+    "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+  }
+]

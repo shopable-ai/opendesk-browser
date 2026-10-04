@@ -1,0 +1,38 @@
+{
+  "at": "2026-10-04T05:51:17.309829+00:00",
+  "provenance": "Agent-recorded summary of actual mcp__cua_repl.js calls in this chat; native runner contains corresponding exact DOM readbacks",
+  "mechanism": "cua.getApp on live PID verified from ps; testChrome.click on freshly observed AX menu/button IDs; native localhost permission Allow; no DOM values assigned or synthetic events",
+  "production": {
+    "chromePid": 15671,
+    "launcherPid": 15670,
+    "tabId": 2018982298,
+    "documentId": "FB8269F11A3A6D05B9C37EB453E35C1F",
+    "committedMode": "borrowed",
+    "permissionButton": 136,
+    "actions": [
+      "target mode menu",
+      "exact tab menu",
+      "exact document menu",
+      "Allow localhost",
+      "SDK exact tab menu",
+      "SDK exact document menu"
+    ]
+  },
+  "development": {
+    "chromePid": 24821,
+    "launcherPid": 24820,
+    "tabId": 411263997,
+    "documentId": "91635EB01680BF50203B2FCEAA5E0888",
+    "committedMode": "borrowed",
+    "permissionButton": 136,
+    "actions": [
+      "target mode menu",
+      "exact tab menu",
+      "exact document menu",
+      "Allow localhost",
+      "SDK exact tab menu",
+      "SDK exact document menu"
+    ]
+  },
+  "nativeVerification": "docs/framework/evidence/wxt/p1-p3-completion.json"
+}

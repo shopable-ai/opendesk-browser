@@ -1,0 +1,63 @@
+{
+  "state": "ready",
+  "runnerSha256": "e7829b87546a03a5ee271481393208e96f21b131e8eae4197d638c2beee8ce88",
+  "sourceHash": "98178c0b7b22223c09f114bdf2c23e63f723d88a2ecddaf044fb80293ed2cd04",
+  "sourceDrift": false,
+  "packages": {
+    "production": "4fc301a556ea4311e2a36c91c0aaf4bf260c280771a604c0cde34c10efb06152",
+    "development": "e8765b79ed33bf195f47bd8ea826b468839ee0f88525bdb9655d0d18b24cbada"
+  },
+  "cases": 23,
+  "contractCheck": {
+    "f1": [
+      {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+        "bytes": 17201,
+        "sha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1"
+      },
+      {
+        "path": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+        "bytes": 47920,
+        "sha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66"
+      },
+      {
+        "path": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+        "bytes": 73891,
+        "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6"
+      },
+      {
+        "path": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+        "bytes": 197858,
+        "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f"
+      }
+    ],
+    "checked": [
+      "Frozen same-candidate independent F1 qualifications",
+      "Actual UI selectors/outcome/typed artifact contract",
+      "Shared codec JSON-hop kind/presence assertions"
+    ],
+    "nativeExecuted": false
+  },
+  "nativeExecuted": false,
+  "stage": "F2",
+  "f3Accepted": false,
+  "original603Closed": false,
+  "blocked": [
+    "Main stable rebuild receipt and exclusive execution window required before native launch"
+  ],
+  "receiptContract": {
+    "readyForControllerNative": true,
+    "runnerSha256": "e7829b87546a03a5ee271481393208e96f21b131e8eae4197d638c2beee8ce88",
+    "sourceHash": "fresh sourceHash from runner --contract-check AFTER rebuild",
+    "packages": {
+      "production": "fresh packageHash",
+      "development": "fresh packageHash"
+    },
+    "executionWindow": {
+      "lane": "controller-product-native",
+      "sdkRunnerIdle": true
+    }
+  },
+  "command": "node tests/framework/k5-controller-product-native.mjs --native --headed --mode=all --chrome=all --rebuild-receipt=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/main-rebuild-receipt.json",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T08-18-14.401Z-f4f9c040"
+}

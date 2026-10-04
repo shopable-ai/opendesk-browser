@@ -1,0 +1,5 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+{"mode":"production","status":"passed","packageHash":"efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b","assets":7}

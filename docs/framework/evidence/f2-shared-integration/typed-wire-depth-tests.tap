@@ -1,0 +1,14 @@
+✔ typed wire wrapper depth does not shorten the declared value depth budget (2.499916ms)
+✔ R1: cyclic and malformed local schema references produce bounded typed rejection (0.45525ms)
+✔ R1: long acyclic reference chains have a schema traversal depth budget (0.524833ms)
+✔ R1: the inherited RulePlan resolves its nested local JSON pointer (3.298667ms)
+✔ R2: closed shapes reject names inherited by the schema properties object (2.398833ms)
+✔ R7: durable timestamps require an actual calendar date and explicit timezone (0.484792ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 103.159917

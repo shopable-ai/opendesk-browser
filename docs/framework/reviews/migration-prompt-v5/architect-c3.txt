@@ -1,0 +1,24 @@
+**C3：APPROVE，100/100；阻断列表：空。**
+
+|维度|得分|
+|---|---:|
+|需求来源|25/25|
+|职责边界|25/25|
+|依赖可执行|20/20|
+|验收追溯|20/20|
+|风险恢复|10/10|
+
+已比较C2/C3冻结副本，确认仅有指定三处替换；C3冻结副本与当前完整正文逐字节一致，hash与manifest一致。
+
+两类意见均关闭：
+
+- [第27–28行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-prompt-v5/candidate-c3.txt:27)：两种模式已明确写成条件分支，原扣1分依据消除。
+- 第355行：已改为 `npm run check`，其余测试要求完整保留。按本次范围，复用已提供的package.json核对结论。
+
+SHA-256：
+
+```text
+f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d
+```
+
+评分依据是原扣分项关闭且未引入新问题。本次仅作提示词增量复核，未重读源码、全附件或写文件；不代表阶段0方案或产品验收通过。Critic仍须独立复核同一C3。

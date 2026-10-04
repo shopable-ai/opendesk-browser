@@ -1,0 +1,41 @@
+{
+  "at": "2026-10-04T08:21:43.989771+00:00",
+  "scope": "Non-browser component checks; native acceptance excluded",
+  "componentMatrix": {
+    "passed": 412,
+    "failed": 0,
+    "candidate": "lookup-fixed before host-disappearance product fix"
+  },
+  "restartPython": 8,
+  "restartJs": 13,
+  "b05Observers": 6,
+  "nativeBrowserStartedForTheseChecks": false,
+  "logs": [
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-p5-lookup-components-sequential.log",
+      "sha256": "e46252bf9a125aa9e77760310fa9fd06317f51aa7dc0460bb6c8821438b1b4e7",
+      "bytes": 41707
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p4-lookup-final-check.log",
+      "sha256": "0aa9cce7514ce5f8278b1c3fcbbeefbd2704c1141cbfcfd6b4001179441ba108",
+      "bytes": 207
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p5-restart-final-python.log",
+      "sha256": "966813c08bc5ff8dc05fdcfde780395883a397ad2d33f1161ec9c8cb6a6cc264",
+      "bytes": 541
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p5-restart-final-js.log",
+      "sha256": "3c241d5972cf03e1a8ae330fb880f046366ea1bb93e0b43e287674fc68874bdf",
+      "bytes": 827
+    },
+    {
+      "path": "docs/framework/evidence/wxt/p4-p5/opendesk-p5-b05-observers-final.log",
+      "sha256": "3b4127444038b099805dd982af5d06ed984611693f3a2374f1fe07719abe6981",
+      "bytes": 658
+    }
+  ],
+  "nativeP4P5Completed": false
+}

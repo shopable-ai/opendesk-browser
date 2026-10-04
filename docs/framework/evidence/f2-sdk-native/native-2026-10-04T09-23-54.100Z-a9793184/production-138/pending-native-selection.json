@@ -1,0 +1,28 @@
+{
+  "state": "native-selection-assist",
+  "mode": "production",
+  "label": "138",
+  "number": 2,
+  "pid": 13702,
+  "launcherPid": 3141,
+  "endpoint": "ws://127.0.0.1:53050/devtools/browser/3eda7605-e027-4239-81c9-ff3c4022b2b3",
+  "toolId": "CC5F4CFF567E8629D24676A3CAD6F506",
+  "selector": "#sdk-document",
+  "desired": "61055C2959EAD6DB5795FB55061268E0",
+  "before": {
+    "value": "",
+    "selectedIndex": 0,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择当前精确文档",
+        "disabled": false
+      },
+      {
+        "value": "61055C2959EAD6DB5795FB55061268E0",
+        "text": "frame 0 · 61055C2959EAD6DB5795FB55061268E0 · http://127.0.0.1:53571/target?seed=sdk-native-d3c75675-3cf7-488b-8212-60ce7a28a2c9&session=2",
+        "disabled": false
+      }
+    ]
+  }
+}

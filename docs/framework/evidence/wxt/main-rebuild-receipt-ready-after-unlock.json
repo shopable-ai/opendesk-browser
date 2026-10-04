@@ -1,0 +1,18 @@
+{
+  "runnerSha256": "329d740d81ad7cc702a794a25cdb1cb85ae7ad076e5df26989fd0a1ac6ba1247",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "sourceHash": "9076684805cb90989e744e293accc0f1af125cd84f813778071f92685ceb9a84",
+  "packages": {
+    "production": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280",
+    "development": "bbbb168152de7684ae125fe554460d3f3b9575eb0c72ec4c614740733814a6fe"
+  },
+  "productInputsSha256": "77089b49b354ab3a77cbab642ce80ef6ccda1b7096c27d27a59ccb337f4a7d23",
+  "verificationInputsSha256": "6baacad2f280968ba236f84b9a6efb0bb9925364ab3eca8a1aab0f580c344b1e",
+  "readyForControllerNative": true,
+  "executionWindow": {
+    "lane": "controller-product-native",
+    "sdkRunnerIdle": true
+  },
+  "contractCheckEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T20-15-34.975Z-f587d6e4/ready.json",
+  "requiredPrelaunch": "Refresh input/runner/package identity; confirm desktop unlocked. Do not rely on receipt after edits."
+}

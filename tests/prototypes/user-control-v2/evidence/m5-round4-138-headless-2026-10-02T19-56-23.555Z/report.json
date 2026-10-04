@@ -1,0 +1,1006 @@
+{
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-56-23.555Z",
+  "planHash": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/138.0.7204.183",
+    "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.0.0 Safari/537.36",
+    "jsVersion": "13.8.258.30",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-56-23.555Z/profile",
+    "headed": false,
+    "os": {
+      "platform": "darwin",
+      "release": "25.5.0",
+      "arch": "arm64"
+    },
+    "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+    "extensionId": "klkhjgdgiamblehcbkepadedldbjklan"
+  },
+  "identity": {
+    "expectedManifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk F1 user control v2",
+      "version": "0.0.2",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "scripting",
+        "tabs"
+      ],
+      "host_permissions": [
+        "http://127.0.0.1/*"
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "sandbox": {
+        "pages": [
+          "sandbox.html"
+        ]
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+      }
+    },
+    "extensionIdentity": {
+      "target": {
+        "targetId": "917F3625F112ABD279A5104CFA435141",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+        "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "6BC11B4572F72F47D7EAFF9FA6DABF67"
+      },
+      "actual": {
+        "id": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        }
+      }
+    },
+    "identityAttempts": [
+      {
+        "target": {
+          "targetId": "917F3625F112ABD279A5104CFA435141",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "6BC11B4572F72F47D7EAFF9FA6DABF67"
+        },
+        "actual": {
+          "id": "klkhjgdgiamblehcbkepadedldbjklan",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+              "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 user control v2",
+            "permissions": [
+              "scripting",
+              "tabs"
+            ],
+            "sandbox": {
+              "pages": [
+                "sandbox.html"
+              ]
+            },
+            "version": "0.0.2"
+          }
+        }
+      }
+    ]
+  },
+  "hosts": [
+    {
+      "targetId": "A4F4C0245F341A4A31FF28FCF0830828",
+      "initialized": {
+        "sandbox": {
+          "kind": "sandbox-ready",
+          "origin": "null",
+          "extensionAPI": false,
+          "parentAccess": false
+        },
+        "positiveNetwork": "reachable",
+        "tabId": 556827834,
+        "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+        "hostEpoch": "00eedcaf-52a9-436e-bfc0-5c0e08cf2dbd",
+        "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        },
+        "world": "ISOLATED fixed scripting adapter"
+      },
+      "resources": [
+        {
+          "path": "manifest.json",
+          "sha256": "1e8b0e56ff73a6b11a69abeafeb92f267fdf626b2112714c5cc5b306bba5637b"
+        },
+        {
+          "path": "worker-harness.js",
+          "sha256": "acef8dd9b9b1e7c5b7fc88eebf42213e150110b71a945d85655d5ca06958ac84"
+        }
+      ],
+      "document": {
+        "frameTree": {
+          "frame": {
+            "id": "A4F4C0245F341A4A31FF28FCF0830828",
+            "loaderId": "371AA7C843966AE2DC49CEC9560E4413",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A59834%2Fprobe",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "workerAssociations": [
+    {
+      "owner": {
+        "kind": "worker-created",
+        "runId": "a00c21d6-fe2b-4f40-8cd6-340bec34e345",
+        "url": "blob:null/202c43cf-8283-44b3-ba37-1cc86c21ff42",
+        "name": "OpenDesk-F1-a00c21d6-fe2b-4f40-8cd6-340bec34e345",
+        "sandboxEpoch": "bac748e5-9203-4e0a-b948-92d2f36b106f"
+      },
+      "before": [],
+      "after": [
+        {
+          "targetId": "CCB7EBEB496EB3BDC9DACD35013A06D7",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "6BC11B4572F72F47D7EAFF9FA6DABF67"
+        }
+      ],
+      "chosenTargetId": "CCB7EBEB496EB3BDC9DACD35013A06D7",
+      "method": "unique fresh target during private start/bound barrier; native URL/title empty",
+      "parent": {
+        "frameTree": {
+          "frame": {
+            "id": "A4F4C0245F341A4A31FF28FCF0830828",
+            "loaderId": "371AA7C843966AE2DC49CEC9560E4413",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A59834%2Fprobe",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "fixtureFailure": {
+    "message": "{\"code\":-32001,\"message\":\"Session with given id not found.\"}",
+    "stack": "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}\n    at WebSocket.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs:55:160)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:776:26)\n    at fireEvent (node:internal/deps/undici/undici:14871:14)\n    at #onMessage (node:internal/deps/undici/undici:16188:9)\n    at Object.onMessage (node:internal/deps/undici/undici:15896:76)\n    at websocketMessageReceived (node:internal/deps/undici/undici:14875:15)\n    at node:internal/deps/undici/undici:15598:21\n    at node:internal/deps/undici/undici:15378:11\n    at afterWrite (node:internal/streams/writable:710:5)"
+  },
+  "cases": [
+    {
+      "id": "F1-USER-GOTO-TITLE-URL",
+      "status": "PASS",
+      "input": {
+        "body": "await page.goto(params.url); return {title:await page.title(),url:await page.url()};",
+        "params": {
+          "url": "http://127.0.0.1:59834/form?navigation"
+        },
+        "timeout": 5000
+      },
+      "expected": "await navigation then actual title/url",
+      "actual": {
+        "runId": "32db865c-790d-4a9c-9b11-a6ebac9757de",
+        "body": "await page.goto(params.url); return {title:await page.title(),url:await page.url()};",
+        "kind": "result",
+        "value": {
+          "title": "OpenDesk real form",
+          "url": "http://127.0.0.1:59834/form?navigation"
+        },
+        "valueType": "object",
+        "valuePresent": true
+      },
+      "effect": [
+        {
+          "runId": "32db865c-790d-4a9c-9b11-a6ebac9757de",
+          "id": 1,
+          "method": "goto",
+          "args": [
+            "http://127.0.0.1:59834/form?navigation"
+          ],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3"
+          }
+        },
+        {
+          "runId": "32db865c-790d-4a9c-9b11-a6ebac9757de",
+          "id": 2,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        },
+        {
+          "runId": "32db865c-790d-4a9c-9b11-a6ebac9757de",
+          "id": 3,
+          "method": "url",
+          "args": [],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "32db865c-790d-4a9c-9b11-a6ebac9757de",
+          "id": 1,
+          "kind": "reply",
+          "value": "http://127.0.0.1:59834/form?navigation"
+        },
+        {
+          "runId": "32db865c-790d-4a9c-9b11-a6ebac9757de",
+          "id": 2,
+          "kind": "reply",
+          "value": "OpenDesk real form"
+        },
+        {
+          "runId": "32db865c-790d-4a9c-9b11-a6ebac9757de",
+          "id": 3,
+          "kind": "reply",
+          "value": "http://127.0.0.1:59834/form?navigation"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-USER-TYPE-CLICK-WAIT-READ",
+      "status": "PASS",
+      "input": {
+        "body": "const type=await page.type('#name','Alice'); const click=await page.click('#submit'); await page.waitForSelector('#result'); return {type,click,text:await page.text('#result')};",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "Typed/clicked and BaseAlice after actual page effect",
+      "actual": {
+        "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+        "body": "const type=await page.type('#name','Alice'); const click=await page.click('#submit'); await page.waitForSelector('#result'); return {type,click,text:await page.text('#result')};",
+        "kind": "result",
+        "value": {
+          "type": "Typed",
+          "click": "clicked",
+          "text": "BaseAlice"
+        },
+        "valueType": "object",
+        "valuePresent": true
+      },
+      "effect": [
+        {
+          "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+          "id": 1,
+          "method": "type",
+          "args": [
+            "#name",
+            "Alice"
+          ],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        },
+        {
+          "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+          "id": 2,
+          "method": "click",
+          "args": [
+            "#submit"
+          ],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        },
+        {
+          "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+          "id": 3,
+          "method": "waitForSelector",
+          "args": [
+            "#result"
+          ],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        },
+        {
+          "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+          "id": 4,
+          "method": "text",
+          "args": [
+            "#result"
+          ],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+          "id": 1,
+          "kind": "reply",
+          "value": "Typed"
+        },
+        {
+          "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+          "id": 2,
+          "kind": "reply",
+          "value": "clicked"
+        },
+        {
+          "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+          "id": 3,
+          "kind": "reply",
+          "value": true
+        },
+        {
+          "runId": "a99f15cf-8cd1-4bb9-95d1-29d0fe3aaf2c",
+          "id": 4,
+          "kind": "reply",
+          "value": "BaseAlice"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-USER-THROW",
+      "status": "PASS",
+      "input": {
+        "body": "await page.title(); throw new Error(\"actual-user-error\");",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "actual user rejection",
+      "actual": {
+        "runId": "891ab62e-814a-4917-96de-e15747e410a2",
+        "body": "await page.title(); throw new Error(\"actual-user-error\");",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "actual-user-error"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [
+        {
+          "runId": "891ab62e-814a-4917-96de-e15747e410a2",
+          "id": 1,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "891ab62e-814a-4917-96de-e15747e410a2",
+          "id": 1,
+          "kind": "reply",
+          "value": "OpenDesk real form"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-USER-SYNTAX",
+      "status": "PASS",
+      "input": {
+        "body": "const = ;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "SyntaxError compiled only in Worker",
+      "actual": {
+        "runId": "84c69dd8-743c-4748-95e7-069644985e72",
+        "body": "const = ;",
+        "kind": "error",
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token '='"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-ADAPTER-REJECTION",
+      "status": "PASS",
+      "input": {
+        "body": "await page.goto(params.url);",
+        "params": {
+          "url": "https://example.com/"
+        },
+        "timeout": 5000
+      },
+      "expected": "unauthorized origin rejects without navigation",
+      "actual": {
+        "runId": "4fd6cba8-9a84-488a-bf35-a47176f513bc",
+        "body": "await page.goto(params.url);",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "Origin not authorized"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [
+        {
+          "runId": "4fd6cba8-9a84-488a-bf35-a47176f513bc",
+          "id": 1,
+          "method": "goto",
+          "args": [
+            "https://example.com/"
+          ],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RETURN-false",
+      "status": "PASS",
+      "input": {
+        "body": "return false;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "preserve false",
+      "actual": {
+        "runId": "14f60e01-f52d-4cd4-b7b7-0125b381a8fc",
+        "body": "return false;",
+        "kind": "result",
+        "value": false,
+        "valueType": "boolean",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RETURN-0",
+      "status": "PASS",
+      "input": {
+        "body": "return 0;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "preserve 0",
+      "actual": {
+        "runId": "2f1706a8-6e90-4a31-86a7-2e499da27b31",
+        "body": "return 0;",
+        "kind": "result",
+        "value": 0,
+        "valueType": "number",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RETURN-null",
+      "status": "PASS",
+      "input": {
+        "body": "return null;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "preserve null",
+      "actual": {
+        "runId": "eb7f0626-1ddf-4195-8241-1fd6ad4fbbc5",
+        "body": "return null;",
+        "kind": "result",
+        "value": null,
+        "valueType": "object",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RETURN-undefined",
+      "status": "PASS",
+      "input": {
+        "body": "return undefined;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "preserve undefined",
+      "actual": {
+        "runId": "1e3be5b6-a1ce-45cf-9cf0-ca5b9a191d2a",
+        "body": "return undefined;",
+        "kind": "result",
+        "valueType": "undefined",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-UNSERIALIZABLE",
+      "status": "PASS",
+      "input": {
+        "body": "return ()=>7;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "typed DataCloneError",
+      "actual": {
+        "runId": "531086b8-cace-420f-adfb-ea30af2464fb",
+        "body": "return ()=>7;",
+        "kind": "error",
+        "error": {
+          "name": "DataCloneError",
+          "message": "Result cannot be serialized"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-GLOBAL-FORGERY-PATCH",
+      "status": "PASS",
+      "input": {
+        "body": "self.postMessage({kind:'result',value:'FORGED'});self.postMessage({kind:'naturalEnd',value:true});\n    Map.prototype.get=()=>{throw 7};Map.prototype.set=()=>{throw 8};Promise.prototype.then=()=>{throw 9};MessagePort.prototype.postMessage=()=>{throw 10};globalThis.structuredClone=()=>{throw 11};Object.freeze=()=>{throw 12};\n    return {title:await page.title(),extensionAPI:!!self.chrome?.runtime?.id,dom:typeof document};",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "captured private primitives survive; forged result does not settle",
+      "actual": {
+        "runId": "898e91b3-c39f-44ae-a699-036ec4e2f38d",
+        "body": "self.postMessage({kind:'result',value:'FORGED'});self.postMessage({kind:'naturalEnd',value:true});\n    Map.prototype.get=()=>{throw 7};Map.prototype.set=()=>{throw 8};Promise.prototype.then=()=>{throw 9};MessagePort.prototype.postMessage=()=>{throw 10};globalThis.structuredClone=()=>{throw 11};Object.freeze=()=>{throw 12};\n    return {title:await page.title(),extensionAPI:!!self.chrome?.runtime?.id,dom:typeof document};",
+        "kind": "result",
+        "value": {
+          "title": "OpenDesk real form",
+          "extensionAPI": false,
+          "dom": "undefined"
+        },
+        "valueType": "object",
+        "valuePresent": true
+      },
+      "effect": [
+        {
+          "runId": "898e91b3-c39f-44ae-a699-036ec4e2f38d",
+          "id": 1,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "898e91b3-c39f-44ae-a699-036ec4e2f38d",
+          "id": 1,
+          "kind": "reply",
+          "value": "OpenDesk real form"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-DEADLINE",
+      "status": "PASS",
+      "input": {
+        "body": "await new Promise(()=>{}); return 7;",
+        "params": {},
+        "timeout": 150
+      },
+      "expected": "timeout once and retire",
+      "actual": {
+        "runId": "5b32e81c-fa71-4119-8ec0-e9eafe731a7d",
+        "body": "await new Promise(()=>{}); return 7;",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-PENDING-PAGE-DEADLINE",
+      "status": "PASS",
+      "input": {
+        "body": "await page.waitForSelector(\"#never-exists\"); return 7;",
+        "params": {},
+        "timeout": 150
+      },
+      "expected": "timeout cancels real page wait observer/timer",
+      "actual": {
+        "runId": "c98daf86-7a45-4b27-b1ef-94de8e5ab6db",
+        "body": "await page.waitForSelector(\"#never-exists\"); return 7;",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [
+        {
+          "runId": "c98daf86-7a45-4b27-b1ef-94de8e5ab6db",
+          "id": 1,
+          "method": "waitForSelector",
+          "args": [
+            "#never-exists"
+          ],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "0A25D6ADDCE8DDAF60112071CF9836E3",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+      "input": {
+        "body": "await page.title(); await new Promise(()=>{}); return \"late\";",
+        "attacks": [
+          "replay seq",
+          "rebinding",
+          "wrong run/epoch"
+        ]
+      },
+      "expected": "one genuine operation, rejected attacks, only stopped settlement",
+      "status": "PASS",
+      "actual": {
+        "stopped": {
+          "runId": "148e8187-3810-493c-a4df-dabbe037dc28",
+          "body": "await page.title(); await new Promise(()=>{}); return \"late\";",
+          "kind": "stopped",
+          "error": {
+            "name": "AbortError",
+            "message": "Stopped by host"
+          }
+        },
+        "replayRejects": [
+          {
+            "reason": "invalid-or-replayed-request",
+            "data": {
+              "kind": "operation",
+              "runId": "148e8187-3810-493c-a4df-dabbe037dc28",
+              "id": 1,
+              "method": "title",
+              "args": []
+            }
+          },
+          {
+            "reason": "fenced-or-wrong-run",
+            "data": {
+              "kind": "operation",
+              "runId": "forged-run",
+              "id": 1,
+              "method": "title",
+              "args": [],
+              "epoch": "forged-epoch"
+            }
+          }
+        ]
+      },
+      "effect": [
+        {
+          "runId": "148e8187-3810-493c-a4df-dabbe037dc28",
+          "id": 1,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 556827834,
+            "documentId": "5223EE19D2850FB1E15694D64E67DE03"
+          }
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-FAKE-PEER",
+      "input": {
+        "peer": "sibling iframe attacker.html",
+        "messages": [
+          "bind-host",
+          "forged result"
+        ]
+      },
+      "expected": "wrong source never bound; genuine REAL result",
+      "status": "PASS",
+      "actual": {
+        "fakePeer": {
+          "bound": false
+        },
+        "fakeResult": {
+          "runId": "aebf62a0-90b5-4321-8b30-4e87d44cdc86",
+          "body": "await page.title(); await new Promise(r=>setTimeout(r,250)); return \"REAL\";",
+          "kind": "result",
+          "value": "REAL",
+          "valueType": "string",
+          "valuePresent": true
+        }
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    }
+  ],
+  "cleanup": {
+    "ownedBrowserExited": true,
+    "ownedBrowserPid": 60615,
+    "exitCode": 0,
+    "signalCode": null,
+    "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-56-23.555Z/profile",
+    "ownedTargets": [
+      "A4F4C0245F341A4A31FF28FCF0830828"
+    ],
+    "serverClosed": true,
+    "cdpWaiters": 0,
+    "abortedCdpRequests": 1
+  },
+  "sourceUnchangedDuringRun": true,
+  "prototypeCandidateSha256": "33fa0309906c2c4a281cdff26c9b025c1e8e5c0ab423addf4bc97f39b264ba4b",
+  "backendPrototypePassed": false,
+  "requiresIndependentReview": true,
+  "historicalAfter": [
+    {
+      "path": "evidence/chrome-149/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/chrome-149/console.json",
+      "sha256": "42330b6fd6c0f12da8218d8f4257d43a5a72349a89a3751c1056f3433025463c"
+    },
+    {
+      "path": "evidence/chrome-149/attempt-2-debugger-attached/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-01.724Z/report.json",
+      "sha256": "d16144c5d5f1d3a1cd2d1acf63a67a20df9bae03e5c3543c6f8911467ffd7d16"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-50.488Z/report.json",
+      "sha256": "38796ab1b40ec6c038d0ff6fce0b2e1ce8c676a78614d47957b5628e4c641ea1"
+    }
+  ],
+  "historicalEvidenceUnchanged": true
+}

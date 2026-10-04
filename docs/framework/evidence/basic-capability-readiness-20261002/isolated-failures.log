@@ -1,0 +1,24 @@
+✔ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (9.219833ms)
+✖ shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS (1.789541ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120.118917
+
+✖ failing tests:
+
+test at tests/foundation/storage.test.mjs:284:1
+✖ shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS (1.789541ms)
+  Error [FoundationError]: Unknown or missing argument
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/registry.js:12:17)
+      at fields (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/registry.js:24:11)
+      at Object.grantSdk (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js:49:5)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:290:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_SCHEMA'
+  }

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-04T05:49:44.133379+00:00",
+  "scope": "WXT P1-P2-P3",
+  "status": "PASS",
+  "baseline": {
+    "path": "docs/framework/evidence/wxt/baseline-20261003T194242Z",
+    "manifestSha256": "69188dce747c1104524cb79df2823d27cdd83a104c4603365ebc89b56235f2ee",
+    "productFiles": 149,
+    "verificationFiles": 105,
+    "oldPackagesPreserved": true,
+    "contentReadback": "PASS"
+  },
+  "native": [
+    {
+      "mode": "production",
+      "status": "PASS",
+      "packageSha256": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280",
+      "zip": "artifacts/opendesk-browser-production.zip",
+      "zipSha256": "4136b12d21694fbacc852556c7710b40cb8795aa945703a7c6fe391b2d72865e",
+      "runId": "be771330-a1b2-44ff-ab0c-a04fbf780266",
+      "revision": 1,
+      "sourceHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+      "value": 7,
+      "reopenedSameRunId": true,
+      "workerNativeCreatedAndDestroyed": true,
+      "mainIsolatedMechanismsPassed": true,
+      "cleanupPassed": true,
+      "productInputsSha256": "77089b49b354ab3a77cbab642ce80ef6ccda1b7096c27d27a59ccb337f4a7d23",
+      "verificationInputsSha256": "33808f40d643dc3a9d6ab5bbc3601801c97adf0c5e16d44cbbf48e901f7f31ee",
+      "report": "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T05-33-32.654Z-f3678c16/production-138/report.json",
+      "reportSha256": "4ce61783974af863e6cef2cea2ff877873e3d2db5fbf12ea03c2fc40db90a8cd",
+      "immutableZip": "docs/framework/evidence/wxt/accepted-p1-p3/opendesk-browser-production.zip"
+    },
+    {
+      "mode": "development",
+      "status": "PASS",
+      "packageSha256": "bbbb168152de7684ae125fe554460d3f3b9575eb0c72ec4c614740733814a6fe",
+      "zip": "artifacts/opendesk-browser-development.zip",
+      "zipSha256": "042041261642d2d0b122f801bd35f9f0722eafdd6605bbf4f63edaf3b85d836f",
+      "runId": "6176f71c-3e25-43ed-acdf-480ae331a26c",
+      "revision": 1,
+      "sourceHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+      "value": 7,
+      "reopenedSameRunId": true,
+      "workerNativeCreatedAndDestroyed": true,
+      "mainIsolatedMechanismsPassed": true,
+      "cleanupPassed": true,
+      "productInputsSha256": "77089b49b354ab3a77cbab642ce80ef6ccda1b7096c27d27a59ccb337f4a7d23",
+      "verificationInputsSha256": "33808f40d643dc3a9d6ab5bbc3601801c97adf0c5e16d44cbbf48e901f7f31ee",
+      "report": "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T05-41-00.448Z-f31678d0/development-138/report.json",
+      "reportSha256": "eaa666f4e8d40c97c6448428dc05d44c08e6dfb3b6a176d666fd94f646756757",
+      "immutableZip": "docs/framework/evidence/wxt/accepted-p1-p3/opendesk-browser-development.zip"
+    }
+  ],
+  "p1p2p3Complete": true,
+  "fullFrameworkMigrationComplete": false,
+  "original603Closed": false,
+  "finalProductAcceptance": false,
+  "nextPriority": "Product implementation before broader testing; do not rerun the component matrix without a relevant change"
+}

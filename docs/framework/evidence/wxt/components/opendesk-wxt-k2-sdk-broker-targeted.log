@@ -1,0 +1,27 @@
+✔ SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs (23.893333ms)
+✔ SDK recovery reconciles atomic storage durable result before broker receipt and never replays it (3.072041ms)
+✔ SDK restart at dispatched cut pauses its run with original unknown effect and no replacement (3.155333ms)
+✔ SDK Hello needs native document/grant and never claims a controller slot (0.517416ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (0.560875ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (0.437292ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (23.566792ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (3.347833ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (8.707708ms)
+✔ durable session duplicate after authority restart does not resubmit native set (1.292666ms)
+✔ native session failure records unknown dispatch and will not retry same write (1.229792ms)
+✔ SW recovery fences dispatched write gap and retains original identity/deadline (0.813125ms)
+✔ durable duplicate cannot extend original 15s service deadline (2.118125ms)
+✔ native permission remove then regrant cannot revive old request/grant (7.402917ms)
+✔ observed navigation invalidates current page Hello and pending admission (1.715167ms)
+✔ notification permission removal with empty origins revokes the affected grant (0.909958ms)
+✔ notification native receipt and durable undefined survive delivery revocation (1.213375ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (17.52325ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (3.785667ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 185.625833

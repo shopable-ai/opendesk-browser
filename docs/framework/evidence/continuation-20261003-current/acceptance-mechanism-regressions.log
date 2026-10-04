@@ -1,0 +1,32 @@
+✔ complete synthetic checker fixture passes, including false/0 values; not a product test (27.166875ms)
+✔ missing original case and missing explicit additional case cannot be hidden (40.919416ms)
+✔ dropping or replacing the original ledger denominator rejects (53.854791ms)
+✔ component/prototype pass and a foreign package cannot count as native acceptance (38.553625ms)
+✔ source/package drift and changed per-case expected contract reject (105.084958ms)
+✔ accepted marker alone, skipped result and missing raw evidence reject (52.856083ms)
+✔ missing or duplicate environment observation and unbound browser binary reject (57.614167ms)
+✔ each cleanup counter must return to an explicit resource baseline (38.394708ms)
+✔ 1000 unique mixed rounds, all five outcomes, reconnects and disabled plugins are required (130.788ms)
+✔ B05 requires 100 calls with one admission/run/op/HTTP write and no controller (38.98325ms)
+✔ all four crash points preserve identity; unknown effects cannot be replayed (35.391916ms)
+✔ download accepted is insufficient without complete and an actual disk hash reference (34.338625ms)
+✔ Worker termination evidence must meet approved3s and preserve borrowed pages (38.0695ms)
+✔ historical failures remain open without case evidence; self-review or reversed review order rejects (66.243208ms)
+✔ current real ledger readiness preserves original603 and every current explicit additional case without changing gate state (57.037167ms)
+✔ read-only filesystem check rejects actual raw evidence and declared source tampering (86.630167ms)
+✔ read-only filesystem check rejects tampering with the approved603 specification (27.694875ms)
+✔ each successful campaign observation must satisfy its predicate; one good result cannot hide failure (91.962167ms)
+✔ renaming records cannot duplicate one physical campaign occurrence (33.451667ms)
+✔ supplemental contracts are required and original/additional IDs cannot overlap (56.370209ms)
+✔ reviews bind the entire evidence snapshot, predecessor report and normalized identity with one role each (82.114333ms)
+✔ artifact payload/descriptor and disk hashes, lengths and run identity must agree (66.077875ms)
+✔ malformed nullable references, observations, environments and reviews yield structured rejection (113.177666ms)
+✔ parsed review reports cannot hide missing nested evidence references (48.007708ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1545.523041

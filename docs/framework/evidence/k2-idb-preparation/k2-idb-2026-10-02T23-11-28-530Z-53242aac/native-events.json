@@ -1,0 +1,333 @@
+[
+  {
+    "type": "open",
+    "at": 50.80000019073486,
+    "id": 0,
+    "name": "opendesk-browser",
+    "requestedVersion": 1
+  },
+  {
+    "type": "upgradeneeded",
+    "at": 56.40000009536743,
+    "id": 0,
+    "oldVersion": 0,
+    "newVersion": 1,
+    "temporaryDatabaseVersion": 1,
+    "transactionMode": "versionchange",
+    "isTrusted": true
+  },
+  {
+    "type": "upgrade-complete",
+    "at": 62.30000019073486,
+    "id": 0,
+    "isTrusted": true
+  },
+  {
+    "type": "open-success",
+    "at": 62.30000019073486,
+    "id": 0,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "transaction",
+    "at": 62.700000286102295,
+    "mode": "readwrite",
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ]
+  },
+  {
+    "type": "transaction-complete",
+    "at": 68.5,
+    "mode": "readwrite",
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 68.5,
+    "id": 6,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 68.59999990463257,
+    "id": 6,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "transaction",
+    "at": 68.59999990463257,
+    "mode": "readonly",
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ]
+  },
+  {
+    "type": "transaction-complete",
+    "at": 68.80000019073486,
+    "mode": "readonly",
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 68.80000019073486,
+    "id": 6,
+    "version": 1
+  },
+  {
+    "type": "transaction",
+    "at": 68.90000009536743,
+    "mode": "readonly",
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ]
+  },
+  {
+    "type": "transaction-complete",
+    "at": 69.90000009536743,
+    "mode": "readonly",
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 73.30000019073486,
+    "id": 0,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 73.30000019073486,
+    "id": 14,
+    "name": "opendesk-browser",
+    "requestedVersion": 2
+  },
+  {
+    "type": "upgradeneeded",
+    "at": 73.40000009536743,
+    "id": 14,
+    "oldVersion": 1,
+    "newVersion": 2,
+    "temporaryDatabaseVersion": 2,
+    "transactionMode": "versionchange",
+    "isTrusted": true
+  },
+  {
+    "type": "upgrade-abort",
+    "at": 73.59999990463257,
+    "id": 14,
+    "isTrusted": true,
+    "error": null
+  },
+  {
+    "type": "open-error",
+    "at": 73.59999990463257,
+    "id": 14,
+    "isTrusted": true,
+    "error": {
+      "name": "AbortError",
+      "code": 20,
+      "message": "Version change transaction was aborted in upgradeneeded event handler."
+    }
+  },
+  {
+    "type": "open",
+    "at": 73.7000002861023,
+    "id": 18,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 73.80000019073486,
+    "id": 18,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "transaction",
+    "at": 73.90000009536743,
+    "mode": "readonly",
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ]
+  },
+  {
+    "type": "transaction-complete",
+    "at": 74.59999990463257,
+    "mode": "readonly",
+    "isTrusted": true
+  },
+  {
+    "type": "transaction",
+    "at": 75.2000002861023,
+    "mode": "readonly",
+    "stores": [
+      "records"
+    ]
+  },
+  {
+    "type": "transaction-complete",
+    "at": 75.40000009536743,
+    "mode": "readonly",
+    "isTrusted": true
+  },
+  {
+    "type": "transaction",
+    "at": 75.40000009536743,
+    "mode": "readonly",
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ]
+  },
+  {
+    "type": "transaction-complete",
+    "at": 76.59999990463257,
+    "mode": "readonly",
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 76.80000019073486,
+    "id": 18,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 76.80000019073486,
+    "id": 27,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 76.90000009536743,
+    "id": 27,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "transaction",
+    "at": 76.90000009536743,
+    "mode": "readonly",
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ]
+  },
+  {
+    "type": "transaction-complete",
+    "at": 76.90000009536743,
+    "mode": "readonly",
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 77.09999990463257,
+    "id": 27,
+    "version": 1
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-04T07:06:25.681638+00:00",
+  "classification": "interrupted-native-diagnostic",
+  "reason": "Captured userScripts unavailable lookup and controller effect_unknown/retirement leak; stopped suite to avoid cascading failures",
+  "rawEvidence": "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T06-57-52.164Z-fc1578e5",
+  "ownedNativePidExited": true,
+  "profileRemoved": true,
+  "runnerPid": 72578,
+  "nativeAcceptancePassed": false
+}

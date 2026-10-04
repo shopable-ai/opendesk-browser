@@ -1,0 +1,1187 @@
+{
+  "schema": "opendesk.independent-f1-native-stop-advice.v1",
+  "createdAt": "2026-10-02T20:26:28Z",
+  "role": "independent code/spec/security reviewer, not control author",
+  "score": null,
+  "approvedStage0ManifestSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "pageCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "finalControlCandidateSha256": null,
+  "finalUnionCandidateSha256": null,
+  "currentContractVerdict": "REQUEST CHANGES",
+  "amendmentAdviceVerdict": "COMMENT",
+  "amendmentApproved": false,
+  "allF1PASS": false,
+  "approvedContract": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/f1-cases.json",
+    "line": 103,
+    "budgetMs": 2000,
+    "triggerBody": "await page.mark('loop-entered'); while(true){}",
+    "triggers": [
+      "stop",
+      "deadline",
+      "host close"
+    ],
+    "expected": "loop entered; admission closed; browser independently observes Worker gone/CPU execution stopped within test 2s; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved"
+  },
+  "officialSourceVerification": {
+    "workerThread": [
+      {
+        "version": "138.0.7204.183",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/138.0.7204.183/third_party/blink/renderer/core/workers/worker_thread.cc",
+        "bytes": 42120,
+        "sha256": "7c989d222ed648eaf8650b7ce2f3d9ec4ab5b83e739ccb6788d7d667c5d0961e",
+        "locations": [
+          {
+            "symbol": "kForcibleTerminationDelay =",
+            "startLine": 82
+          },
+          {
+            "symbol": "void WorkerThread::Terminate()",
+            "startLine": 262
+          },
+          {
+            "symbol": "void WorkerThread::TerminateForTesting()",
+            "startLine": 314
+          },
+          {
+            "symbol": "void WorkerThread::ScheduleToTerminateScriptExecution()",
+            "startLine": 532
+          },
+          {
+            "symbol": "void WorkerThread::EnsureScriptExecutionTerminates(",
+            "startLine": 568
+          }
+        ],
+        "constant": "kForcibleTerminationDelay = base::Seconds(2)"
+      },
+      {
+        "version": "154.0.8037.92",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/154.0.8037.92/third_party/blink/renderer/core/workers/worker_thread.cc",
+        "bytes": 41154,
+        "sha256": "f5e2a985450beea9dde7c0045654f789e22c38c43339c83292c364b1431e3a84",
+        "locations": [
+          {
+            "symbol": "kForcibleTerminationDelay =",
+            "startLine": 84
+          },
+          {
+            "symbol": "void WorkerThread::Terminate()",
+            "startLine": 265
+          },
+          {
+            "symbol": "void WorkerThread::TerminateForTesting()",
+            "startLine": 308
+          },
+          {
+            "symbol": "void WorkerThread::ScheduleToTerminateScriptExecution()",
+            "startLine": 514
+          },
+          {
+            "symbol": "void WorkerThread::EnsureScriptExecutionTerminates(",
+            "startLine": 551
+          }
+        ],
+        "constant": "kForcibleTerminationDelay = base::Seconds(2)"
+      }
+    ],
+    "publicChain": [
+      {
+        "version": "138.0.7204.183",
+        "file": "dedicated_worker.cc",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/138.0.7204.183/third_party/blink/renderer/core/workers/dedicated_worker.cc",
+        "bytes": 30463,
+        "sha256": "b1b9cacbdd105cfc16fe743610ea45a5c95079d157161ad54f920a8a769ef2c3",
+        "locations": [
+          {
+            "startLine": 306
+          }
+        ]
+      },
+      {
+        "version": "138.0.7204.183",
+        "file": "threaded_messaging_proxy_base.cc",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/138.0.7204.183/third_party/blink/renderer/core/workers/threaded_messaging_proxy_base.cc",
+        "bytes": 8709,
+        "sha256": "ceacc4929eabc1c2b66fb1c3d3f887d9d35fd36db8c05aed4fe550bd8bd08fce",
+        "locations": [
+          {
+            "startLine": 186
+          }
+        ]
+      },
+      {
+        "version": "154.0.8037.92",
+        "file": "dedicated_worker.cc",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/154.0.8037.92/third_party/blink/renderer/core/workers/dedicated_worker.cc",
+        "bytes": 29631,
+        "sha256": "4a52defee4c5119b313b71a930f8dfdf31e9d7e09ccbba5f9bcead174a410fb5",
+        "locations": [
+          {
+            "startLine": 320
+          }
+        ]
+      },
+      {
+        "version": "154.0.8037.92",
+        "file": "threaded_messaging_proxy_base.cc",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/154.0.8037.92/third_party/blink/renderer/core/workers/threaded_messaging_proxy_base.cc",
+        "bytes": 8789,
+        "sha256": "9bfeb54b3d2d446f03cda89d64cd2835e00dcaaac9fd3e0c1b5329bf536d11e2",
+        "locations": [
+          {
+            "startLine": 188
+          }
+        ]
+      }
+    ]
+  },
+  "sourceInference": {
+    "status": "source inference corroborated by 138 diagnostic, not normative browser guarantee",
+    "finding": "ordinary public Worker termination uses a two-second delayed forced script termination task on both exact version tags; synchronous TerminateForTesting is internal; context destruction reaches ordinary terminate chain",
+    "minimalPublicApiUnder2sFix": "no verified executable path found in approved public Worker mechanism; do not promise iframe removal or host-close substitution",
+    "doesNotProve": "3-second runtime qualification on both binary versions"
+  },
+  "diagnostic": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-worker-stop-diagnostic/report-mock-keychain.json",
+    "sha256": "3d88d523b1d9cff33bf13ca05746e5f588d1d6d13da63ed67540be6fbda5c8e3",
+    "qualification": false,
+    "independentlyRerunByThisReviewer": false,
+    "versionPath": "138.0.7204.183",
+    "browserPid": 70423,
+    "busyRendererPid": 70456,
+    "reportedHarnessSha256": "acef8dd9b9b1e7c5b7fc88eebf42213e150110b71a945d85655d5ca06958ac84",
+    "currentMutableHarnessSha256AtRead": "630ab92f6a629d8027d11c0f47c0b5c21a2c60f86a6d859b8ef0d78cabcd39ee",
+    "matchesCurrentAuthorSource": false,
+    "hashDriftDisposition": "nonfrozen author source changed; historical diagnostic is not evidence for current or final candidate; no tampering allegation",
+    "diagnosePy": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-worker-stop-diagnostic/diagnose.py",
+      "sha256": "3d9489923231af46d6188da3dda12f4d133ff386a509ec678375162c73d49262",
+      "bodyLine": 13,
+      "terminateLine": 17,
+      "psSampleLine": 39,
+      "launchLine": 34
+    },
+    "cpuEvidence": "busy renderer CPU increments through approximately two seconds, then plateaus; cannot call failure metadata-only. Exact stop timestamp not determined by sampled cumulative CPU.",
+    "evidenceLimitations": [
+      "HTTP origin is diagnostic, not approved extension qualification",
+      "no exact native Worker to renderer PID/thread binding or no-loop negative control",
+      "ps request/return window and cross-clock error not fully captured",
+      "reported harness source not stored as matching current final frozen source",
+      "only 138 runtime here; 154 source inspection is not 154 runtime evidence"
+    ],
+    "events": [
+      {
+        "observedAt": 1790971964.309742,
+        "value": {
+          "kind": "entered",
+          "origin": "null"
+        }
+      },
+      {
+        "observedAt": 1790971965.311847,
+        "value": {
+          "kind": "trigger",
+          "at": 1790971965310
+        }
+      },
+      {
+        "observedAt": 1790971965.312184,
+        "value": {
+          "kind": "terminated",
+          "at": 1790971965310
+        }
+      }
+    ],
+    "triggerPayloadMs": 1790971965310,
+    "samplingPrecision": {
+      "cpuPrintedUnit": "seconds with 0.01s representation",
+      "atUnit": "seconds since Unix epoch, recorded after ps completes",
+      "psRequestStartRecorded": false,
+      "clockErrorBoundRecorded": false
+    },
+    "rendererCpuSamples": [
+      {
+        "at": 1790971963.815994,
+        "relativeMs": -1494.006,
+        "rendererProcesses": []
+      },
+      {
+        "at": 1790971963.9645429,
+        "relativeMs": -1345.457,
+        "rendererProcesses": []
+      },
+      {
+        "at": 1790971964.1265762,
+        "relativeMs": -1183.424,
+        "rendererProcesses": []
+      },
+      {
+        "at": 1790971964.2986062,
+        "relativeMs": -1011.394,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:00.01",
+            "cpuSeconds": 0.01,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.01",
+            "cpuSeconds": 0.01,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971964.446584,
+        "relativeMs": -863.416,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:00.16",
+            "cpuSeconds": 0.16,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971964.590639,
+        "relativeMs": -719.361,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:00.30",
+            "cpuSeconds": 0.3,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971964.732432,
+        "relativeMs": -577.568,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:00.44",
+            "cpuSeconds": 0.44,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971964.883193,
+        "relativeMs": -426.807,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:00.60",
+            "cpuSeconds": 0.6,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971965.025046,
+        "relativeMs": -284.954,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:00.74",
+            "cpuSeconds": 0.74,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971965.17782,
+        "relativeMs": -132.18,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:00.88",
+            "cpuSeconds": 0.88,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971965.329219,
+        "relativeMs": 19.219,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:01.04",
+            "cpuSeconds": 1.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971965.479302,
+        "relativeMs": 169.302,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:01.19",
+            "cpuSeconds": 1.19,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971965.623582,
+        "relativeMs": 313.582,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:01.34",
+            "cpuSeconds": 1.34,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971965.768561,
+        "relativeMs": 458.561,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:01.48",
+            "cpuSeconds": 1.48,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971965.9112399,
+        "relativeMs": 601.24,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:01.62",
+            "cpuSeconds": 1.62,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971966.059602,
+        "relativeMs": 749.602,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:01.77",
+            "cpuSeconds": 1.77,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971966.204294,
+        "relativeMs": 894.294,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:01.92",
+            "cpuSeconds": 1.92,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971966.35267,
+        "relativeMs": 1042.67,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:02.06",
+            "cpuSeconds": 2.06,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.03",
+            "cpuSeconds": 0.03,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971966.5025222,
+        "relativeMs": 1192.522,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:02.22",
+            "cpuSeconds": 2.22,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971966.653128,
+        "relativeMs": 1343.128,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:02.37",
+            "cpuSeconds": 2.37,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971966.802048,
+        "relativeMs": 1492.048,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:02.52",
+            "cpuSeconds": 2.52,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971966.951815,
+        "relativeMs": 1641.815,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:02.66",
+            "cpuSeconds": 2.66,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971967.093934,
+        "relativeMs": 1783.934,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:02.81",
+            "cpuSeconds": 2.81,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971967.235162,
+        "relativeMs": 1925.162,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:02.95",
+            "cpuSeconds": 2.95,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971967.385877,
+        "relativeMs": 2075.877,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:03.06",
+            "cpuSeconds": 3.06,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971967.541904,
+        "relativeMs": 2231.904,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:03.06",
+            "cpuSeconds": 3.06,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971967.6967318,
+        "relativeMs": 2386.732,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:03.06",
+            "cpuSeconds": 3.06,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971967.860656,
+        "relativeMs": 2550.656,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:03.06",
+            "cpuSeconds": 3.06,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971968.023457,
+        "relativeMs": 2713.457,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:03.06",
+            "cpuSeconds": 3.06,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971968.1699631,
+        "relativeMs": 2859.963,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:03.06",
+            "cpuSeconds": 3.06,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      },
+      {
+        "at": 1790971968.3188689,
+        "relativeMs": 3008.869,
+        "rendererProcesses": [
+          {
+            "pid": 70456,
+            "ppid": 70423,
+            "cpu": "0:03.06",
+            "cpuSeconds": 3.06,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70457,
+            "ppid": 70423,
+            "cpu": "0:00.07",
+            "cpuSeconds": 0.07,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70459,
+            "ppid": 70423,
+            "cpu": "0:00.05",
+            "cpuSeconds": 0.05,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          },
+          {
+            "pid": 70506,
+            "ppid": 70423,
+            "cpu": "0:00.04",
+            "cpuSeconds": 0.04,
+            "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/138.0.7204.183/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)"
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "browserExit": 0,
+      "ownedPids": [
+        70423,
+        70429,
+        70433,
+        70434,
+        70437,
+        70438,
+        70456,
+        70457,
+        70459,
+        70506
+      ],
+      "serverClosed": true
+    },
+    "actualBinarySha256CrosscheckedInPageReview": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f"
+  },
+  "amendmentProposal": {
+    "status": "explicit candidate suggestion only; independent formal review required",
+    "oldText": "within test 2s",
+    "replacementText": "within test 3000ms measured from the actual stop/deadline/host-close trigger, including native termination grace and observation uncertainty",
+    "budgetMs": 3000,
+    "nativeGraceMs": 2000,
+    "proposedObservationSchedulingMarginMs": 1000,
+    "weakensOriginalLatencyGate": true,
+    "changesApprovedContractNow": false,
+    "reason": "fixed test budget accounting for verified native grace; retains actual infinite loop and same supported mechanisms; not dynamically fitted to passing run",
+    "unchanged": [
+      "arbitrary user async-body plus tight infinite loop",
+      "all three stop/deadline/host-close triggers",
+      "minimum138 and stable154 actual binaries",
+      "public Worker backend, opaque/private channel, CSP and permission boundary",
+      "immediate admission closure, old-run result fence and no late action",
+      "host responsiveness and resource cleanup contracts"
+    ],
+    "formalCandidateRequirements": [
+      "explicit text diff and all corresponding test-spec/plan/oracle time constants in same frozen manifest",
+      "preserve failed2s reports and original expected/actual objects",
+      "document exact independent observation and t0/clock error method",
+      "actual runs on both required versions with correct run/Blob/host source hashes",
+      "genuine independent formal amendment review before applying changed gate",
+      "new evidence identifies amendment version and new source/candidate hash; never relabel old FAIL",
+      "final overall F1 review for all12 contracts on user-supplied frozen two-lane union"
+    ],
+    "forbiddenShortcuts": [
+      "cooperative yield or transformed fake loop",
+      "substitute host-close result for stop/deadline",
+      "new privileged debugger/permission/backend",
+      "narrow version or function support silently",
+      "raise threshold again based on observed maximum"
+    ]
+  },
+  "cpuProofRequirements": [
+    "exact run/Blob/host and PID/thread lifecycle binding, or rigorously isolated positive/negative differential proof",
+    "actual trigger/admission closure timestamp, not settlement delivery or terminate return",
+    "sample request/return bounds and cumulative CPU in same process, clock uncertainty included in fixed deadline",
+    "active-loop positive control and repeated quiescent observations to exclude transient descheduling",
+    "missing PID requires real independent exit evidence, not zero-fill",
+    "true final Worker/target exit and cleanup, host responsiveness, admission fence and no late actions"
+  ],
+  "latestMutableOracleSnapshot": {
+    "runNativePath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs",
+    "runNativeSha256": "224945843c0e145172c7c45be099d4f6c627bea05f70511f14c9beda8a82b163",
+    "reviewedLines": [
+      132,
+      184
+    ],
+    "hostPath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+    "hostSha256": "4b7afbf06f6aa49c27cb1c0423c848923d240e0cc7887cbc0da371100ffa8470",
+    "hostReviewedLines": [
+      [
+        20,
+        42
+      ],
+      [
+        69,
+        80
+      ]
+    ],
+    "currentGateAtRead": "targetDestroyed observedAt-triggerAt<=2000, absent target and no loop Inspector attachment; greatest renderer delta>0.1 active-CPU check",
+    "historicalGateDisposition": "earlier single150ms earlyCPU gate was insufficient; current read has replaced it, so missing-PID zero field is diagnostic rather than current PASS-gate finding",
+    "t0AtRead": "terminalTriggeredAt preferred but settledAt/started fallback still needs trigger-specific validation; neither is native termination done",
+    "approved": false
+  },
+  "oldObservations": {
+    "report1957Path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-57-31.381Z/report.json",
+    "candidate1957": "1df88d2e332c96457a7191d184e3c3b7851660bbf0da856eea12e3d0611f62cd",
+    "cases1957": {
+      "total": 42,
+      "PASS": 40,
+      "FAIL": 2
+    },
+    "new2006Facts": "user-provided: early150msCPU .140/.145s, stop/deadline FAIL; host-close13ms PASS; owned/borrowed boundary FAIL",
+    "new2006ReportFullyRead": false,
+    "originalFailuresReclassified": false,
+    "report1957Sha256": "99861cf2a654bcf0f9d3f71645a8c94b2e3e64d4770183b92dc8891780011730"
+  },
+  "writeScope": {
+    "onlyIndependentReviewDirectory": true,
+    "contractsEdited": false,
+    "gatesEdited": false,
+    "ledgerEdited": false,
+    "fixtureOrProductEdited": false
+  },
+  "reportMd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/control-native-stop-contract-note.md",
+  "pageFinding": "CR-F1-PAGE-001 remains blocking independently of timing amendment",
+  "overallApproval": "NOT ISSUED",
+  "allF1": false,
+  "unionCandidateSha256": null,
+  "backendPrototypePassed": false,
+  "userReportedRound5Progress": {
+    "candidatePrefix": "a9c47",
+    "fullCandidateSha256": null,
+    "Architect": "96 APPROVE, user-reported",
+    "Critic": "Hume reviewing, user-reported",
+    "formallyReviewedByThisAgent": false,
+    "old2sFailuresReclassified": false,
+    "backendApproved": false
+  },
+  "reportMdSha256": "14b9cfcdb7540f230f5eb8742b2c2daa8152c9b3b03e5314481e33b933aceb2e"
+}

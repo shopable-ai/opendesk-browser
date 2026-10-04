@@ -1,0 +1,393 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "timestampUtc": "2026-10-03T08:26:49.497060+00:00",
+  "planSlice": "already-approved T05/F2",
+  "boundedImplementationComplete": true,
+  "f3Approved": false,
+  "packagesRebuilt": false,
+  "verification": {
+    "targeted": {
+      "exitCode": 0,
+      "summary": {
+        "tests": 98,
+        "pass": 98,
+        "fail": 0
+      },
+      "sourceDrift": {},
+      "detail": "cross-session-targeted.json",
+      "includes": "20 generic + 26 unchanged template download + 22 shared storage + 6 codec + 24 public controller tests",
+      "inputVersion": "hashes captured in cross-session-targeted.json; later Main edits require fresh integration validation"
+    },
+    "sourceCheck": {
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0
+    },
+    "syntax": [
+      {
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "argv": [
+          "node",
+          "--check",
+          "src/platform/downloads/index.js"
+        ],
+        "exitCode": 0,
+        "sha256": "741f2a85cfbee87de515f53a2299e8ab5ee1a908dbc5ddc1ce5a1338ccd3da9e",
+        "output": ""
+      },
+      {
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "argv": [
+          "node",
+          "--check",
+          "src/platform/downloads/blob-lifecycle.js"
+        ],
+        "exitCode": 0,
+        "sha256": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66",
+        "output": ""
+      },
+      {
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "argv": [
+          "node",
+          "--check",
+          "tests/framework/k2-generic-download.test.mjs"
+        ],
+        "exitCode": 0,
+        "sha256": "8c3d6433cc3005cb352447264dcf57a28c801eaf899f947e1da3457343990938",
+        "output": ""
+      }
+    ],
+    "legacyDownloadAssertionsUnmodified": true,
+    "oracleKind": "real public authority/repository register, immutable revision commit/pin, controller start/finish/retire + atomic commit/rollback and Chrome callback/search/listeners oracle; NOT native extension or disk execution",
+    "nativeCompleteAndPhysicalFileHashStillRequired": true,
+    "hostOrRunFixtureSeeding": false,
+    "completedHistoryCrossBrowserSessionAllowed": true,
+    "activeRunAndCurrentIntentSessionFencesUnchanged": true,
+    "typedWireDepthOracle": "public start/finish/retire, prepare/read and independent SHA for legal semantic depth 12 (wire JSON nesting exceeds default canonical 12); no codec or general canonical budget change"
+  },
+  "sourceFiles": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/downloads/index.js",
+      "bytes": 54632,
+      "sha256": "741f2a85cfbee87de515f53a2299e8ab5ee1a908dbc5ddc1ce5a1338ccd3da9e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/downloads/blob-lifecycle.js",
+      "bytes": 2381,
+      "sha256": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs",
+      "bytes": 33161,
+      "sha256": "8c3d6433cc3005cb352447264dcf57a28c801eaf899f947e1da3457343990938"
+    }
+  ],
+  "readOnlyInputs": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/download-service.test.mjs",
+      "bytes": 27726,
+      "sha256": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js",
+      "bytes": 46198,
+      "sha256": "4c29a6fde634b7c6d29f19a679dd012cf085a8e8712197d476783aabb3983447"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js",
+      "bytes": 61737,
+      "sha256": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/authority.js",
+      "bytes": 22092,
+      "sha256": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+      "bytes": 12262,
+      "sha256": "5d27f3f2cfadfb007a618dfa02ef0fc3ca4b068d7c6774c545c96eab7bf7bcb6"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js",
+      "bytes": 7854,
+      "sha256": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/ui/tool.html",
+      "bytes": 4862,
+      "sha256": "7f966fa92d3412e641a967d46a15e65f4fbd57678fc6c861dcb15af9ee9ece13"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/ui/tool-shell.js",
+      "bytes": 8578,
+      "sha256": "37199af1af93f398b331ecadeadcc2a7acc01be77af6e4c1e524d78cbfa90d59"
+    }
+  ],
+  "sharedSourceComparedWithSliceStart": [
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "before": "442ede7e55d12d9001e7aadd4b30f74abba4d894e1e339746cdeec04a2068c3c",
+      "after": "4c29a6fde634b7c6d29f19a679dd012cf085a8e8712197d476783aabb3983447",
+      "unchanged": false,
+      "owner": "main; read-only in this slice"
+    },
+    {
+      "path": "src/platform/storage/repository.js",
+      "before": "4f67bee828ae3d758da5fac4d8e4beca2bf0584aaf7839cb676140d4e19e4a68",
+      "after": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+      "unchanged": false,
+      "owner": "main; read-only in this slice"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "before": "f3c0ce751623e9308ed6be8683035be96655c0eb0aa2667c6bec6c55c468133b",
+      "after": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+      "unchanged": false,
+      "owner": "main; read-only in this slice"
+    }
+  ],
+  "mainOwnedHandoff": {
+    "registrationContract": {
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "probe": "public createRunAuthority.registerHost/assertHost with a transaction oracle; no host mutation",
+      "namespaceIssued": true,
+      "principalIssued": true,
+      "actualSenderBound": true,
+      "browserSessionBound": true,
+      "hostFields": [
+        "active",
+        "browserSessionIncarnation",
+        "hostDocumentId",
+        "hostInstanceId",
+        "hostTabId",
+        "hostUrl",
+        "namespace",
+        "principal",
+        "registeredAt",
+        "registrationId",
+        "revoked",
+        "tag"
+      ],
+      "integrationOwner": "main",
+      "nativeBrowserProof": false
+    },
+    "brokerRoutes": [
+      "prepareArtifact",
+      "prepareAttempt",
+      "readArtifact",
+      "recordResourceRelease"
+    ],
+    "jsonSafeByteTransport": "readArtifact Uint8Array -> canonical Base64 blocks -> host Uint8Array -> existing Blob registry",
+    "nativeRunner": "next stable dist without key/id modification; actual complete plus disk SHA-256",
+    "transportAgreement": "Main confirmed service stays {artifact,bytes:Uint8Array}; broker returns {artifact,blocks}; UI reconstructs, checks SHA, then existing RunHost Blob registry/dispatch/reconcile/release",
+    "freshBuildOwner": "Main after download source freeze; no packaging edits in this correction",
+    "freshIntegrationValidationRequired": true
+  },
+  "retainedRed": [
+    "generic-red.log",
+    "generic-red.json",
+    "targeted-first.log",
+    "targeted-first.json",
+    "cross-session-red.log",
+    "cross-session-red.json"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/api-contract.json",
+      "bytes": 9746,
+      "sha256": "03a7edb921229d21cf33c10edb4094a2a66e259c434abd9f3090bbdb3fb336af"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/before-blob-lifecycle.js",
+      "bytes": 2325,
+      "sha256": "7cd6786a9fedd5cec869944aa9e473082d550e08ea0737aea72d52fd0e756e45"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/before-index.js",
+      "bytes": 33754,
+      "sha256": "0cd7bb5f610c26d7a23f8bc221b7dd0e3bfacfac64c1cfb5be820fecb0942b44"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/before.json",
+      "bytes": 827,
+      "sha256": "a8e5d55f5ff6c14ba119362c03ccde4d269cdd8c001e5a2a04bd85a20bdfce55"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/change-blob-lifecycle.js.diff",
+      "bytes": 818,
+      "sha256": "d80414fef3b7c8f495b681cb7d1f651ec52429e54d6f1195fea2db88f2bb4215"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/change-index.js.diff",
+      "bytes": 30096,
+      "sha256": "0db8d13e61c09f2ca4b8cd1dd4840526185eca96eff057174e7dcc04bbb46d14"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-pre-integration.json",
+      "bytes": 2895,
+      "sha256": "aec856a38282b369d7cc1dc0df8705b9ad8a75d8a832e69498be33db745a2ad1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-pre-integration.log",
+      "bytes": 21276,
+      "sha256": "49c487613866cce5f0f3bcadfb1170592d37d8b60793b3d4b2586c310046dd34"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-red.json",
+      "bytes": 330,
+      "sha256": "f7b714094b238510c289a551e31a5c5afffc63d17af2766b0ef7ee73802fdd0a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-red.log",
+      "bytes": 3311,
+      "sha256": "49c0ee4d73ddc2dfe3b8cf9a5db3e6d19a18f0a6b8748eb2c86e4d5d33d61b88"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-source-check.json",
+      "bytes": 134,
+      "sha256": "dda8d86d7546017ade973f136566fa9aa071c826fba4522abf60f55f3ad8dad6"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-source-check.log",
+      "bytes": 171,
+      "sha256": "ba119928db1f91d179c6eb56519be1da6ec0f9bd8e92e15a1347d5f73d97d41f"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-syntax.json",
+      "bytes": 877,
+      "sha256": "0540d3b6debc1b4ad15de1cde094db826c92c471277e2cc521defb50ea9b128e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-targeted.json",
+      "bytes": 2895,
+      "sha256": "3791c5b81f41c1bfa870ab93b5c4aa21968952c971c191a2d55c5d1aedb7ee2c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/cross-session-targeted.log",
+      "bytes": 24258,
+      "sha256": "67aa394b0e213e1688ff7e6d4119e0622e053c28b320809dd3d5c0cf00c30cc0"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/dlgen-contract-inspection.json",
+      "bytes": 9553,
+      "sha256": "a583f60902e47713869046ea046b01153f1a18722b4d73793f1decfd878d3d64"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/generic-red.json",
+      "bytes": 177,
+      "sha256": "213a8069a279ac95c3ef1c4fedd7810636c21abf3d19cfb72d5f755702d8b08c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/generic-red.log",
+      "bytes": 7970,
+      "sha256": "03dfd3e0b25f2c29264cdf89bb7d91f947ba207d010dd60b04463b8bcd4302b1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/public-controller-first.json",
+      "bytes": 177,
+      "sha256": "a8787e64620696172114cf07acbb97688890ef21151de926261a7af67b3e8ac3"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/public-controller-first.log",
+      "bytes": 2186,
+      "sha256": "2737cdc7cc478d8053fd9dde9a72c376f2d18f0e1116804435cdee5488f5aea4"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/public-registration-contract.json",
+      "bytes": 596,
+      "sha256": "c9ce689468a1bcb51ed7a967dc0cc351b30888bfc232fa69c5ec89be1ec94c7b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/source-check.json",
+      "bytes": 134,
+      "sha256": "dda8d86d7546017ade973f136566fa9aa071c826fba4522abf60f55f3ad8dad6"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/source-check.log",
+      "bytes": 171,
+      "sha256": "ba119928db1f91d179c6eb56519be1da6ec0f9bd8e92e15a1347d5f73d97d41f"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/syntax.json",
+      "bytes": 823,
+      "sha256": "1801cdff516d18e4fffbbb55d8488a1e698f381e9333eea972b808ffe88a9ae9"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/targeted-final.json",
+      "bytes": 2654,
+      "sha256": "836067cb374c762757ceb1fee90081c20facc233d8e88d7073d5fa613fa1556b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/targeted-final.log",
+      "bytes": 8846,
+      "sha256": "3a42e6724a01461cd3c67602f1d8e96328fdfbe003620c05da261d4ed73ab68c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/targeted-first.json",
+      "bytes": 227,
+      "sha256": "31b2014cd6ce3e724241eb225fc5373fde0245b023783595e0ce9af78072812c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/targeted-first.log",
+      "bytes": 4788,
+      "sha256": "1c1c93ba8e9f82fdb1c8a1f4d58b6e915c927198bb0103f190de9f8ffb1dbe94"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/targeted-second.json",
+      "bytes": 227,
+      "sha256": "3214600ccda28cf9089b1def2804437e9160a911609561fc4c9bf60192bcfd08"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/targeted-second.log",
+      "bytes": 4636,
+      "sha256": "7d045709031a27961e8d050a653c258780357178e9ebf4d43f90e6facf7199f8"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/wiring.md",
+      "bytes": 6177,
+      "sha256": "cdf083cbac846cf6c646a89e9121a09f7151d4fa07556449980415e4db448ed9"
+    }
+  ],
+  "postTestInputDrift": {
+    "src/platform/host/controller-methods.js": {
+      "tested": "7d9fa4fc712a5bcef0df80d758bef3261a8b388726c211154b7c28145114e8d3",
+      "now": "4c29a6fde634b7c6d29f19a679dd012cf085a8e8712197d476783aabb3983447",
+      "owner": "Main; not edited in download slice"
+    }
+  },
+  "completedHistoryAuthorization": {
+    "contractEvidence": "dlgen-contract-inspection.json",
+    "source": "same-store completed controller-run and immutable controller-result",
+    "stableBinding": [
+      "runId",
+      "resultId",
+      "namespace",
+      "principal",
+      "revision"
+    ],
+    "oldRunBrowserSessionIncarnationRequired": false,
+    "newCurrentHostAfterBrowserReopenAllowed": true,
+    "newExportIntentCaptures": [
+      "registrationId",
+      "hostInstanceId",
+      "hostDocumentId",
+      "browserSessionIncarnation"
+    ],
+    "currentHostAndIntentSessionFencesUnchanged": [
+      "readArtifact",
+      "prepareAttempt",
+      "dispatchDownload",
+      "public reconcileDownload",
+      "recordResourceRelease"
+    ],
+    "activeRunAuthorityOrReplayAllowed": false,
+    "oldIntentAdoptionAllowed": false,
+    "wireValidation": "existing foundation codec semantic depth/byte limits; no general canonical depth relaxation"
+  }
+}

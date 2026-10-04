@@ -1,0 +1,1717 @@
+{
+  "scope": "Bounded existing-source mapping review of18 key files; not full-library audit",
+  "files": [
+    {
+      "id": "F001",
+      "old": "ChromePage.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/ChromePage.ts",
+      "lines": 1153,
+      "baselineSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "currentSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/agents/page-agent.js",
+        "src/framework/ChromePage.js",
+        "src/framework/context.js",
+        "src/platform/chrome/cookies.js",
+        "src/platform/chrome/network.js",
+        "src/platform/chrome/screenshot.js",
+        "src/platform/chrome/styles.js",
+        "src/platform/chrome/tabs.js",
+        "src/platform/host/client.js",
+        "src/platform/page-port/codec.js",
+        "src/platform/page-port/index.js",
+        "src/platform/page-port/sdk-injection.js",
+        "src/platform/target/index.js",
+        "src/run-host.js",
+        "src/scripting/packaged/registry.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/scripting/user-scripts/page-evaluator.js"
+      ],
+      "coreCapabilityIds": [
+        "CORE-RUN-CONTEXT",
+        "CORE-NAVIGATION",
+        "CORE-SERIALIZED-SNAPSHOTS",
+        "CORE-EVALUATE-EXPRESSION",
+        "TOOL.F001.upload.dataUrlToBlob",
+        "TOOL.F001.upload.inputFilesAndChange",
+        "TOOL.F001.upload.blobReader"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "CORE-RUN-CONTEXT",
+          "symbol": "export page / background global page",
+          "lines": [
+            1136,
+            1153
+          ],
+          "text": "const page = new ChromePage();\n\n// 编译到android app中，即目录src-capacitor\\android\\app\\src\\main\\assets\\core，需要使用注释下面代码;\nexport { page };\nexport default ChromePage;\n\nif (typeof globalThis !== 'undefined') {\n\t// @ts-ignore\n\tglobalThis.page____ChromePage____Object = page;     // 保留实例对象。如果需要在app和webview之间切换，需要保留实例对象\n\t// @ts-ignore\n\tglobalThis.page = globalThis.page || page;  // android webview中重复进入\n\t// @ts-ignore\n\tglobalThis.ChromePage = ChromePage;\n}\n// if (globalThis.module) module.exports = page;\n// else globalThis.page = page;\nconsole.log('ChromePage.js loaded')\n"
+        },
+        {
+          "capabilityId": "CORE-NAVIGATION",
+          "symbol": "goto/reload/_execute",
+          "lines": [
+            162,
+            233
+          ],
+          "text": "\tasync reload(options = {}) {\n\t\tlet { timeout = 30000, waitUntil = 'complete' } = options as any;\n\t\ttimeout = timeout || 30000;\n\t\twaitUntil = waitUntil || 'complete';\n\n\t\treturn await this.evaluate(() => window.location.reload());\n\t}\n\n\t// \tpage.goto(url[, options])\n\t// url <string> 导航到的地址. 地址应该带有http协议, 比如 https://.\n\t// options <Object> 导航配置，可选值：\n\t// timeout <number> 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值\n\t// waitUntil <string|Array<string>> 满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：\n\t// load - 页面的load事件触发时\n\t// domcontentloaded - 页面的 DOMContentLoaded 事件触发时\n\t// networkidle0 - 不再有网络连接时触发（至少500毫秒后）\n\t// networkidle2 - 只有2个网络连接时触发（至少500毫秒后）\n\t// referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().\n\t// 返回: <Promise<?Response>> Promise对象resolve后是主要的请求的响应。如果有多个跳转, resolve后是最后一次跳转的响应\n\n\t/**\n\t * 导航到指定的url，等待导航完成或超时.\n\t *\n\t * @param {*} url 导航到的地址. 地址应该带有http协议, 比如 https://.\n\t * @param {*} [options={}]\n\t * @return {*} 无返回\n\t * @memberof ChromePage\n\t */\n\tasync goto(url, options = {}) {\n\t\tlet { timeout = 30000, waitUntil = 'complete' } = options as any;\n\t\ttimeout = timeout || 30000;\n\t\twaitUntil = waitUntil || 'complete';\n\n\t\t// 开始导航\n\t\tconst navigationPromise = new Promise<void>((resolve, reject) => {\n\t\t\tlet timeoutId;\n\n\t\t\t// 设置超时\n\t\t\tif (timeout > 0) {\n\t\t\t\ttimeoutId = setTimeout(() => {\n\t\t\t\t\tchrome.tabs.onUpdated.removeListener(listener); // 移除监听器\n\t\t\t\t\treject(new Error('Navigation timeout exceeded'));\n\t\t\t\t}, timeout);\n\t\t\t}\n\n\t\t\tfunction listener(tabId, changeInfo, tab) {\n\t\t\t\t// tab.url === url &&\n\t\t\t\tif (changeInfo.status === 'complete') {\n\t\t\t\t\tchrome.tabs.onUpdated.removeListener(listener); // 移除监听器\n\t\t\t\t\tclearTimeout(timeoutId);\n\t\t\t\t\tresolve();\n\t\t\t\t}\n\t\t\t}\n\n\t\t\t// 添加事件监听器\n\t\t\tchrome.tabs.onUpdated.addListener(listener);\n\t\t});\n\n\t\t// 执行导航\n\t\tconst code = `window.location.href = \"${url}\";`;\n\t\tawait this.eval(code);\n\n\t\t// 等待导航完成或超时\n\t\treturn navigationPromise;\n\t}\n\n\t/**\n\t * 返回dom元素，如果没有找到则返回null。和document.querySelector 作用相同\n\t * 对象是克隆的，不是原始对象。主要用于获取dom元素的属性和内容。\n\t * @param selector\n\t * @returns\n\t */"
+        },
+        {
+          "capabilityId": "CORE-SERIALIZED-SNAPSHOTS",
+          "symbol": "ChromePage.$",
+          "lines": [
+            234,
+            250
+          ],
+          "text": "\tasync $(selector) {\n\t\t// 在页面上下文中执行查询选择器操作\n\t\tconst outerHTML = await this.evaluate((selector) => {\n\t\t\tconst element = document.querySelector(selector);\n\t\t\treturn element ? element.outerHTML : null;\n\t\t}, selector);\n\n\t\tif (!outerHTML) return null;\n\n\t\t// 在Chrome上下文中，从outerHTML解析为DOM对象\n\t\tconst div = document.createElement('div');\n\t\tdiv.innerHTML = outerHTML as string;\n\t\tconst parsedElement = div.firstChild;\n\n\t\t// 返回解析的DOM对象\n\t\treturn parsedElement;\n\t}"
+        },
+        {
+          "capabilityId": "CORE-EVALUATE-EXPRESSION",
+          "symbol": "ChromePage.eval",
+          "lines": [
+            930,
+            986
+          ],
+          "text": "\tasync eval(code: string, options: { debug?: boolean } = {}) {\n\t\tconst debug = options.debug || false;\n\t\tconsole.log('eval:', code, debug);\n\n\t\tif (code.includes('=')) {  // Simplistic check for set operation\n\t\t\tconst scriptId = await this.addScriptTag({ content: code });\n\t\t\tif (!debug) {\n\t\t\t\tawait this.evaluate(id => {\n\t\t\t\t\tconst script = document.getElementById(id);\n\t\t\t\t\tif (script) script.remove();\n\t\t\t\t}, scriptId);\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\n\t\tconst getCode = `\n            (function() {\n                var element = document.querySelector('chromeextension');\n                if(!element) {\n                    element = document.createElement('chromeextension');\n                    element.style.display = 'none';\n                    element.setAttribute('type', 'return');\n                    document.body.appendChild(element);\n                }\n                let data = {};\n                try {\n                    let text = element.textContent;\n                    data = JSON.parse(text || '{}');\n                    let value = ${code};\n                    data.result = value;\n                    element.textContent = JSON.stringify(data);\n                } catch(error) {\n                    console.error('Error while fetching data: ', error);\n                }\n            })();\n        `;\n\t\tconst scriptId = await this.addScriptTag({ content: getCode });\n\n\t\tconst resultElementContent = await this.evaluate(() => {\n\t\t\tconst element = document.querySelector('chromeextension');\n\t\t\treturn element ? element.textContent : null;\n\t\t});\n\t\tconst result = JSON.parse(resultElementContent || '{}').result;\n\n\t\tif (!debug) {\n\t\t\tawait this.evaluate(id => {\n\t\t\t\tconst script = document.getElementById(id);\n\t\t\t\tif (script) script.remove();\n\t\t\t}, scriptId);\n\t\t\tawait this.evaluate(() => {\n\t\t\t\tconst element = document.querySelector('chromeextension');\n\t\t\t\tif (element) element.remove();\n\t\t\t})\n\t\t}\n\n\t\treturn result;\n\t}"
+        },
+        {
+          "capabilityId": "TOOL.F001.upload.dataUrlToBlob",
+          "symbol": "upload.dataUrlToBlob",
+          "lines": [
+            894,
+            904
+          ],
+          "text": "\t\t\tfunction dataUrlToBlob(dataUrl) {\n\t\t\t\tconst parts = dataUrl.split(',');\n\t\t\t\tconst byteString = atob(parts[1]);\n\t\t\t\tconst mimeString = parts[0].split(':')[1].split(';')[0];\n\t\t\t\tconst ab = new ArrayBuffer(byteString.length);\n\t\t\t\tconst ia = new Uint8Array(ab);\n\t\t\t\tfor (let i = 0; i < byteString.length; i++) {\n\t\t\t\t\tia[i] = byteString.charCodeAt(i);\n\t\t\t\t}\n\t\t\t\treturn new Blob([ab], { type: mimeString });\n\t\t\t}"
+        },
+        {
+          "capabilityId": "TOOL.F001.upload.inputFilesAndChange",
+          "symbol": "upload.inputFilesAndChange",
+          "lines": [
+            906,
+            912
+          ],
+          "text": "\t\t\tconst blob = dataUrlToBlob(dataUrl);\n\t\t\tconst input = document.querySelector(selector);\n\t\t\tconst dt = new DataTransfer();\n\t\t\tdt.items.add(new File([blob], \"filename.jpg\", { type: \"image/jpeg\" })); // 设置你的文件名和类型\n\t\t\tinput.files = dt.files;\n\t\t\tinput.dispatchEvent(new Event('change', { bubbles: true }));\n\t\t}, selector, dataUrl);"
+        },
+        {
+          "capabilityId": "TOOL.F001.upload.blobReader",
+          "symbol": "upload.blobReader",
+          "lines": [
+            875,
+            889
+          ],
+          "text": "\tasync _uploadFromBlob(selector, blob) {\n\t\t// Convert blob to Data URL and then use the existing logic to upload\n\t\treturn new Promise((resolve, reject) => {\n\t\t\tconst reader = new FileReader();\n\t\t\treader.onloadend = async () => {\n\t\t\t\ttry {\n\t\t\t\t\tawait this._uploadFromDataUrl(selector, reader.result);\n\t\t\t\t\tresolve(true);\n\t\t\t\t} catch (error) {\n\t\t\t\t\treject(error);\n\t\t\t\t}\n\t\t\t};\n\t\t\treader.onerror = reject;\n\t\t\treader.readAsDataURL(blob);\n\t\t});"
+        }
+      ]
+    },
+    {
+      "id": "F002",
+      "old": "assets/js/Env.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/Env.js",
+      "lines": 5,
+      "baselineSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "currentSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/bridge.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F002.CHROME_PAGE_TYPE"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F002.CHROME_PAGE_TYPE",
+          "symbol": "CHROME_PAGE_TYPE",
+          "lines": [
+            3,
+            3
+          ],
+          "text": "globalThis.CHROME_PAGE_TYPE = 'CHROME_EXTENSION';"
+        }
+      ]
+    },
+    {
+      "id": "F003",
+      "old": "assets/js/core/appLocal.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/appLocal.js",
+      "lines": 11,
+      "baselineSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "currentSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/storage.js",
+        "src/platform/storage/index.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F003.AppLocal.setItem",
+        "SDK.F003.AppLocal.getItem",
+        "SDK.F003.AppLocal.removeItem"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F003.AppLocal.setItem",
+          "symbol": "AppLocal.setItem",
+          "lines": [
+            2,
+            4
+          ],
+          "text": "\tsetItem: async function (key,value) {\n\t\treturn await callChromeBridgeInterface('APPLOCAL_SETITEM', { key,value });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F003.AppLocal.getItem",
+          "symbol": "AppLocal.getItem",
+          "lines": [
+            5,
+            7
+          ],
+          "text": "\tgetItem: async function (key) {\n\t\treturn await callChromeBridgeInterface('APPLOCAL_GETITEM', { key });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F003.AppLocal.removeItem",
+          "symbol": "AppLocal.removeItem",
+          "lines": [
+            8,
+            10
+          ],
+          "text": "\tremoveItem: async function (key) {\n\t\treturn await callChromeBridgeInterface('APPLOCAL_REMOVEITEM', { key });\n\t},"
+        }
+      ]
+    },
+    {
+      "id": "F004",
+      "old": "assets/js/core/appStorage.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/appStorage.js",
+      "lines": 14,
+      "baselineSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "currentSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/storage.js",
+        "src/platform/storage/index.js",
+        "src/platform/storage/repository.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F004.AppStorage.setItem",
+        "SDK.F004.AppStorage.getItem",
+        "SDK.F004.AppStorage.removeItem",
+        "SDK.F004.AppStorage.clear"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F004.AppStorage.setItem",
+          "symbol": "AppStorage.setItem",
+          "lines": [
+            2,
+            4
+          ],
+          "text": "\tsetItem: async function (key,value) {\n\t\treturn await callChromeBridgeInterface('APPSTORAGE_SETITEM', { key,value });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F004.AppStorage.getItem",
+          "symbol": "AppStorage.getItem",
+          "lines": [
+            5,
+            7
+          ],
+          "text": "\tgetItem: async function (key) {\n\t\treturn await callChromeBridgeInterface('APPSTORAGE_GETITEM', { key });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F004.AppStorage.removeItem",
+          "symbol": "AppStorage.removeItem",
+          "lines": [
+            8,
+            10
+          ],
+          "text": "\tremoveItem: async function (key) {\n\t\treturn await callChromeBridgeInterface('APPSTORAGE_REMOVEITEM', { key });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F004.AppStorage.clear",
+          "symbol": "AppStorage.clear",
+          "lines": [
+            11,
+            13
+          ],
+          "text": "\tclear: async function () {\n\t\treturn await callChromeBridgeInterface('APPSTORAGE_CLEAR', { });\n\t},"
+        }
+      ]
+    },
+    {
+      "id": "F005",
+      "old": "assets/js/core/axiosx.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/axiosx.js",
+      "lines": 43,
+      "baselineSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "currentSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/bridge.js",
+        "src/framework/sdk/http.js",
+        "src/platform/chrome/network.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F005.axiosx.get",
+        "SDK.F005.axiosx.post",
+        "SDK.F005.axiosx.put",
+        "SDK.F005.axiosx.delete",
+        "SDK.F005.callChromeBridgeInterface"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F005.axiosx.get",
+          "symbol": "axiosx.get",
+          "lines": [
+            12,
+            14
+          ],
+          "text": "\tget: async function (url, config) {\n\t\treturn await callChromeBridgeInterface('AXIOS_GET', { BridgeUrl_Inject: url, config });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F005.axiosx.post",
+          "symbol": "axiosx.post",
+          "lines": [
+            15,
+            17
+          ],
+          "text": "\tpost: async function (url, data, config) {\n\t\treturn await callChromeBridgeInterface('AXIOS_POST', { BridgeUrl_Inject: url, data, config });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F005.axiosx.put",
+          "symbol": "axiosx.put",
+          "lines": [
+            18,
+            20
+          ],
+          "text": "\tput: async function (url, data, config) {\n\t\treturn await callChromeBridgeInterface('AXIOS_PUT', { BridgeUrl_Inject: url, data, config });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F005.axiosx.delete",
+          "symbol": "axiosx.delete",
+          "lines": [
+            21,
+            23
+          ],
+          "text": "\tdelete: async function (url, config) {\n\t\treturn await callChromeBridgeInterface('AXIOS_DELETE', { BridgeUrl_Inject: url, config });\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F005.callChromeBridgeInterface",
+          "symbol": "callChromeBridgeInterface",
+          "lines": [
+            26,
+            43
+          ],
+          "text": "async function callChromeBridgeInterface(functionName, params) {\n\tlet eventId = generateEventId();\n\tparams = params || {};\n\t// params.eventId = eventId;\n\tlet promise = new Promise((resolve, reject) => {\n\t\tglobalThis.ChromeBridgeEvents.set(eventId, { resolve, reject });\n\t\t// let EventName = 'CHROME_BRIDGE_' + functionName;\n\t\t// console.log('callChromeBridgeInterface', functionName, params);\n\t\twindow.dispatchEvent(new CustomEvent('CHROME_BRIDGE_INTERFACE', {\n\t\t\tdetail: {\n\t\t\t\t...params,\n\t\t\t\tBridgeEventName: functionName,\n\t\t\t\tBridgeEventId: eventId\n\t\t\t}\n\t\t}));\n\t});\n\treturn promise;\n}"
+        }
+      ]
+    },
+    {
+      "id": "F006",
+      "old": "assets/js/core/brige.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/brige.js",
+      "lines": 50,
+      "baselineSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "currentSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/bridge.js",
+        "src/platform/page-port/codec.js",
+        "src/run-host.js",
+        "src/scripting/sandbox/controller.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F006.generateEventId",
+        "SDK.F006.ChromeBridgeEvents",
+        "SDK.F006.decodeBase64",
+        "SDK.F006.ChromeBridgeOperationCompleted",
+        "SDK.F006.executeInBg_executeScript"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F006.generateEventId",
+          "symbol": "generateEventId",
+          "lines": [
+            2,
+            4
+          ],
+          "text": "function generateEventId() {\n\treturn Date.now() + \"-\" + Math.random().toString(36).substr(2, 9);\n}"
+        },
+        {
+          "capabilityId": "SDK.F006.ChromeBridgeEvents",
+          "symbol": "ChromeBridgeEvents",
+          "lines": [
+            5,
+            5
+          ],
+          "text": "globalThis.ChromeBridgeEvents = globalThis.ChromeBridgeEvents || new Map();"
+        },
+        {
+          "capabilityId": "SDK.F006.decodeBase64",
+          "symbol": "decodeBase64",
+          "lines": [
+            7,
+            7
+          ],
+          "text": "if(!globalThis.decodeBase64) globalThis.decodeBase64 = (encodedStr)=> decodeURIComponent(escape(atob(encodedStr)));"
+        },
+        {
+          "capabilityId": "SDK.F006.ChromeBridgeOperationCompleted",
+          "symbol": "ChromeBridgeOperationCompleted",
+          "lines": [
+            16,
+            43
+          ],
+          "text": "function ChromeBridgeOperationCompleted(eventId, result, isBase64) {\n\tlet event = globalThis.ChromeBridgeEvents.get(eventId) || {};\n\tlet { resolve, reject } = event;\n\tif (resolve) {\n\t\ttry {\n\t\t\tlet res ;\n\t\t\tif(!isBase64) res = typeof result == 'string' ? JSON.parse(result) : result;  // 全部采用base64字符传递，方便跨浏览器传递特殊字符;\n\t\t\telse res = typeof result == 'string' ? JSON.parse( decodeBase64(result)) : result;\n\t\t\tlet { PageBrigeCode, message, data } = res;\n\t\t\tif (!!PageBrigeCode) {\n\t\t\t\t// console.log('ChromeBridge operationCompleted reject', message);\n\t\t\t\treject(message);\n\t\t\t}\n\t\t\telse {\n\t\t\t\t// console.log('ChromeBridge operationCompleted resolve', data);\n\t\t\t\tresolve(data);\n\t\t\t}\n\t\t}\n\t\tcatch (e) {\n\t\t\treject('json parse error in ChromePage operationCompleted');\n\t\t}\n\t}\n\telse {\n\t\tconsole.log('ChromeBridgeCallBackOperationCompleted has not eventId.', Object.keys(globalThis.ChromeBridgeEvents), eventId);\n\t}\n\n\treturn \"\";\n}"
+        },
+        {
+          "capabilityId": "SDK.F006.executeInBg_executeScript",
+          "symbol": "executeInBg_executeScript",
+          "lines": [
+            45,
+            50
+          ],
+          "text": "function executeInBg(script){\n\tlet event = new CustomEvent('CHROME_PAGE_EXECUTE', { detail: { script } });\n\twindow.dispatchEvent(event);\n}\n\nglobalThis.executeScript = executeInBg;"
+        }
+      ]
+    },
+    {
+      "id": "F007",
+      "old": "assets/js/core/common.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/common.js",
+      "lines": 9,
+      "baselineSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "currentSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/notifications.js",
+        "src/platform/chrome/notifications.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F007.createNotify"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F007.createNotify",
+          "symbol": "createNotify",
+          "lines": [
+            2,
+            9
+          ],
+          "text": "function createNotify(title,content){\n    let desc = '';\n    if (typeof content === 'string') desc =  content ;\n    else if (typeof content === 'object') desc = content.body ;\n\n    // console.log(title,desc);\n    return callChromeBridgeInterface('CREATE_NOTIFY', { title, content: desc });\n}"
+        }
+      ]
+    },
+    {
+      "id": "F008",
+      "old": "assets/js/core/serverUtils.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/serverUtils.js",
+      "lines": 79,
+      "baselineSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "currentSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/servers.js",
+        "src/platform/chrome/network.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F008.serverUtils.checkServer",
+        "SDK.F008.serverUtils.getFastestServer",
+        "SDK.F008.serverUtils.checkServers"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F008.serverUtils.checkServer",
+          "symbol": "serverUtils.checkServer",
+          "lines": [
+            19,
+            28
+          ],
+          "text": "    async checkServer(server, timeout = 5000) {\n        const start = Date.now();\n        try {\n            const response = await fetch(server, { method: 'GET', mode: 'no-cors' });\n            const latency = Date.now() - start;\n            return { server, latency, available: response.ok };\n        } catch (error) {\n            return { server, latency: Infinity, available: false, error: error.message };\n        }\n    },"
+        },
+        {
+          "capabilityId": "SDK.F008.serverUtils.getFastestServer",
+          "symbol": "serverUtils.getFastestServer",
+          "lines": [
+            31,
+            49
+          ],
+          "text": "    async getFastestServer(servers, timeout = 5000) {\n        servers = servers.map(server => server.startsWith('http') ? server : `http://${server}`);        \n        const promises = servers.map(server => this.checkServer(server, timeout));\n        let fastestResult = null;\n\n        for (const promise of promises) {\n            try {\n                const result = await Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))]);\n                if (result.available) {\n                    fastestResult = result;\n                    break;\n                }\n            } catch (error) {\n                // 处理异常或超时\n            }\n        }\n\n        return fastestResult;\n    },"
+        },
+        {
+          "capabilityId": "SDK.F008.serverUtils.checkServers",
+          "symbol": "serverUtils.checkServers",
+          "lines": [
+            52,
+            74
+          ],
+          "text": "    async checkServers(servers, timeout = 5000) {\n        servers = servers.map(server => server.startsWith('http') ? server : `http://${server}`);        \n        const results = [];\n        const promises = servers.map(server => this.checkServer(server, timeout));\n\n        for (const promise of promises) {\n            try {\n                const result = await promise;\n                results.push(result);\n            } catch (error) {\n                results.push({ server: promise.server, latency: Infinity, available: false, error: error.message });\n            }\n        }\n\n        // 找到延迟最低的服务器\n        const fastestResult = results.reduce((prev, curr) => (curr.available && curr.latency < prev.latency ? curr : prev), { latency: Infinity });\n\n        return {\n            results,\n            fastestResult\n        };\n    }\n};"
+        }
+      ]
+    },
+    {
+      "id": "F009",
+      "old": "assets/js/core/utils.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/utils.js",
+      "lines": 17,
+      "baselineSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "currentSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/utils.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F009.sleep",
+        "SDK.F009.getFingerprint"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F009.sleep",
+          "symbol": "sleep",
+          "lines": [
+            1,
+            1
+          ],
+          "text": "if (!globalThis.sleep) globalThis.sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));"
+        },
+        {
+          "capabilityId": "SDK.F009.getFingerprint",
+          "symbol": "getFingerprint",
+          "lines": [
+            4,
+            17
+          ],
+          "text": "async function getFingerprint() {\n    // 初始化 FingerprintJS API\n    const fp = await FingerprintJS.load();\n\n    // 获取访客标识符\n    const result = await fp.get();\n\n    // 这个值是访客的唯一指纹\n    const visitorId = result.visitorId;\n    // console.log(\"visitorId\",visitorId);\n\n    // 你可以使用 visitorId 做进一步的处理，例如发送到服务器或用于跟踪用户\n    return visitorId ;\n}"
+        }
+      ]
+    },
+    {
+      "id": "F010",
+      "old": "assets/js/custom_event.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/custom_event.js",
+      "lines": 38,
+      "baselineSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "currentSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/agents/page-relay.js",
+        "src/framework/events.js"
+      ],
+      "coreCapabilityIds": [
+        "SDK.F010.CustomEventDetector.messager",
+        "SDK.F010.CustomEventDetector.addEventListeners",
+        "SDK.F010.CustomEventDetector.removeEventListeners",
+        "EVENT.F010.CustomChromeEvt",
+        "EVENT.F010.CHROME_PAGE_EXECUTE",
+        "EVENT.F010.CHROME_BRIDGE_INTERFACE"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "SDK.F010.CustomEventDetector.messager",
+          "symbol": "CustomEventDetector.messager",
+          "lines": [
+            7,
+            24
+          ],
+          "text": "\tmessager: function (evt) {\n\t\ttry {\n\t\t\tchrome.runtime.sendMessage({\n\t\t\t\t\"active\": \"true\",\n\t\t\t\t\"type\": \"hid_\" + evt.type,\n\t\t\t\ttitle: document.title,\n\t\t\t\turl: window.location.href,\n\t\t\t\tdetail: evt.detail\n\t\t\t}, function (response) {\n\t\t\t\tif (chrome.runtime.lastError) {\n\t\t\t\t\tconsole.log(\"Chrome runtime error:\", chrome.runtime.lastError);\n\t\t\t\t}\n\t\t\t});\n\t\t} catch (e) {\n\t\t\tconsole.log('Error in event handling:', e);\n\t\t\tCustomEventDetector.removeEventListeners();\n\t\t}\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F010.CustomEventDetector.addEventListeners",
+          "symbol": "CustomEventDetector.addEventListeners",
+          "lines": [
+            25,
+            29
+          ],
+          "text": "\taddEventListeners: function () {\n\t\tfor (var i = 0; i < CustomEventDetector.events.length; i++) {\n\t\t\twindow.addEventListener(CustomEventDetector.events[i], CustomEventDetector.messager, false);\n\t\t}\n\t},"
+        },
+        {
+          "capabilityId": "SDK.F010.CustomEventDetector.removeEventListeners",
+          "symbol": "CustomEventDetector.removeEventListeners",
+          "lines": [
+            30,
+            35
+          ],
+          "text": "\tremoveEventListeners: function () {\n\t\tfor (var i = 0; i < CustomEventDetector.events.length; i++) {\n\t\t\twindow.removeEventListener(CustomEventDetector.events[i], CustomEventDetector.messager);\n\t\t}\n\t}\n};"
+        },
+        {
+          "capabilityId": "EVENT.F010.CustomChromeEvt",
+          "symbol": "CustomChromeEvt",
+          "lines": [
+            1,
+            1
+          ],
+          "text": "const CustomChromeEvt = \"chromeCustomEvt\";"
+        },
+        {
+          "capabilityId": "EVENT.F010.CHROME_PAGE_EXECUTE",
+          "symbol": "CHROME_PAGE_EXECUTE",
+          "lines": [
+            2,
+            2
+          ],
+          "text": "const CHROME_PAGE_EXECUTE = \"CHROME_PAGE_EXECUTE\";"
+        },
+        {
+          "capabilityId": "EVENT.F010.CHROME_BRIDGE_INTERFACE",
+          "symbol": "CHROME_BRIDGE_INTERFACE",
+          "lines": [
+            3,
+            3
+          ],
+          "text": "const CHROME_BRIDGE_INTERFACE = \"CHROME_BRIDGE_INTERFACE\";"
+        }
+      ]
+    },
+    {
+      "id": "F020",
+      "old": "background.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "lines": 1015,
+      "baselineSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "currentSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/environment.js",
+        "src/framework/context.js",
+        "src/framework/sdk/http.js",
+        "src/framework/sdk/utils.js",
+        "src/platform/chrome/cookies.js",
+        "src/platform/chrome/network.js",
+        "src/platform/chrome/notifications.js",
+        "src/platform/chrome/tabs.js",
+        "src/platform/host/authority.js",
+        "src/platform/host/broker.js",
+        "src/platform/page-port/codec.js",
+        "src/platform/page-port/index.js",
+        "src/platform/page-port/sdk-injection.js",
+        "src/platform/protocol.js",
+        "src/platform/schema.js",
+        "src/platform/storage/index.js",
+        "src/platform/storage/repository.js",
+        "src/platform/target/index.js",
+        "src/run-host.js",
+        "src/scripting/packaged/revision-resolver.js",
+        "src/scripting/sandbox/controller.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/sw.js",
+        "src/ui/script-editor.js",
+        "src/ui/tool-shell.js"
+      ],
+      "coreCapabilityIds": [
+        "CORE-CONTROL-EXEC",
+        "CORE-CONTROL-FENCE",
+        "CORE-SCRIPT-VERSION",
+        "CORE-IDENTITY",
+        "CORE-SDK-ADMISSION",
+        "CORE-PRODUCT-ENTRY",
+        "SVC.F020.handleChromeBridgeInterface",
+        "SVC.F020.tokenSubstitution",
+        "SVC.F020.axiosUrlNormalization",
+        "SVC.F020.AXIOS_GET",
+        "SVC.F020.AXIOS_POST",
+        "SVC.F020.AXIOS_PUT",
+        "SVC.F020.AXIOS_DELETE",
+        "SVC.F020.APPSTORAGE_SETITEM",
+        "SVC.F020.APPSTORAGE_GETITEM",
+        "SVC.F020.APPSTORAGE_REMOVEITEM",
+        "SVC.F020.APPSTORAGE_CLEAR",
+        "SVC.F020.APPLOCAL_SETITEM",
+        "SVC.F020.APPLOCAL_GETITEM",
+        "SVC.F020.APPLOCAL_REMOVEITEM",
+        "SVC.F020.CREATE_NOTIFY",
+        "SVC.F020.bridgeFinalCatchUnknown",
+        "SVC.F020.backgroundSleepFallback",
+        "SVC.F020.globalPage",
+        "SVC.F020.runtimeMessageListener",
+        "SVC.F020.message.CHROME_BRIDGE_INTERFACE",
+        "SVC.F020.message.CHROME_PAGE_EXECUTE",
+        "SVC.F020.message.default",
+        "SVC.F020.extractDomainFromUrl",
+        "SVC.F020.deleteCookiesByUrl",
+        "SVC.F020.setCookies",
+        "SVC.F020.getCookies",
+        "SVC.F020.handleChromePageExecute",
+        "SVC.F020.executeScript",
+        "SVC.F020.getActiveTab",
+        "SVC.F020.checkLastError",
+        "SVC.F020.executeScriptInCurrentPage",
+        "SVC.F020.encodeToBase64",
+        "SVC.F020.ChromeBridgeCallBack",
+        "SVC.F020.createNotify",
+        "SVC.F020.notify.inner",
+        "SVC.F020.notify.onshow",
+        "SVC.F020.notify.onclose",
+        "SVC.F020.notify.onclick",
+        "SVC.F020.initApp",
+        "SVC.F020.initEngine",
+        "SVC.F020.initEnvLocal",
+        "SVC.F020.updateEnvInfo",
+        "SVC.F020.browserAction.onClicked",
+        "SVC.F020.service.log",
+        "SVC.F020.service.getTime",
+        "SVC.F020.service.storage.get.key",
+        "SVC.F020.service.storage.get.all",
+        "SVC.F020.service.storage.set",
+        "SVC.F020.service.storage.remove",
+        "SVC.F020.tabs.onRemoved.register",
+        "SVC.F020.tabs.onUpdated.register",
+        "SVC.F020.service.bexUrl",
+        "SVC.F020.service.requestResource"
+      ],
+      "excludedCapabilityIds": [
+        "SVC.F020.CSDN_READ_ARTICLE",
+        "SVC.F020.CSDN_DOWNLOAD",
+        "SVC.F020.CSDN_VIP_LOGIN",
+        "SVC.F020.TraceTimeUtilGlobalPrerequisite",
+        "SVC.F020.message.mousemove",
+        "SVC.F020.message.notifications",
+        "SVC.F020.message.chromeCustomEvt",
+        "SVC.F020.handleHidMouseMove",
+        "SVC.F020.handleNotifications",
+        "SVC.F020.handleChromeCustomEvent",
+        "SVC.F020.settingProxy",
+        "SVC.F020.getHistoryUrls",
+        "SVC.F020.idleLocked",
+        "SVC.F020.onInstalledGuide",
+        "SVC.F020.onCreatedNewtabRedirect",
+        "SVC.F020.initAutoPage",
+        "SVC.F020.initSocket",
+        "SVC.F020.socket.connect",
+        "SVC.F020.socket.event",
+        "SVC.F020.socket.disconnect",
+        "SVC.F020.socket.reconnect_attempt",
+        "SVC.F020.socket.reconnect_failed",
+        "SVC.F020.socket.data",
+        "SVC.F020.socket.getSocketIds",
+        "SVC.F020.socket.SCRIPT_RUN",
+        "SVC.F020.socket.DEVICE_INFO",
+        "SVC.F020.initUserInfoWs",
+        "SVC.F020.initDataBusiness",
+        "SVC.F020.checkAndLogoutWEB",
+        "SVC.F020.onInstalledDetectFocus",
+        "SVC.F020.getAllInWindow",
+        "SVC.F020.startCounter",
+        "SVC.F020.getRedirectUrl",
+        "SVC.F020.doBlackCounter",
+        "SVC.F020.cancelBlackCounte",
+        "SVC.F020.resetDebug",
+        "SVC.F020.check2End",
+        "SVC.F020.doRemovedBusiness",
+        "SVC.F020.doUpdatedBusiness",
+        "SVC.F020.focusState",
+        "SVC.F020.tokenBusiness",
+        "SVC.F020.initEnvRemote",
+        "SVC.F020.tracetime_webrequest_begun",
+        "SVC.F020.tracetime_webrequest_done",
+        "SVC.F020.onHeadersReceived",
+        "SVC.F020.webRequest.onBeforeRequest",
+        "SVC.F020.webRequest.onCompleted",
+        "SVC.F020.BexEventMap",
+        "SVC.F020.bexBackgroundRegistration",
+        "SVC.F020.commented.onCreated.example"
+      ],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "CORE-CONTROL-EXEC",
+          "symbol": "SCRIPT_RUN / wrapAsync",
+          "lines": [
+            403,
+            496
+          ],
+          "text": "async function handleChromePageExecute(request) {\n\tlet { detail } = request;\n\tif (detail.script) {\n\t\tawait executeScript(detail.script);\n\t}\n}\n\n\n// const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;\n//   const executor = new AsyncFunction('page', 'console', script);\n// await executor(page, console);\nasync function executeScript(str) {\n\tif (envJson.env != \"production\") console.log('executeScript:', moment().format('YYYY-MM-DD HH:mm:ss'), str)\n\tlet action = wrapAsync(str)\n\teval(action)\n}\n\n// 设置检测间隔\nchrome.idle.setDetectionInterval(60);\n// 监听系统休眠\nchrome.idle.onStateChanged.addListener((state) => {\n\tif (state === \"locked\") {\n\t\ttimeReview?.doSendBeforeClose();\n\t}\n});\n// 安装浏览器插件，initApp 运行在前，onInstalled在后。\nchrome.runtime.onInstalled.addListener(async (details) => {\n\t// alert('Hello, World!');\n\t// 统计安装次数。\n\t// console.log('sendMessage' , 'notifications' , new Date().getTime() )\n\t// setTimeout( ()=>{\n\t//   chrome.runtime.sendMessage({\"type\": 'notifications', time: 10 }, (response)=>{ console.log('response',response) })\n\t//   console.log('sendMessage' , 'notifications', new Date().getTime() )\n\t// } , 1000)\n\tif (details.reason === \"install\") {\n\t\tif (!envJson) await sleep(200);\n\t\tconsole.log(\"onInstalled envJson\", new Date().getTime())\n\n\t\tif (envJson?.GUIDE_URL) chrome.tabs.create({ url: envJson.GUIDE_URL });\n\t}\n});\n\nlet envJson: any = {};\nlet WEBSITE_URL = \"https://todo6.com/\"; //\nlet LOGIN_URL, BASE_URL;\n\n\nconsole.log('chrome.tabs.onCreated.addListener', moment().format('YYYY-MM-DD HH:mm:ss'))\n// Send a message to the client based on something happening.\n\n// 打开指定的选项卡页面\nchrome.tabs.onCreated.addListener((tab) => {\n\tif (tab.pendingUrl === \"chrome://newtab/\") {\n\t\t// console.log(\"chrome newTab:\", tab , envJson.newtab )\n\t\tlet newtab = localStorage['Env.newtab'] || envJson.newtab;\n\t\tif (newtab) chrome.tabs.update(tab.id, { url: envJson.newtab });\n\t}\n});\n\n\ninitApp();\n\n// let page;\nasync function initApp() {\n\tconsole.log(\"initApp\", new Date().getTime())\n\n\tcheckAndLogoutWEB();\n\n\tawait initEngine();\n\tawait initEnv();\n\tawait initData();\n\n\tawait initAutoPage();\n}\nasync function initAutoPage() {\n\tconsole.log('initTest:', new Date().getTime());\n\t// page = new ChromePage();  // 已经改用import 的方式代替；\n}\n\n// 获取当前激活的tab\nasync function getActiveTab() {\n\treturn new Promise((resolve, reject) => {\n\t\ttry {\n\t\t\t// , currentWindow: true\n\t\t\tchrome.tabs.query({ active: true }, function (tabs) {\n\t\t\t\tresolve(tabs[0]);\n\t\t\t});\n\t\t} catch (ex) {\n\t\t\tconsole.error('chrome.tabs.getAllInWindow:', ex.message)\n\t\t\treject(ex);\n\t\t}\n\t});\n}\n"
+        },
+        {
+          "capabilityId": "CORE-CONTROL-FENCE",
+          "symbol": "SCRIPT_STOP / run terminal",
+          "lines": [
+            403,
+            496
+          ],
+          "text": "async function handleChromePageExecute(request) {\n\tlet { detail } = request;\n\tif (detail.script) {\n\t\tawait executeScript(detail.script);\n\t}\n}\n\n\n// const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;\n//   const executor = new AsyncFunction('page', 'console', script);\n// await executor(page, console);\nasync function executeScript(str) {\n\tif (envJson.env != \"production\") console.log('executeScript:', moment().format('YYYY-MM-DD HH:mm:ss'), str)\n\tlet action = wrapAsync(str)\n\teval(action)\n}\n\n// 设置检测间隔\nchrome.idle.setDetectionInterval(60);\n// 监听系统休眠\nchrome.idle.onStateChanged.addListener((state) => {\n\tif (state === \"locked\") {\n\t\ttimeReview?.doSendBeforeClose();\n\t}\n});\n// 安装浏览器插件，initApp 运行在前，onInstalled在后。\nchrome.runtime.onInstalled.addListener(async (details) => {\n\t// alert('Hello, World!');\n\t// 统计安装次数。\n\t// console.log('sendMessage' , 'notifications' , new Date().getTime() )\n\t// setTimeout( ()=>{\n\t//   chrome.runtime.sendMessage({\"type\": 'notifications', time: 10 }, (response)=>{ console.log('response',response) })\n\t//   console.log('sendMessage' , 'notifications', new Date().getTime() )\n\t// } , 1000)\n\tif (details.reason === \"install\") {\n\t\tif (!envJson) await sleep(200);\n\t\tconsole.log(\"onInstalled envJson\", new Date().getTime())\n\n\t\tif (envJson?.GUIDE_URL) chrome.tabs.create({ url: envJson.GUIDE_URL });\n\t}\n});\n\nlet envJson: any = {};\nlet WEBSITE_URL = \"https://todo6.com/\"; //\nlet LOGIN_URL, BASE_URL;\n\n\nconsole.log('chrome.tabs.onCreated.addListener', moment().format('YYYY-MM-DD HH:mm:ss'))\n// Send a message to the client based on something happening.\n\n// 打开指定的选项卡页面\nchrome.tabs.onCreated.addListener((tab) => {\n\tif (tab.pendingUrl === \"chrome://newtab/\") {\n\t\t// console.log(\"chrome newTab:\", tab , envJson.newtab )\n\t\tlet newtab = localStorage['Env.newtab'] || envJson.newtab;\n\t\tif (newtab) chrome.tabs.update(tab.id, { url: envJson.newtab });\n\t}\n});\n\n\ninitApp();\n\n// let page;\nasync function initApp() {\n\tconsole.log(\"initApp\", new Date().getTime())\n\n\tcheckAndLogoutWEB();\n\n\tawait initEngine();\n\tawait initEnv();\n\tawait initData();\n\n\tawait initAutoPage();\n}\nasync function initAutoPage() {\n\tconsole.log('initTest:', new Date().getTime());\n\t// page = new ChromePage();  // 已经改用import 的方式代替；\n}\n\n// 获取当前激活的tab\nasync function getActiveTab() {\n\treturn new Promise((resolve, reject) => {\n\t\ttry {\n\t\t\t// , currentWindow: true\n\t\t\tchrome.tabs.query({ active: true }, function (tabs) {\n\t\t\t\tresolve(tabs[0]);\n\t\t\t});\n\t\t} catch (ex) {\n\t\t\tconsole.error('chrome.tabs.getAllInWindow:', ex.message)\n\t\t\treject(ex);\n\t\t}\n\t});\n}\n"
+        },
+        {
+          "capabilityId": "CORE-SCRIPT-VERSION",
+          "symbol": "SCRIPT_RUN body",
+          "lines": [
+            403,
+            496
+          ],
+          "text": "async function handleChromePageExecute(request) {\n\tlet { detail } = request;\n\tif (detail.script) {\n\t\tawait executeScript(detail.script);\n\t}\n}\n\n\n// const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;\n//   const executor = new AsyncFunction('page', 'console', script);\n// await executor(page, console);\nasync function executeScript(str) {\n\tif (envJson.env != \"production\") console.log('executeScript:', moment().format('YYYY-MM-DD HH:mm:ss'), str)\n\tlet action = wrapAsync(str)\n\teval(action)\n}\n\n// 设置检测间隔\nchrome.idle.setDetectionInterval(60);\n// 监听系统休眠\nchrome.idle.onStateChanged.addListener((state) => {\n\tif (state === \"locked\") {\n\t\ttimeReview?.doSendBeforeClose();\n\t}\n});\n// 安装浏览器插件，initApp 运行在前，onInstalled在后。\nchrome.runtime.onInstalled.addListener(async (details) => {\n\t// alert('Hello, World!');\n\t// 统计安装次数。\n\t// console.log('sendMessage' , 'notifications' , new Date().getTime() )\n\t// setTimeout( ()=>{\n\t//   chrome.runtime.sendMessage({\"type\": 'notifications', time: 10 }, (response)=>{ console.log('response',response) })\n\t//   console.log('sendMessage' , 'notifications', new Date().getTime() )\n\t// } , 1000)\n\tif (details.reason === \"install\") {\n\t\tif (!envJson) await sleep(200);\n\t\tconsole.log(\"onInstalled envJson\", new Date().getTime())\n\n\t\tif (envJson?.GUIDE_URL) chrome.tabs.create({ url: envJson.GUIDE_URL });\n\t}\n});\n\nlet envJson: any = {};\nlet WEBSITE_URL = \"https://todo6.com/\"; //\nlet LOGIN_URL, BASE_URL;\n\n\nconsole.log('chrome.tabs.onCreated.addListener', moment().format('YYYY-MM-DD HH:mm:ss'))\n// Send a message to the client based on something happening.\n\n// 打开指定的选项卡页面\nchrome.tabs.onCreated.addListener((tab) => {\n\tif (tab.pendingUrl === \"chrome://newtab/\") {\n\t\t// console.log(\"chrome newTab:\", tab , envJson.newtab )\n\t\tlet newtab = localStorage['Env.newtab'] || envJson.newtab;\n\t\tif (newtab) chrome.tabs.update(tab.id, { url: envJson.newtab });\n\t}\n});\n\n\ninitApp();\n\n// let page;\nasync function initApp() {\n\tconsole.log(\"initApp\", new Date().getTime())\n\n\tcheckAndLogoutWEB();\n\n\tawait initEngine();\n\tawait initEnv();\n\tawait initData();\n\n\tawait initAutoPage();\n}\nasync function initAutoPage() {\n\tconsole.log('initTest:', new Date().getTime());\n\t// page = new ChromePage();  // 已经改用import 的方式代替；\n}\n\n// 获取当前激活的tab\nasync function getActiveTab() {\n\treturn new Promise((resolve, reject) => {\n\t\ttry {\n\t\t\t// , currentWindow: true\n\t\t\tchrome.tabs.query({ active: true }, function (tabs) {\n\t\t\t\tresolve(tabs[0]);\n\t\t\t});\n\t\t} catch (ex) {\n\t\t\tconsole.error('chrome.tabs.getAllInWindow:', ex.message)\n\t\t\treject(ex);\n\t\t}\n\t});\n}\n"
+        },
+        {
+          "capabilityId": "CORE-IDENTITY",
+          "symbol": "background bridge router",
+          "lines": [
+            102,
+            247
+          ],
+          "text": "async function handleChromeBridgeInterface(request) {\n\tlet { detail } = request;\n\tlet { BridgeEventName, BridgeEventId, BridgeUrl_Inject, ...data } = detail;\n\tlet res;\n\ttry {\n\t\tlet { eventId } = data || {}; // BridgeEventName, BridgeEventId, BridgeUrl_Inject,\n\t\tdelete data.BridgeEventName, delete data.BridgeEventId, delete data.BridgeUrl_Inject, delete data.eventId;\n\t\tlet api = BridgeUrl_Inject;\n\t\tlet { url, token, key } = data;\n\t\tconsole.log('page content CHROME_BRIDGE_INTERFACE:', BridgeEventName, data, api)\n\t\tif (token && token.includes('${token}')) {\n\t\t\tdata.token = token.replace('${token}', localStorage.token)\n\t\t}\n\t\tif (BridgeEventName && BridgeEventName.startsWith(\"AXIOS_\")) {\n\t\t\tif (url && !url.startsWith(\"http\")) url = BASE_URL + '/' + url;\n\t\t\tconsole.log(\"axios url:\", { url, BASE_URL })\n\t\t}\n\t\tif (BridgeEventName == 'AXIOS_GET') {\n\t\t\tres = await axios.get(api, data.config).catch(e => { });  // .then(r => r.data)\n\t\t}\n\t\telse if (BridgeEventName == 'AXIOS_POST') {\n\t\t\tlet { config, ...postData } = data;\n\t\t\tres = await axios.post(api, postData.data, config).catch(e => { });\n\t\t}\n\t\telse if (BridgeEventName == 'AXIOS_PUT') {\n\t\t\tlet { config, ...putData } = data;\n\t\t\tres = await axios.put(api, putData.data, config).catch(e => { });\n\t\t}\n\t\telse if (BridgeEventName == 'AXIOS_DELETE') {\n\t\t\tres = await axios.delete(api, data.config).catch(e => { });\n\t\t}\n\n\t\tif (BridgeEventName == 'APPSTORAGE_SETITEM') {\n\t\t\tlocalStorage.setItem(key, data.value)\n\t\t} else if (BridgeEventName == 'APPSTORAGE_GETITEM') {\n\t\t\tres = localStorage.getItem(key);\n\t\t} else if (BridgeEventName == 'APPSTORAGE_REMOVEITEM') {\n\t\t\tres = localStorage.removeItem(key)\n\t\t} else if (BridgeEventName == 'APPSTORAGE_CLEAR') {\n\t\t\tres = localStorage.clear();\n\t\t} else if (BridgeEventName == 'APPLOCAL_SETITEM') {\n\t\t\tglobalThis[key] = data.value;\n\t\t} else if (BridgeEventName == 'APPLOCAL_GETITEM') {\n\t\t\tres = globalThis[key]\n\t\t} else if (BridgeEventName == 'APPLOCAL_REMOVEITEM') {\n\t\t\tif (globalThis.hasOwnProperty(key)) {\n\t\t\t\tdelete globalThis[key];\n\t\t\t}\n\t\t}\n\n\n\t\tif (BridgeEventName == \"CREATE_NOTIFY\") {\n\t\t\tcreateNotify(data.title, { body: data.content });\n\t\t}\n\n\t\tif (BridgeEventName == 'CSDN_READ_ARTICLE') res = await csdnApp.read(url);\n\t\tif (BridgeEventName == 'CSDN_DOWNLOAD') res = await csdnApp.download(url);\n\t\t// if (BridgeEventName == 'CSDN_VIP_LOGIN') res = await csdnApp.vipLogin(code);\n\t\tif (BridgeEventName == 'CSDN_VIP_LOGIN') {\n\t\t\tlet { code, deviceCode } = data;\n\t\t\tlet isUserLogin = !!code;\n\t\t\tcode = code || localStorage.csdn_vipcode;\n\t\t\tif (!code) {\n\t\t\t\treturn console.warn(\"no vip code\")\n\t\t\t}\n\t\t\tres = await csdnApp.vipLogin(code, deviceCode);\n\t\t\tif (res?.code != 1000) {\n\t\t\t\tconsole.error(\"CSDN_VIP_LOGIN error:\", res)\n\t\t\t\tlet info = `page.evaluate((message)=>{alert('错误提示：' + message)}, '${res.message || \"网络异常\"}')`;\n\t\t\t\tconsole.log(\"error info:\", info)\n\t\t\t\texecuteScript(info);\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tlocalStorage.csdn_vipcode = code;\n\t\t\t// expireAt: \"2024-04-15 21:36:20\"\n\t\t\tlet { scripts, isused, allowed, expireAt, value, createTime, updateTime } = res.data;\n\t\t\tlet [item] = scripts;\n\t\t\tlet { encode, content } = item || {};\n\t\t\tif (encode == 'base64') content = atob(content);\n\t\t\t// 如果卡密已经过了有效期，则退出登录。\n\t\t\t// 通过 expireAt - createTime , 计算有效时长，如果小于等于1天，则时效从 updateTime 开始计算，增加有效时长，修改expireAt\n\t\t\tconst expireDate = new Date(expireAt);\n\t\t\tconst updateDate = new Date(updateTime);\n\t\t\tconst createDate = new Date(createTime);\n\t\t\tconst currentDate = new Date();\n\t\t\t// 计算从创建时间到过期时间的时间差\n\t\t\tconst timeDiff = expireDate - currentDate;\n\t\t\t// 转换时间差为天数\n\t\t\tconst daysDiff = timeDiff / (1000 * 60 * 60 * 24);\n\t\t\tconsole.log(\"daysDiff:\", daysDiff)\n\t\t\tif (daysDiff <= 1.1) {\n\t\t\t\tlet minute = Math.ceil(timeDiff / (1000 * 60));\n\t\t\t\t// console.log(\"有效期小于等于1天，从更新时间开始计算时效。\" , minutes , 'm' );\n\t\t\t\tlet expireStr = `var PLATFORM_PARAMS = {expireAt: '${minute}m'} ;`;\n\t\t\t\t// let newExpireDate = new Date(currentDate.getTime() + minute * 60000);\n\n\t\t\t\t// let year = newExpireDate.getFullYear();\n\t\t\t\t// let month = newExpireDate.getMonth() + 1; // Adding 1 because months are zero-indexed\n\t\t\t\t// let day = newExpireDate.getDate();\n\t\t\t\t// let hours = newExpireDate.getHours();\n\t\t\t\t// let minutes = newExpireDate.getMinutes();\n\t\t\t\t// let seconds = newExpireDate.getSeconds();\n\n\t\t\t\t// // Format the date string using padStart to ensure two digits\n\t\t\t\t// let formattedExpireAt = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;\n\t\t\t\t// expireAt = formattedExpireAt;\n\n\t\t\t\tcontent = expireStr + '\\n' + content;\n\t\t\t}\n\t\t\tlet loginInfos = localStorage.loginInfos ? JSON.parse(localStorage.loginInfos) : [];\n\t\t\tloginInfos.push(code);\n\t\t\t// 去除loginInfos重复内容，\n\t\t\tconst uniqueCodes = new Set(loginInfos);\n\t\t\tloginInfos = Array.from(uniqueCodes)\n\n\t\t\tlocalStorage.loginInfos = JSON.stringify(loginInfos);\n\t\t\tconsole.log(\"localStorage.loginInfos:\", expireAt, localStorage.loginInfos)\n\t\t\tlocalStorage.setItem(`cardcode_${code}`, JSON.stringify({ expireAt, createTime, updateTime, type: 'login', url: 'https://csdn.net' }))\n\n\n\t\t\t// 把数据库中的 expireAt 字段增加其他类型，如有效时长。如 1m 1d 1h\n\t\t\t// 保存到PLATFORM_PARAMS字段中；\n\t\t\tif (content) {\n\t\t\t\tlet info = `page.evaluate((updateTime)=>{\n\t\t\t\tif ( location.host.includes('www.csdn.net') ) localStorage.vipcode='${code}'\n\t\t\t  })`;\n\t\t\t\tconsole.log(\"isused info vipcode:\", info)\n\t\t\t\texecuteScript(info);  // 弹窗过后似乎导致登录失效\n\t\t\t\texecuteScript(content);  // 执行逻辑，完成登录。\n\t\t\t}\n\t\t\tif (isused == true) {\n\t\t\t\tawait sleep(2000)\n\t\t\t\tlet info = `page.evaluate((updateTime)=>{\n\t\t\t\talert('口令已使用,使用时间：' + updateTime)\n\t\t\t  }, '${updateTime}')`;\n\t\t\t\tconsole.log(\"isused info alert:\", info, isUserLogin)\n\t\t\t\t// if(isUserLogin) executeScript(info);  // 弹窗过后似乎导致登录失效\n\t\t\t\t// 手动登录会弹窗，自动登录不会弹窗；\n\t\t\t\tif (isUserLogin) createNotify(\"提示:\", { body: `兑换码使用时间：${updateTime}` });\n\t\t\t}\n\t\t}\n\t\tconsole.log('page content CHROME_BRIDGE_INTERFACE res:', res)\n\t\tChromeBridgeCallBack(BridgeEventId, res)\n\t} catch (error) {\n\t\tconsole.error('Error handling Chrome Bridge Interface:', error);\n\t}"
+        },
+        {
+          "capabilityId": "CORE-SDK-ADMISSION",
+          "symbol": "background SDK short-service routing",
+          "lines": [
+            102,
+            247
+          ],
+          "text": "async function handleChromeBridgeInterface(request) {\n\tlet { detail } = request;\n\tlet { BridgeEventName, BridgeEventId, BridgeUrl_Inject, ...data } = detail;\n\tlet res;\n\ttry {\n\t\tlet { eventId } = data || {}; // BridgeEventName, BridgeEventId, BridgeUrl_Inject,\n\t\tdelete data.BridgeEventName, delete data.BridgeEventId, delete data.BridgeUrl_Inject, delete data.eventId;\n\t\tlet api = BridgeUrl_Inject;\n\t\tlet { url, token, key } = data;\n\t\tconsole.log('page content CHROME_BRIDGE_INTERFACE:', BridgeEventName, data, api)\n\t\tif (token && token.includes('${token}')) {\n\t\t\tdata.token = token.replace('${token}', localStorage.token)\n\t\t}\n\t\tif (BridgeEventName && BridgeEventName.startsWith(\"AXIOS_\")) {\n\t\t\tif (url && !url.startsWith(\"http\")) url = BASE_URL + '/' + url;\n\t\t\tconsole.log(\"axios url:\", { url, BASE_URL })\n\t\t}\n\t\tif (BridgeEventName == 'AXIOS_GET') {\n\t\t\tres = await axios.get(api, data.config).catch(e => { });  // .then(r => r.data)\n\t\t}\n\t\telse if (BridgeEventName == 'AXIOS_POST') {\n\t\t\tlet { config, ...postData } = data;\n\t\t\tres = await axios.post(api, postData.data, config).catch(e => { });\n\t\t}\n\t\telse if (BridgeEventName == 'AXIOS_PUT') {\n\t\t\tlet { config, ...putData } = data;\n\t\t\tres = await axios.put(api, putData.data, config).catch(e => { });\n\t\t}\n\t\telse if (BridgeEventName == 'AXIOS_DELETE') {\n\t\t\tres = await axios.delete(api, data.config).catch(e => { });\n\t\t}\n\n\t\tif (BridgeEventName == 'APPSTORAGE_SETITEM') {\n\t\t\tlocalStorage.setItem(key, data.value)\n\t\t} else if (BridgeEventName == 'APPSTORAGE_GETITEM') {\n\t\t\tres = localStorage.getItem(key);\n\t\t} else if (BridgeEventName == 'APPSTORAGE_REMOVEITEM') {\n\t\t\tres = localStorage.removeItem(key)\n\t\t} else if (BridgeEventName == 'APPSTORAGE_CLEAR') {\n\t\t\tres = localStorage.clear();\n\t\t} else if (BridgeEventName == 'APPLOCAL_SETITEM') {\n\t\t\tglobalThis[key] = data.value;\n\t\t} else if (BridgeEventName == 'APPLOCAL_GETITEM') {\n\t\t\tres = globalThis[key]\n\t\t} else if (BridgeEventName == 'APPLOCAL_REMOVEITEM') {\n\t\t\tif (globalThis.hasOwnProperty(key)) {\n\t\t\t\tdelete globalThis[key];\n\t\t\t}\n\t\t}\n\n\n\t\tif (BridgeEventName == \"CREATE_NOTIFY\") {\n\t\t\tcreateNotify(data.title, { body: data.content });\n\t\t}\n\n\t\tif (BridgeEventName == 'CSDN_READ_ARTICLE') res = await csdnApp.read(url);\n\t\tif (BridgeEventName == 'CSDN_DOWNLOAD') res = await csdnApp.download(url);\n\t\t// if (BridgeEventName == 'CSDN_VIP_LOGIN') res = await csdnApp.vipLogin(code);\n\t\tif (BridgeEventName == 'CSDN_VIP_LOGIN') {\n\t\t\tlet { code, deviceCode } = data;\n\t\t\tlet isUserLogin = !!code;\n\t\t\tcode = code || localStorage.csdn_vipcode;\n\t\t\tif (!code) {\n\t\t\t\treturn console.warn(\"no vip code\")\n\t\t\t}\n\t\t\tres = await csdnApp.vipLogin(code, deviceCode);\n\t\t\tif (res?.code != 1000) {\n\t\t\t\tconsole.error(\"CSDN_VIP_LOGIN error:\", res)\n\t\t\t\tlet info = `page.evaluate((message)=>{alert('错误提示：' + message)}, '${res.message || \"网络异常\"}')`;\n\t\t\t\tconsole.log(\"error info:\", info)\n\t\t\t\texecuteScript(info);\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tlocalStorage.csdn_vipcode = code;\n\t\t\t// expireAt: \"2024-04-15 21:36:20\"\n\t\t\tlet { scripts, isused, allowed, expireAt, value, createTime, updateTime } = res.data;\n\t\t\tlet [item] = scripts;\n\t\t\tlet { encode, content } = item || {};\n\t\t\tif (encode == 'base64') content = atob(content);\n\t\t\t// 如果卡密已经过了有效期，则退出登录。\n\t\t\t// 通过 expireAt - createTime , 计算有效时长，如果小于等于1天，则时效从 updateTime 开始计算，增加有效时长，修改expireAt\n\t\t\tconst expireDate = new Date(expireAt);\n\t\t\tconst updateDate = new Date(updateTime);\n\t\t\tconst createDate = new Date(createTime);\n\t\t\tconst currentDate = new Date();\n\t\t\t// 计算从创建时间到过期时间的时间差\n\t\t\tconst timeDiff = expireDate - currentDate;\n\t\t\t// 转换时间差为天数\n\t\t\tconst daysDiff = timeDiff / (1000 * 60 * 60 * 24);\n\t\t\tconsole.log(\"daysDiff:\", daysDiff)\n\t\t\tif (daysDiff <= 1.1) {\n\t\t\t\tlet minute = Math.ceil(timeDiff / (1000 * 60));\n\t\t\t\t// console.log(\"有效期小于等于1天，从更新时间开始计算时效。\" , minutes , 'm' );\n\t\t\t\tlet expireStr = `var PLATFORM_PARAMS = {expireAt: '${minute}m'} ;`;\n\t\t\t\t// let newExpireDate = new Date(currentDate.getTime() + minute * 60000);\n\n\t\t\t\t// let year = newExpireDate.getFullYear();\n\t\t\t\t// let month = newExpireDate.getMonth() + 1; // Adding 1 because months are zero-indexed\n\t\t\t\t// let day = newExpireDate.getDate();\n\t\t\t\t// let hours = newExpireDate.getHours();\n\t\t\t\t// let minutes = newExpireDate.getMinutes();\n\t\t\t\t// let seconds = newExpireDate.getSeconds();\n\n\t\t\t\t// // Format the date string using padStart to ensure two digits\n\t\t\t\t// let formattedExpireAt = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;\n\t\t\t\t// expireAt = formattedExpireAt;\n\n\t\t\t\tcontent = expireStr + '\\n' + content;\n\t\t\t}\n\t\t\tlet loginInfos = localStorage.loginInfos ? JSON.parse(localStorage.loginInfos) : [];\n\t\t\tloginInfos.push(code);\n\t\t\t// 去除loginInfos重复内容，\n\t\t\tconst uniqueCodes = new Set(loginInfos);\n\t\t\tloginInfos = Array.from(uniqueCodes)\n\n\t\t\tlocalStorage.loginInfos = JSON.stringify(loginInfos);\n\t\t\tconsole.log(\"localStorage.loginInfos:\", expireAt, localStorage.loginInfos)\n\t\t\tlocalStorage.setItem(`cardcode_${code}`, JSON.stringify({ expireAt, createTime, updateTime, type: 'login', url: 'https://csdn.net' }))\n\n\n\t\t\t// 把数据库中的 expireAt 字段增加其他类型，如有效时长。如 1m 1d 1h\n\t\t\t// 保存到PLATFORM_PARAMS字段中；\n\t\t\tif (content) {\n\t\t\t\tlet info = `page.evaluate((updateTime)=>{\n\t\t\t\tif ( location.host.includes('www.csdn.net') ) localStorage.vipcode='${code}'\n\t\t\t  })`;\n\t\t\t\tconsole.log(\"isused info vipcode:\", info)\n\t\t\t\texecuteScript(info);  // 弹窗过后似乎导致登录失效\n\t\t\t\texecuteScript(content);  // 执行逻辑，完成登录。\n\t\t\t}\n\t\t\tif (isused == true) {\n\t\t\t\tawait sleep(2000)\n\t\t\t\tlet info = `page.evaluate((updateTime)=>{\n\t\t\t\talert('口令已使用,使用时间：' + updateTime)\n\t\t\t  }, '${updateTime}')`;\n\t\t\t\tconsole.log(\"isused info alert:\", info, isUserLogin)\n\t\t\t\t// if(isUserLogin) executeScript(info);  // 弹窗过后似乎导致登录失效\n\t\t\t\t// 手动登录会弹窗，自动登录不会弹窗；\n\t\t\t\tif (isUserLogin) createNotify(\"提示:\", { body: `兑换码使用时间：${updateTime}` });\n\t\t\t}\n\t\t}\n\t\tconsole.log('page content CHROME_BRIDGE_INTERFACE res:', res)\n\t\tChromeBridgeCallBack(BridgeEventId, res)\n\t} catch (error) {\n\t\tconsole.error('Error handling Chrome Bridge Interface:', error);\n\t}"
+        },
+        {
+          "capabilityId": "CORE-PRODUCT-ENTRY",
+          "symbol": "background control consumers",
+          "lines": [
+            9,
+            27
+          ],
+          "text": "import ChromePage, { page } from './ChromePage';\nimport { io } from \"socket.io-client\";\nimport UtilInfo from './utils/UtilInfo';\nimport UtilDevice from './utils/UtilDevice';\nimport { DeviceType } from './operate/Device.cst';\nimport { EVENT_OPERATE } from './operate/EventOperate.cst';\nimport { wrapAsync } from './utils/UtilScrpt.js';\nimport { csdnApp } from './controller/csdn.js';\n// import puppeteer from 'puppeteer-core/lib/esm/puppeteer/web';\n// import { ExtensionDebuggerTransport } from 'puppeteer-extension-transport'\nif (!globalThis.sleep) globalThis.sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));\n\n\nlet timeReview: TimeReview;\nlet intervalId, countStart, duration;\nvar socket;\nlet deviceInfo: any = {};\n\nif (page) globalThis.page = page;"
+        },
+        {
+          "capabilityId": "SVC.F020.handleChromeBridgeInterface",
+          "symbol": "handleChromeBridgeInterface",
+          "lines": [
+            102,
+            110
+          ],
+          "text": "async function handleChromeBridgeInterface(request) {\n\tlet { detail } = request;\n\tlet { BridgeEventName, BridgeEventId, BridgeUrl_Inject, ...data } = detail;\n\tlet res;\n\ttry {\n\t\tlet { eventId } = data || {}; // BridgeEventName, BridgeEventId, BridgeUrl_Inject,\n\t\tdelete data.BridgeEventName, delete data.BridgeEventId, delete data.BridgeUrl_Inject, delete data.eventId;\n\t\tlet api = BridgeUrl_Inject;\n\t\tlet { url, token, key } = data;"
+        },
+        {
+          "capabilityId": "SVC.F020.tokenSubstitution",
+          "symbol": "tokenSubstitution",
+          "lines": [
+            112,
+            114
+          ],
+          "text": "\t\tif (token && token.includes('${token}')) {\n\t\t\tdata.token = token.replace('${token}', localStorage.token)\n\t\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.axiosUrlNormalization",
+          "symbol": "axiosUrlNormalization",
+          "lines": [
+            115,
+            118
+          ],
+          "text": "\t\tif (BridgeEventName && BridgeEventName.startsWith(\"AXIOS_\")) {\n\t\t\tif (url && !url.startsWith(\"http\")) url = BASE_URL + '/' + url;\n\t\t\tconsole.log(\"axios url:\", { url, BASE_URL })\n\t\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.AXIOS_GET",
+          "symbol": "AXIOS_GET",
+          "lines": [
+            119,
+            121
+          ],
+          "text": "\t\tif (BridgeEventName == 'AXIOS_GET') {\n\t\t\tres = await axios.get(api, data.config).catch(e => { });  // .then(r => r.data)\n\t\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.AXIOS_POST",
+          "symbol": "AXIOS_POST",
+          "lines": [
+            122,
+            125
+          ],
+          "text": "\t\telse if (BridgeEventName == 'AXIOS_POST') {\n\t\t\tlet { config, ...postData } = data;\n\t\t\tres = await axios.post(api, postData.data, config).catch(e => { });\n\t\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.AXIOS_PUT",
+          "symbol": "AXIOS_PUT",
+          "lines": [
+            126,
+            129
+          ],
+          "text": "\t\telse if (BridgeEventName == 'AXIOS_PUT') {\n\t\t\tlet { config, ...putData } = data;\n\t\t\tres = await axios.put(api, putData.data, config).catch(e => { });\n\t\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.AXIOS_DELETE",
+          "symbol": "AXIOS_DELETE",
+          "lines": [
+            130,
+            132
+          ],
+          "text": "\t\telse if (BridgeEventName == 'AXIOS_DELETE') {\n\t\t\tres = await axios.delete(api, data.config).catch(e => { });\n\t\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.APPSTORAGE_SETITEM",
+          "symbol": "APPSTORAGE_SETITEM",
+          "lines": [
+            134,
+            135
+          ],
+          "text": "\t\tif (BridgeEventName == 'APPSTORAGE_SETITEM') {\n\t\t\tlocalStorage.setItem(key, data.value)"
+        },
+        {
+          "capabilityId": "SVC.F020.APPSTORAGE_GETITEM",
+          "symbol": "APPSTORAGE_GETITEM",
+          "lines": [
+            136,
+            137
+          ],
+          "text": "\t\t} else if (BridgeEventName == 'APPSTORAGE_GETITEM') {\n\t\t\tres = localStorage.getItem(key);"
+        },
+        {
+          "capabilityId": "SVC.F020.APPSTORAGE_REMOVEITEM",
+          "symbol": "APPSTORAGE_REMOVEITEM",
+          "lines": [
+            138,
+            139
+          ],
+          "text": "\t\t} else if (BridgeEventName == 'APPSTORAGE_REMOVEITEM') {\n\t\t\tres = localStorage.removeItem(key)"
+        },
+        {
+          "capabilityId": "SVC.F020.APPSTORAGE_CLEAR",
+          "symbol": "APPSTORAGE_CLEAR",
+          "lines": [
+            140,
+            141
+          ],
+          "text": "\t\t} else if (BridgeEventName == 'APPSTORAGE_CLEAR') {\n\t\t\tres = localStorage.clear();"
+        },
+        {
+          "capabilityId": "SVC.F020.APPLOCAL_SETITEM",
+          "symbol": "APPLOCAL_SETITEM",
+          "lines": [
+            142,
+            143
+          ],
+          "text": "\t\t} else if (BridgeEventName == 'APPLOCAL_SETITEM') {\n\t\t\tglobalThis[key] = data.value;"
+        },
+        {
+          "capabilityId": "SVC.F020.APPLOCAL_GETITEM",
+          "symbol": "APPLOCAL_GETITEM",
+          "lines": [
+            144,
+            145
+          ],
+          "text": "\t\t} else if (BridgeEventName == 'APPLOCAL_GETITEM') {\n\t\t\tres = globalThis[key]"
+        },
+        {
+          "capabilityId": "SVC.F020.APPLOCAL_REMOVEITEM",
+          "symbol": "APPLOCAL_REMOVEITEM",
+          "lines": [
+            146,
+            150
+          ],
+          "text": "\t\t} else if (BridgeEventName == 'APPLOCAL_REMOVEITEM') {\n\t\t\tif (globalThis.hasOwnProperty(key)) {\n\t\t\t\tdelete globalThis[key];\n\t\t\t}\n\t\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.CREATE_NOTIFY",
+          "symbol": "CREATE_NOTIFY",
+          "lines": [
+            153,
+            155
+          ],
+          "text": "\t\tif (BridgeEventName == \"CREATE_NOTIFY\") {\n\t\t\tcreateNotify(data.title, { body: data.content });\n\t\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.bridgeFinalCatchUnknown",
+          "symbol": "bridgeFinalCatchUnknown",
+          "lines": [
+            243,
+            248
+          ],
+          "text": "\t\tconsole.log('page content CHROME_BRIDGE_INTERFACE res:', res)\n\t\tChromeBridgeCallBack(BridgeEventId, res)\n\t} catch (error) {\n\t\tconsole.error('Error handling Chrome Bridge Interface:', error);\n\t}\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.backgroundSleepFallback",
+          "symbol": "backgroundSleepFallback",
+          "lines": [
+            19,
+            19
+          ],
+          "text": "if (!globalThis.sleep) globalThis.sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));"
+        },
+        {
+          "capabilityId": "SVC.F020.globalPage",
+          "symbol": "globalPage",
+          "lines": [
+            27,
+            27
+          ],
+          "text": "if (page) globalThis.page = page;"
+        },
+        {
+          "capabilityId": "SVC.F020.runtimeMessageListener",
+          "symbol": "runtimeMessageListener",
+          "lines": [
+            33,
+            66
+          ],
+          "text": "chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {\n\t// 移除前缀并处理所有消息\n\tlet customEvent = request.type?.replace('hid_', '');\n\n\t// 使用异步自执行函数来处理请求\n\t(async () => {\n\t\tswitch (customEvent) {\n\t\t\tcase 'mousemove': // 对于mousemove事件的特殊处理（如果包含'hid_'前缀）\n\t\t\t\tif (request.type.includes('hid_')) {\n\t\t\t\t\tawait handleHidMouseMove(request);\n\t\t\t\t}\n\t\t\t\tbreak;\n\t\t\tcase 'notifications':\n\t\t\t\thandleNotifications(request);\n\t\t\t\tbreak;\n\t\t\tcase 'chromeCustomEvt':\n\t\t\t\thandleChromeCustomEvent(request);\n\t\t\t\tbreak;\n\t\t\tcase 'CHROME_BRIDGE_INTERFACE':\n\t\t\t\tawait handleChromeBridgeInterface(request);\n\t\t\t\tbreak;\n\t\t\tcase 'CHROME_PAGE_EXECUTE':\n\t\t\t\tawait handleChromePageExecute(request);\n\t\t\t\tbreak;\n\t\t\tdefault:\n\t\t\t\tconsole.log(\"Unhandled CustomEvent type:\", customEvent);\n\t\t\t\tbreak;\n\t\t}\n\t})().then(() => sendResponse(\"Processed message successfully\"))\n\t\t.catch(error => console.error(\"Error processing message:\", error));\n\n\t// 必须返回true来表明你会异步发送响应\n\treturn true;\n});"
+        },
+        {
+          "capabilityId": "SVC.F020.message.CHROME_BRIDGE_INTERFACE",
+          "symbol": "message.CHROME_BRIDGE_INTERFACE",
+          "lines": [
+            51,
+            53
+          ],
+          "text": "\t\t\tcase 'CHROME_BRIDGE_INTERFACE':\n\t\t\t\tawait handleChromeBridgeInterface(request);\n\t\t\t\tbreak;"
+        },
+        {
+          "capabilityId": "SVC.F020.message.CHROME_PAGE_EXECUTE",
+          "symbol": "message.CHROME_PAGE_EXECUTE",
+          "lines": [
+            54,
+            56
+          ],
+          "text": "\t\t\tcase 'CHROME_PAGE_EXECUTE':\n\t\t\t\tawait handleChromePageExecute(request);\n\t\t\t\tbreak;"
+        },
+        {
+          "capabilityId": "SVC.F020.message.default",
+          "symbol": "message.default",
+          "lines": [
+            57,
+            59
+          ],
+          "text": "\t\t\tdefault:\n\t\t\t\tconsole.log(\"Unhandled CustomEvent type:\", customEvent);\n\t\t\t\tbreak;"
+        },
+        {
+          "capabilityId": "SVC.F020.extractDomainFromUrl",
+          "symbol": "extractDomainFromUrl",
+          "lines": [
+            250,
+            263
+          ],
+          "text": "function extractDomainFromUrl(url) {\n\t// Add scheme if missing\n\tif (!/^https?:\\/\\//i.test(url)) {\n\t\turl = 'http://' + url;\n\t}\n\n\tconst hostname = new URL(url).hostname;\n\t// Get the top-level domain, assuming the format is subdomain.domain.tld\n\tconst topLevelDomain = hostname\n\t\t.split('.')\n\t\t.slice(-2) // Only take the last two parts\n\t\t.join('.');\n\treturn '.' + topLevelDomain; // The cookies API requires the domain to start with a dot\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.deleteCookiesByUrl",
+          "symbol": "deleteCookiesByUrl",
+          "lines": [
+            265,
+            277
+          ],
+          "text": "async function deleteCookiesByUrl(url) {\n\tconst domain = extractDomainFromUrl(url);\n\n\t// 使用chrome.cookies API获取所有cookies\n\tchrome.cookies?.getAll({ domain }, function (cookies) {\n\t\tfor (let cookie of cookies) {\n\t\t\tlet cookieUrl = `http${cookie.secure ? 's' : ''}://${cookie.domain}${cookie.path}`;\n\t\t\tchrome.cookies.remove({ url: cookieUrl, name: cookie.name }, function (deletedCookie) {\n\t\t\t\tconsole.log(`Deleted cookie: ${cookie.name}`);\n\t\t\t});\n\t\t}\n\t});\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.setCookies",
+          "symbol": "setCookies",
+          "lines": [
+            317,
+            356
+          ],
+          "text": "async function setCookies(cookies) {\n\tif (!cookies) return;\n\n\tfor (let cookie of cookies) {\n\t\t// Build the cookie URL\n\t\tlet cookieUrl = `http${cookie.secure ? 's' : ''}://${cookie.domain.startsWith('.') ? cookie.domain.substring(1) : cookie.domain}`;\n\n\t\t// Log the cookie URL\n\t\tconsole.log(\"setCookies:\", cookieUrl);\n\n\t\t// Set cookie options\n\t\tlet cookieOptions = {\n\t\t\turl: cookieUrl,\n\t\t\tname: cookie.name,\n\t\t\tvalue: cookie.value,\n\t\t\tpath: cookie.path,\n\t\t\tsecure: cookie.secure,\n\t\t\thttpOnly: cookie.httpOnly,\n\t\t\tsameSite: cookie.sameSite ? cookie.sameSite : 'no_restriction', // Default to 'no_restriction' if sameSite is null\n\t\t\texpirationDate: cookie.session ? null : (Date.now() / 1000) + (24 * 3600) // Expires in 1 day if not a session cookie\n\t\t};\n\n\t\t// Handle cookies with \"__Host-\" prefix\n\t\tif (cookie.name.startsWith('__Host-')) {\n\t\t\tdelete cookieOptions.domain; // \"__Host-\" cookies must not have a domain attribute\n\t\t\tcookieOptions.path = '/'; // \"__Host-\" cookies must have path set to '/'\n\t\t} else {\n\t\t\tcookieOptions.domain = cookie.domain;\n\t\t}\n\n\t\t// Set the cookie using chrome.cookies.set\n\t\tchrome.cookies.set(cookieOptions, function (newCookie) {\n\t\t\tif (chrome.runtime.lastError) {\n\t\t\t\tconsole.error(`Error setting cookie ${cookie.name}: ${cookie.value}, ${JSON.stringify(chrome.runtime.lastError)}`);\n\t\t\t} else {\n\t\t\t\tconsole.log(`Set cookie: ${newCookie.name}`);\n\t\t\t}\n\t\t});\n\t}\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.getCookies",
+          "symbol": "getCookies",
+          "lines": [
+            386,
+            399
+          ],
+          "text": "async function getCookies(url) {\n\tconst domain = extractDomainFromUrl(url);\n\n\treturn new Promise((resolve, reject) => {\n\t\tchrome.cookies.getAll({ domain }, function (cookies) {\n\t\t\tif (chrome.runtime.lastError) {\n\t\t\t\tconsole.error(`Error getting cookies: ${chrome.runtime.lastError}`);\n\t\t\t\treject(chrome.runtime.lastError);\n\t\t\t} else {\n\t\t\t\tresolve(cookies);\n\t\t\t}\n\t\t});\n\t});\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.handleChromePageExecute",
+          "symbol": "handleChromePageExecute",
+          "lines": [
+            403,
+            408
+          ],
+          "text": "async function handleChromePageExecute(request) {\n\tlet { detail } = request;\n\tif (detail.script) {\n\t\tawait executeScript(detail.script);\n\t}\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.executeScript",
+          "symbol": "executeScript",
+          "lines": [
+            414,
+            418
+          ],
+          "text": "async function executeScript(str) {\n\tif (envJson.env != \"production\") console.log('executeScript:', moment().format('YYYY-MM-DD HH:mm:ss'), str)\n\tlet action = wrapAsync(str)\n\teval(action)\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.getActiveTab",
+          "symbol": "getActiveTab",
+          "lines": [
+            483,
+            495
+          ],
+          "text": "async function getActiveTab() {\n\treturn new Promise((resolve, reject) => {\n\t\ttry {\n\t\t\t// , currentWindow: true\n\t\t\tchrome.tabs.query({ active: true }, function (tabs) {\n\t\t\t\tresolve(tabs[0]);\n\t\t\t});\n\t\t} catch (ex) {\n\t\t\tconsole.error('chrome.tabs.getAllInWindow:', ex.message)\n\t\t\treject(ex);\n\t\t}\n\t});\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.checkLastError",
+          "symbol": "checkLastError",
+          "lines": [
+            687,
+            694
+          ],
+          "text": "async function checkLastError() {\n\tvar lastErr = chrome.runtime.lastError;\n\tif (lastErr) {\n\t\t// TraceTimeUtil._log('caught lastError: ' + JSON.stringify(lastErr));\n\t\t// Chrome runtime fix\n\t\treturn Promise.resolve(\"Dummy response to keep the console quiet\");\n\t}\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.executeScriptInCurrentPage",
+          "symbol": "executeScriptInCurrentPage",
+          "lines": [
+            704,
+            711
+          ],
+          "text": "function executeScriptInCurrentPage(script) {\n\tchrome.tabs.query({ active: true }, (tabs) => {\n\t\tif (tabs[0]) {\n\t\t\t// @ts-ignore\n\t\t\tchrome.tabs.executeScript(tabs[0].id, { code: script });\n\t\t}\n\t});\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.encodeToBase64",
+          "symbol": "encodeToBase64",
+          "lines": [
+            714,
+            714
+          ],
+          "text": "if (!globalThis.encodeToBase64) globalThis.encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));"
+        },
+        {
+          "capabilityId": "SVC.F020.ChromeBridgeCallBack",
+          "symbol": "ChromeBridgeCallBack",
+          "lines": [
+            716,
+            737
+          ],
+          "text": "function ChromeBridgeCallBack(eventId, data) {\n\tif (data == null || typeof data !== \"object\")\n\t\tdata = { data, message: \"\", PageBrigeCode: 0 };\n\telse if (data.hasOwnProperty(\"PageBrigeCode\") === false)\n\t\tdata = { data, message: \"\", PageBrigeCode: 0 };\n\tconsole.log(\"ChromeBridgeCallBack:\", eventId, typeof data, data)\n\t// @ts-ignore\n\tlet params = encodeToBase64(JSON.stringify(data));\n\t// var ChromeBridgeResult = ${typeof data == \"object\" ? JSON.stringify(data) : data} ; //原逻辑\n\tlet functionString = `\n\t\t\t\t\tconsole.log(\"ChromeBridgeCallBack start eventId:\",'${eventId}')\n\t\t\t\t\tvar ChromeBridgeResult = '${params}' ;\n\t\t\t\t\tChromeBridgeOperationCompleted(\"${eventId}\", ChromeBridgeResult,true);\n\t\t\t`;\n\tlet newScriptStr = `\n\t\t\t\t\tvar script = document.createElement('script');\n\t\t\t\t\tscript.textContent = \\`${functionString}\\`;\n\t\t\t\t\tdocument.body.appendChild(script);\n\t\t\t\t\tscript.remove();\n\t\t\t`;\n\texecuteScriptInCurrentPage(newScriptStr);\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.createNotify",
+          "symbol": "createNotify",
+          "lines": [
+            741,
+            774
+          ],
+          "text": "function createNotify(title, options) {\n\tvar PERMISSON_GRANTED = \"granted\";\n\tvar PERMISSON_DENIED = \"denied\";\n\tvar PERMISSON_DEFAULT = \"default\";\n\n\t// 如果用户已经允许，直接显示消息，如果不允许则提示用户授权\n\tif (Notification.permission === PERMISSON_GRANTED) {\n\t\tnotify(title, options);\n\t} else {\n\t\tNotification.requestPermission(function (res) {\n\t\t\tif (res === PERMISSON_GRANTED) {\n\t\t\t\tnotify(title, options);\n\t\t\t}\n\t\t});\n\t}\n\n\t// 显示提示消息\n\tfunction notify($title, $options) {\n\t\tvar notification = new Notification($title, $options);\n\t\tconsole.log(notification);\n\t\tnotification.onshow = function (event) {\n\t\t\tconsole.log(\"show : \", event);\n\t\t};\n\t\tnotification.onclose = function (event) {\n\t\t\tconsole.log(\"close : \", event);\n\t\t};\n\t\tnotification.onclick = function (event) {\n\t\t\tconsole.log(\"click : \", event);\n\t\t\t// 当点击事件触发，打开指定的url\n\t\t\twindow.open(event.target.data)\n\t\t\tnotification.close();\n\t\t};\n\t}\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.notify.inner",
+          "symbol": "notify.inner",
+          "lines": [
+            758,
+            773
+          ],
+          "text": "\tfunction notify($title, $options) {\n\t\tvar notification = new Notification($title, $options);\n\t\tconsole.log(notification);\n\t\tnotification.onshow = function (event) {\n\t\t\tconsole.log(\"show : \", event);\n\t\t};\n\t\tnotification.onclose = function (event) {\n\t\t\tconsole.log(\"close : \", event);\n\t\t};\n\t\tnotification.onclick = function (event) {\n\t\t\tconsole.log(\"click : \", event);\n\t\t\t// 当点击事件触发，打开指定的url\n\t\t\twindow.open(event.target.data)\n\t\t\tnotification.close();\n\t\t};\n\t}"
+        },
+        {
+          "capabilityId": "SVC.F020.notify.onshow",
+          "symbol": "notify.onshow",
+          "lines": [
+            761,
+            763
+          ],
+          "text": "\t\tnotification.onshow = function (event) {\n\t\t\tconsole.log(\"show : \", event);\n\t\t};"
+        },
+        {
+          "capabilityId": "SVC.F020.notify.onclose",
+          "symbol": "notify.onclose",
+          "lines": [
+            764,
+            766
+          ],
+          "text": "\t\tnotification.onclose = function (event) {\n\t\t\tconsole.log(\"close : \", event);\n\t\t};"
+        },
+        {
+          "capabilityId": "SVC.F020.notify.onclick",
+          "symbol": "notify.onclick",
+          "lines": [
+            767,
+            772
+          ],
+          "text": "\t\tnotification.onclick = function (event) {\n\t\t\tconsole.log(\"click : \", event);\n\t\t\t// 当点击事件触发，打开指定的url\n\t\t\twindow.open(event.target.data)\n\t\t\tnotification.close();\n\t\t};"
+        },
+        {
+          "capabilityId": "SVC.F020.initApp",
+          "symbol": "initApp",
+          "lines": [
+            463,
+            476
+          ],
+          "text": "initApp();\n\n// let page;\nasync function initApp() {\n\tconsole.log(\"initApp\", new Date().getTime())\n\n\tcheckAndLogoutWEB();\n\n\tawait initEngine();\n\tawait initEnv();\n\tawait initData();\n\n\tawait initAutoPage();\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.initEngine",
+          "symbol": "initEngine",
+          "lines": [
+            548,
+            557
+          ],
+          "text": "async function initEngine() {\n\tglobalThis.deleteCookiesByUrl = deleteCookiesByUrl;\n\tglobalThis.setCookies = setCookies;\n\tglobalThis.getCookies = getCookies;\n\tglobalThis.executeScript = executeScript;\n\tglobalThis.executeInBg = executeScript;\n\tglobalThis.settingProxy = settingProxy;\n\tglobalThis.getHistoryUrls = getHistoryUrls;\n\tif (typeof axios != 'undefined') globalThis.axiosx = axios;\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.initEnvLocal",
+          "symbol": "initEnvLocal",
+          "lines": [
+            558,
+            561
+          ],
+          "text": "async function initEnv() {\n\t// Fetch local environment JSON\n\tenvJson = await fetch('../assets/env.json').then(r => r.json());\n\tupdateEnvInfo(envJson);"
+        },
+        {
+          "capabilityId": "SVC.F020.updateEnvInfo",
+          "symbol": "updateEnvInfo",
+          "lines": [
+            575,
+            583
+          ],
+          "text": "function updateEnvInfo(json) {\n\tWEBSITE_URL = json.WEBSITE_URL; // + '/todo/time-review';\n\tLOGIN_URL = json.LOGIN_URL;\n\tBASE_URL = json.BASE_URL;\n\tglobalThis.envJson = json;\n\tglobalThis.WEBSITE_URL = WEBSITE_URL;\n\tglobalThis.LOGIN_URL = json.LOGIN_URL;\n\tglobalThis.BASE_URL = BASE_URL;\n}"
+        },
+        {
+          "capabilityId": "SVC.F020.browserAction.onClicked",
+          "symbol": "browserAction.onClicked",
+          "lines": [
+            777,
+            792
+          ],
+          "text": "chrome.browserAction.onClicked.addListener((tab) => {\n\t// Opens our extension in a new browser window.\n\t// Only if a popup isn't defined in the manifest.\n\tlet url;\n\turl = envJson.isBrowserActionUrl ? WEBSITE_URL : chrome.extension.getURL('www/index.html');\n\t// 如果当前已经是在插件页面，则打开官网网址；  判断当前页面是否是插件页面\n\tif (tab.url?.includes('chrome-extension:')) url = WEBSITE_URL;\n\tchrome.tabs.create(\n\t\t{\n\t\t\turl: url,\n\t\t},\n\t\t(newTab) => {\n\t\t\t// Tab opened.\n\t\t}\n\t);\n});"
+        },
+        {
+          "capabilityId": "SVC.F020.service.log",
+          "symbol": "service.log",
+          "lines": [
+            811,
+            814
+          ],
+          "text": "\tbridge.on('log', ({ data, respond }) => {\n\t\tconsole.log(`[BEX] ${data.message}`, ...(data.data || []));\n\t\trespond();\n\t});"
+        },
+        {
+          "capabilityId": "SVC.F020.service.getTime",
+          "symbol": "service.getTime",
+          "lines": [
+            816,
+            818
+          ],
+          "text": "\tbridge.on('getTime', ({ respond }) => {\n\t\trespond(Date.now());\n\t});"
+        },
+        {
+          "capabilityId": "SVC.F020.service.storage.get.key",
+          "symbol": "service.storage.get.key",
+          "lines": [
+            820,
+            832
+          ],
+          "text": "\tbridge.on('storage.get', ({ data, respond }) => {\n\t\tconst { key } = data;\n\t\tif (key === null) {\n\t\t\tchrome.storage.local.get(null, (items) => {\n\t\t\t\t// Group the values up into an array to take advantage of the bridge's chunk splitting.\n\t\t\t\trespond(Object.values(items));\n\t\t\t});\n\t\t} else {\n\t\t\tchrome.storage.local.get([key], (items) => {\n\t\t\t\trespond(items[key]);\n\t\t\t});\n\t\t}\n\t});"
+        },
+        {
+          "capabilityId": "SVC.F020.service.storage.get.all",
+          "symbol": "service.storage.get.all",
+          "lines": [
+            822,
+            826
+          ],
+          "text": "\t\tif (key === null) {\n\t\t\tchrome.storage.local.get(null, (items) => {\n\t\t\t\t// Group the values up into an array to take advantage of the bridge's chunk splitting.\n\t\t\t\trespond(Object.values(items));\n\t\t\t});"
+        },
+        {
+          "capabilityId": "SVC.F020.service.storage.set",
+          "symbol": "service.storage.set",
+          "lines": [
+            836,
+            840
+          ],
+          "text": "\tbridge.on('storage.set', ({ data, respond }) => {\n\t\tchrome.storage.local.set({ [data.key]: data.value }, () => {\n\t\t\trespond();\n\t\t});\n\t});"
+        },
+        {
+          "capabilityId": "SVC.F020.service.storage.remove",
+          "symbol": "service.storage.remove",
+          "lines": [
+            844,
+            848
+          ],
+          "text": "\tbridge.on('storage.remove', ({ data, respond }) => {\n\t\tchrome.storage.local.remove(data.key, () => {\n\t\t\trespond();\n\t\t});\n\t});"
+        },
+        {
+          "capabilityId": "SVC.F020.tabs.onRemoved.register",
+          "symbol": "tabs.onRemoved.register",
+          "lines": [
+            953,
+            955
+          ],
+          "text": "\tchrome.tabs.onRemoved.removeListener(doRemoved)\n\tchrome.tabs.onUpdated.removeListener(doUpdated)\n\tchrome.tabs.onRemoved.addListener(doRemoved)"
+        },
+        {
+          "capabilityId": "SVC.F020.tabs.onUpdated.register",
+          "symbol": "tabs.onUpdated.register",
+          "lines": [
+            954,
+            956
+          ],
+          "text": "\tchrome.tabs.onUpdated.removeListener(doUpdated)\n\tchrome.tabs.onRemoved.addListener(doRemoved)\n\tchrome.tabs.onUpdated.addListener(doUpdated)"
+        },
+        {
+          "capabilityId": "SVC.F020.service.bexUrl",
+          "symbol": "service.bexUrl",
+          "lines": [
+            970,
+            974
+          ],
+          "text": "\tbridge.on('bexUrl', async ({ data, respond }) => {\n\t\tlet url = location.href.match(/(chrome-extension:\\/\\/.*?\\/)/)[0];\n\t\trespond({ url })\n\t\t// alert('background focusState'+val)\n\t})"
+        },
+        {
+          "capabilityId": "SVC.F020.service.requestResource",
+          "symbol": "service.requestResource",
+          "lines": [
+            987,
+            1004
+          ],
+          "text": "\tbridge.on('requestResource', async ({ data, respond }) => {\n\t\tlet { url, token } = data; // 假设 data 包含 url 和 token\n\n\t\ttry {\n\t\t\tconst headers = new Headers({});\n\n\t\t\tconst response = await fetch(url, { headers });\n\t\t\tif (!response.ok) {\n\t\t\t\tthrow new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);\n\t\t\t}\n\t\t\tconst content = await response.text(); // 获取文本内容，适用于 CSS 或 JS\n\t\t\t// console.log(\"requestResource\", url); //,content\n\t\t\trespond({ success: true, data: content });\n\t\t} catch (error) {\n\t\t\tconsole.error('Error fetching resource:', url, error);\n\t\t\trespond({ success: false, error: error.toString() });\n\t\t}\n\t});"
+        }
+      ]
+    },
+    {
+      "id": "F012",
+      "old": "chrome-local-storage-api.js",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/chrome-local-storage-api.js",
+      "lines": 56,
+      "baselineSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "currentSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/sdk/storage.js",
+        "src/platform/storage/idb.js",
+        "src/platform/storage/index.js",
+        "src/platform/storage/repository.js"
+      ],
+      "coreCapabilityIds": [
+        "CORE-PERSISTENCE",
+        "SDK.F012.getObjectFromLocalStorage",
+        "SDK.F012.saveObjectInLocalStorage",
+        "SDK.F012.removeObjectFromLocalStorage"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "CORE-PERSISTENCE",
+          "symbol": "AppStorage persistence + local API",
+          "lines": [
+            1,
+            56
+          ],
+          "text": "// https://github.com/nayeemdev/DoTab\n// [nayeemdev/DoTab: DoTab is simple but awesome extension for your new tab to increase your productivity.]()\n/**\n * Retrieve object from Chrome's Local StorageArea\n * @param {string} key\n */\n const getObjectFromLocalStorage = async function(key) {\n    return new Promise((resolve, reject) => {\n      try {\n        chrome.storage.local.get(key, function(value) {\n          resolve(value[key]);\n        });\n      } catch (ex) {\n        reject(ex);\n      }\n    });\n  };\n\n  /**\n   * Save Object in Chrome's Local StorageArea\n   * @param {*} obj\n   */\n  const saveObjectInLocalStorage = async function(obj) {\n    return new Promise((resolve, reject) => {\n      try {\n        chrome.storage.local.set(obj, function() {\n          resolve();\n        });\n      } catch (ex) {\n        reject(ex);\n      }\n    });\n  };\n\n  /**\n   * Removes Object from Chrome Local StorageArea.\n   *\n   * @param {string or array of string keys} keys\n   */\n  const removeObjectFromLocalStorage = async function(keys) {\n    return new Promise((resolve, reject) => {\n      try {\n        chrome.storage.local.remove(keys, function() {\n          resolve();\n        });\n      } catch (ex) {\n        reject(ex);\n      }\n    });\n  };\n\n  export {\n    getObjectFromLocalStorage,\n    saveObjectInLocalStorage,\n    removeObjectFromLocalStorage\n  }"
+        },
+        {
+          "capabilityId": "SDK.F012.getObjectFromLocalStorage",
+          "symbol": "getObjectFromLocalStorage",
+          "lines": [
+            7,
+            17
+          ],
+          "text": " const getObjectFromLocalStorage = async function(key) {\n    return new Promise((resolve, reject) => {\n      try {\n        chrome.storage.local.get(key, function(value) {\n          resolve(value[key]);\n        });\n      } catch (ex) {\n        reject(ex);\n      }\n    });\n  };"
+        },
+        {
+          "capabilityId": "SDK.F012.saveObjectInLocalStorage",
+          "symbol": "saveObjectInLocalStorage",
+          "lines": [
+            23,
+            33
+          ],
+          "text": "  const saveObjectInLocalStorage = async function(obj) {\n    return new Promise((resolve, reject) => {\n      try {\n        chrome.storage.local.set(obj, function() {\n          resolve();\n        });\n      } catch (ex) {\n        reject(ex);\n      }\n    });\n  };"
+        },
+        {
+          "capabilityId": "SDK.F012.removeObjectFromLocalStorage",
+          "symbol": "removeObjectFromLocalStorage",
+          "lines": [
+            40,
+            50
+          ],
+          "text": "  const removeObjectFromLocalStorage = async function(keys) {\n    return new Promise((resolve, reject) => {\n      try {\n        chrome.storage.local.remove(keys, function() {\n          resolve();\n        });\n      } catch (ex) {\n        reject(ex);\n      }\n    });\n  };"
+        }
+      ]
+    },
+    {
+      "id": "F021",
+      "old": "my-content-script.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/my-content-script.ts",
+      "lines": 228,
+      "baselineSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "currentSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "scripts/verify-package.mjs",
+        "src/agents/page-relay.js",
+        "src/platform/page-port/sdk-injection.js",
+        "webpack.config.cjs"
+      ],
+      "coreCapabilityIds": [
+        "CORE-RESOURCE-LIFETIME",
+        "INJECT.F021.appendScript",
+        "INJECT.F021.getResourceByUrl",
+        "INJECT.F021.fixedSdkInjection"
+      ],
+      "excludedCapabilityIds": [
+        "INJECT.F021.appendCSS",
+        "INJECT.F021.environmentBranchLoader"
+      ],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "CORE-RESOURCE-LIFETIME",
+          "symbol": "my-content-script loader",
+          "lines": [
+            148,
+            228
+          ],
+          "text": "\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/brige.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/common.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/axiosx.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/appStorage.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/appLocal.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/utils.js`));\n\t  \n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/lodash.min.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/moment.min.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/axios.min.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/js.cookie.min.js`));\n\t  \n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/utils.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/Env.js`));\n\t\t\t\t// appendScript(chrome.runtime.getURL(`assets/js/vue.global.prod.js`));\n\t\t\t\t// setTimeout(()=>{\n\t\t\t\t//   appendScript(chrome.runtime.getURL(`assets/js/quasar.umd.js`));\n\t\t\t\t// },50)\n\t  \n\t\t\t\t// appendScript(chrome.runtime.getURL(`assets/js/react.development.js`));\n\t\t\t\t// appendScript(chrome.runtime.getURL(`assets/js/react-dom.development.js`));\n\t\t\t\t// appendScript(chrome.runtime.getURL(`assets/js/babel.min.js`));\n\t  \n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/fingerprintjs@3.js`));\n\t\t\t   \n\t  \n\t\t\t\tlet CHROME_EXTENSION_URL = chrome.extension.getURL(\"www/index.html\");\n\t\t\t\tappendScript(null, `globalThis.CHROME_EXTENSION_URL = '${CHROME_EXTENSION_URL}';`);\n\t\t\t\tsetTimeout(async function() {\n\t\t\t\t  let url2 = chrome.runtime.getURL(`assets/env.json`);\n\t\t\t\t  let envJson = await fetch(url2).then((r) => r.json());\n\t\t\t\t  envJson = envJson || {};\n\t\t\t\t  envJson.APP_ENV = envJson.APP_ENV || \"\";\n\t\t\t\t  if (envJson.APP_ENV == \"bilivip\" && envJson.isClient) {\n\t\t\t\t\tappendScript(chrome.runtime.getURL(`assets/app_script/csdnbase.js`));\n\t\t\t\t\tappendScript(chrome.runtime.getURL(`assets/app_script/csdn.js`));\n\t\t\t\t\tappendScript(chrome.runtime.getURL(`assets/app_script/app_chatGpt.js`));\n\t\t\t\t\t\n\t\t\t\t\t// appendScript(`http://static.todo6.com/app_script/csdn.js`);\n\t\t\t\t  }\n\t\t\t\t  if (envJson.APP_ENV.toLocaleLowerCase() == \"testmonkey\")\n\t\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/testMonkey.esm.js`), null, true);\n\t\t\t\t\tconsole.log(\"content hooks ready\", envJson.isClient);\n\t\t\t\t}, 100);\n\t\t\t  }catch(e){\n\t\t\t\tconsole.error(\"content.js initData error:\", e)\n\t\t\t  }\n\t\t});\n\n\t\tconsole.log('my-content-script.js 我被执行了！, window.evalTest:', window.evalTest);\n\t\t// eval(`\n\t\t// window.evalTest = Object.assign( window.evalTest || {} , { contentHook: 'useful'} ) ;\n\t\t// console.log('show eval window.evalTest:' , window.evalTest )\n\t\t// `)\n\t}\n\tbridge.on('testEvt', async (event) => {\n\t\tlet val = event.data.val;\n\t\tconsole.log('bridge testEvt')\n\t\talert('content focusState' + val)\n\t\t// if( !val ){\n\t\t//   clearTimeout(min5Id),clearTimeout(min2Id),clearTimeout(min1Id),clearTimeout(minId),min5Id=min2Id=min1Id=minId=null ;\n\t\t//   notify({description:`屏蔽已关闭,这是您想要减少时间浏览的网页`})\n\t\t// }\n\t\t// saveObjectInLocalStorage({'focusState':val})\n\t})\n\tsetTimeout(() => {\n\t}, 2000);\n\t// do while 检查等到document.body为真时，再执行后续代码\n\twhile (!document.body) {\n\t\tawait new Promise((resolve) => setTimeout(resolve, 100));\n\t}\n\tinitData()\n\tcheckStart()\n\n\t// notify({description:`测试：剩余时间 ？？ 秒，追踪时间清单助你提高时间质量` , closeTimeout:500000 , zIndex: 99994}) //生效\n})\n\n\t; (function () {\n\t\tconsole.log('content.js hooks ', document, !!document.body, new Date().getTime())\n\t})()\n"
+        },
+        {
+          "capabilityId": "INJECT.F021.appendScript",
+          "symbol": "appendScript",
+          "lines": [
+            79,
+            104
+          ],
+          "text": "\tasync function appendScript(url, content: string | null = null, isModule = false) {\n\t\tlet scriptElement = document.createElement('script');\n\t\tscriptElement.type = isModule ? 'module' : 'text/javascript';\n\t\tif (url) {\n\t\t\tif (url.startsWith('chrome-extension')) scriptElement.src = url;\n\t\t\telse { // 从网络获取内容，\n\t\t\t\ttry {\n\t\t\t\t\t// 假设已经存在一个发送请求的 Bridge 函数\n\t\t\t\t\t// 你需要将此函数定义在某处，并确保它可以调用\n\t\t\t\t\tconst response = await requestResourceByBridge(url);\n\t\t\t\t\tif (response.success) {\n\t\t\t\t\t\tscriptElement.textContent = response.data;\n\t\t\t\t\t} else {\n\t\t\t\t\t\tthrow new Error('Failed to load resource: ' + response.error);\n\t\t\t\t\t}\n\t\t\t\t} catch (error) {\n\t\t\t\t\tconsole.error('Error loading script:', url , error);\n\t\t\t\t\treturn; // 如果出现错误，不再继续执行\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tif (content) {\n\t\t\tscriptElement.innerHTML = content;\n\t\t}\n\t\tdocument.head.appendChild(scriptElement);\n\t\t}"
+        },
+        {
+          "capabilityId": "INJECT.F021.getResourceByUrl",
+          "symbol": "getResourceByUrl",
+          "lines": [
+            107,
+            111
+          ],
+          "text": "\tasync function requestResourceByBridge(url) {\n\t\tlet { data } = await bridge.send('requestResource', { url });\n\n\t\t// console.log(\"requestResource url:\",url , data)\n\t\treturn data ;"
+        },
+        {
+          "capabilityId": "INJECT.F021.fixedSdkInjection",
+          "symbol": "fixedSdkInjection",
+          "lines": [
+            148,
+            171
+          ],
+          "text": "\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/brige.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/common.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/axiosx.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/appStorage.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/appLocal.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/core/utils.js`));\n\t  \n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/lodash.min.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/moment.min.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/axios.min.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/js.cookie.min.js`));\n\t  \n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/utils.js`));\n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/Env.js`));\n\t\t\t\t// appendScript(chrome.runtime.getURL(`assets/js/vue.global.prod.js`));\n\t\t\t\t// setTimeout(()=>{\n\t\t\t\t//   appendScript(chrome.runtime.getURL(`assets/js/quasar.umd.js`));\n\t\t\t\t// },50)\n\t  \n\t\t\t\t// appendScript(chrome.runtime.getURL(`assets/js/react.development.js`));\n\t\t\t\t// appendScript(chrome.runtime.getURL(`assets/js/react-dom.development.js`));\n\t\t\t\t// appendScript(chrome.runtime.getURL(`assets/js/babel.min.js`));\n\t  \n\t\t\t\tappendScript(chrome.runtime.getURL(`assets/js/fingerprintjs@3.js`));"
+        }
+      ]
+    },
+    {
+      "id": "F015",
+      "old": "operate/Device.cst.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/Device.cst.ts",
+      "lines": 10,
+      "baselineSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "currentSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/utils/device.js"
+      ],
+      "coreCapabilityIds": [
+        "EVENT.F015.DeviceType.BROWSER",
+        "EVENT.F015.DeviceType.DESKTOP",
+        "EVENT.F015.DeviceType.APP_H5",
+        "EVENT.F015.DeviceType.ANDROID",
+        "EVENT.F015.DeviceType.IOS"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "EVENT.F015.DeviceType.BROWSER",
+          "symbol": "DeviceType.BROWSER",
+          "lines": [
+            5,
+            5
+          ],
+          "text": "\tBROWSER: 0,"
+        },
+        {
+          "capabilityId": "EVENT.F015.DeviceType.DESKTOP",
+          "symbol": "DeviceType.DESKTOP",
+          "lines": [
+            6,
+            6
+          ],
+          "text": "\tDESKTOP: 1,"
+        },
+        {
+          "capabilityId": "EVENT.F015.DeviceType.APP_H5",
+          "symbol": "DeviceType.APP_H5",
+          "lines": [
+            7,
+            7
+          ],
+          "text": "\tAPP_H5: 2,"
+        },
+        {
+          "capabilityId": "EVENT.F015.DeviceType.ANDROID",
+          "symbol": "DeviceType.ANDROID",
+          "lines": [
+            8,
+            8
+          ],
+          "text": "\tANDROID: 3,"
+        },
+        {
+          "capabilityId": "EVENT.F015.DeviceType.IOS",
+          "symbol": "DeviceType.IOS",
+          "lines": [
+            9,
+            9
+          ],
+          "text": "\tIOS: 4"
+        }
+      ]
+    },
+    {
+      "id": "F016",
+      "old": "operate/EventOperate.cst.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/EventOperate.cst.ts",
+      "lines": 14,
+      "baselineSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "currentSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/events.js",
+        "src/run-host.js"
+      ],
+      "coreCapabilityIds": [
+        "CORE-DEVICE-EVENT-CONSTANTS",
+        "EVENT.F016.EVENT_OPERATE.SCRIPT_RUN",
+        "EVENT.F016.EVENT_OPERATE.SCRIPT_STOP",
+        "EVENT.F016.EVENT_OPERATE.SCRIPT_RUN_BY_API",
+        "EVENT.F016.EVENT_OPERATE.SCRIPT_STOP_BY_API",
+        "EVENT.F016.EVENT_OPERATE.DEVICE_USER_INFO",
+        "EVENT.F016.EVENT_OPERATE.DEVICE_USER_INFO_UNBIND",
+        "EVENT.F016.EVENT_OPERATE.DEVICE_INFO"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "CORE-DEVICE-EVENT-CONSTANTS",
+          "symbol": "EVENT_OPERATE.DEVICE_INFO",
+          "lines": [
+            13,
+            13
+          ],
+          "text": "\tDEVICE_INFO: 'OPERATE_DEVICE_INFO',   // 设备信息，主要是设备服务器端的id"
+        },
+        {
+          "capabilityId": "EVENT.F016.EVENT_OPERATE.SCRIPT_RUN",
+          "symbol": "EVENT_OPERATE.SCRIPT_RUN",
+          "lines": [
+            5,
+            5
+          ],
+          "text": "\tSCRIPT_RUN: 'SCRIPT_RUN',"
+        },
+        {
+          "capabilityId": "EVENT.F016.EVENT_OPERATE.SCRIPT_STOP",
+          "symbol": "EVENT_OPERATE.SCRIPT_STOP",
+          "lines": [
+            6,
+            6
+          ],
+          "text": "\tSCRIPT_STOP: 'SCRIPT_STOP',"
+        },
+        {
+          "capabilityId": "EVENT.F016.EVENT_OPERATE.SCRIPT_RUN_BY_API",
+          "symbol": "EVENT_OPERATE.SCRIPT_RUN_BY_API",
+          "lines": [
+            7,
+            7
+          ],
+          "text": "\tSCRIPT_RUN_BY_API: 'SCRIPT_RUN_BY_API',"
+        },
+        {
+          "capabilityId": "EVENT.F016.EVENT_OPERATE.SCRIPT_STOP_BY_API",
+          "symbol": "EVENT_OPERATE.SCRIPT_STOP_BY_API",
+          "lines": [
+            8,
+            8
+          ],
+          "text": "\tSCRIPT_STOP_BY_API: 'SCRIPT_STOP_BY_API',"
+        },
+        {
+          "capabilityId": "EVENT.F016.EVENT_OPERATE.DEVICE_USER_INFO",
+          "symbol": "EVENT_OPERATE.DEVICE_USER_INFO",
+          "lines": [
+            11,
+            11
+          ],
+          "text": "\tDEVICE_USER_INFO: 'OPERATE_DEVICE_USER_INFO',"
+        },
+        {
+          "capabilityId": "EVENT.F016.EVENT_OPERATE.DEVICE_USER_INFO_UNBIND",
+          "symbol": "EVENT_OPERATE.DEVICE_USER_INFO_UNBIND",
+          "lines": [
+            12,
+            12
+          ],
+          "text": "\tDEVICE_USER_INFO_UNBIND: 'OPERATE_DEVICE_USER_INFO_UNBIND', // 设备下线，取消绑定;"
+        },
+        {
+          "capabilityId": "EVENT.F016.EVENT_OPERATE.DEVICE_INFO",
+          "symbol": "EVENT_OPERATE.DEVICE_INFO",
+          "lines": [
+            13,
+            13
+          ],
+          "text": "\tDEVICE_INFO: 'OPERATE_DEVICE_INFO',   // 设备信息，主要是设备服务器端的id"
+        }
+      ]
+    },
+    {
+      "id": "F017",
+      "old": "utils/UtilDevice.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilDevice.ts",
+      "lines": 127,
+      "baselineSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "currentSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/utils/device.js",
+        "src/platform/storage/index.js"
+      ],
+      "coreCapabilityIds": [
+        "TOOL.F017.isElectron",
+        "TOOL.F017.isChromeExtension",
+        "TOOL.F017.UtilDevice.getInfo",
+        "TOOL.F017.UtilDevice.getBrowserInfo",
+        "TOOL.F017.UtilDevice.getInfoStr",
+        "TOOL.F017.UtilDevice.generateRandomString",
+        "TOOL.F017.UtilDevice.getAppId",
+        "TOOL.F017.UtilDevice.getFingerprint",
+        "TOOL.F017.UtilDevice.getAppIdInfo"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "TOOL.F017.isElectron",
+          "symbol": "isElectron",
+          "lines": [
+            7,
+            9
+          ],
+          "text": "const isElectron = () => {\n\treturn window && window.process && window.process.type;\n};"
+        },
+        {
+          "capabilityId": "TOOL.F017.isChromeExtension",
+          "symbol": "isChromeExtension",
+          "lines": [
+            10,
+            12
+          ],
+          "text": "const isChromeExtension = () => {\n\treturn window && window.chrome && window.chrome.runtime && window.chrome.runtime.id;\n}"
+        },
+        {
+          "capabilityId": "TOOL.F017.UtilDevice.getInfo",
+          "symbol": "UtilDevice.getInfo",
+          "lines": [
+            16,
+            36
+          ],
+          "text": "\tstatic getInfo(): any {\n\t\tif (isElectron()) {\n\t\t\tconst os = {} as any; //  require('os');\n\t\t\treturn {\n\t\t\t\tplatform: os.platform(),\n\t\t\t\trelease: os.release(),\n\t\t\t\thostname: os.hostname(),\n\t\t\t\tarch: os.arch(),\n\t\t\t\ttotalMem: os.totalmem(),\n\t\t\t\tfreeMem: os.freemem(),\n\t\t\t\tcpuCount: os.cpus().length\n\t\t\t};\n\t\t} else {\n\t\t\treturn {\n\t\t\t\tuserAgent: navigator.userAgent,\n\t\t\t\tplatform: navigator.platform,\n\t\t\t\tlanguage: navigator.language,\n\t\t\t\tonline: navigator.onLine\n\t\t\t};\n\t\t}\n\t}"
+        },
+        {
+          "capabilityId": "TOOL.F017.UtilDevice.getBrowserInfo",
+          "symbol": "UtilDevice.getBrowserInfo",
+          "lines": [
+            38,
+            56
+          ],
+          "text": "\tstatic getBrowserInfo(userAgent: string): string {\n\t\tconst browsers = [\n\t\t\t{ name: \"Chrome Canary\", regex: /Chrome\\/(\\S+).*\\s+Edg\\// },\n\t\t\t{ name: \"Edge\", regex: /Edg\\/(\\S+)/ },\n\t\t\t{ name: \"Chrome\", regex: /Chrome\\/(\\S+).*\\s+Safari\\// },\n\t\t\t{ name: \"Firefox\", regex: /Firefox\\/(\\S+)/ },\n\t\t\t{ name: \"Safari\", regex: /Safari\\/(\\S+)/ },\n\t\t\t{ name: \"IE\", regex: /MSIE (\\S+);/ }\n\t\t];\n\n\t\tfor (const browser of browsers) {\n\t\t\tconst match = userAgent.match(browser.regex);\n\t\t\tif (match) {\n\t\t\t\treturn `${browser.name} ${match[1]}`;\n\t\t\t}\n\t\t}\n\n\t\treturn userAgent; // 如果无法识别则返回完整的 userAgent\n\t}"
+        },
+        {
+          "capabilityId": "TOOL.F017.UtilDevice.getInfoStr",
+          "symbol": "UtilDevice.getInfoStr",
+          "lines": [
+            58,
+            66
+          ],
+          "text": "\tstatic getInfoStr(): string {\n\t\tconst info = this.getInfo();\n\n\t\tif (isElectron()) {\n\t\t\treturn `Electron on ${info.platform} ${info.release}`;\n\t\t} else {\n\t\t\treturn this.getBrowserInfo(info.userAgent);\n\t\t}\n\t}"
+        },
+        {
+          "capabilityId": "TOOL.F017.UtilDevice.generateRandomString",
+          "symbol": "UtilDevice.generateRandomString",
+          "lines": [
+            68,
+            78
+          ],
+          "text": "\tstatic generateRandomString(length): string {\n\t\tlet result = '';\n\t\tconst characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';\n\t\tconst charactersLength = characters.length;\n\n\t\tfor (let i = 0; i < length; i++) {\n\t\t\tresult += characters.charAt(Math.floor(Math.random() * charactersLength));\n\t\t}\n\n\t\treturn result;\n\t}"
+        },
+        {
+          "capabilityId": "TOOL.F017.UtilDevice.getAppId",
+          "symbol": "UtilDevice.getAppId",
+          "lines": [
+            79,
+            97
+          ],
+          "text": "\tstatic async getAppId(): Promise<string> {\n\t\tlet appDeviceId = \"\";\n\t\t// 如果是 chrome extension，则从浏览器插件的缓存中获取 appDeviceId\n\t\tif (isChromeExtension()) {\n\t\t\tappDeviceId = await getObjectFromLocalStorage(\"appDeviceId\");\n\t\t\tif (appDeviceId && appDeviceId.length == 16) return appDeviceId;\n\t\t\t// 如果没有 appDeviceId ，则使用lodash 随机16个字符串创建一个，并保存到浏览器插件的缓存中 saveObjectInLocalStorage\n\t\t\tappDeviceId = this.generateRandomString(16);\n\t\t\tsaveObjectInLocalStorage({ \"appDeviceId\": appDeviceId });\n\t\t} else {\n\t\t\tappDeviceId = localStorage.getItem(\"appDeviceId\") || \"\";\n\t\t\tif (appDeviceId && appDeviceId.length == 16) return appDeviceId;\n\t\t\t// 如果没有 appDeviceId ，则使用lodash 随机16个字符串创建一个，并保存到浏览器插件的缓存中 saveObjectInLocalStorage\n\t\t\tappDeviceId = this.generateRandomString(16);\n\t\t\tlocalStorage.setItem(\"appDeviceId\", appDeviceId);\n\t\t}\n\t\tconsole.log(\"appDeviceId:\", appDeviceId)\n\t\treturn appDeviceId\n\t}"
+        },
+        {
+          "capabilityId": "TOOL.F017.UtilDevice.getFingerprint",
+          "symbol": "UtilDevice.getFingerprint",
+          "lines": [
+            99,
+            110
+          ],
+          "text": "\tstatic async getFingerprint() {\n\t\tlet visitorId;\n\t\ttry {\n\t\t\t// @ts-ignore\n\t\t\tconst fp = await FingerprintJS.load();  // 从ba\n\t\t\tconst result = await fp.get();\n\t\t\tvisitorId = result.visitorId;\n\t\t} catch (e) {\n\n\t\t}\n\t\treturn visitorId\n\t}"
+        },
+        {
+          "capabilityId": "TOOL.F017.UtilDevice.getAppIdInfo",
+          "symbol": "UtilDevice.getAppIdInfo",
+          "lines": [
+            111,
+            123
+          ],
+          "text": "\tstatic async getAppIdInfo(): Promise<Object> {\n\t\tlet info = {};\n\t\tif (isChromeExtension()) {\n\t\t\tinfo = {\n\t\t\t\t// idType: \"chromeExtension\",\n\t\t\t\ttype: DeviceType.BROWSER,\n\t\t\t\tchromeId: window.chrome.runtime.id,\n\t\t\t\tappDeviceId: await this.getAppId(),\n\t\t\t\tfingerId: await this.getFingerprint(),  // 浏览器指纹;\n\t\t\t}\n\t\t}\n\t\treturn info;\n\t}"
+        }
+      ]
+    },
+    {
+      "id": "F018",
+      "old": "utils/UtilInfo.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilInfo.ts",
+      "lines": 17,
+      "baselineSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "currentSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/utils/network-info.js",
+        "src/platform/chrome/network.js"
+      ],
+      "coreCapabilityIds": [
+        "TOOL.F018.UtilInfo.getIpInfo"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "TOOL.F018.UtilInfo.getIpInfo",
+          "symbol": "UtilInfo.getIpInfo",
+          "lines": [
+            4,
+            14
+          ],
+          "text": "\tprivate static API_URL = 'http://whois.pconline.com.cn/ipJson.jsp?json=true';\n\n\t/**\n\t * 获取指定 IP 的信息。如果未提供 IP，则查询调用者的 IP。\n\t * @param ip - 要查询的 IP 地址。可选。\n\t */\n\tstatic async getIpInfo(ip?: string): Promise<any> {\n\t\tconst url = ip ? `${this.API_URL}&ip=${ip}` : this.API_URL;\n\t\tconst data = await axios.get(url).then(r => r.data);\n\t\treturn data;\n\t}"
+        }
+      ]
+    },
+    {
+      "id": "F019",
+      "old": "utils/UtilScrpt.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilScrpt.ts",
+      "lines": 52,
+      "baselineSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "currentSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "baselineMatchesCurrent": true,
+      "newModules": [
+        "src/framework/utils/script.js",
+        "src/run-host.js",
+        "src/scripting/sandbox/controller.js"
+      ],
+      "coreCapabilityIds": [
+        "TOOL.F019.wrapAsync",
+        "TOOL.F019.formatJSON"
+      ],
+      "excludedCapabilityIds": [],
+      "coreSymbolExcerpts": [
+        {
+          "capabilityId": "TOOL.F019.wrapAsync",
+          "symbol": "wrapAsync",
+          "lines": [
+            5,
+            35
+          ],
+          "text": "export function wrapAsync(code) {\n\t// 检查代码中是否已经有 'async' 关键字\n\tconst hasAsync = /async\\s+function/.test(code);\n\tconst hasTry = code.includes('globalThis.Console && Console.error(\"error in wrapAsync:\", e )');\n\t// 如果代码包含 'await' 但不包含 'async'\n\tlet tryCode = hasTry ? code : `\n\t\ttry{\n\t\t\t${code}\n\t\t}catch(e){\n\t\t\tconsole.log('script run error:' ,e)\n\n\t\t\tglobalThis.Console && Console.open()\n\t\t\tglobalThis.Console && Console.show()\n\t\t\tglobalThis.Console && Console.error(\"error in wrapAsync:\", e )\n\t\t\tglobalThis.Console && Console.hide( 10000 );\n\t\t}` ;\n\n\t// 如果代码包含 'await' 但不包含 'async'\n\tif (!hasAsync && /await/.test(code)) {\n\t\t// 将代码包装在一个立即执行的异步函数表达式中\n\t\tlet newColde = `\n\t\t\t(async function() {\n\t\t\t\t${tryCode}\n\t\t\t})()\n\t\t` ;\n\t\treturn newColde;\n\t}\n\n\t// 如果代码已经是 async 或者不需要修改，则原样返回\n\treturn tryCode;\n}"
+        },
+        {
+          "capabilityId": "TOOL.F019.formatJSON",
+          "symbol": "formatJSON",
+          "lines": [
+            39,
+            49
+          ],
+          "text": "export function formatJSON(input: string) {\n\tlet obj;\n\ttry {\n\t\t// 使用 eval 转换为对象，这是不安全的!\n\t\tobj = eval('(' + input + ')');\n\t\t// 使用 JSON.stringify 格式化\n\t\treturn JSON.stringify(obj);\n\t} catch (e) {\n\t\tconsole.error(\"Failed to convert input to JSON.\");\n\t\treturn input;\n\t}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "event": "serviceworker-console",
+    "level": "log",
+    "text": "F1 userScripts fixture installed",
+    "at": 1790969588567
+  },
+  {
+    "at": 1790969590245,
+    "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+    "event": "console",
+    "level": "info",
+    "text": "Autofocus processing was blocked because a document already has a focused element.",
+    "location": {
+      "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "line": 0,
+      "column": 0,
+      "lineNumber": 0,
+      "columnNumber": 0
+    }
+  }
+]

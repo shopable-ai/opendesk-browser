@@ -1,0 +1,1492 @@
+{
+  "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+  "families": "A01/NAV01/CMP09",
+  "expected": "Minimal ordinary page goto/title/url returns real title and URL in durable result",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "PASS",
+  "startedAt": 1791021956328,
+  "input": {
+    "source": "await page.goto(params.url); return {title: await page.title(), url: await page.url()}",
+    "params": {
+      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+      "revision": "r1"
+    }
+  },
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "actual": {
+    "run": {
+      "tag": "controller-run",
+      "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+      "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+      "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+      "registrationId": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+      "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+      "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+      "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+      "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+      "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+      "opId": "951a3b2c-0c73-43e6-b3ce-73f646566d15",
+      "resultId": "e6ff26cd-05ee-4199-8dcb-f884663836d8",
+      "requestId": "d6894a17-298f-4984-aaae-bb3bd0796738",
+      "requestDigest": "ee27fc0a5f9e640cc16ee150311254b6783091edb9e140096777002a7305257e",
+      "deadlineAt": 1791021986559,
+      "paramsWire": {
+        "type": "object",
+        "value": [
+          [
+            "revision",
+            {
+              "type": "string",
+              "value": "r1"
+            }
+          ],
+          [
+            "url",
+            {
+              "type": "string",
+              "value": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+            }
+          ]
+        ]
+      },
+      "selection": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned"
+      },
+      "startUrl": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned",
+      "nativeFence": {
+        "tabEpoch": 0,
+        "frameEpoch": 0,
+        "rootFrameEpoch": 0,
+        "permissionEpoch": 0
+      },
+      "nativeTabId": 775226567,
+      "state": "completed",
+      "ownerEpoch": 2,
+      "runRevision": 5,
+      "eventSeq": 3,
+      "cancelSeq": 1,
+      "workerRetired": true,
+      "retirementState": "released",
+      "target": {
+        "tabId": 775226567,
+        "frameId": 0,
+        "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+        "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+        "allowedOrigin": "http://127.0.0.1:62707",
+        "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+        "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+        "targetVersion": 2,
+        "mode": "owned",
+        "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+      },
+      "identity": {
+        "tag": "controller-run",
+        "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+        "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+        "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+        "ownerEpoch": 1,
+        "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+        "revision": 1,
+        "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+        "target": {
+          "tabId": 775226567,
+          "frameId": 0,
+          "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+          "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+          "allowedOrigin": "http://127.0.0.1:62707",
+          "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+          "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+        }
+      },
+      "revision": {
+        "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+        "revision": 1,
+        "sourceHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+        "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"951a3b2c-0c73-43e6-b3ce-73f646566d15\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]"
+      },
+      "createdAt": 1791021956561,
+      "retirementId": "2d80d2be-56aa-4577-a2e1-232ae89326e2",
+      "terminalReason": null
+    },
+    "result": {
+      "tag": "controller-result",
+      "resultId": "e6ff26cd-05ee-4199-8dcb-f884663836d8",
+      "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+      "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+      "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+      "revision": {
+        "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+        "revision": 1,
+        "sourceHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+        "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"951a3b2c-0c73-43e6-b3ce-73f646566d15\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]"
+      },
+      "state": "completed",
+      "outcome": {
+        "ok": true,
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "title",
+              {
+                "type": "string",
+                "value": "Controller goto"
+              }
+            ],
+            [
+              "url",
+              {
+                "type": "string",
+                "value": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+              }
+            ]
+          ]
+        }
+      },
+      "committedAt": 1791021957005
+    },
+    "snapshot": {
+      "databases": [
+        {
+          "name": "opendesk-browser",
+          "version": 2
+        }
+      ],
+      "rows": {
+        "artifacts": [],
+        "batches": [],
+        "commandJournal": [
+          {
+            "key": "controller-create:e3597f5a-3d81-426a-aff3-d63f145081d5",
+            "value": {
+              "tag": "controller-target-create",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "bootstrapUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/target-bootstrap.html?creationId=69bf0aa9-45d1-4f29-92d7-051a6276a484",
+              "state": "created",
+              "submissionCount": 1,
+              "tabId": 775226567,
+              "dispatchAt": 1791021956566,
+              "receiptAt": 1791021956620,
+              "bootstrapDocumentId": "1129963AF1B37E5FA73633BFE0046B9A",
+              "navigationSubmissionCount": 1,
+              "navigationState": "dispatched"
+            }
+          },
+          {
+            "key": "controller-create:ee8f6421-16af-416f-84b9-932f118a9100",
+            "value": {
+              "tag": "controller-target-create",
+              "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+              "creationId": "f2f457c5-a33a-471b-b77a-e61f747f7a8b",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "bootstrapUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/target-bootstrap.html?creationId=f2f457c5-a33a-471b-b77a-e61f747f7a8b",
+              "state": "created",
+              "submissionCount": 1,
+              "tabId": 775226565,
+              "dispatchAt": 1791021955992,
+              "receiptAt": 1791021956044,
+              "bootstrapDocumentId": "838EB1C1D8EBA18C548455EC3E20119F",
+              "navigationSubmissionCount": 1,
+              "navigationState": "dispatched"
+            }
+          },
+          {
+            "key": "controller-finish:[\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"c5ae821d-6340-4174-9e69-027c99fd9fa3\"]",
+            "value": {
+              "tag": "controller-finish",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "requestDigest": "c934a7091181fb6d772eece09763116409f75e44613adc7ddc3403f84feed271"
+            }
+          },
+          {
+            "key": "controller-finish:[\"ee8f6421-16af-416f-84b9-932f118a9100\",\"a01d6b37-fc17-443d-ada4-563edb38ac76\"]",
+            "value": {
+              "tag": "controller-finish",
+              "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+              "requestDigest": "b7d6aacded8086a4276bcd008027ba60f03e97cd011eb9e9bd4bd5b0177cbe15"
+            }
+          },
+          {
+            "key": "controller-op:[\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"69b2d8b4d6b76937e794e59f0266d0bb\"]",
+            "value": {
+              "tag": "controller-navigation",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "requestDigest": "c1c85b88f0cd92ef175c4ec52191830be1a5e2e6d34258017451b85097d16653",
+              "envelope": {
+                "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                "identity": {
+                  "tag": "controller-run",
+                  "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+                  "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+                  "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+                  "ownerEpoch": 1,
+                  "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                  "revision": 1,
+                  "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                  "target": {
+                    "tabId": 775226567,
+                    "frameId": 0,
+                    "documentId": "001363B657EC5160E37E0B246D34AD19",
+                    "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned",
+                    "allowedOrigin": "http://127.0.0.1:62707",
+                    "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                    "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                    "targetVersion": 1,
+                    "mode": "owned",
+                    "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                  }
+                },
+                "revision": {
+                  "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                  "revision": 1,
+                  "sourceHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                  "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"951a3b2c-0c73-43e6-b3ce-73f646566d15\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]"
+                },
+                "target": {
+                  "tabId": 775226567,
+                  "frameId": 0,
+                  "documentId": "001363B657EC5160E37E0B246D34AD19",
+                  "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned",
+                  "allowedOrigin": "http://127.0.0.1:62707",
+                  "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                  "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                  "targetVersion": 1,
+                  "mode": "owned",
+                  "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                },
+                "operation": {
+                  "kind": "browser",
+                  "method": "goto",
+                  "args": {
+                    "t": "array",
+                    "v": [
+                      {
+                        "t": "string",
+                        "v": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                      },
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "timeout",
+                            {
+                              "t": "number",
+                              "v": 30000
+                            }
+                          ],
+                          [
+                            "waitUntil",
+                            {
+                              "t": "string",
+                              "v": "complete"
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              "state": "durable",
+              "submissionCount": 1,
+              "dispatchAt": 1791021956802,
+              "nativeReceipts": [
+                {
+                  "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "001363B657EC5160E37E0B246D34AD19",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "001363B657EC5160E37E0B246D34AD19",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "001363B657EC5160E37E0B246D34AD19",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                  "stage": "tabs.update",
+                  "receipt": {
+                    "active": false,
+                    "audible": false,
+                    "autoDiscardable": true,
+                    "discarded": false,
+                    "frozen": false,
+                    "groupId": -1,
+                    "height": 758,
+                    "highlighted": false,
+                    "id": 775226567,
+                    "incognito": false,
+                    "index": 5,
+                    "lastAccessed": 1791021956567.375,
+                    "mutedInfo": {
+                      "muted": false
+                    },
+                    "pendingUrl": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                    "pinned": false,
+                    "selected": false,
+                    "status": "loading",
+                    "title": "Controller owned",
+                    "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned",
+                    "width": 1200,
+                    "windowId": 775226559
+                  }
+                },
+                {
+                  "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                  "stage": "result",
+                  "receipt": {
+                    "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                    "value": {
+                      "t": "undefined"
+                    },
+                    "handoff": {
+                      "from": {
+                        "tabId": 775226567,
+                        "frameId": 0,
+                        "documentId": "001363B657EC5160E37E0B246D34AD19",
+                        "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned",
+                        "allowedOrigin": "http://127.0.0.1:62707",
+                        "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                        "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                        "targetVersion": 1,
+                        "mode": "owned",
+                        "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                      },
+                      "to": {
+                        "tabId": 775226567,
+                        "frameId": 0,
+                        "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                        "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                        "allowedOrigin": "http://127.0.0.1:62707",
+                        "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                        "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                        "targetVersion": 2,
+                        "mode": "owned",
+                        "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                      }
+                    }
+                  }
+                },
+                {
+                  "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                }
+              ],
+              "valueWire": {
+                "type": "undefined"
+              },
+              "receiptAt": 1791021956926,
+              "reply": {
+                "requestId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                "value": {
+                  "t": "undefined"
+                },
+                "handoff": {
+                  "from": {
+                    "tabId": 775226567,
+                    "frameId": 0,
+                    "documentId": "001363B657EC5160E37E0B246D34AD19",
+                    "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned",
+                    "allowedOrigin": "http://127.0.0.1:62707",
+                    "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                    "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                    "targetVersion": 1,
+                    "mode": "owned",
+                    "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                  },
+                  "to": {
+                    "tabId": 775226567,
+                    "frameId": 0,
+                    "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                    "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                    "allowedOrigin": "http://127.0.0.1:62707",
+                    "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                    "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                    "targetVersion": 2,
+                    "mode": "owned",
+                    "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                  }
+                }
+              },
+              "targetTransition": {
+                "navigationIntentId": "69b2d8b4d6b76937e794e59f0266d0bb",
+                "from": {
+                  "tabId": 775226567,
+                  "frameId": 0,
+                  "documentId": "001363B657EC5160E37E0B246D34AD19",
+                  "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned",
+                  "allowedOrigin": "http://127.0.0.1:62707",
+                  "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                  "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                  "targetVersion": 1,
+                  "mode": "owned",
+                  "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                },
+                "to": {
+                  "tabId": 775226567,
+                  "frameId": 0,
+                  "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                  "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                  "allowedOrigin": "http://127.0.0.1:62707",
+                  "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                  "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                  "targetVersion": 2,
+                  "mode": "owned",
+                  "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                }
+              }
+            }
+          },
+          {
+            "key": "controller-op:[\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"989d288cc1f042af899e9d082445f7e5\"]",
+            "value": {
+              "tag": "controller-operation",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "requestDigest": "7d9d0e49e400638cd615f801e61113274eb662f5b9e7d012cceb810b11e6b4d1",
+              "envelope": {
+                "requestId": "989d288cc1f042af899e9d082445f7e5",
+                "identity": {
+                  "tag": "controller-run",
+                  "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+                  "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+                  "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+                  "ownerEpoch": 1,
+                  "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                  "revision": 1,
+                  "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                  "target": {
+                    "tabId": 775226567,
+                    "frameId": 0,
+                    "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                    "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                    "allowedOrigin": "http://127.0.0.1:62707",
+                    "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                    "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                    "targetVersion": 2,
+                    "mode": "owned",
+                    "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                  }
+                },
+                "revision": {
+                  "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                  "revision": 1,
+                  "sourceHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                  "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"951a3b2c-0c73-43e6-b3ce-73f646566d15\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]"
+                },
+                "target": {
+                  "tabId": 775226567,
+                  "frameId": 0,
+                  "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                  "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                  "allowedOrigin": "http://127.0.0.1:62707",
+                  "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                  "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                  "targetVersion": 2,
+                  "mode": "owned",
+                  "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                },
+                "operation": {
+                  "kind": "packaged",
+                  "method": "title",
+                  "args": {
+                    "t": "array",
+                    "v": []
+                  }
+                }
+              },
+              "state": "durable",
+              "submissionCount": 1,
+              "dispatchAt": 1791021956931,
+              "nativeReceipts": [
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "scripting.executeScript",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "frameId": 0,
+                      "result": null
+                    }
+                  ]
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "tabs.sendMessage",
+                  "receipt": {
+                    "requestId": "989d288cc1f042af899e9d082445f7e5",
+                    "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+                    "ownerEpoch": 1,
+                    "value": {
+                      "t": "string",
+                      "v": "Controller goto"
+                    }
+                  }
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "result",
+                  "receipt": {
+                    "requestId": "989d288cc1f042af899e9d082445f7e5",
+                    "value": {
+                      "t": "string",
+                      "v": "Controller goto"
+                    }
+                  }
+                },
+                {
+                  "requestId": "989d288cc1f042af899e9d082445f7e5",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                }
+              ],
+              "valueWire": {
+                "type": "string",
+                "value": "Controller goto"
+              },
+              "receiptAt": 1791021956971,
+              "reply": {
+                "requestId": "989d288cc1f042af899e9d082445f7e5",
+                "value": {
+                  "t": "string",
+                  "v": "Controller goto"
+                }
+              }
+            }
+          },
+          {
+            "key": "controller-op:[\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"eaaeb562daf2c3c3d655d7ae29f0fde9\"]",
+            "value": {
+              "tag": "controller-operation",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "requestDigest": "cd38ed5e745dd451ec4bd4e4682c6e8455d0624e05285d63ccebb348229bed1c",
+              "envelope": {
+                "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                "identity": {
+                  "tag": "controller-run",
+                  "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+                  "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+                  "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+                  "ownerEpoch": 1,
+                  "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                  "revision": 1,
+                  "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                  "target": {
+                    "tabId": 775226567,
+                    "frameId": 0,
+                    "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                    "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                    "allowedOrigin": "http://127.0.0.1:62707",
+                    "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                    "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                    "targetVersion": 2,
+                    "mode": "owned",
+                    "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                  }
+                },
+                "revision": {
+                  "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                  "revision": 1,
+                  "sourceHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                  "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"951a3b2c-0c73-43e6-b3ce-73f646566d15\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]"
+                },
+                "target": {
+                  "tabId": 775226567,
+                  "frameId": 0,
+                  "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                  "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                  "allowedOrigin": "http://127.0.0.1:62707",
+                  "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                  "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                  "targetVersion": 2,
+                  "mode": "owned",
+                  "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                },
+                "operation": {
+                  "kind": "packaged",
+                  "method": "url",
+                  "args": {
+                    "t": "array",
+                    "v": []
+                  }
+                }
+              },
+              "state": "durable",
+              "submissionCount": 1,
+              "dispatchAt": 1791021956975,
+              "nativeReceipts": [
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "tabs.sendMessage",
+                  "receipt": {
+                    "type": "OPENDESK_CONTROLLER_PAGE_SESSION_V1",
+                    "ready": true
+                  }
+                },
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "tabs.sendMessage",
+                  "receipt": {
+                    "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                    "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+                    "ownerEpoch": 1,
+                    "value": {
+                      "t": "string",
+                      "v": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  }
+                },
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                },
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "result",
+                  "receipt": {
+                    "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                    "value": {
+                      "t": "string",
+                      "v": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  }
+                },
+                {
+                  "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                  "stage": "webNavigation.getAllFrames",
+                  "receipt": [
+                    {
+                      "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                      "documentLifecycle": "active",
+                      "errorOccurred": false,
+                      "frameId": 0,
+                      "frameType": "outermost_frame",
+                      "parentFrameId": -1,
+                      "processId": 12,
+                      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                }
+              ],
+              "valueWire": {
+                "type": "string",
+                "value": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+              },
+              "receiptAt": 1791021957001,
+              "reply": {
+                "requestId": "eaaeb562daf2c3c3d655d7ae29f0fde9",
+                "value": {
+                  "t": "string",
+                  "v": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                }
+              }
+            }
+          },
+          {
+            "key": "controller-pin:e3597f5a-3d81-426a-aff3-d63f145081d5",
+            "value": {
+              "tag": "controller-lease",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "grantIncarnation": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "opId": "951a3b2c-0c73-43e6-b3ce-73f646566d15",
+              "requestId": "d6894a17-298f-4984-aaae-bb3bd0796738",
+              "resultId": "e6ff26cd-05ee-4199-8dcb-f884663836d8",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "registrationId": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "cancelSeq": 1,
+              "state": "completed",
+              "deadlineAt": 1791021986559,
+              "workerRetired": true,
+              "retirementState": "released"
+            }
+          },
+          {
+            "key": "controller-pin:ee8f6421-16af-416f-84b9-932f118a9100",
+            "value": {
+              "tag": "controller-lease",
+              "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "grantIncarnation": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "opId": "3722d05c-7a8c-49c7-a885-5b6bce129605",
+              "requestId": "8ea59b49-539f-46c2-aac0-1106bd842301",
+              "resultId": "578483d1-eae7-45d9-a772-7cf6a0920701",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "registrationId": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "cancelSeq": 1,
+              "state": "completed",
+              "deadlineAt": 1791021985973,
+              "workerRetired": true,
+              "retirementState": "released"
+            }
+          },
+          {
+            "key": "controller-retirement:2d80d2be-56aa-4577-a2e1-232ae89326e2",
+            "value": {
+              "tag": "controller-retirement",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "retirementId": "2d80d2be-56aa-4577-a2e1-232ae89326e2",
+              "releaseCount": 1,
+              "absence": "owned-tabs.get-not-found",
+              "releasedAt": 1791021957016
+            }
+          },
+          {
+            "key": "controller-retirement:ccb03440-65b3-419a-9f2e-678a527cd8ca",
+            "value": {
+              "tag": "controller-retirement",
+              "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+              "retirementId": "ccb03440-65b3-419a-9f2e-678a527cd8ca",
+              "releaseCount": 1,
+              "absence": "owned-tabs.get-not-found",
+              "releasedAt": 1791021956258
+            }
+          },
+          {
+            "key": "controller-start:[\"5f1eb367-de4f-48a5-a355-2acbb8a9669c\",\"8ea59b49-539f-46c2-aac0-1106bd842301\"]",
+            "value": {
+              "tag": "controller-start",
+              "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+              "requestDigest": "62bc1445324d7c1e908d8ea677d02ac5827ccdec287b7424171994395e57979a"
+            }
+          },
+          {
+            "key": "controller-start:[\"5f1eb367-de4f-48a5-a355-2acbb8a9669c\",\"d6894a17-298f-4984-aaae-bb3bd0796738\"]",
+            "value": {
+              "tag": "controller-start",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "requestDigest": "ee27fc0a5f9e640cc16ee150311254b6783091edb9e140096777002a7305257e"
+            }
+          },
+          {
+            "key": "host:5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+            "value": {
+              "tag": "host",
+              "registrationId": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+              "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+              "hostUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+              "hostTabId": 775226561,
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "active": true,
+              "revoked": false,
+              "registeredAt": "2026-10-03T10:05:26.911Z"
+            }
+          },
+          {
+            "key": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"951a3b2c-0c73-43e6-b3ce-73f646566d15\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]",
+            "value": {
+              "tag": "script-revision-pin",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "grantIncarnation": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "opId": "951a3b2c-0c73-43e6-b3ce-73f646566d15",
+              "requestId": "d6894a17-298f-4984-aaae-bb3bd0796738",
+              "resultId": "e6ff26cd-05ee-4199-8dcb-f884663836d8",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "opKey": "controller-pin:e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+              "revision": 1,
+              "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+              "released": true
+            }
+          },
+          {
+            "key": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"ee8f6421-16af-416f-84b9-932f118a9100\",\"3722d05c-7a8c-49c7-a885-5b6bce129605\",\"native-fe7ca0c3-4b09-4881-84b8-d87dba02b340\",1]",
+            "value": {
+              "tag": "script-revision-pin",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "grantIncarnation": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+              "opId": "3722d05c-7a8c-49c7-a885-5b6bce129605",
+              "requestId": "8ea59b49-539f-46c2-aac0-1106bd842301",
+              "resultId": "578483d1-eae7-45d9-a772-7cf6a0920701",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "opKey": "controller-pin:ee8f6421-16af-416f-84b9-932f118a9100",
+              "scriptId": "native-fe7ca0c3-4b09-4881-84b8-d87dba02b340",
+              "revision": 1,
+              "contentHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+              "released": true
+            }
+          }
+        ],
+        "downloadReceipts": [],
+        "entitlements": [],
+        "exportJobs": [],
+        "frameworkKV": [],
+        "pageSnapshots": [],
+        "records": [],
+        "results": [
+          {
+            "key": "578483d1-eae7-45d9-a772-7cf6a0920701",
+            "value": {
+              "tag": "controller-result",
+              "resultId": "578483d1-eae7-45d9-a772-7cf6a0920701",
+              "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "revision": {
+                "scriptId": "native-fe7ca0c3-4b09-4881-84b8-d87dba02b340",
+                "revision": 1,
+                "sourceHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+                "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"ee8f6421-16af-416f-84b9-932f118a9100\",\"3722d05c-7a8c-49c7-a885-5b6bce129605\",\"native-fe7ca0c3-4b09-4881-84b8-d87dba02b340\",1]"
+              },
+              "state": "completed",
+              "outcome": {
+                "ok": true,
+                "valueWire": {
+                  "type": "number",
+                  "value": 7
+                }
+              },
+              "committedAt": 1791021956244
+            }
+          },
+          {
+            "key": "e6ff26cd-05ee-4199-8dcb-f884663836d8",
+            "value": {
+              "tag": "controller-result",
+              "resultId": "e6ff26cd-05ee-4199-8dcb-f884663836d8",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "revision": {
+                "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                "revision": 1,
+                "sourceHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"951a3b2c-0c73-43e6-b3ce-73f646566d15\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]"
+              },
+              "state": "completed",
+              "outcome": {
+                "ok": true,
+                "valueWire": {
+                  "type": "object",
+                  "value": [
+                    [
+                      "title",
+                      {
+                        "type": "string",
+                        "value": "Controller goto"
+                      }
+                    ],
+                    [
+                      "url",
+                      {
+                        "type": "string",
+                        "value": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "committedAt": 1791021957005
+            }
+          }
+        ],
+        "runs": [
+          {
+            "key": "@slot",
+            "value": {
+              "tag": "slot",
+              "currentRunId": null,
+              "state": "available",
+              "releaseCount": 1,
+              "fencedEpoch": 2,
+              "retirementId": "2d80d2be-56aa-4577-a2e1-232ae89326e2"
+            }
+          },
+          {
+            "key": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+            "value": {
+              "tag": "controller-run",
+              "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "registrationId": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+              "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+              "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+              "opId": "951a3b2c-0c73-43e6-b3ce-73f646566d15",
+              "resultId": "e6ff26cd-05ee-4199-8dcb-f884663836d8",
+              "requestId": "d6894a17-298f-4984-aaae-bb3bd0796738",
+              "requestDigest": "ee27fc0a5f9e640cc16ee150311254b6783091edb9e140096777002a7305257e",
+              "deadlineAt": 1791021986559,
+              "paramsWire": {
+                "type": "object",
+                "value": [
+                  [
+                    "revision",
+                    {
+                      "type": "string",
+                      "value": "r1"
+                    }
+                  ],
+                  [
+                    "url",
+                    {
+                      "type": "string",
+                      "value": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+                    }
+                  ]
+                ]
+              },
+              "selection": {
+                "mode": "owned",
+                "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned"
+              },
+              "startUrl": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=owned",
+              "nativeFence": {
+                "tabEpoch": 0,
+                "frameEpoch": 0,
+                "rootFrameEpoch": 0,
+                "permissionEpoch": 0
+              },
+              "nativeTabId": 775226567,
+              "state": "completed",
+              "ownerEpoch": 2,
+              "runRevision": 5,
+              "eventSeq": 3,
+              "cancelSeq": 1,
+              "workerRetired": true,
+              "retirementState": "released",
+              "target": {
+                "tabId": 775226567,
+                "frameId": 0,
+                "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                "allowedOrigin": "http://127.0.0.1:62707",
+                "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                "targetVersion": 2,
+                "mode": "owned",
+                "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+              },
+              "identity": {
+                "tag": "controller-run",
+                "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+                "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+                "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+                "ownerEpoch": 1,
+                "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                "revision": 1,
+                "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                "target": {
+                  "tabId": 775226567,
+                  "frameId": 0,
+                  "documentId": "FBE19A21DE14A59461AAD3ED933AB2AE",
+                  "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+                  "allowedOrigin": "http://127.0.0.1:62707",
+                  "creationId": "69bf0aa9-45d1-4f29-92d7-051a6276a484",
+                  "targetSessionId": "e14ea374-65c0-4029-b124-ff11718ab36d",
+                  "targetVersion": 2,
+                  "mode": "owned",
+                  "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                }
+              },
+              "revision": {
+                "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+                "revision": 1,
+                "sourceHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+                "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"e3597f5a-3d81-426a-aff3-d63f145081d5\",\"951a3b2c-0c73-43e6-b3ce-73f646566d15\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]"
+              },
+              "createdAt": 1791021956561,
+              "retirementId": "2d80d2be-56aa-4577-a2e1-232ae89326e2",
+              "terminalReason": null
+            }
+          },
+          {
+            "key": "ee8f6421-16af-416f-84b9-932f118a9100",
+            "value": {
+              "tag": "controller-run",
+              "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "registrationId": "5f1eb367-de4f-48a5-a355-2acbb8a9669c",
+              "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+              "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+              "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c",
+              "scriptId": "native-fe7ca0c3-4b09-4881-84b8-d87dba02b340",
+              "contentHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+              "opId": "3722d05c-7a8c-49c7-a885-5b6bce129605",
+              "resultId": "578483d1-eae7-45d9-a772-7cf6a0920701",
+              "requestId": "8ea59b49-539f-46c2-aac0-1106bd842301",
+              "requestDigest": "62bc1445324d7c1e908d8ea677d02ac5827ccdec287b7424171994395e57979a",
+              "deadlineAt": 1791021985973,
+              "paramsWire": {
+                "type": "object",
+                "value": [
+                  [
+                    "f",
+                    {
+                      "type": "boolean",
+                      "value": false
+                    }
+                  ],
+                  [
+                    "test",
+                    {
+                      "type": "string",
+                      "value": "minimal"
+                    }
+                  ],
+                  [
+                    "z",
+                    {
+                      "type": "number",
+                      "value": 0
+                    }
+                  ]
+                ]
+              },
+              "selection": {
+                "mode": "owned",
+                "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=minimal"
+              },
+              "startUrl": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=minimal",
+              "nativeFence": {
+                "tabEpoch": 0,
+                "frameEpoch": 0,
+                "rootFrameEpoch": 0,
+                "permissionEpoch": 0
+              },
+              "nativeTabId": 775226565,
+              "state": "completed",
+              "ownerEpoch": 2,
+              "runRevision": 4,
+              "eventSeq": 2,
+              "cancelSeq": 1,
+              "workerRetired": true,
+              "retirementState": "released",
+              "target": {
+                "tabId": 775226565,
+                "frameId": 0,
+                "documentId": "A7599B689D9446F074E6BB69D1E08986",
+                "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=minimal",
+                "allowedOrigin": "http://127.0.0.1:62707",
+                "creationId": "f2f457c5-a33a-471b-b77a-e61f747f7a8b",
+                "targetSessionId": "eb82b9ae-7e0b-4d66-a01a-4f3289079a9a",
+                "targetVersion": 1,
+                "mode": "owned",
+                "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+              },
+              "identity": {
+                "tag": "controller-run",
+                "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+                "hostInstanceId": "5e213823-3dc1-4a3e-aca8-277ca8a428ef",
+                "hostDocumentId": "B61C5A039CFC8C6AC3E8457BD945317B",
+                "ownerEpoch": 1,
+                "scriptId": "native-fe7ca0c3-4b09-4881-84b8-d87dba02b340",
+                "revision": 1,
+                "contentHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+                "target": {
+                  "tabId": 775226565,
+                  "frameId": 0,
+                  "documentId": "A7599B689D9446F074E6BB69D1E08986",
+                  "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=minimal",
+                  "allowedOrigin": "http://127.0.0.1:62707",
+                  "creationId": "f2f457c5-a33a-471b-b77a-e61f747f7a8b",
+                  "targetSessionId": "eb82b9ae-7e0b-4d66-a01a-4f3289079a9a",
+                  "targetVersion": 1,
+                  "mode": "owned",
+                  "browserSessionIncarnation": "8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c"
+                }
+              },
+              "revision": {
+                "scriptId": "native-fe7ca0c3-4b09-4881-84b8-d87dba02b340",
+                "revision": 1,
+                "sourceHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+                "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"ee8f6421-16af-416f-84b9-932f118a9100\",\"3722d05c-7a8c-49c7-a885-5b6bce129605\",\"native-fe7ca0c3-4b09-4881-84b8-d87dba02b340\",1]"
+              },
+              "createdAt": 1791021955988,
+              "retirementId": "ccb03440-65b3-419a-9f2e-678a527cd8ca",
+              "terminalReason": null
+            }
+          }
+        ],
+        "scriptHeads": [
+          {
+            "key": "script:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\"]",
+            "value": {
+              "tag": "script-head",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+              "revision": 1,
+              "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+              "tombstoned": false
+            }
+          },
+          {
+            "key": "script:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"native-fe7ca0c3-4b09-4881-84b8-d87dba02b340\"]",
+            "value": {
+              "tag": "script-head",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "scriptId": "native-fe7ca0c3-4b09-4881-84b8-d87dba02b340",
+              "revision": 1,
+              "contentHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+              "tombstoned": false
+            }
+          }
+        ],
+        "scriptRevisions": [
+          {
+            "key": "script:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\",1]",
+            "value": {
+              "tag": "script-revision",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+              "revision": 1,
+              "parentRevision": 0,
+              "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+              "sourceUtf8": "await page.goto(params.url); return {title: await page.title(), url: await page.url()}"
+            }
+          },
+          {
+            "key": "script:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"native-fe7ca0c3-4b09-4881-84b8-d87dba02b340\",1]",
+            "value": {
+              "tag": "script-revision",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "scriptId": "native-fe7ca0c3-4b09-4881-84b8-d87dba02b340",
+              "revision": 1,
+              "parentRevision": 0,
+              "contentHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+              "sourceUtf8": "return 7;"
+            }
+          }
+        ],
+        "templates": []
+      }
+    },
+    "revision": {
+      "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+      "revision": 1,
+      "sourceHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+      "source": "await page.goto(params.url); return {title: await page.title(), url: await page.url()}",
+      "params": {
+        "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+        "revision": "r1"
+      }
+    },
+    "view": {
+      "state": "results",
+      "text": "任务 e3597f5a-3d81-426a-aff3-d63f145081d5：completed",
+      "result": "{\"run\": {\"tag\": \"controller-run\", \"runId\": \"e3597f5a-3d81-426a-aff3-d63f145081d5\", \"state\": \"completed\", \"runRevision\": 5, \"ownerEpoch\": 2, \"cancelSeq\": 1, \"identity\": {\"tag\": \"controller-run\", \"runId\": \"e3597f5a-3d81-426a-aff3-d63f145081d5\", \"hostInstanceId\": \"5e213823-3dc1-4a3e-aca8-277ca8a428ef\", \"hostDocumentId\": \"B61C5A039CFC8C6AC3E8457BD945317B\", \"ownerEpoch\": 1, \"scriptId\": \"native-78ffcd02-0034-41ee-b2a6-2d218847d444\", \"revision\": 1, \"contentHash\": \"bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7\", \"target\": {\"tabId\": 775226567, \"frameId\": 0, \"documentId\": \"FBE19A21DE14A59461AAD3ED933AB2AE\", \"url\": \"http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto\", \"allowedOrigin\": \"http://127.0.0.1:62707\", \"creationId\": \"69bf0aa9-45d1-4f29-92d7-051a6276a484\", \"targetSessionId\": \"e14ea374-65c0-4029-b124-ff11718ab36d\", \"targetVersion\": 2, \"mode\": \"owned\", \"browserSessionIncarnation\": \"8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c\"}}, \"target\": {\"tabId\": 775226567, \"frameId\": 0, \"documentId\": \"FBE19A21DE14A59461AAD3ED933AB2AE\", \"url\": \"http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto\", \"allowedOrigin\": \"http://127.0.0.1:62707\", \"creationId\": \"69bf0aa9-45d1-4f29-92d7-051a6276a484\", \"targetSessionId\": \"e14ea374-65c0-4029-b124-ff11718ab36d\", \"targetVersion\": 2, \"mode\": \"owned\", \"browserSessionIncarnation\": \"8c8ee5ec-43b6-4805-b1d4-ddfa255b7f8c\"}, \"revision\": {\"scriptId\": \"native-78ffcd02-0034-41ee-b2a6-2d218847d444\", \"revision\": 1, \"sourceHash\": \"bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7\", \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"e3597f5a-3d81-426a-aff3-d63f145081d5\\\",\\\"951a3b2c-0c73-43e6-b3ce-73f646566d15\\\",\\\"native-78ffcd02-0034-41ee-b2a6-2d218847d444\\\",1]\"}, \"deadlineAt\": 1791021986559, \"retirementId\": \"2d80d2be-56aa-4577-a2e1-232ae89326e2\", \"retirementState\": \"released\", \"resultId\": \"e6ff26cd-05ee-4199-8dcb-f884663836d8\", \"terminalReason\": null, \"workerRetired\": true, \"scriptId\": \"native-78ffcd02-0034-41ee-b2a6-2d218847d444\", \"contentHash\": \"bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7\"}, \"results\": [{\"runId\": \"e3597f5a-3d81-426a-aff3-d63f145081d5\", \"resultId\": \"e6ff26cd-05ee-4199-8dcb-f884663836d8\", \"state\": \"completed\", \"value\": {\"title\": \"Controller goto\", \"url\": \"http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto\"}}]}",
+      "version": "已保存 r1 · bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+      "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+      "download": "结果下载保留类型信息，包括 undefined。",
+      "runDisabled": false,
+      "stopDisabled": true
+    },
+    "value": {
+      "title": "Controller goto",
+      "url": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+    },
+    "rawHTTP": [
+      {
+        "sequence": 12,
+        "at": 1791021956866,
+        "monoMs": 31879.530333,
+        "method": "GET",
+        "url": "/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto",
+        "headers": {
+          "host": "127.0.0.1:62707",
+          "connection": "keep-alive",
+          "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"macOS\"",
+          "accept-language": "zh-CN,zh;q=0.9",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "sec-fetch-site": "cross-site",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-dest": "document",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        },
+        "body": "",
+        "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "elapsedMs": 758.0159170000006
+}

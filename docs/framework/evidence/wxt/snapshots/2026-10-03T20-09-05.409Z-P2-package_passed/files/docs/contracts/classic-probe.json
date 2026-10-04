@@ -1,0 +1,49 @@
+{
+  "purpose": "isolated build feasibility of fixed source snapshot; not product or browser acceptance",
+  "productPassed": false,
+  "sourceSha256": "12e0104aab884e58fc4784dffd34300c06ffb9106c42ed190b84699d83195b5a",
+  "tools": {
+    "webpack": "5.95.0",
+    "terserPlugin": "5.3.10",
+    "terser": "5.34.1",
+    "acorn": "8.12.1"
+  },
+  "results": [
+    {
+      "mode": "unminified",
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-contracts/work/classic-probe/plain/selector.classic.js",
+      "bytes": 124873,
+      "sha256": "c988a0ac34ff9eaac0c98cdc18dec0d5cecb2937ce2c674ada8cad2bc4cc2b2e",
+      "classicParse": true,
+      "topLevelModuleSyntax": 0,
+      "dynamicImports": 0,
+      "topLevelStatementCount": 1,
+      "publicApi": "function",
+      "initializer": "function",
+      "stylesInjected": 1,
+      "executeScriptEvaluationResult": "undefined",
+      "extraJsFiles": []
+    },
+    {
+      "mode": "minified",
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-contracts/work/classic-probe/min/selector.classic.js",
+      "bytes": 45146,
+      "sha256": "6e7b41348a4c4f5338bb2b42a3d39dde3ef2f7a1ed77dadfcbdad6e05d76bf66",
+      "classicParse": true,
+      "topLevelModuleSyntax": 0,
+      "dynamicImports": 0,
+      "topLevelStatementCount": 1,
+      "publicApi": "function",
+      "initializer": "function",
+      "stylesInjected": 1,
+      "executeScriptEvaluationResult": "undefined",
+      "extraJsFiles": []
+    }
+  ],
+  "limits": [
+    "VM DOM stub only initializes loading-state branch",
+    "No actual Chrome injection or full selection interaction",
+    "No WXT installation/build or comparative performance benchmark",
+    "No production source/manifest created"
+  ]
+}

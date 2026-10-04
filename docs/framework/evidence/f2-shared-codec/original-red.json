@@ -1,0 +1,6 @@
+{
+  "command": "node --test tests/framework/k2-shared-codec.test.mjs",
+  "exit": 1,
+  "beforeManifest": "before/source-manifest.json",
+  "preserved": true
+}

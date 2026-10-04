@@ -1,0 +1,22 @@
+[
+  {
+    "event": "serviceworker-console",
+    "level": "log",
+    "text": "F1 userScripts fixture installed",
+    "at": 1790976597076
+  },
+  {
+    "at": 1790976597076,
+    "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+    "event": "console",
+    "level": "log",
+    "text": "F1 userScripts fixture installed",
+    "location": {
+      "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/sw.js",
+      "line": 1,
+      "column": 53,
+      "lineNumber": 1,
+      "columnNumber": 53
+    }
+  }
+]

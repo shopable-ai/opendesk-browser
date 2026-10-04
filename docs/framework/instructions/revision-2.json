@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "revision": 2,
+  "ownerThreadId": "01a0fcd7-ddff-7b41-be5c-b42b425b31af",
+  "purpose": "User-readable goal execution instruction; no reduced requirements",
+  "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+  "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+  "desiredNativeObjective": "完成 /Users/shopme/Documents/workspace/opendesk-browser 的浏览器自动化工具：用户能从真实工作台选择网页并授权、输入脚本与参数、保存和选择版本、运行与停止、查看持久结果或错误、下载并核对实际文件。严格按 /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md 及其约束附件推进，先补齐现有后端证明，独立复核通过后完成接线和全部原始真实验收；全部通过后才完成，未测试不能当作无法继续。",
+  "nativeGoalObjectiveUpdated": false,
+  "nativeGoalResumed": false,
+  "nativeGoalObservedStatus": "paused",
+  "bindingStatus": "execution prompt saved; native objective update and resume require user command",
+  "nativeControlLimitation": "Available goal tools cannot update an unfinished objective or resume it. Computer Use forbids controlling com.openai.codex. No unsupported API, database edit or UI workaround attempted.",
+  "pauseRationaleCorrection": "Old PARTIAL_PROOF evidence remains valid and F1 gate closed. Untested work is pending work; it does not itself prove a missing prerequisite or backend failure. Per-loader failures do not establish backend-wide impossibility.",
+  "designApprovalInherited": false,
+  "designApprovalReusedWithSameHash": true,
+  "backendPrototypePassed": false,
+  "fullImplementationReleased": false,
+  "frameworkFunctionalMigrationComplete": false,
+  "promptSha256": "8b851e5e6df372ac1c6586590ab50fcebecfcfceb568e0dba9167780847b3b35",
+  "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+}

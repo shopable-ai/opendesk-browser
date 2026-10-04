@@ -1,0 +1,12 @@
+{
+  "id": "REJECTION",
+  "families": "USC03/EX02",
+  "expected": "Actual rejected Promise persists failed typed error exactly once",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791104337413,
+  "elapsedMs": 0.0004579999949783087
+}

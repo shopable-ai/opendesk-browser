@@ -1,0 +1,111 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "timestampUtc": "2026-10-03T08:35:32.839633+00:00",
+  "planSlice": "already-approved T05/F2",
+  "frozen": true,
+  "sourceFiles": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/downloads/index.js",
+      "bytes": 54632,
+      "sha256": "741f2a85cfbee87de515f53a2299e8ab5ee1a908dbc5ddc1ce5a1338ccd3da9e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/downloads/blob-lifecycle.js",
+      "bytes": 2381,
+      "sha256": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs",
+      "bytes": 33161,
+      "sha256": "8c3d6433cc3005cb352447264dcf57a28c801eaf899f947e1da3457343990938"
+    }
+  ],
+  "targetedExitCode": 0,
+  "targetedCounts": {
+    "tests": 74,
+    "pass": 74,
+    "fail": 0
+  },
+  "targetedTestedInputHashes": "freeze-targeted.json",
+  "sourceCheckExitCode": 0,
+  "syntaxExitCodes": [
+    0,
+    0,
+    0
+  ],
+  "legacyDownloadAssertionsUnmodified": true,
+  "completedHistoryAuthorization": {
+    "contractEvidence": "dlgen-contract-inspection.json",
+    "source": "same-store completed controller-run and immutable controller-result",
+    "stableBinding": [
+      "runId",
+      "resultId",
+      "namespace",
+      "principal",
+      "revision"
+    ],
+    "oldRunBrowserSessionIncarnationRequired": false,
+    "newCurrentHostAfterBrowserReopenAllowed": true,
+    "newExportIntentCaptures": [
+      "registrationId",
+      "hostInstanceId",
+      "hostDocumentId",
+      "browserSessionIncarnation"
+    ],
+    "currentHostAndIntentSessionFencesUnchanged": [
+      "readArtifact",
+      "prepareAttempt",
+      "dispatchDownload",
+      "public reconcileDownload",
+      "recordResourceRelease"
+    ],
+    "activeRunAuthorityOrReplayAllowed": false,
+    "oldIntentAdoptionAllowed": false,
+    "wireValidation": "existing foundation codec semantic depth/byte limits; no general canonical depth relaxation"
+  },
+  "verification": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/verification.json",
+    "bytes": 19200,
+    "sha256": "ee6935a1cac27885a0ba0c6c91c72c5b91b5747d21ccdcbf72c1aa8b91e13869"
+  },
+  "apiContract": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-generic-download/api-contract.json",
+    "bytes": 9746,
+    "sha256": "03a7edb921229d21cf33c10edb4094a2a66e259c434abd9f3090bbdb3fb336af"
+  },
+  "preservedCrossSessionRed": {
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "argv": [
+      "node",
+      "--test",
+      "tests/framework/k2-generic-download.test.mjs"
+    ],
+    "exitCode": 1,
+    "summary": {
+      "tests": 20,
+      "pass": 19,
+      "fail": 1
+    },
+    "sourceSha256": "ed52978bcc4b12a732770e8fda79e2ef3175b0ce58750e0fea1e7e6c6dc2fbbe"
+  },
+  "postTestReadOnlyInputDrift": {},
+  "packagesRebuilt": false,
+  "freshWholePackageBuildOwner": "Main",
+  "freshIntegrationValidationRequired": true,
+  "f3Approved": false,
+  "nativeCompleteAndPhysicalFileHashStillRequired": true,
+  "latestSharedControllerIntegration": {
+    "exitCode": 1,
+    "summary": {
+      "tests": 99,
+      "pass": 90,
+      "fail": 9
+    },
+    "detail": "stable-source-targeted.json",
+    "log": "stable-source-targeted.log",
+    "sourceDrift": {},
+    "failures": "9 shared controller typed-depth 4..12 tests, E_RESULT_FORMAT Invalid wire shape through src/scripting/user-scripts/page-evaluator.js:65",
+    "owner": "Main; outside download slice"
+  },
+  "downloadOwnedSourcesUnchangedSincePreviousFreeze": true
+}

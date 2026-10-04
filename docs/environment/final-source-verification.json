@@ -1,0 +1,3826 @@
+{
+  "generatedAt": "2026-10-02T06:38:08.219871+00:00",
+  "status": "passed-protected-evidence",
+  "contractsTreeFiles": 504,
+  "contractsTreeHash": "704ab0e0d769f44f2c07717f0da0587596684520a14ca0049d9323715777c428",
+  "upstreamHandoffHash": "a6cc4e6125a05434a1cd113890024eb0b4bf6a8ccdd1c6713034283a992784d0",
+  "artifactIndexChecked": 24,
+  "deliveryArtifactsChecked": 675,
+  "previousAuditAt": "2026-10-01T21:04:56.239401+00:00",
+  "sampledLivePaths": 540,
+  "changedSinceAudit": 13,
+  "sourceCheckouts": [
+    {
+      "root": "/Users/shopme/Documents/workspace/scrapyJsChrome",
+      "head": "9d55e4b615db3ef044094f3e8c3f1015a795dd83",
+      "headExitCode": 0,
+      "statusExitCode": 0,
+      "dirty": true,
+      "porcelainSha256": "244f9dd3fc8310074d86a2416ebb75fa11b149ce304b5bf26021fc71aef21fee",
+      "porcelainLines": 104
+    },
+    {
+      "root": "/Users/shopme/Documents/workspace/scrapyJs",
+      "head": "5bebc68832fe1bd6b4466de53a824dfae5fdaf5e",
+      "headExitCode": 0,
+      "statusExitCode": 0,
+      "dirty": true,
+      "porcelainSha256": "a79252b8451da8184bff9eef494df1e7681a3b5a1db08bd9b510c1b13b106bd8",
+      "porcelainLines": 202
+    },
+    {
+      "root": "/Users/shopme/Documents/workspace/todo-user-vue",
+      "head": "3f8a10613df4d87cb7a76f6bb71fcac5fcd17d20",
+      "headExitCode": 0,
+      "statusExitCode": 0,
+      "dirty": true,
+      "porcelainSha256": "f0c385ff3594f61219a76d3c5c7f676871310d97d12a6764577e2969c45135b0",
+      "porcelainLines": 303
+    }
+  ],
+  "livePaths": [
+    {
+      "source": "scrapyJsChrome",
+      "path": ".gitignore",
+      "priorSha256": "de84f665247ee0f5367537c878b954acd1d6711c29e8449bbdba83910c5654a7",
+      "currentSha256": "de84f665247ee0f5367537c878b954acd1d6711c29e8449bbdba83910c5654a7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790878948812-e882a430-37b0-475e-9ca5-4f8768e44fa9/before-0",
+      "priorSha256": "3a6cc687e15bcf21fc007c509788e0f453d867c04224b04f7a0ed8ceffa501cb",
+      "currentSha256": "3a6cc687e15bcf21fc007c509788e0f453d867c04224b04f7a0ed8ceffa501cb",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790878948812-e882a430-37b0-475e-9ca5-4f8768e44fa9/transaction.json",
+      "priorSha256": "28b83eb9347195966a446ab10ba4d6017b0b608ab6aea6874a30ecd6be20338c",
+      "currentSha256": "28b83eb9347195966a446ab10ba4d6017b0b608ab6aea6874a30ecd6be20338c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "MANIFEST_V3_MIGRATION.md",
+      "priorSha256": "652d2d5fc23c29b739901a82bb4980c75c8edbc648370222e7f5cd04a7b9a03e",
+      "currentSha256": "652d2d5fc23c29b739901a82bb4980c75c8edbc648370222e7f5cd04a7b9a03e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "README.md",
+      "priorSha256": "cee558251e4789c33ff5b2f3b323865a3a732dbbe47f7b51a0a4275be30f519f",
+      "currentSha256": "cee558251e4789c33ff5b2f3b323865a3a732dbbe47f7b51a0a4275be30f519f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/README.md",
+      "priorSha256": "e1c60d1eb29da388fb92e88eaee7d21f549b3d7cc7e897a6322e21093d77604a",
+      "currentSha256": "e1c60d1eb29da388fb92e88eaee7d21f549b3d7cc7e897a6322e21093d77604a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/app_chatGpt.js",
+      "priorSha256": "d613084486ae1cd52de80f5a2349e16c52a278c52ae321e21ceb100dca742161",
+      "currentSha256": "d613084486ae1cd52de80f5a2349e16c52a278c52ae321e21ceb100dca742161",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/app_csdn.css",
+      "priorSha256": "80d136078b71dcb003e705985fee0098c8d75fba5a1611195a2c459aa907a979",
+      "currentSha256": "80d136078b71dcb003e705985fee0098c8d75fba5a1611195a2c459aa907a979",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/app_csdn.js",
+      "priorSha256": "58ea7d89738f4962a72527a94a91fc933a1f312667eed483563325e66f5ace7f",
+      "currentSha256": "58ea7d89738f4962a72527a94a91fc933a1f312667eed483563325e66f5ace7f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/app_demo.js",
+      "priorSha256": "54a0dedfdb997aff3d999be941391066e54f7cdd2fa251a33fcceb387894605e",
+      "currentSha256": "54a0dedfdb997aff3d999be941391066e54f7cdd2fa251a33fcceb387894605e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/app_taobao_login.js",
+      "priorSha256": "647b1466617458ba6c0ca540975ae240d87a0c431d12f8f0e67c474af734dcd8",
+      "currentSha256": "647b1466617458ba6c0ca540975ae240d87a0c431d12f8f0e67c474af734dcd8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/app_vip_base.js",
+      "priorSha256": "1d1162d2fa663ac29acb1ae4c3207cc86e57bfd0879ddb6c64361797e4a10935",
+      "currentSha256": "1d1162d2fa663ac29acb1ae4c3207cc86e57bfd0879ddb6c64361797e4a10935",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/crawl_zhuanlan_pay.js",
+      "priorSha256": "9cecf2a0827d1d99e32d99a9d7f041086e188b83526e30505cd5a29a17b34ceb",
+      "currentSha256": "9cecf2a0827d1d99e32d99a9d7f041086e188b83526e30505cd5a29a17b34ceb",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/csdn.js",
+      "priorSha256": "31f156a2dc9e5f18de52e67a7c1e333bab42987a15f7cc2d01591e3559e67fdf",
+      "currentSha256": "31f156a2dc9e5f18de52e67a7c1e333bab42987a15f7cc2d01591e3559e67fdf",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/csdn_column_save.js",
+      "priorSha256": "c31abda5b05941f0eec9d4b4a320f1d6061358ad864bcc85e0f97a98bd5636d8",
+      "currentSha256": "c31abda5b05941f0eec9d4b4a320f1d6061358ad864bcc85e0f97a98bd5636d8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/csdnbase.js",
+      "priorSha256": "b4e78b5d3019b30fffcfafc8fcf1ac6c1e7fd68c44cb3d20ce7c30c28c2873f8",
+      "currentSha256": "b4e78b5d3019b30fffcfafc8fcf1ac6c1e7fd68c44cb3d20ce7c30c28c2873f8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/xx.7.js",
+      "priorSha256": "1f7b32c87e38e2317ba57516e2fa8563124b3cba45a2678f031cb484c74dd4fd",
+      "currentSha256": "1f7b32c87e38e2317ba57516e2fa8563124b3cba45a2678f031cb484c74dd4fd",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/app_script/xx.app.js",
+      "priorSha256": "87d673fe7745f153264bd5b141642f1a27bf2f114c26bd49b9b5d39c8b4f7ec2",
+      "currentSha256": "87d673fe7745f153264bd5b141642f1a27bf2f114c26bd49b9b5d39c8b4f7ec2",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/colored-theme.min.css",
+      "priorSha256": "072a4e57ebbdae8e534b57d3faa4150b2506a68cc45ad2fb135423e5f22fd4e8",
+      "currentSha256": "072a4e57ebbdae8e534b57d3faa4150b2506a68cc45ad2fb135423e5f22fd4e8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/content-css.css",
+      "priorSha256": "1a6859a972f4a9b685b89db47f3ef5592ac72f23b6aa16912a757960291d58de",
+      "currentSha256": "1a6859a972f4a9b685b89db47f3ef5592ac72f23b6aa16912a757960291d58de",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/dark-theme.min.css",
+      "priorSha256": "f96eaa88c7181174f4554cd240b00d86fd02cbbbb9faa653c762cc6864de9c49",
+      "currentSha256": "f96eaa88c7181174f4554cd240b00d86fd02cbbbb9faa653c762cc6864de9c49",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/light-theme.min.css",
+      "priorSha256": "3e285d080b91aab0984838fedb8662a97ece919aab83a9f40c393aca906bcdda",
+      "currentSha256": "3e285d080b91aab0984838fedb8662a97ece919aab83a9f40c393aca906bcdda",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/loader.css",
+      "priorSha256": "faa84b73a1c6c71835b11918f8b7d26a92b07ef40bf29a5a570bafa5f5f1adce",
+      "currentSha256": "faa84b73a1c6c71835b11918f8b7d26a92b07ef40bf29a5a570bafa5f5f1adce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/quasar.addon.css",
+      "priorSha256": "fc751c9b5e7feabf2b083236a1cc3953e8467966bfae9550e54ef9ee96217b28",
+      "currentSha256": "fc751c9b5e7feabf2b083236a1cc3953e8467966bfae9550e54ef9ee96217b28",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/quasar.font.css",
+      "priorSha256": "9c81facaa026ad2c0eed425ac800375f1a4ad3b0c784819acb09d237c7e0b850",
+      "currentSha256": "9c81facaa026ad2c0eed425ac800375f1a4ad3b0c784819acb09d237c7e0b850",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/quasar.min.css",
+      "priorSha256": "12364fc49b46247ef7c87ca152b138b13312ea95303bf9f3d7579647d33f57c3",
+      "currentSha256": "12364fc49b46247ef7c87ca152b138b13312ea95303bf9f3d7579647d33f57c3",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/css/quasarNoH16.css",
+      "priorSha256": "335dc7e3a3c8814bb9566534df18e7ff3b70e0102a0679a853445919e8196d78",
+      "currentSha256": "335dc7e3a3c8814bb9566534df18e7ff3b70e0102a0679a853445919e8196d78",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/env.json",
+      "priorSha256": "5ed4dba9860767ef49b44601a67a9033fe6e2a21596d05b8f8201071fc39e725",
+      "currentSha256": "5ed4dba9860767ef49b44601a67a9033fe6e2a21596d05b8f8201071fc39e725",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/head/1.jpg",
+      "priorSha256": "0b2420896772d1e5ad3b0ac76ae2105e2b964665bcd51fa8dc24fa41319b1a47",
+      "currentSha256": "0b2420896772d1e5ad3b0ac76ae2105e2b964665bcd51fa8dc24fa41319b1a47",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/head/2.jpg",
+      "priorSha256": "4df7211a7e49cf3e60c5086766a50a6cc24a1e0ea54dbc989e3946c5e84bf5ce",
+      "currentSha256": "4df7211a7e49cf3e60c5086766a50a6cc24a1e0ea54dbc989e3946c5e84bf5ce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/danger-outline.svg",
+      "priorSha256": "a2c5bfbb99f8fb26cc91ab2fd6b9269a02f160f05eab7748342f54fbe0e99acc",
+      "currentSha256": "a2c5bfbb99f8fb26cc91ab2fd6b9269a02f160f05eab7748342f54fbe0e99acc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/danger.png",
+      "priorSha256": "8c2e2dd2c3f70b300116d2aac20d633fc0b8014b6e5916d37ffdb354fea20d7e",
+      "currentSha256": "8c2e2dd2c3f70b300116d2aac20d633fc0b8014b6e5916d37ffdb354fea20d7e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/default-outline.svg",
+      "priorSha256": "fd5ef9edc87ee987cf0d6c27250d8ecdffe247b280fb3b29d137d675097f2c21",
+      "currentSha256": "fd5ef9edc87ee987cf0d6c27250d8ecdffe247b280fb3b29d137d675097f2c21",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/default.png",
+      "priorSha256": "2bf9fe7ca88d34c47eeb501a54e10eb07132077943bbfc914e0a5f7aecba0a18",
+      "currentSha256": "2bf9fe7ca88d34c47eeb501a54e10eb07132077943bbfc914e0a5f7aecba0a18",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/info-outline.svg",
+      "priorSha256": "816a93f5ae10568651dd13d33c127cbc9574cf0debc727b99d9d8adedcb5489d",
+      "currentSha256": "816a93f5ae10568651dd13d33c127cbc9574cf0debc727b99d9d8adedcb5489d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/info.png",
+      "priorSha256": "b5b84e9f923a10103595b174e6a5fbfd20e19df25edbde149905ed471d0385ce",
+      "currentSha256": "b5b84e9f923a10103595b174e6a5fbfd20e19df25edbde149905ed471d0385ce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/success-outline.svg",
+      "priorSha256": "4353d55901e8ff166a66c427c4983c22324c1f71a341302cc0cc819099ff2fc4",
+      "currentSha256": "4353d55901e8ff166a66c427c4983c22324c1f71a341302cc0cc819099ff2fc4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/success.png",
+      "priorSha256": "38e23ccb3c208abfa0712dde37c29109c636b232be186e7d59640232a9e0adfc",
+      "currentSha256": "38e23ccb3c208abfa0712dde37c29109c636b232be186e7d59640232a9e0adfc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/warning-outline.svg",
+      "priorSha256": "6671ca03631a79ee4852a963b104a66e635d95ed6775cd1bdf78eca1b5447fcb",
+      "currentSha256": "6671ca03631a79ee4852a963b104a66e635d95ed6775cd1bdf78eca1b5447fcb",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/img/warning.png",
+      "priorSha256": "1bcb232d766ddd77112b03e95392cdad3e29af2feb0bc201a7f193f28a27058b",
+      "currentSha256": "1bcb232d766ddd77112b03e95392cdad3e29af2feb0bc201a7f193f28a27058b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/Env.js",
+      "priorSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "currentSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/ai/selector-contract.js",
+      "priorSha256": "63c6a77a77dd0ad978249f03c9a24ef1e043971e5b9f9917a135aef13f9d47b6",
+      "currentSha256": "63c6a77a77dd0ad978249f03c9a24ef1e043971e5b9f9917a135aef13f9d47b6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/babel.min.js",
+      "priorSha256": "85ba0c7207cf1b1850e40372f26a7e69a481457a29649b7ca19bbfce8604f30c",
+      "currentSha256": "85ba0c7207cf1b1850e40372f26a7e69a481457a29649b7ca19bbfce8604f30c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/appLocal.js",
+      "priorSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "currentSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/appStorage.js",
+      "priorSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "currentSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/axiosx.js",
+      "priorSha256": "42f7b017926a02de6c7fa1cb17946b1fc69b73b2789546af78b64aad39800537",
+      "currentSha256": "42f7b017926a02de6c7fa1cb17946b1fc69b73b2789546af78b64aad39800537",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/bridge.js",
+      "priorSha256": "c47507b115526e57d79309e10636162f8e6f642c40dcf2b1241b7fb254332956",
+      "currentSha256": "c47507b115526e57d79309e10636162f8e6f642c40dcf2b1241b7fb254332956",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/common.js",
+      "priorSha256": "d9c71821b11eb9aa2925df48b7c5a51cf4495d0edb0a5b929173eb7d39129ab4",
+      "currentSha256": "d9c71821b11eb9aa2925df48b7c5a51cf4495d0edb0a5b929173eb7d39129ab4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/custom_event.js",
+      "priorSha256": "07389bfd0681f92a6a4acc135dda5a9bf9e4f22f59276b851b4eab20c1ca8cb4",
+      "currentSha256": "07389bfd0681f92a6a4acc135dda5a9bf9e4f22f59276b851b4eab20c1ca8cb4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/serverUtils.js",
+      "priorSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "currentSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/tb-bridge.js",
+      "priorSha256": "0d8d0b19e1a373faaa976e201dc26a0b41d2b66d5c53d77d60e9dd97b8a3781b",
+      "currentSha256": "0d8d0b19e1a373faaa976e201dc26a0b41d2b66d5c53d77d60e9dd97b8a3781b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/utils.js",
+      "priorSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "currentSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/webRequest.js",
+      "priorSha256": "36ebbbcbcad36f7bdf07b5363aaa37936601dcbce15b33038a006c3212fd18cc",
+      "currentSha256": "36ebbbcbcad36f7bdf07b5363aaa37936601dcbce15b33038a006c3212fd18cc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/core/webRequestBg.js",
+      "priorSha256": "0838e995b0422efc5290250c50db33240405e85871b77cc621edd95afdee9245",
+      "currentSha256": "0838e995b0422efc5290250c50db33240405e85871b77cc621edd95afdee9245",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/growl-notification.min.js",
+      "priorSha256": "2c2a5f5eb4c8880e1fb8885fab3b18428adf3a6d237835c10ed50c26c68e55a4",
+      "currentSha256": "2c2a5f5eb4c8880e1fb8885fab3b18428adf3a6d237835c10ed50c26c68e55a4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/axios.min.js",
+      "priorSha256": "48106a6db52931958f232a527e036fbdec1ae1b3ee95e42acaf1893c12abe084",
+      "currentSha256": "48106a6db52931958f232a527e036fbdec1ae1b3ee95e42acaf1893c12abe084",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/cheerio.1.0.0.min.js",
+      "priorSha256": "5cf70a7aeefe25d80dccd336efa57bb6f95dac24841be661fe2ac6a0625ccab6",
+      "currentSha256": "5cf70a7aeefe25d80dccd336efa57bb6f95dac24841be661fe2ac6a0625ccab6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/crypto-js.min.js",
+      "priorSha256": "769a555de553babc35a3338f344dd7aa16260c93cea2c7db290707c90484e7cc",
+      "currentSha256": "769a555de553babc35a3338f344dd7aa16260c93cea2c7db290707c90484e7cc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/css-selector-generator@3.6.4.esm.js",
+      "priorSha256": "3817c89811ab05dd64a05cdbaf391068e237c9da2e297a6861102b64af792bac",
+      "currentSha256": "3817c89811ab05dd64a05cdbaf391068e237c9da2e297a6861102b64af792bac",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/fingerprintjs@3.js",
+      "priorSha256": "99dc3803d1f19c8103f79f834044b2afd4c8af5b7927efbd36b1052d528b40ae",
+      "currentSha256": "99dc3803d1f19c8103f79f834044b2afd4c8af5b7927efbd36b1052d528b40ae",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/jquery.min.js",
+      "priorSha256": "87083882cc6015984eb0411a99d3981817f5dc5c90ba24f0940420c5548d82de",
+      "currentSha256": "87083882cc6015984eb0411a99d3981817f5dc5c90ba24f0940420c5548d82de",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/js.cookie.min.js",
+      "priorSha256": "582cc085dd8fea044917d1efde838e77e845262fd025bbfe0339f808607c81f6",
+      "currentSha256": "582cc085dd8fea044917d1efde838e77e845262fd025bbfe0339f808607c81f6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/lodash.min.js",
+      "priorSha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+      "currentSha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/moment.min.js",
+      "priorSha256": "d618d4869738e0dc22360f0ec0cbb6433257843f24723fac240dda0906685238",
+      "currentSha256": "d618d4869738e0dc22360f0ec0cbb6433257843f24723fac240dda0906685238",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/psl.min.js",
+      "priorSha256": "a8796612f4cc8ea76489e6fcafeff6a48050b5e83ea83039daf0e311a6c6e3ec",
+      "currentSha256": "a8796612f4cc8ea76489e6fcafeff6a48050b5e83ea83039daf0e311a6c6e3ec",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/quasar.umd.min.js",
+      "priorSha256": "99314e3bb6ff9a8458b6ddde9f98d9b2a29a1fb3f94a110af6f40ca079ac8dc7",
+      "currentSha256": "99314e3bb6ff9a8458b6ddde9f98d9b2a29a1fb3f94a110af6f40ca079ac8dc7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/query-string.min.js",
+      "priorSha256": "63091f36b5a961fb09507dd1d3fae3bff7eb6c59c53616b52d77ec796e00032a",
+      "currentSha256": "63091f36b5a961fb09507dd1d3fae3bff7eb6c59c53616b52d77ec796e00032a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/socket.io.min.js",
+      "priorSha256": "3030e83ceb32702ada126cb0a3703d29a425ea8e4d46614cfeb94aa1b91cc566",
+      "currentSha256": "3030e83ceb32702ada126cb0a3703d29a425ea8e4d46614cfeb94aa1b91cc566",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/store.legacy.min.js",
+      "priorSha256": "5b70a52d159d5b5ae8cd55c2e89b3b1856cd7a0810292bc264c0cef2ec8da1b8",
+      "currentSha256": "5b70a52d159d5b5ae8cd55c2e89b3b1856cd7a0810292bc264c0cef2ec8da1b8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/libs/vue.global.min.js",
+      "priorSha256": "8ffa9b73dee6eeaefc09943751b733f26b21fc2991ea1603a12214b463a027c6",
+      "currentSha256": "8ffa9b73dee6eeaefc09943751b733f26b21fc2991ea1603a12214b463a027c6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/ChromePage.js",
+      "priorSha256": "a77f8306b52e352057c139c91e95360a38c39cbe282cbc0154863155850f1793",
+      "currentSha256": "5fb3b7060c43703e43ab2c8d9a3a773a4651ad83a6b89949ae9022c48ec3b54d",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/TraceTimeCore.js",
+      "priorSha256": "b08ef7530fd4a41bd1cf83e77a313c2b4deed07b0e588c71741e8c7042f747ef",
+      "currentSha256": "b08ef7530fd4a41bd1cf83e77a313c2b4deed07b0e588c71741e8c7042f747ef",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/TraceTimeUtil.js",
+      "priorSha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+      "currentSha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/clone-extractor.js",
+      "priorSha256": "728b0ed2b80f08354b1d9c660627689858cae103a024cf2db12aedbdeb4ab5d3",
+      "currentSha256": "728b0ed2b80f08354b1d9c660627689858cae103a024cf2db12aedbdeb4ab5d3",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/detect_focus.js",
+      "priorSha256": "0f7cf85ea6d0d08f847f7ab2ea7d5ccec61925c38ee5607d3d45f62e9b384e9f",
+      "currentSha256": "0f7cf85ea6d0d08f847f7ab2ea7d5ccec61925c38ee5607d3d45f62e9b384e9f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapy/ListSelector.js",
+      "priorSha256": "12e0104aab884e58fc4784dffd34300c06ffb9106c42ed190b84699d83195b5a",
+      "currentSha256": "12e0104aab884e58fc4784dffd34300c06ffb9106c42ed190b84699d83195b5a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapy/listDetector.js",
+      "priorSha256": "e27cceaaa9efa85968783791279c0a416cddd3f4b9b287e440528a9f2aa1943a",
+      "currentSha256": "e27cceaaa9efa85968783791279c0a416cddd3f4b9b287e440528a9f2aa1943a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapy/listSelectorCore.js",
+      "priorSha256": "6c58316b20f58b0ad63bb77c080e3007f5fb7c112371b8c4884719960ee00dc4",
+      "currentSha256": "6c58316b20f58b0ad63bb77c080e3007f5fb7c112371b8c4884719960ee00dc4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapy/selectorUtils.js",
+      "priorSha256": "0322b4d7ca6e0cb637d5dff0adf21419d58f9e899c8bd1c00c93353c159fd910",
+      "currentSha256": "0322b4d7ca6e0cb637d5dff0adf21419d58f9e899c8bd1c00c93353c159fd910",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapy/tableDataExtractor.js",
+      "priorSha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+      "currentSha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapy/uiManager.js",
+      "priorSha256": "3f08caf355f193eeed459065c67a196e711dc4fe1aa31ca13c739317544cdaf1",
+      "currentSha256": "3f08caf355f193eeed459065c67a196e711dc4fe1aa31ca13c739317544cdaf1",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapyJs.js",
+      "priorSha256": "a566e89512efac1b29799e05917eb27fa19367461e0df47694fc4ddd601d8cb2",
+      "currentSha256": "a566e89512efac1b29799e05917eb27fa19367461e0df47694fc4ddd601d8cb2",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapyJs.source.json",
+      "priorSha256": "7de3f16e07a02f226ec7633219cbae00908b1612c9b2eb59d244b41b9a059363",
+      "currentSha256": "7de3f16e07a02f226ec7633219cbae00908b1612c9b2eb59d244b41b9a059363",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/scrapyJsHelper.js",
+      "priorSha256": "4b40cf66e5317e197f94191449101290eb4f02e3d12c20a3326baf12998b115a",
+      "currentSha256": "4b40cf66e5317e197f94191449101290eb4f02e3d12c20a3326baf12998b115a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/plugins/testMonkey.esm.js",
+      "priorSha256": "d1384245dfe12529e14898a55bb376ec711a58994940e9a25769bc6f87899283",
+      "currentSha256": "d1384245dfe12529e14898a55bb376ec711a58994940e9a25769bc6f87899283",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/quasar.umd.js",
+      "priorSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "currentSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/react-dom.development.js",
+      "priorSha256": "6d11da926dde155c0d8773ae0e05bb64683f1f40d4e1eb628717dd8499172282",
+      "currentSha256": "6d11da926dde155c0d8773ae0e05bb64683f1f40d4e1eb628717dd8499172282",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/react.development.js",
+      "priorSha256": "857364e2b982318417025fb9b4b8355c09f75fa46ba0be93f520f769f6757a78",
+      "currentSha256": "857364e2b982318417025fb9b4b8355c09f75fa46ba0be93f520f769f6757a78",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/vue.global.prod.js",
+      "priorSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "currentSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "background-sw.js",
+      "priorSha256": "71f288dbd3dc7eb39fb86e723bd954158635764788bc9392f718d557fbb8e395",
+      "currentSha256": "71f288dbd3dc7eb39fb86e723bd954158635764788bc9392f718d557fbb8e395",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "background.js",
+      "priorSha256": "27fd390ea37785ae3fb70998e382678935d9b404b82d19c6f2426ff6c56e7481",
+      "currentSha256": "903c95d2a303b89786bd158284536264fc7be7ff9376c62d5b3ca628ec39389d",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/ARCHITECTURE_NOTE.md",
+      "priorSha256": "5318b13b5dcb26f13e7ddbd618add8371a52af990a1356b141b3b2dc00266854",
+      "currentSha256": "5318b13b5dcb26f13e7ddbd618add8371a52af990a1356b141b3b2dc00266854",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/BUTTON_IMPROVEMENTS.md",
+      "priorSha256": "7080f9e2001ca8708ddd3b161e283409544d7f45e746195eef906278671b1b5f",
+      "currentSha256": "7080f9e2001ca8708ddd3b161e283409544d7f45e746195eef906278671b1b5f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/CODEX_MCP_CONFIG.md",
+      "priorSha256": "b735c09b4234b9861c9a19730e4bcec5964c5d04935db5c1b0f02e6d8652764d",
+      "currentSha256": "b735c09b4234b9861c9a19730e4bcec5964c5d04935db5c1b0f02e6d8652764d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/DEBUG_GUIDE.md",
+      "priorSha256": "e385518541cbfcb78f9e5d012df0f4d9838bcb070522114244722f9ec7516e87",
+      "currentSha256": "e385518541cbfcb78f9e5d012df0f4d9838bcb070522114244722f9ec7516e87",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/FIGMA_MCP_GUIDE.md",
+      "priorSha256": "a0d9cf8cbde596dacd626c994b16ef9cbe32693c44368c571eb31234877835b9",
+      "currentSha256": "a0d9cf8cbde596dacd626c994b16ef9cbe32693c44368c571eb31234877835b9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/FIGMA_MCP_SUMMARY.md",
+      "priorSha256": "252e240a4033fdec4f34e439fc65a3ae5222ef43abf2ac18be17480d72ac559e",
+      "currentSha256": "252e240a4033fdec4f34e439fc65a3ae5222ef43abf2ac18be17480d72ac559e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/FINAL_SUMMARY.md",
+      "priorSha256": "12427cb786353a06708db4c1a7a5bb92fae25fdda27f7c8759e1f668a7e3e9ba",
+      "currentSha256": "12427cb786353a06708db4c1a7a5bb92fae25fdda27f7c8759e1f668a7e3e9ba",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/POPUP_TEST_GUIDE.md",
+      "priorSha256": "784f04f2ad268a59a9bb625617d37d7c79c093eca00d71029ebd3e3663a27cc4",
+      "currentSha256": "784f04f2ad268a59a9bb625617d37d7c79c093eca00d71029ebd3e3663a27cc4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/QUICK_REFERENCE.md",
+      "priorSha256": "1eaa0663b3b40feae502c0713557facf18d773e6db25e354f15cad969bc3c1d8",
+      "currentSha256": "1eaa0663b3b40feae502c0713557facf18d773e6db25e354f15cad969bc3c1d8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/README.md",
+      "priorSha256": "82d5746e07050a4a1d27aeba5153b1e1e6279a1984f523adcc17f5aef75a8d39",
+      "currentSha256": "82d5746e07050a4a1d27aeba5153b1e1e6279a1984f523adcc17f5aef75a8d39",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/README_FIGMA_MCP.md",
+      "priorSha256": "985782c2ea88188a305d48a513751196911e2f14abbf0b761e6ffb865fbee78d",
+      "currentSha256": "985782c2ea88188a305d48a513751196911e2f14abbf0b761e6ffb865fbee78d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/SELECTOR_FIX_NOTES.md",
+      "priorSha256": "6eec0bd37606aa4d89404c6ffce0ce7fed1afea2f428bf50311cfcc63dcba11c",
+      "currentSha256": "6eec0bd37606aa4d89404c6ffce0ce7fed1afea2f428bf50311cfcc63dcba11c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/START_HERE.md",
+      "priorSha256": "1415425025b0a102a6e40e04715edb021c01f20b47cec7dc30c60dae906c6f36",
+      "currentSha256": "1415425025b0a102a6e40e04715edb021c01f20b47cec7dc30c60dae906c6f36",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/clone-extractor.js",
+      "priorSha256": "31fd7bde9700a8fc7748c7fa57fc88fca36fe39f649ca3546766f64d76322b54",
+      "currentSha256": "31fd7bde9700a8fc7748c7fa57fc88fca36fe39f649ca3546766f64d76322b54",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/clone-layout-guide.md",
+      "priorSha256": "375039c2f3fdc0f32a41542c6fac44a997d11293fcb1973163262e6256a9cae5",
+      "currentSha256": "375039c2f3fdc0f32a41542c6fac44a997d11293fcb1973163262e6256a9cae5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/clone-layout.js",
+      "priorSha256": "3282f35d4ed7b519b6f7c026e0dcbdc511f7878fc1e5eaf24d8ca719f752f2be",
+      "currentSha256": "3282f35d4ed7b519b6f7c026e0dcbdc511f7878fc1e5eaf24d8ca719f752f2be",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/csdnListHttpSpider.js",
+      "priorSha256": "389dfd170078837c7aa0d2a3bbcd38a2be2f7f1059257e54e2a21ae2fa13cd47",
+      "currentSha256": "389dfd170078837c7aa0d2a3bbcd38a2be2f7f1059257e54e2a21ae2fa13cd47",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/extension-bg-test.js",
+      "priorSha256": "dc85074e3cf558395e0d4bf9d678a369f59e535581359ebffc926433e8a721a9",
+      "currentSha256": "dc85074e3cf558395e0d4bf9d678a369f59e535581359ebffc926433e8a721a9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/figma-cli-tool.js",
+      "priorSha256": "36aaf5876b12a50a3111fbb57ef735ae23855fdb8b4135d8a31871473839f2f2",
+      "currentSha256": "36aaf5876b12a50a3111fbb57ef735ae23855fdb8b4135d8a31871473839f2f2",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/figma-mcp-config.json",
+      "priorSha256": "30a271d0375b24022c0b355596e9a4a340d97ae0f832093166a12babb7d3de94",
+      "currentSha256": "30a271d0375b24022c0b355596e9a4a340d97ae0f832093166a12babb7d3de94",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/helper.js",
+      "priorSha256": "8bdb85d7dcbfa2d1d1e5beceb57707ed77651580376fdc7bb2fb0fb2343b915d",
+      "currentSha256": "8bdb85d7dcbfa2d1d1e5beceb57707ed77651580376fdc7bb2fb0fb2343b915d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/html/bilivip.html",
+      "priorSha256": "44a6a21196718393d28bb084abd710194a29ac17cfc895b6642d86f747525ab2",
+      "currentSha256": "44a6a21196718393d28bb084abd710194a29ac17cfc895b6642d86f747525ab2",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/html/csdn.html",
+      "priorSha256": "981853c8f2000638ee640beb5d46e092dc406fabd6edba261732080ac2161906",
+      "currentSha256": "981853c8f2000638ee640beb5d46e092dc406fabd6edba261732080ac2161906",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/html/douban.html",
+      "priorSha256": "d214c4fd298baee17fada9583c9e8f330b0c1f80396ef04593f666e450f0adf5",
+      "currentSha256": "d214c4fd298baee17fada9583c9e8f330b0c1f80396ef04593f666e450f0adf5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/html/taobao.html",
+      "priorSha256": "92d16f1fdcddcd0abf42848cfe518a5d3d7572a316aa2ca75045f15dd5db44b4",
+      "currentSha256": "92d16f1fdcddcd0abf42848cfe518a5d3d7572a316aa2ca75045f15dd5db44b4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/html/zhipin.html",
+      "priorSha256": "fc8687caaa43b3eeacedea15cec8c7d1cc2c06303667a57b41232b02ee9ee411",
+      "currentSha256": "fc8687caaa43b3eeacedea15cec8c7d1cc2c06303667a57b41232b02ee9ee411",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/mcp-config.json",
+      "priorSha256": "539c58375c779459906985651cc84a2b2d0cb5220f3a78f4c72119bfea6331c3",
+      "currentSha256": "539c58375c779459906985651cc84a2b2d0cb5220f3a78f4c72119bfea6331c3",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/quick-test.js",
+      "priorSha256": "6c83ebb604ab5818f45576962741ce424fea7481637f46a05c0d3b69456fcfa5",
+      "currentSha256": "6c83ebb604ab5818f45576962741ce424fea7481637f46a05c0d3b69456fcfa5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/show-figma-status.sh",
+      "priorSha256": "c5f12f5bcb0d4cca1447713112e8949aafb8ccebdd1ba1db91e70b76c9264181",
+      "currentSha256": "c5f12f5bcb0d4cca1447713112e8949aafb8ccebdd1ba1db91e70b76c9264181",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/simplePage-backup.js",
+      "priorSha256": "bc66e0749b8f35917707d3b2528a2c5fe3b48294c4644621be8a71248b259786",
+      "currentSha256": "bc66e0749b8f35917707d3b2528a2c5fe3b48294c4644621be8a71248b259786",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/test-figma-api-key.js",
+      "priorSha256": "11861176cb8648042855dada74f976f65096405f2fcca30d84bb9a5045056b2e",
+      "currentSha256": "11861176cb8648042855dada74f976f65096405f2fcca30d84bb9a5045056b2e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/test-figma-html.html",
+      "priorSha256": "731f5e6e954dc5705a96cd0d1db74cfff84272bf6b1cf37cf0f85b2a27da9158",
+      "currentSha256": "731f5e6e954dc5705a96cd0d1db74cfff84272bf6b1cf37cf0f85b2a27da9158",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/test-figma-mcp.js",
+      "priorSha256": "9f1755134372c41a0b9b7f6bfec1fbb0d8a8c4221a792b04c719c1a18ba839f6",
+      "currentSha256": "9f1755134372c41a0b9b7f6bfec1fbb0d8a8c4221a792b04c719c1a18ba839f6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/test.html",
+      "priorSha256": "7c33f18083a6bfb2b5b51be77b70cde01010bdd6fbc4387d458a962e5972f508",
+      "currentSha256": "7c33f18083a6bfb2b5b51be77b70cde01010bdd6fbc4387d458a962e5972f508",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/使用说明.md",
+      "priorSha256": "919d2397a3c4210677614d73d3e84c0c4e586261285e9bcd7a23c001141a15b5",
+      "currentSha256": "919d2397a3c4210677614d73d3e84c0c4e586261285e9bcd7a23c001141a15b5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "demo/修复说明.md",
+      "priorSha256": "8e14d32120c0c433ccc4f025fae7edfe245019d9b407e57841f0cbacab9ece5d",
+      "currentSha256": "8e14d32120c0c433ccc4f025fae7edfe245019d9b407e57841f0cbacab9ece5d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "docs/ARCHITECTURE_OPTIMIZATION_GUIDE.md",
+      "priorSha256": "981a7c45556f5c6d5c612e913b11f39cd89617365e7d894489e1782e21737729",
+      "currentSha256": "981a7c45556f5c6d5c612e913b11f39cd89617365e7d894489e1782e21737729",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "docs/MESSAGE_PROTOCOL_V1.md",
+      "priorSha256": "f882263130974ef709edda3054baabee9d37df070d173a0f7fcb4dcb327b6ecc",
+      "currentSha256": "f882263130974ef709edda3054baabee9d37df070d173a0f7fcb4dcb327b6ecc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "dom.js",
+      "priorSha256": "67cc206fd46ce165c4eedf52bd50122571e405cab34dfd5ced3f50fb10470519",
+      "currentSha256": "67cc206fd46ce165c4eedf52bd50122571e405cab34dfd5ced3f50fb10470519",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "icons/icon-logout.png",
+      "priorSha256": "6108f1b28639bf6ab866bd31b4ee26de528a7349bc711757182ba766256401ba",
+      "currentSha256": "6108f1b28639bf6ab866bd31b4ee26de528a7349bc711757182ba766256401ba",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "icons/icon-stop.png",
+      "priorSha256": "6108f1b28639bf6ab866bd31b4ee26de528a7349bc711757182ba766256401ba",
+      "currentSha256": "6108f1b28639bf6ab866bd31b4ee26de528a7349bc711757182ba766256401ba",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "icons/icon128.jpg",
+      "priorSha256": "b6396b66bfa3a84c94e705a1a0ba8fdd7d97ecd89c1f9fbb99d6b842abe8721e",
+      "currentSha256": "b6396b66bfa3a84c94e705a1a0ba8fdd7d97ecd89c1f9fbb99d6b842abe8721e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "icons/icon128.png",
+      "priorSha256": "e1a7e73653ac9602a72c56ba1c60035534b047ec75cb9fd61aac91d73cd45444",
+      "currentSha256": "e1a7e73653ac9602a72c56ba1c60035534b047ec75cb9fd61aac91d73cd45444",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "icons/icon16.png",
+      "priorSha256": "31ee50f4160afd962f3c564cbc5a0a6f5ac3c0e7fa9a26b49b0a58f14a329327",
+      "currentSha256": "31ee50f4160afd962f3c564cbc5a0a6f5ac3c0e7fa9a26b49b0a58f14a329327",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "icons/icon38.png",
+      "priorSha256": "f1e3d5ee62cd114d9220c3349f455275904f92978056b1019308156f6696119b",
+      "currentSha256": "f1e3d5ee62cd114d9220c3349f455275904f92978056b1019308156f6696119b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "icons/icon48.png",
+      "priorSha256": "a0c1501a9646fb91e8f0d471c3f5687eacf9d5e2ca9f14ee9199d9180b896bf9",
+      "currentSha256": "a0c1501a9646fb91e8f0d471c3f5687eacf9d5e2ca9f14ee9199d9180b896bf9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "manifest.json",
+      "priorSha256": "9e1f9a19eaf5925f2b4fb91fe27d69540e6ab01624ae15af14dec8ab1f4b36b3",
+      "currentSha256": "f223b491174090b697c58e0c9eabc06a918115d184f75cae65faa27857fbae77",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "my-content-script.js",
+      "priorSha256": "1f3ca6448c0a35a81c3c135cc2c08a9edb5c3ccebc78b87197e8dfeb6002ce7f",
+      "currentSha256": "1f3ca6448c0a35a81c3c135cc2c08a9edb5c3ccebc78b87197e8dfeb6002ce7f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "scripts/extension-check.cjs",
+      "priorSha256": "2c12d61bdbd14c18c8779122e0de8fd4fd9d7102695a8d24835d6273082b929d",
+      "currentSha256": "2c12d61bdbd14c18c8779122e0de8fd4fd9d7102695a8d24835d6273082b929d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "sdk-compatibility.json",
+      "priorSha256": "acac8a616f29d2ce3cbe5a57e0f6ad7f91e5d52ae34bf676c9b311d5340f7434",
+      "currentSha256": "acac8a616f29d2ce3cbe5a57e0f6ad7f91e5d52ae34bf676c9b311d5340f7434",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/devflow-contract.cjs",
+      "priorSha256": "b7b429a770fe8c357269edee19592a5eaab13697ef8d7661b04fb5578f299d00",
+      "currentSha256": "b7b429a770fe8c357269edee19592a5eaab13697ef8d7661b04fb5578f299d00",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/getTableData-csdn.json",
+      "priorSha256": "5b9e18b4c66f157564469c1e42756df21ceec936b8f3623340a977fb0252aaa4",
+      "currentSha256": "5b9e18b4c66f157564469c1e42756df21ceec936b8f3623340a977fb0252aaa4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/getTableData-zhipin.json",
+      "priorSha256": "6995bd7933ffba536e0b9bc72ff4431efd975da674d1db3187b1421cbdfdda06",
+      "currentSha256": "6995bd7933ffba536e0b9bc72ff4431efd975da674d1db3187b1421cbdfdda06",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/listDetector.js",
+      "priorSha256": "7ccb7bb0b681aa9fdf94defc629f9e40337dd71198aa83f98d8d7fa891ce76b4",
+      "currentSha256": "7ccb7bb0b681aa9fdf94defc629f9e40337dd71198aa83f98d8d7fa891ce76b4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/protocol-regression.js",
+      "priorSha256": "d614625e2e6e09c0c364ea08816295d6c4947abb3dba2f24a483c562c8f42412",
+      "currentSha256": "d614625e2e6e09c0c364ea08816295d6c4947abb3dba2f24a483c562c8f42412",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/scrapyJsHelper.js",
+      "priorSha256": "91f679601e5ee100b34376dde6a0118a156982e2167dfd524585491b5328f910",
+      "currentSha256": "91f679601e5ee100b34376dde6a0118a156982e2167dfd524585491b5328f910",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/step.js",
+      "priorSha256": "4ee23775012ba79dc9f2fd1242381931d832d57e733b579ed18cf3d80d70368c",
+      "currentSha256": "4ee23775012ba79dc9f2fd1242381931d832d57e733b579ed18cf3d80d70368c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/temp.js",
+      "priorSha256": "13afdc12a3912008cd540632e9842e9b5584f2e29461ec9cdc35c8fb0316b577",
+      "currentSha256": "13afdc12a3912008cd540632e9842e9b5584f2e29461ec9cdc35c8fb0316b577",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "testfile",
+      "priorSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/css/loader.css",
+      "priorSha256": "faa84b73a1c6c71835b11918f8b7d26a92b07ef40bf29a5a570bafa5f5f1adce",
+      "currentSha256": "faa84b73a1c6c71835b11918f8b7d26a92b07ef40bf29a5a570bafa5f5f1adce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/icons/favicon-128x128.png",
+      "priorSha256": "ce61a0d27e9167938ce2083e1391de1ee514b40d8a0f5c3602a7a04f449f6779",
+      "currentSha256": "ce61a0d27e9167938ce2083e1391de1ee514b40d8a0f5c3602a7a04f449f6779",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/icons/favicon-16x16.png",
+      "priorSha256": "df29c1147263c1a50529c6550b6ac1b36edbf36afae1d99cbdf173128e76fac5",
+      "currentSha256": "df29c1147263c1a50529c6550b6ac1b36edbf36afae1d99cbdf173128e76fac5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/icons/favicon-32x32.png",
+      "priorSha256": "96119764ea8886370a0f29a66caca8e26ad598a634e792cc0f918ef5e5b64239",
+      "currentSha256": "96119764ea8886370a0f29a66caca8e26ad598a634e792cc0f918ef5e5b64239",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/icons/favicon-96x96.png",
+      "priorSha256": "d0f6cfe58174d551dbc303fccfbcfc8e396d434ab7e370b5c298f15a38f8eeb6",
+      "currentSha256": "d0f6cfe58174d551dbc303fccfbcfc8e396d434ab7e370b5c298f15a38f8eeb6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/common/360.jpg",
+      "priorSha256": "a7b3bb92b7529b81804ff6f0e12f1f57eac10c97759259dde75d3b3cc2cfd1cc",
+      "currentSha256": "a7b3bb92b7529b81804ff6f0e12f1f57eac10c97759259dde75d3b3cc2cfd1cc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/common/chrome.jpg",
+      "priorSha256": "916c7410e6e0e9dea704097f4b17f18ba5bb61e365fc713a8e117e6c91d41421",
+      "currentSha256": "916c7410e6e0e9dea704097f4b17f18ba5bb61e365fc713a8e117e6c91d41421",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/common/firefox.jpg",
+      "priorSha256": "d87f97bd61f1aa74a4260d34af465740ea65858941ffd6b910e5c78928b63e2e",
+      "currentSha256": "d87f97bd61f1aa74a4260d34af465740ea65858941ffd6b910e5c78928b63e2e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/common/qq.jpg",
+      "priorSha256": "03ca6a278df1802f57c2bc33decdfdf69248df43145a32acdf56195bf9576455",
+      "currentSha256": "03ca6a278df1802f57c2bc33decdfdf69248df43145a32acdf56195bf9576455",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/common/windows.jpg",
+      "priorSha256": "db69c92e6814de69bf74825227c2fa03674d061f2d423db46990adc25830dae6",
+      "currentSha256": "db69c92e6814de69bf74825227c2fa03674d061f2d423db46990adc25830dae6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/Button_active.png",
+      "priorSha256": "9b7461e4c2bd5d38dc01b0d89f8841c9d3e8dfefb9cf54f5c733e2a3ba7d6aa5",
+      "currentSha256": "9b7461e4c2bd5d38dc01b0d89f8841c9d3e8dfefb9cf54f5c733e2a3ba7d6aa5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/Button_normal.png",
+      "priorSha256": "48ee04fb508ce059bf6f4159f01638ff9dda04c0c7b6fd0222787bc0d54f1880",
+      "currentSha256": "48ee04fb508ce059bf6f4159f01638ff9dda04c0c7b6fd0222787bc0d54f1880",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/RadialJoy_Area.png",
+      "priorSha256": "fdf2dce9ee155166fd44400d50e96cf24baac051d608ef78268f49ebbf207a29",
+      "currentSha256": "fdf2dce9ee155166fd44400d50e96cf24baac051d608ef78268f49ebbf207a29",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/down.png",
+      "priorSha256": "77e2c505e72dc69e68451c58270365d0e8e9a7e238b02621b6d0d209f8e66326",
+      "currentSha256": "77e2c505e72dc69e68451c58270365d0e8e9a7e238b02621b6d0d209f8e66326",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/joy_bg.png",
+      "priorSha256": "29a5b9147d37515f534cccc80a1fcd2ce2a83f5f2d4ef145ffc71641c6ce9ceb",
+      "currentSha256": "29a5b9147d37515f534cccc80a1fcd2ce2a83f5f2d4ef145ffc71641c6ce9ceb",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/joy_bg1.png",
+      "priorSha256": "50bcb512ca4b7936b8f24a2dded42d2ea6d71cb91360bb2cfcc4083dbb20efe1",
+      "currentSha256": "50bcb512ca4b7936b8f24a2dded42d2ea6d71cb91360bb2cfcc4083dbb20efe1",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/left.png",
+      "priorSha256": "40f7b403abb8f0c43d3cb074654c31a2aaed6159f46f689f242f627aefba7b6e",
+      "currentSha256": "40f7b403abb8f0c43d3cb074654c31a2aaed6159f46f689f242f627aefba7b6e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/qrcode.png",
+      "priorSha256": "1f1158c57a4ecb5ef35b1eaad808dd86697b7ced672fbf517e99690572d79bc0",
+      "currentSha256": "1f1158c57a4ecb5ef35b1eaad808dd86697b7ced672fbf517e99690572d79bc0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/right.png",
+      "priorSha256": "bbcc4fb2d4724fe6f5b3d12ff42440f0e0ca0aaebaea53cb9aeee816ad69fad0",
+      "currentSha256": "bbcc4fb2d4724fe6f5b3d12ff42440f0e0ca0aaebaea53cb9aeee816ad69fad0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/up.png",
+      "priorSha256": "be5c7344b1768d4ebb64822743d549014f90a521742b5aff256f2c2bd99d7b2c",
+      "currentSha256": "be5c7344b1768d4ebb64822743d549014f90a521742b5aff256f2c2bd99d7b2c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/document/windows-md.jpg",
+      "priorSha256": "be3aa8110e3e948f0610a64e86a3826b1798f5c500707ceb78f95f2eb13e3d93",
+      "currentSha256": "be3aa8110e3e948f0610a64e86a3826b1798f5c500707ceb78f95f2eb13e3d93",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/head/1.jpg",
+      "priorSha256": "79826925ec01176e54903ef52cdf684341aec20ac06460a2d0924c0287674a89",
+      "currentSha256": "79826925ec01176e54903ef52cdf684341aec20ac06460a2d0924c0287674a89",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/head/2.jpg",
+      "priorSha256": "4df7211a7e49cf3e60c5086766a50a6cc24a1e0ea54dbc989e3946c5e84bf5ce",
+      "currentSha256": "4df7211a7e49cf3e60c5086766a50a6cc24a1e0ea54dbc989e3946c5e84bf5ce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/logo.png",
+      "priorSha256": "03d6d6da2545d3b3402855b8e721b779abaa87d113e69d9329ea6ea6325a83ce",
+      "currentSha256": "03d6d6da2545d3b3402855b8e721b779abaa87d113e69d9329ea6ea6325a83ce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/marketing.png",
+      "priorSha256": "462e9882acb14283c404e7eb38ab929de8b82ac14c6387a50411c410adae5c20",
+      "currentSha256": "462e9882acb14283c404e7eb38ab929de8b82ac14c6387a50411c410adae5c20",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/operate/csdn-vip.jpg",
+      "priorSha256": "fbc9556db2d97d6b54e2a983d23225ae4f6a2015048a5778690d6241ebedb98d",
+      "currentSha256": "fbc9556db2d97d6b54e2a983d23225ae4f6a2015048a5778690d6241ebedb98d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/sharing-node.png",
+      "priorSha256": "ee16df90ffee0631d8ef8247be003b6ee1dfa8e6263ec85097a5ffc8607961c6",
+      "currentSha256": "ee16df90ffee0631d8ef8247be003b6ee1dfa8e6263ec85097a5ffc8607961c6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/store-new.png",
+      "priorSha256": "401937c5cb9b0ac94452133e5331f325dfbe38e521be3a313992a7e7e4f46663",
+      "currentSha256": "401937c5cb9b0ac94452133e5331f325dfbe38e521be3a313992a7e7e4f46663",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/image/user.png",
+      "priorSha256": "e18422f35cc764706ddfbc3faf1eee7e60040e0b89f2c5f5630dbb0b805e26cf",
+      "currentSha256": "e18422f35cc764706ddfbc3faf1eee7e60040e0b89f2c5f5630dbb0b805e26cf",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/index.html",
+      "priorSha256": "d48e91a6df445c923d73cedfcfbfc9a0ded8ead5dcf96899ca41659bc4557e15",
+      "currentSha256": "b0f90cf1d036ea482e78aac1535a7218672365fcf2bfdf7d5b42c9bf204c6519",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/js/chromeExtension.js",
+      "priorSha256": "f163eff88eab1a1770e1c02b933d6b0c556893f92419029a0578ee06bd56f0c4",
+      "currentSha256": "f163eff88eab1a1770e1c02b933d6b0c556893f92419029a0578ee06bd56f0c4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/json/.gitkeep",
+      "priorSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/json/version.json",
+      "priorSha256": "7439a8c496c97b277e58f3c2d9d17d42cd604d9e6d235e0f3258e6777716207b",
+      "currentSha256": "7439a8c496c97b277e58f3c2d9d17d42cd604d9e6d235e0f3258e6777716207b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/6xK3dSBYKcSV-LCoeQqfX1RYOo3qOK7l.woff2",
+      "priorSha256": "a9950fa5ca9cf47072770900d259bcf6778aa1119652d2e706d5eb92df254199",
+      "currentSha256": "a9950fa5ca9cf47072770900d259bcf6778aa1119652d2e706d5eb92df254199",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/6xKydSBYKcSV-LCoeQqfX1RYOo3i54rwlxdu.woff2",
+      "priorSha256": "efb3cdc5e4582fd67dffab6fc6e5062074ce3f8c51747346af944e97749dc309",
+      "currentSha256": "efb3cdc5e4582fd67dffab6fc6e5062074ce3f8c51747346af944e97749dc309",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwlxdu.woff2",
+      "priorSha256": "f3d7092e6eb6f3aa0c572e52e061a59cc88a3e9eff581c95c4bd7456800904d0",
+      "currentSha256": "f3d7092e6eb6f3aa0c572e52e061a59cc88a3e9eff581c95c4bd7456800904d0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/APlayer.min.css",
+      "priorSha256": "6e9a819726eaf7987b262ba1f693061f73c6d16f1a99f54dc069518ad1e627c9",
+      "currentSha256": "6e9a819726eaf7987b262ba1f693061f73c6d16f1a99f54dc069518ad1e627c9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/APlayer.min.js",
+      "priorSha256": "e98ec22436a5b6878d824f997ed8020fd8cb8261afe31294a3c9d0d07800c15a",
+      "currentSha256": "e98ec22436a5b6878d824f997ed8020fd8cb8261afe31294a3c9d0d07800c15a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/FileSaver.min.js",
+      "priorSha256": "1433b8feb185bd8e81db7d2d1ea7330140531b72158300f8e26c98df1e853b21",
+      "currentSha256": "1433b8feb185bd8e81db7d2d1ea7330140531b72158300f8e26c98df1e853b21",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/countable.min.js",
+      "priorSha256": "3fcc600b4989e3c4a30466e24e383b4089a113dd8976d77c029c03a66aac400e",
+      "currentSha256": "3fcc600b4989e3c4a30466e24e383b4089a113dd8976d77c029c03a66aac400e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/css/L0xuDF4xlVMF-BfR8bXMIhJHg45mwgGEFl0_3vq_ROW4.woff2",
+      "priorSha256": "1f5ca74cf1cb98c4c47f629427c35ac22f47add671aff70ed6a76d83bb5c73e1",
+      "currentSha256": "1f5ca74cf1cb98c4c47f629427c35ac22f47add671aff70ed6a76d83bb5c73e1",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/css/book.css",
+      "priorSha256": "3cdc1b9162e66b9f219619f8c0a3a0508e329e94783e061b046be44613f93e6c",
+      "currentSha256": "3cdc1b9162e66b9f219619f8c0a3a0508e329e94783e061b046be44613f93e6c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/css/docsify.font.google.css",
+      "priorSha256": "fa3b59148b1c86ffb5209791f383ea543a563e9fcd4ed74af45c2e39e0635210",
+      "currentSha256": "fa3b59148b1c86ffb5209791f383ea543a563e9fcd4ed74af45c2e39e0635210",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/css/vue.css",
+      "priorSha256": "3492d2c5f6af0555152413bb26d8b0a837fb8dfea8500afb2b4f0a56eec88d34",
+      "currentSha256": "3492d2c5f6af0555152413bb26d8b0a837fb8dfea8500afb2b4f0a56eec88d34",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/custom-prism-one-dark.min.css",
+      "priorSha256": "8e84a639b078c928192acafcc658687deee2501dcb7e48cc66d6ac153e876ec4",
+      "currentSha256": "8e84a639b078c928192acafcc658687deee2501dcb7e48cc66d6ac153e876ec4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify-copy-code.js",
+      "priorSha256": "f1133b4ffab816a791a87aaf4484c35053c5accb85c84f8fa5e685a5d2ccd05c",
+      "currentSha256": "f1133b4ffab816a791a87aaf4484c35053c5accb85c84f8fa5e685a5d2ccd05c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify-footer-enh.min.js",
+      "priorSha256": "288ff227a33cba25579fffa1ab31f61997069cd9fd22de12b2766291fd5e8dc2",
+      "currentSha256": "288ff227a33cba25579fffa1ab31f61997069cd9fd22de12b2766291fd5e8dc2",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify-pagination-keyboard.js",
+      "priorSha256": "0af00975082f1e96615658aeb9741af4ec3b3cdf5a629854d0f16ea267960c78",
+      "currentSha256": "0af00975082f1e96615658aeb9741af4ec3b3cdf5a629854d0f16ea267960c78",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify-pagination.js",
+      "priorSha256": "751be51b1a0ae43803dfb41dcec023ad894569ee5d01e14a0113fc29ef4ecd34",
+      "currentSha256": "751be51b1a0ae43803dfb41dcec023ad894569ee5d01e14a0113fc29ef4ecd34",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify-pagination.min.js",
+      "priorSha256": "6b30cf68d4f3b2ce5fc90814452051af770b9082ade853ec178f292dc8718b79",
+      "currentSha256": "6b30cf68d4f3b2ce5fc90814452051af770b9082ade853ec178f292dc8718b79",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify-prism.min.js",
+      "priorSha256": "7390606084a4742719119cf14aa4650c5c8490f3954b71822060d62ed0535b81",
+      "currentSha256": "7390606084a4742719119cf14aa4650c5c8490f3954b71822060d62ed0535b81",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify-remote-markdown.min.js",
+      "priorSha256": "50422779202139e55c30c133f27216bc6f4c2fd90efa437bb4df765afc1fe820",
+      "currentSha256": "50422779202139e55c30c133f27216bc6f4c2fd90efa437bb4df765afc1fe820",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify.js",
+      "priorSha256": "0c88404f90651fae5eeb9b730564eea522f6229def9a74f21becd69203ce6224",
+      "currentSha256": "0c88404f90651fae5eeb9b730564eea522f6229def9a74f21becd69203ce6224",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/docsify.min.js",
+      "priorSha256": "30718cc241b9915c15c38444697284d6890b27e84b61d7993a6f19cc085bcba1",
+      "currentSha256": "30718cc241b9915c15c38444697284d6890b27e84b61d7993a6f19cc085bcba1",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/document/ToProgress.js",
+      "priorSha256": "e2bd0541e2d7d704952ef6317896a4344193178ba0f2d50d9b14dae835f12acd",
+      "currentSha256": "e2bd0541e2d7d704952ef6317896a4344193178ba0f2d50d9b14dae835f12acd",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/document/pixi.min.js",
+      "priorSha256": "f037860911bcb1fc509ce63a8c8f095211495cd1b3388e45129bb941cff7affc",
+      "currentSha256": "f037860911bcb1fc509ce63a8c8f095211495cd1b3388e45129bb941cff7affc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/document/siriwave.umd.min.js",
+      "priorSha256": "55d2f13fc7ceeda046db6345a65b5c95bee2bc75d5d1ba31d109d555be5f5832",
+      "currentSha256": "55d2f13fc7ceeda046db6345a65b5c95bee2bc75d5d1ba31d109d555be5f5832",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/fundebug.2.8.6.min.js",
+      "priorSha256": "a123f6465668aa76329774ad143d9abb219431d661d1ce416616d46c37ba52b7",
+      "currentSha256": "a123f6465668aa76329774ad143d9abb219431d661d1ce416616d46c37ba52b7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/hammer.min.js",
+      "priorSha256": "7953631f0e54794d2352a3cfa591c0914d73e14f90141058e3cf16bee7939bcf",
+      "currentSha256": "7953631f0e54794d2352a3cfa591c0914d73e14f90141058e3cf16bee7939bcf",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/jquery.mark.min.js",
+      "priorSha256": "e072ed8de5601f4788077699f662d817a13ca14e5c84d76353aa7aaeb5e997d5",
+      "currentSha256": "e072ed8de5601f4788077699f662d817a13ca14e5c84d76353aa7aaeb5e997d5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/logo.jpg",
+      "priorSha256": "130e1d34c143a2bd311dc3b9479106ed31e652c7f451e649daf531e6da411bbf",
+      "currentSha256": "130e1d34c143a2bd311dc3b9479106ed31e652c7f451e649daf531e6da411bbf",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/mousetrap.min.js",
+      "priorSha256": "dac68f8e452bde0e1f12742d3e9742a412d29d877d2fea82e525d0506410bfc1",
+      "currentSha256": "dac68f8e452bde0e1f12742d3e9742a412d29d877d2fea82e525d0506410bfc1",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/hammerjs@2.0.8/hammer.min.js",
+      "priorSha256": "7953631f0e54794d2352a3cfa591c0914d73e14f90141058e3cf16bee7939bcf",
+      "currentSha256": "7953631f0e54794d2352a3cfa591c0914d73e14f90141058e3cf16bee7939bcf",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prism-themes@1.9.0/themes/prism-one-dark.min.css",
+      "priorSha256": "8d58ecf27744a8021fd3d7b414aab04bce9601406712174f2016018c97918f22",
+      "currentSha256": "8d58ecf27744a8021fd3d7b414aab04bce9601406712174f2016018c97918f22",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/components/prism-javascript.min.js",
+      "priorSha256": "0345ea83e12b7b974e953c79a64dea35a40308309449db70b82020fb688ac321",
+      "currentSha256": "0345ea83e12b7b974e953c79a64dea35a40308309449db70b82020fb688ac321",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/components/prism-json.min.js",
+      "priorSha256": "956d86baa5ae7ec4106758f354ac2d140bdcd7fc103dece02f73ed12b8d663e4",
+      "currentSha256": "956d86baa5ae7ec4106758f354ac2d140bdcd7fc103dece02f73ed12b8d663e4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/components/prism-python.min.js",
+      "priorSha256": "ed4385685bcf2d4935c8dbbab4bde16603da1329e092d2bf36c3dadd67e9a85c",
+      "currentSha256": "ed4385685bcf2d4935c8dbbab4bde16603da1329e092d2bf36c3dadd67e9a85c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/components/prism-typescript.min.js",
+      "priorSha256": "852f5513bb9ca9db247f86ecfce74acc91c541749d34929157240518fef8152a",
+      "currentSha256": "852f5513bb9ca9db247f86ecfce74acc91c541749d34929157240518fef8152a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.css",
+      "priorSha256": "876309f2eb2fbffa4fe4cf14a1a09e19a279ac61b57ae0533478bc70400daef0",
+      "currentSha256": "876309f2eb2fbffa4fe4cf14a1a09e19a279ac61b57ae0533478bc70400daef0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.js",
+      "priorSha256": "f5c99feed70b757a4ab0f8bfd80584f773db6694e9e0ce2dab3164fa55a89a35",
+      "currentSha256": "f5c99feed70b757a4ab0f8bfd80584f773db6694e9e0ce2dab3164fa55a89a35",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/plugins/toolbar/prism-toolbar.min.css",
+      "priorSha256": "8ec41b48ed728fad9ebba74fe9fd9f2444918241cd344a71acaf0d9ceebfa327",
+      "currentSha256": "8ec41b48ed728fad9ebba74fe9fd9f2444918241cd344a71acaf0d9ceebfa327",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/plugins/toolbar/prism-toolbar.min.js",
+      "priorSha256": "352c1beced07ac325c0bed92012806b823fcfad769221aa7ccb4d99064494429",
+      "currentSha256": "352c1beced07ac325c0bed92012806b823fcfad769221aa7ccb4d99064494429",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.28.0/themes/prism.css",
+      "priorSha256": "a3a0768a618bac9d7a37eeec367b8f136470b091d91a45b3bccb62a08dd0f775",
+      "currentSha256": "a3a0768a618bac9d7a37eeec367b8f136470b091d91a45b3bccb62a08dd0f775",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/components/prism-javascript.min.js",
+      "priorSha256": "0345ea83e12b7b974e953c79a64dea35a40308309449db70b82020fb688ac321",
+      "currentSha256": "0345ea83e12b7b974e953c79a64dea35a40308309449db70b82020fb688ac321",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/components/prism-json.min.js",
+      "priorSha256": "956d86baa5ae7ec4106758f354ac2d140bdcd7fc103dece02f73ed12b8d663e4",
+      "currentSha256": "956d86baa5ae7ec4106758f354ac2d140bdcd7fc103dece02f73ed12b8d663e4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/components/prism-python.min.js",
+      "priorSha256": "ed4385685bcf2d4935c8dbbab4bde16603da1329e092d2bf36c3dadd67e9a85c",
+      "currentSha256": "ed4385685bcf2d4935c8dbbab4bde16603da1329e092d2bf36c3dadd67e9a85c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/components/prism-typescript.min.js",
+      "priorSha256": "852f5513bb9ca9db247f86ecfce74acc91c541749d34929157240518fef8152a",
+      "currentSha256": "852f5513bb9ca9db247f86ecfce74acc91c541749d34929157240518fef8152a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.css",
+      "priorSha256": "876309f2eb2fbffa4fe4cf14a1a09e19a279ac61b57ae0533478bc70400daef0",
+      "currentSha256": "876309f2eb2fbffa4fe4cf14a1a09e19a279ac61b57ae0533478bc70400daef0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js",
+      "priorSha256": "f5c99feed70b757a4ab0f8bfd80584f773db6694e9e0ce2dab3164fa55a89a35",
+      "currentSha256": "f5c99feed70b757a4ab0f8bfd80584f773db6694e9e0ce2dab3164fa55a89a35",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/plugins/toolbar/prism-toolbar.min.css",
+      "priorSha256": "8ec41b48ed728fad9ebba74fe9fd9f2444918241cd344a71acaf0d9ceebfa327",
+      "currentSha256": "8ec41b48ed728fad9ebba74fe9fd9f2444918241cd344a71acaf0d9ceebfa327",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/plugins/toolbar/prism-toolbar.min.js",
+      "priorSha256": "352c1beced07ac325c0bed92012806b823fcfad769221aa7ccb4d99064494429",
+      "currentSha256": "352c1beced07ac325c0bed92012806b823fcfad769221aa7ccb4d99064494429",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/npm/prismjs@1.29.0/themes/prism.css",
+      "priorSha256": "a3a0768a618bac9d7a37eeec367b8f136470b091d91a45b3bccb62a08dd0f775",
+      "currentSha256": "a3a0768a618bac9d7a37eeec367b8f136470b091d91a45b3bccb62a08dd0f775",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/pagination.js",
+      "priorSha256": "ee4a43aeb5c19b845e773cfb6388da330050a3175f4773f93675d5a5e5698027",
+      "currentSha256": "ee4a43aeb5c19b845e773cfb6388da330050a3175f4773f93675d5a5e5698027",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/prism-copy-to-clipboard.min.js",
+      "priorSha256": "7113b4cf8d2231d6ce02be722e41d138fab137ebd2bf9329cd71361832fcc141",
+      "currentSha256": "7113b4cf8d2231d6ce02be722e41d138fab137ebd2bf9329cd71361832fcc141",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/search.js",
+      "priorSha256": "3ffbfd3016d5a5f9de5bf306a1bda0ba39597013ee934cacb490908abd76e6e4",
+      "currentSha256": "3ffbfd3016d5a5f9de5bf306a1bda0ba39597013ee934cacb490908abd76e6e4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/share-map.f5001335d6.js",
+      "priorSha256": "2d70680c1cc999989f9052d12cc0ac6d6f2ba3c66105895cb735ec40c0d9872c",
+      "currentSha256": "2d70680c1cc999989f9052d12cc0ac6d6f2ba3c66105895cb735ec40c0d9872c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/shu.jpg",
+      "priorSha256": "611604cb755feb71899377cb46d320678eb87a23b968254ac3adb73ee1ba036d",
+      "currentSha256": "611604cb755feb71899377cb46d320678eb87a23b968254ac3adb73ee1ba036d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/snowbrush-2c2b5d62b5.js",
+      "priorSha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a",
+      "currentSha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/snowbrush-formatted.js",
+      "priorSha256": "c181f71c98e64a172151366167505aaefe4dbaeba8568beef9cdedbfccfdd75c",
+      "currentSha256": "c181f71c98e64a172151366167505aaefe4dbaeba8568beef9cdedbfccfdd75c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/toast.script.js",
+      "priorSha256": "aa8c098e3a5e049929ffe6135fde2c93d62745d1caad337f5a620ebf113706eb",
+      "currentSha256": "aa8c098e3a5e049929ffe6135fde2c93d62745d1caad337f5a620ebf113706eb",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/toast.style.min.css",
+      "priorSha256": "ea0e81537b0d1a0d336c2c4d59a4d064cb0dede2f95d93823018c301dc689ef9",
+      "currentSha256": "ea0e81537b0d1a0d336c2c4d59a4d064cb0dede2f95d93823018c301dc689ef9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/toc.css",
+      "priorSha256": "9cd0566cb40230205c4ecaed0f89508aa81882f23db0b98df6f19134c49fa878",
+      "currentSha256": "9cd0566cb40230205c4ecaed0f89508aa81882f23db0b98df6f19134c49fa878",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/toc.js",
+      "priorSha256": "26c5c471287291517de8066876d23efbd6ea9d3a663c765f9f8124b6dd8fcc2c",
+      "currentSha256": "26c5c471287291517de8066876d23efbd6ea9d3a663c765f9f8124b6dd8fcc2c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/todo8.png",
+      "priorSha256": "915f24ceb6b7c277c8cc0f518b95921a3ace4ece3dea02b8fd46697e1d4ad3f9",
+      "currentSha256": "915f24ceb6b7c277c8cc0f518b95921a3ace4ece3dea02b8fd46697e1d4ad3f9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/txt2voice.css",
+      "priorSha256": "fb3c0eb03828c37bd2ff9a732f68070eee1ab6558d8bbb7eb0777aee8072b950",
+      "currentSha256": "fb3c0eb03828c37bd2ff9a732f68070eee1ab6558d8bbb7eb0777aee8072b950",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/txt2voice.js",
+      "priorSha256": "217c4ad415935a01fecc3fdcb6f695fd5f20b0625cb292e2a0e6d4b8663af96b",
+      "currentSha256": "217c4ad415935a01fecc3fdcb6f695fd5f20b0625cb292e2a0e6d4b8663af96b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/xmind/polyfill-45b9836beb.min.js",
+      "priorSha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a",
+      "currentSha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/xmind/snowbrush-2c2b5d62b5.js",
+      "priorSha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a",
+      "currentSha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/xmind/structure-loading-animate-ec6aa8c56e.mp4",
+      "priorSha256": "fa03521500c63f912eb48b6721ed6665205e8275c24c63934106ed698e04edc8",
+      "currentSha256": "fa03521500c63f912eb48b6721ed6665205e8275c24c63934106ed698e04edc8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/xmind/xmind-sdk.bundle.js",
+      "priorSha256": "e3fa6927652a2abb0d8c32af267a9f2a531f3997c7df69332d434a4cbcb7e70b",
+      "currentSha256": "e3fa6927652a2abb0d8c32af267a9f2a531f3997c7df69332d434a4cbcb7e70b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/lib/zoom-image.min.js",
+      "priorSha256": "26250f024b6278bb8a7661fb4ff2988be02b2b2e4ab08b954b66b9b5d809ea55",
+      "currentSha256": "26250f024b6278bb8a7661fb4ff2988be02b2b2e4ab08b954b66b9b5d809ea55",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/logo.png",
+      "priorSha256": "890e2f327dc83b07f047300258da106d1d4e06a068d3c61d9c3cbc7e082a4c49",
+      "currentSha256": "890e2f327dc83b07f047300258da106d1d4e06a068d3c61d9c3cbc7e082a4c49",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/md/README.md",
+      "priorSha256": "0e7c9a992fd529a251bb60dcb0fbeb793649fa5d6f78931f694d496e7e448d7b",
+      "currentSha256": "0e7c9a992fd529a251bb60dcb0fbeb793649fa5d6f78931f694d496e7e448d7b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/popup_crawl.css",
+      "priorSha256": "2699d38580d842273168342b28cade330ad3bd915ec6006e4896b0934556f94a",
+      "currentSha256": "c80fe62b485347e2b9742fed257589aa8efab5bf93ad6224ffcdc25ef6dce835",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/popup_crawl.html",
+      "priorSha256": "885258f75ab9cf491de3aa2ee5794007393dbff20362463e04c0ea000bbd5675",
+      "currentSha256": "1807c01215a7eb452bbdd0e7022924c9e6fe5fffc1ed1644898259f11ae45701",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/popup_crawl.js",
+      "priorSha256": "9aefe647dc38043b441a3cbd63ae8669058d9003826107b3041b0b757468ab66",
+      "currentSha256": "72b25f7bea618a9470dc403ba2fd2da108327ca4ec97be501df5cfe73e5d9ec5",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/quasar.addon.css",
+      "priorSha256": "fc751c9b5e7feabf2b083236a1cc3953e8467966bfae9550e54ef9ee96217b28",
+      "currentSha256": "fc751c9b5e7feabf2b083236a1cc3953e8467966bfae9550e54ef9ee96217b28",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/quasar.css",
+      "priorSha256": "a77eb523ced1ec22a34ea85a9c0f9ad244ef01dd75901c1069f574ac31dce664",
+      "currentSha256": "a77eb523ced1ec22a34ea85a9c0f9ad244ef01dd75901c1069f574ac31dce664",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/quasar.esm.js",
+      "priorSha256": "3e4726ae6fd658f11e3743b315f48c095fd319bf9bae7518585b238c3c3754f7",
+      "currentSha256": "3e4726ae6fd658f11e3743b315f48c095fd319bf9bae7518585b238c3c3754f7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/quasar.umd.js",
+      "priorSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "currentSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/socket.io.js",
+      "priorSha256": "a219b96d0ba8e32441c99acedc91641e7531a1bd04b2e70abf34c0e19510f3b8",
+      "currentSha256": "a219b96d0ba8e32441c99acedc91641e7531a1bd04b2e70abf34c0e19510f3b8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/testMonkey.js",
+      "priorSha256": "5f223f0a607020b5f07ee46d491b10a6d7485a4f04e013a6c989bbe34a8a4427",
+      "currentSha256": "5f223f0a607020b5f07ee46d491b10a6d7485a4f04e013a6c989bbe34a8a4427",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/todo6.com.vue",
+      "priorSha256": "548cb7fda5224ba4fa0dbb4193af89626503af3a6ffc8cd2d13c456f5073cbcc",
+      "currentSha256": "548cb7fda5224ba4fa0dbb4193af89626503af3a6ffc8cd2d13c456f5073cbcc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/vue.esm-browser.prod.js",
+      "priorSha256": "410e2b5f3c62586ba59fd0aef29923b6ec48b37bbaeeaa7de7815e883d0061f7",
+      "currentSha256": "410e2b5f3c62586ba59fd0aef29923b6ec48b37bbaeeaa7de7815e883d0061f7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/vue.global.prod.js",
+      "priorSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "currentSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "README.md",
+      "priorSha256": "54fc19f37b76b70d4fc140c6cf6e6d9364043d45520c976c4042f29d674d3e11",
+      "currentSha256": "54fc19f37b76b70d4fc140c6cf6e6d9364043d45520c976c4042f29d674d3e11",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "gulpfile.js",
+      "priorSha256": "7adb874003e65a488dff7055820bda53525ab550cd096d23449763ffac07f23a",
+      "currentSha256": "7adb874003e65a488dff7055820bda53525ab550cd096d23449763ffac07f23a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "package-lock.json",
+      "priorSha256": "60a7eb70399b4a1f6d357f12d5bcfddb56e00b47a46ff074c731e0e614a43754",
+      "currentSha256": "60a7eb70399b4a1f6d357f12d5bcfddb56e00b47a46ff074c731e0e614a43754",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "package.json",
+      "priorSha256": "d23ddb20eef7b9687f3edb7ce89f9278a23acf1035ebf71984ea79eac831c79a",
+      "currentSha256": "d23ddb20eef7b9687f3edb7ce89f9278a23acf1035ebf71984ea79eac831c79a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/app/douban.jpg",
+      "priorSha256": "e7c1698da9c65dd7eaeb839dd9c9cd1cc3f259fe26c5bacf844f6c5d2ae30f9c",
+      "currentSha256": "e7c1698da9c65dd7eaeb839dd9c9cd1cc3f259fe26c5bacf844f6c5d2ae30f9c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/app/empth.jpg",
+      "priorSha256": "29d8d522c4b9326717114bbafb2341f7a714f25c040d55dbf0fc40350984b06c",
+      "currentSha256": "29d8d522c4b9326717114bbafb2341f7a714f25c040d55dbf0fc40350984b06c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/chrome/csdn.js",
+      "priorSha256": "5e278747693e53df6cb87caa5c9b39f179d92ccffff65f9891335d7059906f6f",
+      "currentSha256": "5e278747693e53df6cb87caa5c9b39f179d92ccffff65f9891335d7059906f6f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/chrome/itemConfig.js",
+      "priorSha256": "d5a9e4e67a79184608117addd8b8d1b0243fe5a18ae2c10bd6da8c164318e14d",
+      "currentSha256": "d5a9e4e67a79184608117addd8b8d1b0243fe5a18ae2c10bd6da8c164318e14d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/chrome/listDetect.js",
+      "priorSha256": "b934af14376631ee274984b27d2115e4fddce69b347410b204bbd179c52c597a",
+      "currentSha256": "b934af14376631ee274984b27d2115e4fddce69b347410b204bbd179c52c597a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/chrome/test_html.md",
+      "priorSha256": "7ba58dc44d791f2338c6bc772311c07e4304001647925feefb318b66601a8c05",
+      "currentSha256": "7ba58dc44d791f2338c6bc772311c07e4304001647925feefb318b66601a8c05",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/dev.md",
+      "priorSha256": "8b1770e4ee92f68c0bbb3ffc3444809f7a7ae74886c37077a715590048aaf605",
+      "currentSha256": "8b1770e4ee92f68c0bbb3ffc3444809f7a7ae74886c37077a715590048aaf605",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/gpt.md",
+      "priorSha256": "de94cfe698bb25751e5f3d906dd22630eb34fec4fcc7fa4c09d629407a67e2f7",
+      "currentSha256": "de94cfe698bb25751e5f3d906dd22630eb34fec4fcc7fa4c09d629407a67e2f7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/popup_crawl.html",
+      "priorSha256": "68a7ff4fa4ec5754f9c60777e54751ddaef7d25238349e8cf566d55a1b28892a",
+      "currentSha256": "68a7ff4fa4ec5754f9c60777e54751ddaef7d25238349e8cf566d55a1b28892a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/popup_crawl.js",
+      "priorSha256": "48587b0c499ca6868b06918a72da6515dd0e70d5f9c288c4874152a0cab32429",
+      "currentSha256": "48587b0c499ca6868b06918a72da6515dd0e70d5f9c288c4874152a0cab32429",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/quasar/popup_crawl.html",
+      "priorSha256": "eed4502b661011a26715bbb21c3a979f307f93fe0b4af80322942a8c767464fd",
+      "currentSha256": "eed4502b661011a26715bbb21c3a979f307f93fe0b4af80322942a8c767464fd",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/quasar/popup_crawl.js",
+      "priorSha256": "fd423b4952b401f5d24d5ca109206714799369434a7aaec8da6ee51d12ae370c",
+      "currentSha256": "fd423b4952b401f5d24d5ca109206714799369434a7aaec8da6ee51d12ae370c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "project/vip.js",
+      "priorSha256": "43d904b030ac7a8f8a58014db8b5a1ac69b1b95d9ae6ec8d543ddc800bfa6d26",
+      "currentSha256": "43d904b030ac7a8f8a58014db8b5a1ac69b1b95d9ae6ec8d543ddc800bfa6d26",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "scripts/browser-smoke.cjs",
+      "priorSha256": "edb92376b4b381ca620d6427791149816efadd6a87c65ff48a99f1caaed9b11e",
+      "currentSha256": "edb92376b4b381ca620d6427791149816efadd6a87c65ff48a99f1caaed9b11e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "scripts/consumer-smoke.cjs",
+      "priorSha256": "6a1e2d37dee76a356c0e4614e217b4bb52119f4f0cae35c01399c491f9b08c20",
+      "currentSha256": "6a1e2d37dee76a356c0e4614e217b4bb52119f4f0cae35c01399c491f9b08c20",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "scripts/sdk-sync.cjs",
+      "priorSha256": "1bf2e5363170310eb27c5826db1e6d579d40576e6551ea3d8b809cec3f6dcba6",
+      "currentSha256": "1bf2e5363170310eb27c5826db1e6d579d40576e6551ea3d8b809cec3f6dcba6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/BaseSpider.js",
+      "priorSha256": "f02d9f315909a3f01c1b8fc96d8e4575e2b0083f855b69d9347a1793179e5a7b",
+      "currentSha256": "f02d9f315909a3f01c1b8fc96d8e4575e2b0083f855b69d9347a1793179e5a7b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/ChromeSpider.js",
+      "priorSha256": "2a11bf7ff6237d40a72567a5a6d7be42ac4dff4635d755a9ce335f686c2b69c4",
+      "currentSha256": "c22b925956e8157952c5cd161bd3ec96b26b23162fe4b9589fde4f7624233d86",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/CloseSpider.js",
+      "priorSha256": "214d53bbfb676254cc3c0cb91074f90c4d865c4dc8eab0a18a3119de67f51793",
+      "currentSha256": "214d53bbfb676254cc3c0cb91074f90c4d865c4dc8eab0a18a3119de67f51793",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/CrawlSpider.js",
+      "priorSha256": "f63433c5c388c70be410f17842604bf74d5663301ad19a20727050689088dffa",
+      "currentSha256": "f63433c5c388c70be410f17842604bf74d5663301ad19a20727050689088dffa",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/ListSpider.js",
+      "priorSha256": "5654be5848b67dcd48792b98336a83293e204176df26a3b1eadfccd89f0694ef",
+      "currentSha256": "5654be5848b67dcd48792b98336a83293e204176df26a3b1eadfccd89f0694ef",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/Pipeline.js",
+      "priorSha256": "5aafd36a128291bbad74db69d45647c542ff0453fd2cef63b50d4c705f7fe236",
+      "currentSha256": "5aafd36a128291bbad74db69d45647c542ff0453fd2cef63b50d4c705f7fe236",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/Rule.js",
+      "priorSha256": "3636d69a4258f98f36c08057e14140077ef6c28e804d173beeb4541a13774aea",
+      "currentSha256": "3636d69a4258f98f36c08057e14140077ef6c28e804d173beeb4541a13774aea",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/RunFailure.js",
+      "priorSha256": "5b63144e31284f59807674496165dd62d022018bd171b86ea9df183b148e9086",
+      "currentSha256": "5b63144e31284f59807674496165dd62d022018bd171b86ea9df183b148e9086",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/Scheduler.js",
+      "priorSha256": "8ad9f16d1443b40e4168008c9e6bfda196b24aecf6aea9be47022b5e7b8c71a5",
+      "currentSha256": "8ad9f16d1443b40e4168008c9e6bfda196b24aecf6aea9be47022b5e7b8c71a5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/Scrapy.js",
+      "priorSha256": "059c4fd628cbdc6abe8e768e72aa15dd5d7a1521135e99e8bca709814d6e7a1c",
+      "currentSha256": "3cab0aeab8de6fb2068886239e41c8b8aaf898fa1c7232065084d0b9fdd7ac26",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/core/Spider.js",
+      "priorSha256": "f5eec8717ab1e7a957ae8da7a89a2cddf6e365216c0907fb259a7438f079f70a",
+      "currentSha256": "f5eec8717ab1e7a957ae8da7a89a2cddf6e365216c0907fb259a7438f079f70a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/exporter/ExportManager.js",
+      "priorSha256": "a62171e72ba357249ea781ed25e425230c506f5eb45fbe3052873e94d9678ef4",
+      "currentSha256": "a62171e72ba357249ea781ed25e425230c506f5eb45fbe3052873e94d9678ef4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/exporter/FeedExport.js",
+      "priorSha256": "efe78bebdd1389c47ff2406f95802bc6e805f06b1626394dd7de03331c260808",
+      "currentSha256": "efe78bebdd1389c47ff2406f95802bc6e805f06b1626394dd7de03331c260808",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/http/Request.js",
+      "priorSha256": "a9ff647cf08cbb9cb907b6a2809b8be6819fbdf972c5f985c31a7459e48af2e5",
+      "currentSha256": "a9ff647cf08cbb9cb907b6a2809b8be6819fbdf972c5f985c31a7459e48af2e5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/http/Response.js",
+      "priorSha256": "95879a650eb21d3c0a6f4f34e28549683044d566f57d1613ff41ff70bad163c9",
+      "currentSha256": "95879a650eb21d3c0a6f4f34e28549683044d566f57d1613ff41ff70bad163c9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/index.js",
+      "priorSha256": "23d0108a602e97d5d49fcef7b6bd828f824a999dc66a58a5d35d0a4b7890e3be",
+      "currentSha256": "23d0108a602e97d5d49fcef7b6bd828f824a999dc66a58a5d35d0a4b7890e3be",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/item/Item.js",
+      "priorSha256": "098542af571a3f7787c4756a14b8da17def05943207464e36a92027274c71ec9",
+      "currentSha256": "098542af571a3f7787c4756a14b8da17def05943207464e36a92027274c71ec9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/item/ItemLoader.js",
+      "priorSha256": "4e4999902bba4afd0690510b5523d6073e7cdb7b2437f67167b941c3e5dbfb68",
+      "currentSha256": "4e4999902bba4afd0690510b5523d6073e7cdb7b2437f67167b941c3e5dbfb68",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/link/LinkExtractor.js",
+      "priorSha256": "e93bc0452622b52bc74c775b46b984c5605ecd265a77d685a7ebbee209315ddb",
+      "currentSha256": "e93bc0452622b52bc74c775b46b984c5605ecd265a77d685a7ebbee209315ddb",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/middleware/ChromeDownloaderMiddleware.js",
+      "priorSha256": "b7d2c981832c4cae4b77465047b439d2f13bad2ac62d133b17117754cac8b94f",
+      "currentSha256": "b7d2c981832c4cae4b77465047b439d2f13bad2ac62d133b17117754cac8b94f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/middleware/DownloaderMiddleware.js",
+      "priorSha256": "54e42929cecd0c682727f7dab04798e2729f3d383bae5fb2265a8d7a2a535196",
+      "currentSha256": "54e42929cecd0c682727f7dab04798e2729f3d383bae5fb2265a8d7a2a535196",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/middleware/DownloaderMiddlewareManager.js",
+      "priorSha256": "5bd4dd8ae4943c8eb7cb85e44ecb382499195a0356a16c6ade9fbe1da8041a1d",
+      "currentSha256": "5bd4dd8ae4943c8eb7cb85e44ecb382499195a0356a16c6ade9fbe1da8041a1d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/middleware/IDownloaderMiddleware.js",
+      "priorSha256": "910c8face60696ef29800c66424395e9a9406a0ac8f183b85978341364c04fc0",
+      "currentSha256": "910c8face60696ef29800c66424395e9a9406a0ac8f183b85978341364c04fc0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/middleware/ProxyMiddleware.js",
+      "priorSha256": "b401e6a915929fac19368e60c973de57bde87dd1ecda029b866fdcb701e84295",
+      "currentSha256": "b401e6a915929fac19368e60c973de57bde87dd1ecda029b866fdcb701e84295",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ExportManager.js",
+      "priorSha256": "c590c01751516c8ad82ae053f34d661494c86e30066289e622d4bbb767275957",
+      "currentSha256": "c590c01751516c8ad82ae053f34d661494c86e30066289e622d4bbb767275957",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ItemLoader.js",
+      "priorSha256": "7059556d8d32740668262dcbf8a1a30e64a6db5133b0764a0ae34b9a816f615b",
+      "currentSha256": "7059556d8d32740668262dcbf8a1a30e64a6db5133b0764a0ae34b9a816f615b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ItemLoader.parse1.js",
+      "priorSha256": "779ad5f042196bbeced7d92d47cdb9bd597d92126ec6fc2b87d4aa1f92a2fa4d",
+      "currentSha256": "779ad5f042196bbeced7d92d47cdb9bd597d92126ec6fc2b87d4aa1f92a2fa4d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/Itemloader.parse.js",
+      "priorSha256": "0444381b80e6489a387770db16d011223e06bb0af74e28cbbe3e512023f474d6",
+      "currentSha256": "0444381b80e6489a387770db16d011223e06bb0af74e28cbbe3e512023f474d6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/addPipline.js",
+      "priorSha256": "20a57361e0dd23847d6dc394b0a7ab20d6351d316467776e8948a80712ab71ec",
+      "currentSha256": "20a57361e0dd23847d6dc394b0a7ab20d6351d316467776e8948a80712ab71ec",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/cardinality.html",
+      "priorSha256": "f348f3d4a07e7fc3323a2a324818c65c00571d12f6010062dc34bbb95715c09e",
+      "currentSha256": "f348f3d4a07e7fc3323a2a324818c65c00571d12f6010062dc34bbb95715c09e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/detail-h1.html",
+      "priorSha256": "13eae82de3019a2c8e216dbba89f74f9984fb8c0071c00c1d525cfa5eeffc4b0",
+      "currentSha256": "13eae82de3019a2c8e216dbba89f74f9984fb8c0071c00c1d525cfa5eeffc4b0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/detail-h2.html",
+      "priorSha256": "92d3afe905b984fbf200931f51e05332fbbb057084c94c08eb433507a4ea9c47",
+      "currentSha256": "92d3afe905b984fbf200931f51e05332fbbb057084c94c08eb433507a4ea9c47",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/detail-h3.html",
+      "priorSha256": "e0e1f64b44396e38d84e5b51ac47f6a19589e2cd36faedd19647d3b26cc7f926",
+      "currentSha256": "e0e1f64b44396e38d84e5b51ac47f6a19589e2cd36faedd19647d3b26cc7f926",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/detail-h4.html",
+      "priorSha256": "5dd43b80531294d66d2134aa37c90daf3aab4ffc7c3f2fb1a85b26db4f9204c0",
+      "currentSha256": "5dd43b80531294d66d2134aa37c90daf3aab4ffc7c3f2fb1a85b26db4f9204c0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/detail-h5.html",
+      "priorSha256": "9db28fe788b2b2f4dc4d501d600b56f3c8e5a5d41692af6c34be1890ee66f1d8",
+      "currentSha256": "9db28fe788b2b2f4dc4d501d600b56f3c8e5a5d41692af6c34be1890ee66f1d8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/detail-mismatch.html",
+      "priorSha256": "566fce04e7da24a3d652be0ebc8f21dedf9c78dade16ce3ed31b073ba4db3527",
+      "currentSha256": "566fce04e7da24a3d652be0ebc8f21dedf9c78dade16ce3ed31b073ba4db3527",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/duplicate.html",
+      "priorSha256": "176ef58e62b45244c72c3f8a80d3638353c09a0f8795a2dc520247dd79b01056",
+      "currentSha256": "176ef58e62b45244c72c3f8a80d3638353c09a0f8795a2dc520247dd79b01056",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/empty.html",
+      "priorSha256": "dcbba5f6ace762547d1925c49dc8ceba701c4dd8755fd8b1c94d1421996d3a8c",
+      "currentSha256": "dcbba5f6ace762547d1925c49dc8ceba701c4dd8755fd8b1c94d1421996d3a8c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/error-region.html",
+      "priorSha256": "ec28d2f257d866e08d24d83e2a34e06a8ad411a1aa45ffdb5026386d1e4f1fd3",
+      "currentSha256": "ec28d2f257d866e08d24d83e2a34e06a8ad411a1aa45ffdb5026386d1e4f1fd3",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/error.html",
+      "priorSha256": "2a1a739c2edeeaf4d43859b563fd573223f21dd9411c3528844c6eff01395f5f",
+      "currentSha256": "2a1a739c2edeeaf4d43859b563fd573223f21dd9411c3528844c6eff01395f5f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/list-page-1.html",
+      "priorSha256": "7e2e93f2bde719908b27f7db77de08deafc7b31018d4e2b180ea05f5b127195b",
+      "currentSha256": "7e2e93f2bde719908b27f7db77de08deafc7b31018d4e2b180ea05f5b127195b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/list-page-2.html",
+      "priorSha256": "52ad913dbaf40acf0719c6513c42640160dacabcf4f80e9c0a7d8c476cb7902d",
+      "currentSha256": "52ad913dbaf40acf0719c6513c42640160dacabcf4f80e9c0a7d8c476cb7902d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/login.html",
+      "priorSha256": "8dda6721bc6d695c4ff850c1324378592a87cca6f843515019d3536a24362469",
+      "currentSha256": "8dda6721bc6d695c4ff850c1324378592a87cca6f843515019d3536a24362469",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/heldout/missing-required.html",
+      "priorSha256": "ba479d8569aa224463b59e79deca8d92a49e9e602630330f0797fbb7d4f48500",
+      "currentSha256": "ba479d8569aa224463b59e79deca8d92a49e9e602630330f0797fbb7d4f48500",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/cardinality.html",
+      "priorSha256": "2515a5ab4298e96ba92df5681195e6376b9cbab3f7b642ff7366ee2da87431d5",
+      "currentSha256": "2515a5ab4298e96ba92df5681195e6376b9cbab3f7b642ff7366ee2da87431d5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/detail-mismatch.html",
+      "priorSha256": "4d935a3958adeefddf85e5eb121d40d9a5721e0cd379c78881831c997b3191aa",
+      "currentSha256": "4d935a3958adeefddf85e5eb121d40d9a5721e0cd379c78881831c997b3191aa",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/detail-t1.html",
+      "priorSha256": "67af7de2563d7162b3c5b4ab91269cf03d639330e0de2cff9334b7407d5dc762",
+      "currentSha256": "67af7de2563d7162b3c5b4ab91269cf03d639330e0de2cff9334b7407d5dc762",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/detail-t2.html",
+      "priorSha256": "1f1fcbee2128e84054ce6aa0ba460c3d4a135d1d4f28fa3b1c7bd195bf7afe3e",
+      "currentSha256": "1f1fcbee2128e84054ce6aa0ba460c3d4a135d1d4f28fa3b1c7bd195bf7afe3e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/detail-t3.html",
+      "priorSha256": "dc25b1ba9ab5f15fd03960e97dc093d11577f4a3ac1cbb7a2a15d1f6240611a7",
+      "currentSha256": "dc25b1ba9ab5f15fd03960e97dc093d11577f4a3ac1cbb7a2a15d1f6240611a7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/detail-t4.html",
+      "priorSha256": "c7197f692db407277b770c7ed3fffde3af9301dec08aa532fd632eb0b4c316ab",
+      "currentSha256": "c7197f692db407277b770c7ed3fffde3af9301dec08aa532fd632eb0b4c316ab",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/detail-t5.html",
+      "priorSha256": "f27004694e483f0d45919f96f60ef2400e12ad98a789b7281712741dcc6451d8",
+      "currentSha256": "f27004694e483f0d45919f96f60ef2400e12ad98a789b7281712741dcc6451d8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/duplicate.html",
+      "priorSha256": "c04283666793d5b34a4785e64d0daa1fed1bdb2d2676c5f539c6d9de9a91b4a1",
+      "currentSha256": "c04283666793d5b34a4785e64d0daa1fed1bdb2d2676c5f539c6d9de9a91b4a1",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/empty.html",
+      "priorSha256": "d6810db2790c886214d9dbcebbb8293db10bce3b8c1922a1c54424660907759a",
+      "currentSha256": "d6810db2790c886214d9dbcebbb8293db10bce3b8c1922a1c54424660907759a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/error-region.html",
+      "priorSha256": "4650e0e7636b0d58053c8e994ba544ba0dd08e9189123b15c6feca27862dab92",
+      "currentSha256": "4650e0e7636b0d58053c8e994ba544ba0dd08e9189123b15c6feca27862dab92",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/error.html",
+      "priorSha256": "25983a088ffd34cd7aaed4fc0828813c0528c65ad2c2969f56c186bcc08438df",
+      "currentSha256": "25983a088ffd34cd7aaed4fc0828813c0528c65ad2c2969f56c186bcc08438df",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/list-page-1.html",
+      "priorSha256": "509ed3af1dc89093b1da964360132f6f81d2b03770fe0c15a3611f19fa15c9ab",
+      "currentSha256": "509ed3af1dc89093b1da964360132f6f81d2b03770fe0c15a3611f19fa15c9ab",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/list-page-2.html",
+      "priorSha256": "c78caba7022753d5ed056c01329dd0047f0f1909170817d9f8c84e3da7823119",
+      "currentSha256": "c78caba7022753d5ed056c01329dd0047f0f1909170817d9f8c84e3da7823119",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/login.html",
+      "priorSha256": "14a68caa9cfd45ae95aeba58c452ac1cfdd12eb26abeac86951e733cbca18284",
+      "currentSha256": "14a68caa9cfd45ae95aeba58c452ac1cfdd12eb26abeac86951e733cbca18284",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/fixtures/training/missing-required.html",
+      "priorSha256": "d7c58232616d0e7b1eb767f9351106836a71f3de82c7d2b8b776c224e79ccfec",
+      "currentSha256": "d7c58232616d0e7b1eb767f9351106836a71f3de82c7d2b8b776c224e79ccfec",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/gold-manifest.json",
+      "priorSha256": "4c5301ff8b71492362a71f3a5016b7f6322cd1ee61e857d51ed49158d56bc929",
+      "currentSha256": "4c5301ff8b71492362a71f3a5016b7f6322cd1ee61e857d51ed49158d56bc929",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/gold-manifest.sha256",
+      "priorSha256": "509e126813dff96394b0061fedeadbab8f8fa81a78bbf951aee1d688bd206b01",
+      "currentSha256": "509e126813dff96394b0061fedeadbab8f8fa81a78bbf951aee1d688bd206b01",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/labels/heldout.json",
+      "priorSha256": "ea8fb3c2f26bc8757ea89d159342ec1d700076268751f1e64ccc059088974bc7",
+      "currentSha256": "ea8fb3c2f26bc8757ea89d159342ec1d700076268751f1e64ccc059088974bc7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/labels/training.json",
+      "priorSha256": "6012276ddc85c27e1e5b119e7b22a1b96d53fbbf9219fb2d70ee62eeaf2152cc",
+      "currentSha256": "6012276ddc85c27e1e5b119e7b22a1b96d53fbbf9219fb2d70ee62eeaf2152cc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/reference-task.json",
+      "priorSha256": "2b1a5280f5737239aab9df88bdc74de78adb811c71d9ced2daa0b5e5a0e9fd76",
+      "currentSha256": "2b1a5280f5737239aab9df88bdc74de78adb811c71d9ced2daa0b5e5a0e9fd76",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/demo.js",
+      "priorSha256": "826d4189a22c2cf6a504767907c57e6467a6acb03e4a3f17e7c690a9b9fa0b11",
+      "currentSha256": "826d4189a22c2cf6a504767907c57e6467a6acb03e4a3f17e7c690a9b9fa0b11",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/devflow-product.cjs",
+      "priorSha256": "d65ae2b79b7e1b3ca7c107191a72baf2e633e586f0c7ae9de928f1ef928aea18",
+      "currentSha256": "d65ae2b79b7e1b3ca7c107191a72baf2e633e586f0c7ae9de928f1ef928aea18",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/devflow-sync.test.cjs",
+      "priorSha256": "26a1feba840f5e9b5779922d0b126031379a6f4106ac6c9e45d9d3c9e4580a3b",
+      "currentSha256": "26a1feba840f5e9b5779922d0b126031379a6f4106ac6c9e45d9d3c9e4580a3b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/export-contract.spec.js",
+      "priorSha256": "0bda84e17560a0a0b5eaf7c0f3a85403258b266dabc4092414f00ab1a79d4c99",
+      "currentSha256": "0bda84e17560a0a0b5eaf7c0f3a85403258b266dabc4092414f00ab1a79d4c99",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/export-manager-extra.spec.js",
+      "priorSha256": "e0bfc68cfde12cce834712eec84fc6bcdda1e6807bc2313fd90845356869e2a4",
+      "currentSha256": "e0bfc68cfde12cce834712eec84fc6bcdda1e6807bc2313fd90845356869e2a4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/itemloader/crawlTaobao.js",
+      "priorSha256": "4b70098a3167ac69d405dc1bce99629151271326a7e88b784272cdfb597390b5",
+      "currentSha256": "4b70098a3167ac69d405dc1bce99629151271326a7e88b784272cdfb597390b5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/itemloader/crawlTemp.js",
+      "priorSha256": "b73e144a7486ea82c6c892af734125279f854325d44848d2f4a51a0d59d9d13f",
+      "currentSha256": "b73e144a7486ea82c6c892af734125279f854325d44848d2f4a51a0d59d9d13f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/itemloader/taobao-v1.js",
+      "priorSha256": "8ab77562f823f18eaf2acdd2a27017c65cf5a6aa227422bd20ede13599a352be",
+      "currentSha256": "8ab77562f823f18eaf2acdd2a27017c65cf5a6aa227422bd20ede13599a352be",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/itemloader/taobao.js",
+      "priorSha256": "f284811dbf4c1309f209d7981f7cc8ccdc66ff8ab2bd11355f5434a58c8554ab",
+      "currentSha256": "f284811dbf4c1309f209d7981f7cc8ccdc66ff8ab2bd11355f5434a58c8554ab",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/itemloader/taobao.md",
+      "priorSha256": "a5c407680831af262c021e51382c96c6d9e062614e96c00b2caf2319c9569b7d",
+      "currentSha256": "a5c407680831af262c021e51382c96c6d9e062614e96c00b2caf2319c9569b7d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/itemloader/taobao_detail_captcha.html",
+      "priorSha256": "fd03dfbce77905936d3cbe0e98d650f14557ba42207f32f5fe867f6162da607e",
+      "currentSha256": "fd03dfbce77905936d3cbe0e98d650f14557ba42207f32f5fe867f6162da607e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/itemloader/taobao_detail_captcha_iframe.html",
+      "priorSha256": "585fabeb7224527673ec58ee4e92c2bba89fca0f6db26b09d42065440a910321",
+      "currentSha256": "585fabeb7224527673ec58ee4e92c2bba89fca0f6db26b09d42065440a910321",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/lint.js",
+      "priorSha256": "7e05b1c98e6d279167305ba2268c986cd15afea1e5b7e5971b0d4c505a630cc4",
+      "currentSha256": "7e05b1c98e6d279167305ba2268c986cd15afea1e5b7e5971b0d4c505a630cc4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/phase4.spec.js",
+      "priorSha256": "6cf1f4689dbcf69c1170cfe3daac12fad92453eab34f1b86e154d2c231af5b5e",
+      "currentSha256": "6cf1f4689dbcf69c1170cfe3daac12fad92453eab34f1b86e154d2c231af5b5e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/reliability.spec.js",
+      "priorSha256": "a7724920132423ab4b8368dfc374cdaa61ef6120c2153f2239b5e835db0596b8",
+      "currentSha256": "a7724920132423ab4b8368dfc374cdaa61ef6120c2153f2239b5e835db0596b8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/request-contract.spec.js",
+      "priorSha256": "907f1266bb2bd5917d7eec667d6729e2644e2f9e74cba0214c62ec5e47ad0850",
+      "currentSha256": "907f1266bb2bd5917d7eec667d6729e2644e2f9e74cba0214c62ec5e47ad0850",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/spider-boundaries.spec.js",
+      "priorSha256": "931e303b123d2b2ef2b6e7a45c503eb200826dd2f132a0d89dbb3dea88c75b3c",
+      "currentSha256": "931e303b123d2b2ef2b6e7a45c503eb200826dd2f132a0d89dbb3dea88c75b3c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/yield-await.js",
+      "priorSha256": "76f2016f990b72364ac77bfe821b81554db805c29ab929e869beb5ff6dba232d",
+      "currentSha256": "76f2016f990b72364ac77bfe821b81554db805c29ab929e869beb5ff6dba232d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/yield.js",
+      "priorSha256": "7c10a84f6169b10d386ab56f72e4bda1fd4e1312281c7c2aead7ee7e925e05a5",
+      "currentSha256": "7c10a84f6169b10d386ab56f72e4bda1fd4e1312281c7c2aead7ee7e925e05a5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "vitest.config.js",
+      "priorSha256": "a607758858a969e7fb5e6710adce2d418bbbd4b9713322d9ee4a555e4c3090ae",
+      "currentSha256": "a607758858a969e7fb5e6710adce2d418bbbd4b9713322d9ee4a555e4c3090ae",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "webpack.config.js",
+      "priorSha256": "19692f7621ed631af4da72308a9b740d4f66eda89a4aeb0673ff6974df5d5885",
+      "currentSha256": "19692f7621ed631af4da72308a9b740d4f66eda89a4aeb0673ff6974df5d5885",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "AGENTS.md",
+      "priorSha256": "e60802cc9cd2e2b7564ec696070bd41942c068b7b96ab1335b91381d3847c82e",
+      "currentSha256": "e60802cc9cd2e2b7564ec696070bd41942c068b7b96ab1335b91381d3847c82e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "LICENSE",
+      "priorSha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+      "currentSha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "package.json",
+      "priorSha256": "6a8206b235875d29f2562eaef17c2cc3274a1b93ac8524ef9162bae729540300",
+      "currentSha256": "6a8206b235875d29f2562eaef17c2cc3274a1b93ac8524ef9162bae729540300",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/ChromePage.ts",
+      "priorSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "currentSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/TimeReview.ts",
+      "priorSha256": "7a8f488e14f067c16668aff872d39ccac6c84046990cbd3f2272bb044b62d0d4",
+      "currentSha256": "7a8f488e14f067c16668aff872d39ccac6c84046990cbd3f2272bb044b62d0d4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/css/colored-theme.min.css",
+      "priorSha256": "072a4e57ebbdae8e534b57d3faa4150b2506a68cc45ad2fb135423e5f22fd4e8",
+      "currentSha256": "072a4e57ebbdae8e534b57d3faa4150b2506a68cc45ad2fb135423e5f22fd4e8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/css/content-css.css",
+      "priorSha256": "1a6859a972f4a9b685b89db47f3ef5592ac72f23b6aa16912a757960291d58de",
+      "currentSha256": "1a6859a972f4a9b685b89db47f3ef5592ac72f23b6aa16912a757960291d58de",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/css/dark-theme.min.css",
+      "priorSha256": "f96eaa88c7181174f4554cd240b00d86fd02cbbbb9faa653c762cc6864de9c49",
+      "currentSha256": "f96eaa88c7181174f4554cd240b00d86fd02cbbbb9faa653c762cc6864de9c49",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/css/light-theme.min.css",
+      "priorSha256": "3e285d080b91aab0984838fedb8662a97ece919aab83a9f40c393aca906bcdda",
+      "currentSha256": "3e285d080b91aab0984838fedb8662a97ece919aab83a9f40c393aca906bcdda",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/css/loader.css",
+      "priorSha256": "faa84b73a1c6c71835b11918f8b7d26a92b07ef40bf29a5a570bafa5f5f1adce",
+      "currentSha256": "faa84b73a1c6c71835b11918f8b7d26a92b07ef40bf29a5a570bafa5f5f1adce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/css/quasar.addon.css",
+      "priorSha256": "fc751c9b5e7feabf2b083236a1cc3953e8467966bfae9550e54ef9ee96217b28",
+      "currentSha256": "fc751c9b5e7feabf2b083236a1cc3953e8467966bfae9550e54ef9ee96217b28",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/css/quasar.font.css",
+      "priorSha256": "9c81facaa026ad2c0eed425ac800375f1a4ad3b0c784819acb09d237c7e0b850",
+      "currentSha256": "9c81facaa026ad2c0eed425ac800375f1a4ad3b0c784819acb09d237c7e0b850",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/css/quasarNoH16.css",
+      "priorSha256": "335dc7e3a3c8814bb9566534df18e7ff3b70e0102a0679a853445919e8196d78",
+      "currentSha256": "335dc7e3a3c8814bb9566534df18e7ff3b70e0102a0679a853445919e8196d78",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/env.json",
+      "priorSha256": "95901b7aedb666d48ce040a4a14c044f180c1251632a37311d9b461738502708",
+      "currentSha256": "95901b7aedb666d48ce040a4a14c044f180c1251632a37311d9b461738502708",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/head/1.jpg",
+      "priorSha256": "0b2420896772d1e5ad3b0ac76ae2105e2b964665bcd51fa8dc24fa41319b1a47",
+      "currentSha256": "0b2420896772d1e5ad3b0ac76ae2105e2b964665bcd51fa8dc24fa41319b1a47",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/head/2.jpg",
+      "priorSha256": "4df7211a7e49cf3e60c5086766a50a6cc24a1e0ea54dbc989e3946c5e84bf5ce",
+      "currentSha256": "4df7211a7e49cf3e60c5086766a50a6cc24a1e0ea54dbc989e3946c5e84bf5ce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/danger-outline.svg",
+      "priorSha256": "a2c5bfbb99f8fb26cc91ab2fd6b9269a02f160f05eab7748342f54fbe0e99acc",
+      "currentSha256": "a2c5bfbb99f8fb26cc91ab2fd6b9269a02f160f05eab7748342f54fbe0e99acc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/danger.png",
+      "priorSha256": "8c2e2dd2c3f70b300116d2aac20d633fc0b8014b6e5916d37ffdb354fea20d7e",
+      "currentSha256": "8c2e2dd2c3f70b300116d2aac20d633fc0b8014b6e5916d37ffdb354fea20d7e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/default-outline.svg",
+      "priorSha256": "fd5ef9edc87ee987cf0d6c27250d8ecdffe247b280fb3b29d137d675097f2c21",
+      "currentSha256": "fd5ef9edc87ee987cf0d6c27250d8ecdffe247b280fb3b29d137d675097f2c21",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/default.png",
+      "priorSha256": "2bf9fe7ca88d34c47eeb501a54e10eb07132077943bbfc914e0a5f7aecba0a18",
+      "currentSha256": "2bf9fe7ca88d34c47eeb501a54e10eb07132077943bbfc914e0a5f7aecba0a18",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/info-outline.svg",
+      "priorSha256": "816a93f5ae10568651dd13d33c127cbc9574cf0debc727b99d9d8adedcb5489d",
+      "currentSha256": "816a93f5ae10568651dd13d33c127cbc9574cf0debc727b99d9d8adedcb5489d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/info.png",
+      "priorSha256": "b5b84e9f923a10103595b174e6a5fbfd20e19df25edbde149905ed471d0385ce",
+      "currentSha256": "b5b84e9f923a10103595b174e6a5fbfd20e19df25edbde149905ed471d0385ce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/success-outline.svg",
+      "priorSha256": "4353d55901e8ff166a66c427c4983c22324c1f71a341302cc0cc819099ff2fc4",
+      "currentSha256": "4353d55901e8ff166a66c427c4983c22324c1f71a341302cc0cc819099ff2fc4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/success.png",
+      "priorSha256": "38e23ccb3c208abfa0712dde37c29109c636b232be186e7d59640232a9e0adfc",
+      "currentSha256": "38e23ccb3c208abfa0712dde37c29109c636b232be186e7d59640232a9e0adfc",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/warning-outline.svg",
+      "priorSha256": "6671ca03631a79ee4852a963b104a66e635d95ed6775cd1bdf78eca1b5447fcb",
+      "currentSha256": "6671ca03631a79ee4852a963b104a66e635d95ed6775cd1bdf78eca1b5447fcb",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/img/warning.png",
+      "priorSha256": "1bcb232d766ddd77112b03e95392cdad3e29af2feb0bc201a7f193f28a27058b",
+      "currentSha256": "1bcb232d766ddd77112b03e95392cdad3e29af2feb0bc201a7f193f28a27058b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/Env.js",
+      "priorSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "currentSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/TraceTimeCore.js",
+      "priorSha256": "b08ef7530fd4a41bd1cf83e77a313c2b4deed07b0e588c71741e8c7042f747ef",
+      "currentSha256": "b08ef7530fd4a41bd1cf83e77a313c2b4deed07b0e588c71741e8c7042f747ef",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/TraceTimeUtil.js",
+      "priorSha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+      "currentSha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/axios.min.js",
+      "priorSha256": "48106a6db52931958f232a527e036fbdec1ae1b3ee95e42acaf1893c12abe084",
+      "currentSha256": "48106a6db52931958f232a527e036fbdec1ae1b3ee95e42acaf1893c12abe084",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/controller/csdn.js",
+      "priorSha256": "b29cd2fa803bc01086c47b7fdfcd2cd33235af5b9068316478013618cab608ab",
+      "currentSha256": "b29cd2fa803bc01086c47b7fdfcd2cd33235af5b9068316478013618cab608ab",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/core/appLocal.js",
+      "priorSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "currentSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/core/appStorage.js",
+      "priorSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "currentSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/core/axiosx.js",
+      "priorSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "currentSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/core/brige.js",
+      "priorSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "currentSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/core/common.js",
+      "priorSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "currentSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/core/serverUtils.js",
+      "priorSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "currentSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/core/utils.js",
+      "priorSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "currentSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/custom_event.js",
+      "priorSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "currentSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/detect_focus.js",
+      "priorSha256": "0f7cf85ea6d0d08f847f7ab2ea7d5ccec61925c38ee5607d3d45f62e9b384e9f",
+      "currentSha256": "0f7cf85ea6d0d08f847f7ab2ea7d5ccec61925c38ee5607d3d45f62e9b384e9f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/growl-notification.min.js",
+      "priorSha256": "2c2a5f5eb4c8880e1fb8885fab3b18428adf3a6d237835c10ed50c26c68e55a4",
+      "currentSha256": "2c2a5f5eb4c8880e1fb8885fab3b18428adf3a6d237835c10ed50c26c68e55a4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/jquery.min.js",
+      "priorSha256": "87083882cc6015984eb0411a99d3981817f5dc5c90ba24f0940420c5548d82de",
+      "currentSha256": "87083882cc6015984eb0411a99d3981817f5dc5c90ba24f0940420c5548d82de",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/js.cookie.min.js",
+      "priorSha256": "582cc085dd8fea044917d1efde838e77e845262fd025bbfe0339f808607c81f6",
+      "currentSha256": "582cc085dd8fea044917d1efde838e77e845262fd025bbfe0339f808607c81f6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/lodash.min.js",
+      "priorSha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+      "currentSha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/moment.min.js",
+      "priorSha256": "d618d4869738e0dc22360f0ec0cbb6433257843f24723fac240dda0906685238",
+      "currentSha256": "d618d4869738e0dc22360f0ec0cbb6433257843f24723fac240dda0906685238",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/psl.min.js",
+      "priorSha256": "a8796612f4cc8ea76489e6fcafeff6a48050b5e83ea83039daf0e311a6c6e3ec",
+      "currentSha256": "a8796612f4cc8ea76489e6fcafeff6a48050b5e83ea83039daf0e311a6c6e3ec",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/quasar.umd.js",
+      "priorSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "currentSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/query-string.min.js",
+      "priorSha256": "63091f36b5a961fb09507dd1d3fae3bff7eb6c59c53616b52d77ec796e00032a",
+      "currentSha256": "63091f36b5a961fb09507dd1d3fae3bff7eb6c59c53616b52d77ec796e00032a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/socket.io.min.js",
+      "priorSha256": "3030e83ceb32702ada126cb0a3703d29a425ea8e4d46614cfeb94aa1b91cc566",
+      "currentSha256": "3030e83ceb32702ada126cb0a3703d29a425ea8e4d46614cfeb94aa1b91cc566",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/store.legacy.min.js",
+      "priorSha256": "5b70a52d159d5b5ae8cd55c2e89b3b1856cd7a0810292bc264c0cef2ec8da1b8",
+      "currentSha256": "5b70a52d159d5b5ae8cd55c2e89b3b1856cd7a0810292bc264c0cef2ec8da1b8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/testMonkey.esm.js",
+      "priorSha256": "190592ff7bf574e532a0ccdc33ebb431242e9c0ee4c7a0194f06703996fa902c",
+      "currentSha256": "190592ff7bf574e532a0ccdc33ebb431242e9c0ee4c7a0194f06703996fa902c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/utils.js",
+      "priorSha256": "8941e8bad5bb2720b88bd306d7605c05e01db596fb0ad76d7f4055e76646de70",
+      "currentSha256": "8941e8bad5bb2720b88bd306d7605c05e01db596fb0ad76d7f4055e76646de70",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/assets/js/vue.global.prod.js",
+      "priorSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "currentSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/background.ts",
+      "priorSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "currentSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/bex-flag.d.ts",
+      "priorSha256": "63c5ae6aaa942e70645b319e83f076f7deccef9d6da9efc7fef86357362dec8f",
+      "currentSha256": "63c5ae6aaa942e70645b319e83f076f7deccef9d6da9efc7fef86357362dec8f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/chrome-local-storage-api.js",
+      "priorSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "currentSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/controller/csdn.ts",
+      "priorSha256": "05926333c2b4ddddddb16bb97dcf5488c4632f15d95f2ad309975778695bcff9",
+      "currentSha256": "05926333c2b4ddddddb16bb97dcf5488c4632f15d95f2ad309975778695bcff9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/dom/detect-quasar.js",
+      "priorSha256": "313a35730fc79dcb8a24bbb2b6eb5077f4f28df03541ba9a0c8b7877e769e198",
+      "currentSha256": "313a35730fc79dcb8a24bbb2b6eb5077f4f28df03541ba9a0c8b7877e769e198",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/dom.ts",
+      "priorSha256": "e74331d604da371d7d4a44f6fa9f93487a2a4e80ac50e5162d2246fa816e5b87",
+      "currentSha256": "e74331d604da371d7d4a44f6fa9f93487a2a4e80ac50e5162d2246fa816e5b87",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/icons/icon-128x128.png",
+      "priorSha256": "1debc6b0c2f34dd33dee8ff29ad7e760fa972559cde62b38cb6414d063bd2954",
+      "currentSha256": "1debc6b0c2f34dd33dee8ff29ad7e760fa972559cde62b38cb6414d063bd2954",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/icons/icon-16x16.png",
+      "priorSha256": "29e04e98026dfd73e8dfca446e94c080c2f753495f7eaebd243b995a1ea22050",
+      "currentSha256": "29e04e98026dfd73e8dfca446e94c080c2f753495f7eaebd243b995a1ea22050",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/icons/icon-48x48.png",
+      "priorSha256": "4cea03fc4461ae87ef6beb7eadae1ef1c8113f92c24463b5d7291f13c1421096",
+      "currentSha256": "4cea03fc4461ae87ef6beb7eadae1ef1c8113f92c24463b5d7291f13c1421096",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/icons/icon-logout.png",
+      "priorSha256": "7f373313d14144130add789c9653a92557ff8eba7f9da2e525a097ae5ab16f6b",
+      "currentSha256": "7f373313d14144130add789c9653a92557ff8eba7f9da2e525a097ae5ab16f6b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/icons/icon-stop.png",
+      "priorSha256": "f5b33384912feaff600bfa578f22890e0ee4a21c03462af4665db6a1f1408e98",
+      "currentSha256": "f5b33384912feaff600bfa578f22890e0ee4a21c03462af4665db6a1f1408e98",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/logo.png",
+      "priorSha256": "db4c8d89e50e9e9f6a7992ad6d84ea7b32ca355d4968cda7a7c764afd604a64e",
+      "currentSha256": "db4c8d89e50e9e9f6a7992ad6d84ea7b32ca355d4968cda7a7c764afd604a64e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/manifest.json",
+      "priorSha256": "c158b95002c3a6070ccbb610e672602d1f398014bdfa6bc7caf97d6db7a9e267",
+      "currentSha256": "c158b95002c3a6070ccbb610e672602d1f398014bdfa6bc7caf97d6db7a9e267",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/my-content-script.ts",
+      "priorSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "currentSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/operate/Device.cst.ts",
+      "priorSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "currentSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/operate/EventOperate.cst.ts",
+      "priorSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "currentSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/utils/UtilDevice.ts",
+      "priorSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "currentSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/utils/UtilInfo.ts",
+      "priorSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "currentSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "todo-src-bex",
+      "path": "src-bex/utils/UtilScrpt.ts",
+      "priorSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "currentSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790879403130-c23cdf2e-da04-4648-9f6f-36bb29ebb21c/before-0",
+      "priorSha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+      "currentSha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790879403130-c23cdf2e-da04-4648-9f6f-36bb29ebb21c/before-1",
+      "priorSha256": "65627307a024644c291e143d38a67ae8f74c2d63a5be3e90570a173f90686b01",
+      "currentSha256": "65627307a024644c291e143d38a67ae8f74c2d63a5be3e90570a173f90686b01",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790879403130-c23cdf2e-da04-4648-9f6f-36bb29ebb21c/transaction.json",
+      "priorSha256": "b5498d7c3cfae11d3b5abb3a1aac2ce4a427d21a792fc102372365309a6bc957",
+      "currentSha256": "b5498d7c3cfae11d3b5abb3a1aac2ce4a427d21a792fc102372365309a6bc957",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790881957279-b8e2a72b-41a0-4eef-bf8d-d353c57ba7f2/before-0",
+      "priorSha256": "f0ca18dcae34b299c6faa31e694a342e6af61a4077f0837448a6aba0fa3c589b",
+      "currentSha256": "f0ca18dcae34b299c6faa31e694a342e6af61a4077f0837448a6aba0fa3c589b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790881957279-b8e2a72b-41a0-4eef-bf8d-d353c57ba7f2/before-1",
+      "priorSha256": "fb8112c8d432299075345a7fc5104e79cc71d4d60cfe7c9294cb026d5607fc04",
+      "currentSha256": "fb8112c8d432299075345a7fc5104e79cc71d4d60cfe7c9294cb026d5607fc04",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790881957279-b8e2a72b-41a0-4eef-bf8d-d353c57ba7f2/transaction.json",
+      "priorSha256": "827ad61172cc52ab4423537640d76ac54c6f8679c8a512b8da79a2f81a9586e0",
+      "currentSha256": "827ad61172cc52ab4423537640d76ac54c6f8679c8a512b8da79a2f81a9586e0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790882286692-e047f7f6-e610-4e47-8d67-a7263406d0df/before-0",
+      "priorSha256": "36a5a51770a0a41b38fa44a5008fbc5fb713bb1c4f900b50d0620ed33f578024",
+      "currentSha256": "36a5a51770a0a41b38fa44a5008fbc5fb713bb1c4f900b50d0620ed33f578024",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790882286692-e047f7f6-e610-4e47-8d67-a7263406d0df/before-1",
+      "priorSha256": "2c7a7e055e6ef5d88bd29770330bde89aa7edc453b6e3bc918f459a1942c2809",
+      "currentSha256": "2c7a7e055e6ef5d88bd29770330bde89aa7edc453b6e3bc918f459a1942c2809",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790882286692-e047f7f6-e610-4e47-8d67-a7263406d0df/transaction.json",
+      "priorSha256": "f96419a9050d8cf26aba5e1630f6828362fffc6428043b30f9beff9a364010f2",
+      "currentSha256": "f96419a9050d8cf26aba5e1630f6828362fffc6428043b30f9beff9a364010f2",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790884004367-939089d6-bb85-44e7-a48d-dceda0d4229d/before-0",
+      "priorSha256": "d7ee2401c69cdaebd23dc1d7e35508ec1f8a29d48ca3007537bd268fdad9b494",
+      "currentSha256": "d7ee2401c69cdaebd23dc1d7e35508ec1f8a29d48ca3007537bd268fdad9b494",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790884004367-939089d6-bb85-44e7-a48d-dceda0d4229d/before-1",
+      "priorSha256": "d3b32db4b74a32d6e7d3115fd04c0b3f49ca555bf7c2a02e9b2d64043d9ff2c6",
+      "currentSha256": "d3b32db4b74a32d6e7d3115fd04c0b3f49ca555bf7c2a02e9b2d64043d9ff2c6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790884004367-939089d6-bb85-44e7-a48d-dceda0d4229d/transaction.json",
+      "priorSha256": "503f5df0ef153f813e4c6c26f7b13ef54357c01211b3f3b7bc9b28689cc91e05",
+      "currentSha256": "503f5df0ef153f813e4c6c26f7b13ef54357c01211b3f3b7bc9b28689cc91e05",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790885562347-ee5ea0df-35bf-4db7-a872-120c3d7b50fb/before-0",
+      "priorSha256": "abe6aee0e90b9207ecb99553796065c77d75c58036b0a60970dd1d44b1c90a96",
+      "currentSha256": "abe6aee0e90b9207ecb99553796065c77d75c58036b0a60970dd1d44b1c90a96",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790885562347-ee5ea0df-35bf-4db7-a872-120c3d7b50fb/before-1",
+      "priorSha256": "14a3ffc795c3d083bc85e0f91e0a2131e43c57fa2eb15c03318c84be0271c81a",
+      "currentSha256": "14a3ffc795c3d083bc85e0f91e0a2131e43c57fa2eb15c03318c84be0271c81a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790885562347-ee5ea0df-35bf-4db7-a872-120c3d7b50fb/transaction.json",
+      "priorSha256": "b0c476f0f67c33b4c36b52681e20a7c2c7d4937998158f4b693a6b2574f4dd5d",
+      "currentSha256": "b0c476f0f67c33b4c36b52681e20a7c2c7d4937998158f4b693a6b2574f4dd5d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790886856962-d8763848-49d9-45b9-a098-9cce970866ea/before-0",
+      "priorSha256": "2dfaa13a2998d9d62bc7a9c793a9daaa9d00d9e0612db90d621f2b038ec0e096",
+      "currentSha256": "2dfaa13a2998d9d62bc7a9c793a9daaa9d00d9e0612db90d621f2b038ec0e096",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790886856962-d8763848-49d9-45b9-a098-9cce970866ea/before-1",
+      "priorSha256": "9065d6246e23ee779d73ecaf8d25542c3d3597e01846ce3432829bb28126bbea",
+      "currentSha256": "9065d6246e23ee779d73ecaf8d25542c3d3597e01846ce3432829bb28126bbea",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": ".sdk-backups/1790886856962-d8763848-49d9-45b9-a098-9cce970866ea/transaction.json",
+      "priorSha256": "81ee4dbd780bdd4c8fe781950e7ed6b90570399262499b82f4a54b22ae0083b2",
+      "currentSha256": "81ee4dbd780bdd4c8fe781950e7ed6b90570399262499b82f4a54b22ae0083b2",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "ai-service/README.md",
+      "priorSha256": "6d12722712acc98d3bafb52c30f611ebfbb0757a98a052549b06946109fe0061",
+      "currentSha256": "6d12722712acc98d3bafb52c30f611ebfbb0757a98a052549b06946109fe0061",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "ai-service/config.cjs",
+      "priorSha256": "7e7f24e5b42742d5f82c8a680d43e483a5b21bf3219f02ca2f6a41ced436b6b1",
+      "currentSha256": "7e7f24e5b42742d5f82c8a680d43e483a5b21bf3219f02ca2f6a41ced436b6b1",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "ai-service/demo.cjs",
+      "priorSha256": "751014131fbe7353655c4eed59972176a3e8afb794d24f020f210f054d91f439",
+      "currentSha256": "751014131fbe7353655c4eed59972176a3e8afb794d24f020f210f054d91f439",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "ai-service/doctor.cjs",
+      "priorSha256": "d2796dfca19bf88a961429d0ebdee56decc1e48f41f2979090370df28797b6bd",
+      "currentSha256": "d2796dfca19bf88a961429d0ebdee56decc1e48f41f2979090370df28797b6bd",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "ai-service/fixtures/products.request.json",
+      "priorSha256": "618061313c98330654b8286f209cf0630337abafc84f76e812b1277a7819e354",
+      "currentSha256": "618061313c98330654b8286f209cf0630337abafc84f76e812b1277a7819e354",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "ai-service/proposals.cjs",
+      "priorSha256": "4ed5e21d323a7cfde63a14adbac274fa6d5f81e0e11496d10757953b4be365bf",
+      "currentSha256": "4ed5e21d323a7cfde63a14adbac274fa6d5f81e0e11496d10757953b4be365bf",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "ai-service/server.cjs",
+      "priorSha256": "5a52252d99997bcd4939a17b459122f3445dae89900fd9aaeb18e68978ae82fd",
+      "currentSha256": "5a52252d99997bcd4939a17b459122f3445dae89900fd9aaeb18e68978ae82fd",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/ai/crawl-profile.js",
+      "priorSha256": "0a29e90d684532fc0f4ef659f92389ecacc3bfa72c684e0c31f6f5dcaf3a7c59",
+      "currentSha256": "e4802a7b35370f206ec5638f00a2db27a7c138a5d3b7c961d446c780767d1353",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/ai/dom-agent.js",
+      "priorSha256": "a3d803be31ede386f7db88bf9734b6c918e69d90c7023221f891b5dcee8887d3",
+      "currentSha256": "a3d803be31ede386f7db88bf9734b6c918e69d90c7023221f891b5dcee8887d3",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/ai/run-journal.js",
+      "priorSha256": "4a0c635ff7e72690f0ea16a3960c541888b668cc21c4739e978d3106f43561b7",
+      "currentSha256": "4a0c635ff7e72690f0ea16a3960c541888b668cc21c4739e978d3106f43561b7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "assets/js/ai/service-client.js",
+      "priorSha256": "d5140071772491cf3c081000e25b3d0c64a23de2acb9870b16c7de80f76f0234",
+      "currentSha256": "d5140071772491cf3c081000e25b3d0c64a23de2acb9870b16c7de80f76f0234",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "docs/AI_PHASE2.md",
+      "priorSha256": "9458c44cd265e9a58298f1fb875a4a2691b5e87afefd246b2c46c3121dcba064",
+      "currentSha256": "9458c44cd265e9a58298f1fb875a4a2691b5e87afefd246b2c46c3121dcba064",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "docs/AI_PHASE2_BENCHMARK.md",
+      "priorSha256": "a456ddf257ae5803ffe59d1292f0df6830651d4262e33e7ef1bd65eb09322bb8",
+      "currentSha256": "a456ddf257ae5803ffe59d1292f0df6830651d4262e33e7ef1bd65eb09322bb8",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "docs/AI_SELECTOR_ASSIST.md",
+      "priorSha256": "735695b9788e98641766d922986e5058f50c6cd9795df542ace51f6cc630b295",
+      "currentSha256": "735695b9788e98641766d922986e5058f50c6cd9795df542ace51f6cc630b295",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "scripts/ai-phase2-benchmark.cjs",
+      "priorSha256": "89db8783aa37ad5f07b89ea07335789b8434fde20b63cce62c4a5abbcf8264c6",
+      "currentSha256": "bf0408d41318fa6b0f1d6205dd385b528408500ef5af24ea5f1216da37d4ba2f",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "scripts/ai-phase2-check.cjs",
+      "priorSha256": "94f2168499427fcfd9fc789a501bfce57004076b35bcaa3da71ea3fce068dbce",
+      "currentSha256": "94f2168499427fcfd9fc789a501bfce57004076b35bcaa3da71ea3fce068dbce",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-assist-ui.test.cjs",
+      "priorSha256": "fe17b29b72e0d4eee8da9d3f558e6c6351e2531360f600b9c7b0be98655754a4",
+      "currentSha256": "fe17b29b72e0d4eee8da9d3f558e6c6351e2531360f600b9c7b0be98655754a4",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-browser-harness.js",
+      "priorSha256": "7a59ce3b169e9bb50d66d6265066c8033819cd22c01c6b89a0bfc815e93a3286",
+      "currentSha256": "7a59ce3b169e9bb50d66d6265066c8033819cd22c01c6b89a0bfc815e93a3286",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-browser.cjs",
+      "priorSha256": "756495af347d9eed634c639caaa3afaccdb8ea8bfd710fff5585659566ee553e",
+      "currentSha256": "756495af347d9eed634c639caaa3afaccdb8ea8bfd710fff5585659566ee553e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-completion-browser.cjs",
+      "priorSha256": "c083766ea3e3f7cb3a5fefac386bbbbcac85b1bd6d105687a57e83d831a120a7",
+      "currentSha256": "c083766ea3e3f7cb3a5fefac386bbbbcac85b1bd6d105687a57e83d831a120a7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-credential-binding.test.cjs",
+      "priorSha256": "30812d1d56e9b1378029e2d5cb60d27bd0be6d49e88d3610e7dd4dafdb0e05bb",
+      "currentSha256": "30812d1d56e9b1378029e2d5cb60d27bd0be6d49e88d3610e7dd4dafdb0e05bb",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-demo.test.cjs",
+      "priorSha256": "5384b9b819ad29ce39ea75ad31a6a9f4823f1ede2df6b42fa0160cdd98d3c91a",
+      "currentSha256": "5384b9b819ad29ce39ea75ad31a6a9f4823f1ede2df6b42fa0160cdd98d3c91a",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-full-extension.cjs",
+      "priorSha256": "2c955a2de6bd721f6f1f405ab8a5f34769915264d70cadcd370f53b3d491e08c",
+      "currentSha256": "2c955a2de6bd721f6f1f405ab8a5f34769915264d70cadcd370f53b3d491e08c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-phase2-benchmark.test.cjs",
+      "priorSha256": "7f4c3c75be8c4bb3e52d3990b89cca95f5348148ce5722f41121fa17e097d2a9",
+      "currentSha256": "7f4c3c75be8c4bb3e52d3990b89cca95f5348148ce5722f41121fa17e097d2a9",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-phase2-cdp.cjs",
+      "priorSha256": "795de168189d115342891a2ddcc407f907b8507502ab1b52784fdc25fe9adbba",
+      "currentSha256": "795de168189d115342891a2ddcc407f907b8507502ab1b52784fdc25fe9adbba",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-phase2-extension.cjs",
+      "priorSha256": "24667b620c0395c09eb36f0670391ad783813f8dbe8842621f579617e0457dda",
+      "currentSha256": "24667b620c0395c09eb36f0670391ad783813f8dbe8842621f579617e0457dda",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-phase2-journal.test.cjs",
+      "priorSha256": "abfb5fb99d8972b8231ec05d789f57d04c370265339f192f9ee11d05ad01cc60",
+      "currentSha256": "abfb5fb99d8972b8231ec05d789f57d04c370265339f192f9ee11d05ad01cc60",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-phase2-runtime.test.cjs",
+      "priorSha256": "7da38fcd2f0b1fc66a946ad172c6b113158fe6893dcfc09cb075fce3f6fce44b",
+      "currentSha256": "7da38fcd2f0b1fc66a946ad172c6b113158fe6893dcfc09cb075fce3f6fce44b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-phase2-ui.test.cjs",
+      "priorSha256": "a0d04f3d3d5730e513633c9db22f9321adad6a215df5800f929a070830cd6569",
+      "currentSha256": "a0d04f3d3d5730e513633c9db22f9321adad6a215df5800f929a070830cd6569",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-profile.test.cjs",
+      "priorSha256": "62f35bf118b672fede95e86fb2abcac07c3191c758ef8e9bab552015b8c05040",
+      "currentSha256": "53ef6ed9f5b441ad5b1dc2cf771338b458f2d15e209893714a3b710cb788587a",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-selector-contract.test.cjs",
+      "priorSha256": "5507707bb89e3e705ac6457d54871a3f6b094c1e44fe98a292f195973f052458",
+      "currentSha256": "5507707bb89e3e705ac6457d54871a3f6b094c1e44fe98a292f195973f052458",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-service.test.cjs",
+      "priorSha256": "c12a7f23d5b387583196b3713587afa0dbfeb229f4137c83c251c718c4ce2f7c",
+      "currentSha256": "c12a7f23d5b387583196b3713587afa0dbfeb229f4137c83c251c718c4ce2f7c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/ai-storage-boundary.test.cjs",
+      "priorSha256": "9995fd7518cc42a5c9d1e3bb232a9ecab0f28a6c0ff264f320d1f56e7c5daa04",
+      "currentSha256": "9995fd7518cc42a5c9d1e3bb232a9ecab0f28a6c0ff264f320d1f56e7c5daa04",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/devflow-extension-pack.test.cjs",
+      "priorSha256": "c596b798017a5c3fe8c2a59748d7f57df03f66a29cd898256ae01aaebb98e944",
+      "currentSha256": "c596b798017a5c3fe8c2a59748d7f57df03f66a29cd898256ae01aaebb98e944",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/.gitignore",
+      "priorSha256": "e4b92b620b6f777b6bf03f993de1427903cc3a193ac53229ed5f60beb616e8c0",
+      "currentSha256": "e4b92b620b6f777b6bf03f993de1427903cc3a193ac53229ed5f60beb616e8c0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/article-01.html",
+      "priorSha256": "75f77a6d8432fdfee0178b16b7fa6a7b579a094560d7113094b0a5569d4681ac",
+      "currentSha256": "75f77a6d8432fdfee0178b16b7fa6a7b579a094560d7113094b0a5569d4681ac",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/article-02.html",
+      "priorSha256": "35efdd0f13518dbc39070b0721298771ffafe9150a069d27f1601ff98e7e1fd6",
+      "currentSha256": "35efdd0f13518dbc39070b0721298771ffafe9150a069d27f1601ff98e7e1fd6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/article-03.html",
+      "priorSha256": "ec604b5b5b2db4fe9d42145d1c814b20b478da952c12dd588dcb6d1785631408",
+      "currentSha256": "ec604b5b5b2db4fe9d42145d1c814b20b478da952c12dd588dcb6d1785631408",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/article-04.html",
+      "priorSha256": "283d40dfa56ecbec1eb917a6a6d211f5991a8f82c5d6cfaa2560d29db951728c",
+      "currentSha256": "283d40dfa56ecbec1eb917a6a6d211f5991a8f82c5d6cfaa2560d29db951728c",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/article-05.html",
+      "priorSha256": "902b41ef5c514cf0b297ea37e51cab62482f13505c50409c2c29a3efb5d9bd3b",
+      "currentSha256": "902b41ef5c514cf0b297ea37e51cab62482f13505c50409c2c29a3efb5d9bd3b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/browser-harness.js",
+      "priorSha256": "b9d86f6124f59a622308277e7894adb75ac44d37d3f714c7fb07db5f05f63683",
+      "currentSha256": "b9d86f6124f59a622308277e7894adb75ac44d37d3f714c7fb07db5f05f63683",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/card-01.html",
+      "priorSha256": "56c1073954ccb12434f2f3c1db4ad36e1de2522c98f383e8081886a3c2ced966",
+      "currentSha256": "56c1073954ccb12434f2f3c1db4ad36e1de2522c98f383e8081886a3c2ced966",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/card-02.html",
+      "priorSha256": "4393c2aff3ee5d7c7ba275ad78b94d25761835b96d6664770e6452f90255b428",
+      "currentSha256": "4393c2aff3ee5d7c7ba275ad78b94d25761835b96d6664770e6452f90255b428",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/card-03.html",
+      "priorSha256": "56b708c047f2ff79d4341d0144eee64d56abd971d788f0f8a19762c1c769012f",
+      "currentSha256": "56b708c047f2ff79d4341d0144eee64d56abd971d788f0f8a19762c1c769012f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/card-04.html",
+      "priorSha256": "6eace5b418f1222b7813a0d195dda005b770111cef9c43e361884c6899f5e998",
+      "currentSha256": "6eace5b418f1222b7813a0d195dda005b770111cef9c43e361884c6899f5e998",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/card-05.html",
+      "priorSha256": "745ba5a46ffaf9b4da49ac360a41dbebb62e6e3815bfc6e7119877649b9c81c5",
+      "currentSha256": "745ba5a46ffaf9b4da49ac360a41dbebb62e6e3815bfc6e7119877649b9c81c5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/expected.json",
+      "priorSha256": "a159f4c2bec76a592c325c29f429424ed1e85011f2a901987285bac6b48a2b27",
+      "currentSha256": "a159f4c2bec76a592c325c29f429424ed1e85011f2a901987285bac6b48a2b27",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/fixture-hash.json",
+      "priorSha256": "65336969a4d4186bfb81346d2bcab6c3e91d8b5622f30d90565156a0788290d1",
+      "currentSha256": "65336969a4d4186bfb81346d2bcab6c3e91d8b5622f30d90565156a0788290d1",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/results/browser-fixed.json",
+      "priorSha256": "04bb808491904b14f1a29d0e89dd5bcbc32fd1bcb2f9eba52ac945642bb979e5",
+      "currentSha256": "04bb808491904b14f1a29d0e89dd5bcbc32fd1bcb2f9eba52ac945642bb979e5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/results/browser-fixed.stdout.json",
+      "priorSha256": "04bb808491904b14f1a29d0e89dd5bcbc32fd1bcb2f9eba52ac945642bb979e5",
+      "currentSha256": "04bb808491904b14f1a29d0e89dd5bcbc32fd1bcb2f9eba52ac945642bb979e5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/results/browser-mock.json",
+      "priorSha256": "a43a668b7c5e737386807145950db36910a4e1e7e9119aea2bf903a551489e5e",
+      "currentSha256": "a43a668b7c5e737386807145950db36910a4e1e7e9119aea2bf903a551489e5e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/results/browser-mock.stdout.json",
+      "priorSha256": "a43a668b7c5e737386807145950db36910a4e1e7e9119aea2bf903a551489e5e",
+      "currentSha256": "a43a668b7c5e737386807145950db36910a4e1e7e9119aea2bf903a551489e5e",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/results/offline.json",
+      "priorSha256": "8fa4ed0f165739be27e01022ba4d78b267cbec9e13ccc745a1761b50cf80c619",
+      "currentSha256": "8fa4ed0f165739be27e01022ba4d78b267cbec9e13ccc745a1761b50cf80c619",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/results/offline.stdout.json",
+      "priorSha256": "8fa4ed0f165739be27e01022ba4d78b267cbec9e13ccc745a1761b50cf80c619",
+      "currentSha256": "8fa4ed0f165739be27e01022ba4d78b267cbec9e13ccc745a1761b50cf80c619",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/results/service-mocked-browser.json",
+      "priorSha256": "a566100d28405524c6355081892ef2ba653753213aa31ed71ae82b82ddc8ac31",
+      "currentSha256": "a566100d28405524c6355081892ef2ba653753213aa31ed71ae82b82ddc8ac31",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/results/service-preflight-unconfigured.json",
+      "priorSha256": "02091cbc852d42af28ceac6be2578eab79041993911ed0917d4efcff36c8aca3",
+      "currentSha256": "02091cbc852d42af28ceac6be2578eab79041993911ed0917d4efcff36c8aca3",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/table-01.html",
+      "priorSha256": "f003bbec66e3ae6eff202e6f1ef0f8fb3955c9483bd4142b908e82da191dd2a5",
+      "currentSha256": "f003bbec66e3ae6eff202e6f1ef0f8fb3955c9483bd4142b908e82da191dd2a5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/table-02.html",
+      "priorSha256": "69bb2b6093c713de169ebad6777a8069d2f8d8ba5ba71290173988caa285c3ed",
+      "currentSha256": "69bb2b6093c713de169ebad6777a8069d2f8d8ba5ba71290173988caa285c3ed",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/table-03.html",
+      "priorSha256": "4cb5d1c41dc38d17dea34c10f118586d817554fabd80a54b4d72f81657801a15",
+      "currentSha256": "4cb5d1c41dc38d17dea34c10f118586d817554fabd80a54b4d72f81657801a15",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/table-04.html",
+      "priorSha256": "4347ad93e887d7f49277fe0c00ecb05fb58ae69a19a1373a83c1cd361edaf8f0",
+      "currentSha256": "4347ad93e887d7f49277fe0c00ecb05fb58ae69a19a1373a83c1cd361edaf8f0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/table-05.html",
+      "priorSha256": "0533aa531a8023f1fc4042b40a14277779c5165a0bdb5cc7ed8feb173c69cbaf",
+      "currentSha256": "0533aa531a8023f1fc4042b40a14277779c5165a0bdb5cc7ed8feb173c69cbaf",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/tasks.json",
+      "priorSha256": "65504eb052d551aeab6d073e033a0492db15e3cf08cc54b456e2316adf067eb7",
+      "currentSha256": "65504eb052d551aeab6d073e033a0492db15e3cf08cc54b456e2316adf067eb7",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/ul-01.html",
+      "priorSha256": "4778d184a26bddeb31838cadf675c02df400e5dd71bb3de8e08986148acb26c0",
+      "currentSha256": "4778d184a26bddeb31838cadf675c02df400e5dd71bb3de8e08986148acb26c0",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/ul-02.html",
+      "priorSha256": "a75137f7404f7e0b149454121ce51cd8d1e5f95ab8bcc2513662e383f761190d",
+      "currentSha256": "a75137f7404f7e0b149454121ce51cd8d1e5f95ab8bcc2513662e383f761190d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/ul-03.html",
+      "priorSha256": "80955839501ef4c80cac07c80ab1f99ccdeb1b42e171e68778afd90b0caa84ff",
+      "currentSha256": "80955839501ef4c80cac07c80ab1f99ccdeb1b42e171e68778afd90b0caa84ff",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/ul-04.html",
+      "priorSha256": "5c586970ac8d6c759fc4b0a9240ddd1b00eeb8714c236bdd0f6a5655f1dd1e3d",
+      "currentSha256": "5c586970ac8d6c759fc4b0a9240ddd1b00eeb8714c236bdd0f6a5655f1dd1e3d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "test/fixtures/ai-phase2/ul-05.html",
+      "priorSha256": "b3b4ab9ba9e916d98be96329ffcfb60ebaa52f2f6fe50b5566c65acf6d6cd4bd",
+      "currentSha256": "b3b4ab9ba9e916d98be96329ffcfb60ebaa52f2f6fe50b5566c65acf6d6cd4bd",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJsChrome",
+      "path": "www/ai-selector-assist.js",
+      "priorSha256": "893755f72733e339720e0b7a9fb7bfe99306bf369ed762de9d4551beeb7169c6",
+      "currentSha256": "f16dabc606bd4f575fee8cf5a605a9bc5f027492201d636f49f331e024c483eb",
+      "status": "changed-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/ai/ConfigExecutor.js",
+      "priorSha256": "444d15c6f05e9d39376464ad11cfc0fe586088d6ee24c1d2d289a32ee3ee3c14",
+      "currentSha256": "444d15c6f05e9d39376464ad11cfc0fe586088d6ee24c1d2d289a32ee3ee3c14",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/ai/Provider.js",
+      "priorSha256": "be6963aab9394cd69dcfa0a05d5bf2b605fc70ab3ab1280e5581220949ddb513",
+      "currentSha256": "be6963aab9394cd69dcfa0a05d5bf2b605fc70ab3ab1280e5581220949ddb513",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/ai/TaskSpec.js",
+      "priorSha256": "372601039258ed49496771f26ceb512dd4c32e82284bf879cda187ba9444d88f",
+      "currentSha256": "372601039258ed49496771f26ceb512dd4c32e82284bf879cda187ba9444d88f",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/ai/Workflow.js",
+      "priorSha256": "a241b59a4813ad86287dbf62fbd01ab219456fc5f4acef027a69a110a66543ec",
+      "currentSha256": "a241b59a4813ad86287dbf62fbd01ab219456fc5f4acef027a69a110a66543ec",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "src/ai/index.js",
+      "priorSha256": "706fa0338410ad88083392e25938467969cd420ba816c84528e777b673a5bf30",
+      "currentSha256": "706fa0338410ad88083392e25938467969cd420ba816c84528e777b673a5bf30",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/browser-boundary.spec.js",
+      "priorSha256": "04e6000dea2e2d869e09111ca3c7bd59973130bcd21069297c66032713b7fee6",
+      "currentSha256": "04e6000dea2e2d869e09111ca3c7bd59973130bcd21069297c66032713b7fee6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/config-executor.spec.js",
+      "priorSha256": "b97d0c61445c66b9940735de4000c79f02b1b3745f61f0cdaaf5d17a7090b72b",
+      "currentSha256": "b97d0c61445c66b9940735de4000c79f02b1b3745f61f0cdaaf5d17a7090b72b",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/task-generation.spec.js",
+      "priorSha256": "44b1a7b568677fa7836b936524be8532f6ab7ab358b32ee9b9e85261a2c221b6",
+      "currentSha256": "44b1a7b568677fa7836b936524be8532f6ab7ab358b32ee9b9e85261a2c221b6",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/ai-config/workflow.spec.js",
+      "priorSha256": "a0ca01352407fb8510ee7c355dc27fd1d1ccf0ed2c1ecc9fbc0aac991a08e9b5",
+      "currentSha256": "a0ca01352407fb8510ee7c355dc27fd1d1ccf0ed2c1ecc9fbc0aac991a08e9b5",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/core-adversarial.spec.js",
+      "priorSha256": "7ad006936c6f27bd9e203b4ee5f5d893ca4c337e05b5807b1c0dd5241b2dd21d",
+      "currentSha256": "7ad006936c6f27bd9e203b4ee5f5d893ca4c337e05b5807b1c0dd5241b2dd21d",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/core-review-regressions.spec.js",
+      "priorSha256": "a2b65303ff1bbbf3de911c5bb2d7673909061153a6d8422ebe72d8b8dd5bfb93",
+      "currentSha256": "a2b65303ff1bbbf3de911c5bb2d7673909061153a6d8422ebe72d8b8dd5bfb93",
+      "status": "unchanged-since-audit"
+    },
+    {
+      "source": "scrapyJs",
+      "path": "test/item-loader-explicit.spec.js",
+      "priorSha256": "5e41752e2396a40757a051367c48c8f8a739f46740ce74f3b5e08b50cc0bc047",
+      "currentSha256": "5e41752e2396a40757a051367c48c8f8a739f46740ce74f3b5e08b50cc0bc047",
+      "status": "unchanged-since-audit"
+    }
+  ],
+  "samplingLimit": "Non-atomic end-of-stage check of previously audited captured/new in-scope paths; later new paths not enumerated. Live sources may change independently; refresh before downstream code reuse.",
+  "sourceMutationCommandsExecuted": [],
+  "copiedSourceCodeFiles": []
+}

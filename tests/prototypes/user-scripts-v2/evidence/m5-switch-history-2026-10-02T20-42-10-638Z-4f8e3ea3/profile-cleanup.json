@@ -1,0 +1,36 @@
+{
+  "ownedProfilesOnly": true,
+  "liveProcessMatches": [],
+  "profiles": [
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-138.0.7204.183-6d2985b0-5ebe-4bd1-9d1a-c70523cff22a",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-154.0.8037.92-6f3dd5c2-d478-4582-a48c-30535bb055c4",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-138.0.7204.183-179a3892-1782-4be9-9b7d-f13b07b10a1f",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-154.0.8037.92-baf6f0e8-7e5f-4b88-99e1-e3565f7fc126",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-138.0.7204.183-edba5f6b-15b5-481c-b4a4-a46ece83f1b9",
+      "existed": true,
+      "removed": true
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-154.0.8037.92-2a34247a-6dcb-4902-8327-1822da382289",
+      "existed": true,
+      "removed": true
+    }
+  ]
+}

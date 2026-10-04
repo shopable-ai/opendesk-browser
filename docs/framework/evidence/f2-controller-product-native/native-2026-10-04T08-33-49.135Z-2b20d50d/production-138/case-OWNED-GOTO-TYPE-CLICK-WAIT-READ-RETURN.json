@@ -1,0 +1,12 @@
+{
+  "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+  "families": "A01/NAV01/CMP09",
+  "expected": "Real owned page navigates; BaseAlice, Typed/clicked; HTTP effect and durable typed return agree",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791102996674,
+  "elapsedMs": 0.003708000003825873
+}

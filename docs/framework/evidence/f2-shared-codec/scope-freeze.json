@@ -1,0 +1,110 @@
+{
+  "at": "2026-10-03T08:40:58.999Z",
+  "scope": "single shared value codec",
+  "scopeFrozen": true,
+  "readyForMainIntegration": true,
+  "sourceFiles": [
+    {
+      "path": "src/platform/page-port/codec.js",
+      "bytes": 11956,
+      "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "bytes": 3317,
+      "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-evaluator.js",
+      "bytes": 6105,
+      "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+    },
+    {
+      "path": "tests/framework/k2-shared-codec.test.mjs",
+      "bytes": 11421,
+      "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+    }
+  ],
+  "factorySourceSha256": "f5982f2de5fc32cf0c2bbfd4ceb26a39850f5e2a001ef51eab0c3748d396f09e",
+  "verification": {
+    "path": "docs/framework/evidence/f2-shared-codec/verification.json",
+    "sha256": "6200e97f76bfb56f2669a30b463c016505c7a8d45d0eede957bdd8ea543eac5d"
+  },
+  "references": [
+    {
+      "path": "/Users/shopme/.codex/prompts/executor.md",
+      "bytes": 6156,
+      "sha256": "d74f32aac5824828c36abffa896d2bd2f3a54ee90f04971b8a724fb58bbf51a4"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/protocol-contract.md",
+      "bytes": 8502,
+      "sha256": "33afffa92748ac1308d32a2ba1a883a196729704b9933cba7b5c3d0f59ceb7bc"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "bytes": 31648,
+      "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/worker-harness.js",
+      "bytes": 3185,
+      "sha256": "630ab92f6a629d8027d11c0f47c0b5c21a2c60f86a6d859b8ef0d78cabcd39ee"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+      "bytes": 4444,
+      "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+    },
+    {
+      "path": "docs/framework/evidence/f2-shared-codec/main-depth-original-9fail.tap",
+      "bytes": 17278,
+      "sha256": "ccfb21ba3a52e92418da943519279c36285f69eea0308c269513a0fb37713cec"
+    },
+    {
+      "path": "docs/framework/evidence/f2-shared-codec/original-red.log",
+      "bytes": 5152,
+      "sha256": "d11c124cfa048a1e467918c3fe5c76c3c5501135dc075c03c47d59183c536556"
+    },
+    {
+      "path": "docs/framework/evidence/f2-shared-codec/foreign-wire-red.log",
+      "bytes": 1430,
+      "sha256": "041711caf9bb4383b2691fb6ee9ae6883dd5bdad597f81be0129c4d1dd9951e4"
+    },
+    {
+      "path": "docs/framework/evidence/f2-shared-codec/compatibility-delta.md",
+      "bytes": 4117,
+      "sha256": "81a1b3bfdc5c1b3bd1a319de67d0c76da0c370713cf07472fdf014f1d0a10acd"
+    },
+    {
+      "path": "docs/framework/evidence/f2-shared-codec/verify.mjs",
+      "bytes": 3285,
+      "sha256": "242e7fd39194b738a42ab01f4199508742e5917fd2f8d64fca8092f96b352993"
+    }
+  ],
+  "checks": {
+    "targeted": {
+      "exit": 0,
+      "tests": 76,
+      "pass": 76,
+      "fail": 0,
+      "skipped": 0
+    },
+    "syntaxExit": 0,
+    "sourceCheckExit": 0,
+    "sourceDrift": 0
+  },
+  "originalTestsModified": false,
+  "sdkRelaySourceModified": false,
+  "nativeBrowsersLaunched": 0,
+  "packageRebuilt": false,
+  "packageHashFrozen": false,
+  "requestedModel": "gpt-6.1-sol",
+  "requestedEffort": "xhigh",
+  "resolvedModel": "unknown",
+  "resolvedEffort": "unknown",
+  "F3": false,
+  "original603": false,
+  "nextOwner": "Main",
+  "remainingQualification": "Fresh full globs; same-source dual package rebuild; real opaque Worker/userScripts via global launcher."
+}

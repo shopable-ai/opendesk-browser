@@ -1,0 +1,9 @@
+PASS hash failure before spawn does not leak child
+PASS spawned child is cleaned when lifecycle write fails
+PASS replacement profile is retained after owned child cleanup
+PASS missing profile does not block owned child cleanup
+PASS mode change cleans owned child but retains profile
+PASS ps unavailable leaves child unknown and retained
+PASS restart metadata failure retains and cleans next generation pid
+PASS finalize writes cleanup report for absent lifecycle/profile
+{"selftest": "restart-adapter", "passed": 8, "browserStarted": false}

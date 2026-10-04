@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-02T23:55:54.138285+00:00",
+  "phase": "F2 scoped module verification",
+  "nodeCommands": [
+    {
+      "command": "node --test tests/framework/k4-sdk.test.mjs tests/framework/k4-network.test.mjs tests/framework/k4-chrome-services.test.mjs tests/framework/k4-resources.test.mjs tests/framework/k2-codec.test.mjs",
+      "exitCode": 0,
+      "total": 66,
+      "pass": 66,
+      "fail": 0,
+      "k4Tests": 60,
+      "sharedCodecTests": 6,
+      "evidence": "unit-validation.log"
+    },
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "checkedSourceTestBuildFiles": 63,
+      "note": "Full syntax check followed by fresh node --check src/platform/chrome/network.js after receipt hook edit"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 1,
+      "total": 20,
+      "pass": 16,
+      "fail": 4,
+      "evidence": "environment-validation.log",
+      "failureCause": "Existing package mutation tests inspect old dist package; updated verifier requires qualified minimum Chrome138 and rejects earlier than intended assertions. Final main build/package fixture update and rerun required."
+    }
+  ],
+  "sourceManifestSha256": "98374b960224900c77d45560a1bd4aa45b985548b3a6d445d3973cc8646e0855",
+  "routerContractSha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+  "sourceFreezeCompared": 18,
+  "sourceFreezeDrift": 0,
+  "actualHttpScope": "Real Node HTTP loopback server and Node fetch exercising product Chrome network driver; no external IP service requests",
+  "chromeFixtureScope": "Explicit callback API fixtures, no native permission/notification/cookie/SDK grant acceptance claimed",
+  "f3Pass": false,
+  "runtimePass": false,
+  "independentAcceptance": false,
+  "productPackageSha256": null,
+  "requiredMainNext": "Sole broker/storage/authority/SW/build/manifest integration, same final package native independent B05/F3"
+}

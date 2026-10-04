@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-figma",
+        "--figma-api-key=figd_ff51KewtRt3g_jz0KZYaQUFjBEcg9f91j1oB2ugY"
+      ],
+      "env": {
+        "FIGMA_API_KEY": "figd_ff51KewtRt3g_jz0KZYaQUFjBEcg9f91j1oB2ugY"
+      }
+    }
+  },
+  "user": {
+    "id": "1226921665191995576",
+    "email": "thinkido666@gmail.com",
+    "handle": "时间清单x"
+  },
+  "validated": true,
+  "validatedAt": "2025-10-27T11:48:40.000Z",
+  "notes": [
+    "API Key 已验证有效",
+    "用户信息已获取成功",
+    "MCP 服务器配置完成",
+    "使用 Cursor 的 MCP 配置时，将此配置添加到 ~/.cursor/mcp.json 或项目的 .cursor/mcp.json"
+  ]
+}
+

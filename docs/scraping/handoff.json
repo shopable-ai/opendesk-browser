@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "kind": "prerequisite-pause-handoff",
+  "goal": "OpenDesk Browser 采集插件迁移 Goal",
+  "goalThreadId": "01a0fcd8-e617-70b3-aa69-14c7dbd9593c",
+  "status": "paused-prerequisites",
+  "goalPauseBasis": "用户原提示词明确要求：必需前提缺失时暂停本 Goal，只记录具体缺口",
+  "pluginMigrationComplete": false,
+  "frameworkFunctionalMigrationCompleteVerified": false,
+  "implementationStarted": false,
+  "preconditionDecision": "DO_NOT_IMPLEMENT",
+  "prerequisiteEvidence": "prerequisite-evidence.json",
+  "interfaceRequests": "interface-requests.md",
+  "independentPrerequisiteReview": "independent-prerequisite-review.md",
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+  "frozenFrameworkSdk": null,
+  "finalFrameworkBaselineHash": null,
+  "publicOwner": null,
+  "sourceGeneration": {
+    "requestedAuditInputs": 32,
+    "observedProducerInputs": 35,
+    "sourceHash": "47aee34aa4f505460a0faa716094e58eed1a3b13bb127d572b1faca6850740ad",
+    "sdkHash": "b0c7d9baa22860036525e1eee6802871de197576f4454e19d17469fe60552e58",
+    "receiptIdentityMatched": true,
+    "receiptBytesMatched": false
+  },
+  "pluginArtifacts": {
+    "sourceHash": null,
+    "overlayHash": null,
+    "lockHash": null,
+    "recipeHash": null,
+    "artifactHash": null,
+    "browserClosure": null,
+    "compatibilityLedger": null,
+    "reason": "migration not admitted; no plugin package produced"
+  },
+  "mandatoryTests": [
+    {
+      "id": "SCR01",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR02",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR03",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR04",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR05",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR06",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR07",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR08",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR09",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR10",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR11",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR12",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR13",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR14",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "SCR15",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "PROV02",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "PROV03",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "AUTH01",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "CTRL01",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "CTRL02",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "CTRL03",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "DLGEN01",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "DLGEN02",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "LEAK01",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    },
+    {
+      "id": "PLG01",
+      "required": true,
+      "status": "not-tested",
+      "reason": "F3 prerequisite gate missing; plugin implementation/browser execution not admitted",
+      "evidence": []
+    }
+  ],
+  "providerResults": {
+    "mock": "not-tested",
+    "realProvider": "not-tested",
+    "modelQuality": "not-tested"
+  },
+  "disabledPluginFrameworkRegression": "not-tested",
+  "quality": {
+    "supportClaim": "none; implementation not started",
+    "requiredScope": "SCR14 full records/no mutation/falsy/100 expansion/unknown pages/actual terminal download/file hash",
+    "verified": false
+  },
+  "demo": {
+    "supportClaim": "none; implementation not started",
+    "requiredScope": "SCR15 loopback /demo/products top-level <=2 pages/24h/500KiB, durable-before-navigation, explicit new run resume, unknown no replay; HTTP UI vs HTTP/HTTPS controller source difference retained",
+    "generalRecoveryClaim": false,
+    "verified": false
+  },
+  "resumeCriteria": [
+    "有效 F3 handoff/execution-gates，绑定最终设计 hash 和同一最终包",
+    "全部 F3 必选实际 Chrome/IDB/文件/资源证据与独立 review",
+    "冻结 SDK/API/schema/grants/version/支持矩阵和唯一当前公共 owner",
+    "仅闭合来源 32→35 漂移与同候选设计争议，不改旧审计记录",
+    "用户显式恢复该 Goal 后重新核验前提；不自动启动或消息其他任务"
+  ],
+  "writeScope": [
+    "src/plugins/scraping/**",
+    "tests/plugins/scraping/**",
+    "docs/scraping/**"
+  ],
+  "writtenThisAttempt": [
+    "docs/scraping/prerequisite-evidence.json",
+    "docs/scraping/prerequisites.md",
+    "docs/scraping/interface-requests.md",
+    "docs/scraping/independent-prerequisite-review.md",
+    "docs/scraping/handoff.json"
+  ],
+  "published": false
+}

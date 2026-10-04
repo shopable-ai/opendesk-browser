@@ -1,0 +1,74 @@
+{
+  "off": {
+    "before": "true",
+    "after": "false",
+    "enabled": false,
+    "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+    "method": "rendered Chrome site access allHostsToggle click",
+    "permissions": {
+      "origins": [],
+      "permissions": [
+        "tabs",
+        "webNavigation",
+        "scripting",
+        "userScripts"
+      ]
+    },
+    "events": [
+      {
+        "event": "removed",
+        "value": {
+          "origins": [
+            "http://127.0.0.1/*",
+            "http://localhost/*"
+          ],
+          "permissions": []
+        },
+        "at": 1790969588360
+      }
+    ]
+  },
+  "on": {
+    "before": "false",
+    "after": "true",
+    "enabled": true,
+    "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+    "method": "rendered Chrome site access allHostsToggle click",
+    "permissions": {
+      "origins": [
+        "http://127.0.0.1/*",
+        "http://localhost/*"
+      ],
+      "permissions": [
+        "tabs",
+        "webNavigation",
+        "scripting",
+        "userScripts"
+      ]
+    },
+    "events": [
+      {
+        "event": "removed",
+        "value": {
+          "origins": [
+            "http://127.0.0.1/*",
+            "http://localhost/*"
+          ],
+          "permissions": []
+        },
+        "at": 1790969588360
+      },
+      {
+        "event": "added",
+        "value": {
+          "origins": [
+            "http://127.0.0.1/*",
+            "http://localhost/*"
+          ],
+          "permissions": []
+        },
+        "at": 1790969588593
+      }
+    ]
+  }
+}

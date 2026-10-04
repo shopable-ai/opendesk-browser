@@ -1,0 +1,69 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "readBy": "lane executor and read-only native subagent 01a1008f-17d8-7b60-bb2c-875511533dde",
+  "scope": "Complete original 72 fileRows,48 apiItems,183 capabilityItems,603 cases,53 inherited contracts plus associated frozen protocol/test-spec/file tasks. Existing approval inherited; no gate/ledger edits.",
+  "counts": {
+    "fileRows": 72,
+    "apiItems": 48,
+    "capabilityItems": 183,
+    "cases": 603,
+    "inheritedContracts": 53
+  },
+  "records": [
+    {
+      "path": "/Users/shopme/.codex/prompts/executor.md",
+      "bytes": 6156,
+      "sha256": "d74f32aac5824828c36abffa896d2bd2f3a54ee90f04971b8a724fb58bbf51a4"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+      "bytes": 10649,
+      "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+      "bytes": 33202,
+      "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "bytes": 26219,
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-continuation-checkpoint.json",
+      "bytes": 16779,
+      "sha256": "01944efc4d067aa7b48a400b7e856f6d8390c0a5c319e06df8ea9311b45fda96"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-plan.md",
+      "bytes": 19540,
+      "sha256": "10b348b6811c13bf29bb0a5f0f289672ae70e20fa200fac810a1fdebce52fc35"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-tasks.json",
+      "bytes": 15652,
+      "sha256": "6f36b7b1dc0c4264da31448d0722a26b682ee6547c4371dfb1dba54467b938ce"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/source-compatibility-ledger.json",
+      "bytes": 2280955,
+      "sha256": "d5efac72cbf04962e5ec63780f324a308e65ece5713ef9ebf14c7c7c21fc3531"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/test-spec-v5.json",
+      "bytes": 1144601,
+      "sha256": "9ccdc5995b89005661dabf62f39b63563c2cbce6e34c37c7e0879b2831febb4d"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/protocol-contract.md",
+      "bytes": 8502,
+      "sha256": "33afffa92748ac1308d32a2ba1a883a196729704b9933cba7b5c3d0f59ceb7bc"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/test-spec.md",
+      "bytes": 19377,
+      "sha256": "276bd53c687f737c888fa212887d19231132ae15b2ad30b3cd8e0c5e72b7ae1b"
+    }
+  ]
+}

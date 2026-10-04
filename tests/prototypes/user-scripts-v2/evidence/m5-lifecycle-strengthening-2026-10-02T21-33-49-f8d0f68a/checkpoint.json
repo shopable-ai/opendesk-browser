@@ -1,0 +1,1272 @@
+{
+  "schema": "m5-k1-lifecycle-strengthening-v1",
+  "status": "BLOCK under original history contract",
+  "pageCandidateSha256": "587a05918e2b7d19c7a513be05c2e82430d7aafc3e659ef4f98f53282361cf40",
+  "effectiveContractManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "round6AmendmentAdopted": false,
+  "round6FinalMatrixExecuted": false,
+  "sourceChanges": {
+    "fixture/host.js": "Pending operation-owned native getScripts probes; first-reason sticky invalidation; dispatch/acceptance/current checks; finally drain and clear monitoring/deadline timers; actual permission/doc/target/host lifecycle; trusted host ownGrant epoch and cancel UI",
+    "fixture/host.html": "Three prototype buttons: trusted own grant revoke, renew, pending cancel",
+    "run-headed.mjs": "Remove all recheck calls and assertions; read actual host observations only; targeted lifecycle cases, native/adapter accounting, real host task stalls, original expected FAIL; round5 frozen inputs; same-source snapshots"
+  },
+  "unchangedAdapterSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+  "runs": [
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-28-48-030Z-m5-life-138-r1-bf36fe1f",
+      "reportSha256": "f8182836c7b0ae920ed34752b40c8c17328eea6032bb3d82f173717aaca8b598",
+      "evidenceManifestSha256": "9d52007671f4de6ccef95327abbdcb0e3b9db8b9aa9a6e55ef7b93c0315c4b58",
+      "actualBrowser": {
+        "version": "138.0.7204.183",
+        "executable": "tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "executableSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+        "channel": "138.0.7204.183",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T21-28-48-030Z-m5-life-138-r1-bf36fe1f",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1",
+        "fixtureIdentity": {
+          "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*",
+              "http://localhost/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 userScripts v2 fixture",
+            "permissions": [
+              "userScripts",
+              "scripting",
+              "tabs",
+              "webNavigation"
+            ],
+            "version": "0.0.2"
+          }
+        }
+      },
+      "passCount": 32,
+      "originalContractFailCount": 4,
+      "notExecutedCount": 71,
+      "chromeUserScriptsExecuteInvocations": 78,
+      "chromeScriptingExecuteInvocations": 2,
+      "unavailableBeforeChromeExecuteCount": 1,
+      "resources": {
+        "resourceBaseline": {
+          "pending": 0,
+          "activeOperations": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "authorizationMonitors": 0,
+          "authorizationProbes": 0,
+          "deadlineTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "activeOperations": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "authorizationMonitors": 0,
+          "authorizationProbes": 0,
+          "deadlineTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "originalAuthContract": {
+        "id": "F1-PAGE-AUTH-CSP",
+        "phase": "F1",
+        "layer": "actual Chrome prototype",
+        "required": true,
+        "families": [
+          "EX01",
+          "EX04",
+          "AUTH01"
+        ],
+        "input": {
+          "worlds": [
+            "USER_SCRIPT",
+            "MAIN"
+          ],
+          "UI": [
+            "Allow User Scripts OFF/ON",
+            "actual site access revoke/restore"
+          ],
+          "barrier": [
+            "before dispatch",
+            "pending slow page response",
+            "after native effect before accepted result"
+          ],
+          "pageCSP": [
+            "baseline",
+            "restrictive"
+          ],
+          "legacyFailure": "HOST-PERMISSION-REVOKE required permission removal failed"
+        },
+        "expected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+        "status": "not-tested",
+        "actual": null,
+        "prototypeCandidateSha256": null,
+        "productPackageSha256": null,
+        "evidence": []
+      },
+      "cases": [
+        {
+          "id": "SWITCH-OFF",
+          "pass": true,
+          "settlementCount": null,
+          "acceptedKind": null,
+          "invalidation": null,
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "SWITCH-ON",
+          "pass": true,
+          "settlementCount": null,
+          "acceptedKind": null,
+          "invalidation": null,
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976529946
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_DOCUMENT_STALE",
+            "stack": "Error: E_DOCUMENT_STALE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:98:25",
+            "observedBy": "chrome.webNavigation.onCommitted",
+            "at": 1790976530208
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976530424
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-OLD-DOCUMENT-RACE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_DOCUMENT_STALE",
+            "stack": "Error: E_DOCUMENT_STALE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:98:25",
+            "observedBy": "chrome.webNavigation.onCommitted",
+            "at": 1790976530698
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976530945
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+          "pass": true,
+          "settlementCount": null,
+          "acceptedKind": null,
+          "invalidation": null,
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:90:25\n    at massager (extensions::permissions:21:3)",
+            "observedBy": "chrome.permissions.onRemoved",
+            "at": 1790976532665
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:90:25\n    at massager (extensions::permissions:21:3)",
+            "observedBy": "chrome.permissions.onRemoved",
+            "at": 1790976534056
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-OBSERVED-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976535463
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-OWN-GRANT-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OWN_GRANT_REVOKED",
+            "stack": "Error: E_OWN_GRANT_REVOKED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:260:75)",
+            "observedBy": "trusted host grant UI",
+            "at": 1790976535736
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-CANCEL-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_CANCELLED",
+            "stack": "Error: E_OPERATION_CANCELLED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:266:59)",
+            "observedBy": "trusted host cancel UI",
+            "at": 1790976535819
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-DEADLINE-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_DEADLINE",
+            "stack": "Error: E_OPERATION_DEADLINE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:145:27",
+            "observedBy": "operation-owned deadline",
+            "at": 1790976535998
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-OBSERVED-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976538854
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-OWN-GRANT-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OWN_GRANT_REVOKED",
+            "stack": "Error: E_OWN_GRANT_REVOKED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:260:75)",
+            "observedBy": "trusted host grant UI",
+            "at": 1790976539111
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-CANCEL-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_CANCELLED",
+            "stack": "Error: E_OPERATION_CANCELLED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:266:59)",
+            "observedBy": "trusted host cancel UI",
+            "at": 1790976539194
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-DEADLINE-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_DEADLINE",
+            "stack": "Error: E_OPERATION_DEADLINE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:145:27",
+            "observedBy": "operation-owned deadline",
+            "at": 1790976539373
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_DOCUMENT_STALE",
+            "stack": "Error: E_DOCUMENT_STALE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:98:25",
+            "observedBy": "chrome.webNavigation.onCommitted",
+            "at": 1790976542111
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976542347
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-HOST-UI-REVOKE-RESTORE",
+          "pass": true,
+          "settlementCount": null,
+          "acceptedKind": null,
+          "invalidation": null,
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-HOST-UI-RACE-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:90:25\n    at massager (extensions::permissions:21:3)",
+            "observedBy": "chrome.permissions.onRemoved",
+            "at": 1790976544189
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:90:25\n    at massager (extensions::permissions:21:3)",
+            "observedBy": "chrome.permissions.onRemoved",
+            "at": 1790976545631
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-SWITCH-OBSERVED-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976547072
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-OWN-GRANT-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OWN_GRANT_REVOKED",
+            "stack": "Error: E_OWN_GRANT_REVOKED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:260:75)",
+            "observedBy": "trusted host grant UI",
+            "at": 1790976547369
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-CANCEL-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_CANCELLED",
+            "stack": "Error: E_OPERATION_CANCELLED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:266:59)",
+            "observedBy": "trusted host cancel UI",
+            "at": 1790976547469
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-DEADLINE-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_DEADLINE",
+            "stack": "Error: E_OPERATION_DEADLINE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:145:27",
+            "observedBy": "operation-owned deadline",
+            "at": 1790976547664
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-SWITCH-OBSERVED-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976550513
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-OWN-GRANT-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OWN_GRANT_REVOKED",
+            "stack": "Error: E_OWN_GRANT_REVOKED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:260:75)",
+            "observedBy": "trusted host grant UI",
+            "at": 1790976550819
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-CANCEL-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_CANCELLED",
+            "stack": "Error: E_OPERATION_CANCELLED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:266:59)",
+            "observedBy": "trusted host cancel UI",
+            "at": 1790976550919
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-DEADLINE-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_DEADLINE",
+            "stack": "Error: E_OPERATION_DEADLINE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:145:27",
+            "observedBy": "operation-owned deadline",
+            "at": 1790976551114
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_DOCUMENT_STALE",
+            "stack": "Error: E_DOCUMENT_STALE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:98:25",
+            "observedBy": "chrome.webNavigation.onCommitted",
+            "at": 1790976553887
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "pass": false,
+          "settlementCount": 1,
+          "acceptedKind": "value",
+          "invalidation": null,
+          "actuallyObservedOff": false,
+          "cycleWithinHostTask": true
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "pass": false,
+          "settlementCount": 1,
+          "acceptedKind": "value",
+          "invalidation": null,
+          "actuallyObservedOff": false,
+          "cycleWithinHostTask": true
+        },
+        {
+          "id": "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "pass": false,
+          "settlementCount": 1,
+          "acceptedKind": "value",
+          "invalidation": null,
+          "actuallyObservedOff": false,
+          "cycleWithinHostTask": true
+        },
+        {
+          "id": "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "pass": false,
+          "settlementCount": 1,
+          "acceptedKind": "value",
+          "invalidation": null,
+          "actuallyObservedOff": false,
+          "cycleWithinHostTask": true
+        }
+      ]
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-29-56-557Z-m5-life-154-r1-4e632233",
+      "reportSha256": "a3a0434bf40c873973da9b47f0649409f385986263e5ba2a7a1406a841895baa",
+      "evidenceManifestSha256": "6e262daf59566a86bccccce9fcaf17bebd5ac5ee564ba032589a72f3945599c5",
+      "actualBrowser": {
+        "version": "154.0.8037.92",
+        "executable": "tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "executableSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+        "channel": "154.0.8037.92 Stable",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T21-29-56-557Z-m5-life-154-r1-4e632233",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1",
+        "fixtureIdentity": {
+          "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*",
+              "http://localhost/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 userScripts v2 fixture",
+            "permissions": [
+              "userScripts",
+              "scripting",
+              "tabs",
+              "webNavigation"
+            ],
+            "version": "0.0.2"
+          }
+        }
+      },
+      "passCount": 32,
+      "originalContractFailCount": 4,
+      "notExecutedCount": 71,
+      "chromeUserScriptsExecuteInvocations": 78,
+      "chromeScriptingExecuteInvocations": 2,
+      "unavailableBeforeChromeExecuteCount": 1,
+      "resources": {
+        "resourceBaseline": {
+          "pending": 0,
+          "activeOperations": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "authorizationMonitors": 0,
+          "authorizationProbes": 0,
+          "deadlineTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "activeOperations": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "authorizationMonitors": 0,
+          "authorizationProbes": 0,
+          "deadlineTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "originalAuthContract": {
+        "id": "F1-PAGE-AUTH-CSP",
+        "phase": "F1",
+        "layer": "actual Chrome prototype",
+        "required": true,
+        "families": [
+          "EX01",
+          "EX04",
+          "AUTH01"
+        ],
+        "input": {
+          "worlds": [
+            "USER_SCRIPT",
+            "MAIN"
+          ],
+          "UI": [
+            "Allow User Scripts OFF/ON",
+            "actual site access revoke/restore"
+          ],
+          "barrier": [
+            "before dispatch",
+            "pending slow page response",
+            "after native effect before accepted result"
+          ],
+          "pageCSP": [
+            "baseline",
+            "restrictive"
+          ],
+          "legacyFailure": "HOST-PERMISSION-REVOKE required permission removal failed"
+        },
+        "expected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+        "status": "not-tested",
+        "actual": null,
+        "prototypeCandidateSha256": null,
+        "productPackageSha256": null,
+        "evidence": []
+      },
+      "cases": [
+        {
+          "id": "SWITCH-OFF",
+          "pass": true,
+          "settlementCount": null,
+          "acceptedKind": null,
+          "invalidation": null,
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "SWITCH-ON",
+          "pass": true,
+          "settlementCount": null,
+          "acceptedKind": null,
+          "invalidation": null,
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976598119
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_DOCUMENT_STALE",
+            "stack": "Error: E_DOCUMENT_STALE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:98:25",
+            "observedBy": "chrome.webNavigation.onCommitted",
+            "at": 1790976598284
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976598416
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-OLD-DOCUMENT-RACE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_DOCUMENT_STALE",
+            "stack": "Error: E_DOCUMENT_STALE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:98:25",
+            "observedBy": "chrome.webNavigation.onCommitted",
+            "at": 1790976598601
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976598732
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+          "pass": true,
+          "settlementCount": null,
+          "acceptedKind": null,
+          "invalidation": null,
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:90:25\n    at massager (extensions::permissions:21:3)",
+            "observedBy": "chrome.permissions.onRemoved",
+            "at": 1790976600371
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:90:25\n    at massager (extensions::permissions:21:3)",
+            "observedBy": "chrome.permissions.onRemoved",
+            "at": 1790976601733
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-OBSERVED-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976603102
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-OWN-GRANT-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OWN_GRANT_REVOKED",
+            "stack": "Error: E_OWN_GRANT_REVOKED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:260:75)",
+            "observedBy": "trusted host grant UI",
+            "at": 1790976603325
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-CANCEL-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_CANCELLED",
+            "stack": "Error: E_OPERATION_CANCELLED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:266:59)",
+            "observedBy": "trusted host cancel UI",
+            "at": 1790976603421
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-DEADLINE-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_DEADLINE",
+            "stack": "Error: E_OPERATION_DEADLINE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:145:27",
+            "observedBy": "operation-owned deadline",
+            "at": 1790976603598
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-OBSERVED-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976606381
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-OWN-GRANT-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OWN_GRANT_REVOKED",
+            "stack": "Error: E_OWN_GRANT_REVOKED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:260:75)",
+            "observedBy": "trusted host grant UI",
+            "at": 1790976606612
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-CANCEL-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_CANCELLED",
+            "stack": "Error: E_OPERATION_CANCELLED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:266:59)",
+            "observedBy": "trusted host cancel UI",
+            "at": 1790976606703
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-DEADLINE-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_DEADLINE",
+            "stack": "Error: E_OPERATION_DEADLINE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:145:27",
+            "observedBy": "operation-owned deadline",
+            "at": 1790976606888
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_DOCUMENT_STALE",
+            "stack": "Error: E_DOCUMENT_STALE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:98:25",
+            "observedBy": "chrome.webNavigation.onCommitted",
+            "at": 1790976609578
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976609748
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-HOST-UI-REVOKE-RESTORE",
+          "pass": true,
+          "settlementCount": null,
+          "acceptedKind": null,
+          "invalidation": null,
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-HOST-UI-RACE-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:90:25\n    at massager (extensions::permissions:21:3)",
+            "observedBy": "chrome.permissions.onRemoved",
+            "at": 1790976611441
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_HOST_PERMISSION_REVOKED",
+            "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:90:25\n    at massager (extensions::permissions:21:3)",
+            "observedBy": "chrome.permissions.onRemoved",
+            "at": 1790976612850
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-SWITCH-OBSERVED-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976614257
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-OWN-GRANT-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OWN_GRANT_REVOKED",
+            "stack": "Error: E_OWN_GRANT_REVOKED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:260:75)",
+            "observedBy": "trusted host grant UI",
+            "at": 1790976614529
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-CANCEL-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_CANCELLED",
+            "stack": "Error: E_OPERATION_CANCELLED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:266:59)",
+            "observedBy": "trusted host cancel UI",
+            "at": 1790976614629
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-DEADLINE-PENDING",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_DEADLINE",
+            "stack": "Error: E_OPERATION_DEADLINE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:145:27",
+            "observedBy": "operation-owned deadline",
+            "at": 1790976614827
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-SWITCH-OBSERVED-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "'userScripts.getScripts' is not available in this context.",
+            "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at probe (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:57:48)\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:68:31",
+            "observedBy": "operation-owned chrome.userScripts.getScripts",
+            "at": 1790976617678
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-OWN-GRANT-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OWN_GRANT_REVOKED",
+            "stack": "Error: E_OWN_GRANT_REVOKED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:260:75)",
+            "observedBy": "trusted host grant UI",
+            "at": 1790976617954
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-CANCEL-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_CANCELLED",
+            "stack": "Error: E_OPERATION_CANCELLED\n    at HTMLButtonElement.<anonymous> (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:266:59)",
+            "observedBy": "trusted host cancel UI",
+            "at": 1790976618062
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-DEADLINE-NATIVE-COMPLETED",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_OPERATION_DEADLINE",
+            "stack": "Error: E_OPERATION_DEADLINE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:145:27",
+            "observedBy": "operation-owned deadline",
+            "at": 1790976618253
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "MAIN-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+          "pass": true,
+          "settlementCount": 1,
+          "acceptedKind": "rejected",
+          "invalidation": {
+            "name": "Error",
+            "message": "E_DOCUMENT_STALE",
+            "stack": "Error: E_DOCUMENT_STALE\n    at chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:98:25",
+            "observedBy": "chrome.webNavigation.onCommitted",
+            "at": 1790976621004
+          },
+          "actuallyObservedOff": null,
+          "cycleWithinHostTask": null
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "pass": false,
+          "settlementCount": 1,
+          "acceptedKind": "value",
+          "invalidation": null,
+          "actuallyObservedOff": false,
+          "cycleWithinHostTask": true
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "pass": false,
+          "settlementCount": 1,
+          "acceptedKind": "value",
+          "invalidation": null,
+          "actuallyObservedOff": false,
+          "cycleWithinHostTask": true
+        },
+        {
+          "id": "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "pass": false,
+          "settlementCount": 1,
+          "acceptedKind": "value",
+          "invalidation": null,
+          "actuallyObservedOff": false,
+          "cycleWithinHostTask": true
+        },
+        {
+          "id": "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "pass": false,
+          "settlementCount": 1,
+          "acceptedKind": "value",
+          "invalidation": null,
+          "actuallyObservedOff": false,
+          "cycleWithinHostTask": true
+        }
+      ]
+    }
+  ],
+  "profileCleanup": {
+    "ownedOnly": true,
+    "profiles": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T21-28-48-030Z-m5-life-138-r1-bf36fe1f",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T21-29-56-557Z-m5-life-154-r1-4e632233"
+    ],
+    "removed": true,
+    "liveProcessMatches": []
+  },
+  "historicalEvidence": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+      "manifestSha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7",
+      "filesVerified": 34,
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+      "manifestSha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790",
+      "filesVerified": 34,
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3",
+      "reportSha256": "5a39c45d8db035ad13bb1106689699274d695b4dccc5b481193e722d4f5a1e4c",
+      "unchanged": true,
+      "oldCounterexamples": 8
+    }
+  ],
+  "retainedHistoricalFailures": "Four raw native throw/rejection plus required host remove FAIL unchanged and not executed in this targeted run. No skipped case promoted to success.",
+  "frozenDenominatorsPreserved": "48 API members, 183 SDK, 63 resources, 603 mandatory cases and original expected remain; no shared ledger or gate edits",
+  "scope": "Prototype evidence only; no product code, global settings, dependencies, shared browsers, public gates, backend/F2 pass",
+  "remaining": [
+    "Formal round6 same-hash Architect→Critic approval and explicit release before new-contract adjudication",
+    "Final same-source two-version full prototype matrix (code/file/world/typed/raw/CSP included) after release",
+    "Independent F1 functional/combined qualification; original eight FAIL and this new eight FAIL retained"
+  ],
+  "limitations": [
+    "Operation-native observations latch actual OFF; probes do not prove uninterrupted authorization between observations",
+    "Actual host task stalls produced unobserved UI cycles with old effects/results accepted: original contract FAIL, not an amended-limit PASS",
+    "OwnGrant UI is finite trusted prototype authority, not product integration; UI-cancel/deadline evidence proves old-result fencing, not native termination or page stop SLO"
+  ]
+}

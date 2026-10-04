@@ -1,0 +1,1191 @@
+[
+  {
+    "id": "CORE-RUN-CONTEXT",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/ChromePage.ts",
+      "symbol": "export page / background global page",
+      "lines": [
+        1136,
+        1153
+      ],
+      "sha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6"
+    },
+    "oldBehavior": "old shared exported page and active tab resolver",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "per-run context after admission/pin/bind; no default active target"
+    },
+    "newModules": [
+      "src/framework/context.js",
+      "src/framework/ChromePage.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/framework/context.js|src/framework/ChromePage.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T07",
+      "T01"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02",
+      "T03",
+      "T04"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "CMP01-RUN-CONTEXT",
+        "input": {
+          "runs": [
+            "A/top",
+            "B/frame"
+          ],
+          "options": [
+            null,
+            {
+              "debug": true
+            },
+            {
+              "debug": false
+            },
+            {}
+          ],
+          "activeSwitch": "B"
+        },
+        "expected": "each keyboard/page same run; debug true/true/false/undefined; switch active does not change A; no context E_PAGE_CONTEXT_REQUIRED; no shared page",
+        "families": [
+          "CMP01",
+          "USC06",
+          "A02"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-CONTROL-EXEC",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "symbol": "SCRIPT_RUN / wrapAsync",
+      "lines": [
+        403,
+        496
+      ],
+      "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720"
+    },
+    "oldBehavior": "background async controller used global page",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "per-run opaque sandbox classic Blob Worker, private port; packaged controllers static registry"
+    },
+    "newModules": [
+      "src/scripting/sandbox/controller.js",
+      "src/scripting/sandbox/page-proxy.js",
+      "src/run-host.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/scripting/sandbox/controller.js|src/scripting/sandbox/page-proxy.js|src/run-host.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T10",
+      "T01"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T07",
+      "T04"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "USC01-ASYNC-RETURN",
+        "input": {
+          "body": "await page.goto(params.url); await page.type('#name','Alice'); await page.click('#submit'); await page.waitForSelector('#result'); return await page.title();",
+          "params": {
+            "url": "fixture A"
+          },
+          "scrapingRegistered": false
+        },
+        "expected": "await order correct and original typed value -> durable result; new explicit rerun new runId; no template/entitlement/row/seal",
+        "families": [
+          "USC01",
+          "A01"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      },
+      {
+        "id": "USC01-ASYNC-ERROR",
+        "input": {
+          "bodies": [
+            "throw new Error('actual');",
+            "const = ;",
+            "return undefined;",
+            "return false;",
+            "return 0;"
+          ]
+        },
+        "expected": "typed error with actual name/message; undefined/false/0 separate success, durable once; syntax invalid does not dispatch page op",
+        "families": [
+          "USC01",
+          "USC04"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-CONTROL-FENCE",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "symbol": "SCRIPT_STOP / run terminal",
+      "lines": [
+        403,
+        496
+      ],
+      "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720"
+    },
+    "oldBehavior": "long await stops not durable reliable",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "cancel first closes new admission then terminates Worker; terminal once; dispatched effects separate"
+    },
+    "newModules": [
+      "src/run-host.js",
+      "src/platform/host/authority.js",
+      "src/scripting/sandbox/controller.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/run-host.js|src/platform/host/authority.js|src/scripting/sandbox/controller.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T01",
+      "T02",
+      "T10"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02",
+      "T07"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "CTRL01-STOP-BARRIERS",
+        "input": {
+          "barriers": [
+            "prepare before",
+            "admission before",
+            "admission after/Chrome before",
+            "effect after/receipt before",
+            "durable before",
+            "terminal before fence"
+          ],
+          "command": "click writes counter",
+          "actions": [
+            "stop",
+            "timeout",
+            "host close",
+            "Worker loss",
+            "SW kill"
+          ]
+        },
+        "expected": "stop before commit no dispatch; admitted may write once; lost receipt unknown/no replay; durable once; terminal recovery releases held slot; late stop cannot change completed",
+        "families": [
+          "CTRL01",
+          "CTRL03",
+          "FIX01"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      },
+      {
+        "id": "USC05-GLOBAL-FORGE",
+        "input": {
+          "messages": [
+            "naturalEnd true",
+            "wrong run/epoch",
+            "old seq",
+            "global postMessage result"
+          ],
+          "patches": [
+            "Map",
+            "Promise.then",
+            "MessagePort.postMessage",
+            "structuredClone"
+          ]
+        },
+        "expected": "private harness unaffected; forged/replay ignored/rejected; no authority completion without genuine settlement",
+        "families": [
+          "USC05",
+          "AUTH01"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-SCRIPT-VERSION",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "symbol": "SCRIPT_RUN body",
+      "lines": [
+        403,
+        496
+      ],
+      "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720"
+    },
+    "oldBehavior": "old execution bytes not immutable revision",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "committed UTF8 revisions CAS head and pin/tombstone; not latest mutable source"
+    },
+    "newModules": [
+      "src/platform/storage/repository.js",
+      "src/scripting/packaged/revision-resolver.js",
+      "src/run-host.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/platform/storage/repository.js|src/scripting/packaged/revision-resolver.js|src/run-host.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T04",
+      "T10",
+      "T01"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "USC02-REVISION-PIN",
+        "input": {
+          "r1": "await page.waitForTimeout(500); return 'r1';",
+          "r2": "return 'r2';",
+          "sequence": [
+            "commit r1",
+            "run r1",
+            "CAS save r2",
+            "delete script",
+            "release r1"
+          ]
+        },
+        "expected": "run pinned same r1 UTF8/hash throughout; r2 becomes head only; tombstone does not GC pinned bytes; r1 durable; rerun explicit new run; CAS loser no head change",
+        "families": [
+          "USC02",
+          "USC03"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      },
+      {
+        "id": "USC04-SOURCE-REJECT",
+        "input": {
+          "failures": [
+            "missing revision",
+            "hash mismatch",
+            "backend mismatch",
+            "save abort",
+            "source oversized",
+            "params cycle"
+          ]
+        },
+        "expected": "typed reject before run/page operation; no fallback mutable head/remote code; record actual source bytes/hash",
+        "families": [
+          "USC04",
+          "PROV01"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-IDENTITY",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "symbol": "background bridge router",
+      "lines": [
+        102,
+        247
+      ],
+      "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720"
+    },
+    "oldBehavior": "old bridge routed by payload/active tab",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "browser sender facts separate principal/run/channel; missing identity rejects; one authority"
+    },
+    "newModules": [
+      "src/platform/host/broker.js",
+      "src/platform/host/authority.js",
+      "src/platform/schema.js",
+      "src/platform/protocol.js",
+      "src/sw.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/platform/host/broker.js|src/platform/host/authority.js|src/platform/schema.js|src/platform/protocol.js|src/sw.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T02",
+      "T06"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "AUTH01-SENDER-MATRIX",
+        "input": {
+          "senders": [
+            "real tool extension document without tab",
+            "real page relay with tab/frame/doc",
+            "missing id",
+            "missing doc",
+            "spoof payload run/plugin/epoch/tab",
+            "old doc",
+            "opaque about blank"
+          ],
+          "requests": [
+            "registerHost",
+            "controller claim",
+            "SDK short service"
+          ]
+        },
+        "expected": "verified actual tool succeeds; page only granted short service; missing required Chrome fact E_PERMISSION/identity error before dispatch; no payload identity repair/hostDocument fabrication",
+        "families": [
+          "AUTH01",
+          "B04"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      },
+      {
+        "id": "FIX01-SCHEMA-KEYS",
+        "input": {
+          "inputs": [
+            "valid nested $ref",
+            "invalid pointer",
+            "inherited toString/__proto__ key",
+            "invalid date Feb30",
+            "date no timezone",
+            "commandId host:registration"
+          ]
+        },
+        "expected": "valid refs succeed; invalid pointers/prototype keys/dates typed reject; canonical journal namespace prevents host/admission/op key overwrite",
+        "families": [
+          "FIX01"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-NAVIGATION",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/ChromePage.ts",
+      "symbol": "goto/reload/_execute",
+      "lines": [
+        162,
+        233
+      ],
+      "sha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6"
+    },
+    "oldBehavior": "old active tabs and navigation callback",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "navigation intent original target/from-to and precise rebind after full revalidation"
+    },
+    "newModules": [
+      "src/platform/target/index.js",
+      "src/platform/page-port/index.js",
+      "src/platform/chrome/tabs.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/platform/target/index.js|src/platform/page-port/index.js|src/platform/chrome/tabs.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T03"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02",
+      "T04"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "NAV01-TRANSITION",
+        "input": {
+          "targets": [
+            "two tabs",
+            "same tab two frames"
+          ],
+          "operations": [
+            "wait old doc",
+            "retain old ChromeElement",
+            "goto new authorized origin",
+            "type new"
+          ],
+          "faults": [
+            "stop",
+            "deadline",
+            "ungranted redirect",
+            "external navigation",
+            "BFCache"
+          ]
+        },
+        "expected": "old normal waits/elements reject; expected unload does not reject goto; new verified doc resolves original op with from/to; root page updates atomically; faults prevent update/type; BFCache old binding never revived",
+        "families": [
+          "NAV01",
+          "A02"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-PERSISTENCE",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/chrome-local-storage-api.js",
+      "symbol": "AppStorage persistence + local API",
+      "lines": [
+        1,
+        56
+      ],
+      "sha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38"
+    },
+    "oldBehavior": "old storage facade no unified immutable run results",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "single current DB v1->v2 with immutable source/result/artifact/namespace and explicit-key backup"
+    },
+    "newModules": [
+      "src/platform/storage/idb.js",
+      "src/platform/storage/repository.js",
+      "src/platform/storage/index.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/platform/storage/idb.js|src/platform/storage/repository.js|src/platform/storage/index.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T04"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "SVC01-IDB-TRANSACTIONS",
+        "input": {
+          "faults": [
+            "transaction abort before commit",
+            "upgrade blocked by open connection",
+            "versionchange close",
+            "CAS two writers",
+            "quota failure",
+            "SW stop/restart"
+          ]
+        },
+        "expected": "abort no partial changes; blocked no data deletion; versionchange closes connection; one CAS winner; current durable states survive SW; snapshot all explicit keys/hashes",
+        "families": [
+          "SVC01",
+          "USC03"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      },
+      {
+        "id": "SVC01-IDB-RECOVERY",
+        "input": {
+          "sequence": [
+            "rawBackup v1 with unusual explicit keys",
+            "hash backup",
+            "upgrade abort",
+            "upgrade success v2",
+            "current-schema read-only diagnostics",
+            "restore snapshot into isolated profile",
+            "forward repair"
+          ]
+        },
+        "expected": "abort atomically v1 keys/data/version retained; v2 not overwritten by old JS; isolated snapshot key/value/hash exact; forward repair preserves users; report upgrade errors",
+        "families": [
+          "SVC01",
+          "FIX01"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-GENERIC-DOWNLOAD",
+    "category": "core-migration-support",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/downloads/index.js",
+      "symbol": "createDownloadService/prepareExport/readArtifact",
+      "lines": [
+        1,
+        545
+      ],
+      "sha256": "0cd7bb5f610c26d7a23f8bc221b7dd0e3bfacfac64c1cfb5be820fecb0942b44",
+      "originClass": "existing-target-foundation-support"
+    },
+    "oldBehavior": "既有OpenDesk下载底座依赖采集export policy；旧CSDN_DOWNLOAD是延期业务，不将其算通用下载迁移",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "generic artifact independent from scraping rows/quota; attempts/receipt/Chrome complete separate"
+    },
+    "newModules": [
+      "src/platform/downloads/index.js",
+      "src/platform/downloads/blob-lifecycle.js",
+      "src/platform/storage/repository.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/platform/downloads/index.js|src/platform/downloads/blob-lifecycle.js|src/platform/storage/repository.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T05"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02",
+      "T04"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "DLGEN01-ACTUAL-FILE",
+        "input": {
+          "values": [
+            false,
+            0,
+            [],
+            null,
+            {
+              "x": "中"
+            }
+          ],
+          "scrapingRegistered": false,
+          "download": "same committed generic artifact"
+        },
+        "expected": "no template/entitlement/page seal; actual file bytes hash equals artifact; Chrome complete required; interrupted/unknown separate; no automatic unknown re-download",
+        "families": [
+          "DLGEN01",
+          "SVC01"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      },
+      {
+        "id": "DLGEN02-BINARY-CHUNKS",
+        "input": {
+          "bytes": [
+            0,
+            127,
+            128,
+            255
+          ],
+          "fixtures": [
+            "UTF8",
+            "out of order",
+            "missing chunk",
+            "duplicate same",
+            "conflict",
+            "over budget",
+            "host Blob lost"
+          ]
+        },
+        "expected": "JSON base64 bytes exact/hash; commit only full set; missing/conflict/oversize typed reject; duplicate no extra bytes; Blob lost unknown and release observable",
+        "families": [
+          "DLGEN02",
+          "LEAK01"
+        ],
+        "phase": "F2",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-SDK-ADMISSION",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "symbol": "background SDK short-service routing",
+      "lines": [
+        102,
+        247
+      ],
+      "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720"
+    },
+    "oldBehavior": "old page event every request with no atomic admission",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "single journal transaction grant/digest and unique sdk-service run/op; private internal driver; full B05 after SDK"
+    },
+    "newModules": [
+      "src/platform/host/authority.js",
+      "src/platform/host/broker.js",
+      "src/platform/protocol.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/platform/host/authority.js|src/platform/host/broker.js|src/platform/protocol.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T02",
+      "T08",
+      "T09"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T04",
+      "T03",
+      "T06"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "B05-SDK-NO-CONTROLLER",
+        "input": {
+          "controllerRunning": false,
+          "grant": "exact doc namespace with HTTP POST target",
+          "request": {
+            "method": "POST",
+            "requestId": "same",
+            "params": {
+              "x": 1
+            }
+          },
+          "concurrency": 100,
+          "conflict": "same ID params x=2"
+        },
+        "expected": "one admission/run/op and one actual HTTP write; all same digest reconnect original result; conflict rejects before extra allocation/write; private capabilities/15s budget; no fake host",
+        "families": [
+          "B05"
+        ],
+        "phase": "F2-third",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      },
+      {
+        "id": "B05-SDK-FOUR-CRASHES",
+        "input": {
+          "barriers": [
+            "admission abort",
+            "commit before dispatch",
+            "write before receipt",
+            "durable before delivery"
+          ],
+          "kill": "actual SW",
+          "reconnect": "same principal/doc/incarnation/requestId"
+        },
+        "expected": "abort zero effects; commit recovery original op once; unknown original ref/no repeat write; durable returns original result; changing SW epoch/port cannot bypass; new grant never adopts old pending",
+        "families": [
+          "B05"
+        ],
+        "phase": "F2-third",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      },
+      {
+        "id": "B05-SDK-GRANT-GC",
+        "input": {
+          "requests": [
+            "old doc",
+            "revoked incarnation",
+            "expired",
+            "forged payload identity",
+            "SDK chooses controller/script/cookie",
+            "unknown retained beyond TTL",
+            "durable awaiting delivery"
+          ]
+        },
+        "expected": "reject unauthorized before effect; closed incarnation never admitted; do not GC active/delivery or unknown; effect success/delivery failure remain distinct",
+        "families": [
+          "B05",
+          "AUTH01"
+        ],
+        "phase": "F2-third",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-PRODUCT-ENTRY",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "symbol": "background control consumers",
+      "lines": [
+        9,
+        27
+      ],
+      "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720"
+    },
+    "oldBehavior": "old UI and global page consumer",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "minimal existing entry consumes real foundation; no demo adapter; no scraping dependency"
+    },
+    "newModules": [
+      "src/ui/tool-shell.js",
+      "src/ui/script-editor.js",
+      "src/run-host.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/ui/tool-shell.js|src/ui/script-editor.js|src/run-host.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T11",
+      "T13"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T01",
+      "T07",
+      "T08",
+      "T09",
+      "T05",
+      "T12"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "A01-WORKBENCH-INTEGRATION",
+        "input": {
+          "actions": [
+            "explicit choose target/grant",
+            "save UTF8 script and params r1",
+            "select r1/run",
+            "save r2 during r1",
+            "stop/timeout/close host",
+            "reopen results",
+            "download artifact"
+          ],
+          "scrapingRegistered": false
+        },
+        "expected": "trace actual entry same implementation; pinned version unchanged; close fences not resumes JS; read persisted result; explicit new run; download actual complete/hash; independent SDK tested outside controller",
+        "families": [
+          "A01",
+          "USC01",
+          "USC02",
+          "CTRL03",
+          "DLGEN01"
+        ],
+        "phase": "F3",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-RESOURCE-LIFETIME",
+    "category": "core-foundation-run",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/my-content-script.ts",
+      "symbol": "my-content-script loader",
+      "lines": [
+        148,
+        228
+      ],
+      "sha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831"
+    },
+    "oldBehavior": "loader starts SDK and business resources",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "correct",
+      "reason": "fixed allowlist actual consumer+hash/license/load/error; bootstrap kept; no old runtime tree"
+    },
+    "newModules": [
+      "src/platform/page-port/sdk-injection.js",
+      "src/agents/page-relay.js",
+      "webpack.config.cjs",
+      "scripts/verify-package.mjs"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/platform/page-port/sdk-injection.js|src/agents/page-relay.js|webpack.config.cjs|scripts/verify-package.mjs -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T09",
+      "T12"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T08",
+      "T03"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "RESOURCE01-LOAD-CLEANUP",
+        "input": {
+          "resourceCases": [
+            "all allowlisted installed load",
+            "bad path real error",
+            "duplicate injection",
+            "navigate new doc",
+            "missing fingerprint"
+          ],
+          "rounds": {
+            "mixedSuccessErrorTimeoutCancelNavigation": 1000,
+            "hostSWReconnect": 10,
+            "pluginDisable": 2
+          }
+        },
+        "expected": "real load/error settles; duplicate not duplicate listeners; per-doc session invalidation; E_RESOURCE_UNAVAILABLE fingerprint; pending/timer/subscription/port/Worker/Blob return numerical baseline/no linear growth",
+        "families": [
+          "RESOURCE01",
+          "LEAK01",
+          "PLG01"
+        ],
+        "phase": "F3",
+        "layer": "Chrome+IDB",
+        "required": true,
+        "actual": null,
+        "productPackageSha256": null,
+        "status": "not-tested",
+        "evidence": []
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-DEVICE-EVENT-CONSTANTS",
+    "category": "events",
+    "source": {
+      "sourceId": "F016",
+      "file": "operate/EventOperate.cst.ts",
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/EventOperate.cst.ts",
+      "symbol": "EVENT_OPERATE.DEVICE_INFO",
+      "lines": [
+        13,
+        13
+      ],
+      "baselineFileSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "actualFileSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "drift": "same",
+      "fragmentSha256": "2d9af690b2e688a2a490ea70f5ea50363827d5655ab0de3de4632f4997c06a5c",
+      "anchorValidated": true,
+      "originalFragmentSha256": "2d9af690b2e688a2a490ea70f5ea50363827d5655ab0de3de4632f4997c06a5c",
+      "sha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a"
+    },
+    "oldBehavior": "EVENT_OPERATE设备事件字面值，与业务socket/设备handler不同",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "preserve-and-restrict",
+      "reason": "全部原字符串仍由framework/events公开；对应设备业务handler延期，路由typed拒绝；常量存在不算handler支持"
+    },
+    "newModules": [
+      "src/framework/events.js"
+    ],
+    "productEntryChain": "SDK/events export -> same broker static registry -> unsupported device business typed reject",
+    "tasks": [
+      "T08",
+      "T12"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02",
+      "T03",
+      "T04"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "CMP05-DEVICE-EVENT-CONSTANTS",
+        "input": {
+          "values": {
+            "DEVICE_USER_INFO": "OPERATE_DEVICE_USER_INFO",
+            "DEVICE_USER_INFO_UNBIND": "OPERATE_DEVICE_USER_INFO_UNBIND",
+            "DEVICE_INFO": "OPERATE_DEVICE_INFO"
+          },
+          "request": "each device event through actual SDK granted page"
+        },
+        "expected": "literal strings preserved; each unregistered business handler E_SERVICE_UNSUPPORTED, no socket/native/device effect; export pass never marks deferred handler migrated",
+        "required": true,
+        "phase": "F2/F3",
+        "layer": "actual SDK/Chrome"
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-SERIALIZED-SNAPSHOTS",
+    "category": "core-compatibility-alternative",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/ChromePage.ts",
+      "symbol": "ChromePage.$",
+      "lines": [
+        234,
+        250
+      ],
+      "sha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6"
+    },
+    "oldBehavior": "页面querySelector→outerHTML或null，host用div.innerHTML解析firstChild；结果是detached快照；旧evaluate(null)可能陷入回程缺陷。",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "explicit-alternative",
+      "reason": "Necessary documented replacement; separate from original48 signatures, cannot count limitation refusal as original feature"
+    },
+    "newModules": [
+      "src/framework/ChromePage.js",
+      "src/scripting/sandbox/page-proxy.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/framework/context.js|src/framework/ChromePage.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T07",
+      "T10"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02",
+      "T03",
+      "T04"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "CORE-SERIALIZED-SNAPSHOTS-VALUES-FENCES",
+        "input": "Worker page.snapshot absent/matching and snapshots ordered/empty; compare host detached DOM reads, navigate and revoke",
+        "expected": "{outerHTML}|null and arrays/order preserved; no DOM object in Worker, stale doc/grant rejects; unchanged page after modifying serialized values",
+        "required": true,
+        "phase": "F2/F3",
+        "layer": "actual final Chrome product"
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  },
+  {
+    "id": "CORE-EVALUATE-EXPRESSION",
+    "category": "core-compatibility-alternative",
+    "source": {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/ChromePage.ts",
+      "symbol": "ChromePage.eval",
+      "lines": [
+        930,
+        986
+      ],
+      "sha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6"
+    },
+    "oldBehavior": "code.includes(\"=\")猜set分支addScriptTag后undefined；其余插隐藏chromeextension节点暂存JSON表达式结果，debug影响清理；addScriptTag实际不返回scriptId；异常吞日志。",
+    "scope": "core",
+    "behaviorDecision": {
+      "classification": "explicit-alternative",
+      "reason": "显式新增evaluateExpression(expression:string)，仅一个非空字符串，MAIN用户页面世界await表达式；多余参数E_ARGUMENT_TYPE；不采用旧等号启发式，不计原48无改动兼容"
+    },
+    "newModules": [
+      "src/framework/ChromePage.js",
+      "src/scripting/user-scripts/page-evaluator.js"
+    ],
+    "productEntryChain": "tool-shell -> existing client -> broker/authority -> src/framework/context.js|src/framework/ChromePage.js -> same journal/IDB -> original pending/durable result",
+    "tasks": [
+      "T07",
+      "T10"
+    ],
+    "phase": "F2",
+    "dependencies": [
+      "F1-approved",
+      "T02",
+      "T03",
+      "T04"
+    ],
+    "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "testCases": [
+      {
+        "id": "CORE-EVALUATE-EXPRESSION-VALUES-FENCES",
+        "input": "page.evaluateExpression单非空string：false/0/null/undefined/Promise.resolve(3)/throw语法错误；多余参数；缺用户授权；旧document",
+        "expected": "MAIN精确document下await typed value/error；多余参数E_ARGUMENT_TYPE无dispatch；无特权回退；evaluate(string)仍true且忽略args",
+        "required": true,
+        "phase": "F2/F3",
+        "layer": "actual final Chrome product"
+      }
+    ],
+    "status": "mapped",
+    "runtimePass": false,
+    "actual": null,
+    "candidateVersion": "M5-C1",
+    "evidence": [],
+    "completionCondition": "real product entry uses single foundation; all positive/error/fault cases passed on same final package and independent acceptance; limitations separate"
+  }
+]

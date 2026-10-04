@@ -1,0 +1,31 @@
+{
+  "source": "/tmp/opendesk-all-current-tests.log",
+  "preservedCopy": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-package-continuation/external-all-242-red.log",
+  "sha256": "6966a2eedc8271b57738e61fdc22c24c6de3dbe2855366b2d50f79fabdf3923e",
+  "rootCause": "Full manifest field allowlist previously ran before broad-exposure semantic rejection, masking expected CSP/exposure mutation error. Key-set validation now follows strict semantic checks.",
+  "repairFile": "scripts/verify-package.mjs",
+  "assertionPatternPreserved": "CSP|sandbox boundary|broad exposure|host permissions",
+  "scope": "K5 package scanner only; public SDK/storage code remains external ownership",
+  "currentOwnSuite": {
+    "tests": 10,
+    "pass": 10,
+    "fail": 0,
+    "exitCode": 0,
+    "log": "k5-package-tests.log"
+  },
+  "notFinalPackageAcceptance": true,
+  "currentFullGlob": {
+    "defaultConcurrency": {
+      "exitCode": 0,
+      "tests": 263,
+      "pass": 263
+    },
+    "serial": {
+      "exitCode": 0,
+      "tests": 263,
+      "pass": 263
+    },
+    "sourceDriftDuringTests": [],
+    "machineReport": "all-current-tests.json"
+  }
+}

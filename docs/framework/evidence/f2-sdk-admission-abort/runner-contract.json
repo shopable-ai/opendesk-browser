@@ -1,0 +1,114 @@
+{
+  "id": "B05.SDK.crash.before-admission-commit",
+  "at": "2026-10-03T08:50:12.046Z",
+  "nativeStatus": "NOT_TESTED",
+  "browserLaunched": false,
+  "syntax": "PASS",
+  "selectorChecks": "Actual production/dev structural unique location, duplicate anchor refusal, missing anchor refusal passed; parsed package may still be rebuild diagnostics",
+  "files": [
+    {
+      "path": "tests/framework/k5-sdk-admission-abort-native.mjs",
+      "sha256": "ebe301af367b2d4c36f61e562bc6795598b5c1068e1f2e9e0310f03d0ffff598"
+    },
+    {
+      "path": "tests/framework/k5-sdk-admission-abort-native-selector.mjs",
+      "sha256": "700071bb882a7faf7b3b40e64c378a161c19fe4dd740a1678e1d04fb2a3f6fe8"
+    },
+    {
+      "path": "tests/framework/k5-sdk-admission-abort-native-inspect.mjs",
+      "sha256": "9868b5df31299b9ffabd20d481bbe2c36535a5b4a2e92a398e968da608729984"
+    }
+  ],
+  "sharedLauncherHelper": {
+    "path": "tests/framework/k5-sdk-native-launcher.mjs",
+    "sha256": "7a35db166295e31a32903ff80d92af3d4e86057a77dae142f3f4ee4bc2bda4f8"
+  },
+  "startupGate": [
+    "Successful frozen production build+pack+verify+fresh mutation checks",
+    "Main assigns a separate CP1 execution slot",
+    "SDK production/development138/154 native matrix has priority"
+  ],
+  "command": [
+    "node",
+    "tests/framework/k5-sdk-admission-abort-native.mjs",
+    "--run",
+    "--headed",
+    "--chrome=138",
+    "--expected-package-hash=<Main stable production hash>",
+    "--execution-slot=<Main assigned slot>",
+    "--permission-timeout=600000"
+  ],
+  "selector": "Unique sdk-service runs put in actual unchanged production sw.js; same readwrite admission transaction has already awaited SDK operation/request journal puts; only exact native getPossibleBreakpoints codepoint is accepted",
+  "pausedProof": [
+    "Original request/method/args/deadline and actual native MessageSender match page input",
+    "Original put/get wrapper closures refer to the same native IDBTransaction",
+    "Native readwrite mode, database and exact commandJournal/runs/results scope",
+    "Minified native completion/termination state bindings are parsed, not guessed",
+    "A real pending IDBRequest points to that same native transaction; no IDB read/write/abort requests are injected",
+    "Final pending fact immediately precedes stopWorker for exact old version/target"
+  ],
+  "rollbackProof": [
+    "Actual targetDestroyed, distinct replacement SW and native relay Hello recovery",
+    "No competing tool IDB observation while the admission transaction is paused",
+    "Post-recovery native readonly IDB shows no SDK operation/request/run/result invocation rows",
+    "Original grant/incarnation and original document survive, HTTP POST count0",
+    "Same page/grant/document/request/deadline payload is first-admitted, without new grant or synthetic identity",
+    "Exactly1 HTTP effect,1 native result and new native op/run/result IDs; old aborted IDs are not patched"
+  ],
+  "limits": "Missing exact point, closure native state, pending request, target destruction or recovery is NOT_TESTED. Awaiting real permission is BLOCKED. A destroyed worker cannot expose its abort callback; atomic persistent rollback is recorded as an observed fact with that direct event unavailable.",
+  "productHooksAdded": false,
+  "manifestChanged": false,
+  "runnerDatabaseWrites": false,
+  "newExtension": false,
+  "fakeSender": false,
+  "finalProductPassed": false,
+  "b05Closed": false,
+  "f3Accepted": false,
+  "original603Closed": false,
+  "stablePackagePreparation": {
+    "receipt": "docs/framework/evidence/f2-sdk-admission-abort/stable-selector-2026-10-03T09-13-23.json",
+    "at": "2026-10-03T09:18:16.918Z",
+    "nativeStatus": "NOT_TESTED",
+    "syntax": "PASS; four node --check commands",
+    "selectors": [
+      {
+        "mode": "production",
+        "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+        "sourceSha256": "554981e7d03222495857810651836c146c719dbbb771994f80ad7129b16cfb3e",
+        "location": {
+          "lineNumber": 0,
+          "columnNumber": 210950
+        },
+        "proof": "docs/framework/evidence/f2-sdk-admission-abort/selector-2026-10-03T09-13-23.162Z-015166e3/selector-check.json"
+      },
+      {
+        "mode": "development",
+        "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+        "sourceSha256": "a6122686f3a1d26bea47455af2d41fbfe735577c313bee0109cac322efab2632",
+        "location": {
+          "lineNumber": 3854,
+          "columnNumber": 14
+        },
+        "proof": "docs/framework/evidence/f2-sdk-admission-abort/selector-2026-10-03T09-13-23.157Z-9b373ab0/selector-check.json"
+      }
+    ],
+    "files": [
+      {
+        "path": "tests/framework/k5-sdk-admission-abort-native.mjs",
+        "sha256": "ebe301af367b2d4c36f61e562bc6795598b5c1068e1f2e9e0310f03d0ffff598"
+      },
+      {
+        "path": "tests/framework/k5-sdk-admission-abort-native-selector.mjs",
+        "sha256": "700071bb882a7faf7b3b40e64c378a161c19fe4dd740a1678e1d04fb2a3f6fe8"
+      },
+      {
+        "path": "tests/framework/k5-sdk-admission-abort-native-inspect.mjs",
+        "sha256": "9868b5df31299b9ffabd20d481bbe2c36535a5b4a2e92a398e968da608729984"
+      },
+      {
+        "path": "tests/framework/k5-sdk-native-launcher.mjs",
+        "sha256": "7a35db166295e31a32903ff80d92af3d4e86057a77dae142f3f4ee4bc2bda4f8"
+      }
+    ]
+  }
+}

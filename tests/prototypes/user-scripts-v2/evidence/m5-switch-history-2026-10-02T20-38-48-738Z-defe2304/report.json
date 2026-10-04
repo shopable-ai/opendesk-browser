@@ -1,0 +1,227 @@
+{
+  "candidateSha256": "72795026c063b45b18d60d6e57ba5db2462e942db57a8b7471abbe16e88ac2a9",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-38-48-738Z-defe2304",
+  "scope": "Bounded K1 switch history probe; unchanged fixture mechanism",
+  "observerRecheck": false,
+  "fullMatrix": false,
+  "gateDisposition": "BLOCK pending reliable history signal or approved compatibility restriction",
+  "runs": [
+    {
+      "version": "138.0.7204.183",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-138.0.7204.183-6d2985b0-5ebe-4bd1-9d1a-c70523cff22a",
+      "os": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64"
+      },
+      "playwrightVersion": "1.62.1",
+      "cases": [],
+      "console": [],
+      "actualVersion": "138.0.7204.183",
+      "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "fixtureIdentity": {
+        "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*",
+            "http://localhost/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 userScripts v2 fixture",
+          "permissions": [
+            "userScripts",
+            "scripting",
+            "tabs",
+            "webNavigation"
+          ],
+          "version": "0.0.2"
+        }
+      },
+      "target": {
+        "tabId": 995512889,
+        "frameId": 0,
+        "documentId": "AD41FA595D66DEC4CB0C9687EBFE9670",
+        "url": "http://127.0.0.1:52915/owned"
+      },
+      "signalSetup": {
+        "kind": "resolved",
+        "elapsedMs": 3,
+        "results": [
+          {
+            "documentId": "AD41FA595D66DEC4CB0C9687EBFE9670",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": true,
+            "hasError": false
+          }
+        ]
+      },
+      "mainInstanceSetup": {
+        "kind": "resolved",
+        "elapsedMs": 0,
+        "results": [
+          {
+            "documentId": "AD41FA595D66DEC4CB0C9687EBFE9670",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": true,
+            "hasError": false
+          }
+        ]
+      },
+      "error": {
+        "name": "Error",
+        "message": "page.evaluate: TypeError: Cannot read properties of null (reading 'documentId')\n    at eval (eval at evaluate (:311:30), <anonymous>:3:90)\n    at async <anonymous>:337:30",
+        "stack": "page.evaluate: TypeError: Cannot read properties of null (reading 'documentId')\n    at eval (eval at evaluate (:311:30), <anonymous>:3:90)\n    at async <anonymous>:337:30\n    at state (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:80:26)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:89:23"
+      },
+      "browserContextClosed": true
+    },
+    {
+      "version": "154.0.8037.92",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/history-154.0.8037.92-6f3dd5c2-d478-4582-a48c-30535bb055c4",
+      "os": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64"
+      },
+      "playwrightVersion": "1.62.1",
+      "cases": [],
+      "console": [],
+      "actualVersion": "154.0.8037.92",
+      "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "fixtureIdentity": {
+        "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*",
+            "http://localhost/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 userScripts v2 fixture",
+          "permissions": [
+            "userScripts",
+            "scripting",
+            "tabs",
+            "webNavigation"
+          ],
+          "version": "0.0.2"
+        }
+      },
+      "target": {
+        "tabId": 1330352256,
+        "frameId": 0,
+        "documentId": "71E60EE17949C7CF9C82BBB2C97E12E2",
+        "url": "http://127.0.0.1:52915/owned"
+      },
+      "signalSetup": {
+        "kind": "resolved",
+        "elapsedMs": 2,
+        "results": [
+          {
+            "documentId": "71E60EE17949C7CF9C82BBB2C97E12E2",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": true,
+            "hasError": false
+          }
+        ]
+      },
+      "mainInstanceSetup": {
+        "kind": "resolved",
+        "elapsedMs": 0,
+        "results": [
+          {
+            "documentId": "71E60EE17949C7CF9C82BBB2C97E12E2",
+            "frameId": 0,
+            "keys": [
+              "documentId",
+              "frameId",
+              "result"
+            ],
+            "hasResult": true,
+            "resultIsUndefined": false,
+            "result": true,
+            "hasError": false
+          }
+        ]
+      },
+      "error": {
+        "name": "Error",
+        "message": "page.evaluate: TypeError: Cannot read properties of null (reading 'documentId')\n    at eval (eval at evaluate (:311:30), <anonymous>:3:90)\n    at async <anonymous>:337:30",
+        "stack": "page.evaluate: TypeError: Cannot read properties of null (reading 'documentId')\n    at eval (eval at evaluate (:311:30), <anonymous>:3:90)\n    at async <anonymous>:337:30\n    at state (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:80:26)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/probe-switch-history.mjs:89:23"
+      },
+      "browserContextClosed": true
+    }
+  ],
+  "serverClosed": true,
+  "sourceUnchanged": [
+    {
+      "path": "run-headed.mjs",
+      "match": true
+    },
+    {
+      "path": "probe-switch-history.mjs",
+      "match": true
+    },
+    {
+      "path": "fixture/adapter.js",
+      "match": true
+    },
+    {
+      "path": "fixture/file-source.js",
+      "match": true
+    },
+    {
+      "path": "fixture/host.html",
+      "match": true
+    },
+    {
+      "path": "fixture/host.js",
+      "match": true
+    },
+    {
+      "path": "fixture/manifest.json",
+      "match": true
+    },
+    {
+      "path": "fixture/sw.js",
+      "match": true
+    }
+  ]
+}

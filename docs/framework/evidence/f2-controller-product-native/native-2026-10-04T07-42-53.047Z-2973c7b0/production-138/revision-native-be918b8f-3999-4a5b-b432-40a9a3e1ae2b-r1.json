@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-be918b8f-3999-4a5b-b432-40a9a3e1ae2b",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "47400933af003c3320778d4304763bebeaf7d089a40190f1f74fe21c4770179d",
+  "sourceUtf8": "await Promise.reject(new RangeError('native-rejection'));"
+}

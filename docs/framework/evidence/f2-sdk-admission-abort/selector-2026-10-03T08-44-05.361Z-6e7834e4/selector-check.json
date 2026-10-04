@@ -1,0 +1,186 @@
+{
+  "browserLaunched": false,
+  "nativeStatus": "NOT_TESTED",
+  "parseChecks": "PASS",
+  "selector": {
+    "id": "B05.SDK.crash.before-admission-commit",
+    "sourceSha256": "efd4e0216a416018e64eb637018447d00aff534e383388a09c45500edf95a927",
+    "ready": true,
+    "transactionStores": [
+      "commandJournal",
+      "runs",
+      "results"
+    ],
+    "transactionMode": "readwrite",
+    "nativeTransactionStateBindings": {
+      "workDone": "workDone",
+      "ended": "ended"
+    },
+    "bindings": {
+      "tx": "tx",
+      "operation": "operation",
+      "lockKey": "lockKey",
+      "request": "request",
+      "sender": "sender"
+    },
+    "point": {
+      "range": [
+        310751,
+        310994
+      ],
+      "location": {
+        "lineNumber": 4277,
+        "columnNumber": 14
+      },
+      "endLocation": {
+        "lineNumber": 4278,
+        "columnNumber": 129
+      },
+      "text": "tx.put('runs', {tag:'sdk-service', driver:'framework.sdk-service.v1', runId:operation.runId, opId:operation.opId,\n          namespace:operation.namespace, browserSessionIncarnation:session, state:'preparing', createdAt:now()}, operation.runId)"
+    },
+    "precedingJournalPuts": [
+      {
+        "range": [
+          310575,
+          310617
+        ],
+        "location": {
+          "lineNumber": 4275,
+          "columnNumber": 14
+        },
+        "text": "tx.put('commandJournal', operation, opKey)"
+      },
+      {
+        "range": [
+          310633,
+          310735
+        ],
+        "location": {
+          "lineNumber": 4276,
+          "columnNumber": 14
+        },
+        "text": "tx.put('commandJournal', {tag:'sdk-request', grantIncarnation:grant.grantIncarnation, opKey}, lockKey)"
+      }
+    ],
+    "rule": "Only an exact getPossibleBreakpoints location equal to point.location is eligible; no relocation or neighbour fallback"
+  },
+  "packageBefore": {
+    "files": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 60424,
+        "sha256": "9a646420fbddb76ec1fda663655460a454884893df736a10a61555d9a5c0ce37"
+      },
+      {
+        "path": "agents/bootstrap.js.map",
+        "bytes": 74310,
+        "sha256": "041ab39d5cd836b91c55df80c4501bdd2a1c115a539e025149177126bc23b26a"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 16201,
+        "sha256": "6bbc50ee1c169c437c3f1e2944b353eecfbeac0d42a2744977cba36dca8717ce"
+      },
+      {
+        "path": "agents/health.js.map",
+        "bytes": 16050,
+        "sha256": "e800aaf5b6d3ea8447c40d3c15124e49cb79c073d05b94cc8ffa05849202de7e"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 76605,
+        "sha256": "df67d52ac0d2d3ba7ce44a7eab69cef12b4bc63a6d64c763e6063e177b922bdf"
+      },
+      {
+        "path": "agents/page-agent.js.map",
+        "bytes": 89755,
+        "sha256": "31334922695af0fb76ff42f503d373ae3cbd6fd6870bfd0c91d64c6c986b389d"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 95276,
+        "sha256": "1fff0d962f8f7942ad39377aba7f1032bcde2e913af5fd3831809f4c8089e532"
+      },
+      {
+        "path": "agents/page-relay.js.map",
+        "bytes": 106850,
+        "sha256": "6fee9069085ed0088b5aa7dd1cd60410bebeca991a0ebfd8d12ebb24e36aa7b9"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 1291,
+        "sha256": "e573e0320f6a68d3671eb0004ee2758669c52b413d7f26df0259549bc47f68a1"
+      },
+      {
+        "path": "agents/selection-entry.js.map",
+        "bytes": 1051,
+        "sha256": "0371f0c5c787583e651c55c250efaaaee2df306e87d567050a80bbdc5ae80cc6"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 119544,
+        "sha256": "38a0a848f5b8802bda8de628dbcc8d5989d6966ce8cc2cfacbfc0f41274b2eb9"
+      },
+      {
+        "path": "framework/sdk-main.js.map",
+        "bytes": 127755,
+        "sha256": "f96ba00230d60195d27b8b2bc056444ccfb8026a739b767230e6763e7ae333f2"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 109158,
+        "sha256": "0e79fa1fb703c4b162c3fd76cc001d5b3c8a3c60400e5c5285c65ea0a87861b3"
+      },
+      {
+        "path": "scripting/packaged/page-session.js.map",
+        "bytes": 120888,
+        "sha256": "8f50c3f40db6e2c073c0d79c1f04aa5c804de507a3033b45941e104abcbc7737"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 7027,
+        "sha256": "2c6ca359c4617dbba7a7d9507471882c0121d3b00706986bb1204d88bfd2c2b3"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js.map",
+        "bytes": 7856,
+        "sha256": "4674c77c6dcaccfe87a9ba632343322820f36fc5aeff11259317053e07722080"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 111211,
+        "sha256": "c8c6fbaca75fc2eca4093bbc260f2ae6c96c9d04078357e5f6945192d2f21456"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js.map",
+        "bytes": 122241,
+        "sha256": "d9d45b69eed339521e1d7d7382c1d939796bfbc5e932ac4fc34498875289021e"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 594887,
+        "sha256": "efd4e0216a416018e64eb637018447d00aff534e383388a09c45500edf95a927"
+      },
+      {
+        "path": "sw.js.map",
+        "bytes": 594682,
+        "sha256": "bf4129040507e9c9feb1cfd96c8db001f668621967b742a803d427ef31e38ec4"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 184386,
+        "sha256": "efdf60c9518d8fb47b83655334730ba6a1c27b6d6cce2b20bd5c5256c00f9950"
+      },
+      {
+        "path": "ui/tool-shell.js.map",
+        "bytes": 196868,
+        "sha256": "66bdfd7b47568bac4dcd30e9cdb827bbc3dfd67b02a0656cd6625329d1f43c13"
+      }
+    ],
+    "packageHash": "7f698a6928e4911791a40e4a5df76a3b490f0b83858b6effb716de20d791d1c2"
+  },
+  "next": "--run requires the stable production package hash and a main-issued execution-slot; SDK four combinations have priority",
+  "f3Accepted": false,
+  "b05Closed": false,
+  "original603Closed": false
+}

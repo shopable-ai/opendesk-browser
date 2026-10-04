@@ -1,0 +1,42 @@
+{
+  "kind": "bounded-existing-code-map-and-targeted-actions-review-not-stage0-or-F3",
+  "createdAtUTC": "2026-10-03T15:33:10.156718+00:00",
+  "files": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/actual-code-map.md",
+      "bytes": 54485,
+      "sha256": "172ed9e9981eb76f08d112a71972f15b42497088695b64e55b58cb62b1fe65f6"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/actual-code-map.json",
+      "bytes": 106493,
+      "sha256": "3c09e04e70b19309effa201d60772974c470163ae5f37853d936967ee2fe4598"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/full-read-receipt.json",
+      "bytes": 81773,
+      "sha256": "0e99468cad9852ef93a967a690eb09e6bf6a41b8e0e351387af39994de188c96"
+    }
+  ],
+  "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+  "reviewScale": [
+    25,
+    20,
+    25,
+    20,
+    10
+  ],
+  "requiredScoreEach": 95,
+  "rawTerminatedReviewers": [
+    {
+      "agentId": "01a10225-476c-7841-884e-5f09219bab78",
+      "error": "429 Too Many Requests; exceeded retry limit",
+      "score": null
+    },
+    {
+      "agentId": "01a10225-494b-7962-9258-f1c34a1363d0",
+      "error": "429 Too Many Requests; exceeded retry limit",
+      "score": null
+    }
+  ]
+}

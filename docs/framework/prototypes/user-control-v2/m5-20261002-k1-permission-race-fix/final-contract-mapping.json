@@ -1,0 +1,292 @@
+{
+  "planHash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "approvedContracts": {
+    "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+    "bytes": 14013,
+    "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+  },
+  "sourceSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+  "contracts": [
+    {
+      "id": "F1-CTRL-USER-ASYNC",
+      "required": true,
+      "approvedExpected": "actual user body compiles only inside Worker; awaited page calls in order; BaseAlice; actual values/error/syntax; no operation on unauthorized origin",
+      "disposition": "K1_AUTHOR_EXECUTED_INDEPENDENT_REVIEW_PENDING",
+      "K1CaseIds": [
+        "F1-USER-GOTO-TITLE-URL",
+        "F1-USER-TYPE-CLICK-WAIT-READ",
+        "F1-USER-THROW",
+        "F1-USER-SYNTAX",
+        "F1-ADAPTER-REJECTION",
+        "F1-RETURN-false",
+        "F1-RETURN-0",
+        "F1-RETURN-null",
+        "F1-RETURN-undefined",
+        "F1-UNSERIALIZABLE",
+        "F1-DEADLINE",
+        "F1-PENDING-PAGE-DEADLINE"
+      ],
+      "evidence": [
+        "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json"
+      ],
+      "authorPassByVersion": {
+        "Chrome/138.0.7204.183": true,
+        "Chrome/154.0.8037.92": true
+      }
+    },
+    {
+      "id": "F1-CTRL-PRIVATE-CHANNEL",
+      "required": true,
+      "approvedExpected": "reject attacks without true completion or extra page effect; true current run works; captured harness primitives remain safe; no extension API/DOM accessible",
+      "disposition": "K1_AUTHOR_EXECUTED_INDEPENDENT_REVIEW_PENDING",
+      "K1CaseIds": [
+        "F1-GLOBAL-FORGERY-PATCH",
+        "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+        "F1-FAKE-PEER"
+      ],
+      "evidence": [
+        "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json"
+      ],
+      "authorPassByVersion": {
+        "Chrome/138.0.7204.183": true,
+        "Chrome/154.0.8037.92": true
+      }
+    },
+    {
+      "id": "F1-CTRL-CSP-NETWORK",
+      "required": true,
+      "approvedExpected": "record real policy/CSP violation and positive reachability; denied direct network classified by evidence (not CORS inference); no allow-same-origin/SW eval or privileged fallback",
+      "disposition": "K1_AUTHOR_EXECUTED_INDEPENDENT_REVIEW_PENDING",
+      "K1CaseIds": [
+        "F1-CSP-NETWORK-ATTRIBUTION",
+        "F1-GLOBAL-FORGERY-PATCH"
+      ],
+      "evidence": [
+        "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json"
+      ],
+      "authorPassByVersion": {
+        "Chrome/138.0.7204.183": true,
+        "Chrome/154.0.8037.92": true
+      }
+    },
+    {
+      "id": "F1-CTRL-TRUE-TERMINATE",
+      "required": true,
+      "approvedExpected": "loop entered; admission closed; browser independently proves the exact run Worker stops executing and its target is destroyed within 3s of the actual host cancellation/deadline trigger (native Chromium two-second force-termination grace plus one-second observation/scheduling allowance); admission closes immediately, no debugger is attached to the loop Worker; initial loop CPU growth and post-stop quiescence are independently observed; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved",
+      "disposition": "K1_AUTHOR_EXECUTED_INDEPENDENT_REVIEW_PENDING",
+      "K1CaseIds": [
+        "F1-INFINITE-LOOP-STOP",
+        "F1-INFINITE-LOOP-DEADLINE",
+        "F1-INFINITE-LOOP-HOST-CLOSE",
+        "F1-AFTER-TERMINATION-STOP",
+        "F1-AFTER-TERMINATION-DEADLINE",
+        "F1-AFTER-TERMINATION-HOST-CLOSE",
+        "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+        "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+        "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+        "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+        "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+        "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+        "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+        "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+        "F1-PERMISSION-AWAIT-STOP-CLICK",
+        "F1-PERMISSION-AWAIT-STOP-GOTO"
+      ],
+      "evidence": [
+        "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json"
+      ],
+      "authorPassByVersion": {
+        "Chrome/138.0.7204.183": true,
+        "Chrome/154.0.8037.92": true
+      }
+    },
+    {
+      "id": "F1-CTRL-RESOURCE",
+      "required": true,
+      "approvedExpected": "compare actual independent observations before/after and revoked URL load failure; all per-run resources return baseline; later valid run works; preserve old manually counted partial proof",
+      "disposition": "K1_AUTHOR_EXECUTED_INDEPENDENT_REVIEW_PENDING",
+      "K1CaseIds": [
+        "F1-RESOURCE-SUCCESS-0",
+        "F1-RESOURCE-THROW-0",
+        "F1-RESOURCE-TIMEOUT-0",
+        "F1-RESOURCE-CANCEL-0",
+        "F1-RESOURCE-SUCCESS-1",
+        "F1-RESOURCE-THROW-1",
+        "F1-RESOURCE-TIMEOUT-1",
+        "F1-RESOURCE-CANCEL-1",
+        "F1-RESOURCE-SUCCESS-2",
+        "F1-RESOURCE-THROW-2",
+        "F1-RESOURCE-TIMEOUT-2",
+        "F1-RESOURCE-CANCEL-2",
+        "F1-RESOURCE-SUCCESS-3",
+        "F1-RESOURCE-THROW-3",
+        "F1-RESOURCE-TIMEOUT-3",
+        "F1-RESOURCE-CANCEL-3",
+        "F1-RESOURCE-SUCCESS-4",
+        "F1-RESOURCE-THROW-4",
+        "F1-RESOURCE-TIMEOUT-4",
+        "F1-RESOURCE-CANCEL-4",
+        "F1-AFTER-CLEANUP-VALID",
+        "F1-RESOURCE-INDEPENDENT-OBSERVATION"
+      ],
+      "evidence": [
+        "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json"
+      ],
+      "authorPassByVersion": {
+        "Chrome/138.0.7204.183": true,
+        "Chrome/154.0.8037.92": true
+      }
+    },
+    {
+      "id": "F1-PAGE-SOURCE-DOC",
+      "required": true,
+      "approvedExpected": "real execute uses tabId+documentIds only; selected document altered; others unchanged; invalid rejects without dispatch; returned documentId matches; old document cannot mutate fresh",
+      "disposition": "OUTSIDE_K1_WRITE_SCOPE_PAGE_LANE_AND_INDEPENDENT_UNION_REQUIRED",
+      "K1CaseIds": [],
+      "evidence": [],
+      "authorPassByVersion": null
+    },
+    {
+      "id": "F1-PAGE-TYPED-RESULTS",
+      "required": true,
+      "approvedExpected": "wrapper awaits/returns typed false/0/empty/null/undefined; actual throw/rejection/closure error once; business PageBrigeCode unchanged; unsupported args/source reject predispatch; native diagnostics distinct, no claim native error fields all work",
+      "disposition": "OUTSIDE_K1_WRITE_SCOPE_PAGE_LANE_AND_INDEPENDENT_UNION_REQUIRED",
+      "K1CaseIds": [],
+      "evidence": [],
+      "authorPassByVersion": null
+    },
+    {
+      "id": "F1-PAGE-NATIVE-DIAGNOSTICS",
+      "required": true,
+      "approvedExpected": "save actual raw API resolved/rejected/error/result shape in each version, keep all historical failure objects immutable; classify separately from wrapper; independent F1 reviewer must close effect on promised API contract, no silent pass replacement",
+      "disposition": "OUTSIDE_K1_WRITE_SCOPE_PAGE_LANE_AND_INDEPENDENT_UNION_REQUIRED",
+      "K1CaseIds": [],
+      "evidence": [],
+      "authorPassByVersion": null
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP",
+      "required": true,
+      "approvedExpected": "Real UI OFF rejects new userScripts calls with native negative controls and no privileged fallback/replay. Actual origin permission, explicit framework grant, cancel/deadline, document/host/session/target invalidation monotonically fence old results; renewal permits only new generations. Operation-owned observation of native OFF/API refusal sticks across ON and rejects the old result once; the final native availability check must succeed, without claiming an atomic uninterrupted authorization history. Only an OFF-to-ON cycle unobserved by the operation mechanism, with no other authority/document invalidation, lacks a retrospective old-result cancellation guarantee: issued effects/results may complete. Preserve all prior expected values, counterexample FAIL objects and raw-native diagnostics; limitation confirmation does not prove the old fencing capability. CSP/code/file/world/current authorization and actual site revoke/restore remain required; no permissions.remove required workaround false proof.",
+      "disposition": "OUTSIDE_K1_WRITE_SCOPE_PAGE_LANE_AND_INDEPENDENT_UNION_REQUIRED",
+      "K1CaseIds": [],
+      "evidence": [],
+      "authorPassByVersion": null
+    },
+    {
+      "id": "F1-PAGE-OLD-DOC-RACE",
+      "required": true,
+      "approvedExpected": "old pending result/old callback rejected and cannot settle new request; new real document call works; original target/from-to recorded where navigation adapter applies; no assumed world/run sender fields",
+      "disposition": "OUTSIDE_K1_WRITE_SCOPE_PAGE_LANE_AND_INDEPENDENT_UNION_REQUIRED",
+      "K1CaseIds": [],
+      "evidence": [],
+      "authorPassByVersion": null
+    },
+    {
+      "id": "F1-SW-AND-PAGE-LOOP",
+      "required": true,
+      "approvedExpected": "long controller not moved SW; reconnect identity/epoch validated; MAIN loop no false terminate guarantee, only owned tab retirement allowed; borrowed tabs not closed",
+      "disposition": "K1_AUTHOR_EXECUTED_INDEPENDENT_REVIEW_PENDING",
+      "K1CaseIds": [
+        "F1-SW-HOST-RECONNECT",
+        "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+      ],
+      "evidence": [
+        "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json"
+      ],
+      "authorPassByVersion": {
+        "Chrome/138.0.7204.183": true,
+        "Chrome/154.0.8037.92": true
+      }
+    },
+    {
+      "id": "F1-VERSION-MATRIX",
+      "required": true,
+      "approvedExpected": "per binary real complete required matrix; 149 local evidence insufficient; minimum cannot infer from manifest120; inability/failure138 requires explicit scope delta and independent renewed approval before manifest range narrowing",
+      "disposition": "K1_CONTROL_SLICE_EXECUTED_PAGE_DIMENSIONS_REQUIRE_UNION_REVIEW",
+      "K1CaseIds": [
+        "F1-ADAPTER-REJECTION",
+        "F1-AFTER-CLEANUP-VALID",
+        "F1-AFTER-TERMINATION-DEADLINE",
+        "F1-AFTER-TERMINATION-HOST-CLOSE",
+        "F1-AFTER-TERMINATION-STOP",
+        "F1-CSP-NETWORK-ATTRIBUTION",
+        "F1-DEADLINE",
+        "F1-FAKE-PEER",
+        "F1-GLOBAL-FORGERY-PATCH",
+        "F1-INFINITE-LOOP-DEADLINE",
+        "F1-INFINITE-LOOP-HOST-CLOSE",
+        "F1-INFINITE-LOOP-STOP",
+        "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY",
+        "F1-PENDING-PAGE-DEADLINE",
+        "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+        "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+        "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+        "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+        "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+        "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+        "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+        "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+        "F1-PERMISSION-AWAIT-STOP-CLICK",
+        "F1-PERMISSION-AWAIT-STOP-GOTO",
+        "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+        "F1-RESOURCE-CANCEL-0",
+        "F1-RESOURCE-CANCEL-1",
+        "F1-RESOURCE-CANCEL-2",
+        "F1-RESOURCE-CANCEL-3",
+        "F1-RESOURCE-CANCEL-4",
+        "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+        "F1-RESOURCE-SUCCESS-0",
+        "F1-RESOURCE-SUCCESS-1",
+        "F1-RESOURCE-SUCCESS-2",
+        "F1-RESOURCE-SUCCESS-3",
+        "F1-RESOURCE-SUCCESS-4",
+        "F1-RESOURCE-THROW-0",
+        "F1-RESOURCE-THROW-1",
+        "F1-RESOURCE-THROW-2",
+        "F1-RESOURCE-THROW-3",
+        "F1-RESOURCE-THROW-4",
+        "F1-RESOURCE-TIMEOUT-0",
+        "F1-RESOURCE-TIMEOUT-1",
+        "F1-RESOURCE-TIMEOUT-2",
+        "F1-RESOURCE-TIMEOUT-3",
+        "F1-RESOURCE-TIMEOUT-4",
+        "F1-RETURN-0",
+        "F1-RETURN-false",
+        "F1-RETURN-null",
+        "F1-RETURN-undefined",
+        "F1-SW-HOST-RECONNECT",
+        "F1-UNSERIALIZABLE",
+        "F1-USER-GOTO-TITLE-URL",
+        "F1-USER-SYNTAX",
+        "F1-USER-THROW",
+        "F1-USER-TYPE-CLICK-WAIT-READ"
+      ],
+      "evidence": [
+        "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json"
+      ],
+      "authorPassByVersion": {
+        "Chrome/138.0.7204.183": true,
+        "Chrome/154.0.8037.92": true
+      }
+    }
+  ],
+  "nativePendingPermissionRegression": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/report.json",
+  "limitations": [
+    "K1 author execution cannot close independent reviewer disposition or authorize F2.",
+    "Five page contracts and page dimensions of VERSION-MATRIX belong to the page lane; combine frozen lanes for independent review.",
+    "Finite reviewer-derived probe uses Playwright native delegates and may attach finite Workers; it supplies no loop timing proof.",
+    "Full native loop proofs use fresh uninspected domains before CSP/resource observation; approved 3s oracle is unchanged.",
+    "Headless real Chrome extension WebUI/permissions grant state is recorded; no headed human interaction is claimed."
+  ],
+  "backendPrototypePassed": false,
+  "F2": false,
+  "requiresIndependentReview": true
+}

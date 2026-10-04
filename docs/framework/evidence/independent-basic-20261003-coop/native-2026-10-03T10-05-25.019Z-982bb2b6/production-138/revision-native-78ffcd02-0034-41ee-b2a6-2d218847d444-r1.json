@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-78ffcd02-0034-41ee-b2a6-2d218847d444",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+  "sourceUtf8": "await page.goto(params.url); return {title: await page.title(), url: await page.url()}"
+}

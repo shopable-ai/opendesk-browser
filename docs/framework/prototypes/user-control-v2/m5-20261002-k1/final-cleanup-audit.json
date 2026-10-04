@@ -1,0 +1,234 @@
+{
+  "observedAt": "2026-10-02T21:03:56.194016+00:00",
+  "scope": "K1-owned round4/round5 browser profiles and recorded browser process groups only",
+  "liveOwnedProcesses": [],
+  "allOwnedProcessesGone": true,
+  "runs": [
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-2026-10-02T19-40-52.671Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-2026-10-02T19-40-52.671Z/profile",
+      "pid": null,
+      "browserExited": false,
+      "browserExitCode": null,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-clean-loop-navigate-2026-10-02T20-13-41.411Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-clean-loop-navigate-2026-10-02T20-13-41.411Z/profile",
+      "pid": 70819,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-clean-loop-remove-2026-10-02T20-13-41.411Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-clean-loop-remove-2026-10-02T20-13-41.411Z/profile",
+      "pid": 70820,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-final-2026-10-02T20-16-49.146Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-final-2026-10-02T20-16-49.146Z/profile",
+      "pid": 72159,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-final-cleanup-2026-10-02T20-19-18.645Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-final-cleanup-2026-10-02T20-19-18.645Z/profile",
+      "pid": 72774,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-final-evidence-2026-10-02T20-20-50.811Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-final-evidence-2026-10-02T20-20-50.811Z/profile",
+      "pid": 73242,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-43-20.488Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-43-20.488Z/profile",
+      "pid": 57167,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 1
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-45-48.301Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-45-48.301Z/profile",
+      "pid": 57895,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-48-19.813Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-48-19.813Z/profile",
+      "pid": 58618,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-49-30.555Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-49-30.555Z/profile",
+      "pid": 59110,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-51-54.480Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-51-54.480Z/profile",
+      "pid": 59406,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-56-23.555Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-56-23.555Z/profile",
+      "pid": 60615,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-57-31.381Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-57-31.381Z/profile",
+      "pid": 61583,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T20-06-30.807Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T20-06-30.807Z/profile",
+      "pid": 66360,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/profile",
+      "pid": 74600,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/profile",
+      "pid": 74597,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-154-final-2026-10-02T20-16-49.146Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-154-final-2026-10-02T20-16-49.146Z/profile",
+      "pid": 72158,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-154-final-cleanup-2026-10-02T20-19-18.647Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-154-final-cleanup-2026-10-02T20-19-18.647Z/profile",
+      "pid": 72775,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-154-final-evidence-2026-10-02T20-20-50.813Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-154-final-evidence-2026-10-02T20-20-50.813Z/profile",
+      "pid": 73243,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/profile",
+      "pid": 74598,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/profile",
+      "pid": 74599,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round5-138-causal-oracle-check-2026-10-02T20-53-14.707Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-causal-oracle-check-2026-10-02T20-53-14.707Z/profile",
+      "pid": 85198,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round5-138-causal-oracle-check2-2026-10-02T20-53-57.509Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-causal-oracle-check2-2026-10-02T20-53-57.509Z/profile",
+      "pid": 85429,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/profile",
+      "pid": 86255,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/report.json",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/profile",
+      "pid": 86256,
+      "browserExited": true,
+      "browserExitCode": 0,
+      "serverClosed": true,
+      "cdpWaiters": 0
+    }
+  ],
+  "historicalStartupCleanup": "19:40 original failure report retained; separately owned group55897 was cleaned up before subsequent runs"
+}

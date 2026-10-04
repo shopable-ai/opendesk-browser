@@ -1,0 +1,997 @@
+{
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z",
+  "planHash": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "runScope": "MAIN-only diagnostic",
+  "retireMode": "remove",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/138.0.7204.183",
+    "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.0.0 Safari/537.36",
+    "jsVersion": "13.8.258.30",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/profile",
+    "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+    "headed": false,
+    "os": {
+      "platform": "darwin",
+      "release": "25.5.0",
+      "arch": "arm64"
+    },
+    "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f"
+  },
+  "identity": {
+    "expectedManifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk F1 user control v2",
+      "version": "0.0.2",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "scripting",
+        "tabs"
+      ],
+      "host_permissions": [
+        "http://127.0.0.1/*"
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "sandbox": {
+        "pages": [
+          "sandbox.html"
+        ]
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+      }
+    },
+    "extensionIdentity": {
+      "target": {
+        "targetId": "3C52D41083522159B4152DC04E69492B",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+        "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "15C39BE2E696727E8C89D8239D01E214"
+      },
+      "actual": {
+        "id": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        }
+      }
+    },
+    "identityAttempts": [
+      {
+        "target": {
+          "targetId": "3C52D41083522159B4152DC04E69492B",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "15C39BE2E696727E8C89D8239D01E214"
+        }
+      },
+      {
+        "target": {
+          "targetId": "3C52D41083522159B4152DC04E69492B",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "15C39BE2E696727E8C89D8239D01E214"
+        },
+        "actual": {
+          "id": "klkhjgdgiamblehcbkepadedldbjklan",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+              "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 user control v2",
+            "permissions": [
+              "scripting",
+              "tabs"
+            ],
+            "sandbox": {
+              "pages": [
+                "sandbox.html"
+              ]
+            },
+            "version": "0.0.2"
+          }
+        }
+      }
+    ]
+  },
+  "hosts": [
+    {
+      "targetId": "8E026F650DC8CDE61F1D17CE253B9490",
+      "initialized": {
+        "sandbox": {
+          "kind": "sandbox-ready",
+          "origin": "null",
+          "extensionAPI": false,
+          "parentAccess": false
+        },
+        "positiveNetwork": "reachable",
+        "tabId": 733234043,
+        "documentId": "AA11B682185B02B3D9D4042B1781CF00",
+        "hostEpoch": "8e51457f-4c53-4679-8a9f-5a9660c16ba8",
+        "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        },
+        "world": "ISOLATED fixed scripting adapter"
+      },
+      "resources": [
+        {
+          "path": "manifest.json",
+          "sha256": "1e8b0e56ff73a6b11a69abeafeb92f267fdf626b2112714c5cc5b306bba5637b"
+        },
+        {
+          "path": "worker-harness.js",
+          "sha256": "630ab92f6a629d8027d11c0f47c0b5c21a2c60f86a6d859b8ef0d78cabcd39ee"
+        }
+      ],
+      "document": {
+        "frameTree": {
+          "frame": {
+            "id": "8E026F650DC8CDE61F1D17CE253B9490",
+            "loaderId": "D09EE4D774E46BB9407347CC899E4110",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49463%2Fprobe&retire=remove",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "siteAccess": {
+    "contains": true,
+    "actual": {
+      "origins": [
+        "http://127.0.0.1/*"
+      ],
+      "permissions": [
+        "tabs",
+        "scripting"
+      ]
+    }
+  },
+  "extensionUi": {
+    "url": "chrome://extensions/?id=klkhjgdgiamblehcbkepadedldbjklan",
+    "title": "扩展程序 - OpenDesk F1 user control v2",
+    "controls": [
+      {
+        "tag": "input",
+        "id": "searchInput",
+        "text": "",
+        "parentText": "搜索扩展程序",
+        "hostTag": "cr-toolbar-search-field",
+        "hostText": "",
+        "hostId": "search",
+        "value": "",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "devMode",
+        "text": "",
+        "parentText": "开发者模式",
+        "hostTag": "extensions-toolbar",
+        "hostText": "",
+        "hostId": "toolbar",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 718,
+          "y": 19.984375,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "enableToggle",
+        "text": "",
+        "parentText": "详情\n      \n      \n        移除\n      \n      \n    \n    \n    \n      \n      \n    \n    \n    \n    \n    \n      此扩展程序可能会读取和更改网站信息，或者在后台运行",
+        "hostTag": "extensions-item",
+        "hostText": "",
+        "hostId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "checked": true,
+        "disabled": false,
+        "aria": "开启，扩展程序已启用",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "enableToggle",
+        "text": "",
+        "parentText": "此扩展程序可能会读取和更改网站信息，或者在后台运行",
+        "hostTag": "extensions-detail-view",
+        "hostText": "",
+        "hostId": "",
+        "checked": true,
+        "disabled": false,
+        "aria": "开启，扩展程序已启用",
+        "box": {
+          "x": 672,
+          "y": -168,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "parentText": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "自动允许访问以下网站",
+        "hostId": "allHostsToggle",
+        "value": "on",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "自动允许访问以下网站",
+        "hostId": "allHostsToggle",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 160.109375,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "parentText": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "http://127.0.0.1/*",
+        "hostId": "",
+        "value": "on",
+        "checked": true,
+        "disabled": true,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "http://127.0.0.1/*",
+        "hostId": "",
+        "checked": true,
+        "disabled": true,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 209.109375,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "parentText": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "允许扩展程序在 Chromium 工具栏中显示访问请求",
+        "hostId": "show-access-requests-toggle",
+        "value": "on",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "允许扩展程序在 Chromium 工具栏中显示访问请求",
+        "hostId": "show-access-requests-toggle",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 257.625,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "parentText": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "固定到工具栏",
+        "hostId": "pin-to-toolbar",
+        "value": "on",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "固定到工具栏",
+        "hostId": "pin-to-toolbar",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 364.125,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "parentText": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "在无痕模式下启用\n              警告：Chromium 无法阻止扩展程序记录您的浏览活动。若要在无痕模式下停用该扩展程序，请取消选中此选项。\n              \n                对此设置的更改将在 Chromium 重启后生效。",
+        "hostId": "allow-incognito",
+        "value": "on",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "在无痕模式下启用\n              警告：Chromium 无法阻止扩展程序记录您的浏览活动。若要在无痕模式下停用该扩展程序，请取消选中此选项。\n              \n                对此设置的更改将在 Chromium 重启后生效。",
+        "hostId": "allow-incognito",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 429.15625,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "parentText": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "允许访问文件网址\n              \n                对此设置的更改将在 Chromium 重启后生效。",
+        "hostId": "allow-on-file-urls",
+        "value": "on",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "hostTag": "extensions-toggle-row",
+        "hostText": "允许访问文件网址\n              \n                对此设置的更改将在 Chromium 重启后生效。",
+        "hostId": "allow-on-file-urls",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 494.1875,
+          "w": 26,
+          "h": 16
+        }
+      }
+    ]
+  },
+  "scope": "F1 control prototype only; author execution, not independent acceptance or product migration",
+  "cases": [
+    {
+      "id": "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY",
+      "input": {
+        "ownedMainBody": "setTimeout(()=>{document.body.dataset.loopEntered=\"true\";while(true){}},50)",
+        "borrowedURL": "http://127.0.0.1:49463/form?borrowed-sentinel=1790972665651",
+        "roles": {
+          "controllerOwned": "94B587520DAD514E715FC6A4150540A2",
+          "runnerOwnedAdapterBorrowed": "0C5BA84AB834ED03A4A4E05D51C0B050"
+        }
+      },
+      "expected": "MAIN loop has no fake terminate; retire only explicitly owned page; borrowed page survives adapter retirement and dispose",
+      "status": "PASS",
+      "actual": {
+        "mainToken": "main-loop-1790972665861",
+        "mainEntered": [
+          {
+            "url": "/probe?mainLoop=main-loop-1790972665861&documentURL=http%3A%2F%2F127.0.0.1%3A49463%2Fform",
+            "method": "POST",
+            "origin": "http://127.0.0.1:49463",
+            "at": 1790972665920,
+            "kind": "http"
+          }
+        ],
+        "mainArm": [
+          {
+            "documentId": "AA11B682185B02B3D9D4042B1781CF00",
+            "frameId": 0,
+            "result": {
+              "armed": true,
+              "documentURL": "http://127.0.0.1:49463/form",
+              "world": "MAIN"
+            }
+          }
+        ],
+        "mainCpuBefore": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 74597,
+              "cpuTime": 0.702376
+            },
+            {
+              "type": "renderer",
+              "id": 74673,
+              "cpuTime": 0.044707
+            },
+            {
+              "type": "renderer",
+              "id": 74668,
+              "cpuTime": 0.061467
+            },
+            {
+              "type": "renderer",
+              "id": 74658,
+              "cpuTime": 0.0783
+            },
+            {
+              "type": "renderer",
+              "id": 74650,
+              "cpuTime": 0.100012
+            },
+            {
+              "type": "renderer",
+              "id": 74672,
+              "cpuTime": 0.073181
+            },
+            {
+              "type": "renderer",
+              "id": 74640,
+              "cpuTime": 0.069389
+            },
+            {
+              "type": "GPU",
+              "id": 74631,
+              "cpuTime": 0.261879
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 74632,
+              "cpuTime": 0.107828
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 74637,
+              "cpuTime": 0.041835
+            }
+          ]
+        },
+        "mainCpuActive": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 74597,
+              "cpuTime": 0.719807
+            },
+            {
+              "type": "renderer",
+              "id": 74673,
+              "cpuTime": 0.044707
+            },
+            {
+              "type": "renderer",
+              "id": 74668,
+              "cpuTime": 0.061467
+            },
+            {
+              "type": "renderer",
+              "id": 74658,
+              "cpuTime": 0.224985
+            },
+            {
+              "type": "renderer",
+              "id": 74650,
+              "cpuTime": 0.100936
+            },
+            {
+              "type": "renderer",
+              "id": 74672,
+              "cpuTime": 0.073234
+            },
+            {
+              "type": "renderer",
+              "id": 74640,
+              "cpuTime": 0.069514
+            },
+            {
+              "type": "GPU",
+              "id": 74631,
+              "cpuTime": 0.275876
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 74632,
+              "cpuTime": 0.109713
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 74637,
+              "cpuTime": 0.041835
+            }
+          ]
+        },
+        "mainCpuSamples": [
+          {
+            "at": 1790972665970,
+            "sample": {
+              "processInfo": [
+                {
+                  "type": "browser",
+                  "id": 74597,
+                  "cpuTime": 0.715359
+                },
+                {
+                  "type": "renderer",
+                  "id": 74673,
+                  "cpuTime": 0.044707
+                },
+                {
+                  "type": "renderer",
+                  "id": 74668,
+                  "cpuTime": 0.061467
+                },
+                {
+                  "type": "renderer",
+                  "id": 74658,
+                  "cpuTime": 0.126723
+                },
+                {
+                  "type": "renderer",
+                  "id": 74650,
+                  "cpuTime": 0.100741
+                },
+                {
+                  "type": "renderer",
+                  "id": 74672,
+                  "cpuTime": 0.073234
+                },
+                {
+                  "type": "renderer",
+                  "id": 74640,
+                  "cpuTime": 0.069514
+                },
+                {
+                  "type": "GPU",
+                  "id": 74631,
+                  "cpuTime": 0.272351
+                },
+                {
+                  "type": "network.mojom.NetworkService",
+                  "id": 74632,
+                  "cpuTime": 0.108878
+                },
+                {
+                  "type": "storage.mojom.StorageService",
+                  "id": 74637,
+                  "cpuTime": 0.041835
+                }
+              ]
+            }
+          },
+          {
+            "at": 1790972666072,
+            "sample": {
+              "processInfo": [
+                {
+                  "type": "browser",
+                  "id": 74597,
+                  "cpuTime": 0.719807
+                },
+                {
+                  "type": "renderer",
+                  "id": 74673,
+                  "cpuTime": 0.044707
+                },
+                {
+                  "type": "renderer",
+                  "id": 74668,
+                  "cpuTime": 0.061467
+                },
+                {
+                  "type": "renderer",
+                  "id": 74658,
+                  "cpuTime": 0.224985
+                },
+                {
+                  "type": "renderer",
+                  "id": 74650,
+                  "cpuTime": 0.100936
+                },
+                {
+                  "type": "renderer",
+                  "id": 74672,
+                  "cpuTime": 0.073234
+                },
+                {
+                  "type": "renderer",
+                  "id": 74640,
+                  "cpuTime": 0.069514
+                },
+                {
+                  "type": "GPU",
+                  "id": 74631,
+                  "cpuTime": 0.275876
+                },
+                {
+                  "type": "network.mojom.NetworkService",
+                  "id": 74632,
+                  "cpuTime": 0.109713
+                },
+                {
+                  "type": "storage.mojom.StorageService",
+                  "id": 74637,
+                  "cpuTime": 0.041835
+                }
+              ]
+            }
+          }
+        ],
+        "mainRetire": {
+          "removed": true,
+          "tabId": 733234043
+        },
+        "ownedTargetDestroyed": {
+          "method": "Target.targetDestroyed",
+          "params": {
+            "targetId": "94B587520DAD514E715FC6A4150540A2"
+          },
+          "observedAt": 1790972666080
+        },
+        "borrowedBinding": {
+          "tabId": 733234044,
+          "documentId": "532AE352A501ADF840B6ED59815D6661",
+          "owned": false,
+          "url": "http://127.0.0.1:49463/form?borrowed-sentinel=1790972665651"
+        },
+        "borrowedRefusal": {
+          "removed": false,
+          "reason": "borrowed"
+        },
+        "borrowedStillPresent": true
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 0,
+        "frame": 0,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    }
+  ],
+  "initialized": {
+    "sandbox": {
+      "kind": "sandbox-ready",
+      "origin": "null",
+      "extensionAPI": false,
+      "parentAccess": false
+    },
+    "positiveNetwork": "reachable",
+    "tabId": 733234043,
+    "documentId": "AA11B682185B02B3D9D4042B1781CF00",
+    "hostEpoch": "8e51457f-4c53-4679-8a9f-5a9660c16ba8",
+    "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+    "manifest": {
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+      },
+      "host_permissions": [
+        "http://127.0.0.1/*"
+      ],
+      "manifest_version": 3,
+      "minimum_chrome_version": "138",
+      "name": "OpenDesk F1 user control v2",
+      "permissions": [
+        "scripting",
+        "tabs"
+      ],
+      "sandbox": {
+        "pages": [
+          "sandbox.html"
+        ]
+      },
+      "version": "0.0.2"
+    },
+    "world": "ISOLATED fixed scripting adapter"
+  },
+  "evidence": {
+    "records": [],
+    "operations": [],
+    "deliveries": [],
+    "rejects": [],
+    "policy": [],
+    "retired": [],
+    "realmRetirements": [],
+    "workers": [],
+    "hostEpoch": "8e51457f-4c53-4679-8a9f-5a9660c16ba8",
+    "sandboxEpoch": "9e9eb205-06cf-4a37-a76b-f420e63df702",
+    "active": null
+  },
+  "networkServerHits": [
+    {
+      "url": "/form",
+      "method": "GET",
+      "origin": null,
+      "at": 1790972665594,
+      "kind": "http"
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "origin": null,
+      "at": 1790972665637,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension",
+      "method": "GET",
+      "origin": null,
+      "at": 1790972665644,
+      "kind": "http"
+    },
+    {
+      "url": "/form?borrowed-sentinel=1790972665651",
+      "method": "GET",
+      "origin": null,
+      "at": 1790972665697,
+      "kind": "http"
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "origin": null,
+      "at": 1790972665726,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?mainLoop=main-loop-1790972665861&documentURL=http%3A%2F%2F127.0.0.1%3A49463%2Fform",
+      "method": "POST",
+      "origin": "http://127.0.0.1:49463",
+      "at": 1790972665920,
+      "kind": "http"
+    }
+  ],
+  "resourceBaseline": {
+    "pending": 0,
+    "timer": 0,
+    "port": 1,
+    "frame": 1,
+    "pageWaits": 0,
+    "resourceReplies": 0
+  },
+  "disposedResources": {
+    "pending": 0,
+    "timer": 0,
+    "port": 0,
+    "frame": 0,
+    "pageWaits": 0,
+    "resourceReplies": 0
+  },
+  "workerTargetsAfterDispose": [],
+  "notTested": [
+    "F2/F3 product migration",
+    "userScripts dimensions owned by separate lane"
+  ],
+  "historicalBefore": [
+    {
+      "path": "evidence/chrome-149/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/chrome-149/console.json",
+      "sha256": "42330b6fd6c0f12da8218d8f4257d43a5a72349a89a3751c1056f3433025463c"
+    },
+    {
+      "path": "evidence/chrome-149/attempt-2-debugger-attached/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-01.724Z/report.json",
+      "sha256": "d16144c5d5f1d3a1cd2d1acf63a67a20df9bae03e5c3543c6f8911467ffd7d16"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-50.488Z/report.json",
+      "sha256": "38796ab1b40ec6c038d0ff6fce0b2e1ce8c676a78614d47957b5628e4c641ea1"
+    }
+  ],
+  "cleanup": {
+    "ownedBrowserExited": true,
+    "ownedBrowserPid": 74597,
+    "exitCode": 0,
+    "signalCode": null,
+    "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/profile",
+    "ownedTargets": [
+      "8E026F650DC8CDE61F1D17CE253B9490"
+    ],
+    "serverClosed": true,
+    "cdpWaiters": 0,
+    "abortedCdpRequests": 0
+  },
+  "sourceUnchangedDuringRun": true,
+  "prototypeCandidateSha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+  "backendPrototypePassed": false,
+  "requiresIndependentReview": true,
+  "historicalAfter": [
+    {
+      "path": "evidence/chrome-149/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/chrome-149/console.json",
+      "sha256": "42330b6fd6c0f12da8218d8f4257d43a5a72349a89a3751c1056f3433025463c"
+    },
+    {
+      "path": "evidence/chrome-149/attempt-2-debugger-attached/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-01.724Z/report.json",
+      "sha256": "d16144c5d5f1d3a1cd2d1acf63a67a20df9bae03e5c3543c6f8911467ffd7d16"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-50.488Z/report.json",
+      "sha256": "38796ab1b40ec6c038d0ff6fce0b2e1ce8c676a78614d47957b5628e4c641ea1"
+    }
+  ],
+  "historicalEvidenceUnchanged": true
+}

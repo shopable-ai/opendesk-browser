@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-02T20:59:56.114710+00:00",
+  "independent": true,
+  "role": "architecture/devils-advocate",
+  "opinion": "ELIGIBLE_FOR_FORMAL_AFFECTED_SCOPE_REVIEW_WITH_PRECONDITIONS",
+  "formalCandidateApproved": false,
+  "runtimeAccepted": false,
+  "score": null,
+  "currentF1Verdict": "BLOCK",
+  "issueIds": [
+    "ARCH-PAGE-01",
+    "CR-F1-PAGE-001"
+  ],
+  "finalUnionCandidateSha256": null,
+  "scope": "Requested precondition opinion only. Write only switch-contract-opinion.md/json; no candidate/product/prototype/gates/ledger changes or extra browser runs.",
+  "authorityBasis": {
+    "v5ConditionalChangeClause": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:239",
+    "v5FormalPlanReview": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:272",
+    "v5RealF1Scope": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:278",
+    "v5RealIdentityAndDocumentContract": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:332",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:333"
+    ],
+    "analysis": "v5 explicitly permits recorded, justified conditional narrowing with independent affected-scope review while preserving original denominators/history. This can cover this native switch-history limitation; it does not permit weakening real authority withdrawal or silently adopting revised expectations.",
+    "extraBlanketHumanConfirmationRequiredByReadContract": false,
+    "currentHumanRequestAuthorizes": "Opinion only; not adoption or formal candidate approval"
+  },
+  "evidence": {
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3/report.json",
+    "reportSha256": "5a39c45d8db035ad13bb1106689699274d695b4dccc5b481193e722d4f5a1e4c",
+    "diagnosticCandidateSha256": "0726cdf8e49880f9c516f95f48b35f273d9e0204749174bd1a3cf35bc2f5a576",
+    "priorPageCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+    "evidenceManifestSha256": "50906af99dfd647cd8bec89d76ec1a45f00ad0e806d424f8eb9837da6015fe2c",
+    "evidenceFilesChecked": 23,
+    "sourceSnapshotsChecked": 8,
+    "hashMismatches": [],
+    "probeSnapshot": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3/source/probe-switch-history.mjs",
+    "probeSha256": "7898fb548383390ebba3684fcf3af7f4aec7cecbb32564b798e3a727cdb086bf",
+    "oldExpectedFalseLines": [
+      572,
+      1168,
+      1722,
+      2318,
+      4436,
+      5038,
+      5598,
+      6200
+    ],
+    "independentlyReran": false,
+    "serverClosed": true,
+    "observations": [
+      {
+        "actualVersion": "138.0.7204.183",
+        "cases": 4,
+        "oldExpectedFalse": 4,
+        "namespaceAndMethodSameOffOn": true,
+        "nativeApiUnavailableOffAvailableOn": true,
+        "registryRestoredUnchanged": true,
+        "worldConfigurationRestoredUnchanged": true,
+        "markersRetained": {
+          "USER_SCRIPT": "m5-user-instance-marker",
+          "MAIN": "m5-main-instance-marker"
+        },
+        "portEchoDuringOff": true,
+        "portDisconnectedDuringOff": false,
+        "observedEvents": [],
+        "permissionEvents": [],
+        "browserClosed": true,
+        "resources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        }
+      },
+      {
+        "actualVersion": "154.0.8037.92",
+        "cases": 4,
+        "oldExpectedFalse": 4,
+        "namespaceAndMethodSameOffOn": true,
+        "nativeApiUnavailableOffAvailableOn": true,
+        "registryRestoredUnchanged": true,
+        "worldConfigurationRestoredUnchanged": true,
+        "markersRetained": {
+          "USER_SCRIPT": "m5-user-instance-marker",
+          "MAIN": "m5-main-instance-marker"
+        },
+        "portEchoDuringOff": true,
+        "portDisconnectedDuringOff": false,
+        "observedEvents": [],
+        "permissionEvents": [],
+        "browserClosed": true,
+        "resources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        }
+      }
+    ]
+  },
+  "minimalChange": {
+    "affectedContract": "F1-PAGE-AUTH-CSP / Allow User Scripts unobserved transient-history condition only",
+    "oldExpectedRef": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/f1-cases.json:284",
+    "oldExpectedPreserved": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+    "proposedExactDelta": "Replace unconditional historical cancellation on an unobserved browser Allow User Scripts OFF→ON transition with an explicit absence of that retrospective guarantee. Preserve OFF new-call rejection, operation-observed OFF sticky invalidation and all genuine authority/document/lease/cancellation fences.",
+    "semanticsCaution": "The browser toggle remains user authorization of the native API entry; availability terminology must not declare it meaningless or permit an OFF bypass. The permitted distinction is lack of a durable framework-consumable authorization-history epoch, not removal of consent.",
+    "supportsUnchanged": "Every existing userScripts code/file path in both worlds, all48 public methods and SDK service/resource entries retain functionality under their explicit current-authorization prerequisites. Fixed packaged SDK/relay scripting path must not newly depend on this switch.",
+    "affectedMappingRequired": "Map affected userScripts-backed evaluate/code/file call chains, EX01/EX04/AUTH01 and precise AUTH/CSP tests to stable IDs; separately show unchanged SDK/relay, actual origin and own-grant fences. Do not invent a completed source audit."
+  },
+  "preconditions": [
+    "Only relax the unconditional retrospective old-result fence for an Allow User Scripts OFF→ON cycle unobserved by the operation-owned mechanism, where no framework authority/document/lease/cancellation invalidation occurred. Do not remove the browser access gate or its security meaning.",
+    "OFF native rejection closes new userScripts-backed admission; no privileged scripting/eval fallback, deferred automatic replay, added backend/permissions or SDK exclusion. Last preaccept native availability check must succeed, without claiming atomic uninterrupted availability.",
+    "If the operation-owned mechanism actually observes OFF/API rejection, make its invalidation sticky across ON; current restored state must not revive that old operation. Diagnostic/runner probes must not manufacture this fence.",
+    "Actual origin permission withdrawal, framework explicit-grant withdrawal, cancellation/deadline, document/host/session loss and target mismatch still fence old results/effects admission. Regrant/new document uses a new trusted epoch; payload cannot forge or clear it.",
+    "Keep all48 APIs, SDK services/resources,72 sources,191 dispositions/184 positive capabilities and the original603 mandatory-case denominator. Version the changed expected with exact before/after, affected IDs and security/user-visible reason; append new cases with lineage and separate denominators.",
+    "Preserve all old expected values,8 false counterexamples and prior raw-native/required-remove FAIL, original counts and evidence hashes. Do not rename, delete, skip or relabel those observations as PASS. A new limitation-confirmation case is not proof of the old fencing capability.",
+    "Publish one explicit formal contract/capability/test-plan amendment candidate; same hash Architect then independent Critic must approve before using revised expectations. This opinion is not that approval.",
+    "Execute and independently review the approved current revision on both exact versions/both worlds with pending/native-completed cases, then review the frozen two-lane union and all12 required F1 contracts. Only that can release F2; product603 and SDK acceptance remain separate."
+  ],
+  "proposedCaseShapesNotRegistered": [
+    {
+      "id": "OPINION-SWITCH-OFF-NEW-CALL",
+      "kind": "required positive/negative behavior",
+      "expected": "Real UI OFF makes new userScripts-backed operation reject before dispatch; actual native negative control retained; ON only admits a newly authorized new operation."
+    },
+    {
+      "id": "OPINION-SWITCH-OBSERVED-OFF-STICKY",
+      "kind": "required operation-owned fence",
+      "expected": "Operation itself observes native unavailable while held; restore before result acceptance still rejects once, without runner/recheck fence mutation."
+    },
+    {
+      "id": "OPINION-SWITCH-UNOBSERVED-CYCLE-LIMIT",
+      "kind": "explicit compatibility-limit diagnostic",
+      "expected": "Real OFF→ON between operation observations exposes no guaranteed historical receipt. Preserve old contractMet:false. Record actual old outcome; accepting it is permitted only if current native availability, exact document and trusted authority/lease/cancellation validation pass. This is not PASS for old unconditional fence."
+    },
+    {
+      "id": "OPINION-AUTHORITY-DOC-WITHDRAW",
+      "kind": "required unchanged security fence",
+      "expected": "Origin permission and own explicit grant each revoke/regrant in pending and native-completed stages; all old outcomes reject. Navigation/document/host/session invalidation also rejects; genuine fresh operation works after valid renewal."
+    }
+  ],
+  "notApprovable": [
+    "Treat all browser or framework grant withdrawal as mere availability; accept results after origin/explicit grant/doc/lease/cancellation invalidation.",
+    "Ignore native OFF, keep returning old outcomes after operation observed refusal, or replay through another privileged backend.",
+    "Treat polling, API instance equality, registry/configuration, world marker or Port lifetime as reliable arbitrary-interval history proof.",
+    "Preserve603 only as a label while deleting required rows, weakening API/SDK functionality, skipping old cases or rewriting historical FAIL/false as PASS.",
+    "Use this opinion or a future plan approval as backendPrototypePassed=true or substitute for frozen-union F1 execution."
+  ],
+  "sameBackendSignalAssessment": {
+    "testedPaths": "Native API namespace/method identity, registry/config, USER_SCRIPT+MAIN instance markers, USER_SCRIPT Port and listed public/lifecycle/permission events provide no usable history in this evidence.",
+    "reliableFixIdentified": false,
+    "limits": "This excludes the measured witnesses, not every conceivable native side channel. No supported same-backend reliable history repair can be named from reviewed evidence; do not invent one or require special privilege."
+  },
+  "denominatorAccounting": "Keep immutable baseline603 and old revision expected/results. A separately approved current revision may revise this condition at stable IDs and add mapped cases; report baseline vs current revision vs added diagnostics separately. No allF1PASS claim means historical FAIL became PASS.",
+  "backendPrototypePassed": false,
+  "allF1PASS": false,
+  "F2Approved": false,
+  "F3Approved": false
+}

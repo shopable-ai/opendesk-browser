@@ -1,0 +1,80 @@
+{
+  "id": "WXT-P3-RETURN7-REOPEN",
+  "families": "USC03/CTRL03/EX08/RESOURCE",
+  "expected": "Real UI committed return 7; revision, params, exact document, permission, actual Worker, durable released run, reopened tool same runId value7",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "b67428ed1c8ff45f516a947e2fb365e950530043f773e24134d06857f6df3ebf",
+  "verificationInputsSha256": "deaa7112f8c25767b975fac588626140ba093595d49843985d865cb4be9a059c",
+  "packageSha256": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791058209591,
+  "input": {
+    "source": "return 7;",
+    "params": {
+      "caseId": "WXT-P3-RETURN7-REOPEN",
+      "marker": 7
+    },
+    "expected": 7
+  },
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "E_RUNNER_UI_SELECTION",
+    "name": "Error",
+    "message": "Native selection differs: #script-target-mode",
+    "stack": "Error: Native selection differs: #script-target-mode\n    at select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:461:54)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:480:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:517:92)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:557:24\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:395:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:555:7)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:191:3",
+    "actual": {
+      "desired": "borrowed",
+      "before": {
+        "selectedIndex": 0,
+        "value": "owned",
+        "focused": false,
+        "options": [
+          {
+            "value": "owned",
+            "text": "创建隔离网页",
+            "disabled": false
+          },
+          {
+            "value": "borrowed",
+            "text": "使用明确选定的现有文档",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "selectedIndex": 0,
+        "value": "owned",
+        "focused": true,
+        "options": [
+          {
+            "value": "owned",
+            "text": "创建隔离网页",
+            "disabled": false
+          },
+          {
+            "value": "borrowed",
+            "text": "使用明确选定的现有文档",
+            "disabled": false
+          }
+        ]
+      }
+    }
+  },
+  "attribution": "runner",
+  "ui": {
+    "state": "saved",
+    "text": "r1 已持久保存；正在运行的旧版本保持原版本",
+    "result": "{\"scriptId\": \"native-781c7a44-d02d-4f80-a1f0-5695120299ac\", \"revision\": 1, \"contentHash\": \"722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902\"}",
+    "version": "已保存 r1 · 722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+    "runId": "",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 135.65595799999983
+}

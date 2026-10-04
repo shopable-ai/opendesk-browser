@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-10-01T20:50:53.811943+00:00",
+  "evidence": [
+    {
+      "threadOrAgent": "01a0f8b7-b974-7962-a5fc-a77bb0bd6277",
+      "actualLatestTurnContext": {
+        "timestamp": "2026-10-01T20:25:52.678Z",
+        "model": "openai/gpt-6.1-sol",
+        "effort": "xhigh"
+      },
+      "source": "/Users/shopme/.codex/sessions/2026/10/01/rollout-2026-10-01T11-26-25-01a0f8b7-b974-7962-a5fc-a77bb0bd6277.jsonl",
+      "mode": "read-only evidence, no records edited"
+    },
+    {
+      "threadOrAgent": "01a0f8ca-b964-71f3-87b4-a58d44ffa44b",
+      "actualLatestTurnContext": {
+        "timestamp": "2026-10-01T20:17:26.748Z",
+        "model": "openai/gpt-6.1-sol",
+        "effort": "xhigh"
+      },
+      "source": "/Users/shopme/.codex/sessions/2026/10/01/rollout-2026-10-01T11-47-10-01a0f8ca-b964-71f3-87b4-a58d44ffa44b.jsonl",
+      "mode": "read-only evidence, no records edited"
+    },
+    {
+      "threadOrAgent": "01a0f8e8-985d-72e2-8b6b-3362444f29f5",
+      "actualLatestTurnContext": {
+        "timestamp": "2026-10-01T20:44:07.039Z",
+        "model": "openai/gpt-6.1-sol",
+        "effort": "xhigh"
+      },
+      "source": "/Users/shopme/.codex/sessions/2026/10/01/rollout-2026-10-01T12-19-48-01a0f8e8-985d-72e2-8b6b-3362444f29f5.jsonl",
+      "mode": "read-only evidence, no records edited"
+    },
+    {
+      "threadOrAgent": "01a0f8ca-bbca-7d42-822b-0df13d9ded59",
+      "actualLatestTurnContext": {
+        "timestamp": "2026-10-01T18:47:26.702Z",
+        "model": "openai/gpt-6.1-sol",
+        "effort": "xhigh"
+      },
+      "source": "/Users/shopme/.codex/sessions/2026/10/01/rollout-2026-10-01T11-47-11-01a0f8ca-bbca-7d42-822b-0df13d9ded59.jsonl",
+      "mode": "read-only evidence, no records edited"
+    }
+  ]
+}

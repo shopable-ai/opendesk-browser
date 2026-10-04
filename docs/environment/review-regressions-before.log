@@ -1,0 +1,92 @@
+✔ concurrent window requests create once; new worker discovers existing window (13.4065ms)
+✔ tool sender rejects foreign id, URL, frame, inactive document and missing document (0.232625ms)
+✔ URL policy rejects restricted/file/credentials and preserves exact origin including port (0.534708ms)
+✔ health waits for sender readiness and binds Chrome document metadata, not file result (5.557417ms)
+✔ revoked permission blocks even previously installed agent (1.888959ms)
+✔ reload, cross-origin and closed tab reject bound target without automatic reinjection (5.307541ms)
+✔ forged health nonce and fake sender cannot satisfy exact target (1.4705ms)
+✔ missing module has no capabilities or runner and can be mounted/disposed (0.211875ms)
+✖ focus failure while original exists must not create another tool window (0.900583ms)
+✖ repeated agent ready preserves optional authorization and cannot bypass revoke (1.414167ms)
+✖ same-document concurrent binding resolves all readiness waiters (30.3795ms)
+✖ document invalidation and revoke while awaiting reply reject late health success (0.65375ms)
+✔ final classic scanner rejects eval alias and function-constructor references (20.30425ms)
+✔ final package cannot omit a referenced local asset (12.796541ms)
+✔ remote script and unexpected lazy chunk fail final package verification (10.571542ms)
+✖ final package requires tool HTML/CSS and manifest worker references (10.912917ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 11
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 158.527416
+
+✖ failing tests:
+
+test at tests/environment/boundaries.test.mjs:95:1
+✖ focus failure while original exists must not create another tool window (0.900583ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:101:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_TARGET' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/boundaries.test.mjs:103:1
+✖ repeated agent ready preserves optional authorization and cannot bypass revoke (1.414167ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:106:24)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_PERMISSION' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/boundaries.test.mjs:108:1
+✖ same-document concurrent binding resolves all readiness waiters (30.3795ms)
+  Error: agent 握手超时
+      at Timeout._onTimeout (file:///Users/shopme/Documents/workspace/opendesk-browser/src/environment.js:119:82)
+      at listOnTimeout (node:internal/timers:605:17)
+      at process.processTimers (node:internal/timers:541:7) {
+    code: 'E_TARGET'
+  }
+
+test at tests/environment/boundaries.test.mjs:112:1
+✖ document invalidation and revoke while awaiting reply reject late health success (0.65375ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:122:15)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_TARGET' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/package.test.mjs:29:1
+✖ final package requires tool HTML/CSS and manifest worker references (10.912917ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async mutatedPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:10:83)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:30:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /Missing|required|ENOENT/,
+    operator: 'rejects',
+    diff: 'simple'
+  }

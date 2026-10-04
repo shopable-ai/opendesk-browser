@@ -1,0 +1,1367 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-acceptance-mechanism-followup",
+  "generatedAt": "2026-10-03T08:57:01.774Z",
+  "verdict": "APPROVE_MECHANISM_REPAIRS_ONLY",
+  "conclusion": "原AMR-01–AMR-11对应修补通过限定复核；65项机制探针通过。此结论不构成F3、native效果或产品功能迁移验收。",
+  "scope": {
+    "priorFindingsOnly": true,
+    "finalEnvironmentSchemaGuardIncluded": true,
+    "noDelegation": true,
+    "noExpandedAudit": true,
+    "candidateImplementationAuthored": false,
+    "productSourceModified": false,
+    "existingTestsExecuted": false,
+    "browserLaunched": false,
+    "buildExecuted": false,
+    "outputFiles": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-followup.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-followup.md"
+    ],
+    "originalRequestChangesReportPreserved": true
+  },
+  "f3Review": false,
+  "f3Verdict": "NOT_REVIEWED",
+  "nativeStatus": "pending",
+  "productImplementationReviewed": false,
+  "stage0Reopened": false,
+  "snapshot": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+      "sha256": "e8aeaa949f982e8a72289b3f5bb990db6447417f2335e7ea8d0835b656760efc"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+      "sha256": "3ce6d0a3ab20aa8a54353c63647b82ae3d3eeee19a2d0421a3b8d69364aada1b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/supplemental-sdk-cases.json",
+      "sha256": "5a5c7fc207cf4ef3fac2861a41203dbd86034fe05f87e24fe1e8b3debd36fa61"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+      "sha256": "54b3067b605fe5b95edfcbc58d5d6d540cd342e8d9cad0d45190f7015b01010c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.json",
+      "sha256": "e5c12226071dbb4cd6d1c0c86db51d1f4e8d689f5849053d4d871a599a07aa2e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.md",
+      "sha256": "56cb88a04a48bcc866c367601920b627a343274e38a51bbd25d56cf1ac7861c2"
+    }
+  ],
+  "findingsFollowup": [
+    {
+      "id": "AMR-01",
+      "originalSeverity": "HIGH",
+      "title": "逐条观测谓词",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 134
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 137
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 141
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 146
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 151
+        }
+      ],
+      "reproduction": "在已有合格记录之外加入第二条独立 occurrence 的违规记录：HTTP 写2、unknown replay=true、download accepted、终止3001ms或关闭borrowed页；重新签当前快照。",
+      "decision": "分别返回 SDK_100_NOT_PROVEN / SDK_CRASH_NOT_PROVEN / DISK_DOWNLOAD_NOT_PROVEN / WORKER_TERMINATION_NOT_PROVEN；合格记录不能遮蔽违规记录。",
+      "probeNames": [
+        "good concurrency cannot mask second bad record",
+        "good crash cannot mask same-kind replay",
+        "good download cannot mask accepted-only second record",
+        "good termination cannot mask >3s",
+        "good termination cannot mask borrowed page closure"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-02",
+      "originalSeverity": "HIGH",
+      "title": "物理轮次引用与原始定位绑定",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 115
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 121
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 245
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 250
+        }
+      ],
+      "reproduction": "保留不同resultId，复用session/round或raw hash/pointer；另外执行当前CLI分支并令pointer目标identity、endMs或目标节点不同。",
+      "decision": "CAMPAIGN_OCCURRENCE_REUSED / OCCURRENCE_RAW_BINDING_MISMATCH；仅结构唯一性已关闭，轮次真实发生及CDP/HTTP关联仍需独立semantic review。",
+      "probeNames": [
+        "different result ID cannot reuse session/round",
+        "different round cannot reuse raw hash/pointer",
+        "missing occurrence rejects",
+        "raw pointer identity mismatch",
+        "raw pointer timestamp mismatch",
+        "raw pointer missing path"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-03",
+      "originalSeverity": "HIGH",
+      "title": "19项冻结合同与源文件",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 18
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 19
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 84
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 88
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 199
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 204
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 238
+        }
+      ],
+      "reproduction": "增项缺contractSha256、合同hash错误、合同source.path与sourceHashes键不一致；实际读取catalog及其唯一source文件并算SHA。",
+      "decision": "CASE_CONTRACT_MISMATCH / SOURCE_BINDING_MISSING；catalog固定SHA正确，恰为当前台账SDK001–019且全部required/F3，实际source SHA吻合。",
+      "probeNames": [
+        "additional contract hash cannot be omitted",
+        "additional contract mismatch rejects",
+        "additional frozen source path requires exact source hash key",
+        "catalog inherits exact existing SDK001-019; fixed bytes and original source"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-04",
+      "originalSeverity": "HIGH",
+      "title": "完整评审输入快照与前序报告",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 21
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 162
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 170
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 175
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 176
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 307
+        }
+      ],
+      "reproduction": "保留旧批准，分别改变spec/catalog/source/build/pack/archive/environment/resultReport/records/campaign/history/authors/cap证据；另改单份reviewedInputs或critic前序hash。",
+      "decision": "13类输入变更均返回 REVIEW_INPUT_SNAPSHOT_MISMATCH；前序hash错误返回 CRITIC_ARCHITECT_BINDING_MISSING。返回reviewedInputs已独立验证；实际报告字段也进入比对。",
+      "probeNames": [
+        "old approvals reject changed spec",
+        "old approvals reject changed catalog",
+        "old approvals reject changed source",
+        "old approvals reject changed build",
+        "old approvals reject changed pack",
+        "old approvals reject changed archive",
+        "old approvals reject changed environment",
+        "old approvals reject changed result report",
+        "old approvals reject changed record data",
+        "old approvals reject changed campaigns",
+        "old approvals reject changed history",
+        "old approvals reject changed author",
+        "old approvals reject changed capability evidence",
+        "critic must bind actual architect report hash",
+        "both reviews must include identical snapshot"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-05",
+      "originalSeverity": "HIGH",
+      "title": "身份类型及规范化",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 14
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 158
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 166
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 173
+        }
+      ],
+      "reproduction": "reviewerId改为数组；作者身份使用空白/全角/大小写别名；两位reviewer使用同一规范化身份。",
+      "decision": "INDEPENDENT_REVIEW_MISSING / REVIEW_SEQUENCE_OR_IDENTITY。真实身份及作者清单完整性仍由独立semantic review核实。",
+      "probeNames": [
+        "nonstring reviewer identity rejects",
+        "normalized author cannot review own candidate",
+        "normalized reviewer aliases cannot be two identities"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-06",
+      "originalSeverity": "HIGH",
+      "title": "恰有两个独立角色",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 160
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 161
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 164
+        }
+      ],
+      "reproduction": "现有批准后追加第三条带blocker的critic；另让两条报告均为architect。",
+      "decision": "REVIEW_CARDINALITY_INVALID；不能选择第一条APPROVE掩盖新增阻断报告。",
+      "probeNames": [
+        "third blocking critic cannot be masked",
+        "two copies of same role reject"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-07",
+      "originalSeverity": "HIGH",
+      "title": "artifact原描述、payload及磁盘完整链",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 146
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 148
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 254
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 257
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 259
+        }
+      ],
+      "reproduction": "先伪造一致download/disk SHA；再令payload/disk/自填artifact的SHA和bytes全部一致但保留原始artifact描述；另改runId或虚报bytes。",
+      "decision": "DISK_DOWNLOAD_NOT_PROVEN / ARTIFACT_DISK_BINDING_MISMATCH。当前IO分支实际解析描述并读两组字节；原生artifact来源真实性仍pending。",
+      "probeNames": [
+        "equal disk and download hashes must match original artifact",
+        "artifact run identity mismatch rejects",
+        "artifact payload must carry original SHA",
+        "self-consistent hashes do not override original artifact descriptor",
+        "native artifact runId actually parsed",
+        "bytes actually read, not only self-filled"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-08",
+      "originalSeverity": "HIGH",
+      "title": "strict路径/hash引用",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 47
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 54
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 213
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 218
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 234
+        }
+      ],
+      "reproduction": "stable versionEvidence只有SHA无path；对实际catalog文件测试正确ref、错误SHA、缺失路径、hash-only/null ref。",
+      "decision": "VERSION_MATRIX_MISSING / EVIDENCE_HASH_MISMATCH / EVIDENCE_FILE_MISSING / INVALID_REFERENCE；正确实际文件引用通过。",
+      "probeNames": [
+        "stable hash-only ref rejects",
+        "filesystem correct catalog ref",
+        "filesystem forged hash",
+        "filesystem missing path",
+        "filesystem hash-only ref",
+        "filesystem null ref"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-09",
+      "originalSeverity": "MEDIUM",
+      "title": "original/additional交集",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 33
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 36
+        }
+      ],
+      "reproduction": "把原CASE-A重复加入additional并标为失败，重算当前评审快照。",
+      "decision": "OVERLAPPING_CASE_DENOMINATOR，accepted=false且计入accepted数量为0；不再双计数。",
+      "probeNames": [
+        "original/additional intersection cannot inflate denominator"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-10",
+      "originalSeverity": "MEDIUM",
+      "title": "null及畸形对象结构化拒绝",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 13
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 47
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 50
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 56
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 68
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 161
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 213
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 302
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 303
+        }
+      ],
+      "reproduction": "传入null/array ref、非字符串path、null observation/environment/review/reviews/diskFile；再传缺env.id及数组chromeVersion；执行null review解析分支。",
+      "decision": "全部结构化拒绝，未抛TypeError；null observation为OBSERVATION_MATRIX_MISSING，null CLI review为INVALID_REFERENCE，新增schema guard为ENVIRONMENT_INCOMPLETE。",
+      "probeNames": [
+        "missing environment ID rejects",
+        "array Chrome version rejects",
+        "null evidence ref returns structured rejection",
+        "array evidence ref returns structured rejection",
+        "nonstring ref path returns structured rejection",
+        "null observation returns structured rejection",
+        "null environment returns structured rejection",
+        "null review returns structured rejection",
+        "null reviews container returns structured rejection",
+        "null diskFile returns structured rejection",
+        "filesystem correct catalog ref",
+        "filesystem forged hash",
+        "filesystem missing path",
+        "filesystem hash-only ref",
+        "filesystem null ref",
+        "valid parsed architect report",
+        "parsed report nested missing evidence read",
+        "parsed report nested forged evidence hash read",
+        "CLI review loop null row fails closed without TypeError",
+        "parsed report reviewedInputs must match manifest"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    },
+    {
+      "id": "AMR-11",
+      "originalSeverity": "MEDIUM",
+      "title": "解析后review报告递归引用",
+      "status": "RESOLVED_FOR_MECHANISM",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 305
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 306
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+          "line": 307
+        }
+      ],
+      "reproduction": "报告外层hash正确，内层新增不存在的文件或真实存在但hash错误的ref；另改实际报告reviewedInputs。",
+      "decision": "EVIDENCE_FILE_MISSING / EVIDENCE_HASH_MISMATCH / REVIEW_REPORT_MISMATCH；合格解析报告正例无issue。",
+      "probeNames": [
+        "valid parsed architect report",
+        "parsed report nested missing evidence read",
+        "parsed report nested forged evidence hash read",
+        "CLI review loop null row fails closed without TypeError",
+        "parsed report reviewedInputs must match manifest"
+      ],
+      "minimalRepair": "本轮对应修补已实现；限定复核无追加修补要求。"
+    }
+  ],
+  "remainingMechanismFindings": [],
+  "verification": {
+    "independent": true,
+    "total": 65,
+    "passed": 65,
+    "failed": 0,
+    "methodCounts": {
+      "validateAcceptance synthetic": 47,
+      "exact current IO branch; in-memory readFile, real hashes": 7,
+      "exact reference function; actual filesystem read": 5,
+      "exact parsed-review IO branch; in-memory readFile, real hashes": 5,
+      "catalog/source actual read": 1
+    },
+    "fixtureBoundary": "只提取现有测试中的fixture构造函数，new Function注入createHash/CRASH_POINTS/reviewInputSnapshot；没有执行node:test或已有测试套件。",
+    "resignBoundary": "除旧review snapshot攻击外，变更后重算两份review snapshot，以证明对应规则本身拒绝，避免仅靠过期snapshot误判已修复。",
+    "ioBoundary": "12项CLI内部原文分支探针使用内存readFile和真实SHA，5项strictref与1项catalog/source探针实际读磁盘；没有执行完整checkAcceptance候选/包/ZIP路径。",
+    "priorHarnessCorrections": "初轮探针校正null observation与stable hash-only的预期错误码，并补解析报告正例所需fixture引用、避免共享ref意外污染；不记为产品发现。",
+    "externallyReportedTests": {
+      "count": "24/24",
+      "source": "用户转述leader定向结果",
+      "independentlyRerun": false
+    },
+    "reproductionCommand": "node --input-type=module -e 'import {readFile} from \"node:fs/promises\"; const r=JSON.parse(await readFile(\"/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-followup.json\",\"utf8\")); await import(\"data:text/javascript;base64,\"+Buffer.from(r.probeSource).toString(\"base64\"));'"
+  },
+  "supplementalCatalog": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/supplemental-sdk-cases.json",
+    "sha256": "5a5c7fc207cf4ef3fac2861a41203dbd86034fe05f87e24fe1e8b3debd36fa61",
+    "count": 19,
+    "idsMatchCurrentLedger": true,
+    "allRequiredF3": true,
+    "sourceFileActuallyReadAndMatched": true,
+    "inheritance": "仅当前既有SDK001–019，未新增20项或改原603/191分母；固定catalog记录继承预期。",
+    "approvalBoundary": "catalog只冻结19项预期，尚未证明或批准其native行为。它须与原603规格纳入同一最终production候选，由独立architect后critic审查实际效果及预期符合性；本轮不重开stage0。"
+  },
+  "semanticBoundary": {
+    "automaticStructure": "验证字段、逐条谓词、矩阵、计数引用、文件SHA/bytes、合同/源码/包引用、评审输入快照和顺序；自填JSON标签本身不是实际效果证明。",
+    "independentSemanticReview": "原始CDP/HTTP/IDB/磁盘/UI证据与真实事件、native sender/权限、artifact来源、identity/作者来源、stable版本渠道时间、预期及historical映射，均须同包独立评审确认。",
+    "pending": [
+      "controller-free SDK及100并发原生链",
+      "四崩溃点及unknown不重放的真实SW/HTTP效果",
+      "Worker ≤3s物理终止、CPU停止与存活host响应",
+      "borrowed页保护与六资源baseline/持续增长",
+      "真实下载终态、原生artifact持久描述与磁盘来源",
+      "双环境矩阵、真实campaign轮次数与事件关联",
+      "原603＋全部19增项同包native行为及独立architect→critic"
+    ],
+    "packageArchiveBoundary": "当前ZIP/production闭包以及loadedInputs/已hash文件/包结尾重读代码本轮只读核对，未运行生产包/ZIP验证；不据此宣告该包通过。",
+    "documentReference": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+      "lines": [
+        116,
+        120,
+        127,
+        130,
+        133,
+        135
+      ]
+    }
+  },
+  "probeEvidence": [
+    {
+      "name": "synthetic baseline and reviewedInputs export",
+      "finding": "BASELINE",
+      "expected": "accepted=true; snapshot returned",
+      "passed": true,
+      "accepted": true
+    },
+    {
+      "name": "good concurrency cannot mask second bad record",
+      "finding": "AMR-01",
+      "expected": "SDK_100_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "SDK_100_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "good crash cannot mask same-kind replay",
+      "finding": "AMR-01",
+      "expected": "SDK_CRASH_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "SDK_CRASH_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "good download cannot mask accepted-only second record",
+      "finding": "AMR-01",
+      "expected": "DISK_DOWNLOAD_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "DISK_DOWNLOAD_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "good termination cannot mask >3s",
+      "finding": "AMR-01",
+      "expected": "WORKER_TERMINATION_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "WORKER_TERMINATION_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "good termination cannot mask borrowed page closure",
+      "finding": "AMR-01",
+      "expected": "WORKER_TERMINATION_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "WORKER_TERMINATION_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "different result ID cannot reuse session/round",
+      "finding": "AMR-02",
+      "expected": "CAMPAIGN_OCCURRENCE_REUSED",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "CAMPAIGN_OCCURRENCE_REUSED"
+      ]
+    },
+    {
+      "name": "different round cannot reuse raw hash/pointer",
+      "finding": "AMR-02",
+      "expected": "CAMPAIGN_OCCURRENCE_REUSED",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "CAMPAIGN_OCCURRENCE_REUSED"
+      ]
+    },
+    {
+      "name": "missing occurrence rejects",
+      "finding": "AMR-02",
+      "expected": "CAMPAIGN_OCCURRENCE_MISSING",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "CAMPAIGN_OCCURRENCE_MISSING"
+      ]
+    },
+    {
+      "name": "additional contract hash cannot be omitted",
+      "finding": "AMR-03",
+      "expected": "CASE_CONTRACT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "CASE_CONTRACT_MISMATCH"
+      ]
+    },
+    {
+      "name": "additional contract mismatch rejects",
+      "finding": "AMR-03",
+      "expected": "CASE_CONTRACT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "CASE_CONTRACT_MISMATCH"
+      ]
+    },
+    {
+      "name": "additional frozen source path requires exact source hash key",
+      "finding": "AMR-03",
+      "expected": "SOURCE_BINDING_MISSING",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "SOURCE_BINDING_MISSING"
+      ]
+    },
+    {
+      "name": "missing environment ID rejects",
+      "finding": "AMR-10",
+      "expected": "ENVIRONMENT_INCOMPLETE",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "ENVIRONMENT_INCOMPLETE",
+        "OBSERVATION_MATRIX_MISSING",
+        "SDK_100_NOT_PROVEN",
+        "SDK_CRASH_NOT_PROVEN",
+        "DISK_DOWNLOAD_NOT_PROVEN",
+        "WORKER_TERMINATION_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "array Chrome version rejects",
+      "finding": "AMR-10",
+      "expected": "ENVIRONMENT_INCOMPLETE",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "ENVIRONMENT_INCOMPLETE"
+      ]
+    },
+    {
+      "name": "old approvals reject changed spec",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "CASE_CONTRACT_MISMATCH",
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed catalog",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "CASE_CONTRACT_MISMATCH",
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed source",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed build",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed pack",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed archive",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed environment",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed result report",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed record data",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed campaigns",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed history",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed author",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "old approvals reject changed capability evidence",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "critic must bind actual architect report hash",
+      "finding": "AMR-04",
+      "expected": "CRITIC_ARCHITECT_BINDING_MISSING",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "CRITIC_ARCHITECT_BINDING_MISSING"
+      ]
+    },
+    {
+      "name": "both reviews must include identical snapshot",
+      "finding": "AMR-04",
+      "expected": "REVIEW_INPUT_SNAPSHOT_MISMATCH",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_INPUT_SNAPSHOT_MISMATCH"
+      ]
+    },
+    {
+      "name": "nonstring reviewer identity rejects",
+      "finding": "AMR-05",
+      "expected": "INDEPENDENT_REVIEW_MISSING",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "INDEPENDENT_REVIEW_MISSING"
+      ]
+    },
+    {
+      "name": "normalized author cannot review own candidate",
+      "finding": "AMR-05",
+      "expected": "INDEPENDENT_REVIEW_MISSING",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "INDEPENDENT_REVIEW_MISSING"
+      ]
+    },
+    {
+      "name": "normalized reviewer aliases cannot be two identities",
+      "finding": "AMR-05",
+      "expected": "REVIEW_SEQUENCE_OR_IDENTITY",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_SEQUENCE_OR_IDENTITY"
+      ]
+    },
+    {
+      "name": "third blocking critic cannot be masked",
+      "finding": "AMR-06",
+      "expected": "REVIEW_CARDINALITY_INVALID",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_CARDINALITY_INVALID"
+      ]
+    },
+    {
+      "name": "two copies of same role reject",
+      "finding": "AMR-06",
+      "expected": "REVIEW_CARDINALITY_INVALID",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_CARDINALITY_INVALID",
+        "INDEPENDENT_REVIEW_MISSING"
+      ]
+    },
+    {
+      "name": "equal disk and download hashes must match original artifact",
+      "finding": "AMR-07",
+      "expected": "DISK_DOWNLOAD_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "DISK_DOWNLOAD_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "artifact run identity mismatch rejects",
+      "finding": "AMR-07",
+      "expected": "DISK_DOWNLOAD_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "DISK_DOWNLOAD_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "artifact payload must carry original SHA",
+      "finding": "AMR-07",
+      "expected": "DISK_DOWNLOAD_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "DISK_DOWNLOAD_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "stable hash-only ref rejects",
+      "finding": "AMR-08",
+      "expected": "VERSION_MATRIX_MISSING",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "VERSION_MATRIX_MISSING"
+      ]
+    },
+    {
+      "name": "original/additional intersection cannot inflate denominator",
+      "finding": "AMR-09",
+      "expected": "OVERLAPPING_CASE_DENOMINATOR",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "OVERLAPPING_CASE_DENOMINATOR"
+      ]
+    },
+    {
+      "name": "null evidence ref returns structured rejection",
+      "finding": "AMR-10",
+      "expected": "OBSERVATION_INCOMPLETE",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "OBSERVATION_INCOMPLETE"
+      ]
+    },
+    {
+      "name": "array evidence ref returns structured rejection",
+      "finding": "AMR-10",
+      "expected": "OBSERVATION_INCOMPLETE",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "OBSERVATION_INCOMPLETE"
+      ]
+    },
+    {
+      "name": "nonstring ref path returns structured rejection",
+      "finding": "AMR-10",
+      "expected": "OBSERVATION_INCOMPLETE",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "OBSERVATION_INCOMPLETE"
+      ]
+    },
+    {
+      "name": "null observation returns structured rejection",
+      "finding": "AMR-10",
+      "expected": "OBSERVATION_MATRIX_MISSING",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "OBSERVATION_MATRIX_MISSING"
+      ]
+    },
+    {
+      "name": "null environment returns structured rejection",
+      "finding": "AMR-10",
+      "expected": "INVALID_ENVIRONMENTS",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "INVALID_ENVIRONMENTS",
+        "VERSION_MATRIX_MISSING",
+        "OBSERVATION_INCOMPLETE"
+      ]
+    },
+    {
+      "name": "null review returns structured rejection",
+      "finding": "AMR-10",
+      "expected": "REVIEW_CARDINALITY_INVALID",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_CARDINALITY_INVALID",
+        "INDEPENDENT_REVIEW_MISSING",
+        "CRITIC_ARCHITECT_BINDING_MISSING"
+      ]
+    },
+    {
+      "name": "null reviews container returns structured rejection",
+      "finding": "AMR-10",
+      "expected": "REVIEW_CARDINALITY_INVALID",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "REVIEW_CARDINALITY_INVALID",
+        "INDEPENDENT_REVIEW_MISSING"
+      ]
+    },
+    {
+      "name": "null diskFile returns structured rejection",
+      "finding": "AMR-10",
+      "expected": "DISK_DOWNLOAD_NOT_PROVEN",
+      "passed": true,
+      "accepted": false,
+      "codes": [
+        "DISK_DOWNLOAD_NOT_PROVEN"
+      ]
+    },
+    {
+      "name": "valid occurrence/artifact IO branch",
+      "finding": "BASELINE",
+      "expected": "no issues",
+      "passed": true,
+      "codes": [],
+      "method": "exact current IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "raw pointer identity mismatch",
+      "finding": "AMR-02",
+      "expected": "OCCURRENCE_RAW_BINDING_MISMATCH",
+      "passed": true,
+      "codes": [
+        "OCCURRENCE_RAW_BINDING_MISMATCH"
+      ],
+      "method": "exact current IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "raw pointer timestamp mismatch",
+      "finding": "AMR-02",
+      "expected": "OCCURRENCE_RAW_BINDING_MISMATCH",
+      "passed": true,
+      "codes": [
+        "OCCURRENCE_RAW_BINDING_MISMATCH"
+      ],
+      "method": "exact current IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "raw pointer missing path",
+      "finding": "AMR-02",
+      "expected": "OCCURRENCE_RAW_BINDING_MISMATCH",
+      "passed": true,
+      "codes": [
+        "OCCURRENCE_RAW_BINDING_MISMATCH"
+      ],
+      "method": "exact current IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "self-consistent hashes do not override original artifact descriptor",
+      "finding": "AMR-07",
+      "expected": "ARTIFACT_DISK_BINDING_MISMATCH",
+      "passed": true,
+      "codes": [
+        "ARTIFACT_DISK_BINDING_MISMATCH"
+      ],
+      "method": "exact current IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "native artifact runId actually parsed",
+      "finding": "AMR-07",
+      "expected": "ARTIFACT_DISK_BINDING_MISMATCH",
+      "passed": true,
+      "codes": [
+        "ARTIFACT_DISK_BINDING_MISMATCH"
+      ],
+      "method": "exact current IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "bytes actually read, not only self-filled",
+      "finding": "AMR-07",
+      "expected": "ARTIFACT_DISK_BINDING_MISMATCH",
+      "passed": true,
+      "codes": [
+        "ARTIFACT_DISK_BINDING_MISMATCH"
+      ],
+      "method": "exact current IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "filesystem correct catalog ref",
+      "finding": "AMR-08/AMR-10",
+      "expected": "no issues",
+      "passed": true,
+      "codes": [],
+      "method": "exact reference function; actual filesystem read"
+    },
+    {
+      "name": "filesystem forged hash",
+      "finding": "AMR-08/AMR-10",
+      "expected": "EVIDENCE_HASH_MISMATCH",
+      "passed": true,
+      "codes": [
+        "EVIDENCE_HASH_MISMATCH"
+      ],
+      "method": "exact reference function; actual filesystem read"
+    },
+    {
+      "name": "filesystem missing path",
+      "finding": "AMR-08/AMR-10",
+      "expected": "EVIDENCE_FILE_MISSING",
+      "passed": true,
+      "codes": [
+        "EVIDENCE_FILE_MISSING"
+      ],
+      "method": "exact reference function; actual filesystem read"
+    },
+    {
+      "name": "filesystem hash-only ref",
+      "finding": "AMR-08/AMR-10",
+      "expected": "INVALID_REFERENCE",
+      "passed": true,
+      "codes": [
+        "INVALID_REFERENCE"
+      ],
+      "method": "exact reference function; actual filesystem read"
+    },
+    {
+      "name": "filesystem null ref",
+      "finding": "AMR-08/AMR-10",
+      "expected": "INVALID_REFERENCE",
+      "passed": true,
+      "codes": [
+        "INVALID_REFERENCE"
+      ],
+      "method": "exact reference function; actual filesystem read"
+    },
+    {
+      "name": "valid parsed architect report",
+      "finding": "AMR-11/AMR-10",
+      "expected": "no issues",
+      "passed": true,
+      "codes": [],
+      "method": "exact parsed-review IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "parsed report nested missing evidence read",
+      "finding": "AMR-11/AMR-10",
+      "expected": "EVIDENCE_FILE_MISSING",
+      "passed": true,
+      "codes": [
+        "EVIDENCE_FILE_MISSING"
+      ],
+      "method": "exact parsed-review IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "parsed report nested forged evidence hash read",
+      "finding": "AMR-11/AMR-10",
+      "expected": "EVIDENCE_HASH_MISMATCH",
+      "passed": true,
+      "codes": [
+        "EVIDENCE_HASH_MISMATCH"
+      ],
+      "method": "exact parsed-review IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "CLI review loop null row fails closed without TypeError",
+      "finding": "AMR-11/AMR-10",
+      "expected": "INVALID_REFERENCE",
+      "passed": true,
+      "codes": [
+        "INVALID_REFERENCE"
+      ],
+      "method": "exact parsed-review IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "parsed report reviewedInputs must match manifest",
+      "finding": "AMR-11/AMR-10",
+      "expected": "REVIEW_REPORT_MISMATCH",
+      "passed": true,
+      "codes": [
+        "REVIEW_REPORT_MISMATCH"
+      ],
+      "method": "exact parsed-review IO branch; in-memory readFile, real hashes"
+    },
+    {
+      "name": "catalog inherits exact existing SDK001-019; fixed bytes and original source",
+      "finding": "AMR-03",
+      "expected": "19 matching IDs, required F3, fixed SHA, actual source SHA",
+      "passed": true,
+      "catalogIds": [
+        "F2-K2-SDK-001",
+        "F2-K2-SDK-002",
+        "F2-K2-SDK-003",
+        "F2-K2-SDK-004",
+        "F2-K2-SDK-005",
+        "F2-K2-SDK-006",
+        "F2-K2-SDK-007",
+        "F2-K2-SDK-008",
+        "F2-K2-SDK-009",
+        "F2-K2-SDK-010",
+        "F2-K2-SDK-011",
+        "F2-K2-SDK-012",
+        "F2-K2-SDK-013",
+        "F2-K2-SDK-014",
+        "F2-K2-SDK-015",
+        "F2-K2-SDK-016",
+        "F2-K2-SDK-017",
+        "F2-K2-SDK-018",
+        "F2-K2-SDK-019"
+      ],
+      "ledgerIds": [
+        "F2-K2-SDK-001",
+        "F2-K2-SDK-002",
+        "F2-K2-SDK-003",
+        "F2-K2-SDK-004",
+        "F2-K2-SDK-005",
+        "F2-K2-SDK-006",
+        "F2-K2-SDK-007",
+        "F2-K2-SDK-008",
+        "F2-K2-SDK-009",
+        "F2-K2-SDK-010",
+        "F2-K2-SDK-011",
+        "F2-K2-SDK-012",
+        "F2-K2-SDK-013",
+        "F2-K2-SDK-014",
+        "F2-K2-SDK-015",
+        "F2-K2-SDK-016",
+        "F2-K2-SDK-017",
+        "F2-K2-SDK-018",
+        "F2-K2-SDK-019"
+      ],
+      "catalogSha256": "5a5c7fc207cf4ef3fac2861a41203dbd86034fe05f87e24fe1e8b3debd36fa61",
+      "sourceFiles": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+          "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+        }
+      ],
+      "approvalBoundary": "Must be included in the same final production independent architect/critic review; not approved by this file"
+    }
+  ],
+  "probeSource": "\nimport {readFile} from 'node:fs/promises';\nimport {createHash} from 'node:crypto';\nimport {resolve} from 'node:path';\nimport {pathToFileURL} from 'node:url';\nconst root='/Users/shopme/Documents/workspace/opendesk-browser';\nconst checkerPath=resolve(root,'tests/framework/verify-product-acceptance.mjs');\nconst testPath=resolve(root,'tests/framework/acceptance-evidence.test.mjs');\nconst {validateAcceptance,reviewInputSnapshot,CRASH_POINTS,SUPPLEMENTAL_CATALOG}=await import(pathToFileURL(checkerPath));\nconst hash=x=>createHash('sha256').update(x).digest('hex');\nconst checker=await readFile(checkerPath,'utf8'), tests=await readFile(testPath,'utf8');\nconst fixture=new Function('createHash','CRASH_POINTS','reviewInputSnapshot',\n tests.slice(tests.indexOf(\"const hash = \"),tests.indexOf('\\nfunction rejects('))+'\\nreturn fixture;')(createHash,CRASH_POINTS,reviewInputSnapshot);\nconst output=[];\nfunction record(name,finding,expected,actual){output.push({name,finding,expected,...actual});}\nfunction resign(d){const s=reviewInputSnapshot(d);for(const r of d.candidate.reviews||[])if(r&&typeof r==='object'){r.reviewedInputs=s;r.reviewInputsSha256=hash(JSON.stringify(s));}}\nfunction run(name,finding,change,code,{fresh=true}={}) {\n const d=fixture();change(d);if(fresh)resign(d);\n try {const r=validateAcceptance(d),codes=[...new Set(r.issues.map(x=>x.code))];\n record(name,finding,code,{passed:r.accepted===false&&r.counts.accepted===0&&codes.includes(code),accepted:r.accepted,codes});}\n catch(e){record(name,finding,code,{passed:false,error:String(e)});}\n}\nconst baseline=validateAcceptance(fixture());\nrecord('synthetic baseline and reviewedInputs export','BASELINE','accepted=true; snapshot returned',{passed:baseline.accepted&&baseline.counts.accepted===3&&JSON.stringify(baseline.reviewedInputs)===JSON.stringify(reviewInputSnapshot(fixture())),accepted:baseline.accepted});\nfunction duplicate(d,name,change) {\n const original=d.records.find(r=>r.id===d.candidate.campaigns[name][0]), r=structuredClone(original);\n r.id+='-extra';\n for(const o of r.observations){o.occurrence.resultId=r.id;o.occurrence.roundId=r.id+'-'+o.environmentId;o.occurrence.pointer='/'+r.id+'/'+o.environmentId;}\n change(r);d.records.push(r);d.candidate.campaigns[name].push(r.id);\n}\nrun('good concurrency cannot mask second bad record','AMR-01',d=>duplicate(d,'sdkConcurrency',r=>r.observations[1].measurements.httpWrites=2),'SDK_100_NOT_PROVEN');\nrun('good crash cannot mask same-kind replay','AMR-01',d=>{\n const r=structuredClone(d.records.find(r=>r.kind==='write-before-receipt'));r.id+='-extra';\n for(const o of r.observations){o.occurrence.resultId=r.id;o.occurrence.roundId=r.id+'-'+o.environmentId;o.occurrence.pointer='/'+r.id+'/'+o.environmentId;}\n r.observations[1].measurements.replayed=true;d.records.push(r);d.candidate.campaigns.sdkCrashes.push(r.id);\n},'SDK_CRASH_NOT_PROVEN');\nrun('good download cannot mask accepted-only second record','AMR-01',d=>duplicate(d,'downloads',r=>r.observations[1].download.state='accepted'),'DISK_DOWNLOAD_NOT_PROVEN');\nrun('good termination cannot mask >3s','AMR-01',d=>duplicate(d,'workerTermination',r=>r.observations[1].measurements.terminatedMs=3001),'WORKER_TERMINATION_NOT_PROVEN');\nrun('good termination cannot mask borrowed page closure','AMR-01',d=>duplicate(d,'workerTermination',r=>r.observations[1].measurements.borrowedPageClosed=true),'WORKER_TERMINATION_NOT_PROVEN');\nrun('different result ID cannot reuse session/round','AMR-02',d=>{\n const [a,b]=d.records.filter(r=>r.id==='mixed-0'||r.id==='mixed-1');b.observations[0].occurrence.roundId=a.observations[0].occurrence.roundId;\n},'CAMPAIGN_OCCURRENCE_REUSED');\nrun('different round cannot reuse raw hash/pointer','AMR-02',d=>{\n const [a,b]=d.records.filter(r=>r.id==='mixed-0'||r.id==='mixed-1');b.observations[0].occurrence.pointer=a.observations[0].occurrence.pointer;\n},'CAMPAIGN_OCCURRENCE_REUSED');\nrun('missing occurrence rejects','AMR-02',d=>delete d.records.find(r=>r.id==='mixed-0').observations[0].occurrence,'CAMPAIGN_OCCURRENCE_MISSING');\nrun('additional contract hash cannot be omitted','AMR-03',d=>delete d.records[2].contractSha256,'CASE_CONTRACT_MISMATCH');\nrun('additional contract mismatch rejects','AMR-03',d=>d.records[2].contractSha256='b'.repeat(64),'CASE_CONTRACT_MISMATCH');\nrun('additional frozen source path requires exact source hash key','AMR-03',d=>{\n d.supplementalSpec.cases[0].source.path='contract-source';d.records[2].contractSha256=hash(JSON.stringify(d.supplementalSpec.cases[0]));\n},'SOURCE_BINDING_MISSING');\nrun('missing environment ID rejects','AMR-10',d=>delete d.candidate.environments[0].id,'ENVIRONMENT_INCOMPLETE');\nrun('array Chrome version rejects','AMR-10',d=>d.candidate.environments[0].chromeVersion=['138.0.0.1'],'ENVIRONMENT_INCOMPLETE');\nconst snapshotChanges=[\n ['spec',d=>d.spec.cases[0].expected='different'],\n ['catalog',d=>d.supplementalSpec.cases[0].expected='different'],\n ['source',d=>d.records[0].sourceHashes.other='b'.repeat(64)],\n ['build',d=>d.candidate.buildReport={path:'changed-build.json',sha256:'b'.repeat(64)}],\n ['pack',d=>d.candidate.packReport={path:'changed-pack.json',sha256:'b'.repeat(64)}],\n ['archive',d=>d.candidate.packageArchive={path:'changed.zip',sha256:'b'.repeat(64)}],\n ['environment',d=>d.candidate.environments[0].profile='different'],\n ['result report',d=>d.candidate.resultReports=[{path:'changed.json',sha256:'b'.repeat(64)}]],\n ['record data',d=>d.records[0].observations[0].actual='different'],\n ['campaigns',d=>d.candidate.campaigns.mixed.reverse()],\n ['history',d=>d.candidate.historicalClosures.HIST01=['CASE-B']],\n ['author',d=>d.candidate.productAuthors.push('second-author')],\n ['capability evidence',d=>d.ledger.apiItems[0].evidence=[{path:'different.json',sha256:'b'.repeat(64)}]]\n];\nfor(const [name,change] of snapshotChanges)run('old approvals reject changed '+name,'AMR-04',change,'REVIEW_INPUT_SNAPSHOT_MISMATCH',{fresh:false});\nrun('critic must bind actual architect report hash','AMR-04',d=>d.candidate.reviews[1].architectReportSha256='b'.repeat(64),'CRITIC_ARCHITECT_BINDING_MISSING');\nrun('both reviews must include identical snapshot','AMR-04',d=>d.candidate.reviews[1].reviewedInputs={wrong:true},'REVIEW_INPUT_SNAPSHOT_MISMATCH',{fresh:false});\nrun('nonstring reviewer identity rejects','AMR-05',d=>d.candidate.reviews[0].reviewerId=['product-author'],'INDEPENDENT_REVIEW_MISSING');\nrun('normalized author cannot review own candidate','AMR-05',d=>d.candidate.reviews[0].reviewerId=' ＰＲＯＤＵＣＴ-ＡＵＴＨＯＲ ','INDEPENDENT_REVIEW_MISSING');\nrun('normalized reviewer aliases cannot be two identities','AMR-05',d=>d.candidate.reviews[1].reviewerId=' INDEPENDENT-0 ','REVIEW_SEQUENCE_OR_IDENTITY');\nrun('third blocking critic cannot be masked','AMR-06',d=>d.candidate.reviews.push({...structuredClone(d.candidate.reviews[1]),verdict:'REQUEST CHANGES',blockers:['block']}),'REVIEW_CARDINALITY_INVALID');\nrun('two copies of same role reject','AMR-06',d=>d.candidate.reviews[1].role='architect','REVIEW_CARDINALITY_INVALID');\nrun('equal disk and download hashes must match original artifact','AMR-07',d=>{\n const x=d.records.find(r=>r.kind==='download-complete').observations[0].download;x.sha256='b'.repeat(64);x.diskFile={...x.diskFile,sha256:x.sha256};\n},'DISK_DOWNLOAD_NOT_PROVEN');\nrun('artifact run identity mismatch rejects','AMR-07',d=>d.records.find(r=>r.kind==='download-complete').observations[0].download.artifact.runId='different-run','DISK_DOWNLOAD_NOT_PROVEN');\nrun('artifact payload must carry original SHA','AMR-07',d=>{const a=d.records.find(r=>r.kind==='download-complete').observations[0].download.artifact;a.payloadFile={...a.payloadFile,sha256:'b'.repeat(64)};},'DISK_DOWNLOAD_NOT_PROVEN');\nrun('stable hash-only ref rejects','AMR-08',d=>d.candidate.environments[1].versionEvidence={sha256:d.candidate.environments[1].versionEvidence.sha256},'VERSION_MATRIX_MISSING');\nrun('original/additional intersection cannot inflate denominator','AMR-09',d=>d.ledger.additionalCaseResults['CASE-A']={status:'failed',pass:false},'OVERLAPPING_CASE_DENOMINATOR');\nfor(const [name,change,code] of [\n ['null evidence ref',d=>d.records[0].observations[0].evidence=[null],'OBSERVATION_INCOMPLETE'],\n ['array evidence ref',d=>d.records[0].observations[0].evidence=[[]],'OBSERVATION_INCOMPLETE'],\n ['nonstring ref path',d=>d.records[0].observations[0].evidence=[{path:1,sha256:'a'.repeat(64)}],'OBSERVATION_INCOMPLETE'],\n ['null observation',d=>d.records[0].observations[0]=null,'OBSERVATION_MATRIX_MISSING'],\n ['null environment',d=>d.candidate.environments[0]=null,'INVALID_ENVIRONMENTS'],\n ['null review',d=>d.candidate.reviews[0]=null,'REVIEW_CARDINALITY_INVALID'],\n ['null reviews container',d=>d.candidate.reviews=null,'REVIEW_CARDINALITY_INVALID'],\n ['null diskFile',d=>d.records.find(r=>r.kind==='download-complete').observations[0].download.diskFile=null,'DISK_DOWNLOAD_NOT_PROVEN']\n])run(name+' returns structured rejection','AMR-10',change,code);\n\nconst isObject=v=>v!==null&&typeof v==='object'&&!Array.isArray(v),isHash=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v),own=(v,k)=>v!=null&&Object.hasOwn(v,k);\nconst AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;\nconst strictSource=checker.slice(checker.indexOf('  const checked = new Map();'),checker.indexOf('  for (const ref of candidate.resultReports'));\nconst traverseSource=checker.slice(checker.indexOf('  async function references(value)'),checker.indexOf('  await references(candidate);'));\nconst ioSource=checker.slice(checker.indexOf('  for (const record of records) for (const observation'),checker.indexOf('  for (const record of records) for (const [path, sha256]'));\nconst reviewSource=checker.slice(checker.indexOf('  for (const review of Array.isArray(candidate.reviews)'),checker.indexOf('  const result = validateAcceptance'));\nasync function harness({files=new Map(),filesystem=false}={}) {\n const issues=[],add=(code,subject)=>issues.push({code,subject});\n const io=filesystem?readFile:async path=>{if(!files.has(path))throw new Error('ENOENT');return files.get(path);};\n const f=new AsyncFunction('readFile','resolve','projectRoot','sha','own','isObject','isHash','add',\n strictSource+traverseSource+'\\nreturn {reference,references};');\n return {...await f(io,resolve,root,hash,own,isObject,isHash,add),issues,add};\n}\nfunction ref(files,path,value){const bytes=Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value));files.set(resolve(root,path),bytes);return {path,sha256:hash(bytes)};}\nasync function ioTest(name,finding,change,expected) {\n const files=new Map(), payload=Buffer.from('artifact-original-payload'), payloadRef=ref(files,'payload',payload),diskRef=ref(files,'disk',payload);\n const artifact={artifactId:'artifact-1',runId:'run-1',bytes:payload.length,sha256:hash(payload)};\n const artifactRef=ref(files,'descriptor',{artifact});\n const occurrence={resultId:'campaign-1',roundId:'round-1',sessionId:'session-1',startMs:1,endMs:2};\n const occurrenceRef=ref(files,'round-log',{rows:[occurrence]});\n const download={state:'complete',...artifact,evidence:[diskRef],diskFile:diskRef,artifact:{...artifact,record:artifactRef,payloadFile:payloadRef}};\n const observation={environmentId:'minimum',evidence:[occurrenceRef],occurrence:{...occurrence,evidence:occurrenceRef,pointer:'/rows/0'},download};\n const recordData={id:'campaign-1',observations:[observation]};\n change({files,download,observation,recordData,artifact,ref});\n const h=await harness({files});\n try {await new AsyncFunction('records','reference','references','isObject','sha','add',ioSource)([recordData],h.reference,h.references,isObject,hash,h.add);\n const codes=[...new Set(h.issues.map(x=>x.code))];record(name,finding,expected||'no issues',{passed:expected?codes.includes(expected):codes.length===0,codes,method:'exact current IO branch; in-memory readFile, real hashes'});}\n catch(e){record(name,finding,expected,{passed:false,error:String(e)});}\n}\nawait ioTest('valid occurrence/artifact IO branch','BASELINE',()=>{},null);\nawait ioTest('raw pointer identity mismatch','AMR-02',({observation})=>observation.occurrence.roundId='invented','OCCURRENCE_RAW_BINDING_MISMATCH');\nawait ioTest('raw pointer timestamp mismatch','AMR-02',({observation})=>observation.occurrence.endMs=3,'OCCURRENCE_RAW_BINDING_MISMATCH');\nawait ioTest('raw pointer missing path','AMR-02',({observation})=>observation.occurrence.pointer='/rows/99','OCCURRENCE_RAW_BINDING_MISMATCH');\nawait ioTest('self-consistent hashes do not override original artifact descriptor','AMR-07',({files,download,ref})=>{\n const other=Buffer.from('other-content');download.sha256=hash(other);download.bytes=other.length;\n download.diskFile=ref(files,'disk-other',other);download.artifact.sha256=download.sha256;download.artifact.bytes=download.bytes;download.artifact.payloadFile=ref(files,'payload-other',other);\n},'ARTIFACT_DISK_BINDING_MISMATCH');\nawait ioTest('native artifact runId actually parsed','AMR-07',({download})=>{download.runId='different-run';download.artifact.runId='different-run';},'ARTIFACT_DISK_BINDING_MISMATCH');\nawait ioTest('bytes actually read, not only self-filled','AMR-07',({download})=>{download.bytes++;download.artifact.bytes++;},'ARTIFACT_DISK_BINDING_MISMATCH');\nfor(const [name,mutate,expected] of [\n ['filesystem correct catalog ref',r=>r,null],\n ['filesystem forged hash',r=>({...r,sha256:'b'.repeat(64)}),'EVIDENCE_HASH_MISMATCH'],\n ['filesystem missing path',r=>({...r,path:'docs/framework/evidence/continuation-20261003-current/__followup_nonexistent__'}),'EVIDENCE_FILE_MISSING'],\n ['filesystem hash-only ref',r=>({sha256:r.sha256}),'INVALID_REFERENCE'],\n ['filesystem null ref',()=>null,'INVALID_REFERENCE']\n]) {\n const h=await harness({filesystem:true}), bytes=await readFile(resolve(root,SUPPLEMENTAL_CATALOG));\n await h.reference(mutate({path:SUPPLEMENTAL_CATALOG,sha256:hash(bytes)}));\n const codes=[...new Set(h.issues.map(x=>x.code))];\n record(name,'AMR-08/AMR-10',expected||'no issues',{passed:expected?codes.includes(expected):codes.length===0,codes,method:'exact reference function; actual filesystem read'});\n}\nasync function reviewTest(name,change,expected) {\n const files=new Map(), review=structuredClone(fixture().candidate.reviews[0]), report=structuredClone(review);\n delete report.report;\n const realFixtureRef=ref(files,'validator-fixture-only.json',{synthetic:true});\n function fixRefs(v){if(!v||typeof v!=='object')return;if(v.path==='validator-fixture-only.json')v.sha256=realFixtureRef.sha256;for(const x of Object.values(v))if(x&&typeof x==='object')fixRefs(x);}\n fixRefs(review);fixRefs(report);\n const candidate={reviews:[review]};change({files,review,report,candidate});\n if(candidate.reviews[0])review.report=ref(files,'architect-review',report);\n const h=await harness({files});\n try{await new AsyncFunction('candidate','reference','references','add',reviewSource)(candidate,h.reference,h.references,h.add);\n const codes=[...new Set(h.issues.map(x=>x.code))];record(name,'AMR-11/AMR-10',expected||'no issues',{passed:expected?codes.includes(expected):codes.length===0,codes,method:'exact parsed-review IO branch; in-memory readFile, real hashes'});}\n catch(e){record(name,'AMR-11/AMR-10',expected,{passed:false,error:String(e)});}\n}\nawait reviewTest('valid parsed architect report',()=>{},null);\nawait reviewTest('parsed report nested missing evidence read',({report})=>report.extra={path:'nonexistent-raw',sha256:'a'.repeat(64)},'EVIDENCE_FILE_MISSING');\nawait reviewTest('parsed report nested forged evidence hash read',({files,report})=>{\n ref(files,'actual-raw',{event:'native-placeholder'});report.extra={path:'actual-raw',sha256:'b'.repeat(64)};\n},'EVIDENCE_HASH_MISMATCH');\nawait reviewTest('CLI review loop null row fails closed without TypeError',({candidate})=>candidate.reviews=[null],'INVALID_REFERENCE');\nawait reviewTest('parsed report reviewedInputs must match manifest',({report})=>report.reviewedInputs={different:true},'REVIEW_REPORT_MISMATCH');\n\nconst catalogBytes=await readFile(resolve(root,SUPPLEMENTAL_CATALOG)),catalog=JSON.parse(catalogBytes);\nconst ledgerBytes=await readFile(resolve(root,'docs/framework/source-compatibility-ledger.json')),ledger=JSON.parse(ledgerBytes);\nconst expectedIds=Array.from({length:19},(_,i)=>'F2-K2-SDK-'+String(i+1).padStart(3,'0'));\nconst catalogIds=catalog.cases.map(r=>r.id),ledgerIds=Object.keys(ledger.additionalCaseResults);\nconst sourceFiles=[];\nfor(const path of [...new Set(catalog.cases.map(r=>r.source.path))])sourceFiles.push({path,sha256:hash(await readFile(path))});\nconst literalHash=checker.match(/const supplementalHash = '([a-f0-9]+)'/)[1];\nrecord('catalog inherits exact existing SDK001-019; fixed bytes and original source','AMR-03',\n '19 matching IDs, required F3, fixed SHA, actual source SHA',\n {passed:JSON.stringify(catalogIds)===JSON.stringify(expectedIds)&&JSON.stringify([...ledgerIds].sort())===JSON.stringify([...expectedIds].sort())&&\n catalog.cases.every(r=>r.required===true&&r.phase==='F3'&&sourceFiles.some(s=>s.path===r.source.path&&s.sha256===r.source.sha256))&&hash(catalogBytes)===literalHash,\n catalogIds,ledgerIds,catalogSha256:hash(catalogBytes),sourceFiles,approvalBoundary:catalog.approvalBoundary});\nconst inputs=[\n checkerPath,testPath,resolve(root,SUPPLEMENTAL_CATALOG),resolve(root,'docs/framework/product-acceptance-workflow-20261003.md'),\n resolve(root,'docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.json'),\n resolve(root,'docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.md')\n];\nconst snapshot=[];for(const path of inputs)snapshot.push({path,sha256:hash(await readFile(path))});\nconsole.log(JSON.stringify({schemaVersion:1,kind:'independent-mechanism-followup-probes',generatedAt:new Date().toISOString(),\n total:output.length,passed:output.filter(x=>x.passed).length,failed:output.filter(x=>!x.passed).length,\n snapshot,probes:output},null,2));\n",
+  "status": "finalized",
+  "finalizedAt": "2026-10-03T09:04:30.858Z",
+  "closedIds": [
+    "AMR-01",
+    "AMR-02",
+    "AMR-03",
+    "AMR-04",
+    "AMR-05",
+    "AMR-06",
+    "AMR-07",
+    "AMR-08",
+    "AMR-09",
+    "AMR-10",
+    "AMR-11"
+  ],
+  "residualIds": [],
+  "actualNewDefects": [],
+  "currentCheckerSha256": "e8aeaa949f982e8a72289b3f5bb990db6447417f2335e7ea8d0835b656760efc",
+  "finalShortReview": {
+    "scope": "AMR-01..11已有修补；无新增探针、无委派、无扩审。",
+    "basis": "已有65/65独立机制探针＋限定代码阅读；24/24回归为用户转述，未独立重跑。",
+    "shaRecomputedAt": "2026-10-03T09:04:30.858Z",
+    "shaRecomputedFrom": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+    "currentSha256": "e8aeaa949f982e8a72289b3f5bb990db6447417f2335e7ea8d0835b656760efc",
+    "matchesExecutedProbeSnapshot": true,
+    "environmentGuardLine": 56,
+    "judgment": "已有11项仅在自动机制层关闭；本轮无已复现残留或实际新缺陷。not-tested是验证边界，不能视为通过或凭空列为代码缺陷。",
+    "f3": "pending"
+  },
+  "notTestedBranches": [
+    {
+      "ids": [
+        "AMR-02"
+      ],
+      "branch": "完整CLI从实际磁盘round-log读取JSONpointer，再执行全候选校验",
+      "status": "not-tested",
+      "existingEvidence": "当前IO分支已用内存readFile及真实SHA测试identity/time/缺失pointer；未端到端运行。"
+    },
+    {
+      "ids": [
+        "AMR-03",
+        "AMR-04"
+      ],
+      "branch": "完整production候选所有sourceHashes/build/pack/archive/resultReports及两份实际review文件的联合端到端闭环",
+      "status": "not-tested",
+      "existingEvidence": "19项catalog和其source实际磁盘SHA已核对；合同/快照规则及报告比对分支已测试。"
+    },
+    {
+      "ids": [
+        "AMR-07"
+      ],
+      "branch": "真实原生artifact持久描述→payload文件→浏览器下载文件完整来源链",
+      "status": "not-tested",
+      "existingEvidence": "当前CLI分支已在内存IO中读取描述和字节并拒绝双hash/身份/bytes造假；未跑真实下载。"
+    },
+    {
+      "ids": [
+        "AMR-10",
+        "AMR-11"
+      ],
+      "branch": "含null review或内嵌证据的实际候选完整CLI运行",
+      "status": "not-tested",
+      "existingEvidence": "对应解析分支已在内存IO中结构化拒绝；strict reference函数另实际读取磁盘。"
+    },
+    {
+      "ids": [],
+      "branch": "实际ZIP/production闭包与检查结束loadedInputs/已hash证据/包重读的并发改写场景",
+      "status": "not-tested",
+      "existingEvidence": "本轮只读核对代码；未运行包/ZIP检查或并发改写探针。"
+    },
+    {
+      "ids": [
+        "AMR-01",
+        "AMR-02",
+        "AMR-03",
+        "AMR-04",
+        "AMR-05",
+        "AMR-06",
+        "AMR-07",
+        "AMR-08",
+        "AMR-09",
+        "AMR-10",
+        "AMR-11"
+      ],
+      "branch": "native实际效果、双环境、真实campaign轮次、controller-free SDK、unknown不重放、≤3s物理终止、borrowed页/资源清理及身份真实性",
+      "status": "not-tested",
+      "existingEvidence": "全部native与F3仍pending，留给同包最终独立architect→critic语义审查。"
+    }
+  ],
+  "preservationVerification": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/verify-product-acceptance.mjs",
+      "sha256": "e8aeaa949f982e8a72289b3f5bb990db6447417f2335e7ea8d0835b656760efc",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/acceptance-evidence.test.mjs",
+      "sha256": "3ce6d0a3ab20aa8a54353c63647b82ae3d3eeee19a2d0421a3b8d69364aada1b",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/supplemental-sdk-cases.json",
+      "sha256": "5a5c7fc207cf4ef3fac2861a41203dbd86034fe05f87e24fe1e8b3debd36fa61",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-acceptance-workflow-20261003.md",
+      "sha256": "54b3067b605fe5b95edfcbc58d5d6d540cd342e8d9cad0d45190f7015b01010c",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.json",
+      "sha256": "e5c12226071dbb4cd6d1c0c86db51d1f4e8d689f5849053d4d871a599a07aa2e",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/continuation-20261003-current/acceptance-mechanism-review.md",
+      "sha256": "56cb88a04a48bcc866c367601920b627a343274e38a51bbd25d56cf1ac7861c2",
+      "unchanged": true
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "frozenAt": "2026-10-03T08:11:39.081Z",
+  "sourceMatchesLatestNativeEvidence": true,
+  "files": [
+    {
+      "path": "src/run-host.js",
+      "sha256": "609bb30b93cb51a6bce7d776703b74f2e9e2b6140d08f375d4bcb54697afcd90"
+    },
+    {
+      "path": "src/platform/host/client.js",
+      "sha256": "0f02825734c47182443dab7dbf7e0f88b0cea7d4d7a64e3e478a9bb0ea0ec8f6"
+    },
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "sha256": "93b8acfcf5a69d983bdc4cc491b78e1002a4a2112ccb35bc37069d03aae37402"
+    },
+    {
+      "path": "src/platform/target/index.js",
+      "sha256": "b7f48e9edebbe360d86f47fd84afb33e2941b86a2c5614852695048f1eb9c161"
+    },
+    {
+      "path": "src/framework/context.js",
+      "sha256": "443a378c60f2ebbd77e1c667fe0538eca3c98cf4bc602d50711c89e612dc0c3c"
+    },
+    {
+      "path": "src/framework/control/native-driver.js",
+      "sha256": "e2d7bdf2164e245474741a473df17ff4170365f2f0cc80ad9a0184ab425bb437"
+    },
+    {
+      "path": "src/scripting/packaged/page-session.js",
+      "sha256": "1ed9c8e6be0a874a56b3777b3b83e0630221b731cdb9cfc288837c7b77a268d3"
+    },
+    {
+      "path": "src/scripting/sandbox/controller.js",
+      "sha256": "571f10e36091753d203826b61ee5dcdd921a37f657c968e9e4db4f86049e01bd"
+    },
+    {
+      "path": "tests/framework/k3-controller-authority.test.mjs",
+      "sha256": "8224a05d1803f0707ebbe618ea7b5c902b385d87a3ae6c4a78523e669b1e1268"
+    },
+    {
+      "path": "tests/framework/k3-native-driver.test.mjs",
+      "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+    },
+    {
+      "path": "tests/framework/k3-controller-native-page.js",
+      "sha256": "a60578633dd65ab5db56d972711b31a48d5c6f41c7e45d812a456368d5d438bf"
+    },
+    {
+      "path": "tests/framework/k3-controller-native.mjs",
+      "sha256": "28c3fb9cf6306c50b1dd77ed2b99be9ca63d80af69d4e2b035828f552b1ff0cd"
+    }
+  ],
+  "scopedTests": {
+    "pass": 49,
+    "fail": 0,
+    "exit": 0
+  },
+  "publicAuthority": {
+    "pass": 12,
+    "fail": 0,
+    "exit": 0
+  },
+  "nativeProof": "native-2026-10-03T08-09-01.281Z",
+  "finalProductPassed": false
+}

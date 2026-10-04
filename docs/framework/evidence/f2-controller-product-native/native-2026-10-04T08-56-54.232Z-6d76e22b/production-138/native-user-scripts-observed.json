@@ -1,0 +1,23 @@
+{
+  "state": "native-user-scripts-assist",
+  "mode": "production",
+  "label": "138",
+  "pid": 75571,
+  "launcherPid": 75570,
+  "endpoint": "ws://127.0.0.1:58972/devtools/browser/b5457f26-9fed-4f78-af1d-4d8479a09ae9",
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "settingsId": "62E5E79A884A1C046B1C0455E1478679",
+  "initialWorkerId": "B2E6674BC0156A21F6C179073132BF91",
+  "scriptAvailability": {
+    "available": false,
+    "reason": "undefined API"
+  },
+  "instruction": "Enable Developer mode for the owned test profile and Allow User Scripts for this exact test extension, then use its native Reload control so extension contexts refresh. No flags, manifest edits or private APIs.",
+  "ackPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-04T08-56-54.232Z-6d76e22b/production-138/native-user-scripts-ui-ack.json",
+  "workerId": "675DD50CFA125618F0029357B1BB224D",
+  "availability": {
+    "available": true,
+    "id": "efhcmggbgamacpfhhmooelgdkepdcghh"
+  },
+  "observedAt": 1791104336785
+}

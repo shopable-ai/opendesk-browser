@@ -1,0 +1,170 @@
+{
+  "stage": "01",
+  "artifactValidation": "verified",
+  "productTests": "not-run",
+  "generatedAt": "2026-10-01T20:50:54.802790+00:00",
+  "checks": [
+    {
+      "id": "canonical-vector",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "migration-template-public-schema",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "rejection-unknown-top",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "rejection-unknown--list",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "rejection-unknown--fields-0",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "rejection-unknown--pagination",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "rejection-unknown--limits",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "rejection-restricted-json-5",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "rejection-restricted-json-6",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "rejection-restricted-json-7",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "rejection-restricted-json-8",
+      "result": "rejected-artifact-as-expected"
+    },
+    {
+      "id": "version-alignment",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "planned-scenarios-have-outcomes",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "task-dag-and-nine-categories",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "work-package-concrete-input-output-tests",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "transaction-template-structure-hash",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "precise-three-batch-vectors-shape-digests-counts",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "download-attempt-distinct-identity-vectors",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "fixed-read-command-payload-shape",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "all-eleven-technical-gates-indexed",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "source-snapshot-byte-integrity",
+      "count": 442,
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "actual-current-turn-context",
+      "result": "verified-read-only",
+      "evidence": {
+        "timestamp": "2026-10-01T20:25:52.678Z",
+        "model": "openai/gpt-6.1-sol",
+        "effort": "xhigh"
+      }
+    },
+    {
+      "id": "classic-probe-metadata-only",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "all-schema-references-resolve",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "idle-registration-projection-schema",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "exact-raw-frame-begin-end-wire",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "zero-batch-page-complete-declarations",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "page-signature-identity-independent-exact-oracle",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "fixed-command-and-plan-digests",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "plan-cases-gate-refs-repair-vector-mapping",
+      "count": 185,
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "v5-environment-foundation-domain-owner-split",
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "source-delta-byte-integrity",
+      "count": 23,
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "behavior-source-citation-hashes-lines",
+      "count": 167,
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "source-selection-preview-public-wire-and-draft-plan",
+      "count": 6,
+      "result": "verified-artifact-only"
+    },
+    {
+      "id": "actual-stage05-artifact-reuse-edge-integrity",
+      "artifacts": 17,
+      "sourceRefs": 232,
+      "decisions": 54,
+      "edges": 29,
+      "result": "verified-artifact-only"
+    }
+  ],
+  "schemaValidatorScope": "stdlib validator implements only keywords present in current schema; real CSS/URL DOM/external runtime behaviors untested",
+  "snapshotFilesVerified": 442,
+  "designFixtureResultIsProductAcceptance": false,
+  "gaps": [
+    "No production implementation or Chrome product execution.",
+    "No complete JSON Schema conformance suite; only present keyword subset and rejection fixtures checked.",
+    "VM classic probe is loading-state initialization, not browser selection equivalence."
+  ]
+}

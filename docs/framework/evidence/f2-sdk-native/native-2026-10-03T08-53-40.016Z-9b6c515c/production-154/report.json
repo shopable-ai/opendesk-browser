@@ -1,0 +1,2663 @@
+{
+  "mode": "production",
+  "label": "154",
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+  "packageBefore": {
+    "files": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 1231,
+        "sha256": "cd3d63b31e04113e7c1db38809938b081072c863817121284f2d72fc63eabb09"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 656,
+        "sha256": "641edccc816cb398d49a6bf946befa3ea92af23385bf046cf6cf2b00e446086d"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 53224,
+        "sha256": "12ed1ed142f5f21ce1723c5d45232530405e6f2c950db6f7ecea1ab867edd1ad"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 13913,
+        "sha256": "8ee5fa5882733a82dd3ddcac92e6f9b9269f71bc8508ee8c90d127b275111c72"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 203,
+        "sha256": "e50cab8ddf0c4a3ec03b59b0366f87651df8465fdeea39db380b0f5051d32f1f"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 24289,
+        "sha256": "e9e091da6bc172996f7e7356bd83a1378e9670c6b9e015d802c56daa92ae9755"
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 906,
+        "sha256": "6be8adc80774487956efa94a10b1713d8a37d5314334bf1e8b24d2d9cb0c9860"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 20381,
+        "sha256": "d4ba6003b597b828007058183f0c38001fa6c520e877a36b037b1e292d42f945"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 3837,
+        "sha256": "4ee49c98af9cd2423571897d9384f5e55534f66ae1e88d41e56d059dea5b9f17"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 21056,
+        "sha256": "0218712c7ad70e51536b1187924f29facb69ec0dcc0e4bf7131c75b19e12ea57"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 252486,
+        "sha256": "554981e7d03222495857810651836c146c719dbbb771994f80ad7129b16cfb3e"
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 1326,
+        "sha256": "6cc4f15df5945aa9ed0af7b21e5db611828bb64fb8496e06a4654f7697327401"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 52993,
+        "sha256": "7b5755c656e17d6ba46c422b979f2f219f97320e442665eea9db6468cf8e4a67"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 4862,
+        "sha256": "7f966fa92d3412e641a967d46a15e65f4fbd57678fc6c861dcb15af9ee9ece13"
+      }
+    ],
+    "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+    "algorithm": "SHA256 UTF-8 JSON.stringify(path-sorted {path,bytes,sha256} array)"
+  },
+  "unchangedProductPackage": true,
+  "alteredManifest": false,
+  "finalProductPassed": false,
+  "f3Accepted": false,
+  "ledgerCasesClosed": [],
+  "cases": [
+    {
+      "id": "UI-EXPLICIT-TARGET-NO-DEFAULT",
+      "status": "PASS",
+      "actual": {
+        "tab": "",
+        "document": "",
+        "disabled": true,
+        "capabilities": []
+      }
+    },
+    {
+      "id": "UI-TRUSTED-GESTURE-EXACT-DOCUMENT-INSTALL",
+      "status": "PASS",
+      "actual": {
+        "state": "installed",
+        "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+        "raw": "{\n  \"grantIncarnation\": \"76356568-153c-4145-bc0a-43d8b6cb2c0c\",\n  \"documentId\": \"F82B9539B6B1C8FAE6E77B6E43BC1845\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}",
+        "beforePermissions": {
+          "origins": [],
+          "permissions": [
+            "activeTab",
+            "downloads",
+            "storage",
+            "tabs",
+            "webNavigation",
+            "scripting",
+            "userScripts"
+          ]
+        },
+        "afterPermissions": {
+          "origins": [
+            "http://127.0.0.1/*"
+          ],
+          "permissions": [
+            "activeTab",
+            "downloads",
+            "storage",
+            "tabs",
+            "webNavigation",
+            "scripting",
+            "userScripts"
+          ]
+        },
+        "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+        "tabId": 1438489644,
+        "nativeInstall": {
+          "grantIncarnation": "76356568-153c-4145-bc0a-43d8b6cb2c0c",
+          "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+          "installed": true,
+          "files": [
+            "agents/page-relay.js",
+            "framework/sdk-main.js"
+          ]
+        }
+      }
+    },
+    {
+      "id": "NATIVE-HELLO-GRANT-SUBSET-NO-CONTROLLER",
+      "status": "PASS",
+      "actual": {
+        "hello": {
+          "sdkVersion": "1.0.0",
+          "ready": true,
+          "methods": [
+            "AXIOS_GET",
+            "AXIOS_POST",
+            "AXIOS_PUT",
+            "AXIOS_DELETE",
+            "APPSTORAGE_GETITEM",
+            "APPSTORAGE_SETITEM",
+            "APPSTORAGE_REMOVEITEM",
+            "APPSTORAGE_CLEAR",
+            "APPLOCAL_GETITEM",
+            "APPLOCAL_SETITEM",
+            "APPLOCAL_REMOVEITEM",
+            "CHROME_LOCAL_GET",
+            "CHROME_LOCAL_SET",
+            "CHROME_LOCAL_REMOVE",
+            "SERVER_CHECK"
+          ]
+        },
+        "decoyHasSdk": false,
+        "journal": [
+          {
+            "key": "host:35649979-9f9d-497d-b315-c6962b835242",
+            "value": {
+              "tag": "host",
+              "registrationId": "35649979-9f9d-497d-b315-c6962b835242",
+              "hostInstanceId": "7d3a802e-c148-4521-bd11-951f25bb8ef4",
+              "hostDocumentId": "908E62D87539A141BC6B1EA31F800F4A",
+              "hostUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+              "hostTabId": 1438489646,
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "browserSessionIncarnation": "619c046a-0034-488c-b2a5-63886f7b7fd3",
+              "active": true,
+              "revoked": false,
+              "registeredAt": "2026-10-03T08:58:47.488Z"
+            }
+          },
+          {
+            "key": "sdk-grant:[1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\"]",
+            "value": {
+              "tag": "sdk-grant",
+              "tabId": 1438489644,
+              "frameId": 0,
+              "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+              "origin": "http://127.0.0.1:62228",
+              "principal": "sdk:http://127.0.0.1:62228",
+              "tabEpoch": 1,
+              "frameEpoch": 0,
+              "permissionEpoch": 0,
+              "notificationEpoch": 0,
+              "key": "sdk-grant:[1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\"]",
+              "namespace": "page:http://127.0.0.1:62228",
+              "capabilities": [
+                "network",
+                "storage.persistent",
+                "storage.session"
+              ],
+              "allowedOrigins": [
+                "http://127.0.0.1:62228"
+              ],
+              "grantIncarnation": "76356568-153c-4145-bc0a-43d8b6cb2c0c",
+              "browserSessionIncarnation": "619c046a-0034-488c-b2a5-63886f7b7fd3",
+              "active": true,
+              "grantedAt": "2026-10-03T09:05:19.788Z",
+              "registrationId": "35649979-9f9d-497d-b315-c6962b835242"
+            }
+          }
+        ],
+        "controllerRuns": []
+      }
+    },
+    {
+      "id": "PERSISTENT-STRING-CONVERSION-AND-UNDEFINED-SETTLEMENT",
+      "status": "PASS",
+      "actual": {
+        "set": {
+          "ok": true,
+          "valueKind": "undefined",
+          "undefinedResult": true
+        },
+        "get": {
+          "ok": true,
+          "value": "false",
+          "valueKind": "string",
+          "undefinedResult": false
+        }
+      }
+    },
+    {
+      "id": "TYPED-JSON-HOP-FALSE-ZERO-OWN-NESTED-UNDEFINED",
+      "status": "PASS",
+      "actual": {
+        "falsePreserved": true,
+        "zeroPreserved": true,
+        "ownUndefined": true,
+        "nestedUndefined": true,
+        "arrayOwnUndefined": true,
+        "rawEvents": [
+          {
+            "at": 1791018326711,
+            "name": "OPEN_DESK_SDK_RESULT",
+            "message": {
+              "protocol": "opendesk.foundation.v1",
+              "requestId": "2dac119d-b42d-4b60-9256-57c157c70f7e",
+              "response": {
+                "ok": true,
+                "data": {
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "PageBrigeCode",
+                        {
+                          "type": "number",
+                          "value": 0
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "undefined"
+                        }
+                      ],
+                      [
+                        "message",
+                        {
+                          "type": "string",
+                          "value": ""
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "at": 1791018326741,
+            "name": "OPEN_DESK_SDK_RESULT",
+            "message": {
+              "protocol": "opendesk.foundation.v1",
+              "requestId": "d12fb50d-5f9c-4f50-b67f-1f135c10b3d9",
+              "response": {
+                "ok": true,
+                "data": {
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "PageBrigeCode",
+                        {
+                          "type": "number",
+                          "value": 0
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "array",
+                              {
+                                "type": "array",
+                                "value": [
+                                  {
+                                    "type": "undefined"
+                                  },
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  },
+                                  {
+                                    "type": "number",
+                                    "value": 0
+                                  }
+                                ]
+                              }
+                            ],
+                            [
+                              "f",
+                              {
+                                "type": "boolean",
+                                "value": false
+                              }
+                            ],
+                            [
+                              "nested",
+                              {
+                                "type": "object",
+                                "value": [
+                                  [
+                                    "u",
+                                    {
+                                      "type": "undefined"
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            [
+                              "u",
+                              {
+                                "type": "undefined"
+                              }
+                            ],
+                            [
+                              "z",
+                              {
+                                "type": "number",
+                                "value": 0
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "message",
+                        {
+                          "type": "string",
+                          "value": ""
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "NATIVE-SESSION-TYPED-VALUES",
+      "status": "PASS",
+      "actual": {
+        "setUndefined": true,
+        "ownUndefined": true,
+        "f": false,
+        "z": 0,
+        "rawEvents": [
+          {
+            "at": 1791018326761,
+            "name": "OPEN_DESK_SDK_RESULT",
+            "message": {
+              "protocol": "opendesk.foundation.v1",
+              "requestId": "4a385f20-a068-4dcc-9f43-da8b65486207",
+              "response": {
+                "ok": true,
+                "data": {
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "PageBrigeCode",
+                        {
+                          "type": "number",
+                          "value": 0
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "undefined"
+                        }
+                      ],
+                      [
+                        "message",
+                        {
+                          "type": "string",
+                          "value": ""
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "at": 1791018326779,
+            "name": "OPEN_DESK_SDK_RESULT",
+            "message": {
+              "protocol": "opendesk.foundation.v1",
+              "requestId": "9b64b1f9-0743-478a-9646-805ca45e7ebc",
+              "response": {
+                "ok": true,
+                "data": {
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "PageBrigeCode",
+                        {
+                          "type": "number",
+                          "value": 0
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "f",
+                              {
+                                "type": "boolean",
+                                "value": false
+                              }
+                            ],
+                            [
+                              "u",
+                              {
+                                "type": "undefined"
+                              }
+                            ],
+                            [
+                              "z",
+                              {
+                                "type": "number",
+                                "value": 0
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "message",
+                        {
+                          "type": "string",
+                          "value": ""
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "HTTP-GET-POST-PUT-DELETE-BUSINESS-DATA",
+      "status": "PASS",
+      "actual": [
+        {
+          "verb": "GET",
+          "value": {
+            "ok": true,
+            "value": {
+              "config": {
+                "method": "get",
+                "params": {
+                  "seed": "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8",
+                  "verb": "GET"
+                },
+                "url": "http://127.0.0.1:62228/echo?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&verb=GET",
+                "withCredentials": false
+              },
+              "data": {
+                "body": "",
+                "business": {
+                  "PageBrigeCode": 9,
+                  "error": "business-data",
+                  "message": "keep-as-data",
+                  "ok": false
+                },
+                "falseValue": false,
+                "method": "GET",
+                "path": "/echo",
+                "query": [
+                  [
+                    "seed",
+                    "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                  ],
+                  [
+                    "verb",
+                    "GET"
+                  ]
+                ],
+                "zero": 0
+              },
+              "headers": {
+                "cache-control": "no-store",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Sat, 03 Oct 2026 09:05:26 GMT",
+                "keep-alive": "timeout=5",
+                "transfer-encoding": "chunked"
+              },
+              "status": 200,
+              "statusText": "OK"
+            },
+            "valueKind": "object",
+            "undefinedResult": false
+          },
+          "rawServer": {
+            "sequence": 19,
+            "at": "2026-10-03T09:05:26.793Z",
+            "monoMs": 706860.252041,
+            "method": "GET",
+            "url": "/echo?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&verb=GET",
+            "headers": {
+              "host": "127.0.0.1:62228",
+              "connection": "keep-alive",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+              "accept": "*/*",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "",
+            "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "finishedAt": "2026-10-03T09:05:26.794Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-03T09:05:26.794Z"
+          }
+        },
+        {
+          "verb": "POST",
+          "value": {
+            "ok": true,
+            "value": {
+              "config": {
+                "method": "post",
+                "params": {
+                  "seed": "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8",
+                  "verb": "POST"
+                },
+                "url": "http://127.0.0.1:62228/echo?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&verb=POST",
+                "withCredentials": false
+              },
+              "data": {
+                "body": "{\"falseValue\":false,\"zero\":0}",
+                "business": {
+                  "PageBrigeCode": 9,
+                  "error": "business-data",
+                  "message": "keep-as-data",
+                  "ok": false
+                },
+                "falseValue": false,
+                "method": "POST",
+                "path": "/echo",
+                "query": [
+                  [
+                    "seed",
+                    "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                  ],
+                  [
+                    "verb",
+                    "POST"
+                  ]
+                ],
+                "zero": 0
+              },
+              "headers": {
+                "cache-control": "no-store",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Sat, 03 Oct 2026 09:05:26 GMT",
+                "keep-alive": "timeout=5",
+                "transfer-encoding": "chunked"
+              },
+              "status": 200,
+              "statusText": "OK"
+            },
+            "valueKind": "object",
+            "undefinedResult": false
+          },
+          "rawServer": {
+            "sequence": 20,
+            "at": "2026-10-03T09:05:26.818Z",
+            "monoMs": 706885.986208,
+            "method": "POST",
+            "url": "/echo?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&verb=POST",
+            "headers": {
+              "host": "127.0.0.1:62228",
+              "connection": "keep-alive",
+              "content-length": "29",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+              "content-type": "application/json",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "{\"falseValue\":false,\"zero\":0}",
+            "bodySha256": "afa0827c4af5b6b4cc81fd96753e7390b4912b513f4ce4041e25fc49d79a9791",
+            "finishedAt": "2026-10-03T09:05:26.819Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-03T09:05:26.819Z"
+          }
+        },
+        {
+          "verb": "PUT",
+          "value": {
+            "ok": true,
+            "value": {
+              "config": {
+                "method": "put",
+                "params": {
+                  "seed": "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8",
+                  "verb": "PUT"
+                },
+                "url": "http://127.0.0.1:62228/echo?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&verb=PUT",
+                "withCredentials": false
+              },
+              "data": {
+                "body": "{\"falseValue\":false,\"zero\":0}",
+                "business": {
+                  "PageBrigeCode": 9,
+                  "error": "business-data",
+                  "message": "keep-as-data",
+                  "ok": false
+                },
+                "falseValue": false,
+                "method": "PUT",
+                "path": "/echo",
+                "query": [
+                  [
+                    "seed",
+                    "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                  ],
+                  [
+                    "verb",
+                    "PUT"
+                  ]
+                ],
+                "zero": 0
+              },
+              "headers": {
+                "cache-control": "no-store",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Sat, 03 Oct 2026 09:05:26 GMT",
+                "keep-alive": "timeout=5",
+                "transfer-encoding": "chunked"
+              },
+              "status": 200,
+              "statusText": "OK"
+            },
+            "valueKind": "object",
+            "undefinedResult": false
+          },
+          "rawServer": {
+            "sequence": 21,
+            "at": "2026-10-03T09:05:26.839Z",
+            "monoMs": 706906.595833,
+            "method": "PUT",
+            "url": "/echo?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&verb=PUT",
+            "headers": {
+              "host": "127.0.0.1:62228",
+              "connection": "keep-alive",
+              "content-length": "29",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+              "content-type": "application/json",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "{\"falseValue\":false,\"zero\":0}",
+            "bodySha256": "afa0827c4af5b6b4cc81fd96753e7390b4912b513f4ce4041e25fc49d79a9791",
+            "finishedAt": "2026-10-03T09:05:26.839Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-03T09:05:26.840Z"
+          }
+        },
+        {
+          "verb": "DELETE",
+          "value": {
+            "ok": true,
+            "value": {
+              "config": {
+                "method": "delete",
+                "params": {
+                  "seed": "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8",
+                  "verb": "DELETE"
+                },
+                "url": "http://127.0.0.1:62228/echo?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&verb=DELETE",
+                "withCredentials": false
+              },
+              "data": {
+                "body": "",
+                "business": {
+                  "PageBrigeCode": 9,
+                  "error": "business-data",
+                  "message": "keep-as-data",
+                  "ok": false
+                },
+                "falseValue": false,
+                "method": "DELETE",
+                "path": "/echo",
+                "query": [
+                  [
+                    "seed",
+                    "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                  ],
+                  [
+                    "verb",
+                    "DELETE"
+                  ]
+                ],
+                "zero": 0
+              },
+              "headers": {
+                "cache-control": "no-store",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Sat, 03 Oct 2026 09:05:27 GMT",
+                "keep-alive": "timeout=5",
+                "transfer-encoding": "chunked"
+              },
+              "status": 200,
+              "statusText": "OK"
+            },
+            "valueKind": "object",
+            "undefinedResult": false
+          },
+          "rawServer": {
+            "sequence": 22,
+            "at": "2026-10-03T09:05:27.119Z",
+            "monoMs": 707186.259,
+            "method": "DELETE",
+            "url": "/echo?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&verb=DELETE",
+            "headers": {
+              "host": "127.0.0.1:62228",
+              "connection": "keep-alive",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "",
+            "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "finishedAt": "2026-10-03T09:05:27.119Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-03T09:05:27.120Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CONFIG-REDIRECT-HTTP-ERROR-AND-UNGRANTED-METHOD",
+      "status": "PASS",
+      "actual": {
+        "badConfig": {
+          "ok": false,
+          "error": {
+            "code": "E_CONFIG_UNSUPPORTED",
+            "message": "Unknown or missing argument"
+          }
+        },
+        "redirect": {
+          "ok": false,
+          "error": {
+            "code": "E_NETWORK",
+            "message": "HTTP response is not observable"
+          }
+        },
+        "error": {
+          "ok": false,
+          "error": {
+            "code": "E_HTTP",
+            "message": "HTTP 503"
+          }
+        },
+        "ungranted": {
+          "ok": false,
+          "error": {
+            "code": "E_CAPABILITY",
+            "message": "Method is absent from broker Hello allowlist"
+          }
+        }
+      }
+    },
+    {
+      "id": "REAL-RELAY-NATIVE-DUPLICATE-AND-CONFLICT",
+      "status": "PASS",
+      "actual": {
+        "payload": {
+          "requestId": "duplicate-591af999-4c85-4176-be12-1ef09d99f1f9",
+          "method": "AXIOS_POST",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "f",
+                      {
+                        "type": "boolean",
+                        "value": false
+                      }
+                    ],
+                    [
+                      "z",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:62228/echo?duplicate=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791018358524
+        },
+        "original": {
+          "ok": true,
+          "data": {
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "PageBrigeCode",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ],
+                [
+                  "data",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "config",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "method",
+                              {
+                                "type": "string",
+                                "value": "post"
+                              }
+                            ],
+                            [
+                              "url",
+                              {
+                                "type": "string",
+                                "value": "http://127.0.0.1:62228/echo?duplicate=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "body",
+                              {
+                                "type": "string",
+                                "value": "{\"f\":false,\"z\":0}"
+                              }
+                            ],
+                            [
+                              "business",
+                              {
+                                "type": "object",
+                                "value": [
+                                  [
+                                    "PageBrigeCode",
+                                    {
+                                      "type": "number",
+                                      "value": 9
+                                    }
+                                  ],
+                                  [
+                                    "error",
+                                    {
+                                      "type": "string",
+                                      "value": "business-data"
+                                    }
+                                  ],
+                                  [
+                                    "message",
+                                    {
+                                      "type": "string",
+                                      "value": "keep-as-data"
+                                    }
+                                  ],
+                                  [
+                                    "ok",
+                                    {
+                                      "type": "boolean",
+                                      "value": false
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            [
+                              "falseValue",
+                              {
+                                "type": "boolean",
+                                "value": false
+                              }
+                            ],
+                            [
+                              "method",
+                              {
+                                "type": "string",
+                                "value": "POST"
+                              }
+                            ],
+                            [
+                              "path",
+                              {
+                                "type": "string",
+                                "value": "/echo"
+                              }
+                            ],
+                            [
+                              "query",
+                              {
+                                "type": "array",
+                                "value": [
+                                  {
+                                    "type": "array",
+                                    "value": [
+                                      {
+                                        "type": "string",
+                                        "value": "duplicate"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "value": "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ],
+                            [
+                              "zero",
+                              {
+                                "type": "number",
+                                "value": 0
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "headers",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "cache-control",
+                              {
+                                "type": "string",
+                                "value": "no-store"
+                              }
+                            ],
+                            [
+                              "connection",
+                              {
+                                "type": "string",
+                                "value": "keep-alive"
+                              }
+                            ],
+                            [
+                              "content-type",
+                              {
+                                "type": "string",
+                                "value": "application/json"
+                              }
+                            ],
+                            [
+                              "date",
+                              {
+                                "type": "string",
+                                "value": "Sat, 03 Oct 2026 09:05:28 GMT"
+                              }
+                            ],
+                            [
+                              "keep-alive",
+                              {
+                                "type": "string",
+                                "value": "timeout=5"
+                              }
+                            ],
+                            [
+                              "transfer-encoding",
+                              {
+                                "type": "string",
+                                "value": "chunked"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "status",
+                        {
+                          "type": "number",
+                          "value": 200
+                        }
+                      ],
+                      [
+                        "statusText",
+                        {
+                          "type": "string",
+                          "value": "OK"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "message",
+                  {
+                    "type": "string",
+                    "value": ""
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        "duplicate": {
+          "ok": true,
+          "data": {
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "PageBrigeCode",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ],
+                [
+                  "data",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "config",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "method",
+                              {
+                                "type": "string",
+                                "value": "post"
+                              }
+                            ],
+                            [
+                              "url",
+                              {
+                                "type": "string",
+                                "value": "http://127.0.0.1:62228/echo?duplicate=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "body",
+                              {
+                                "type": "string",
+                                "value": "{\"f\":false,\"z\":0}"
+                              }
+                            ],
+                            [
+                              "business",
+                              {
+                                "type": "object",
+                                "value": [
+                                  [
+                                    "PageBrigeCode",
+                                    {
+                                      "type": "number",
+                                      "value": 9
+                                    }
+                                  ],
+                                  [
+                                    "error",
+                                    {
+                                      "type": "string",
+                                      "value": "business-data"
+                                    }
+                                  ],
+                                  [
+                                    "message",
+                                    {
+                                      "type": "string",
+                                      "value": "keep-as-data"
+                                    }
+                                  ],
+                                  [
+                                    "ok",
+                                    {
+                                      "type": "boolean",
+                                      "value": false
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            [
+                              "falseValue",
+                              {
+                                "type": "boolean",
+                                "value": false
+                              }
+                            ],
+                            [
+                              "method",
+                              {
+                                "type": "string",
+                                "value": "POST"
+                              }
+                            ],
+                            [
+                              "path",
+                              {
+                                "type": "string",
+                                "value": "/echo"
+                              }
+                            ],
+                            [
+                              "query",
+                              {
+                                "type": "array",
+                                "value": [
+                                  {
+                                    "type": "array",
+                                    "value": [
+                                      {
+                                        "type": "string",
+                                        "value": "duplicate"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "value": "sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ],
+                            [
+                              "zero",
+                              {
+                                "type": "number",
+                                "value": 0
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "headers",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "cache-control",
+                              {
+                                "type": "string",
+                                "value": "no-store"
+                              }
+                            ],
+                            [
+                              "connection",
+                              {
+                                "type": "string",
+                                "value": "keep-alive"
+                              }
+                            ],
+                            [
+                              "content-type",
+                              {
+                                "type": "string",
+                                "value": "application/json"
+                              }
+                            ],
+                            [
+                              "date",
+                              {
+                                "type": "string",
+                                "value": "Sat, 03 Oct 2026 09:05:28 GMT"
+                              }
+                            ],
+                            [
+                              "keep-alive",
+                              {
+                                "type": "string",
+                                "value": "timeout=5"
+                              }
+                            ],
+                            [
+                              "transfer-encoding",
+                              {
+                                "type": "string",
+                                "value": "chunked"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "status",
+                        {
+                          "type": "number",
+                          "value": 200
+                        }
+                      ],
+                      [
+                        "statusText",
+                        {
+                          "type": "string",
+                          "value": "OK"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "message",
+                  {
+                    "type": "string",
+                    "value": ""
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        "conflict": {
+          "ok": false,
+          "error": {
+            "code": "E_REQUEST_CONFLICT",
+            "message": "SDK request ID has conflicting arguments"
+          }
+        },
+        "rawServer": [
+          {
+            "sequence": 25,
+            "at": "2026-10-03T09:05:28.680Z",
+            "monoMs": 708747.397083,
+            "method": "POST",
+            "url": "/echo?duplicate=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8",
+            "headers": {
+              "host": "127.0.0.1:62228",
+              "connection": "keep-alive",
+              "content-length": "17",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+              "content-type": "application/json",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "{\"f\":false,\"z\":0}",
+            "bodySha256": "3a789a20e26cbaf1cb2a7bb9a5070cf1f13acb01dbacb33e9183768742947654",
+            "finishedAt": "2026-10-03T09:05:28.680Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-03T09:05:28.681Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "NATIVE-100-CONCURRENT-SDK-PROMISES",
+      "status": "PASS",
+      "actual": {
+        "values": [
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          }
+        ],
+        "diagnostics": {
+          "pending": 0,
+          "disposed": false
+        }
+      }
+    },
+    {
+      "id": "SW-RESTART-AFTER-SERVER-EFFECT-UNKNOWN-NO-REPLAY",
+      "status": "PASS",
+      "actual": {
+        "payload": {
+          "requestId": "unknown-e51830a5-7cb8-48ad-bbc8-160066d7545f",
+          "method": "AXIOS_POST",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "effect",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:62228/hold?token=unknown-sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791018359400
+        },
+        "stopped": {
+          "versionId": "2",
+          "registrationId": "2",
+          "scriptURL": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791017442,
+          "scriptResponseTime": 0,
+          "controlledClients": [
+            "F040CED1A381E42D81CDC427C6EA1B27"
+          ],
+          "targetId": "D531E5E1D859986C2D672D929F8EDBEC"
+        },
+        "postRestartWake": {
+          "ok": true,
+          "value": "false",
+          "valueKind": "string",
+          "undefinedResult": false
+        },
+        "replay": {
+          "ok": false,
+          "error": {
+            "code": "E_EFFECT_UNKNOWN",
+            "message": "Dispatched SDK effect has no durable result; it cannot be repeated"
+          }
+        },
+        "operation": {
+          "key": "sdk-operation:[\"sdk:http://127.0.0.1:62228\",1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\",\"76356568-153c-4145-bc0a-43d8b6cb2c0c\",\"unknown-e51830a5-7cb8-48ad-bbc8-160066d7545f\"]",
+          "value": {
+            "tag": "sdk-operation",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:62228\",1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\",\"76356568-153c-4145-bc0a-43d8b6cb2c0c\",\"unknown-e51830a5-7cb8-48ad-bbc8-160066d7545f\"]",
+            "tabId": 1438489644,
+            "frameId": 0,
+            "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+            "origin": "http://127.0.0.1:62228",
+            "principal": "sdk:http://127.0.0.1:62228",
+            "namespace": "page:http://127.0.0.1:62228",
+            "grantIncarnation": "76356568-153c-4145-bc0a-43d8b6cb2c0c",
+            "runId": "a0570edd-aad2-4666-91a5-6ef234ac2ad3",
+            "opId": "f0ff5b77-8737-48f7-b79a-f7c6987b9949",
+            "resultId": "9a5aeecd-fbb1-40fb-aa32-dcd0fdbca89e",
+            "requestId": "unknown-e51830a5-7cb8-48ad-bbc8-160066d7545f",
+            "requestDigest": "95636ceefef50296010af32d8ac3950a214a0c69bc5acc6409c844a7136bb5f9",
+            "method": "AXIOS_POST",
+            "capability": "network",
+            "effect": "write",
+            "deadlineAt": 1791018344403,
+            "browserSessionIncarnation": "619c046a-0034-488c-b2a5-63886f7b7fd3",
+            "state": "effect_unknown",
+            "cancelSeq": 0,
+            "submissionCount": 1,
+            "admittedAt": "2026-10-03T09:05:29.403Z",
+            "dispatchAt": "2026-10-03T09:05:29.405Z",
+            "recoveredAt": "2026-10-03T09:05:29.987Z",
+            "deliveryState": "denied",
+            "deliveryError": {
+              "code": "E_EFFECT_UNKNOWN",
+              "message": "Worker restarted after SDK dispatch; no effect replay"
+            }
+          }
+        },
+        "rawServer": [
+          {
+            "sequence": 26,
+            "at": "2026-10-03T09:05:29.407Z",
+            "monoMs": 709474.197708,
+            "method": "POST",
+            "url": "/hold?token=unknown-sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8",
+            "headers": {
+              "host": "127.0.0.1:62228",
+              "connection": "keep-alive",
+              "content-length": "15",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+              "content-type": "application/json",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "{\"effect\":true}",
+            "bodySha256": "dae16718b8dfd62d71692550d1afec91a345c28bfc924c2a1874a89e4fd37012",
+            "closedAt": "2026-10-03T09:05:29.436Z"
+          }
+        ],
+        "original": {
+          "ok": false,
+          "error": {
+            "code": "E_EFFECT_UNKNOWN",
+            "message": "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received"
+          }
+        }
+      }
+    },
+    {
+      "id": "SESSION-AND-PERSISTENT-SURVIVE-SW-RESTART",
+      "status": "PASS",
+      "actual": {
+        "sessionValue": {
+          "ok": true,
+          "value": {
+            "f": false,
+            "z": 0
+          },
+          "valueKind": "object",
+          "undefinedResult": false
+        },
+        "persistentValue": {
+          "ok": true,
+          "value": "false",
+          "valueKind": "string",
+          "undefinedResult": false
+        }
+      }
+    },
+    {
+      "id": "NATIVE-PERMISSION-REMOVAL-REVOKES-GRANT",
+      "status": "PASS",
+      "actual": {
+        "removed": true,
+        "value": {
+          "ok": false,
+          "error": {
+            "code": "E_PERMISSION",
+            "message": "SDK site permission was revoked"
+          }
+        },
+        "grants": [
+          {
+            "key": "sdk-grant:[1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\"]",
+            "value": {
+              "tag": "sdk-grant",
+              "tabId": 1438489644,
+              "frameId": 0,
+              "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+              "origin": "http://127.0.0.1:62228",
+              "principal": "sdk:http://127.0.0.1:62228",
+              "tabEpoch": 1,
+              "frameEpoch": 0,
+              "permissionEpoch": 0,
+              "notificationEpoch": 0,
+              "key": "sdk-grant:[1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\"]",
+              "namespace": "page:http://127.0.0.1:62228",
+              "capabilities": [
+                "network",
+                "storage.persistent",
+                "storage.session"
+              ],
+              "allowedOrigins": [
+                "http://127.0.0.1:62228"
+              ],
+              "grantIncarnation": "76356568-153c-4145-bc0a-43d8b6cb2c0c",
+              "browserSessionIncarnation": "619c046a-0034-488c-b2a5-63886f7b7fd3",
+              "active": false,
+              "grantedAt": "2026-10-03T09:05:19.788Z",
+              "registrationId": "35649979-9f9d-497d-b315-c6962b835242",
+              "closedAt": "2026-10-03T09:05:30.095Z",
+              "closeReason": "permission-removed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "TRUSTED-UI-REGRANT-DOES-NOT-REPLAY-OLD-REQUEST",
+      "status": "PASS",
+      "actual": {
+        "install": {
+          "state": "installed",
+          "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+          "raw": "{\n  \"grantIncarnation\": \"b0d6d526-a854-4575-a788-18ccdfa7526f\",\n  \"documentId\": \"F82B9539B6B1C8FAE6E77B6E43BC1845\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}",
+          "beforePermissions": {
+            "origins": [],
+            "permissions": [
+              "activeTab",
+              "downloads",
+              "storage",
+              "tabs",
+              "webNavigation",
+              "scripting",
+              "userScripts"
+            ]
+          },
+          "afterPermissions": {
+            "origins": [
+              "http://127.0.0.1/*"
+            ],
+            "permissions": [
+              "activeTab",
+              "downloads",
+              "storage",
+              "tabs",
+              "webNavigation",
+              "scripting",
+              "userScripts"
+            ]
+          },
+          "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+          "tabId": 1438489644,
+          "nativeInstall": {
+            "grantIncarnation": "b0d6d526-a854-4575-a788-18ccdfa7526f",
+            "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+            "installed": true,
+            "files": [
+              "agents/page-relay.js",
+              "framework/sdk-main.js"
+            ]
+          }
+        },
+        "old": {
+          "ok": false,
+          "error": {
+            "code": "E_GRANT_REVOKED",
+            "message": "Old request belongs to a closed grant"
+          }
+        },
+        "fresh": {
+          "ok": true,
+          "value": "false",
+          "valueKind": "string",
+          "undefinedResult": false
+        }
+      }
+    },
+    {
+      "id": "NATIVE-NAVIGATION-INVALIDATES-OLD-DOCUMENT",
+      "status": "PASS",
+      "actual": {
+        "previous": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+        "staleUI": {
+          "state": "stale",
+          "disabled": true
+        },
+        "oldGrants": [
+          {
+            "key": "sdk-closed-grant:76356568-153c-4145-bc0a-43d8b6cb2c0c",
+            "value": {
+              "tag": "sdk-grant",
+              "tabId": 1438489644,
+              "frameId": 0,
+              "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+              "origin": "http://127.0.0.1:62228",
+              "principal": "sdk:http://127.0.0.1:62228",
+              "tabEpoch": 1,
+              "frameEpoch": 0,
+              "permissionEpoch": 0,
+              "notificationEpoch": 0,
+              "key": "sdk-grant:[1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\"]",
+              "namespace": "page:http://127.0.0.1:62228",
+              "capabilities": [
+                "network",
+                "storage.persistent",
+                "storage.session"
+              ],
+              "allowedOrigins": [
+                "http://127.0.0.1:62228"
+              ],
+              "grantIncarnation": "76356568-153c-4145-bc0a-43d8b6cb2c0c",
+              "browserSessionIncarnation": "619c046a-0034-488c-b2a5-63886f7b7fd3",
+              "active": false,
+              "grantedAt": "2026-10-03T09:05:19.788Z",
+              "registrationId": "35649979-9f9d-497d-b315-c6962b835242",
+              "closedAt": "2026-10-03T09:05:30.197Z",
+              "closeReason": "permission-removed"
+            }
+          },
+          {
+            "key": "sdk-grant:[1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\"]",
+            "value": {
+              "tag": "sdk-grant",
+              "tabId": 1438489644,
+              "frameId": 0,
+              "documentId": "F82B9539B6B1C8FAE6E77B6E43BC1845",
+              "origin": "http://127.0.0.1:62228",
+              "principal": "sdk:http://127.0.0.1:62228",
+              "tabEpoch": 1,
+              "frameEpoch": 0,
+              "permissionEpoch": 1,
+              "notificationEpoch": 0,
+              "key": "sdk-grant:[1438489644,0,\"F82B9539B6B1C8FAE6E77B6E43BC1845\"]",
+              "namespace": "page:http://127.0.0.1:62228",
+              "capabilities": [
+                "network",
+                "storage.persistent",
+                "storage.session"
+              ],
+              "allowedOrigins": [
+                "http://127.0.0.1:62228"
+              ],
+              "grantIncarnation": "b0d6d526-a854-4575-a788-18ccdfa7526f",
+              "browserSessionIncarnation": "619c046a-0034-488c-b2a5-63886f7b7fd3",
+              "active": false,
+              "grantedAt": "2026-10-03T09:05:30.198Z",
+              "registrationId": "35649979-9f9d-497d-b315-c6962b835242",
+              "closedAt": "2026-10-03T09:05:30.288Z",
+              "closeReason": "navigation"
+            }
+          }
+        ],
+        "install": {
+          "state": "installed",
+          "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+          "raw": "{\n  \"grantIncarnation\": \"796ebfea-2fe3-4026-8c06-976a4ebdaeea\",\n  \"documentId\": \"839F6672020B8B1A27EF920856A7A61B\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}",
+          "beforePermissions": {
+            "origins": [
+              "http://127.0.0.1/*"
+            ],
+            "permissions": [
+              "activeTab",
+              "downloads",
+              "storage",
+              "tabs",
+              "webNavigation",
+              "scripting",
+              "userScripts"
+            ]
+          },
+          "afterPermissions": {
+            "origins": [
+              "http://127.0.0.1/*"
+            ],
+            "permissions": [
+              "activeTab",
+              "downloads",
+              "storage",
+              "tabs",
+              "webNavigation",
+              "scripting",
+              "userScripts"
+            ]
+          },
+          "documentId": "839F6672020B8B1A27EF920856A7A61B",
+          "tabId": 1438489644,
+          "nativeInstall": {
+            "grantIncarnation": "796ebfea-2fe3-4026-8c06-976a4ebdaeea",
+            "documentId": "839F6672020B8B1A27EF920856A7A61B",
+            "installed": true,
+            "files": [
+              "agents/page-relay.js",
+              "framework/sdk-main.js"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "BROWSER-SESSION-END-PERSISTENT-SURVIVES-APPLOCAL-EXPIRES",
+      "status": "NOT_TESTED",
+      "reason": "Required global launcher creates and deletes a fresh profile per browser lifetime and forbids caller profile reuse; same-profile reopen is unavailable. No copied or personal profile is used."
+    }
+  ],
+  "sessions": [
+    {
+      "number": 1,
+      "launchMethod": "global Python launcher",
+      "launcher": {
+        "pid": 40368,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "args": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--disable-background-networking",
+          "--remote-debugging-address=127.0.0.1",
+          "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ],
+        "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t/chrome.log",
+        "launcherPid": 40366,
+        "python": "/usr/bin/python3",
+        "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+        "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+        "launcherArgs": [
+          "/Users/shopme/.codex/browser-testing/launch.py",
+          "--executable",
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--report",
+          "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c/production-154/launcher-1.json",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ],
+        "actualMainProcess": "40368 40366 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank",
+        "freshProfileObserved": {
+          "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t",
+          "birthtimeMs": 1791017926265.4192,
+          "previouslyPresent": false,
+          "mode": "0700"
+        },
+        "endpoint": "ws://127.0.0.1:65427/devtools/browser/4cea9cce-42e3-427b-9ee8-1354bfbcdba3"
+      },
+      "pid": 40368,
+      "chromeArgs": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "cdpVersion": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/154.0.8037.92",
+        "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "jsVersion": "15.4.80.19"
+      },
+      "nativeProcesses": [
+        {
+          "type": "browser",
+          "id": 40368,
+          "cpuTime": 0.503977
+        },
+        {
+          "type": "renderer",
+          "id": 40406,
+          "cpuTime": 0.046026
+        },
+        {
+          "type": "renderer",
+          "id": 40407,
+          "cpuTime": 0.052591
+        },
+        {
+          "type": "renderer",
+          "id": 40405,
+          "cpuTime": 0.106792
+        },
+        {
+          "type": "GPU",
+          "id": 40399,
+          "cpuTime": 0.151596
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 40400,
+          "cpuTime": 0.066829
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 40403,
+          "cpuTime": 0.030019
+        }
+      ],
+      "actualWorker": {
+        "targetId": "D531E5E1D859986C2D672D929F8EDBEC",
+        "id": "efhcmggbgamacpfhhmooelgdkepdcghh",
+        "manifest": {
+          "action": {
+            "default_title": "打开 OpenDesk Browser"
+          },
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "description": "OpenDesk Browser 浏览器自动化框架。",
+          "incognito": "not_allowed",
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk Browser",
+          "optional_host_permissions": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "optional_permissions": [
+            "cookies",
+            "notifications"
+          ],
+          "permissions": [
+            "storage",
+            "scripting",
+            "activeTab",
+            "downloads",
+            "tabs",
+            "webNavigation",
+            "userScripts"
+          ],
+          "sandbox": {
+            "pages": [
+              "scripting/sandbox/sandbox.html"
+            ]
+          },
+          "version": "0.1.0"
+        },
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js"
+      },
+      "target": {
+        "targetId": "A0FD7376D5E92CBC82F0959807086CA8",
+        "tabId": 1438489644,
+        "targetURL": "http://127.0.0.1:62228/target?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&session=1",
+        "decoyId": "12C4DD8F671EB3136331B3EEDB2FACBC",
+        "decoyURL": "http://127.0.0.1:62228/decoy?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&session=1",
+        "toolId": "F040CED1A381E42D81CDC427C6EA1B27"
+      },
+      "documentId": "839F6672020B8B1A27EF920856A7A61B",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "observedEvent": "exit"
+      },
+      "pidAliveAfterExit": false,
+      "profileRemoved": true,
+      "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py"
+    }
+  ],
+  "origin": "http://127.0.0.1:62228",
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+  "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "boundary": "Targeted native independent SDK through current product UI and broker; not full B05/F3/603 acceptance",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t",
+  "completeVersion": "Chrome/154.0.8037.92",
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "profileRemoved": true,
+  "packageAfter": {
+    "files": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 1231,
+        "sha256": "cd3d63b31e04113e7c1db38809938b081072c863817121284f2d72fc63eabb09"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 656,
+        "sha256": "641edccc816cb398d49a6bf946befa3ea92af23385bf046cf6cf2b00e446086d"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 53224,
+        "sha256": "12ed1ed142f5f21ce1723c5d45232530405e6f2c950db6f7ecea1ab867edd1ad"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 13913,
+        "sha256": "8ee5fa5882733a82dd3ddcac92e6f9b9269f71bc8508ee8c90d127b275111c72"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 203,
+        "sha256": "e50cab8ddf0c4a3ec03b59b0366f87651df8465fdeea39db380b0f5051d32f1f"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 24289,
+        "sha256": "e9e091da6bc172996f7e7356bd83a1378e9670c6b9e015d802c56daa92ae9755"
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 906,
+        "sha256": "6be8adc80774487956efa94a10b1713d8a37d5314334bf1e8b24d2d9cb0c9860"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 20381,
+        "sha256": "d4ba6003b597b828007058183f0c38001fa6c520e877a36b037b1e292d42f945"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 3837,
+        "sha256": "4ee49c98af9cd2423571897d9384f5e55534f66ae1e88d41e56d059dea5b9f17"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 21056,
+        "sha256": "0218712c7ad70e51536b1187924f29facb69ec0dcc0e4bf7131c75b19e12ea57"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 252486,
+        "sha256": "554981e7d03222495857810651836c146c719dbbb771994f80ad7129b16cfb3e"
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 1326,
+        "sha256": "6cc4f15df5945aa9ed0af7b21e5db611828bb64fb8496e06a4654f7697327401"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 52993,
+        "sha256": "7b5755c656e17d6ba46c422b979f2f219f97320e442665eea9db6468cf8e4a67"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 4862,
+        "sha256": "7f966fa92d3412e641a967d46a15e65f4fbd57678fc6c861dcb15af9ee9ece13"
+      }
+    ],
+    "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+    "algorithm": "SHA256 UTF-8 JSON.stringify(path-sorted {path,bytes,sha256} array)"
+  },
+  "packageDrift": false,
+  "summary": {
+    "PASS": 15,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_TESTED": 1
+  }
+}

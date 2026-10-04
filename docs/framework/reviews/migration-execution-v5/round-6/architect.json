@@ -1,0 +1,823 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "stage0-execution-plan-affected-scope",
+  "role": "Architect / devil's advocate",
+  "round": 6,
+  "independent": true,
+  "candidateManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "candidateSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "previousCandidateManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "candidateManifestPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+  "reviewedAt": "2026-10-02T21:19:29.434272+00:00",
+  "score": 98,
+  "verdict": "APPROVE",
+  "blockers": [],
+  "scoreBreakdown": [
+    {
+      "category": "候选与继承证据完整性",
+      "score": 20,
+      "maximum": 20,
+      "deductions": []
+    },
+    {
+      "category": "完整 Goal/SDK/最终包范围保留",
+      "score": 20,
+      "maximum": 20,
+      "deductions": []
+    },
+    {
+      "category": "受影响授权及安全边界",
+      "score": 20,
+      "maximum": 20,
+      "deductions": []
+    },
+    {
+      "category": "试验形状与可核验性",
+      "score": 19,
+      "maximum": 20,
+      "deductions": [
+        "R6-ARCH-WATCH-02：矩阵维度由正文绑定，未在各子场景结构中重复编码。"
+      ]
+    },
+    {
+      "category": "旧合同与差异追溯",
+      "score": 19,
+      "maximum": 20,
+      "deductions": [
+        "R6-ARCH-WATCH-01：条件缩窄依据行号偏一行。"
+      ]
+    }
+  ],
+  "judgment": "正式批准这个同 hash 的受影响方案修订。只有同 host/document、没有任何真实 authority/doc/lease/cancel/deadline 等失效且操作机制未实际观察到 OFF 的瞬时开关周期，追溯取消不再承诺；不是取消页面授权，也不是以 polling 声称掌握所有开关历史。",
+  "affectedPrototypeRepairApproved": true,
+  "approvalMeaning": {
+    "architectPlanApproval": true,
+    "candidateEffectiveFromArchitectAlone": false,
+    "effectivenessPrerequisite": "同 da443272… 候选按 Architect→独立 Critic 顺序，Critic >=95 APPROVE 且零 blocker，方可生效及进行批准范围内原型修复。",
+    "prototypeRepairScope": "仅落实本修订的操作自有 native 观察/sticky fence、真实撤权 fence、最终 native 检查与对应四个必测分支；不新增权限、执行后端或重放。",
+    "doesNotAuthorizeF2": true
+  },
+  "qualification": {
+    "runtimePass": false,
+    "backendPrototypePassed": false,
+    "allF1PASS": false,
+    "F2Approved": false,
+    "F3Approved": false,
+    "frozenUnionCandidateSha256": null,
+    "pageLaneVerdict": "BLOCK pending repaired frozen candidate evidence",
+    "historicalPageCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+    "historicalBlockingFinding": "ARCH-PAGE-01 / CR-F1-PAGE-001 not closed by plan approval"
+  },
+  "independenceDeclaration": {
+    "candidateAuthor": false,
+    "productOrPrototypeAuthor": false,
+    "priorReviewOpinionIsNotCandidateAuthorship": true,
+    "reviewedInOwnContext": true,
+    "oldThreadRestoredOrMessaged": false,
+    "newRepositoryAudit": false,
+    "newDiagnosticOrMatrixRun": false,
+    "writeScope": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/architect.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/architect.md"
+    ]
+  },
+  "verification": {
+    "candidateManifestMatch": true,
+    "previousManifestMatch": true,
+    "candidateFilesVerified": 25,
+    "inheritedRefsVerified": 18,
+    "affectedDiagnosticRefsVerified": 7,
+    "allHashAndByteChecksMatch": true,
+    "inheritedRefListExactlyUnchanged": true,
+    "unchangedCandidateFiles": [
+      "execution-tasks.json",
+      "migration-map-v5.md",
+      "goal-constraints.md",
+      "goal-prompt.md",
+      "stage0/baseline-ledger-v1.json",
+      "stage0/initial-state.json",
+      "stage0/inherited-contracts.json",
+      "stage0/api-member-draft.json",
+      "stage0/api-member-read-note.md",
+      "stage0/sdk-service-resource-draft.json",
+      "stage0/sdk-service-resource-read-note.md",
+      "stage0/main-capability-draft.json",
+      "stage0/baseline-foundation.json",
+      "stage0/environment-source-baseline.json",
+      "stage0/historical-test-bindings.json",
+      "stage0/license-evidence.json",
+      "stage0/legacy-project-license.txt",
+      "stage0/version-discovery.json",
+      "stage0/native-worker-termination-amendment.json"
+    ],
+    "changedCandidateFiles": [
+      {
+        "path": "execution-plan.md",
+        "kind": "modified",
+        "previousSha256": "6f6aa2912c75809b6049d27da3c7e8abec63c56b7db08224cdbfb7d2c40bed1d",
+        "sha256": "10b348b6811c13bf29bb0a5f0f289672ae70e20fa200fac810a1fdebce52fc35"
+      },
+      {
+        "path": "source-compatibility-ledger.json",
+        "kind": "modified",
+        "previousSha256": "b398416c14b3f26ce0af70dad4eb29e907ec55521360a7692283660bd3413bda",
+        "sha256": "2accfe5b5e098b93ca11c78f872b7e3cd21b5e31125df386d7968d148cd75b36"
+      },
+      {
+        "path": "compatibility-delta-v5.md",
+        "kind": "modified",
+        "previousSha256": "f81734d752fc73df4bd5587b04512cd79a9c8e0c350945c53c83f5b06e79cb0e",
+        "sha256": "2de5803aa4eda754285ec5a46cc39773423876807f456c4f89ff739d37e53958"
+      },
+      {
+        "path": "test-spec-v5.json",
+        "kind": "modified",
+        "previousSha256": "67af5b9a3c7cf9b95c794bd0250e933e24045837846198aa7bf3cb909313acf4",
+        "sha256": "9ccdc5995b89005661dabf62f39b63563c2cbce6e34c37c7e0879b2831febb4d"
+      },
+      {
+        "path": "stage0/f1-cases.json",
+        "kind": "modified",
+        "previousSha256": "bf763f22a2182dbaba4b56ba08647fd0cd16e36bdea8694514ba687107ff3173",
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      {
+        "path": "stage0/user-scripts-switch-history-amendment.json",
+        "kind": "added",
+        "previousSha256": null,
+        "sha256": "debe23d682d956ad695c8cb71ea06372fa1ad6e3511ae48d53a15a8d31739167"
+      }
+    ],
+    "noCandidateFileRemoved": true,
+    "allChecks": [
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+        "sha256": "10b348b6811c13bf29bb0a5f0f289672ae70e20fa200fac810a1fdebce52fc35",
+        "bytes": 19540,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-tasks.json",
+        "sha256": "1bf08df26a1f000a2818fff759dc50d646564ef2a13c2659b7dc2e3e7b2c530c",
+        "bytes": 6069,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/source-compatibility-ledger.json",
+        "sha256": "2accfe5b5e098b93ca11c78f872b7e3cd21b5e31125df386d7968d148cd75b36",
+        "bytes": 2203382,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/migration-map-v5.md",
+        "sha256": "1eca520b39123ea685bc08ff08d4452e5286896e00f5fb38d4a447bde5423d98",
+        "bytes": 90739,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/compatibility-delta-v5.md",
+        "sha256": "2de5803aa4eda754285ec5a46cc39773423876807f456c4f89ff739d37e53958",
+        "bytes": 7752,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/test-spec-v5.json",
+        "sha256": "9ccdc5995b89005661dabf62f39b63563c2cbce6e34c37c7e0879b2831febb4d",
+        "bytes": 1144601,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/goal-constraints.md",
+        "sha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+        "bytes": 7870,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/goal-prompt.md",
+        "sha256": "e192b17a4142102ff8b40f6ab6018d21d34343bb602a528242ec24190288460a",
+        "bytes": 1453,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/baseline-ledger-v1.json",
+        "sha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1",
+        "bytes": 109039,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/initial-state.json",
+        "sha256": "3dba640dd9bb08fc64554dca1cf3d679e50a6bf65d01aec8b02264ade5e9a28d",
+        "bytes": 32953,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/inherited-contracts.json",
+        "sha256": "841d55e0eec8ec5029296b3ca8fd7ebcd2d18085916a44257ab5868415192a6f",
+        "bytes": 5620,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/api-member-draft.json",
+        "sha256": "f458f791503afc2e450229bade2aab35099fea1b7b519e4f121a3ba3a0fec095",
+        "bytes": 741995,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/api-member-read-note.md",
+        "sha256": "5ed85744be958771a69a6c54c862de3fc39f675fd5d7737ab873e871157a3e9b",
+        "bytes": 15033,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/sdk-service-resource-draft.json",
+        "sha256": "529c7271f811e00393b43676b35ade1fb290f9cb1e164974fc0ad95a26f00dec",
+        "bytes": 1208355,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/sdk-service-resource-read-note.md",
+        "sha256": "517d3f952417b340d21aa0607f7308f28f9cbd2ee1a68654cd9c1297740da790",
+        "bytes": 5662,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/main-capability-draft.json",
+        "sha256": "fcb1d297a4d29164f8583a819b9b26e9da3b05346c62e98256125581611f8083",
+        "bytes": 40190,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455",
+        "bytes": 14013,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/baseline-foundation.json",
+        "sha256": "39e592fff07bb3c161a5ca56b27fd637aeb82960da6028bf9542add0f96ff6a7",
+        "bytes": 2340,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/environment-source-baseline.json",
+        "sha256": "9053745b032575bbe93cb537ef3a8e3a898428c4727f7d4490ebac37eace4d70",
+        "bytes": 420,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/historical-test-bindings.json",
+        "sha256": "da4d94fb9da2b1ace253e579d931cf4b87cc158ad4bdc697229b3686d7a00251",
+        "bytes": 6621,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/license-evidence.json",
+        "sha256": "167e0094350bc95a6e00ed2765c87bb9e61b3798823b8702c6ccc8c78f251696",
+        "bytes": 599,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/legacy-project-license.txt",
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+        "bytes": 1096,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/version-discovery.json",
+        "sha256": "e6ca89e197dd3435989c5f0e691d1ccca7aac29ab143c04967f254bee75a8d81",
+        "bytes": 3863,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/native-worker-termination-amendment.json",
+        "sha256": "1cd55983bbd985bde1053ff55fef287f27cc8265f048555bc2d96e05bb33e4c8",
+        "bytes": 2616,
+        "match": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/user-scripts-switch-history-amendment.json",
+        "sha256": "debe23d682d956ad695c8cb71ea06372fa1ad6e3511ae48d53a15a8d31739167",
+        "bytes": 10560,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+        "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+        "bytes": 31648,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/file-tasks.md",
+        "sha256": "30a4e00a78d511169f38aa7017959984be6a88afdb04f474f65298874e1b7258",
+        "bytes": 7888,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/compatibility-delta.md",
+        "sha256": "777fb115b7852b0c9b9102683e0fdc6a81271e48b367457d6e67005198c00b34",
+        "bytes": 4221,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/protocol-contract.md",
+        "sha256": "33afffa92748ac1308d32a2ba1a883a196729704b9933cba7b5c3d0f59ceb7bc",
+        "bytes": 8502,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+        "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+        "bytes": 13767,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/migration-complete.md",
+        "sha256": "7319275eb58a031b3ec66af17b83dc4e5fab29c088d7d31d1a3f9ae36e5b0f96",
+        "bytes": 26715,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/source-evidence.md",
+        "sha256": "3889ed582b8bdafda19a63b2dd9580401c63caeb71ed315a3fa824c1268ebcb4",
+        "bytes": 3694,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/issues.md",
+        "sha256": "168b4b93e3ca1c5177a443041864cc99331a36828a26702757cabebc1814dbd3",
+        "bytes": 8665,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/migration-map.json",
+        "sha256": "47c231b965865175f749a2659f5264da54100812e53f45729b7608d2aa385551",
+        "bytes": 62234,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/public-api-contract.json",
+        "sha256": "4c994c58726e0732782a780f588990ba5fd1686dd4c418dbf74840a739b23edc",
+        "bytes": 31301,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/test-spec.md",
+        "sha256": "276bd53c687f737c888fa212887d19231132ae15b2ad30b3cd8e0c5e72b7ae1b",
+        "bytes": 19377,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/compatibility-and-file-map.md",
+        "sha256": "a73d2aecb41faa0c16b9e8a58271ee0dff8319117d10354dd2ca9c13fdce49b0",
+        "bytes": 15856,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/type-click-compatibility.md",
+        "sha256": "602f9b63b685673bd6e18a54344bfdba2bed2bd4b8eb2613ae904d9b94708fb3",
+        "bytes": 1841,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+        "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+        "bytes": 33202,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+        "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+        "bytes": 26219,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/historical-failure-mapping.json",
+        "sha256": "acd9ca12463cceee7e6d5e898b7fc6ca319fd959492edacb4550e71fea4376a5",
+        "bytes": 11500,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/source-handoff.json",
+        "sha256": "4316d972276ddbb1783e493fc6650b8fd876b2333696a32bd5819b260f841a74",
+        "bytes": 14759,
+        "match": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/todo-user-vue/LICENSE",
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+        "bytes": 1096,
+        "match": true
+      },
+      {
+        "kind": "affected-diagnostic-reference",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-bounded-diagnostic-k1-2026-10-02.json",
+        "sha256": "837ad842e98e57d63279259698e602d5f4b9060e06d1dc2e299a2ca8d2741b0d",
+        "bytes": 99618,
+        "match": true
+      },
+      {
+        "kind": "affected-diagnostic-reference",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-bounded-diagnostic-k1-2026-10-02.md",
+        "sha256": "b93ebbedeaaf72bc9a22e2b32a9851149b4ff607309dfd8ebc5ee7ceb59b0b92",
+        "bytes": 8165,
+        "match": true
+      },
+      {
+        "kind": "affected-diagnostic-reference",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/switch-contract-opinion.json",
+        "sha256": "5604baaef45d9db17799f366fd5bd1839e0eacd2cf0b4b8abb1f6daaadd59f68",
+        "bytes": 11625,
+        "match": true
+      },
+      {
+        "kind": "affected-diagnostic-reference",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/page-provisional-review.json",
+        "sha256": "2a679e62128a53674a0f896af6d0f25e1ddc2a3651a51a1a223a0189c907bb4e",
+        "bytes": 110453,
+        "match": true
+      },
+      {
+        "kind": "affected-diagnostic-reference",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/provisional-page-review.json",
+        "sha256": "9678cba9fe4365aebd98f0daa41d7b57ae37a1add91f0b137a9092cbbaea9655",
+        "bytes": 116420,
+        "match": true
+      },
+      {
+        "kind": "affected-diagnostic-reference",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3/report.json",
+        "sha256": "5a39c45d8db035ad13bb1106689699274d695b4dccc5b481193e722d4f5a1e4c",
+        "bytes": 285535,
+        "match": true
+      },
+      {
+        "kind": "affected-diagnostic-reference",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3/evidence-manifest.json",
+        "sha256": "50906af99dfd647cd8bec89d76ec1a45f00ad0e806d424f8eb9837da6015fe2c",
+        "bytes": 4075,
+        "match": true
+      }
+    ],
+    "semanticDiffChecks": {
+      "planAndDeltaAppendOnly": true,
+      "ledgerExistingValuesAndAllCaseResultsUnchanged": true,
+      "ledgerChangesOnlySixApiReferenceAddsAndRevisionHistoryAppend": true,
+      "all603CaseIdsAndOrderUnchanged": true,
+      "onlyProductCaseExpectedChanged": "F1-PAGE-AUTH-CSP",
+      "other602CasesExactEqual": true,
+      "other11F1CasesExactEqual": true,
+      "oldExpectedPreservedExactly": true,
+      "newExpectedAndFourRequiredSubcasesExactlyMatchThreeLocations": true,
+      "sixApiModuleAndCaseMappingsExact": true,
+      "all24MappedCasesExactEqualRound5": true,
+      "round5Native3SecondTerminationContractUnchanged": true
+    }
+  },
+  "scopeCounts": {
+    "sourceRows": 72,
+    "apiMembers": 48,
+    "sdkServiceToolCapabilityEntries": 183,
+    "resourceEntries": 63,
+    "requiredContracts": 191,
+    "positiveFunctionContracts": 184,
+    "mandatoryProductCases": 603,
+    "originalF1Cases": 12,
+    "embeddedAdditionalRequiredSubcases": 4
+  },
+  "affectedAPIs": [
+    {
+      "id": "API:ChromePage.$eval",
+      "symbol": "ChromePage.$eval",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP03-API14-OK",
+        "CMP03-API14-ERR",
+        "CMP03-API14-LIMIT",
+        "AUTH-API14-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.$$eval",
+      "symbol": "ChromePage.$$eval",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP03-API15-OK",
+        "CMP03-API15-ERR",
+        "CMP03-API15-LIMIT",
+        "AUTH-API15-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.addScriptTag",
+      "symbol": "ChromePage.addScriptTag",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/platform/page-port/sdk-injection.js",
+        "src/scripting/user-scripts/page-evaluator.js"
+      ],
+      "caseIds": [
+        "RESOURCE01-API16-OK",
+        "RESOURCE01-API16-ERR",
+        "RESOURCE01-API16-LIMIT",
+        "AUTH-API16-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.waitForFunction",
+      "symbol": "ChromePage.waitForFunction",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP03-API26-OK",
+        "CMP03-API26-ERR",
+        "CMP03-API26-LIMIT",
+        "AUTH-API26-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.eval",
+      "symbol": "ChromePage.eval",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP03-API34-OK",
+        "CMP03-API34-ERR",
+        "CMP03-API34-LIMIT",
+        "AUTH-API34-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.evaluate",
+      "symbol": "ChromePage.evaluate",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP10-API35-OK",
+        "CMP10-API35-ERR",
+        "CMP10-API35-LIMIT",
+        "AUTH-API35-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    }
+  ],
+  "requiredSubcases": [
+    {
+      "id": "F1-PAGE-AUTH-CSP/OFF-NEW-CALL",
+      "required": true,
+      "input": "real UI OFF; new USER_SCRIPT/MAIN native and typed calls; restore; new call",
+      "expected": "OFF API refuses with no page mutation; no fallback/replay; actual ON newly issued operation succeeds"
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP/OBSERVED-OFF-STICKY",
+      "required": true,
+      "input": "pending and native-completed held operations; real UI OFF long enough for operation-owned native probe to observe; ON before acceptance; runner never rechecks or writes fences",
+      "expected": "host-owned observation invalidates old op monotonically; old result rejects exactly once after ON; genuinely new valid operation works"
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP/UNOBSERVED-CYCLE-LIMIT",
+      "required": true,
+      "input": "same host/document; pending and native-completed held results; real UI OFF-ON without operation observing OFF; no other invalidation",
+      "expected": "Record actual old effect/delivery/acceptance and explicit unsupported retrospective cancellation; historical eight FAIL unchanged. This diagnostic proves the limit only, never old fencing success"
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP/REAL-AUTHORITY-FENCE",
+      "required": true,
+      "input": "origin permission UI and framework own explicit grant each revoke/renew; both pending/native-completed; document invalidation independently",
+      "expected": "old results reject once without runner fence injection; sticky trusted epoch survives renewal; fresh valid new operation works; no forged authority fields"
+    }
+  ],
+  "safetyFindings": [
+    {
+      "verdict": "CLEAR",
+      "contract": "唯一有界差异",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 107
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 109
+        }
+      ],
+      "reason": "真实原生反例支持已查 witness 路径没有可用持久 epoch；限制只缩窄未被操作观察到的瞬时开关历史。OFF 仍拒新调用；最终 current=true 不冒充连续授权，亦不声称原生所有信号均不可能。"
+    },
+    {
+      "verdict": "CLEAR",
+      "contract": "observed OFF 单调失效",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/user-scripts-switch-history-amendment.json",
+          "line": 142
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/user-scripts-switch-history-amendment.json",
+          "line": 196
+        }
+      ],
+      "reason": "监测由 pending 操作生命周期拥有；native OFF/API refusal 实际观察后旧操作 sticky，ON 不恢复旧结果；终态全部释放 monitor/timer。禁止 runner recheck 或写 fence 假装机制证明。"
+    },
+    {
+      "verdict": "CLEAR",
+      "contract": "真实 authority/document/lease/取消/期限 fence",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 45
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 49
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 109
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/user-scripts-switch-history-amendment.json",
+          "line": 156
+        }
+      ],
+      "reason": "origin permission 与自身显式 grant 各自真实 revoke/renew、精确 document/host/session/target 失效和 lease/cancel/deadline 保留可信单调代次；续授权只允许新 generation，旧结果仍一次拒绝。六个 API 的原 AUTH cases 输入/预期全都保留。"
+    },
+    {
+      "verdict": "CLEAR",
+      "contract": "原生限制与执行边界",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 65
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 79
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 109
+        }
+      ],
+      "reason": "dispatch 与 acceptance 复验 native 可用性且不声称原子连续性；无 debugger/offscreen 权限、替代后端、绕开 OFF 或 unknown 写自动重放。已发 effect 与是否接纳 result 分账。"
+    },
+    {
+      "verdict": "CLEAR",
+      "contract": "完整 SDK 与 F3 同包",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 15
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 37
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 43
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 91
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 113
+        }
+      ],
+      "reason": "无需 controller 的真实 Hello→SDK→服务→固定回调仍必需；SDK 固定 ISOLATED relay + packaged MAIN scripting 路径不依赖 userScripts 开关。固定最终 production 包 fresh profile 全部 603 case、必需正能力、服务资源及压力/重连/禁插件验收要求全部继承。"
+    }
+  ],
+  "historicalEvidenceAccounting": {
+    "oldExpectedKept": true,
+    "eightWitnessCounterexamplesStillContractMetFalse": true,
+    "nativeRawThrowRejectAndRequiredPermissionFailuresKept": true,
+    "limitationConfirmationCountsAsOldFencePass": false,
+    "oldAndNewJudgmentsMustBeRecordedSeparately": true,
+    "naturalHostRebuildProven": false,
+    "productCasesReportedNotTested": 603,
+    "comment": "此次只核既有真实证据、源 hash 与方案差异，不重复跑矩阵；原 page 85=80 PASS/5 FAIL 和旧 control FAIL 不被方案分数改标。"
+  },
+  "strongestCounterexample": {
+    "scenario": "同 host/doc 的 OFF→ON 未被监测捕获，但区间内真实 origin 或 own explicit grant 被撤销后重新授予，或目标 document 已替换。",
+    "requiredOutcome": "旧结果一次拒绝，grant/doc 的可信 sticky epoch 决定失效；不能以当前 API 可用或未观察到开关为由接纳。已发 effect 可以存在，但不是有效 result receipt。",
+    "candidateTreatment": "真实 authority/document 失效在唯一例外之外；原 AUTH 六个 fence cases 和 REAL-AUTHORITY-FENCE 保留。最终 F1 必须用实际 UI/真实 grant/document 信号与无 runner fence 的证据验证。"
+  },
+  "watches": [
+    {
+      "id": "R6-ARCH-WATCH-01",
+      "severity": "WATCH",
+      "blocking": false,
+      "evidence": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/user-scripts-switch-history-amendment.json",
+        "line": 5
+      },
+      "finding": "authorityClause 指向 v5:240，条件缩窄条款实际在 :239；:240 是 SDK/服务/资源另列要求。适用授权原文已核实，属于引用定位误差，不改变本候选语义。",
+      "followThrough": "后续变更如校正定位必须重新绑定候选 hash；本次不修改候选。"
+    },
+    {
+      "id": "R6-ARCH-WATCH-02",
+      "severity": "WATCH",
+      "blocking": false,
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/user-scripts-switch-history-amendment.json",
+          "line": 132
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+          "line": 113
+        }
+      ],
+      "finding": "两个版本、两个 world、pending/native-completed 的复测矩阵由计划正文要求，四个 requiredSubcases 的 JSON 未各自展开 matrix 字段。文本合同完整，但自动核验不能只数四个 ID。",
+      "followThrough": "F1 独立复核逐项核真实版本/world/阶段输入与结果及源 hash；不能以四条总结果或历史 8 条 limitation 反例替代完整矩阵。"
+    }
+  ],
+  "remainingAcceptanceRequirements": [
+    "同 hash Critic 正式方案结论；不以 Architect 单方放行。",
+    "批准范围内原型实际修复后冻结双方 lane 的联合候选 hash；核该同最终候选完整真实 F1/代码/资源清理证据。",
+    "保留旧 expected/FAIL/raw shape，与新子场景判定分账；真实 signal 实现及释放仅能由 F1 证明。",
+    "F2/F3 按原完整 Goal：所有 603 产品案例与 SDK/服务/资源在同最终扩展包实跑并独立验收。"
+  ],
+  "nativeEvidenceVersions": [
+    "138.0.7204.183",
+    "154.0.8037.92"
+  ],
+  "nativeEvidenceVersionsMeaning": "核阅既有冻结原生 witness；本次方案评审未重跑浏览器，也不判定两版本最终F1通过。"
+}

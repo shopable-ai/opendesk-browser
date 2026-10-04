@@ -1,0 +1,98 @@
+{
+  "id": "B05.SDK.crash.before-admission-commit",
+  "label": "138",
+  "startedAt": "2026-10-04T09:38:11.537Z",
+  "status": "NOT_TESTED",
+  "evidence": {
+    "payload": {
+      "requestId": "b05-f00d6970-3e4b-4676-b994-00afec7350fa",
+      "method": "AXIOS_POST",
+      "argsWire": {
+        "type": "object",
+        "value": [
+          [
+            "data",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "effect",
+                  {
+                    "type": "string",
+                    "value": "admission-abort-3718626b-0db8-45db-984c-b415eaa902a2"
+                  }
+                ],
+                [
+                  "f",
+                  {
+                    "type": "boolean",
+                    "value": false
+                  }
+                ],
+                [
+                  "z",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "url",
+            {
+              "type": "string",
+              "value": "http://127.0.0.1:61120/hold?token=admission-abort-3718626b-0db8-45db-984c-b415eaa902a2"
+            }
+          ]
+        ]
+      },
+      "deadlineAt": 1791106721537
+    },
+    "snapshots": [
+      "138/snapshot-5-admission-baseline.json"
+    ],
+    "grant": {
+      "tag": "sdk-grant",
+      "tabId": 1669973067,
+      "frameId": 0,
+      "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+      "origin": "http://127.0.0.1:61120",
+      "principal": "sdk:http://127.0.0.1:61120",
+      "tabEpoch": 1,
+      "frameEpoch": 0,
+      "permissionEpoch": 0,
+      "notificationEpoch": 0,
+      "key": "sdk-grant:[1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\"]",
+      "namespace": "page:http://127.0.0.1:61120",
+      "capabilities": [
+        "network",
+        "storage.persistent",
+        "storage.session"
+      ],
+      "allowedOrigins": [
+        "http://127.0.0.1:61120"
+      ],
+      "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+      "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+      "active": true,
+      "grantedAt": "2026-10-04T09:38:11.284Z",
+      "registrationId": "dc541f0d-8619-4eb8-a0f5-645d77cbe4b5"
+    }
+  },
+  "error": {
+    "code": "E_NATIVE_NOT_OBSERVED",
+    "message": "CDP cannot break exactly before this call; nearest offset is not accepted",
+    "stack": "Error: CDP cannot break exactly before this call; nearest offset is not accepted\n    at arm (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:571:32)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:685:21\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:387:11)\n    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:677:9)\n    at async main (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:1037:3)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:1049:84"
+  },
+  "reason": "CDP cannot break exactly before this call; nearest offset is not accepted",
+  "measurements": {
+    "elapsedMs": 37.56904199998826,
+    "rawCdpSequenceStart": 7431,
+    "rawCdpSequenceEnd": 7450,
+    "httpRecordCountStart": 5,
+    "httpRecordCountEnd": 5
+  },
+  "endedAt": "2026-10-04T09:38:11.574Z"
+}

@@ -1,0 +1,2848 @@
+{
+  "schema": "opendesk.independent-f1-code-review.v1",
+  "createdAt": "2026-10-02T20:31:42.916138+00:00",
+  "role": "independent code/spec/security reviewer, not candidate author",
+  "modelEffort": "inherited; no override; server model not independently verified",
+  "score": null,
+  "repo": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "gitAvailable": false,
+  "approvedStage0Manifest": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+    "sha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+    "reapproved": false
+  },
+  "pagePrototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "finalUnionCandidateSha256": null,
+  "laneVerdict": "REQUEST CHANGES",
+  "verdictScope": "provisional frozen page lane; bounded control stop advice",
+  "overallF1Verdict": "NOT ISSUED",
+  "allF1PASS": false,
+  "F2Approved": false,
+  "F3Approved": false,
+  "productCases603Run": false,
+  "checkpointHashes": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.json",
+      "sha256": "453d779d6a7d95f0a4e4214ad2ae01f84294ddf9b392ca9b74f9614b4debc0e4",
+      "verified": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.md",
+      "sha256": "ff2c83d5794463e37f1a4670b8028536fc81256cbbbebe90f790d4ded38b0c37",
+      "verified": true
+    }
+  ],
+  "scope": {
+    "fullRead": [
+      "/Users/shopme/.codex/prompts/code-reviewer.md",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-plan.md",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/f1-cases.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js"
+    ],
+    "sourceChanges": [
+      {
+        "path": "run-headed.mjs",
+        "oldSha256": "12212055d7b7cd348755d76066c82e6db640cb84ccdf665300b9331c3181284b",
+        "newSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+        "changed": true
+      },
+      {
+        "path": "fixture/adapter.js",
+        "oldSha256": "ddd235656167922308f674b02d70b1784737f9d27aac6b641b90c921808c29a6",
+        "newSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+        "changed": true
+      },
+      {
+        "path": "fixture/file-source.js",
+        "oldSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+        "newSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+        "changed": false
+      },
+      {
+        "path": "fixture/host.html",
+        "oldSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+        "newSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+        "changed": false
+      },
+      {
+        "path": "fixture/host.js",
+        "oldSha256": "476d817a69c9cbd4160275b7172fea94e5dfe4ba7d582fab6e8eef4475393b9d",
+        "newSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+        "changed": true
+      },
+      {
+        "path": "fixture/manifest.json",
+        "oldSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+        "newSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+        "changed": false
+      },
+      {
+        "path": "fixture/sw.js",
+        "oldSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+        "newSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+        "changed": false
+      }
+    ],
+    "wholeRepoAudit": false,
+    "architectureLaneOwned": false,
+    "boundedControl": "user-specified19:57 report, HTTP no-Inspector diagnostic, stop observer/host slices and version-tag source chain only"
+  },
+  "runs": [
+    {
+      "environment": {
+        "version": "138.0.7204.183",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "executableSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+        "channel": "CfT milestone138",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1",
+        "fixtureIdentity": {
+          "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*",
+              "http://localhost/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 userScripts v2 fixture",
+            "permissions": [
+              "userScripts",
+              "scripting",
+              "tabs",
+              "webNavigation"
+            ],
+            "version": "0.0.2"
+          }
+        }
+      },
+      "evidencePath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+      "reportSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+      "evidenceManifestSha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7",
+      "candidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "sourceHashes": [
+        {
+          "path": "run-headed.mjs",
+          "bytes": 48436,
+          "sha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d"
+        },
+        {
+          "path": "fixture/adapter.js",
+          "bytes": 4444,
+          "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+        },
+        {
+          "path": "fixture/file-source.js",
+          "bytes": 206,
+          "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+        },
+        {
+          "path": "fixture/host.html",
+          "bytes": 410,
+          "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4"
+        },
+        {
+          "path": "fixture/host.js",
+          "bytes": 8302,
+          "sha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e"
+        },
+        {
+          "path": "fixture/manifest.json",
+          "bytes": 408,
+          "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+        },
+        {
+          "path": "fixture/sw.js",
+          "bytes": 176,
+          "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+        }
+      ],
+      "frozenInputs": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+          "bytes": 16135,
+          "sha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/execution-plan.md",
+          "bytes": 16001,
+          "sha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json",
+          "bytes": 10893,
+          "sha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/goal-constraints.md",
+          "bytes": 7870,
+          "sha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3"
+        },
+        {
+          "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+          "bytes": 31648,
+          "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7"
+        },
+        {
+          "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+          "bytes": 13767,
+          "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4"
+        }
+      ],
+      "integrity": {
+        "manifestFilesVerified": 34,
+        "hashOrSizeMismatches": [],
+        "binarySha256Verified": true
+      },
+      "caseAccounting": {
+        "passedCases": 80,
+        "failedCases": 5,
+        "rawFunctionAttempts": 100,
+        "actualChromeUserScriptsExecuteInvocations": 99,
+        "unavailableBeforeNative": 1,
+        "nativeResolved": 90,
+        "nativeRejected": 9,
+        "rawPendingAtEnd": 0,
+        "actualChromeScriptingExecuteInvocations": 3,
+        "packagedResolved": 1,
+        "packagedRejected": 2,
+        "adapterPrevalidationCases": 7,
+        "otherRequiredFailures": 0
+      },
+      "caseChecks": [
+        {
+          "id": "SWITCH-OFF",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 1,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/0"
+        },
+        {
+          "id": "SWITCH-ON",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/1"
+        },
+        {
+          "id": "USER_SCRIPT-RAW-PROMISE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/2"
+        },
+        {
+          "id": "USER_SCRIPT-RAW-UNDEFINED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/3"
+        },
+        {
+          "id": "USER_SCRIPT-CODE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/4"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-PROMISE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/5"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-THROW",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/6"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-REJECT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/7"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-UNDEFINED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/8"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-TRUE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/9"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-FALSE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/10"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-ZERO",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/11"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-EMPTY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/12"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-NULL",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/13"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-BUSINESS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/14"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-CLOSURE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/15"
+        },
+        {
+          "id": "USER_SCRIPT-FILE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/16"
+        },
+        {
+          "id": "USER_SCRIPT-WORLD",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/17"
+        },
+        {
+          "id": "USER_SCRIPT-LEGACY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/18"
+        },
+        {
+          "id": "USER_SCRIPT-DOCUMENT-TOP",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/19"
+        },
+        {
+          "id": "USER_SCRIPT-DOCUMENT-SAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/20"
+        },
+        {
+          "id": "USER_SCRIPT-DOCUMENT-CROSS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/21"
+        },
+        {
+          "id": "USER_SCRIPT-FILE-DOCUMENT-TOP",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/22"
+        },
+        {
+          "id": "USER_SCRIPT-FILE-DOCUMENT-SAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/23"
+        },
+        {
+          "id": "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/24"
+        },
+        {
+          "id": "MAIN-RAW-PROMISE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/25"
+        },
+        {
+          "id": "MAIN-RAW-UNDEFINED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/26"
+        },
+        {
+          "id": "MAIN-CODE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/27"
+        },
+        {
+          "id": "MAIN-ADAPTER-PROMISE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/28"
+        },
+        {
+          "id": "MAIN-ADAPTER-THROW",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/29"
+        },
+        {
+          "id": "MAIN-ADAPTER-REJECT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/30"
+        },
+        {
+          "id": "MAIN-ADAPTER-UNDEFINED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/31"
+        },
+        {
+          "id": "MAIN-ADAPTER-TRUE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/32"
+        },
+        {
+          "id": "MAIN-ADAPTER-FALSE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/33"
+        },
+        {
+          "id": "MAIN-ADAPTER-ZERO",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/34"
+        },
+        {
+          "id": "MAIN-ADAPTER-EMPTY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/35"
+        },
+        {
+          "id": "MAIN-ADAPTER-NULL",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/36"
+        },
+        {
+          "id": "MAIN-ADAPTER-BUSINESS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/37"
+        },
+        {
+          "id": "MAIN-ADAPTER-CLOSURE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/38"
+        },
+        {
+          "id": "MAIN-FILE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/39"
+        },
+        {
+          "id": "MAIN-WORLD",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/40"
+        },
+        {
+          "id": "MAIN-LEGACY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/41"
+        },
+        {
+          "id": "MAIN-DOCUMENT-TOP",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/42"
+        },
+        {
+          "id": "MAIN-DOCUMENT-SAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/43"
+        },
+        {
+          "id": "MAIN-DOCUMENT-CROSS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/44"
+        },
+        {
+          "id": "MAIN-FILE-DOCUMENT-TOP",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/45"
+        },
+        {
+          "id": "MAIN-FILE-DOCUMENT-SAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/46"
+        },
+        {
+          "id": "MAIN-FILE-DOCUMENT-CROSS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/47"
+        },
+        {
+          "id": "SOURCE-BOTH",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/48"
+        },
+        {
+          "id": "SOURCE-NEITHER",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/49"
+        },
+        {
+          "id": "SOURCE-FUNC-ARGS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/50"
+        },
+        {
+          "id": "TARGET-DOC-FRAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/51"
+        },
+        {
+          "id": "SOURCE-MISSING-FILE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/52"
+        },
+        {
+          "id": "PRE-DISPATCH-NATIVE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/53"
+        },
+        {
+          "id": "PRE-DISPATCH-BOUND",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/54"
+        },
+        {
+          "id": "PRE-DISPATCH-NONFINITE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/55"
+        },
+        {
+          "id": "PRE-DISPATCH-FUNCTIONARG",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/56"
+        },
+        {
+          "id": "PRE-DISPATCH-BIGINT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/57"
+        },
+        {
+          "id": "PRE-DISPATCH-CYCLE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/58"
+        },
+        {
+          "id": "PRE-DISPATCH-MISSINGTARGET",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/59"
+        },
+        {
+          "id": "PACKAGED-MAIN-CALLBACK",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 1,
+          "evidencePointer": "report.json#/actual/60"
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "author PASS depends on runner recheck; fresh no-recheck old-result counterexample blocks approval",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/61"
+        },
+        {
+          "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 1,
+          "evidencePointer": "report.json#/actual/62"
+        },
+        {
+          "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "author PASS depends on runner recheck; fresh no-recheck old-result counterexample blocks approval",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/63"
+        },
+        {
+          "id": "MAIN-OLD-DOCUMENT-RACE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 1,
+          "evidencePointer": "report.json#/actual/64"
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "author PASS depends on runner recheck; fresh no-recheck old-result counterexample blocks approval",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/65"
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/66"
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "real UI state supported; recheck may overwrite automatic event fence provenance",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/67"
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "real UI state supported; recheck may overwrite automatic event fence provenance",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/68"
+        },
+        {
+          "id": "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "author PASS depends on runner recheck; fresh no-recheck old-result counterexample blocks approval",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/69"
+        },
+        {
+          "id": "MAIN-HOST-UI-REVOKE-RESTORE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/70"
+        },
+        {
+          "id": "MAIN-HOST-UI-RACE-PENDING",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "real UI state supported; recheck may overwrite automatic event fence provenance",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/71"
+        },
+        {
+          "id": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "real UI state supported; recheck may overwrite automatic event fence provenance",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/72"
+        },
+        {
+          "id": "CSP-BASELINE-MAIN-PAGE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/73"
+        },
+        {
+          "id": "CSP-BASELINE-USER_SCRIPT-ALLOW",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/74"
+        },
+        {
+          "id": "CSP-BASELINE-USER_SCRIPT-DENY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/75"
+        },
+        {
+          "id": "CSP-RESTRICTIVE-MAIN-PAGE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/76"
+        },
+        {
+          "id": "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/77"
+        },
+        {
+          "id": "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/78"
+        },
+        {
+          "id": "HOST-PERMISSION-RESTORE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/79"
+        },
+        {
+          "id": "USER_SCRIPT-RAW-THROW",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "raw FAIL immutable; promised typed wrapper impact independently disposed separately",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/0"
+        },
+        {
+          "id": "USER_SCRIPT-RAW-REJECT",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "raw FAIL immutable; promised typed wrapper impact independently disposed separately",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/1"
+        },
+        {
+          "id": "MAIN-RAW-THROW",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "raw FAIL immutable; promised typed wrapper impact independently disposed separately",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/2"
+        },
+        {
+          "id": "MAIN-RAW-REJECT",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "raw FAIL immutable; promised typed wrapper impact independently disposed separately",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/3"
+        },
+        {
+          "id": "HOST-PERMISSION-REVOKE",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "required permission remove FAIL immutable; legacy following request is not restoration evidence",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/4"
+        }
+      ],
+      "immutableFailedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "nativeErrorShapes": [
+        {
+          "id": "USER_SCRIPT-RAW-THROW",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "USER_SCRIPT-RAW-REJECT",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "MAIN-RAW-THROW",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "MAIN-RAW-REJECT",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        }
+      ],
+      "hostUi": {
+        "transitions": 22,
+        "observedNaturalHostRebuilds": 0,
+        "reconnectBranchValidated": false,
+        "fenceLayer": "prototype real browser authorization checks/events only; not product broker"
+      },
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      }
+    },
+    {
+      "environment": {
+        "version": "154.0.8037.92",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "executableSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+        "channel": "CfT Stable154",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1",
+        "fixtureIdentity": {
+          "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*",
+              "http://localhost/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 userScripts v2 fixture",
+            "permissions": [
+              "userScripts",
+              "scripting",
+              "tabs",
+              "webNavigation"
+            ],
+            "version": "0.0.2"
+          }
+        }
+      },
+      "evidencePath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+      "reportSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+      "evidenceManifestSha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790",
+      "candidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "sourceHashes": [
+        {
+          "path": "run-headed.mjs",
+          "bytes": 48436,
+          "sha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d"
+        },
+        {
+          "path": "fixture/adapter.js",
+          "bytes": 4444,
+          "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+        },
+        {
+          "path": "fixture/file-source.js",
+          "bytes": 206,
+          "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+        },
+        {
+          "path": "fixture/host.html",
+          "bytes": 410,
+          "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4"
+        },
+        {
+          "path": "fixture/host.js",
+          "bytes": 8302,
+          "sha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e"
+        },
+        {
+          "path": "fixture/manifest.json",
+          "bytes": 408,
+          "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+        },
+        {
+          "path": "fixture/sw.js",
+          "bytes": 176,
+          "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+        }
+      ],
+      "frozenInputs": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+          "bytes": 16135,
+          "sha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/execution-plan.md",
+          "bytes": 16001,
+          "sha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json",
+          "bytes": 10893,
+          "sha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/goal-constraints.md",
+          "bytes": 7870,
+          "sha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3"
+        },
+        {
+          "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+          "bytes": 31648,
+          "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7"
+        },
+        {
+          "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+          "bytes": 13767,
+          "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4"
+        }
+      ],
+      "integrity": {
+        "manifestFilesVerified": 34,
+        "hashOrSizeMismatches": [],
+        "binarySha256Verified": true
+      },
+      "caseAccounting": {
+        "passedCases": 80,
+        "failedCases": 5,
+        "rawFunctionAttempts": 100,
+        "actualChromeUserScriptsExecuteInvocations": 99,
+        "unavailableBeforeNative": 1,
+        "nativeResolved": 90,
+        "nativeRejected": 9,
+        "rawPendingAtEnd": 0,
+        "actualChromeScriptingExecuteInvocations": 3,
+        "packagedResolved": 1,
+        "packagedRejected": 2,
+        "adapterPrevalidationCases": 7,
+        "otherRequiredFailures": 0
+      },
+      "caseChecks": [
+        {
+          "id": "SWITCH-OFF",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 1,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/0"
+        },
+        {
+          "id": "SWITCH-ON",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/1"
+        },
+        {
+          "id": "USER_SCRIPT-RAW-PROMISE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/2"
+        },
+        {
+          "id": "USER_SCRIPT-RAW-UNDEFINED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/3"
+        },
+        {
+          "id": "USER_SCRIPT-CODE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/4"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-PROMISE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/5"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-THROW",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/6"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-REJECT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/7"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-UNDEFINED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/8"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-TRUE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/9"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-FALSE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/10"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-ZERO",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/11"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-EMPTY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/12"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-NULL",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/13"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-BUSINESS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/14"
+        },
+        {
+          "id": "USER_SCRIPT-ADAPTER-CLOSURE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/15"
+        },
+        {
+          "id": "USER_SCRIPT-FILE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/16"
+        },
+        {
+          "id": "USER_SCRIPT-WORLD",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/17"
+        },
+        {
+          "id": "USER_SCRIPT-LEGACY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/18"
+        },
+        {
+          "id": "USER_SCRIPT-DOCUMENT-TOP",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/19"
+        },
+        {
+          "id": "USER_SCRIPT-DOCUMENT-SAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/20"
+        },
+        {
+          "id": "USER_SCRIPT-DOCUMENT-CROSS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/21"
+        },
+        {
+          "id": "USER_SCRIPT-FILE-DOCUMENT-TOP",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/22"
+        },
+        {
+          "id": "USER_SCRIPT-FILE-DOCUMENT-SAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/23"
+        },
+        {
+          "id": "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/24"
+        },
+        {
+          "id": "MAIN-RAW-PROMISE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/25"
+        },
+        {
+          "id": "MAIN-RAW-UNDEFINED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/26"
+        },
+        {
+          "id": "MAIN-CODE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/27"
+        },
+        {
+          "id": "MAIN-ADAPTER-PROMISE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/28"
+        },
+        {
+          "id": "MAIN-ADAPTER-THROW",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/29"
+        },
+        {
+          "id": "MAIN-ADAPTER-REJECT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/30"
+        },
+        {
+          "id": "MAIN-ADAPTER-UNDEFINED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/31"
+        },
+        {
+          "id": "MAIN-ADAPTER-TRUE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/32"
+        },
+        {
+          "id": "MAIN-ADAPTER-FALSE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/33"
+        },
+        {
+          "id": "MAIN-ADAPTER-ZERO",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/34"
+        },
+        {
+          "id": "MAIN-ADAPTER-EMPTY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/35"
+        },
+        {
+          "id": "MAIN-ADAPTER-NULL",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/36"
+        },
+        {
+          "id": "MAIN-ADAPTER-BUSINESS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/37"
+        },
+        {
+          "id": "MAIN-ADAPTER-CLOSURE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/38"
+        },
+        {
+          "id": "MAIN-FILE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/39"
+        },
+        {
+          "id": "MAIN-WORLD",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/40"
+        },
+        {
+          "id": "MAIN-LEGACY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/41"
+        },
+        {
+          "id": "MAIN-DOCUMENT-TOP",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/42"
+        },
+        {
+          "id": "MAIN-DOCUMENT-SAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/43"
+        },
+        {
+          "id": "MAIN-DOCUMENT-CROSS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/44"
+        },
+        {
+          "id": "MAIN-FILE-DOCUMENT-TOP",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/45"
+        },
+        {
+          "id": "MAIN-FILE-DOCUMENT-SAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/46"
+        },
+        {
+          "id": "MAIN-FILE-DOCUMENT-CROSS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/47"
+        },
+        {
+          "id": "SOURCE-BOTH",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/48"
+        },
+        {
+          "id": "SOURCE-NEITHER",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/49"
+        },
+        {
+          "id": "SOURCE-FUNC-ARGS",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/50"
+        },
+        {
+          "id": "TARGET-DOC-FRAME",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/51"
+        },
+        {
+          "id": "SOURCE-MISSING-FILE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/52"
+        },
+        {
+          "id": "PRE-DISPATCH-NATIVE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/53"
+        },
+        {
+          "id": "PRE-DISPATCH-BOUND",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/54"
+        },
+        {
+          "id": "PRE-DISPATCH-NONFINITE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/55"
+        },
+        {
+          "id": "PRE-DISPATCH-FUNCTIONARG",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/56"
+        },
+        {
+          "id": "PRE-DISPATCH-BIGINT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/57"
+        },
+        {
+          "id": "PRE-DISPATCH-CYCLE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/58"
+        },
+        {
+          "id": "PRE-DISPATCH-MISSINGTARGET",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "adapter validation only, no native execute",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/59"
+        },
+        {
+          "id": "PACKAGED-MAIN-CALLBACK",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 1,
+          "evidencePointer": "report.json#/actual/60"
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "author PASS depends on runner recheck; fresh no-recheck old-result counterexample blocks approval",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/61"
+        },
+        {
+          "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 1,
+          "evidencePointer": "report.json#/actual/62"
+        },
+        {
+          "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "author PASS depends on runner recheck; fresh no-recheck old-result counterexample blocks approval",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/63"
+        },
+        {
+          "id": "MAIN-OLD-DOCUMENT-RACE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 1,
+          "evidencePointer": "report.json#/actual/64"
+        },
+        {
+          "id": "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "author PASS depends on runner recheck; fresh no-recheck old-result counterexample blocks approval",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/65"
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/66"
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "real UI state supported; recheck may overwrite automatic event fence provenance",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/67"
+        },
+        {
+          "id": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "real UI state supported; recheck may overwrite automatic event fence provenance",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/68"
+        },
+        {
+          "id": "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "author PASS depends on runner recheck; fresh no-recheck old-result counterexample blocks approval",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/69"
+        },
+        {
+          "id": "MAIN-HOST-UI-REVOKE-RESTORE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/70"
+        },
+        {
+          "id": "MAIN-HOST-UI-RACE-PENDING",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "real UI state supported; recheck may overwrite automatic event fence provenance",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/71"
+        },
+        {
+          "id": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "real UI state supported; recheck may overwrite automatic event fence provenance",
+          "nativeAttempts": 3,
+          "actualUserScriptsExecuteCalls": 3,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/72"
+        },
+        {
+          "id": "CSP-BASELINE-MAIN-PAGE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/73"
+        },
+        {
+          "id": "CSP-BASELINE-USER_SCRIPT-ALLOW",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/74"
+        },
+        {
+          "id": "CSP-BASELINE-USER_SCRIPT-DENY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/75"
+        },
+        {
+          "id": "CSP-RESTRICTIVE-MAIN-PAGE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/76"
+        },
+        {
+          "id": "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/77"
+        },
+        {
+          "id": "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/78"
+        },
+        {
+          "id": "HOST-PERMISSION-RESTORE",
+          "authorPass": true,
+          "authorStatus": "actual",
+          "independentCheck": "source/input/actual/native-trace cross-checked; bounded prototype evidence only",
+          "nativeAttempts": 2,
+          "actualUserScriptsExecuteCalls": 2,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/actual/79"
+        },
+        {
+          "id": "USER_SCRIPT-RAW-THROW",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "raw FAIL immutable; promised typed wrapper impact independently disposed separately",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/0"
+        },
+        {
+          "id": "USER_SCRIPT-RAW-REJECT",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "raw FAIL immutable; promised typed wrapper impact independently disposed separately",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/1"
+        },
+        {
+          "id": "MAIN-RAW-THROW",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "raw FAIL immutable; promised typed wrapper impact independently disposed separately",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/2"
+        },
+        {
+          "id": "MAIN-RAW-REJECT",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "raw FAIL immutable; promised typed wrapper impact independently disposed separately",
+          "nativeAttempts": 1,
+          "actualUserScriptsExecuteCalls": 1,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/3"
+        },
+        {
+          "id": "HOST-PERMISSION-REVOKE",
+          "authorPass": false,
+          "authorStatus": "failed",
+          "independentCheck": "required permission remove FAIL immutable; legacy following request is not restoration evidence",
+          "nativeAttempts": 0,
+          "actualUserScriptsExecuteCalls": 0,
+          "unavailableBeforeNative": 0,
+          "fixedMainScriptingCalls": 0,
+          "evidencePointer": "report.json#/failed/4"
+        }
+      ],
+      "immutableFailedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "nativeErrorShapes": [
+        {
+          "id": "USER_SCRIPT-RAW-THROW",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "USER_SCRIPT-RAW-REJECT",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "MAIN-RAW-THROW",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "MAIN-RAW-REJECT",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        }
+      ],
+      "hostUi": {
+        "transitions": 22,
+        "observedNaturalHostRebuilds": 0,
+        "reconnectBranchValidated": false,
+        "fenceLayer": "prototype real browser authorization checks/events only; not product broker"
+      },
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "CR-F1-PAGE-001",
+      "severity": "HIGH",
+      "priority": 1,
+      "verdict": "REQUEST CHANGES",
+      "title": "Toggle revoke/restore can reaccept old operation unless test runner writes fence",
+      "contractId": "F1-PAGE-AUTH-CSP",
+      "locations": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+          "line": 39,
+          "endLine": 57
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+          "line": 108,
+          "endLine": 114
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+          "line": 64,
+          "endLine": 75
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+          "line": 405,
+          "endLine": 418
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/f1-cases.json",
+          "line": 284
+        }
+      ],
+      "evidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/fresh-page-fence-2026-10-02T20-08-38-871Z/report.json",
+      "evidenceSha256": "229c09c1bf381012d17c24771ec1dd0e38493a3dbaadccee32e99470035e46e6",
+      "actual": "4/4 real UI off/on no-recheck native-completed old results accepted; real unavailable state verified; no permission event or fence",
+      "impact": "old requests regain result acceptance after restored grant, violating approved revocation fence",
+      "reproduce": "/Users/shopme/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node docs/framework/reviews/m5-f1/code-reviewer/page-fence-probe.mjs",
+      "fixRequirements": [
+        "real invalidation observation and irreversible operation/grant incarnation fence inside verified mechanism",
+        "runner must not provide missing state via recheck; preserve old evidence",
+        "both worlds/versions and both pending/after-native races: old result rejected once, new authorized operation succeeds",
+        "unobservable short OFF/ON boundary must be explicitly disposed by independent review, never silently narrowed",
+        "new source and candidate hash frozen before renewed independent review"
+      ],
+      "reproduceWorkingDirectory": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "probeSourceSha256": "30a8040c0da770146949964bfbce5212967f62a70d11d544a96ed4ff69a7f166"
+    }
+  ],
+  "blockers": [
+    "CR-F1-PAGE-001",
+    "control strict2s stop/deadline failures; no approved timing amendment",
+    "final frozen two-lane union and complete same-candidate12-contract review absent"
+  ],
+  "freshProbe": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/fresh-page-fence-2026-10-02T20-08-38-871Z/report.json",
+    "sha256": "229c09c1bf381012d17c24771ec1dd0e38493a3dbaadccee32e99470035e46e6",
+    "candidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+    "cases": [
+      {
+        "version": "154.0.8037.92",
+        "world": "USER_SCRIPT",
+        "id": "independent-no-recheck-USER_SCRIPT",
+        "target": {
+          "tabId": 1984250986,
+          "frameId": 0,
+          "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+          "url": "http://127.0.0.1:62115/owned"
+        },
+        "offAvailable": false,
+        "offRenderedToggle": "false",
+        "onAvailable": true,
+        "onRenderedToggle": "true",
+        "recheckCalled": false,
+        "requiredOldResultRejection": false,
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "boolean",
+            "value": true
+          }
+        },
+        "fence": null,
+        "permissionEvents": [],
+        "settlementCount": 1
+      },
+      {
+        "version": "154.0.8037.92",
+        "world": "MAIN",
+        "id": "independent-no-recheck-MAIN",
+        "target": {
+          "tabId": 1984250986,
+          "frameId": 0,
+          "documentId": "41292897C701D7BD6DE7358E66FA09E6",
+          "url": "http://127.0.0.1:62115/owned"
+        },
+        "offAvailable": false,
+        "offRenderedToggle": "false",
+        "onAvailable": true,
+        "onRenderedToggle": "true",
+        "recheckCalled": false,
+        "requiredOldResultRejection": false,
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "boolean",
+            "value": true
+          }
+        },
+        "fence": null,
+        "permissionEvents": [],
+        "settlementCount": 1
+      },
+      {
+        "version": "138.0.7204.183",
+        "world": "USER_SCRIPT",
+        "id": "independent-no-recheck-USER_SCRIPT",
+        "target": {
+          "tabId": 268354146,
+          "frameId": 0,
+          "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+          "url": "http://127.0.0.1:62115/owned"
+        },
+        "offAvailable": false,
+        "offRenderedToggle": "false",
+        "onAvailable": true,
+        "onRenderedToggle": "true",
+        "recheckCalled": false,
+        "requiredOldResultRejection": false,
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "boolean",
+            "value": true
+          }
+        },
+        "fence": null,
+        "permissionEvents": [],
+        "settlementCount": 1
+      },
+      {
+        "version": "138.0.7204.183",
+        "world": "MAIN",
+        "id": "independent-no-recheck-MAIN",
+        "target": {
+          "tabId": 268354146,
+          "frameId": 0,
+          "documentId": "C6462A51647574ADBCAB3C3D227C9B96",
+          "url": "http://127.0.0.1:62115/owned"
+        },
+        "offAvailable": false,
+        "offRenderedToggle": "false",
+        "onAvailable": true,
+        "onRenderedToggle": "true",
+        "recheckCalled": false,
+        "requiredOldResultRejection": false,
+        "accepted": {
+          "kind": "value",
+          "value": {
+            "type": "boolean",
+            "value": true
+          }
+        },
+        "fence": null,
+        "permissionEvents": [],
+        "settlementCount": 1
+      }
+    ],
+    "fullMatrixRerun": false,
+    "countsAddedToOriginal85": false,
+    "cleanup": [
+      {
+        "version": "154.0.8037.92",
+        "resources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true
+      },
+      {
+        "version": "138.0.7204.183",
+        "resources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true
+      }
+    ],
+    "serverClosed": true,
+    "ownedBrowserPidsAfterCleanup": [],
+    "processCheckScope": "own fresh profile paths only",
+    "screenshotsVisuallyInspected": [
+      "138.0.7204.183-USER_SCRIPT-off.png",
+      "154.0.8037.92-MAIN-off.png"
+    ]
+  },
+  "nativeErrorDisposition": {
+    "rawFailuresImmutable": true,
+    "actual": "both versions/worlds throw/reject -> resolved single exact-doc result:null, hasError:false; raw undefined also null",
+    "promisedTypedWrapperEffect": "not an extra blocker by itself: selected-world async wrapper awaits and catches, emits typed envelope; accept rejects raw null E_RESULT_CODEC; no native FAIL replacement",
+    "limits": [
+      "raw API does not supply equivalent typed errors",
+      "MAIN environment is not trusted caller identity or generic security isolation"
+    ]
+  },
+  "permissionRemoveFailure": {
+    "immutable": true,
+    "actual": "required permission remove rejected; legacy restorationProven=false preserved; true UI restoration assessed independently"
+  },
+  "contracts": [
+    {
+      "id": "F1-CTRL-USER-ASYNC",
+      "required": true,
+      "expected": "actual user body compiles only inside Worker; awaited page calls in order; BaseAlice; actual values/error/syntax; no operation on unauthorized origin",
+      "independentDisposition": "PENDING",
+      "reason": "control nonfinal, requires same frozen union native review"
+    },
+    {
+      "id": "F1-CTRL-PRIVATE-CHANNEL",
+      "required": true,
+      "expected": "reject attacks without true completion or extra page effect; true current run works; captured harness primitives remain safe; no extension API/DOM accessible",
+      "independentDisposition": "PENDING",
+      "reason": "control nonfinal, requires same frozen union native review"
+    },
+    {
+      "id": "F1-CTRL-CSP-NETWORK",
+      "required": true,
+      "expected": "record real policy/CSP violation and positive reachability; denied direct network classified by evidence (not CORS inference); no allow-same-origin/SW eval or privileged fallback",
+      "independentDisposition": "PENDING",
+      "reason": "control nonfinal, requires same frozen union native review"
+    },
+    {
+      "id": "F1-CTRL-TRUE-TERMINATE",
+      "required": true,
+      "expected": "loop entered; admission closed; browser independently observes Worker gone/CPU execution stopped within test 2s; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved",
+      "independentDisposition": "REQUEST CHANGES",
+      "reason": "strict2s failures preserved; unapproved explicit timing amendment suggestion"
+    },
+    {
+      "id": "F1-CTRL-RESOURCE",
+      "required": true,
+      "expected": "compare actual independent observations before/after and revoked URL load failure; all per-run resources return baseline; later valid run works; preserve old manually counted partial proof",
+      "independentDisposition": "PENDING",
+      "reason": "control nonfinal, requires same frozen union native review"
+    },
+    {
+      "id": "F1-PAGE-SOURCE-DOC",
+      "required": true,
+      "expected": "real execute uses tabId+documentIds only; selected document altered; others unchanged; invalid rejects without dispatch; returned documentId matches; old document cannot mutate fresh",
+      "independentDisposition": "SUPPORTED WITHIN PROTOTYPE SCOPE",
+      "reason": "two-world code/file/exact doc/frame/native invalid and effect boundaries inspected"
+    },
+    {
+      "id": "F1-PAGE-TYPED-RESULTS",
+      "required": true,
+      "expected": "wrapper awaits/returns typed false/0/empty/null/undefined; actual throw/rejection/closure error once; business PageBrigeCode unchanged; unsupported args/source reject predispatch; native diagnostics distinct, no claim native error fields all work",
+      "independentDisposition": "SUPPORTED WITHIN PROTOTYPE SCOPE",
+      "reason": "typed await/value/error cases inspected; auth finding separate"
+    },
+    {
+      "id": "F1-PAGE-NATIVE-DIAGNOSTICS",
+      "required": true,
+      "expected": "save actual raw API resolved/rejected/error/result shape in each version, keep all historical failure objects immutable; classify separately from wrapper; independent F1 reviewer must close effect on promised API contract, no silent pass replacement",
+      "independentDisposition": "INDEPENDENT DISPOSITION RECORDED",
+      "reason": "actual shape verified, raw FAIL preserved; wrapper impact closed separately"
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP",
+      "required": true,
+      "expected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+      "independentDisposition": "REQUEST CHANGES",
+      "reason": "CR-F1-PAGE-001; site UI and CSP evidence supported separately"
+    },
+    {
+      "id": "F1-PAGE-OLD-DOC-RACE",
+      "required": true,
+      "expected": "old pending result/old callback rejected and cannot settle new request; new real document call works; original target/from-to recorded where navigation adapter applies; no assumed world/run sender fields",
+      "independentDisposition": "SUPPORTED WITHIN PROTOTYPE SCOPE",
+      "reason": "stale doc/callback native rejection and new document success inspected"
+    },
+    {
+      "id": "F1-SW-AND-PAGE-LOOP",
+      "required": true,
+      "expected": "long controller not moved SW; reconnect identity/epoch validated; MAIN loop no false terminate guarantee, only owned tab retirement allowed; borrowed tabs not closed",
+      "independentDisposition": "PENDING",
+      "reason": "not page evidence; user-reported owned/borrowed control FAIL preserved"
+    },
+    {
+      "id": "F1-VERSION-MATRIX",
+      "required": true,
+      "expected": "per binary real complete required matrix; 149 local evidence insufficient; minimum cannot infer from manifest120; inability/failure138 requires explicit scope delta and independent renewed approval before manifest range narrowing",
+      "independentDisposition": "PARTIAL",
+      "reason": "page138/154 inspected; control/union nonfinal"
+    }
+  ],
+  "verification": {
+    "evidenceFilesVerified": 68,
+    "hashOrSizeMismatches": [],
+    "all7PageSourcesMatch": true,
+    "checkpointMatch": true,
+    "syntaxChecks": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+        "method": "node --check",
+        "exitCode": 0
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+        "method": "node --input-type=module --check",
+        "exitCode": 0
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+        "method": "node --input-type=module --check",
+        "exitCode": 0
+      }
+    ],
+    "lsp": "tool unavailable; syntax check is not LSP/typecheck",
+    "astGrep": "tool unavailable; bounded static searches only",
+    "naturalHostRebuildObserved": false,
+    "originalCasesReclassified": false,
+    "dependenciesInstalled": false,
+    "productOrFixtureWritten": false,
+    "gatesOrLedgerWritten": false,
+    "oldTasksRestoredOrMessaged": false
+  },
+  "controlSupplement": {
+    "md": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/control-native-stop-contract-note.md",
+    "json": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/control-native-stop-contract-note.json",
+    "proposedBudgetMs": 3000,
+    "amendmentApproved": false,
+    "mdSha256": "14b9cfcdb7540f230f5eb8742b2c2daa8152c9b3b03e5314481e33b933aceb2e",
+    "jsonSha256": "600e48ea31ae99e4d8be636ab1d95d5bfc6a2c173e26d61b44e5e7730719b022"
+  },
+  "reportMd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/provisional-page-review.md",
+  "stopCondition": "specific page blocker and repair requirements recorded; final approval requires fixed same frozen union and12 native contracts",
+  "reportMdSha256": "7823c0e8595f131b2b649629ba5dd62e8eefbb7bcdd8db2fc9ecb0a19ad1399e",
+  "allF1": false,
+  "unionCandidateSha256": null,
+  "laneRecommendation": "REQUEST_CHANGES",
+  "backendPrototypePassed": false,
+  "reliableHistoryBoundary": {
+    "observedOff": "actual mechanism observation of browser API unavailable must irreversibly invalidate old operations before acceptance; ON admits new operations only",
+    "unobservedRapidCycle": "current-authorized probes and polling cannot reconstruct all OFF/ON history between probes",
+    "reliableSignalRequired": [
+      "browser-caused invalidation covering Allow User Scripts toggle",
+      "delivery/query before old result acceptance with monotonic grant/incarnation distinction",
+      "proof for persistent same host and reconstruction cases"
+    ],
+    "notSufficient": [
+      "move recheck into observer",
+      "runner-induced availability probe during OFF supplies required fence knowledge",
+      "shorter polling interval or always-on settlement check"
+    ],
+    "requiredEvidence": "separate observed-OFF monotonic fence proof and true OFF/ON between probes without runner calling fence-changing API; real UI plus long OFF negative control establishes toggle semantics",
+    "unprovableDisposition": "preserve concrete FAIL and exact scope boundary for independent explicit contract disposition, never claim universal interval safety"
+  },
+  "updatedAt": "2026-10-02T20:36:23.206558+00:00"
+}

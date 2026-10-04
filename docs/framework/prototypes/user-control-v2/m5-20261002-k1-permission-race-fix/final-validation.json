@@ -1,0 +1,43 @@
+{
+  "sourceSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+  "planHash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "status": "PASS_AUTHOR_CHECKS",
+  "changedSourceFiles": [
+    {
+      "path": "run.mjs",
+      "oldSha256": "2ee7bc681b679da1df7782b347da130367cbf29e3b0d36404e22c18dce126397",
+      "sha256": "af9935bc5d4862e1c0f65848ada1831585c2e42669288a059cb2bb3afbc58863"
+    },
+    {
+      "path": "run-native.mjs",
+      "oldSha256": "a327839d2f3a04ad7b7e4433a9db8092f84a2878bb126fd093f572fc7fa3b243",
+      "sha256": "3ba75eefb02a236800249e4c01ebc3123b76388a73e7775c598cb922671d9cc1"
+    },
+    {
+      "path": "fixture/host.js",
+      "oldSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e",
+      "sha256": "4d1bf395ca51073e10234b748cd0aa30b960d790fe3426af47bfd54d07fddc11"
+    },
+    {
+      "path": "fixture/sandbox.html",
+      "oldSha256": "9c9305423cb7ea0ab5a102a48de184959787c81f15f0901dd8930b4838de9f13",
+      "sha256": "ebf61d8239464f035fb01ba5591c4e7cff3e2bb2ef0507be8e34ea41969d0d35"
+    }
+  ],
+  "checks": [
+    "same frozen source and effective round6 hash on both full matrices",
+    "56 unique required/host-race cases PASS each, no fixtureFailure",
+    "10 native permission continuation scenarios with zero raw server effects through browser exit each version",
+    "native permission unresolved at genuine microtask stop; native tabs dispatch zero on both versions",
+    "20 actual Blob positive-before/revoke/negative-after observations in creating realm each version",
+    "all 5 cancel and 5 timeout rounds have actual pageWaits=1/pending=1/timer=1 before terminal, then baseline",
+    "exact causal Worker PID/thread/Blob target, CPU growth/quiescence/exit and destruction/absence <=3s; no loop inspector",
+    "valid recovery, SW reconnect and owned MAIN / borrowed survival",
+    "all recorded owned groups/profiles have zero live processes; native exit0/server close/host resources0",
+    "173 historical files and original two independent counter reports unchanged",
+    "12 approved contract entries mapped; page contracts explicitly remain outside K1 author qualification"
+  ],
+  "backendPrototypePassed": false,
+  "F2": false,
+  "requiresIndependentReview": true
+}

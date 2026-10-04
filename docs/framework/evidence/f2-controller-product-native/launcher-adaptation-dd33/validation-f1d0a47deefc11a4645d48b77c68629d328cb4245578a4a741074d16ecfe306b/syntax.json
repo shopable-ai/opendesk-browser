@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-03T08:42:39.601180+00:00",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "pid": 12590,
+  "args": [
+    "node",
+    "--check",
+    "tests/framework/k5-controller-product-native.mjs"
+  ],
+  "exitCode": 0,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "runnerSha256": "f1d0a47deefc11a4645d48b77c68629d328cb4245578a4a741074d16ecfe306b",
+  "nativeExecuted": false
+}

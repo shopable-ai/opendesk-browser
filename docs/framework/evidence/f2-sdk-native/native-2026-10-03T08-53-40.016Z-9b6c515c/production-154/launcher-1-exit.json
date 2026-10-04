@@ -1,0 +1,10 @@
+{
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "observedEvent": "exit"
+  },
+  "pidAliveAfterExit": false,
+  "profileRemoved": true,
+  "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py"
+}

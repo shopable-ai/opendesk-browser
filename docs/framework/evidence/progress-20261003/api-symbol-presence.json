@@ -1,0 +1,349 @@
+{
+  "observedAt": "2026-10-03T07:20:36.874Z",
+  "scope": "48 public symbols mechanically present only; synthetic admitted-looking fixture, no authority or native behavior proven",
+  "rows": [
+    {
+      "id": "API:ChromePage.keyboard",
+      "symbol": "ChromePage.keyboard",
+      "kind": "property",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.environment",
+      "symbol": "ChromePage.environment",
+      "kind": "property",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.debug",
+      "symbol": "ChromePage.debug",
+      "kind": "property",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.constructor",
+      "symbol": "ChromePage.constructor",
+      "kind": "constructor",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.handleMessage",
+      "symbol": "ChromePage.handleMessage",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.operationCompleted",
+      "symbol": "ChromePage.operationCompleted",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.title",
+      "symbol": "ChromePage.title",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.content",
+      "symbol": "ChromePage.content",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.url",
+      "symbol": "ChromePage.url",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.reload",
+      "symbol": "ChromePage.reload",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.goto",
+      "symbol": "ChromePage.goto",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.$",
+      "symbol": "ChromePage.$",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.$$",
+      "symbol": "ChromePage.$$",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.$eval",
+      "symbol": "ChromePage.$eval",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.$$eval",
+      "symbol": "ChromePage.$$eval",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.addScriptTag",
+      "symbol": "ChromePage.addScriptTag",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.addStyleTag",
+      "symbol": "ChromePage.addStyleTag",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.cookies",
+      "symbol": "ChromePage.cookies",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.setCookie",
+      "symbol": "ChromePage.setCookie",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.deleteCookie",
+      "symbol": "ChromePage.deleteCookie",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.click",
+      "symbol": "ChromePage.click",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.type",
+      "symbol": "ChromePage.type",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.waitFor",
+      "symbol": "ChromePage.waitFor",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.waitForTimeout",
+      "symbol": "ChromePage.waitForTimeout",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.waitForSelector",
+      "symbol": "ChromePage.waitForSelector",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.waitForFunction",
+      "symbol": "ChromePage.waitForFunction",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.screenshot",
+      "symbol": "ChromePage.screenshot",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.screenshotInWebview",
+      "symbol": "ChromePage.screenshotInWebview",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.screenshotInChrome",
+      "symbol": "ChromePage.screenshotInChrome",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.uploadFile",
+      "symbol": "ChromePage.uploadFile",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage._uploadFromBlob",
+      "symbol": "ChromePage._uploadFromBlob",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage._uploadFromDataUrl",
+      "symbol": "ChromePage._uploadFromDataUrl",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage._uploadFromUrl",
+      "symbol": "ChromePage._uploadFromUrl",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.eval",
+      "symbol": "ChromePage.eval",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage.evaluate",
+      "symbol": "ChromePage.evaluate",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromePage._execute",
+      "symbol": "ChromePage._execute",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromeElement.page",
+      "symbol": "ChromeElement.page",
+      "kind": "property",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromeElement.selector",
+      "symbol": "ChromeElement.selector",
+      "kind": "property",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromeElement.constructor",
+      "symbol": "ChromeElement.constructor",
+      "kind": "constructor",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromeElement.click",
+      "symbol": "ChromeElement.click",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromeElement.type",
+      "symbol": "ChromeElement.type",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:ChromeElement.uploadFile",
+      "symbol": "ChromeElement.uploadFile",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:Keyboard.page",
+      "symbol": "Keyboard.page",
+      "kind": "property",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:Keyboard.constructor",
+      "symbol": "Keyboard.constructor",
+      "kind": "constructor",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:Keyboard.type",
+      "symbol": "Keyboard.type",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:Keyboard.press",
+      "symbol": "Keyboard.press",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:Keyboard.down",
+      "symbol": "Keyboard.down",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    },
+    {
+      "id": "API:Keyboard.up",
+      "symbol": "Keyboard.up",
+      "kind": "method",
+      "present": true,
+      "nativeBehaviorProven": false
+    }
+  ],
+  "pass": 48,
+  "total": 48,
+  "requests": 0,
+  "sourceHashes": {
+    "src/framework/ChromePage.js": "750269e6467ee0b88e59712bc0489bc53f2b1949648080a2e79560efc3daad66",
+    "src/framework/context.js": "443a378c60f2ebbd77e1c667fe0538eca3c98cf4bc602d50711c89e612dc0c3c"
+  }
+}

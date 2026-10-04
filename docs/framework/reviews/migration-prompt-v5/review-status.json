@@ -1,0 +1,57 @@
+{
+  "reviewObject": "Goal prompt and migration organization only; not phase0 plan or product",
+  "candidateId": "migration-goal-prompt-v5-c3",
+  "candidateSha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+  "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+  "requestedModel": "openai/gpt-6.1-sol",
+  "requestedReasoning": "xhigh",
+  "serverResolvedModel": "unknown",
+  "reviews": [
+    {
+      "role": "architect",
+      "agentId": "01a0fd88-86e8-7912-b45c-0d8a10c16b5a",
+      "score": 100,
+      "breakdown": [
+        25,
+        25,
+        20,
+        20,
+        10
+      ],
+      "verdict": "APPROVE",
+      "blockers": [],
+      "candidateSha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+      "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-prompt-v5/architect-c3.txt",
+      "reportSha256": "2addc83c3055571b34bbe0e0a38f0995ba803085695f00be3c72e0efa2c91655",
+      "reviewMethod": "Full independent C2 review followed by bounded C3 diff and hash verification"
+    },
+    {
+      "role": "critic",
+      "agentId": "01a0fd90-95c1-76d1-9d54-b5aa282741da",
+      "score": 100,
+      "breakdown": [
+        25,
+        25,
+        20,
+        20,
+        10
+      ],
+      "verdict": "APPROVE",
+      "blockers": [],
+      "candidateSha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+      "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-prompt-v5/critic-c3.txt",
+      "reportSha256": "3e44228257b6340d5b97ba15b8b58915d1e1077279ffebb881e7aa9eaa6d2a21",
+      "reviewMethod": "Full independent C2 review followed by bounded C3 diff and hash verification"
+    }
+  ],
+  "reviewOrder": [
+    "Architect",
+    "Critic"
+  ],
+  "bothApproved": true,
+  "productTestsExecuted": false,
+  "migrationCompleted": false,
+  "productOrGateFilesModified": false,
+  "sourceHistoryAttachmentUnmodified": true,
+  "documentChecksPassed": 18
+}

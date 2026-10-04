@@ -1,0 +1,102 @@
+{
+  "purpose": "完整文件/JSON读取及原始日志hash核对，不是行为或F3验收证明",
+  "sharedWriter": "01a1007d-556c-7783-b5dd-c09312a10236",
+  "thisChatScope": "计划、检查与测试验收机制；不修改产品与共享门禁",
+  "files": [
+    {
+      "path": "docs/framework/prompts/goal-migration-v5.txt",
+      "bytes": 33202,
+      "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d"
+    },
+    {
+      "path": "docs/framework/continue-in-new-chat.md",
+      "bytes": 26219,
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055"
+    },
+    {
+      "path": "docs/framework/prompts/continue-product-migration-20261002.txt",
+      "bytes": 10649,
+      "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+    },
+    {
+      "path": "docs/framework/execution-plan.md",
+      "bytes": 19540,
+      "sha256": "10b348b6811c13bf29bb0a5f0f289672ae70e20fa200fac810a1fdebce52fc35"
+    },
+    {
+      "path": "docs/framework/execution-tasks.json",
+      "bytes": 15652,
+      "sha256": "6f36b7b1dc0c4264da31448d0722a26b682ee6547c4371dfb1dba54467b938ce",
+      "allParsedLeafValues": 249
+    },
+    {
+      "path": "docs/framework/execution-gates.json",
+      "bytes": 20479,
+      "sha256": "3262800211c067eca187b967a33ee81ed04f61748abf3164c15cb73733797dd4",
+      "allParsedLeafValues": 293
+    },
+    {
+      "path": "docs/framework/source-compatibility-ledger.json",
+      "bytes": 2280955,
+      "sha256": "d5efac72cbf04962e5ec63780f324a308e65ece5713ef9ebf14c7c7c21fc3531",
+      "allParsedLeafValues": 38868
+    },
+    {
+      "path": "docs/framework/framework-handoff.json",
+      "bytes": 17154,
+      "sha256": "1cb6e6962ed524c36073c7db6807eac01f6cf411f4ee46ee1c64e4e929b8ef10",
+      "allParsedLeafValues": 273
+    },
+    {
+      "path": "docs/framework/product-continuation-checkpoint.json",
+      "bytes": 16779,
+      "sha256": "01944efc4d067aa7b48a400b7e856f6d8390c0a5c319e06df8ea9311b45fda96",
+      "allParsedLeafValues": 260
+    },
+    {
+      "path": "docs/framework/evidence/progress-20261003/old-key-files.json",
+      "bytes": 116211,
+      "sha256": "9feb99fa29571414008fc8d7cceb7fce1ea8df3ca96e553c1befe6905fe48abd",
+      "allParsedLeafValues": 1033
+    },
+    {
+      "path": "docs/framework/evidence/progress-20261003/current-verification.json",
+      "bytes": 2272658,
+      "sha256": "afcea35e202c051cd5d4a81e440b32677c5cad6d361ed49264b227b834afc6fd",
+      "allParsedLeafValues": 11040
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/file-tasks.md",
+      "bytes": 7888,
+      "sha256": "30a4e00a78d511169f38aa7017959984be6a88afdb04f474f65298874e1b7258"
+    }
+  ],
+  "verificationLogBindings": [
+    {
+      "path": "docs/framework/evidence/progress-20261003/syntax-current.log",
+      "bytes": 171,
+      "sha256": "3d7b38ad90671bb0743ffe23b404297004a8e6ec3c842bf50dfcf3a6151e93c1",
+      "matchesRecorded": true
+    },
+    {
+      "path": "docs/framework/evidence/progress-20261003/all-basic-current.log",
+      "bytes": 22976,
+      "sha256": "7d04fffbd569a3d9706a5424e7ea88bd582de1148ea289ff2176e5fc940db1c1",
+      "matchesRecorded": true
+    },
+    {
+      "path": "docs/framework/evidence/progress-20261003/environment-current.log",
+      "bytes": 3196,
+      "sha256": "a36b67ab26b3ea804c2b44b888a58c1623da04a9602e4c82d049b063e6a6c9a4",
+      "matchesRecorded": true
+    },
+    {
+      "path": "docs/framework/evidence/progress-20261003/package-current.log",
+      "bytes": 8009,
+      "sha256": "a08045bb05b7825483799c324a21d553edc356d40bc3dac5bcc3ad90779d9a18",
+      "matchesRecorded": true
+    }
+  ],
+  "newProductTestsRun": false,
+  "f3Accepted": false
+}

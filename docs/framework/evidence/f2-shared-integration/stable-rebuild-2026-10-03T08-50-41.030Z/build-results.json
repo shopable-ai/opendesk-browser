@@ -1,0 +1,26 @@
+{
+  "builds": [
+    {
+      "status": "fulfilled",
+      "value": {
+        "mode": "production",
+        "code": 0,
+        "signal": null,
+        "stdout": "{\"mode\":\"production\",\"status\":\"passed\",\"packageHash\":\"552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89\",\"assets\":18}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "mode": "development",
+        "code": 0,
+        "signal": null,
+        "stdout": "{\"mode\":\"development\",\"status\":\"passed\",\"packageHash\":\"1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60\",\"assets\":29}\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "sourceDrift": false,
+  "F3": false
+}

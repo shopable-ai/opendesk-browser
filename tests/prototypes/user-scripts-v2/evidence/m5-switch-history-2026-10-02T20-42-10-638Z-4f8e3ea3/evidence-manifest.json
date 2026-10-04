@@ -1,0 +1,120 @@
+{
+  "diagnosticCandidateSha256": "0726cdf8e49880f9c516f95f48b35f273d9e0204749174bd1a3cf35bc2f5a576",
+  "files": [
+    {
+      "path": "138.0.7204.183-signal-off.png",
+      "bytes": 83644,
+      "sha256": "f515edee3db50d0dfd5974de0e3a17dff4e925e951b8c32571685bb65771bd5f"
+    },
+    {
+      "path": "138.0.7204.183-signal-on.png",
+      "bytes": 83616,
+      "sha256": "7c76e1168de67b5ba8f4ae38a23b0459efca8e2df5387baf282e185ea0aa96ef"
+    },
+    {
+      "path": "154.0.8037.92-signal-off.png",
+      "bytes": 77084,
+      "sha256": "502f6ff46ac54e2274dfafafe745ce6118da81cbea1434fed65fa76018a3b6c9"
+    },
+    {
+      "path": "154.0.8037.92-signal-on.png",
+      "bytes": 77126,
+      "sha256": "85d0dcb8b20890616bbbd6c9d9ca7a411c5d6d7888f1cdb2d859cae5ea5cc0e2"
+    },
+    {
+      "path": "candidate-manifest.json",
+      "bytes": 1517,
+      "sha256": "0726cdf8e49880f9c516f95f48b35f273d9e0204749174bd1a3cf35bc2f5a576"
+    },
+    {
+      "path": "native-source/138.0.7204.183/extensions/browser/extension_user_script_loader.cc",
+      "bytes": 39463,
+      "sha256": "6b7f01a5fe2d98fce560afa0d24eed74eae9e0b6a9a6543ebeefe7150f9974bc"
+    },
+    {
+      "path": "native-source/138.0.7204.183/extensions/browser/user_script_manager.cc",
+      "bytes": 12268,
+      "sha256": "a86cbe32f05264eca8dd1fc97d7efe2655508b69d74bd59a1200dd58ba58fb35"
+    },
+    {
+      "path": "native-source/138.0.7204.183/extensions/common/api/user_scripts.idl",
+      "bytes": 10003,
+      "sha256": "4e4f0c6eca94037292b40fbdef81feaadcf88bc57ad40b8f42b6674aab96e2ad"
+    },
+    {
+      "path": "native-source/154.0.8037.92/extensions/browser/extension_user_script_loader.cc",
+      "bytes": 40077,
+      "sha256": "847bd0c72ce0ac95520ccfa664ee9895631f5d8f08c3c78fef78bf4a87e4b87c"
+    },
+    {
+      "path": "native-source/154.0.8037.92/extensions/browser/user_script_manager.cc",
+      "bytes": 9964,
+      "sha256": "8a0c286b6aeaeffb73e1f5ce5fd2270f21269f6e62a89962367a8986c5b9007e"
+    },
+    {
+      "path": "native-source/154.0.8037.92/extensions/renderer/dispatcher.cc",
+      "bytes": 66731,
+      "sha256": "3c6d1b2328a485461039a479661e1b0d7d9e07df9f7f5f9ad64c6bca2243cf61"
+    },
+    {
+      "path": "native-source/source-evidence.json",
+      "bytes": 4624,
+      "sha256": "7b589106234da93eaa1cf34115007e35e68bb078313915c889841ff3136b95ff"
+    },
+    {
+      "path": "profile-cleanup.json",
+      "bytes": 1463,
+      "sha256": "7a959d6b00e7b26e822a86bb00cbd632dec455b6cfd19b6deb822093482fb8a5"
+    },
+    {
+      "path": "report-live.json",
+      "bytes": 284932,
+      "sha256": "7903eaebc65bd53d8ee5e30b5508013f6d44099d64977c60d770bf121bf6d6c7"
+    },
+    {
+      "path": "report.json",
+      "bytes": 285535,
+      "sha256": "5a39c45d8db035ad13bb1106689699274d695b4dccc5b481193e722d4f5a1e4c"
+    },
+    {
+      "path": "source/fixture/adapter.js",
+      "bytes": 4444,
+      "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+    },
+    {
+      "path": "source/fixture/file-source.js",
+      "bytes": 206,
+      "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+    },
+    {
+      "path": "source/fixture/host.html",
+      "bytes": 410,
+      "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4"
+    },
+    {
+      "path": "source/fixture/host.js",
+      "bytes": 8302,
+      "sha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e"
+    },
+    {
+      "path": "source/fixture/manifest.json",
+      "bytes": 408,
+      "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+    },
+    {
+      "path": "source/fixture/sw.js",
+      "bytes": 176,
+      "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+    },
+    {
+      "path": "source/probe-switch-history.mjs",
+      "bytes": 13655,
+      "sha256": "7898fb548383390ebba3684fcf3af7f4aec7cecbb32564b798e3a727cdb086bf"
+    },
+    {
+      "path": "source/run-headed.mjs",
+      "bytes": 48436,
+      "sha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d"
+    }
+  ]
+}

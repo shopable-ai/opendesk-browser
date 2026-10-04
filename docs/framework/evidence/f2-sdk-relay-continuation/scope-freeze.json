@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "kind": "F2-T09-SDK-relay-scoped-source-freeze",
+  "frozenAt": "2026-10-03T08:09:55.472220+00:00",
+  "readyForMainIntegration": true,
+  "scopeFrozen": true,
+  "scopeSourceDrift": [],
+  "verification": {
+    "path": "docs/framework/evidence/f2-sdk-relay-continuation/verification.json",
+    "sha256": "13682f2a01b294cd76bfd73f9520db4de0281fa8667234ecdeb7a39543c71bdf"
+  },
+  "finalSource": {
+    "src/framework/sdk/entry.js": {
+      "sha256": "eb4885d2f694cdeef7967759a1e2ea25df933525bb287f0bf772baf9b5931700",
+      "bytes": 8014
+    },
+    "src/agents/page-relay.js": {
+      "sha256": "0bb95b6c920d8d8d8e54f381aef1f1b369cacb2b8a3c15e53bf7bec3469cb39c",
+      "bytes": 6460
+    },
+    "tests/framework/k2-sdk-relay-races.test.mjs": {
+      "sha256": "66870457ca64206230755b1fb57bb78514a0c6fd5cb35457cdc3ce60347bdd56",
+      "bytes": 8124
+    },
+    "tests/framework/k4-sdk-bundle-reinjection.test.mjs": {
+      "sha256": "2795cdc3484538a169f151d065f90f55206df9f6cb18907f051bf52e087a95ce",
+      "bytes": 4829
+    },
+    "tests/framework/k4-sdk-reinjection.test.mjs": {
+      "sha256": "cd251209e5d00fa659f175bfdfb4b6706954daa39ed445734c28abecf45a059b",
+      "bytes": 9204
+    },
+    "tests/framework/k4-sdk.test.mjs": {
+      "sha256": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+      "bytes": 19833
+    }
+  },
+  "sourceBindings": {
+    "docs/framework/prompts/goal-migration-v5.txt": {
+      "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+      "bytes": 33202
+    },
+    "docs/framework/continue-in-new-chat.md": {
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+      "bytes": 26219
+    },
+    "docs/framework/prompts/continue-product-migration-20261002.txt": {
+      "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933",
+      "bytes": 10649
+    },
+    "docs/framework/product-continuation-checkpoint.json": {
+      "sha256": "01944efc4d067aa7b48a400b7e856f6d8390c0a5c319e06df8ea9311b45fda96",
+      "bytes": 16779
+    },
+    "docs/framework/evidence/k4/router-contract.json": {
+      "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+      "bytes": 9256
+    },
+    "docs/framework/evidence/f2-shared-integration/independent-sdk-review.json": {
+      "sha256": "c9f6d2329dc059173edfa64e5a942bd17dcef9fa67fa62ffba9b5096f51adfca",
+      "bytes": 63025
+    }
+  },
+  "findings": [
+    "SDK-REVIEW-03",
+    "SDK-REVIEW-04"
+  ],
+  "originalFindingsAndExactEntryReproducerPreserved": true,
+  "checks": [
+    {
+      "name": "original-red",
+      "argv": [
+        "node",
+        "docs/framework/evidence/f2-sdk-relay-continuation/original-red-reproductions.mjs",
+        "--baseline"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/original-red.log",
+      "logSha256": "40bb53a763f3f007a95fd1bd35d0be13ed0087edb384b4ac9ee740ff70b9f83b",
+      "sourceBefore": "original-red-source-before.json",
+      "sourceAfter": "original-red-source-after.json",
+      "sourceDrift": []
+    },
+    {
+      "name": "original-green",
+      "argv": [
+        "node",
+        "docs/framework/evidence/f2-sdk-relay-continuation/original-red-reproductions.mjs"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/original-green.log",
+      "logSha256": "1363c6477ab8766f09c3eacc3794400f453c944e7b5b71f0c164fdf72696e664",
+      "sourceBefore": "original-green-source-before.json",
+      "sourceAfter": "original-green-source-after.json",
+      "sourceDrift": []
+    },
+    {
+      "name": "original-exact-entry-reproducer",
+      "argv": [
+        "node",
+        "docs/framework/evidence/f2-sdk-relay-continuation/original-entry-reproducer.mjs"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/original-exact-entry-reproducer.log",
+      "logSha256": "a17fcf0a2f50e2d495e4f90ce263410edc183add6c62699a2facbccf60410f74",
+      "sourceBefore": "original-exact-entry-reproducer-source-before.json",
+      "sourceAfter": "original-exact-entry-reproducer-source-after.json",
+      "sourceDrift": []
+    },
+    {
+      "name": "scoped-tests",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/framework/k2-sdk-relay-races.test.mjs",
+        "tests/framework/k4-sdk-bundle-reinjection.test.mjs",
+        "tests/framework/k4-sdk-reinjection.test.mjs",
+        "tests/framework/k4-sdk.test.mjs"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/scoped-tests.log",
+      "logSha256": "55518b90e9815705146ed0ac6c8eb9128bef2bed0a3e98fe8b317d8d8b2d1684",
+      "sourceBefore": "scoped-tests-source-before.json",
+      "sourceAfter": "scoped-tests-source-after.json",
+      "sourceDrift": []
+    },
+    {
+      "name": "sdk-and-service-integration-tests",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/framework/k2-sdk-broker.test.mjs",
+        "tests/framework/k4-network.test.mjs",
+        "tests/framework/k4-chrome-services.test.mjs"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/sdk-and-service-integration-tests.log",
+      "logSha256": "964713a22eac3a75c10e2cf0a8d421682986536a606ab6b5c2274ec4c1198b1f",
+      "sourceBefore": "sdk-and-service-integration-tests-source-before.json",
+      "sourceAfter": "sdk-and-service-integration-tests-source-after.json",
+      "sourceDrift": []
+    },
+    {
+      "name": "source-check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/source-check.log",
+      "logSha256": "ba119928db1f91d179c6eb56519be1da6ec0f9bd8e92e15a1347d5f73d97d41f",
+      "sourceBefore": "source-check-source-before.json",
+      "sourceAfter": "source-check-source-after.json",
+      "sourceDrift": []
+    }
+  ],
+  "runtime": {
+    "requestedModel": "gpt-6.1-sol",
+    "requestedReasoningEffort": "xhigh",
+    "actualResolvedModel": "unknown",
+    "actualResolvedReasoningEffort": "unknown",
+    "reason": "Serving model/effort is not exposed; no global settings changed. Direct scoped executor; no recursive orchestration."
+  },
+  "F3": false,
+  "original603": false,
+  "stableProductPackageRebuilt": false,
+  "native100AtomicAccepted": false,
+  "handoff": "Main owns fresh full-glob checks, same-source dual product builds, independent review and four real Chrome SDK combinations. No further scope edits except an actual new counterexample.",
+  "boundary": "F2 scoped source and production/development exact-entry VM / Chrome callback / serial transaction tests. Every100 same-ID actual relay requests admitted at product SDK broker. Not real Chrome native100/IDB atomic acceptance, two actual Chrome MAIN file injections, or stable final package acceptance."
+}

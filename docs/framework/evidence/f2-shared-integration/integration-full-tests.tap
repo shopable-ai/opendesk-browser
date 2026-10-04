@@ -1,0 +1,2111 @@
+TAP version 13
+# Subtest: concurrent window requests create once; new worker discovers existing window
+ok 1 - concurrent window requests create once; new worker discovers existing window
+  ---
+  duration_ms: 16.576334
+  type: 'test'
+  ...
+# Subtest: tool sender rejects foreign id, URL, frame, inactive document and missing document
+ok 2 - tool sender rejects foreign id, URL, frame, inactive document and missing document
+  ---
+  duration_ms: 0.447958
+  type: 'test'
+  ...
+# Subtest: URL policy rejects restricted/file/credentials and preserves exact origin including port
+ok 3 - URL policy rejects restricted/file/credentials and preserves exact origin including port
+  ---
+  duration_ms: 0.3535
+  type: 'test'
+  ...
+# Subtest: health waits for sender readiness and binds Chrome document metadata, not file result
+ok 4 - health waits for sender readiness and binds Chrome document metadata, not file result
+  ---
+  duration_ms: 4.993458
+  type: 'test'
+  ...
+# Subtest: revoked permission blocks even previously installed agent
+ok 5 - revoked permission blocks even previously installed agent
+  ---
+  duration_ms: 3.02325
+  type: 'test'
+  ...
+# Subtest: reload, cross-origin and closed tab reject bound target without automatic reinjection
+ok 6 - reload, cross-origin and closed tab reject bound target without automatic reinjection
+  ---
+  duration_ms: 7.10825
+  type: 'test'
+  ...
+# Subtest: forged health nonce and fake sender cannot satisfy exact target
+ok 7 - forged health nonce and fake sender cannot satisfy exact target
+  ---
+  duration_ms: 4.717333
+  type: 'test'
+  ...
+# Subtest: missing module has no capabilities or runner and can be mounted/disposed
+ok 8 - missing module has no capabilities or runner and can be mounted/disposed
+  ---
+  duration_ms: 0.321166
+  type: 'test'
+  ...
+# Subtest: focus failure while original exists must not create another tool window
+ok 9 - focus failure while original exists must not create another tool window
+  ---
+  duration_ms: 0.168292
+  type: 'test'
+  ...
+# Subtest: window API query failure is not evidence that the existing window disappeared
+ok 10 - window API query failure is not evidence that the existing window disappeared
+  ---
+  duration_ms: 0.170375
+  type: 'test'
+  ...
+# Subtest: unknown authorization mode is rejected before another injection
+ok 11 - unknown authorization mode is rejected before another injection
+  ---
+  duration_ms: 0.705834
+  type: 'test'
+  ...
+# Subtest: permission revoke reports permission failure even when Chrome hides tab URL
+ok 12 - permission revoke reports permission failure even when Chrome hides tab URL
+  ---
+  duration_ms: 1.6825
+  type: 'test'
+  ...
+# Subtest: permission revoked during tabs.get is diagnosed before inspecting its hidden URL
+ok 13 - permission revoked during tabs.get is diagnosed before inspecting its hidden URL
+  ---
+  duration_ms: 1.896292
+  type: 'test'
+  ...
+# Subtest: repeated agent ready preserves optional authorization and cannot bypass revoke
+ok 14 - repeated agent ready preserves optional authorization and cannot bypass revoke
+  ---
+  duration_ms: 2.747708
+  type: 'test'
+  ...
+# Subtest: same-document concurrent binding resolves all readiness waiters
+ok 15 - same-document concurrent binding resolves all readiness waiters
+  ---
+  duration_ms: 3.233917
+  type: 'test'
+  ...
+# Subtest: document invalidation and revoke while awaiting reply reject late health success
+ok 16 - document invalidation and revoke while awaiting reply reject late health success
+  ---
+  duration_ms: 0.511209
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: eval"}
+# {"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: Function"}
+# Subtest: final classic scanner rejects eval alias and function-constructor references
+ok 17 - final classic scanner rejects eval alias and function-constructor references
+  ---
+  duration_ms: 1098.616583
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/tool-shell.css"}
+# Subtest: final package cannot omit a referenced local asset
+ok 18 - final package cannot omit a referenced local asset
+  ---
+  duration_ms: 191.032375
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"Unsafe HTML","actualError":"Unsafe HTML resources in ui/tool.html"}
+# {"kind":"historical-package-mutation","expectedPattern":"Unexpected JS","actualError":"Unexpected JS/chunks: agents/bootstrap.js,agents/health.js,agents/page-agent.js,agents/page-relay.js,agents/selection-entry.js,chunk.js,framework/sdk-main.js,scripting/sandbox/sandbox.js,scripting/sandbox/worker-runtime.js,sw.js,ui/tool-shell.js"}
+# Subtest: remote script and unexpected lazy chunk fail final package verification
+ok 19 - remote script and unexpected lazy chunk fail final package verification
+  ---
+  duration_ms: 542.735791
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"Missing|required|ENOENT","actualError":"Missing required resource: ui/tool.html"}
+# {"kind":"historical-package-mutation","expectedPattern":"worker|entry|Missing","actualError":"Unexpected or missing worker entry"}
+# Subtest: final package requires tool HTML/CSS and manifest worker references
+ok 20 - final package requires tool HTML/CSS and manifest worker references
+  ---
+  duration_ms: 440.86075
+  type: 'test'
+  ...
+# Subtest: prepare pins a watermark and persists byte hash; external descriptors satisfy frozen schema
+ok 21 - prepare pins a watermark and persists byte hash; external descriptors satisfy frozen schema
+  ---
+  duration_ms: 15.399833
+  type: 'test'
+  ...
+# Subtest: partial export requires confirmation; request IDs bind immutable intent
+ok 22 - partial export requires confirmation; request IDs bind immutable intent
+  ---
+  duration_ms: 2.567667
+  type: 'test'
+  ...
+# Subtest: host registration mismatch and tombstones reject creation/dispatch
+ok 23 - host registration mismatch and tombstones reject creation/dispatch
+  ---
+  duration_ms: 2.422084
+  type: 'test'
+  ...
+# Subtest: double dispatch and reconstructed service invoke Chrome at most once
+ok 24 - double dispatch and reconstructed service invoke Chrome at most once
+  ---
+  duration_ms: 8.385584
+  type: 'test'
+  ...
+# Subtest: ACK-gap after durable dispatch does not replay and becomes mapping_unknown
+ok 25 - ACK-gap after durable dispatch does not replay and becomes mapping_unknown
+  ---
+  duration_ms: 2.89775
+  type: 'test'
+  ...
+# Subtest: short dispatch ACK does not wait for callback and cannot be resubmitted
+ok 26 - short dispatch ACK does not wait for callback and cannot be resubmitted
+  ---
+  duration_ms: 1.155375
+  type: 'test'
+  ...
+# Subtest: onCreated/search deduplicates an ID and started is not delivery complete
+ok 27 - onCreated/search deduplicates an ID and started is not delivery complete
+  ---
+  duration_ms: 4.807
+  type: 'test'
+  ...
+# Subtest: multiple full-identity candidates conflict and never redownload
+ok 28 - multiple full-identity candidates conflict and never redownload
+  ---
+  duration_ms: 1.465542
+  type: 'test'
+  ...
+# Subtest: known callback ID is authoritative; another candidate conflicts rather than replacing it
+ok 29 - known callback ID is authoritative; another candidate conflicts rather than replacing it
+  ---
+  duration_ms: 4.823083
+  type: 'test'
+  ...
+# Subtest: wrong URL/extension/time and missing fields never bind by filename
+ok 30 - wrong URL/extension/time and missing fields never bind by filename
+  ---
+  duration_ms: 2.063458
+  type: 'test'
+  ...
+# Subtest: clock rollback cannot bind unique-looking mapping evidence
+ok 31 - clock rollback cannot bind unique-looking mapping evidence
+  ---
+  duration_ms: 0.965708
+  type: 'test'
+  ...
+# Subtest: onChanged complete must be confirmed by ID search; interrupted keeps Chrome reason
+ok 32 - onChanged complete must be confirmed by ID search; interrupted keeps Chrome reason
+  ---
+  duration_ms: 1.911292
+  type: 'test'
+  ...
+# Subtest: 10-minute timeout is unknown; late complete resolves only its original job
+ok 33 - 10-minute timeout is unknown; late complete resolves only its original job
+  ---
+  duration_ms: 4.934125
+  type: 'test'
+  ...
+# Subtest: retry freezes old prepared submission; duplicate retry returns same new job
+ok 34 - retry freezes old prepared submission; duplicate retry returns same new job
+  ---
+  duration_ms: 143.631916
+  type: 'test'
+  ...
+# Subtest: multi-volume aggregate waits for every volume and releases pin only when all are releasable
+ok 35 - multi-volume aggregate waits for every volume and releases pin only when all are releasable
+  ---
+  duration_ms: 17.03575
+  type: 'test'
+  ...
+# Subtest: single abandoned volume causes delivery_failed; late evidence cannot revive it
+ok 36 - single abandoned volume causes delivery_failed; late evidence cannot revive it
+  ---
+  duration_ms: 21.17275
+  type: 'test'
+  ...
+# Subtest: explicit job abandon and run tombstone retain late audit without resurrecting projection
+ok 37 - explicit job abandon and run tombstone retain late audit without resurrecting projection
+  ---
+  duration_ms: 3.01425
+  type: 'test'
+  ...
+# Subtest: lost callback can recover via unique full URL; finite mapping search throttles repeated observations
+ok 38 - lost callback can recover via unique full URL; finite mapping search throttles repeated observations
+  ---
+  duration_ms: 8.335
+  type: 'test'
+  ...
+# Subtest: URL revoke waits for complete/interrupted/abandon or deadline and respects local reader pins
+ok 39 - URL revoke waits for complete/interrupted/abandon or deadline and respects local reader pins
+  ---
+  duration_ms: 1.802416
+  type: 'test'
+  ...
+# Subtest: deadline URL release preserves metadata and completion evidence after host resources disappear
+ok 40 - deadline URL release preserves metadata and completion evidence after host resources disappear
+  ---
+  duration_ms: 2.002916
+  type: 'test'
+  ...
+# Subtest: attach is idempotent; restart pending reconciliation never dispatches
+ok 41 - attach is idempotent; restart pending reconciliation never dispatches
+  ---
+  duration_ms: 3.505542
+  type: 'test'
+  ...
+# Subtest: top-level broker handlers work without attach and confirm changed state through search
+ok 42 - top-level broker handlers work without attach and confirm changed state through search
+  ---
+  duration_ms: 1.509125
+  type: 'test'
+  ...
+# Subtest: callback-only Chrome API persists authoritative ID and handles runtime.lastError as unknown
+ok 43 - callback-only Chrome API persists authoritative ID and handles runtime.lastError as unknown
+  ---
+  duration_ms: 5.2585
+  type: 'test'
+  ...
+# Subtest: conflict retains its Blob through deadline; pending audits stop after the deadline bound
+ok 44 - conflict retains its Blob through deadline; pending audits stop after the deadline bound
+  ---
+  duration_ms: 6.519458
+  type: 'test'
+  ...
+# Subtest: deletion hook requires retirement proof and releases compatible storage reader pins before tombstone
+ok 45 - deletion hook requires retirement proof and releases compatible storage reader pins before tombstone
+  ---
+  duration_ms: 0.949291
+  type: 'test'
+  ...
+# Subtest: shared repository reads through export pin and deletes descriptor/chunk rows only after fence and abandonment
+ok 46 - shared repository reads through export pin and deletes descriptor/chunk rows only after fence and abandonment
+  ---
+  duration_ms: 2.998291
+  type: 'test'
+  ...
+# Subtest: tests/foundation/page-port-fixtures.test.mjs
+ok 4 - tests/foundation/page-port-fixtures.test.mjs
+  ---
+  duration_ms: 196.765583
+  type: 'test'
+  ...
+# Subtest: frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority
+ok 48 - frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority
+  ---
+  duration_ms: 17.083084
+  type: 'test'
+  ...
+# Subtest: stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed
+ok 49 - stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed
+  ---
+  duration_ms: 13.533625
+  type: 'test'
+  ...
+# Subtest: post-dispatch epoch/target/grant fences prevent stale Chrome use
+ok 50 - post-dispatch epoch/target/grant fences prevent stale Chrome use
+  ---
+  duration_ms: 152.485959
+  type: 'test'
+  ...
+# Subtest: script or command callback failure records unknown and cannot be blindly retried
+ok 51 - script or command callback failure records unknown and cannot be blindly retried
+  ---
+  duration_ms: 10.286708
+  type: 'test'
+  ...
+# Subtest: raw reception is durable but frame ACK requires matching staged rows, then full end signature is stored
+ok 52 - raw reception is durable but frame ACK requires matching staged rows, then full end signature is stored
+  ---
+  duration_ms: 6.202167
+  type: 'test'
+  ...
+# Subtest: duplicate frame does not emit again; conflicting digest durably blocks whole page
+ok 53 - duplicate frame does not emit again; conflicting digest durably blocks whole page
+  ---
+  duration_ms: 15.793875
+  type: 'test'
+  ...
+# Subtest: actual sender document defeats payload identity spoof; stop rejects new raw data
+ok 54 - actual sender document defeats payload identity spoof; stop rejects new raw data
+  ---
+  duration_ms: 20.500083
+  type: 'test'
+  ...
+# Subtest: raw backpressure refuses a second unacked frame; full signature includes changed sixth row
+ok 55 - raw backpressure refuses a second unacked frame; full signature includes changed sixth row
+  ---
+  duration_ms: 27.311041
+  type: 'test'
+  ...
+# Subtest: fixed raw DOM reader retains long text, explicit empty string and optional missing attr without transforms
+ok 56 - fixed raw DOM reader retains long text, explicit empty string and optional missing attr without transforms
+  ---
+  duration_ms: 1.913584
+  type: 'test'
+  ...
+# Subtest: packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature
+ok 57 - packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature
+  ---
+  duration_ms: 8.346209
+  type: 'test'
+  ...
+# Subtest: page transport sends its first frame before starting the EOF signature hash
+ok 58 - page transport sends its first frame before starting the EOF signature hash
+  ---
+  duration_ms: 48.405542
+  type: 'test'
+  ...
+# Subtest: run-scoped submit/raw/effect journals preserve both runs and stay outside the unique command index
+ok 59 - run-scoped submit/raw/effect journals preserve both runs and stay outside the unique command index
+  ---
+  duration_ms: 54.920041
+  type: 'test'
+  ...
+# Subtest: raw frame and ACK never infer a missing run or accept a command with a rewritten revision
+ok 60 - raw frame and ACK never infer a missing run or accept a command with a rewritten revision
+  ---
+  duration_ms: 9.04475
+  type: 'test'
+  ...
+# Subtest: negative fixed-agent receipt is unknown and its run-scoped submission cannot replay
+ok 61 - negative fixed-agent receipt is unknown and its run-scoped submission cannot replay
+  ---
+  duration_ms: 8.274916
+  type: 'test'
+  ...
+# Subtest: packaged agent and page port exchange a durable run-bound ACK before saving the complete EOF
+ok 62 - packaged agent and page port exchange a durable run-bound ACK before saving the complete EOF
+  ---
+  duration_ms: 17.118292
+  type: 'test'
+  ...
+# Subtest: agent command and ACK namespaces separate equal command IDs and digests across runs
+ok 63 - agent command and ACK namespaces separate equal command IDs and digests across runs
+  ---
+  duration_ms: 8.892208
+  type: 'test'
+  ...
+# Subtest: single-use real action ticket binds actual source document, no run/records/slot created
+ok 64 - single-use real action ticket binds actual source document, no run/records/slot created
+  ---
+  duration_ms: 6.968166
+  type: 'test'
+  ...
+# Subtest: new operation durably cancels old; old source result audited and rejected, new result goes only to original host
+ok 65 - new operation durably cancels old; old source result audited and rejected, new result goes only to original host
+  ---
+  duration_ms: 6.133584
+  type: 'test'
+  ...
+# Subtest: cancel/release are durable before cleanup; duplicate release cannot mutate context
+ok 66 - cancel/release are durable before cleanup; duplicate release cannot mutate context
+  ---
+  duration_ms: 6.641417
+  type: 'test'
+  ...
+# Subtest: preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written
+ok 67 - preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written
+  ---
+  duration_ms: 13.463667
+  type: 'test'
+  ...
+# Subtest: placeholder SelectorUI reports MODULE_NOT_INSTALLED, never fabricates selected status
+ok 68 - placeholder SelectorUI reports MODULE_NOT_INSTALLED, never fabricates selected status
+  ---
+  duration_ms: 4.872833
+  type: 'test'
+  ...
+# Subtest: production allowlist is empty; unsigned self-reports and unknown keys never become Pro
+ok 69 - production allowlist is empty; unsigned self-reports and unknown keys never become Pro
+  ---
+  duration_ms: 24.128959
+  type: 'test'
+  ...
+# Subtest: real P256/SHA256 P1363 signature; independent Node crypto oracle and claim hash
+ok 70 - real P256/SHA256 P1363 signature; independent Node crypto oracle and claim hash
+  ---
+  duration_ms: 15.220375
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered tier
+ok 71 - signed binding rejects tampered tier
+  ---
+  duration_ms: 2.881834
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered issuer
+ok 72 - signed binding rejects tampered issuer
+  ---
+  duration_ms: 0.688375
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered subject
+ok 73 - signed binding rejects tampered subject
+  ---
+  duration_ms: 4.703625
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered audience
+ok 74 - signed binding rejects tampered audience
+  ---
+  duration_ms: 1.644208
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered features
+ok 75 - signed binding rejects tampered features
+  ---
+  duration_ms: 1.846458
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered issuedAt
+ok 76 - signed binding rejects tampered issuedAt
+  ---
+  duration_ms: 1.725917
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered expiresAt
+ok 77 - signed binding rejects tampered expiresAt
+  ---
+  duration_ms: 9.435958
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered keyId
+ok 78 - signed binding rejects tampered keyId
+  ---
+  duration_ms: 3.578375
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered revocationVersion
+ok 79 - signed binding rejects tampered revocationVersion
+  ---
+  duration_ms: 9.614417
+  type: 'test'
+  ...
+# Subtest: signed binding rejects tampered formatVersion
+ok 80 - signed binding rejects tampered formatVersion
+  ---
+  duration_ms: 6.218542
+  type: 'test'
+  ...
+# Subtest: signed but unexpected issuer/subject are rejected; signatures from another key fail
+ok 81 - signed but unexpected issuer/subject are rejected; signatures from another key fail
+  ---
+  duration_ms: 12.742583
+  type: 'test'
+  ...
+# Subtest: reject altered signature bytes, padded/noncanonical base64url, DER and wrong hash algorithm
+ok 82 - reject altered signature bytes, padded/noncanonical base64url, DER and wrong hash algorithm
+  ---
+  duration_ms: 16.4545
+  type: 'test'
+  ...
+# Subtest: no production private JWK and no mutation of injected allowlist after construction
+ok 83 - no production private JWK and no mutation of injected allowlist after construction
+  ---
+  duration_ms: 62.260417
+  type: 'test'
+  ...
+# Subtest: future issuedAt, inverted time interval and expiry at the exact boundary reject new Pro
+ok 84 - future issuedAt, inverted time interval and expiry at the exact boundary reject new Pro
+  ---
+  duration_ms: 27.102584
+  type: 'test'
+  ...
+# Subtest: impossible calendar dates and missing timestamp zones are rejected even when signed
+ok 85 - impossible calendar dates and missing timestamp zones are rejected even when signed
+  ---
+  duration_ms: 6.713792
+  type: 'test'
+  ...
+# Subtest: signed metadata cannot establish trusted verification or extend grace
+ok 86 - signed metadata cannot establish trusted verification or extend grace
+  ---
+  duration_ms: 20.456875
+  type: 'test'
+  ...
+# Subtest: offline 72h inclusive boundary, +1ms fallback and no expiry extension
+ok 87 - offline 72h inclusive boundary, +1ms fallback and no expiry extension
+  ---
+  duration_ms: 12.904375
+  type: 'test'
+  ...
+# Subtest: offline reload keeps verification age; explicit trusted refresh reopens new Pro
+ok 88 - offline reload keeps verification age; explicit trusted refresh reopens new Pro
+  ---
+  duration_ms: 7.143958
+  type: 'test'
+  ...
+# Subtest: wall rollback freezes Pro across reload; monotonic elapsed time expires a frozen wall
+ok 89 - wall rollback freezes Pro across reload; monotonic elapsed time expires a frozen wall
+  ---
+  duration_ms: 17.436084
+  type: 'test'
+  ...
+# Subtest: submillisecond clock observations preserve elapsed monotonic time
+ok 90 - submillisecond clock observations preserve elapsed monotonic time
+  ---
+  duration_ms: 35.194042
+  type: 'test'
+  ...
+# Subtest: monotonic rollback freezes Pro; trusted timestamp must not precede durable high water
+ok 91 - monotonic rollback freezes Pro; trusted timestamp must not precede durable high water
+  ---
+  duration_ms: 11.693917
+  type: 'test'
+  ...
+# Subtest: revocation is signed, bound, monotonic and durable; newer signed license may restore Pro
+ok 92 - revocation is signed, bound, monotonic and durable; newer signed license may restore Pro
+  ---
+  duration_ms: 30.788292
+  type: 'test'
+  ...
+# Subtest: cached claims and signed revocation are reverified; a persisted verification label grants nothing
+ok 93 - cached claims and signed revocation are reverified; a persisted verification label grants nothing
+  ---
+  duration_ms: 16.41175
+  type: 'test'
+  ...
+# Subtest: free and Pro limits clamp without changing template; signed features gate capabilities
+ok 94 - free and Pro limits clamp without changing template; signed features gate capabilities
+  ---
+  duration_ms: 10.878459
+  type: 'test'
+  ...
+# Subtest: free template admission counts distinct IDs, permits revisions, rejects concurrent second template and allows delete/resave
+ok 95 - free template admission counts distinct IDs, permits revisions, rejects concurrent second template and allows delete/resave
+  ---
+  duration_ms: 0.655583
+  type: 'test'
+  ...
+# Subtest: public admitTemplate accepts SaveTemplateRequest and returns the quota for the storage transaction
+ok 96 - public admitTemplate accepts SaveTemplateRequest and returns the quota for the storage transaction
+  ---
+  duration_ms: 6.061292
+  type: 'test'
+  ...
+# Subtest: repository revision history consumes no additional quota and survives head deletion
+ok 97 - repository revision history consumes no additional quota and survives head deletion
+  ---
+  duration_ms: 4.143875
+  type: 'test'
+  ...
+# Subtest: Pro admission at 49/50/51 serializes template count and rejects stale or forged snapshots
+ok 98 - Pro admission at 49/50/51 serializes template count and rejects stale or forged snapshots
+  ---
+  duration_ms: 36.692375
+  type: 'test'
+  ...
+# Subtest: freshness checked inside template transaction after expiry or offline grace ends
+ok 99 - freshness checked inside template transaction after expiry or offline grace ends
+  ---
+  duration_ms: 21.935583
+  type: 'test'
+  ...
+# Subtest: approved run remains frozen after expiry/revocation; sealed records, exports and retention are untouched
+ok 100 - approved run remains frozen after expiry/revocation; sealed records, exports and retention are untouched
+  ---
+  duration_ms: 22.048958
+  type: 'test'
+  ...
+# Subtest: frozen byte oracle preserves Chinese, zero, false, empty and null
+ok 101 - frozen byte oracle preserves Chinese, zero, false, empty and null
+  ---
+  duration_ms: 13.900292
+  type: 'test'
+  ...
+# Subtest: hostile JSON cannot enter hashes or durable protocol
+ok 102 - hostile JSON cannot enter hashes or durable protocol
+  ---
+  duration_ms: 0.534584
+  type: 'test'
+  ...
+# Subtest: strict wire shapes reject unknown keys and unsafe integers
+ok 103 - strict wire shapes reject unknown keys and unsafe integers
+  ---
+  duration_ms: 3.034083
+  type: 'test'
+  ...
+# Subtest: ignoring a control revision never ignores epoch/document identity
+ok 104 - ignoring a control revision never ignores epoch/document identity
+  ---
+  duration_ms: 0.275666
+  type: 'test'
+  ...
+# Subtest: stop commit before dispatch forbids any new external call
+ok 105 - stop commit before dispatch forbids any new external call
+  ---
+  duration_ms: 16.449583
+  type: 'test'
+  ...
+# Subtest: dispatch commit grants exactly one call even if stop subsequently commits
+ok 106 - dispatch commit grants exactly one call even if stop subsequently commits
+  ---
+  duration_ms: 28.772
+  type: 'test'
+  ...
+# Subtest: a worker restart freezes a dispatched gap, holds slot and never repeats start
+ok 107 - a worker restart freezes a dispatched gap, holds slot and never repeats start
+  ---
+  duration_ms: 12.71125
+  type: 'test'
+  ...
+# Subtest: actual sender, optional grant and immutable command ID are enforced
+ok 108 - actual sender, optional grant and immutable command ID are enforced
+  ---
+  duration_ms: 100.744083
+  type: 'test'
+  ...
+# Subtest: stop repeats historical ACK; fencing cannot free the target slot by itself
+ok 109 - stop repeats historical ACK; fencing cannot free the target slot by itself
+  ---
+  duration_ms: 7.582375
+  type: 'test'
+  ...
+# Subtest: schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+ok 110 - schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+  ---
+  duration_ms: 19.087208
+  type: 'test'
+  ...
+# Subtest: no native IDB in Node is reported as unavailable; storage entry exports factory
+ok 111 - no native IDB in Node is reported as unavailable; storage entry exports factory
+  ---
+  duration_ms: 1.61725
+  type: 'test'
+  ...
+# Subtest: immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+ok 112 - immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+  ---
+  duration_ms: 177.262375
+  type: 'test'
+  ...
+# Subtest: template admission hook uses same transaction and cannot overwrite immutable revision
+ok 113 - template admission hook uses same transaction and cannot overwrite immutable revision
+  ---
+  duration_ms: 19.323917
+  type: 'test'
+  ...
+# Subtest: beginPage permits preparing run, reserves exact command key and idempotently reACKs
+ok 114 - beginPage permits preparing run, reserves exact command key and idempotently reACKs
+  ---
+  duration_ms: 11.16375
+  type: 'test'
+  ...
+# Subtest: stage rejects undispatched reservation and atomically aborts open snapshot
+ok 115 - stage rejects undispatched reservation and atomically aborts open snapshot
+  ---
+  duration_ms: 13.496584
+  type: 'test'
+  ...
+# Subtest: three batches: first two durable ACKs, third exact-byte failure hides whole page
+ok 116 - three batches: first two durable ACKs, third exact-byte failure hides whole page
+  ---
+  duration_ms: 42.125875
+  type: 'test'
+  ...
+# Subtest: exact staged duplicate does not add bytes; conflicting valid digest aborts page
+ok 117 - exact staged duplicate does not add bytes; conflicting valid digest aborts page
+  ---
+  duration_ms: 52.707333
+  type: 'test'
+  ...
+# Subtest: host/epoch/target mismatch is rejected without aborting rightful open page
+ok 118 - host/epoch/target mismatch is rejected without aborting rightful open page
+  ---
+  duration_ms: 26.735084
+  type: 'test'
+  ...
+# Subtest: admission cannot bypass transaction reread of cancellation
+ok 119 - admission cannot bypass transaction reread of cancellation
+  ---
+  duration_ms: 23.926209
+  type: 'test'
+  ...
+# Subtest: stage may acknowledge authenticated raw frames before end; seal requires complete end
+ok 120 - stage may acknowledge authenticated raw frames before end; seal requires complete end
+  ---
+  duration_ms: 28.526
+  type: 'test'
+  ...
+# Subtest: seal recomputes all six rows; prefix-only signature fails
+ok 121 - seal recomputes all six rows; prefix-only signature fails
+  ---
+  duration_ms: 73.928375
+  type: 'test'
+  ...
+# Subtest: batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+ok 122 - batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+  ---
+  duration_ms: 36.975167
+  type: 'test'
+  ...
+# Subtest: stop wins before seal; seal wins before stop and preserves historic original ACK
+ok 123 - stop wins before seal; seal wins before stop and preserves historic original ACK
+  ---
+  duration_ms: 94.132375
+  type: 'test'
+  ...
+# Subtest: run revision and authenticated host registration cannot be bypassed
+ok 124 - run revision and authenticated host registration cannot be bypassed
+  ---
+  duration_ms: 9.996667
+  type: 'test'
+  ...
+# Subtest: reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+ok 125 - reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+  ---
+  duration_ms: 66.752916
+  type: 'test'
+  ...
+# Subtest: zero-batch empty page requires authenticated allowed-empty proof
+ok 126 - zero-batch empty page requires authenticated allowed-empty proof
+  ---
+  duration_ms: 32.351417
+  type: 'test'
+  ...
+# Subtest: repeated full page signature without end is rejected and left invisible
+ok 127 - repeated full page signature without end is rejected and left invisible
+  ---
+  duration_ms: 58.198084
+  type: 'test'
+  ...
+# Subtest: whole-page run limits, two pending ACKs, profile budget and injected disk quota
+ok 128 - whole-page run limits, two pending ACKs, profile budget and injected disk quota
+  ---
+  duration_ms: 123.407959
+  type: 'test'
+  ...
+# Subtest: delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+ok 129 - delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+  ---
+  duration_ms: 46.43975
+  type: 'test'
+  ...
+# Subtest: retention defaults seven days, preserves active runs and raw migration duplicates
+ok 130 - retention defaults seven days, preserves active runs and raw migration duplicates
+  ---
+  duration_ms: 12.885625
+  type: 'test'
+  ...
+# Subtest: shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS
+ok 131 - shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS
+  ---
+  duration_ms: 20.592959
+  type: 'test'
+  ...
+# Subtest: creation dispatch commits before one exact bootstrap create; retries do not create again
+ok 132 - creation dispatch commits before one exact bootstrap create; retries do not create again
+  ---
+  duration_ms: 14.661
+  type: 'test'
+  ...
+# Subtest: creation callback gap freezes slot, never infers never-created or blindly retries
+ok 133 - creation callback gap freezes slot, never infers never-created or blindly retries
+  ---
+  duration_ms: 4.454375
+  type: 'test'
+  ...
+# Subtest: bootstrap registers real tab/document before at-most-one navigation dispatch; content spoof rejected
+ok 134 - bootstrap registers real tab/document before at-most-one navigation dispatch; content spoof rejected
+  ---
+  duration_ms: 4.954542
+  type: 'test'
+  ...
+# Subtest: stop before bootstrap navigation prevents location authorization
+ok 135 - stop before bootstrap navigation prevents location authorization
+  ---
+  duration_ms: 2.006959
+  type: 'test'
+  ...
+# Subtest: formal target binds only real same-origin new document after navigation
+ok 136 - formal target binds only real same-origin new document after navigation
+  ---
+  duration_ms: 3.477334
+  type: 'test'
+  ...
+# Subtest: formal run cannot borrow activeTab instead of optional grant
+ok 137 - formal run cannot borrow activeTab instead of optional grant
+  ---
+  duration_ms: 1.859958
+  type: 'test'
+  ...
+# Subtest: retirement remove + separate not-found evidence releases only matching slot once; old replay cannot clear new run
+ok 138 - retirement remove + separate not-found evidence releases only matching slot once; old replay cannot clear new run
+  ---
+  duration_ms: 3.517875
+  type: 'test'
+  ...
+# Subtest: cross-session numeric tab id is never queried or removed and slot remains frozen
+ok 139 - cross-session numeric tab id is never queried or removed and slot remains frozen
+  ---
+  duration_ms: 3.449833
+  type: 'test'
+  ...
+# Subtest: generic tabs.get failure cannot prove absence
+ok 140 - generic tabs.get failure cannot prove absence
+  ---
+  duration_ms: 35.966542
+  type: 'test'
+  ...
+# Subtest: prepared/submissionCount=0 proves never-created; missing intent never releases
+ok 141 - prepared/submissionCount=0 proves never-created; missing intent never releases
+  ---
+  duration_ms: 104.53925
+  type: 'test'
+  ...
+# Subtest: bootstrap agent requests registration and navigation before exactly one assign
+ok 142 - bootstrap agent requests registration and navigation before exactly one assign
+  ---
+  duration_ms: 0.576417
+  type: 'test'
+  ...
+# Subtest: complete synthetic checker fixture passes, including false/0 values; not a product test
+ok 143 - complete synthetic checker fixture passes, including false/0 values; not a product test
+  ---
+  duration_ms: 100.83875
+  type: 'test'
+  ...
+# Subtest: missing original case and missing explicit additional case cannot be hidden
+ok 144 - missing original case and missing explicit additional case cannot be hidden
+  ---
+  duration_ms: 19.1375
+  type: 'test'
+  ...
+# Subtest: dropping or replacing the original ledger denominator rejects
+ok 145 - dropping or replacing the original ledger denominator rejects
+  ---
+  duration_ms: 136.611458
+  type: 'test'
+  ...
+# Subtest: component/prototype pass and a foreign package cannot count as native acceptance
+ok 146 - component/prototype pass and a foreign package cannot count as native acceptance
+  ---
+  duration_ms: 29.81225
+  type: 'test'
+  ...
+# Subtest: source/package drift and changed per-case expected contract reject
+ok 147 - source/package drift and changed per-case expected contract reject
+  ---
+  duration_ms: 96.440417
+  type: 'test'
+  ...
+# Subtest: accepted marker alone, skipped result and missing raw evidence reject
+ok 148 - accepted marker alone, skipped result and missing raw evidence reject
+  ---
+  duration_ms: 36.704458
+  type: 'test'
+  ...
+# Subtest: missing or duplicate environment observation and unbound browser binary reject
+ok 149 - missing or duplicate environment observation and unbound browser binary reject
+  ---
+  duration_ms: 29.854792
+  type: 'test'
+  ...
+# Subtest: each cleanup counter must return to an explicit resource baseline
+ok 150 - each cleanup counter must return to an explicit resource baseline
+  ---
+  duration_ms: 108.485458
+  type: 'test'
+  ...
+# Subtest: 1000 unique mixed rounds, all five outcomes, reconnects and disabled plugins are required
+ok 151 - 1000 unique mixed rounds, all five outcomes, reconnects and disabled plugins are required
+  ---
+  duration_ms: 129.5835
+  type: 'test'
+  ...
+# Subtest: B05 requires 100 calls with one admission/run/op/HTTP write and no controller
+ok 152 - B05 requires 100 calls with one admission/run/op/HTTP write and no controller
+  ---
+  duration_ms: 24.931291
+  type: 'test'
+  ...
+# Subtest: all four crash points preserve identity; unknown effects cannot be replayed
+ok 153 - all four crash points preserve identity; unknown effects cannot be replayed
+  ---
+  duration_ms: 60.458875
+  type: 'test'
+  ...
+# Subtest: download accepted is insufficient without complete and an actual disk hash reference
+ok 154 - download accepted is insufficient without complete and an actual disk hash reference
+  ---
+  duration_ms: 71.372042
+  type: 'test'
+  ...
+# Subtest: Worker termination evidence must meet approved3s and preserve borrowed pages
+ok 155 - Worker termination evidence must meet approved3s and preserve borrowed pages
+  ---
+  duration_ms: 26.287083
+  type: 'test'
+  ...
+# Subtest: historical failures remain open without case evidence; self-review or reversed review order rejects
+ok 156 - historical failures remain open without case evidence; self-review or reversed review order rejects
+  ---
+  duration_ms: 70.839458
+  type: 'test'
+  ...
+# Subtest: current real ledger readiness preserves original603 and every current explicit additional case without changing gate state
+ok 157 - current real ledger readiness preserves original603 and every current explicit additional case without changing gate state
+  ---
+  duration_ms: 109.036416
+  type: 'test'
+  ...
+# Subtest: Chrome JSON hop retains undefined, falsy values, nested presence and business PageBrigeCode
+ok 158 - Chrome JSON hop retains undefined, falsy values, nested presence and business PageBrigeCode
+  ---
+  duration_ms: 5.152083
+  type: 'test'
+  ...
+# Subtest: outcome protocol separates actual errors from all user business objects
+ok 159 - outcome protocol separates actual errors from all user business objects
+  ---
+  duration_ms: 0.59575
+  type: 'test'
+  ...
+# Subtest: encoder rejects unsupported values, cycles and getters without evaluating a getter
+ok 160 - encoder rejects unsupported values, cycles and getters without evaluating a getter
+  ---
+  duration_ms: 1.007542
+  type: 'test'
+  ...
+# Subtest: decoder rejects forged tags, duplicate fields and byte limits; prototype names remain inert data
+ok 161 - decoder rejects forged tags, duplicate fields and byte limits; prototype names remain inert data
+  ---
+  duration_ms: 0.240708
+  type: 'test'
+  ...
+# Subtest: typed canonical input is stable across key order and distinguishes missing from undefined
+ok 162 - typed canonical input is stable across key order and distinguishes missing from undefined
+  ---
+  duration_ms: 0.127667
+  type: 'test'
+  ...
+# Subtest: Base64 string API preserves UTF-8 and rejects malformed Base64 and UTF-8
+ok 163 - Base64 string API preserves UTF-8 and rejects malformed Base64 and UTF-8
+  ---
+  duration_ms: 0.467792
+  type: 'test'
+  ...
+# Subtest: REGRESSION-R3-host-gone: document loss persists retirement without requiring the old host
+ok 164 - REGRESSION-R3-host-gone: document loss persists retirement without requiring the old host
+  ---
+  duration_ms: 51.839333
+  type: 'test'
+  ...
+# Subtest: REGRESSION-R4-control-states: late stop preserves an existing retirement
+ok 165 - REGRESSION-R4-control-states: late stop preserves an existing retirement
+  ---
+  duration_ms: 2.3045
+  type: 'test'
+  ...
+# Subtest: REGRESSION-R4-control-states: session recovery preserves a durable retirement
+ok 166 - REGRESSION-R4-control-states: session recovery preserves a durable retirement
+  ---
+  duration_ms: 1.390375
+  type: 'test'
+  ...
+# Subtest: REGRESSION-R5-terminal-fence-gap: every committed terminal has a durable retirement
+ok 167 - REGRESSION-R5-terminal-fence-gap: every committed terminal has a durable retirement
+  ---
+  duration_ms: 0.851542
+  type: 'test'
+  ...
+# Subtest: REGRESSION-R6-false-completion: caller naturalEnd cannot complete an unbound run
+ok 168 - REGRESSION-R6-false-completion: caller naturalEnd cannot complete an unbound run
+  ---
+  duration_ms: 0.638834
+  type: 'test'
+  ...
+# Subtest: REGRESSION-R8-journal-key-collision: a caller command ID cannot replace host metadata
+ok 169 - REGRESSION-R8-journal-key-collision: a caller command ID cannot replace host metadata
+  ---
+  duration_ms: 84.859917
+  type: 'test'
+  ...
+# Subtest: generic APIs prepare committed typed values without templates, Blob creation or native dispatch
+ok 170 - generic APIs prepare committed typed values without templates, Blob creation or native dispatch
+  ---
+  duration_ms: 219.33675
+  type: 'test'
+  ...
+# Subtest: generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle
+ok 171 - generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle
+  ---
+  duration_ms: 67.130417
+  type: 'test'
+  ...
+# Subtest: generic preparation rejects forged namespace, wrong result/run/principal/session and actual sender before writing
+ok 172 - generic preparation rejects forged namespace, wrong result/run/principal/session and actual sender before writing
+  ---
+  duration_ms: 22.479
+  type: 'test'
+  ...
+# Subtest: generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes
+ok 173 - generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes
+  ---
+  duration_ms: 46.625292
+  type: 'test'
+  ...
+# Subtest: generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks
+ok 174 - generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks
+  ---
+  duration_ms: 1185.785542
+  type: 'test'
+  ...
+# Subtest: generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs
+ok 175 - generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs
+  ---
+  duration_ms: 14.411917
+  type: 'test'
+  ...
+# Subtest: generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified
+ok 176 - generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified
+  ---
+  duration_ms: 9.955042
+  type: 'test'
+  ...
+# Subtest: generic current-document registration is rechecked inside attempt, read and dispatch transactions
+ok 177 - generic current-document registration is rechecked inside attempt, read and dispatch transactions
+  ---
+  duration_ms: 32.435
+  type: 'test'
+  ...
+# Subtest: generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion
+ok 178 - generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion
+  ---
+  duration_ms: 18.031292
+  type: 'test'
+  ...
+# Subtest: generic missing issued namespace/principal fails closed and never derives authority from payload
+ok 179 - generic missing issued namespace/principal fails closed and never derives authority from payload
+  ---
+  duration_ms: 8.221292
+  type: 'test'
+  ...
+# Subtest: generic unsuccessful/missing wire results and legacy template entry points cannot manufacture artifacts
+ok 180 - generic unsuccessful/missing wire results and legacy template entry points cannot manufacture artifacts
+  ---
+  duration_ms: 25.847708
+  type: 'test'
+  ...
+# Subtest: generic immutable result and artifact chunks are rechecked before attempt transaction commits
+ok 181 - generic immutable result and artifact chunks are rechecked before attempt transaction commits
+  ---
+  duration_ms: 56.495333
+  type: 'test'
+  ...
+# Subtest: generic onCreated is not completion; wrong native identity and callback/search conflicts cannot certify delivery
+ok 182 - generic onCreated is not completion; wrong native identity and callback/search conflicts cannot certify delivery
+  ---
+  duration_ms: 57.185375
+  type: 'test'
+  ...
+# Subtest: generic native interruption/runtime.lastError use shared failure/unknown states and never resubmit
+ok 183 - generic native interruption/runtime.lastError use shared failure/unknown states and never resubmit
+  ---
+  duration_ms: 16.273708
+  type: 'test'
+  ...
+# Subtest: generic explicit fresh retry shares job/artifact; late evidence cannot release the new active reader pin
+ok 184 - generic explicit fresh retry shares job/artifact; late evidence cannot release the new active reader pin
+  ---
+  duration_ms: 16.636791
+  type: 'test'
+  ...
+# Subtest: generic later registered document exports stable namespace history without acquiring the old run owner
+ok 185 - generic later registered document exports stable namespace history without acquiring the old run owner
+  ---
+  duration_ms: 10.451708
+  type: 'test'
+  ...
+# Subtest: generic abandonRun fences timed-out retry history so shared repository deletion does not strand old attempts
+ok 186 - generic abandonRun fences timed-out retry history so shared repository deletion does not strand old attempts
+  ---
+  duration_ms: 18.157333
+  type: 'test'
+  ...
+# Subtest: generic public reconcile uses actual sender; internal Chrome callback reconciliation survives owning host revocation
+ok 187 - generic public reconcile uses actual sender; internal Chrome callback reconciliation survives owning host revocation
+  ---
+  duration_ms: 16.685333
+  type: 'test'
+  ...
+# Subtest: R1: cyclic and malformed local schema references produce bounded typed rejection
+ok 188 - R1: cyclic and malformed local schema references produce bounded typed rejection
+  ---
+  duration_ms: 23.435792
+  type: 'test'
+  ...
+# Subtest: R1: long acyclic reference chains have a schema traversal depth budget
+ok 189 - R1: long acyclic reference chains have a schema traversal depth budget
+  ---
+  duration_ms: 11.491833
+  type: 'test'
+  ...
+# Subtest: R1: the inherited RulePlan resolves its nested local JSON pointer
+ok 190 - R1: the inherited RulePlan resolves its nested local JSON pointer
+  ---
+  duration_ms: 6.618042
+  type: 'test'
+  ...
+# Subtest: R2: closed shapes reject names inherited by the schema properties object
+ok 191 - R2: closed shapes reject names inherited by the schema properties object
+  ---
+  duration_ms: 11.306791
+  type: 'test'
+  ...
+# Subtest: R7: durable timestamps require an actual calendar date and explicit timezone
+ok 192 - R7: durable timestamps require an actual calendar date and explicit timezone
+  ---
+  duration_ms: 0.954833
+  type: 'test'
+  ...
+# Subtest: SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs
+ok 193 - SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs
+  ---
+  duration_ms: 26.954791
+  type: 'test'
+  ...
+# Subtest: SDK recovery reconciles atomic storage durable result before broker receipt and never replays it
+ok 194 - SDK recovery reconciles atomic storage durable result before broker receipt and never replays it
+  ---
+  duration_ms: 2.961584
+  type: 'test'
+  ...
+# Subtest: SDK restart at dispatched cut pauses its run with original unknown effect and no replacement
+ok 195 - SDK restart at dispatched cut pauses its run with original unknown effect and no replacement
+  ---
+  duration_ms: 2.45125
+  type: 'test'
+  ...
+# Subtest: SDK Hello needs native document/grant and never claims a controller slot
+ok 196 - SDK Hello needs native document/grant and never claims a controller slot
+  ---
+  duration_ms: 1.249708
+  type: 'test'
+  ...
+# Subtest: SDK grant and request payload cannot carry page authority/namespace/bare args
+ok 197 - SDK grant and request payload cannot carry page authority/namespace/bare args
+  ---
+  duration_ms: 0.814042
+  type: 'test'
+  ...
+# Subtest: SDK sender/document/lifecycle fences reject before any storage effect
+ok 198 - SDK sender/document/lifecycle fences reject before any storage effect
+  ---
+  duration_ms: 0.623792
+  type: 'test'
+  ...
+# Subtest: 100 same-ID concurrent persistent calls commit one effect and one result
+ok 199 - 100 same-ID concurrent persistent calls commit one effect and one result
+  ---
+  duration_ms: 164.919209
+  type: 'test'
+  ...
+# Subtest: same ID with changed args or deadline conflicts and does not overwrite effect
+ok 200 - same ID with changed args or deadline conflicts and does not overwrite effect
+  ---
+  duration_ms: 21.869709
+  type: 'test'
+  ...
+# Subtest: native session adapter preserves own undefined/false/0 across Chrome JSON storage
+ok 201 - native session adapter preserves own undefined/false/0 across Chrome JSON storage
+  ---
+  duration_ms: 9.970584
+  type: 'test'
+  ...
+# Subtest: durable session duplicate after authority restart does not resubmit native set
+ok 202 - durable session duplicate after authority restart does not resubmit native set
+  ---
+  duration_ms: 2.529459
+  type: 'test'
+  ...
+# Subtest: native session failure records unknown dispatch and will not retry same write
+ok 203 - native session failure records unknown dispatch and will not retry same write
+  ---
+  duration_ms: 4.82825
+  type: 'test'
+  ...
+# Subtest: SW recovery fences dispatched write gap and retains original identity/deadline
+ok 204 - SW recovery fences dispatched write gap and retains original identity/deadline
+  ---
+  duration_ms: 2.99225
+  type: 'test'
+  ...
+# Subtest: durable duplicate cannot extend original 15s service deadline
+ok 205 - durable duplicate cannot extend original 15s service deadline
+  ---
+  duration_ms: 2.871209
+  type: 'test'
+  ...
+# Subtest: native permission remove then regrant cannot revive old request/grant
+ok 206 - native permission remove then regrant cannot revive old request/grant
+  ---
+  duration_ms: 6.141584
+  type: 'test'
+  ...
+# Subtest: observed navigation invalidates current page Hello and pending admission
+ok 207 - observed navigation invalidates current page Hello and pending admission
+  ---
+  duration_ms: 1.815584
+  type: 'test'
+  ...
+# Subtest: notification permission removal with empty origins revokes the affected grant
+ok 208 - notification permission removal with empty origins revokes the affected grant
+  ---
+  duration_ms: 1.446959
+  type: 'test'
+  ...
+# Subtest: notification native receipt and durable undefined survive delivery revocation
+ok 209 - notification native receipt and durable undefined survive delivery revocation
+  ---
+  duration_ms: 16.424208
+  type: 'test'
+  ...
+# Subtest: successful HTTP business envelope remains data and stores native result before delivery
+ok 210 - successful HTTP business envelope remains data and stores native result before delivery
+  ---
+  duration_ms: 118.010417
+  type: 'test'
+  ...
+# Subtest: SDK backend timer clamps to earlier caller deadline even for hung native callback
+ok 211 - SDK backend timer clamps to earlier caller deadline even for hung native callback
+  ---
+  duration_ms: 4.004625
+  type: 'test'
+  ...
+# Subtest: same-ID changed args/method/original deadline reaches broker and explicitly delivers conflict
+ok 212 - same-ID changed args/method/original deadline reaches broker and explicitly delivers conflict
+  ---
+  duration_ms: 7.276583
+  type: 'test'
+  ...
+# Subtest: timeout plus reused ID: old success or rejection cannot finish/delete replacement
+ok 213 - timeout plus reused ID: old success or rejection cannot finish/delete replacement
+  ---
+  duration_ms: 1.74175
+  type: 'test'
+  ...
+# Subtest: 100 same-ID same-digest real relay dispatches all reach product broker admission: serial oracle, not native B05
+ok 214 - 100 same-ID same-digest real relay dispatches all reach product broker admission: serial oracle, not native B05
+  ---
+  duration_ms: 71.158125
+  type: 'test'
+  ...
+# Subtest: deadline, canonical codec and legitimate request ID hello remain exact at native boundary
+ok 215 - deadline, canonical codec and legitimate request ID hello remain exact at native boundary
+  ---
+  duration_ms: 0.807958
+  type: 'test'
+  ...
+# Subtest: bad page fields/ACK errors never consume another entry; dispose clears timers and late callbacks
+ok 216 - bad page fields/ACK errors never consume another entry; dispose clears timers and late callbacks
+  ---
+  duration_ms: 0.651041
+  type: 'test'
+  ...
+# Subtest: CMP11-API01/02/03/04: bound constructors, immutable pins and independent owners
+ok 217 - CMP11-API01/02/03/04: bound constructors, immutable pins and independent owners
+  ---
+  duration_ms: 5.390375
+  type: 'test'
+  ...
+# Subtest: CMP10-API05/06 and CMP01-API36: raw callbacks and raw execute never dispatch
+ok 218 - CMP10-API05/06 and CMP01-API36: raw callbacks and raw execute never dispatch
+  ---
+  duration_ms: 0.202833
+  type: 'test'
+  ...
+# Subtest: CMP10-API35: typed values and statement ignored args before registration
+ok 219 - CMP10-API35: typed values and statement ignored args before registration
+  ---
+  duration_ms: 6.971292
+  type: 'test'
+  ...
+# Subtest: CMP03-API34 and CORE-EVALUATE-EXPRESSION: explicit modes and no extra parameters
+ok 220 - CMP03-API34 and CORE-EVALUATE-EXPRESSION: explicit modes and no extra parameters
+  ---
+  duration_ms: 0.659917
+  type: 'test'
+  ...
+# Subtest: CMP02-API12/13-LIMIT: Worker DOM snapshots reject; serialized alternatives preserve null/[]
+ok 221 - CMP02-API12/13-LIMIT: Worker DOM snapshots reject; serialized alternatives preserve null/[]
+  ---
+  duration_ms: 0.401709
+  type: 'test'
+  ...
+# Subtest: NAV01 + ChromeElement: only attested navigation advances root; old element/keyboard sequence stay bound
+ok 222 - NAV01 + ChromeElement: only attested navigation advances root; old element/keyboard sequence stay bound
+  ---
+  duration_ms: 0.614709
+  type: 'test'
+  ...
+# Subtest: CTRL owner fencing: stop/deadline/host-close settle pending once; stale request never rebinds new ctx
+ok 223 - CTRL owner fencing: stop/deadline/host-close settle pending once; stale request never rebinds new ctx
+  ---
+  duration_ms: 3.206292
+  type: 'test'
+  ...
+# Subtest: Private Worker port: global fake peer, wrong owner, wrong correlation and reply replay cannot settle
+ok 224 - Private Worker port: global fake peer, wrong owner, wrong correlation and reply replay cannot settle
+  ---
+  duration_ms: 120.08225
+  type: 'test'
+  ...
+# Subtest: Host relay rejects cross-owner/old revision/old target before the shared transport
+ok 225 - Host relay rejects cross-owner/old revision/old target before the shared transport
+  ---
+  duration_ms: 0.49225
+  type: 'test'
+  ...
+# Subtest: public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates
+ok 226 - public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates
+  ---
+  duration_ms: 29.899416
+  type: 'test'
+  ...
+# Subtest: borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does
+ok 227 - borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does
+  ---
+  duration_ms: 62.402375
+  type: 'test'
+  ...
+# Subtest: worker retirement gates durable result then borrowed release, without closing borrowed tab
+ok 228 - worker retirement gates durable result then borrowed release, without closing borrowed tab
+  ---
+  duration_ms: 14.877041
+  type: 'test'
+  ...
+# Subtest: owned retirement closes only exact created tab after durable terminal commit
+ok 229 - owned retirement closes only exact created tab after durable terminal commit
+  ---
+  duration_ms: 13.345667
+  type: 'test'
+  ...
+# Subtest: new registered host reads old namespace result without acquiring its owner or replaying
+ok 230 - new registered host reads old namespace result without acquiring its owner or replaying
+  ---
+  duration_ms: 6.832542
+  type: 'test'
+  ...
+# Subtest: permission removal matches exact origin patterns and remains fenced after regrant
+ok 231 - permission removal matches exact origin patterns and remains fenced after regrant
+  ---
+  duration_ms: 9.565125
+  type: 'test'
+  ...
+# Subtest: native receipt survives post-dispatch permission loss; request is never resubmitted
+ok 232 - native receipt survives post-dispatch permission loss; request is never resubmitted
+  ---
+  duration_ms: 15.046792
+  type: 'test'
+  ...
+# Subtest: public recovery pauses controller, holds slot and never replays committed source
+ok 233 - public recovery pauses controller, holds slot and never replays committed source
+  ---
+  duration_ms: 12.711125
+  type: 'test'
+  ...
+# Subtest: public hostGone interruption retires borrowed target and exact pin once
+ok 234 - public hostGone interruption retires borrowed target and exact pin once
+  ---
+  duration_ms: 4.587791
+  type: 'test'
+  ...
+# Subtest: hostGone after completed result preserves the immutable result and finishes pending retirement
+ok 235 - hostGone after completed result preserves the immutable result and finishes pending retirement
+  ---
+  duration_ms: 9.234708
+  type: 'test'
+  ...
+# Subtest: SDK short persistent service completes while controller owns the same unique slot
+ok 236 - SDK short persistent service completes while controller owns the same unique slot
+  ---
+  duration_ms: 71.984292
+  type: 'test'
+  ...
+# Subtest: injected foundationClient registers once; forced harnessWorker termination precedes durable result and slot release
+ok 237 - injected foundationClient registers once; forced harnessWorker termination precedes durable result and slot release
+  ---
+  duration_ms: 58.952583
+  type: 'test'
+  ...
+# Subtest: dispatch allowlists reject malformed kind/method before any authority or native call
+ok 238 - dispatch allowlists reject malformed kind/method before any authority or native call
+  ---
+  duration_ms: 63.50775
+  type: 'test'
+  ...
+# Subtest: packaged exact document injection, correlation and undefined use real registry; no reinjection/global mutation
+ok 239 - packaged exact document injection, correlation and undefined use real registry; no reinjection/global mutation
+  ---
+  duration_ms: 20.285083
+  type: 'test'
+  ...
+# Subtest: page session accepts trusted extension sender only, rejects spoof/changed replay and settles each execution once
+ok 240 - page session accepts trusted extension sender only, rejects spoof/changed replay and settles each execution once
+  ---
+  duration_ms: 8.649166
+  type: 'test'
+  ...
+# Subtest: each dispatch is preceded by authority; revocation during suspension produces zero subsequent dispatches
+ok 241 - each dispatch is preceded by authority; revocation during suspension produces zero subsequent dispatches
+  ---
+  duration_ms: 1.195709
+  type: 'test'
+  ...
+# Subtest: real current getScripts at dispatch and accept; false/undefined/business values strictly encoded with generator worlds
+ok 242 - real current getScripts at dispatch and accept; false/undefined/business values strictly encoded with generator worlds
+  ---
+  duration_ms: 4.116833
+  type: 'test'
+  ...
+# Subtest: switch observed unavailable is sticky across driver instances and results are retained before failing post permission
+ok 243 - switch observed unavailable is sticky across driver instances and results are retained before failing post permission
+  ---
+  duration_ms: 0.983
+  type: 'test'
+  ...
+# Subtest: user-script receipt must attest exact document/frame; malformed and user errors propagate
+ok 244 - user-script receipt must attest exact document/frame; malformed and user errors propagate
+  ---
+  duration_ms: 7.486375
+  type: 'test'
+  ...
+# Subtest: navigation uses admitted pending phase, waits independently of old agent and preserves complete handoff binding
+ok 245 - navigation uses admitted pending phase, waits independently of old agent and preserves complete handoff binding
+  ---
+  duration_ms: 2.699
+  type: 'test'
+  ...
+# Subtest: navigation ignores another tab and wrong readiness document; timeout cleans every subscription
+ok 246 - navigation ignores another tab and wrong readiness document; timeout cleans every subscription
+  ---
+  duration_ms: 81.644666
+  type: 'test'
+  ...
+# Subtest: navigation rejects unsupported options before dispatch and unauthorized redirect without handing off
+ok 247 - navigation rejects unsupported options before dispatch and unauthorized redirect without handing off
+  ---
+  duration_ms: 2.299541
+  type: 'test'
+  ...
+# Subtest: screenshot rejects fullPage/invisible exact tab and detects active-tab ABA during capture
+ok 248 - screenshot rejects fullPage/invisible exact tab and detects active-tab ABA during capture
+  ---
+  duration_ms: 2.596834
+  type: 'test'
+  ...
+# Subtest: screenshot exact window success and raw receipt survive post-revocation
+ok 249 - screenshot exact window success and raw receipt survive post-revocation
+  ---
+  duration_ms: 3.135
+  type: 'test'
+  ...
+# Subtest: cookie service uses observed store, correct projection/dedup, expires=0 and exact name/path deletion
+ok 250 - cookie service uses observed store, correct projection/dedup, expires=0 and exact name/path deletion
+  ---
+  duration_ms: 3.085667
+  type: 'test'
+  ...
+# Subtest: cookie batch preflight denies unauthorized URL and malformed/domain/partition input with no cookie write/read
+ok 251 - cookie batch preflight denies unauthorized URL and malformed/domain/partition input with no cookie write/read
+  ---
+  duration_ms: 2.232959
+  type: 'test'
+  ...
+# Subtest: cookie remove native lastError is typed; ambiguous domain or partition observations never remove
+ok 252 - cookie remove native lastError is typed; ambiguous domain or partition observations never remove
+  ---
+  duration_ms: 4.515292
+  type: 'test'
+  ...
+# Subtest: upload URL omits credentials, manually authorizes redirect and commits real chunks/file bytes
+ok 253 - upload URL omits credentials, manually authorizes redirect and commits real chunks/file bytes
+  ---
+  duration_ms: 67.656917
+  type: 'test'
+  ...
+# Subtest: upload denies cross-origin/downgrade/too many redirects/oversize/HTTP errors before DOM commit
+ok 254 - upload denies cross-origin/downgrade/too many redirects/oversize/HTTP errors before DOM commit
+  ---
+  duration_ms: 6.994041
+  type: 'test'
+  ...
+# Subtest: stop cancels real packaged waits/staging, late reply cannot deliver; fresh driver cleans original identity epoch
+ok 255 - stop cancels real packaged waits/staging, late reply cannot deliver; fresh driver cleans original identity epoch
+  ---
+  duration_ms: 16.21175
+  type: 'test'
+  ...
+# Subtest: result receipt survives forced stop; new-instance retirement removes borrowed registry resources without closing tab
+ok 256 - result receipt survives forced stop; new-instance retirement removes borrowed registry resources without closing tab
+  ---
+  duration_ms: 4.211458
+  type: 'test'
+  ...
+# Subtest: fixed packaged resources allow only current SDK entry; unlisted extension or remote code never creates nodes
+ok 257 - fixed packaged resources allow only current SDK entry; unlisted extension or remote code never creates nodes
+  ---
+  duration_ms: 3.511375
+  type: 'test'
+  ...
+# Subtest: user wait cancellation uses only framework harness; deadline and pending authority failure fence late callbacks
+ok 258 - user wait cancellation uses only framework harness; deadline and pending authority failure fence late callbacks
+  ---
+  duration_ms: 41.243125
+  type: 'test'
+  ...
+# Subtest: pagehide disposes listener, real wait and upload state; unknown operations create no session
+ok 259 - pagehide disposes listener, real wait and upload state; unknown operations create no session
+  ---
+  duration_ms: 10.648917
+  type: 'test'
+  ...
+# Subtest: borrowed child frame keeps exact frame/document for registry, evaluation and fresh-instance cancellation
+ok 260 - borrowed child frame keeps exact frame/document for registry, evaluation and fresh-instance cancellation
+  ---
+  duration_ms: 4.757917
+  type: 'test'
+  ...
+# Subtest: borrowed child navigation/capture reject explicitly with zero native effects; wrong-frame result and replaced child are fenced
+ok 261 - borrowed child navigation/capture reject explicitly with zero native effects; wrong-frame result and replaced child are fenced
+  ---
+  duration_ms: 1.657166
+  type: 'test'
+  ...
+# Subtest: CMP10-API35: generated function harness awaits and preserves falsy/undefined/business values
+ok 262 - CMP10-API35: generated function harness awaits and preserves falsy/undefined/business values
+  ---
+  duration_ms: 8.64025
+  type: 'test'
+  ...
+# Subtest: CMP10-API35-ERR/LIMIT: generated user failures are typed; no lexical closure/native result fallback
+ok 263 - CMP10-API35-ERR/LIMIT: generated user failures are typed; no lexical closure/native result fallback
+  ---
+  duration_ms: 4.823917
+  type: 'test'
+  ...
+# Subtest: CMP03-API34 and CORE-EVALUATE-EXPRESSION: correct worlds, async statement, exact values and syntax error
+ok 264 - CMP03-API34 and CORE-EVALUATE-EXPRESSION: correct worlds, async statement, exact values and syntax error
+  ---
+  duration_ms: 5.957625
+  type: 'test'
+  ...
+# Subtest: CMP03-API26: pending predicates time out and canceled waits clear the real timer/map
+ok 265 - CMP03-API26: pending predicates time out and canceled waits clear the real timer/map
+  ---
+  duration_ms: 22.930125
+  type: 'test'
+  ...
+# Subtest: SVC cookie reads use exact URL; no public-suffix or neighboring-domain expansion
+ok 266 - SVC cookie reads use exact URL; no public-suffix or neighboring-domain expansion
+  ---
+  duration_ms: 3.5195
+  type: 'test'
+  ...
+# Subtest: SVC cookie batch preserves explicit expiry/default session and Host-prefix rules
+ok 267 - SVC cookie batch preserves explicit expiry/default session and Host-prefix rules
+  ---
+  duration_ms: 2.661958
+  type: 'test'
+  ...
+# Subtest: SVC cookie removal awaits all callbacks and checks each permission
+ok 268 - SVC cookie removal awaits all callbacks and checks each permission
+  ---
+  duration_ms: 10.191917
+  type: 'test'
+  ...
+# Subtest: SVC Chrome lastError and missing cookie callbacks are typed failures
+ok 269 - SVC Chrome lastError and missing cookie callbacks are typed failures
+  ---
+  duration_ms: 0.411333
+  type: 'test'
+  ...
+# Subtest: SVC fixed injection requires exact doc and correct resource/world before Chrome call
+ok 270 - SVC fixed injection requires exact doc and correct resource/world before Chrome call
+  ---
+  duration_ms: 0.3385
+  type: 'test'
+  ...
+# Subtest: SVC notification click has no page URL, clears once, close/late events do not resettle
+ok 271 - SVC notification click has no page URL, clears once, close/late events do not resettle
+  ---
+  duration_ms: 0.450167
+  type: 'test'
+  ...
+# Subtest: CMP13 real loopback four HTTP methods, body and serializable projection
+ok 272 - CMP13 real loopback four HTTP methods, body and serializable projection
+  ---
+  duration_ms: 155.107541
+  type: 'test'
+  ...
+# Subtest: CMP13 real response false retained
+ok 273 - CMP13 real response false retained
+  ---
+  duration_ms: 9.37075
+  type: 'test'
+  ...
+# Subtest: CMP13 real response zero retained
+ok 274 - CMP13 real response zero retained
+  ---
+  duration_ms: 4.943292
+  type: 'test'
+  ...
+# Subtest: CMP13 real response null retained
+ok 275 - CMP13 real response null retained
+  ---
+  duration_ms: 5.639083
+  type: 'test'
+  ...
+# Subtest: HTTP vs network vs bad JSON/UTF8 typed errors and restricted error response
+ok 276 - HTTP vs network vs bad JSON/UTF8 typed errors and restricted error response
+  ---
+  duration_ms: 10.642
+  type: 'test'
+  ...
+# Subtest: denied URL and config have zero real HTTP; native grant rechecked post response
+ok 277 - denied URL and config have zero real HTTP; native grant rechecked post response
+  ---
+  duration_ms: 3.478833
+  type: 'test'
+  ...
+# Subtest: private native receipt hook persists HTTP fact before post revocation, not normalized checkServer result
+ok 278 - private native receipt hook persists HTTP fact before post revocation, not normalized checkServer result
+  ---
+  duration_ms: 4.427333
+  type: 'test'
+  ...
+# Subtest: manual redirect never follows unauthorized destination
+ok 279 - manual redirect never follows unauthorized destination
+  ---
+  duration_ms: 2.965125
+  type: 'test'
+  ...
+# Subtest: actual abort during stalled body/HTTP, size budget and caller cancellation
+ok 280 - actual abort during stalled body/HTTP, size budget and caller cancellation
+  ---
+  duration_ms: 89.504292
+  type: 'test'
+  ...
+# Subtest: backend 15s budget independent from client timeout and earlier native deadline
+ok 281 - backend 15s budget independent from client timeout and earlier native deadline
+  ---
+  duration_ms: 9.304
+  type: 'test'
+  ...
+# Subtest: stalled pre/post native permission validation still obeys driver deadline without replay
+ok 282 - stalled pre/post native permission validation still obeys driver deadline without replay
+  ---
+  duration_ms: 43.972791
+  type: 'test'
+  ...
+# Subtest: server checks real observable success/failure and never reports opaque available
+ok 283 - server checks real observable success/failure and never reports opaque available
+  ---
+  duration_ms: 25.769
+  type: 'test'
+  ...
+# Subtest: external IP info disabled default and never calls original external endpoint in tests
+ok 284 - external IP info disabled default and never calls original external endpoint in tests
+  ---
+  duration_ms: 0.326125
+  type: 'test'
+  ...
+# Subtest: notification true callback wait, lastError refusal and pre/post authorization
+ok 285 - notification true callback wait, lastError refusal and pre/post authorization
+  ---
+  duration_ms: 1.531292
+  type: 'test'
+  ...
+# Subtest: service HTTP result preserves business object inside response.data rather than outer authority
+ok 286 - service HTTP result preserves business object inside response.data rather than outer authority
+  ---
+  duration_ms: 5.316209
+  type: 'test'
+  ...
+# Subtest: RESOURCE fixed SDK allowlist has exactly two files; source entry consumes migrated modules
+ok 287 - RESOURCE fixed SDK allowlist has exactly two files; source entry consumes migrated modules
+  ---
+  duration_ms: 6.379334
+  type: 'test'
+  ...
+# Subtest: RESOURCE project MIT notice is byte-identical to frozen original; no copied vendor resource
+ok 288 - RESOURCE project MIT notice is byte-identical to frozen original; no copied vendor resource
+  ---
+  duration_ms: 3.444417
+  type: 'test'
+  ...
+# Subtest: production actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello
+ok 289 - production actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello
+  ---
+  duration_ms: 1043.332
+  type: 'test'
+  ...
+# Subtest: development actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello
+ok 290 - development actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello
+  ---
+  duration_ms: 146.26175
+  type: 'test'
+  ...
+# Subtest: exact review reproducer: two fresh evaluations reuse frozen globals and perform new Hello
+ok 291 - exact review reproducer: two fresh evaluations reuse frozen globals and perform new Hello
+  ---
+  duration_ms: 21.399541
+  type: 'test'
+  ...
+# Subtest: fresh native Hello updates expanded/shrunken grant subset and refuses failed regrant
+ok 292 - fresh native Hello updates expanded/shrunken grant subset and refuses failed regrant
+  ---
+  duration_ms: 43.338792
+  type: 'test'
+  ...
+# Subtest: reinjection preserves old pending legacy callback and stable ChromeBridgeEvents
+ok 293 - reinjection preserves old pending legacy callback and stable ChromeBridgeEvents
+  ---
+  duration_ms: 10.354208
+  type: 'test'
+  ...
+# Subtest: overlapping reinjections serialize fixed Hello so late old callback cannot supply fresh grant
+ok 294 - overlapping reinjections serialize fixed Hello so late old callback cannot supply fresh grant
+  ---
+  duration_ms: 3.843125
+  type: 'test'
+  ...
+# Subtest: hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed
+ok 295 - hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed
+  ---
+  duration_ms: 0.576625
+  type: 'test'
+  ...
+# Subtest: dispose and pagehide are terminal: fresh evaluation cannot resurrect immutable installation
+ok 296 - dispose and pagehide are terminal: fresh evaluation cannot resurrect immutable installation
+  ---
+  duration_ms: 4.068708
+  type: 'test'
+  ...
+# Subtest: borrowed lifecycle and forged function toString cannot impersonate ownership of a different global
+ok 297 - borrowed lifecycle and forged function toString cannot impersonate ownership of a different global
+  ---
+  duration_ms: 0.528958
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves false
+ok 298 - CMP15 callback preserves false
+  ---
+  duration_ms: 14.081417
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves 0
+ok 299 - CMP15 callback preserves 0
+  ---
+  duration_ms: 7.5525
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves undefined
+ok 300 - CMP15 callback preserves undefined
+  ---
+  duration_ms: 5.110292
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves null
+ok 301 - CMP15 callback preserves null
+  ---
+  duration_ms: 1.546959
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves 
+ok 302 - CMP15 callback preserves 
+  ---
+  duration_ms: 2.528875
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves 0
+ok 303 - CMP15 callback preserves 0
+  ---
+  duration_ms: 0.850084
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves 
+ok 304 - CMP15 callback preserves 
+  ---
+  duration_ms: 0.594209
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves [object Object]
+ok 305 - CMP15 callback preserves [object Object]
+  ---
+  duration_ms: 2.301958
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error business denied remains original rejection
+ok 306 - CMP15 inner business error business denied remains original rejection
+  ---
+  duration_ms: 0.908959
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error [object Object] remains original rejection
+ok 307 - CMP15 inner business error [object Object] remains original rejection
+  ---
+  duration_ms: 0.60175
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error null remains original rejection
+ok 308 - CMP15 inner business error null remains original rejection
+  ---
+  duration_ms: 0.452
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error undefined remains original rejection
+ok 309 - CMP15 inner business error undefined remains original rejection
+  ---
+  duration_ms: 0.487958
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error false remains original rejection
+ok 310 - CMP15 inner business error false remains original rejection
+  ---
+  duration_ms: 1.153917
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error 0 remains original rejection
+ok 311 - CMP15 inner business error 0 remains original rejection
+  ---
+  duration_ms: 4.634958
+  type: 'test'
+  ...
+# Subtest: CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending
+ok 312 - CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending
+  ---
+  duration_ms: 2.293167
+  type: 'test'
+  ...
+# Subtest: CMP15 unicode legacy Base64 callback and ACK never settle early
+ok 313 - CMP15 unicode legacy Base64 callback and ACK never settle early
+  ---
+  duration_ms: 0.609416
+  type: 'test'
+  ...
+# Subtest: CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement
+ok 314 - CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement
+  ---
+  duration_ms: 0.413792
+  type: 'test'
+  ...
+# Subtest: B03 client deadline and document dispose clean original pending once
+ok 315 - B03 client deadline and document dispose clean original pending once
+  ---
+  duration_ms: 12.321583
+  type: 'test'
+  ...
+# Subtest: CMP07 AppStorage String semantics and AppLocal typed presence cross codec
+ok 316 - CMP07 AppStorage String semantics and AppLocal typed presence cross codec
+  ---
+  duration_ms: 0.7555
+  type: 'test'
+  ...
+# Subtest: CMP13 four HTTP facades preserve call shape
+ok 317 - CMP13 four HTTP facades preserve call shape
+  ---
+  duration_ms: 0.172917
+  type: 'test'
+  ...
+# Subtest: schema/config/business refusal dispatches nothing
+ok 318 - schema/config/business refusal dispatches nothing
+  ---
+  duration_ms: 0.434041
+  type: 'test'
+  ...
+# Subtest: CMP14 notifications preserve desc rules with typed null/body errors
+ok 319 - CMP14 notifications preserve desc rules with typed null/body errors
+  ---
+  duration_ms: 0.132833
+  type: 'test'
+  ...
+# Subtest: CMP14 server results use latency order, input ties and all-failed null
+ok 320 - CMP14 server results use latency order, input ties and all-failed null
+  ---
+  duration_ms: 0.204708
+  type: 'test'
+  ...
+# Subtest: CMP08 strict compact JSON never runs code; wrapAsync is only source transformation
+ok 321 - CMP08 strict compact JSON never runs code; wrapAsync is only source transformation
+  ---
+  duration_ms: 0.123458
+  type: 'test'
+  ...
+# Subtest: CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID
+ok 322 - CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID
+  ---
+  duration_ms: 0.511167
+  type: 'test'
+  ...
+# Subtest: CMP08 UtilInfo stays idle until explicit call and keeps original URL
+ok 323 - CMP08 UtilInfo stays idle until explicit call and keeps original URL
+  ---
+  duration_ms: 0.074125
+  type: 'test'
+  ...
+# Subtest: events retain old strings and route lifecycle solely to injected RunHost
+ok 324 - events retain old strings and route lifecycle solely to injected RunHost
+  ---
+  duration_ms: 0.092209
+  type: 'test'
+  ...
+# Subtest: sleep resolves undefined and abort removes timer
+ok 325 - sleep resolves undefined and abort removes timer
+  ---
+  duration_ms: 1.848
+  type: 'test'
+  ...
+# Subtest: SDK install conflicts never overwrite page functions; same installation is idempotent
+ok 326 - SDK install conflicts never overwrite page functions; same installation is idempotent
+  ---
+  duration_ms: 1.040875
+  type: 'test'
+  ...
+# Subtest: Hello cannot be ready from partial or wrong-version allowlist
+ok 327 - Hello cannot be ready from partial or wrong-version allowlist
+  ---
+  duration_ms: 4.141542
+  type: 'test'
+  ...
+# Subtest: fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority
+ok 328 - fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority
+  ---
+  duration_ms: 1.716958
+  type: 'test'
+  ...
+# Subtest: CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data
+ok 329 - CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data
+  ---
+  duration_ms: 0.478292
+  type: 'test'
+  ...
+# Subtest: Hello grant subset permits its methods and rejects other calls before native request
+ok 330 - Hello grant subset permits its methods and rejects other calls before native request
+  ---
+  duration_ms: 0.140209
+  type: 'test'
+  ...
+# Subtest: fixture 100 concurrent original promises once settle; not native B05 evidence
+ok 331 - fixture 100 concurrent original promises once settle; not native B05 evidence
+  ---
+  duration_ms: 13.553083
+  type: 'test'
+  ...
+# Subtest: relay rejects page claims and raw script without native dispatch
+ok 332 - relay rejects page claims and raw script without native dispatch
+  ---
+  duration_ms: 1.499625
+  type: 'test'
+  ...
+# Subtest: native typed authority/transport failure is outer error; business remains inner
+ok 333 - native typed authority/transport failure is outer error; business remains inner
+  ---
+  duration_ms: 0.922583
+  type: 'test'
+  ...
+# Subtest: service dispatcher delegates storage and atomic device context without namespace from page
+ok 334 - service dispatcher delegates storage and atomic device context without namespace from page
+  ---
+  duration_ms: 0.234667
+  type: 'test'
+  ...
+# Subtest: K5 fixed SDK/control and resource closure validates actual production package
+ok 335 - K5 fixed SDK/control and resource closure validates actual production package
+  ---
+  duration_ms: 252.95875
+  type: 'test'
+  ...
+# Subtest: K5 production Worker exception rejects eval/Function aliases and reflective extra constructors
+ok 336 - K5 production Worker exception rejects eval/Function aliases and reflective extra constructors
+  ---
+  duration_ms: 1314.499417
+  type: 'test'
+  ...
+# Subtest: K5 fixed SDK/control and resource closure validates actual development package
+ok 337 - K5 fixed SDK/control and resource closure validates actual development package
+  ---
+  duration_ms: 272.077291
+  type: 'test'
+  ...
+# Subtest: K5 development Worker exception rejects eval/Function aliases and reflective extra constructors
+ok 338 - K5 development Worker exception rejects eval/Function aliases and reflective extra constructors
+  ---
+  duration_ms: 1603.364541
+  type: 'test'
+  ...
+# Subtest: K5 fixed SDK files remain subject to privileged dynamic-execution scanner
+ok 339 - K5 fixed SDK files remain subject to privileged dynamic-execution scanner
+  ---
+  duration_ms: 1564.649
+  type: 'test'
+  ...
+# Subtest: K5 privileged and opaque CSP mutations cannot broaden execution
+ok 340 - K5 privileged and opaque CSP mutations cannot broaden execution
+  ---
+  duration_ms: 801.981375
+  type: 'test'
+  ...
+# Subtest: K5 every HTML is scanned and Worker cannot become a privileged script entry
+ok 341 - K5 every HTML is scanned and Worker cannot become a privileged script entry
+  ---
+  duration_ms: 4651.694292
+  type: 'test'
+  ...
+# Subtest: K5 required sandbox/Worker/icon/MIT and unknown assets fail closed
+ok 342 - K5 required sandbox/Worker/icon/MIT and unknown assets fail closed
+  ---
+  duration_ms: 3670.590584
+  type: 'test'
+  ...
+# Subtest: K5 remote JS scanner distinguishes data URLs ending json/jsp without accepting scripts
+ok 343 - K5 remote JS scanner distinguishes data URLs ending json/jsp without accepting scripts
+  ---
+  duration_ms: 1.545542
+  type: 'test'
+  ...
+# Subtest: K5 additional manifest resources, CSS script consumers and remote maps are rejected
+ok 344 - K5 additional manifest resources, CSS script consumers and remote maps are rejected
+  ---
+  duration_ms: 1403.175208
+  type: 'test'
+  ...
+# Subtest: 72 source identities/hashes and all 48 symbols survive the plan correction
+ok 345 - 72 source identities/hashes and all 48 symbols survive the plan correction
+  ---
+  duration_ms: 2.130375
+  type: 'test'
+  ...
+# Subtest: each current mapped capability has concrete source, semantics, dependency and cases
+ok 346 - each current mapped capability has concrete source, semantics, dependency and cases
+  ---
+  duration_ms: 1.10825
+  type: 'test'
+  ...
+# Subtest: frozen denominator lists supported and restricted contracts separately from exclusions
+ok 347 - frozen denominator lists supported and restricted contracts separately from exclusions
+  ---
+  duration_ms: 0.75525
+  type: 'test'
+  ...
+# Subtest: stage0 gate cannot borrow historical design scores and product flags require their own evidence
+ok 348 - stage0 gate cannot borrow historical design scores and product flags require their own evidence
+  ---
+  duration_ms: 3.599917
+  type: 'test'
+  ...
+# Subtest: stage0 manifest hashes cover frozen plan, mapping, differences, cases and inherited contracts
+ok 349 - stage0 manifest hashes cover frozen plan, mapping, differences, cases and inherited contracts
+  ---
+  duration_ms: 15.335708
+  type: 'test'
+  ...
+1..349
+# tests 349
+# suites 0
+# pass 349
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16813.655

@@ -1,0 +1,27 @@
+{
+  "browserLaunched": false,
+  "launcherParserPrefixReadFromActualSource": true,
+  "argv": [
+    "launch.py",
+    "--executable",
+    "/exact/Google Chrome for Testing",
+    "--report",
+    "/evidence/launcher.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/same/product",
+    "--disable-extensions-except=/same/product",
+    "about:blank"
+  ],
+  "known": {
+    "executable": "/exact/Google Chrome for Testing",
+    "report": "/evidence/launcher.json",
+    "resolve_only": false
+  },
+  "browserArgs": [
+    "--remote-debugging-port=0",
+    "--load-extension=/same/product",
+    "--disable-extensions-except=/same/product",
+    "about:blank"
+  ],
+  "status": "PASS"
+}

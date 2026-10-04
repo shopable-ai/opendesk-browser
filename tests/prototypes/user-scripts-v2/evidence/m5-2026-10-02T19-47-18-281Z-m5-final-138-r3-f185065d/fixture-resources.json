@@ -1,0 +1,15 @@
+{
+  "baseline": {
+    "pending": 0,
+    "acceptanceBarriers": 0,
+    "observationTimers": 0,
+    "rawPending": 0
+  },
+  "after": {
+    "pending": 0,
+    "acceptanceBarriers": 0,
+    "observationTimers": 0,
+    "rawPending": 0
+  },
+  "baselineRestored": true
+}

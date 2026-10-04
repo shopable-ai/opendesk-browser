@@ -1,0 +1,4039 @@
+{
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-51-54.480Z",
+  "planHash": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/138.0.7204.183",
+    "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.0.0 Safari/537.36",
+    "jsVersion": "13.8.258.30",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-51-54.480Z/profile",
+    "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+    "headed": false,
+    "os": {
+      "platform": "darwin",
+      "release": "25.5.0",
+      "arch": "arm64"
+    },
+    "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f"
+  },
+  "identity": {
+    "expectedManifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk F1 user control v2",
+      "version": "0.0.2",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "scripting",
+        "tabs"
+      ],
+      "host_permissions": [
+        "http://127.0.0.1/*"
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "sandbox": {
+        "pages": [
+          "sandbox.html"
+        ]
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+      }
+    },
+    "extensionIdentity": {
+      "target": {
+        "targetId": "1315E663E5C8EA61E03D89BB59861BF2",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+        "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+      },
+      "actual": {
+        "id": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        }
+      }
+    },
+    "identityAttempts": [
+      {
+        "target": {
+          "targetId": "1315E663E5C8EA61E03D89BB59861BF2",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        },
+        "actual": {
+          "id": "klkhjgdgiamblehcbkepadedldbjklan",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+              "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 user control v2",
+            "permissions": [
+              "scripting",
+              "tabs"
+            ],
+            "sandbox": {
+              "pages": [
+                "sandbox.html"
+              ]
+            },
+            "version": "0.0.2"
+          }
+        }
+      }
+    ]
+  },
+  "hosts": [
+    {
+      "targetId": "ECBFAF33B87478BEED2ECC3F007E675D",
+      "initialized": {
+        "sandbox": {
+          "kind": "sandbox-ready",
+          "origin": "null",
+          "extensionAPI": false,
+          "parentAccess": false
+        },
+        "positiveNetwork": "reachable",
+        "tabId": 1315265874,
+        "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+        "hostEpoch": "419c0607-f6dc-43b8-8dbd-7c0096c2c5cf",
+        "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        },
+        "world": "ISOLATED fixed scripting adapter"
+      },
+      "resources": [
+        {
+          "path": "manifest.json",
+          "sha256": "1e8b0e56ff73a6b11a69abeafeb92f267fdf626b2112714c5cc5b306bba5637b"
+        },
+        {
+          "path": "worker-harness.js",
+          "sha256": "acef8dd9b9b1e7c5b7fc88eebf42213e150110b71a945d85655d5ca06958ac84"
+        }
+      ],
+      "document": {
+        "frameTree": {
+          "frame": {
+            "id": "ECBFAF33B87478BEED2ECC3F007E675D",
+            "loaderId": "552B4CFD208201D369A3323C13DBFA50",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A59158%2Fprobe",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targetId": "FC048197EE5AAA96C88B945DD7503AE5",
+      "initialized": {
+        "sandbox": {
+          "kind": "sandbox-ready",
+          "origin": "null",
+          "extensionAPI": false,
+          "parentAccess": false
+        },
+        "positiveNetwork": "reachable",
+        "tabId": 1315265878,
+        "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+        "hostEpoch": "a19dfab3-2c04-4f66-b6d3-073d90c31d71",
+        "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        },
+        "world": "ISOLATED fixed scripting adapter"
+      },
+      "resources": [
+        {
+          "path": "manifest.json",
+          "sha256": "1e8b0e56ff73a6b11a69abeafeb92f267fdf626b2112714c5cc5b306bba5637b"
+        },
+        {
+          "path": "worker-harness.js",
+          "sha256": "acef8dd9b9b1e7c5b7fc88eebf42213e150110b71a945d85655d5ca06958ac84"
+        }
+      ],
+      "document": {
+        "frameTree": {
+          "frame": {
+            "id": "FC048197EE5AAA96C88B945DD7503AE5",
+            "loaderId": "4A5E1FB4A2C4C69717BB0A6278E3592F",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A59158%2Fprobe",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "workerAssociations": [
+    {
+      "owner": {
+        "kind": "worker-created",
+        "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+        "url": "blob:null/d2957512-4db4-4692-b77d-8dc3663b22c4",
+        "name": "OpenDesk-F1-e94f0445-a180-4a42-bea6-6eb7d7d83e5e"
+      },
+      "before": [],
+      "after": [
+        {
+          "targetId": "F8C1661EC06794BA8E9B705A9CAD1A1D",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        }
+      ],
+      "chosenTargetId": "F8C1661EC06794BA8E9B705A9CAD1A1D",
+      "method": "unique fresh target during private start/bound barrier; native URL/title empty",
+      "parent": {
+        "frameTree": {
+          "frame": {
+            "id": "ECBFAF33B87478BEED2ECC3F007E675D",
+            "loaderId": "552B4CFD208201D369A3323C13DBFA50",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A59158%2Fprobe",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "owner": {
+        "kind": "worker-created",
+        "runId": "78ebb6d0-0c7c-4e48-9337-334e6eb9fe3a",
+        "url": "blob:null/62362c96-499c-499e-87a1-c81c31bb9533",
+        "name": "OpenDesk-F1-78ebb6d0-0c7c-4e48-9337-334e6eb9fe3a"
+      },
+      "before": [],
+      "after": [
+        {
+          "targetId": "ED440E34683062EB3C4831F3C50B1C6C",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        }
+      ],
+      "chosenTargetId": "ED440E34683062EB3C4831F3C50B1C6C",
+      "method": "unique fresh target during private start/bound barrier; native URL/title empty",
+      "parent": {
+        "frameTree": {
+          "frame": {
+            "id": "ECBFAF33B87478BEED2ECC3F007E675D",
+            "loaderId": "552B4CFD208201D369A3323C13DBFA50",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A59158%2Fprobe",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "owner": {
+        "kind": "worker-created",
+        "runId": "1bcc765a-f6a1-42fd-a5f9-76ae83177b57",
+        "url": "blob:null/122ff1bd-3aef-41ce-976c-101b194e7c41",
+        "name": "OpenDesk-F1-1bcc765a-f6a1-42fd-a5f9-76ae83177b57"
+      },
+      "before": [],
+      "after": [
+        {
+          "targetId": "74D3C8696710D5341065F9E57E694771",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        }
+      ],
+      "chosenTargetId": "74D3C8696710D5341065F9E57E694771",
+      "method": "unique fresh target during private start/bound barrier; native URL/title empty",
+      "parent": {
+        "frameTree": {
+          "frame": {
+            "id": "ECBFAF33B87478BEED2ECC3F007E675D",
+            "loaderId": "552B4CFD208201D369A3323C13DBFA50",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A59158%2Fprobe",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "owner": {
+        "kind": "worker-created",
+        "runId": "24328fcc-9aff-4a53-a745-f26d1cd610bf",
+        "url": "blob:null/eb074bc1-d569-4b22-ae8e-b580b7f10a6b",
+        "name": "OpenDesk-F1-24328fcc-9aff-4a53-a745-f26d1cd610bf"
+      },
+      "before": [
+        {
+          "targetId": "74D3C8696710D5341065F9E57E694771",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        }
+      ],
+      "after": [
+        {
+          "targetId": "74D3C8696710D5341065F9E57E694771",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        },
+        {
+          "targetId": "27074F8A3477B6EC74368474CA10928F",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        }
+      ],
+      "chosenTargetId": "27074F8A3477B6EC74368474CA10928F",
+      "method": "unique fresh target during private start/bound barrier; native URL/title empty",
+      "parent": {
+        "frameTree": {
+          "frame": {
+            "id": "ECBFAF33B87478BEED2ECC3F007E675D",
+            "loaderId": "552B4CFD208201D369A3323C13DBFA50",
+            "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A59158%2Fprobe",
+            "domainAndRegistry": "",
+            "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "securityOriginDetails": {
+              "isLocalhost": false
+            },
+            "mimeType": "text/html",
+            "adFrameStatus": {
+              "adFrameType": "none"
+            },
+            "secureContextType": "Secure",
+            "crossOriginIsolatedContextType": "NotIsolated",
+            "gatedAPIFeatures": [
+              "SharedArrayBuffersTransferAllowed"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "sandboxIdentity": {
+    "attachment": {
+      "method": "Target.attachedToTarget",
+      "params": {
+        "sessionId": "14CAB9BB29F5DCF8C11C4C638B14459F",
+        "targetInfo": {
+          "targetId": "D3E6B3CFBB60C5CCB7A7B2E7A2A53D73",
+          "type": "iframe",
+          "title": "",
+          "url": "",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        },
+        "waitingForDebugger": false
+      },
+      "sessionId": "F0583C756D4D1A4DED9322A4B8BF7F61",
+      "observedAt": 1790970715225
+    },
+    "actual": {
+      "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+      "origin": "null",
+      "extensionAPI": false
+    },
+    "frame": {
+      "frameTree": {
+        "frame": {
+          "id": "D3E6B3CFBB60C5CCB7A7B2E7A2A53D73",
+          "parentId": "ECBFAF33B87478BEED2ECC3F007E675D",
+          "loaderId": "95BE600284C84AA99799DADE748739BD",
+          "name": "",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "domainAndRegistry": "",
+          "securityOrigin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+          "securityOriginDetails": {
+            "isLocalhost": false
+          },
+          "mimeType": "text/html",
+          "adFrameStatus": {
+            "adFrameType": "none",
+            "explanations": []
+          },
+          "secureContextType": "Secure",
+          "crossOriginIsolatedContextType": "NotIsolatedFeatureDisabled",
+          "gatedAPIFeatures": []
+        }
+      }
+    }
+  },
+  "extensionUi": {
+    "url": "chrome://extensions/?id=klkhjgdgiamblehcbkepadedldbjklan",
+    "title": "扩展程序 - OpenDesk F1 user control v2",
+    "controls": [
+      {
+        "tag": "input",
+        "id": "searchInput",
+        "text": "",
+        "value": "",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "devMode",
+        "text": "",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 718,
+          "y": 19.984375,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "enableToggle",
+        "text": "",
+        "checked": true,
+        "disabled": false,
+        "aria": "开启，扩展程序已启用",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "enableToggle",
+        "text": "",
+        "checked": true,
+        "disabled": false,
+        "aria": "开启，扩展程序已启用",
+        "box": {
+          "x": 672,
+          "y": 132,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "value": "on",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 460.109375,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "value": "on",
+        "checked": true,
+        "disabled": true,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "checked": true,
+        "disabled": true,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 509.109375,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "value": "on",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 557.625,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "value": "on",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 664.125,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "value": "on",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "checked": false,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 729.15625,
+          "w": 26,
+          "h": 16
+        }
+      },
+      {
+        "tag": "input",
+        "id": "native",
+        "text": "",
+        "value": "on",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "tag": "cr-toggle",
+        "id": "crToggle",
+        "text": "",
+        "checked": true,
+        "disabled": false,
+        "aria": null,
+        "box": {
+          "x": 672,
+          "y": 794.1875,
+          "w": 26,
+          "h": 16
+        }
+      }
+    ]
+  },
+  "scope": "F1 control prototype only; author execution, not independent acceptance or product migration",
+  "cases": [
+    {
+      "id": "F1-USER-GOTO-TITLE-URL",
+      "status": "PASS",
+      "input": {
+        "body": "await page.goto(params.url); return {title:await page.title(),url:await page.url()};",
+        "params": {
+          "url": "http://127.0.0.1:59158/form?navigation"
+        },
+        "timeout": 5000
+      },
+      "expected": "await navigation then actual title/url",
+      "actual": {
+        "runId": "ad14d7ef-7911-4a4a-ad4a-e27e60e73e74",
+        "body": "await page.goto(params.url); return {title:await page.title(),url:await page.url()};",
+        "kind": "result",
+        "value": {
+          "title": "OpenDesk real form",
+          "url": "http://127.0.0.1:59158/form?navigation"
+        },
+        "valueType": "object",
+        "valuePresent": true
+      },
+      "effect": [
+        {
+          "runId": "ad14d7ef-7911-4a4a-ad4a-e27e60e73e74",
+          "id": 1,
+          "method": "goto",
+          "args": [
+            "http://127.0.0.1:59158/form?navigation"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69"
+          }
+        },
+        {
+          "runId": "ad14d7ef-7911-4a4a-ad4a-e27e60e73e74",
+          "id": 2,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        },
+        {
+          "runId": "ad14d7ef-7911-4a4a-ad4a-e27e60e73e74",
+          "id": 3,
+          "method": "url",
+          "args": [],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "ad14d7ef-7911-4a4a-ad4a-e27e60e73e74",
+          "id": 1,
+          "kind": "reply",
+          "value": "http://127.0.0.1:59158/form?navigation"
+        },
+        {
+          "runId": "ad14d7ef-7911-4a4a-ad4a-e27e60e73e74",
+          "id": 2,
+          "kind": "reply",
+          "value": "OpenDesk real form"
+        },
+        {
+          "runId": "ad14d7ef-7911-4a4a-ad4a-e27e60e73e74",
+          "id": 3,
+          "kind": "reply",
+          "value": "http://127.0.0.1:59158/form?navigation"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-USER-TYPE-CLICK-WAIT-READ",
+      "status": "PASS",
+      "input": {
+        "body": "const type=await page.type('#name','Alice'); const click=await page.click('#submit'); await page.waitForSelector('#result'); return {type,click,text:await page.text('#result')};",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "Typed/clicked and BaseAlice after actual page effect",
+      "actual": {
+        "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+        "body": "const type=await page.type('#name','Alice'); const click=await page.click('#submit'); await page.waitForSelector('#result'); return {type,click,text:await page.text('#result')};",
+        "kind": "result",
+        "value": {
+          "type": "Typed",
+          "click": "clicked",
+          "text": "BaseAlice"
+        },
+        "valueType": "object",
+        "valuePresent": true
+      },
+      "effect": [
+        {
+          "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+          "id": 1,
+          "method": "type",
+          "args": [
+            "#name",
+            "Alice"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        },
+        {
+          "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+          "id": 2,
+          "method": "click",
+          "args": [
+            "#submit"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        },
+        {
+          "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+          "id": 3,
+          "method": "waitForSelector",
+          "args": [
+            "#result"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        },
+        {
+          "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+          "id": 4,
+          "method": "text",
+          "args": [
+            "#result"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+          "id": 1,
+          "kind": "reply",
+          "value": "Typed"
+        },
+        {
+          "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+          "id": 2,
+          "kind": "reply",
+          "value": "clicked"
+        },
+        {
+          "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+          "id": 3,
+          "kind": "reply",
+          "value": true
+        },
+        {
+          "runId": "cf751a71-9a52-4b8e-be49-0bb3deee228d",
+          "id": 4,
+          "kind": "reply",
+          "value": "BaseAlice"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-USER-THROW",
+      "status": "PASS",
+      "input": {
+        "body": "await page.title(); throw new Error(\"actual-user-error\");",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "actual user rejection",
+      "actual": {
+        "runId": "1cd38297-8dc3-4482-af2b-59ee3c2ac130",
+        "body": "await page.title(); throw new Error(\"actual-user-error\");",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "actual-user-error"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [
+        {
+          "runId": "1cd38297-8dc3-4482-af2b-59ee3c2ac130",
+          "id": 1,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "1cd38297-8dc3-4482-af2b-59ee3c2ac130",
+          "id": 1,
+          "kind": "reply",
+          "value": "OpenDesk real form"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-USER-SYNTAX",
+      "status": "PASS",
+      "input": {
+        "body": "const = ;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "SyntaxError compiled only in Worker",
+      "actual": {
+        "runId": "28a16a83-667c-42ea-a7b5-42cc88a8931d",
+        "body": "const = ;",
+        "kind": "error",
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token '='"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-ADAPTER-REJECTION",
+      "status": "PASS",
+      "input": {
+        "body": "await page.goto(params.url);",
+        "params": {
+          "url": "https://example.com/"
+        },
+        "timeout": 5000
+      },
+      "expected": "unauthorized origin rejects without navigation",
+      "actual": {
+        "runId": "dcc95134-1e79-4bef-8e2d-0cac280b01a2",
+        "body": "await page.goto(params.url);",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "Origin not authorized"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [
+        {
+          "runId": "dcc95134-1e79-4bef-8e2d-0cac280b01a2",
+          "id": 1,
+          "method": "goto",
+          "args": [
+            "https://example.com/"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RETURN-false",
+      "status": "PASS",
+      "input": {
+        "body": "return false;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "preserve false",
+      "actual": {
+        "runId": "d05e8f09-1dd8-4b82-9464-1d1b92eedf6c",
+        "body": "return false;",
+        "kind": "result",
+        "value": false,
+        "valueType": "boolean",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RETURN-0",
+      "status": "PASS",
+      "input": {
+        "body": "return 0;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "preserve 0",
+      "actual": {
+        "runId": "bf1e2747-388e-4fcc-83fe-536cf68ede2d",
+        "body": "return 0;",
+        "kind": "result",
+        "value": 0,
+        "valueType": "number",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RETURN-null",
+      "status": "PASS",
+      "input": {
+        "body": "return null;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "preserve null",
+      "actual": {
+        "runId": "05e10c81-5045-48b9-86be-6119a40bdac2",
+        "body": "return null;",
+        "kind": "result",
+        "value": null,
+        "valueType": "object",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RETURN-undefined",
+      "status": "PASS",
+      "input": {
+        "body": "return undefined;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "preserve undefined",
+      "actual": {
+        "runId": "513d9014-ef5e-48df-bfbc-914731c83bd7",
+        "body": "return undefined;",
+        "kind": "result",
+        "valueType": "undefined",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-UNSERIALIZABLE",
+      "status": "PASS",
+      "input": {
+        "body": "return ()=>7;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "typed DataCloneError",
+      "actual": {
+        "runId": "e9c7c081-2bbb-44f5-8a48-d31b96800d18",
+        "body": "return ()=>7;",
+        "kind": "error",
+        "error": {
+          "name": "DataCloneError",
+          "message": "Result cannot be serialized"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-GLOBAL-FORGERY-PATCH",
+      "status": "PASS",
+      "input": {
+        "body": "self.postMessage({kind:'result',value:'FORGED'});self.postMessage({kind:'naturalEnd',value:true});\n    Map.prototype.get=()=>{throw 7};Map.prototype.set=()=>{throw 8};Promise.prototype.then=()=>{throw 9};MessagePort.prototype.postMessage=()=>{throw 10};globalThis.structuredClone=()=>{throw 11};Object.freeze=()=>{throw 12};\n    return {title:await page.title(),extensionAPI:!!self.chrome?.runtime?.id,dom:typeof document};",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "captured private primitives survive; forged result does not settle",
+      "actual": {
+        "runId": "edfe324d-916b-4c13-a1a9-0099b787249f",
+        "body": "self.postMessage({kind:'result',value:'FORGED'});self.postMessage({kind:'naturalEnd',value:true});\n    Map.prototype.get=()=>{throw 7};Map.prototype.set=()=>{throw 8};Promise.prototype.then=()=>{throw 9};MessagePort.prototype.postMessage=()=>{throw 10};globalThis.structuredClone=()=>{throw 11};Object.freeze=()=>{throw 12};\n    return {title:await page.title(),extensionAPI:!!self.chrome?.runtime?.id,dom:typeof document};",
+        "kind": "result",
+        "value": {
+          "title": "OpenDesk real form",
+          "extensionAPI": false,
+          "dom": "undefined"
+        },
+        "valueType": "object",
+        "valuePresent": true
+      },
+      "effect": [
+        {
+          "runId": "edfe324d-916b-4c13-a1a9-0099b787249f",
+          "id": 1,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "edfe324d-916b-4c13-a1a9-0099b787249f",
+          "id": 1,
+          "kind": "reply",
+          "value": "OpenDesk real form"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-DEADLINE",
+      "status": "PASS",
+      "input": {
+        "body": "await new Promise(()=>{}); return 7;",
+        "params": {},
+        "timeout": 150
+      },
+      "expected": "timeout once and retire",
+      "actual": {
+        "runId": "0029f2d0-f78a-4944-b857-c0821d2423e2",
+        "body": "await new Promise(()=>{}); return 7;",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-PENDING-PAGE-DEADLINE",
+      "status": "PASS",
+      "input": {
+        "body": "await page.waitForSelector(\"#never-exists\"); return 7;",
+        "params": {},
+        "timeout": 150
+      },
+      "expected": "timeout cancels real page wait observer/timer",
+      "actual": {
+        "runId": "8e44a5e2-07aa-485b-958a-eb0c18c02688",
+        "body": "await page.waitForSelector(\"#never-exists\"); return 7;",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [
+        {
+          "runId": "8e44a5e2-07aa-485b-958a-eb0c18c02688",
+          "id": 1,
+          "method": "waitForSelector",
+          "args": [
+            "#never-exists"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "ADC5E7923DC4533CFE07AD5BF8E34D69",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+      "input": {
+        "body": "await page.title(); await new Promise(()=>{}); return \"late\";",
+        "attacks": [
+          "replay seq",
+          "rebinding",
+          "wrong run/epoch"
+        ]
+      },
+      "expected": "one genuine operation, rejected attacks, only stopped settlement",
+      "status": "PASS",
+      "actual": {
+        "stopped": {
+          "runId": "6cb88796-8816-496a-89f5-10ae6087f901",
+          "body": "await page.title(); await new Promise(()=>{}); return \"late\";",
+          "kind": "stopped",
+          "error": {
+            "name": "AbortError",
+            "message": "Stopped by host"
+          }
+        },
+        "replayRejects": [
+          {
+            "reason": "invalid-or-replayed-request",
+            "data": {
+              "kind": "operation",
+              "runId": "6cb88796-8816-496a-89f5-10ae6087f901",
+              "id": 1,
+              "method": "title",
+              "args": []
+            }
+          },
+          {
+            "reason": "fenced-or-wrong-run",
+            "data": {
+              "kind": "operation",
+              "runId": "forged-run",
+              "id": 1,
+              "method": "title",
+              "args": [],
+              "epoch": "forged-epoch"
+            }
+          }
+        ]
+      },
+      "effect": [
+        {
+          "runId": "6cb88796-8816-496a-89f5-10ae6087f901",
+          "id": 1,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-FAKE-PEER",
+      "input": {
+        "peer": "sibling iframe attacker.html",
+        "messages": [
+          "bind-host",
+          "forged result"
+        ]
+      },
+      "expected": "wrong source never bound; genuine REAL result",
+      "status": "PASS",
+      "actual": {
+        "fakePeer": {
+          "bound": false
+        },
+        "fakeResult": {
+          "runId": "23376d39-588e-48c0-807e-ea660af2fb32",
+          "body": "await page.title(); await new Promise(r=>setTimeout(r,250)); return \"REAL\";",
+          "kind": "result",
+          "value": "REAL",
+          "valueType": "string",
+          "valuePresent": true
+        }
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-CSP-NETWORK-ATTRIBUTION",
+      "input": {
+        "body": "const out={};try{await fetch(params.fetch);out.fetch={blocked:false};}catch(e){out.fetch={blocked:true,name:e.name,message:e.message};}\n    out.xhr=typeof XMLHttpRequest==='undefined'?{exposed:false}:await new Promise(resolve=>{const x=new XMLHttpRequest();x.open('GET',params.xhr);x.onload=()=>resolve({exposed:true,blocked:false,status:x.status});x.onerror=()=>resolve({exposed:true,blocked:true});x.send();});\n    out.ws=typeof WebSocket==='undefined'?{exposed:false}:await new Promise(resolve=>{try{const s=new WebSocket(params.ws);s.onopen=()=>{s.close();resolve({exposed:true,blocked:false});};s.onerror=()=>resolve({exposed:true,blocked:true});}catch(e){resolve({exposed:true,blocked:true,name:e.name,message:e.message});}});\n    out.script={exposed:typeof importScripts!=='undefined'};try{importScripts(params.script);out.script.blocked=false;}catch(e){out.script.blocked=true;out.script.name=e.name;out.script.message=e.message;}return out;",
+        "params": {
+          "fetch": "http://127.0.0.1:59158/probe?worker=blocked&kind=fetch&token=network-1790970716562",
+          "xhr": "http://127.0.0.1:59158/probe?worker=blocked&kind=xhr&token=network-1790970716562",
+          "ws": "ws://127.0.0.1:59158/probe?worker=blocked&kind=ws&token=network-1790970716562",
+          "script": "http://127.0.0.1:59158/probe.js?worker=blocked&token=network-1790970716562"
+        }
+      },
+      "expected": "real connect-src/script-src denial, CORS-reachable HTTP/WS positive controls before/after, zero forbidden server hits",
+      "status": "PASS",
+      "actual": {
+        "networkResult": {
+          "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+          "body": "const out={};try{await fetch(params.fetch);out.fetch={blocked:false};}catch(e){out.fetch={blocked:true,name:e.name,message:e.message};}\n    out.xhr=typeof XMLHttpRequest==='undefined'?{exposed:false}:await new Promise(resolve=>{const x=new XMLHttpRequest();x.open('GET',params.xhr);x.onload=()=>resolve({exposed:true,blocked:false,status:x.status});x.onerror=()=>resolve({exposed:true,blocked:true});x.send();});\n    out.ws=typeof WebSocket==='undefined'?{exposed:false}:await new Promise(resolve=>{try{const s=new WebSocket(params.ws);s.onopen=()=>{s.close();resolve({exposed:true,blocked:false});};s.onerror=()=>resolve({exposed:true,blocked:true});}catch(e){resolve({exposed:true,blocked:true,name:e.name,message:e.message});}});\n    out.script={exposed:typeof importScripts!=='undefined'};try{importScripts(params.script);out.script.blocked=false;}catch(e){out.script.blocked=true;out.script.name=e.name;out.script.message=e.message;}return out;",
+          "kind": "result",
+          "value": {
+            "fetch": {
+              "blocked": true,
+              "name": "TypeError",
+              "message": "Failed to fetch"
+            },
+            "xhr": {
+              "exposed": true,
+              "blocked": true
+            },
+            "ws": {
+              "exposed": true,
+              "blocked": true
+            },
+            "script": {
+              "exposed": true,
+              "blocked": true,
+              "name": "NetworkError",
+              "message": "Failed to execute 'importScripts' on 'WorkerGlobalScope': The script at 'http://127.0.0.1:59158/probe.js?worker=blocked&token=network-1790970716562' failed to load."
+            }
+          },
+          "valueType": "object",
+          "valuePresent": true
+        },
+        "networkOwner": {
+          "kind": "worker-created",
+          "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+          "url": "blob:null/d2957512-4db4-4692-b77d-8dc3663b22c4",
+          "name": "OpenDesk-F1-e94f0445-a180-4a42-bea6-6eb7d7d83e5e"
+        },
+        "networkTarget": {
+          "targetId": "F8C1661EC06794BA8E9B705A9CAD1A1D",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        },
+        "networkSession": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+        "positiveBefore": [
+          {
+            "url": "http://127.0.0.1:59158/probe?positive=extension&kind=fetch&token=network-1790970716562",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "http://127.0.0.1:59158/probe?positive=extension&kind=xhr&token=network-1790970716562",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "ws://127.0.0.1:59158/probe?positive=extension&kind=ws&token=network-1790970716562",
+            "opened": true
+          },
+          {
+            "url": "http://127.0.0.1:59158/probe.js?positive=extension&token=network-1790970716562",
+            "status": 200,
+            "body": "self.__f1NetworkImported=true;"
+          }
+        ],
+        "positiveAfter": [
+          {
+            "url": "http://127.0.0.1:59158/probe?positive=extension&kind=fetch&token=network-1790970716562",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "http://127.0.0.1:59158/probe?positive=extension&kind=xhr&token=network-1790970716562",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "ws://127.0.0.1:59158/probe?positive=extension&kind=ws&token=network-1790970716562",
+            "opened": true
+          },
+          {
+            "url": "http://127.0.0.1:59158/probe.js?positive=extension&token=network-1790970716562",
+            "status": 200,
+            "body": "self.__f1NetworkImported=true;"
+          }
+        ],
+        "denialEvidence": [
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "security",
+                "level": "error",
+                "text": "Refused to connect to 'http://127.0.0.1:59158/probe?worker=blocked&kind=fetch&token=network-1790970716562' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+                "timestamp": 1790970716602.493,
+                "lineNumber": 3,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 3,
+                      "columnNumber": 23
+                    },
+                    {
+                      "functionName": "",
+                      "scriptId": "3",
+                      "url": "blob:null/d2957512-4db4-4692-b77d-8dc3663b22c4",
+                      "lineNumber": 52,
+                      "columnNumber": 13
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716602
+          },
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "security",
+                "level": "error",
+                "text": "Refused to connect to 'http://127.0.0.1:59158/probe?worker=blocked&kind=fetch&token=network-1790970716562' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+                "timestamp": 1790970716602.689,
+                "lineNumber": 3,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 3,
+                      "columnNumber": 23
+                    },
+                    {
+                      "functionName": "",
+                      "scriptId": "3",
+                      "url": "blob:null/d2957512-4db4-4692-b77d-8dc3663b22c4",
+                      "lineNumber": 52,
+                      "columnNumber": 13
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716602
+          },
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "javascript",
+                "level": "error",
+                "text": "Fetch API cannot load http://127.0.0.1:59158/probe?worker=blocked&kind=fetch&token=network-1790970716562. Refused to connect because it violates the document's Content Security Policy.",
+                "timestamp": 1790970716602.766,
+                "lineNumber": 3,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 3,
+                      "columnNumber": 23
+                    },
+                    {
+                      "functionName": "",
+                      "scriptId": "3",
+                      "url": "blob:null/d2957512-4db4-4692-b77d-8dc3663b22c4",
+                      "lineNumber": 52,
+                      "columnNumber": 13
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716603
+          },
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "security",
+                "level": "error",
+                "text": "Refused to connect to 'http://127.0.0.1:59158/probe?worker=blocked&kind=xhr&token=network-1790970716562' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+                "timestamp": 1790970716603.431,
+                "lineNumber": 4,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "out.xhr",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 4,
+                      "columnNumber": 266
+                    },
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 4,
+                      "columnNumber": 70
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716603
+          },
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "security",
+                "level": "error",
+                "text": "Refused to connect to 'http://127.0.0.1:59158/probe?worker=blocked&kind=xhr&token=network-1790970716562' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+                "timestamp": 1790970716603.485,
+                "lineNumber": 4,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "out.xhr",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 4,
+                      "columnNumber": 266
+                    },
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 4,
+                      "columnNumber": 70
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716603
+          },
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "security",
+                "level": "error",
+                "text": "Refused to connect to 'ws://127.0.0.1:59158/probe?worker=blocked&kind=ws&token=network-1790970716562' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+                "timestamp": 1790970716603.92,
+                "lineNumber": 5,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "out.ws",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 5,
+                      "columnNumber": 98
+                    },
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 5,
+                      "columnNumber": 64
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716604
+          },
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "security",
+                "level": "error",
+                "text": "Refused to connect to 'ws://127.0.0.1:59158/probe?worker=blocked&kind=ws&token=network-1790970716562' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+                "timestamp": 1790970716603.959,
+                "lineNumber": 5,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "out.ws",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 5,
+                      "columnNumber": 98
+                    },
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 5,
+                      "columnNumber": 64
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716604
+          },
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "security",
+                "level": "error",
+                "text": "Refused to load the script 'http://127.0.0.1:59158/probe.js?worker=blocked&token=network-1790970716562' because it violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.\n",
+                "timestamp": 1790970716604.061,
+                "lineNumber": 6,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 6,
+                      "columnNumber": 64
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716604
+          },
+          {
+            "method": "Log.entryAdded",
+            "params": {
+              "entry": {
+                "source": "security",
+                "level": "error",
+                "text": "Refused to load the script 'http://127.0.0.1:59158/probe.js?worker=blocked&token=network-1790970716562' because it violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.\n",
+                "timestamp": 1790970716604.107,
+                "lineNumber": 6,
+                "stackTrace": {
+                  "callFrames": [
+                    {
+                      "functionName": "eval",
+                      "scriptId": "4",
+                      "url": "",
+                      "lineNumber": 6,
+                      "columnNumber": 64
+                    }
+                  ]
+                }
+              }
+            },
+            "sessionId": "D64823D2B96AEDFD7EBA9B22F5DC1FEB",
+            "observedAt": 1790970716604
+          }
+        ],
+        "workerPolicyEvents": [
+          {
+            "kind": "policy",
+            "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+            "directive": "connect-src",
+            "blockedURI": "http://127.0.0.1:59158/probe?worker=blocked&kind=fetch&token=network-1790970716562",
+            "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          {
+            "kind": "policy",
+            "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+            "directive": "connect-src",
+            "blockedURI": "http://127.0.0.1:59158/probe?worker=blocked&kind=fetch&token=network-1790970716562",
+            "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          {
+            "kind": "policy",
+            "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+            "directive": "connect-src",
+            "blockedURI": "http://127.0.0.1:59158/probe?worker=blocked&kind=xhr&token=network-1790970716562",
+            "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          {
+            "kind": "policy",
+            "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+            "directive": "connect-src",
+            "blockedURI": "http://127.0.0.1:59158/probe?worker=blocked&kind=xhr&token=network-1790970716562",
+            "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          {
+            "kind": "policy",
+            "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+            "directive": "connect-src",
+            "blockedURI": "ws://127.0.0.1:59158/probe?worker=blocked&kind=ws&token=network-1790970716562",
+            "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          {
+            "kind": "policy",
+            "runId": "e94f0445-a180-4a42-bea6-6eb7d7d83e5e",
+            "directive": "connect-src",
+            "blockedURI": "ws://127.0.0.1:59158/probe?worker=blocked&kind=ws&token=network-1790970716562",
+            "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          }
+        ],
+        "serverHits": [
+          {
+            "url": "/probe?positive=extension&kind=fetch&token=network-1790970716562",
+            "method": "GET",
+            "origin": null,
+            "at": 1790970716565,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=xhr&token=network-1790970716562",
+            "method": "GET",
+            "origin": null,
+            "at": 1790970716566,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=ws&token=network-1790970716562",
+            "method": "GET",
+            "origin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "at": 1790970716568,
+            "kind": "websocket-upgrade"
+          },
+          {
+            "url": "/probe.js?positive=extension&token=network-1790970716562",
+            "method": "GET",
+            "origin": null,
+            "at": 1790970716570,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=fetch&token=network-1790970716562",
+            "method": "GET",
+            "origin": null,
+            "at": 1790970716712,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=xhr&token=network-1790970716562",
+            "method": "GET",
+            "origin": null,
+            "at": 1790970716713,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=ws&token=network-1790970716562",
+            "method": "GET",
+            "origin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "at": 1790970716715,
+            "kind": "websocket-upgrade"
+          },
+          {
+            "url": "/probe.js?positive=extension&token=network-1790970716562",
+            "method": "GET",
+            "origin": null,
+            "at": 1790970716716,
+            "kind": "http"
+          }
+        ]
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-INFINITE-LOOP-STOP",
+      "input": {
+        "body": "await page.mark(\"loop-entered\"); while(true){}",
+        "trigger": "stop",
+        "deadline": 8000
+      },
+      "expected": "unattached exact run Worker destroyed within 2s; active CPU then quiescence; fence and no late operation; responsive surviving host",
+      "status": "FAIL",
+      "actual": {
+        "loopResult": {
+          "value": {
+            "runId": "78ebb6d0-0c7c-4e48-9337-334e6eb9fe3a",
+            "body": "await page.mark(\"loop-entered\"); while(true){}",
+            "kind": "stopped",
+            "error": {
+              "name": "AbortError",
+              "message": "Stopped by host"
+            }
+          }
+        },
+        "owner": {
+          "kind": "worker-created",
+          "runId": "78ebb6d0-0c7c-4e48-9337-334e6eb9fe3a",
+          "url": "blob:null/62362c96-499c-499e-87a1-c81c31bb9533",
+          "name": "OpenDesk-F1-78ebb6d0-0c7c-4e48-9337-334e6eb9fe3a"
+        },
+        "loopTarget": {
+          "targetId": "ED440E34683062EB3C4831F3C50B1C6C",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        },
+        "after": [],
+        "destroyed": {
+          "method": "Target.targetDestroyed",
+          "params": {
+            "targetId": "ED440E34683062EB3C4831F3C50B1C6C"
+          },
+          "observedAt": 1790970719102
+        },
+        "retirement": {
+          "kind": "retired",
+          "runId": "78ebb6d0-0c7c-4e48-9337-334e6eb9fe3a",
+          "reason": "stopped",
+          "revokedURL": "blob:null/62362c96-499c-499e-87a1-c81c31bb9533"
+        },
+        "removalMilliseconds": 2016,
+        "loopCPU": 0.37768299999999994,
+        "afterCPU": 0.00015099999999999836,
+        "cpuBefore": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.673498
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 0.123431
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.077819
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.166142
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.04364
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.056853
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.256981
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.097878
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036692
+            }
+          ]
+        },
+        "cpuLoop": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.778892
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 0.499482
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.078006
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.167201
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.043777
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057102
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.25786
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.099398
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036842
+            }
+          ]
+        },
+        "cpuStop": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.816868
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042276
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 2.502666
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.078427
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.17036
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.043854
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057311
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.264198
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.103367
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036882
+            }
+          ]
+        },
+        "cpuAfter": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.818201
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042276
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 2.502666
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.078578
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.17036
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.043854
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057311
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.264929
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.103676
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036882
+            }
+          ]
+        },
+        "hostResponsive": true
+      },
+      "effect": [
+        {
+          "runId": "78ebb6d0-0c7c-4e48-9337-334e6eb9fe3a",
+          "id": 1,
+          "method": "mark",
+          "args": [
+            "loop-entered"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-INFINITE-LOOP-DEADLINE",
+      "input": {
+        "body": "await page.mark(\"loop-entered\"); while(true){}",
+        "trigger": "deadline",
+        "deadline": 1000
+      },
+      "expected": "unattached exact run Worker destroyed within 2s; active CPU then quiescence; fence and no late operation; responsive surviving host",
+      "status": "FAIL",
+      "actual": {
+        "loopResult": {
+          "value": {
+            "runId": "1bcc765a-f6a1-42fd-a5f9-76ae83177b57",
+            "body": "await page.mark(\"loop-entered\"); while(true){}",
+            "kind": "timeout",
+            "error": {
+              "name": "TimeoutError",
+              "message": "Run deadline exceeded"
+            }
+          }
+        },
+        "owner": {
+          "kind": "worker-created",
+          "runId": "1bcc765a-f6a1-42fd-a5f9-76ae83177b57",
+          "url": "blob:null/122ff1bd-3aef-41ce-976c-101b194e7c41",
+          "name": "OpenDesk-F1-1bcc765a-f6a1-42fd-a5f9-76ae83177b57"
+        },
+        "loopTarget": {
+          "targetId": "74D3C8696710D5341065F9E57E694771",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        },
+        "after": [
+          {
+            "targetId": "74D3C8696710D5341065F9E57E694771",
+            "type": "worker",
+            "title": "",
+            "url": "",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+          }
+        ],
+        "retirement": {
+          "kind": "retired",
+          "runId": "1bcc765a-f6a1-42fd-a5f9-76ae83177b57",
+          "reason": "timeout",
+          "revokedURL": "blob:null/122ff1bd-3aef-41ce-976c-101b194e7c41"
+        },
+        "removalMilliseconds": null,
+        "loopCPU": 0.3746929999999999,
+        "afterCPU": 0.34964000000000073,
+        "cpuBefore": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.820365
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042276
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 2.502666
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.07884
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.172
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.043854
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057311
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.264929
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.103676
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036882
+            }
+          ]
+        },
+        "cpuLoop": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.825916
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042276
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 2.876855
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.07884
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.172504
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.043854
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057311
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.265243
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.1046
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036882
+            }
+          ]
+        },
+        "cpuStop": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.845628
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042465
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 5.080658
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.079621
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.175997
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.044081
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057534
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.273908
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.105644
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036912
+            }
+          ]
+        },
+        "cpuAfter": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.846261
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042503
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 5.430221
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.079621
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.176036
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.044081
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057534
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.274405
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.105799
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036912
+            }
+          ]
+        },
+        "hostResponsive": true
+      },
+      "effect": [
+        {
+          "runId": "1bcc765a-f6a1-42fd-a5f9-76ae83177b57",
+          "id": 1,
+          "method": "mark",
+          "args": [
+            "loop-entered"
+          ],
+          "targetBefore": {
+            "tabId": 1315265874,
+            "documentId": "FE646FFF2FBEEFAFB34E1C766FF92835"
+          }
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-INFINITE-LOOP-HOST-CLOSE",
+      "input": {
+        "body": "await page.mark(\"loop-entered\"); while(true){}",
+        "trigger": "host-close",
+        "deadline": 8000
+      },
+      "expected": "unattached exact run Worker destroyed within 2s; active CPU then quiescence; fence and no late operation; responsive surviving host",
+      "status": "PASS",
+      "actual": {
+        "loopResult": {
+          "hostLost": {
+            "message": "Owned CDP target detached: ECBFAF33B87478BEED2ECC3F007E675D"
+          }
+        },
+        "owner": {
+          "kind": "worker-created",
+          "runId": "24328fcc-9aff-4a53-a745-f26d1cd610bf",
+          "url": "blob:null/eb074bc1-d569-4b22-ae8e-b580b7f10a6b",
+          "name": "OpenDesk-F1-24328fcc-9aff-4a53-a745-f26d1cd610bf"
+        },
+        "loopTarget": {
+          "targetId": "27074F8A3477B6EC74368474CA10928F",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DFC498F5A088A8268DDFA78BD513AC32"
+        },
+        "after": [],
+        "destroyed": {
+          "method": "Target.targetDestroyed",
+          "params": {
+            "targetId": "27074F8A3477B6EC74368474CA10928F"
+          },
+          "observedAt": 1790970722796
+        },
+        "removalMilliseconds": 14,
+        "loopCPU": 0.4455830000000003,
+        "afterCPU": 0.0028980000000000117,
+        "cpuBefore": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.847671
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042503
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 5.434207
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.079892
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.177042
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.044081
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057534
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.274405
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.105799
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036912
+            }
+          ]
+        },
+        "cpuLoop": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.850668
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042503
+            },
+            {
+              "type": "renderer",
+              "id": 59422,
+              "cpuTime": 5.879245
+            },
+            {
+              "type": "renderer",
+              "id": 59421,
+              "cpuTime": 0.079892
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.177587
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.044081
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057534
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.275371
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.106126
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.036912
+            }
+          ]
+        },
+        "cpuStop": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.869852
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042683
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.180108
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.044247
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.057969
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.277542
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.10772
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.037165
+            }
+          ]
+        },
+        "cpuAfter": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 59406,
+              "cpuTime": 0.894266
+            },
+            {
+              "type": "renderer",
+              "id": 59427,
+              "cpuTime": 0.042683
+            },
+            {
+              "type": "renderer",
+              "id": 59420,
+              "cpuTime": 0.182952
+            },
+            {
+              "type": "renderer",
+              "id": 59423,
+              "cpuTime": 0.044247
+            },
+            {
+              "type": "renderer",
+              "id": 59419,
+              "cpuTime": 0.058023
+            },
+            {
+              "type": "GPU",
+              "id": 59414,
+              "cpuTime": 0.29765
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 59415,
+              "cpuTime": 0.108017
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 59416,
+              "cpuTime": 0.037165
+            }
+          ]
+        },
+        "hostResponsive": true
+      },
+      "effect": [],
+      "cleanup": {
+        "hostTargetDestroyed": true
+      }
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-0",
+      "status": "PASS",
+      "input": {
+        "body": "return 0;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "zero result and resources retire",
+      "actual": {
+        "runId": "5c0ff5d6-001c-4195-a7bb-b741feec9b6e",
+        "body": "return 0;",
+        "kind": "result",
+        "value": 0,
+        "valueType": "number",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-0",
+      "status": "PASS",
+      "input": {
+        "body": "throw new Error(\"repeat\");",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "error and resources retire",
+      "actual": {
+        "runId": "42874152-79e2-4aba-a456-25ead8e9ce60",
+        "body": "throw new Error(\"repeat\");",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "repeat"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-0",
+      "status": "PASS",
+      "input": {
+        "body": "await page.waitForSelector(\"#never-0\");",
+        "params": {},
+        "timeout": 80
+      },
+      "expected": "deadline and actual observer cleanup",
+      "actual": {
+        "runId": "b27f75ea-1a98-4580-a9ee-9b3f1ffc7885",
+        "body": "await page.waitForSelector(\"#never-0\");",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [
+        {
+          "runId": "b27f75ea-1a98-4580-a9ee-9b3f1ffc7885",
+          "id": 1,
+          "method": "waitForSelector",
+          "args": [
+            "#never-0"
+          ],
+          "targetBefore": {
+            "tabId": 1315265878,
+            "documentId": "328B67F3100FFA86427BD0FD630E9F7D"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-0",
+      "input": {
+        "body": "await page.waitForSelector(\"#cancel-0\");",
+        "trigger": "stop"
+      },
+      "expected": "stopped, no pending/timer/page observer",
+      "status": "PASS",
+      "actual": {
+        "runId": "297145f5-b445-4479-b966-4b2a36843bed",
+        "body": "await page.waitForSelector(\"#cancel-0\");",
+        "kind": "stopped",
+        "error": {
+          "name": "AbortError",
+          "message": "Stopped by host"
+        }
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-1",
+      "status": "PASS",
+      "input": {
+        "body": "return 0;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "zero result and resources retire",
+      "actual": {
+        "runId": "7b71bcd2-036b-4848-8c49-6566cf5924e0",
+        "body": "return 0;",
+        "kind": "result",
+        "value": 0,
+        "valueType": "number",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-1",
+      "status": "PASS",
+      "input": {
+        "body": "throw new Error(\"repeat\");",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "error and resources retire",
+      "actual": {
+        "runId": "f6b61da2-c6b9-4a7b-af67-e5767fe7306a",
+        "body": "throw new Error(\"repeat\");",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "repeat"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-1",
+      "status": "PASS",
+      "input": {
+        "body": "await page.waitForSelector(\"#never-1\");",
+        "params": {},
+        "timeout": 80
+      },
+      "expected": "deadline and actual observer cleanup",
+      "actual": {
+        "runId": "f6972d22-72ad-4980-8666-bc2b314a9eb1",
+        "body": "await page.waitForSelector(\"#never-1\");",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [
+        {
+          "runId": "f6972d22-72ad-4980-8666-bc2b314a9eb1",
+          "id": 1,
+          "method": "waitForSelector",
+          "args": [
+            "#never-1"
+          ],
+          "targetBefore": {
+            "tabId": 1315265878,
+            "documentId": "328B67F3100FFA86427BD0FD630E9F7D"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-1",
+      "input": {
+        "body": "await page.waitForSelector(\"#cancel-1\");",
+        "trigger": "stop"
+      },
+      "expected": "stopped, no pending/timer/page observer",
+      "status": "PASS",
+      "actual": {
+        "runId": "a2bcf1a9-b087-4c33-82c4-b4a5c63e880f",
+        "body": "await page.waitForSelector(\"#cancel-1\");",
+        "kind": "stopped",
+        "error": {
+          "name": "AbortError",
+          "message": "Stopped by host"
+        }
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-2",
+      "status": "PASS",
+      "input": {
+        "body": "return 0;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "zero result and resources retire",
+      "actual": {
+        "runId": "f779da6f-6ce4-461b-bd14-3fb059baa7c2",
+        "body": "return 0;",
+        "kind": "result",
+        "value": 0,
+        "valueType": "number",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-2",
+      "status": "PASS",
+      "input": {
+        "body": "throw new Error(\"repeat\");",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "error and resources retire",
+      "actual": {
+        "runId": "3834973e-8136-4782-a2f4-5cda565b75fe",
+        "body": "throw new Error(\"repeat\");",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "repeat"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-2",
+      "status": "PASS",
+      "input": {
+        "body": "await page.waitForSelector(\"#never-2\");",
+        "params": {},
+        "timeout": 80
+      },
+      "expected": "deadline and actual observer cleanup",
+      "actual": {
+        "runId": "cd1ec791-b679-4e42-943d-bd3dd04d3308",
+        "body": "await page.waitForSelector(\"#never-2\");",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [
+        {
+          "runId": "cd1ec791-b679-4e42-943d-bd3dd04d3308",
+          "id": 1,
+          "method": "waitForSelector",
+          "args": [
+            "#never-2"
+          ],
+          "targetBefore": {
+            "tabId": 1315265878,
+            "documentId": "328B67F3100FFA86427BD0FD630E9F7D"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-2",
+      "input": {
+        "body": "await page.waitForSelector(\"#cancel-2\");",
+        "trigger": "stop"
+      },
+      "expected": "stopped, no pending/timer/page observer",
+      "status": "PASS",
+      "actual": {
+        "runId": "03536d58-c573-411f-b93b-5f9ce8f3ecfe",
+        "body": "await page.waitForSelector(\"#cancel-2\");",
+        "kind": "stopped",
+        "error": {
+          "name": "AbortError",
+          "message": "Stopped by host"
+        }
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-3",
+      "status": "PASS",
+      "input": {
+        "body": "return 0;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "zero result and resources retire",
+      "actual": {
+        "runId": "c0364248-87e0-4853-8316-fdd6359ac2f5",
+        "body": "return 0;",
+        "kind": "result",
+        "value": 0,
+        "valueType": "number",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-3",
+      "status": "PASS",
+      "input": {
+        "body": "throw new Error(\"repeat\");",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "error and resources retire",
+      "actual": {
+        "runId": "6c2b85cf-0e2a-4759-9b4b-1705661a43ad",
+        "body": "throw new Error(\"repeat\");",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "repeat"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-3",
+      "status": "PASS",
+      "input": {
+        "body": "await page.waitForSelector(\"#never-3\");",
+        "params": {},
+        "timeout": 80
+      },
+      "expected": "deadline and actual observer cleanup",
+      "actual": {
+        "runId": "68e5ccc8-6ba8-4456-b11d-855d5b66653e",
+        "body": "await page.waitForSelector(\"#never-3\");",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [
+        {
+          "runId": "68e5ccc8-6ba8-4456-b11d-855d5b66653e",
+          "id": 1,
+          "method": "waitForSelector",
+          "args": [
+            "#never-3"
+          ],
+          "targetBefore": {
+            "tabId": 1315265878,
+            "documentId": "328B67F3100FFA86427BD0FD630E9F7D"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-3",
+      "input": {
+        "body": "await page.waitForSelector(\"#cancel-3\");",
+        "trigger": "stop"
+      },
+      "expected": "stopped, no pending/timer/page observer",
+      "status": "PASS",
+      "actual": {
+        "runId": "0c59dc6a-a0ae-4848-bd5d-509bbe9600f5",
+        "body": "await page.waitForSelector(\"#cancel-3\");",
+        "kind": "stopped",
+        "error": {
+          "name": "AbortError",
+          "message": "Stopped by host"
+        }
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-4",
+      "status": "PASS",
+      "input": {
+        "body": "return 0;",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "zero result and resources retire",
+      "actual": {
+        "runId": "00575314-91fc-42a3-9fbe-1714081ef63c",
+        "body": "return 0;",
+        "kind": "result",
+        "value": 0,
+        "valueType": "number",
+        "valuePresent": true
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-4",
+      "status": "PASS",
+      "input": {
+        "body": "throw new Error(\"repeat\");",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "error and resources retire",
+      "actual": {
+        "runId": "d6ccb70a-a0d9-45dd-87b7-6338f7a441b6",
+        "body": "throw new Error(\"repeat\");",
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "repeat"
+        },
+        "valueType": "undefined",
+        "valuePresent": false
+      },
+      "effect": [],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-4",
+      "status": "PASS",
+      "input": {
+        "body": "await page.waitForSelector(\"#never-4\");",
+        "params": {},
+        "timeout": 80
+      },
+      "expected": "deadline and actual observer cleanup",
+      "actual": {
+        "runId": "40416862-b031-4f54-b831-d6e895165b14",
+        "body": "await page.waitForSelector(\"#never-4\");",
+        "kind": "timeout",
+        "error": {
+          "name": "TimeoutError",
+          "message": "Run deadline exceeded"
+        }
+      },
+      "effect": [
+        {
+          "runId": "40416862-b031-4f54-b831-d6e895165b14",
+          "id": 1,
+          "method": "waitForSelector",
+          "args": [
+            "#never-4"
+          ],
+          "targetBefore": {
+            "tabId": 1315265878,
+            "documentId": "328B67F3100FFA86427BD0FD630E9F7D"
+          }
+        }
+      ],
+      "delivery": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-4",
+      "input": {
+        "body": "await page.waitForSelector(\"#cancel-4\");",
+        "trigger": "stop"
+      },
+      "expected": "stopped, no pending/timer/page observer",
+      "status": "PASS",
+      "actual": {
+        "runId": "b46e8759-bd3d-4c73-a58d-ec55a04864fc",
+        "body": "await page.waitForSelector(\"#cancel-4\");",
+        "kind": "stopped",
+        "error": {
+          "name": "AbortError",
+          "message": "Stopped by host"
+        }
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    },
+    {
+      "id": "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+      "input": {
+        "rounds": {
+          "success": 5,
+          "throw": 5,
+          "timeout": 5,
+          "cancel": 5
+        },
+        "oracle": "same worker-src allows fixed harness ready before revocation; actual revoked URL Worker load fails"
+      },
+      "expected": "exact browser target baseline; actual pending/page observer/timer/port/Blob baseline; later valid run",
+      "status": "PASS",
+      "actual": {
+        "baseline": [],
+        "finalTargets": [],
+        "resourceBaseline": {
+          "pending": 0,
+          "timer": 0,
+          "port": 1,
+          "frame": 1,
+          "pageWaits": 0,
+          "resourceReplies": 0
+        },
+        "finalResources": {
+          "pending": 0,
+          "timer": 0,
+          "port": 1,
+          "frame": 1,
+          "pageWaits": 0,
+          "resourceReplies": 0
+        },
+        "probe": {
+          "kind": "resource-observation",
+          "requestId": "d0dc556f-df81-489f-be27-641ab40a0cb3",
+          "positive": {
+            "url": "blob:null/3757e726-8e92-47a0-ae5d-abe34e353e8b",
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            }
+          },
+          "negative": [
+            {
+              "url": "blob:null/cdfe1a6a-cb5d-4aa2-8136-eaafa1d3b1b9",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/cdfe1a6a-cb5d-4aa2-8136-eaafa1d3b1b9' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/34dd262d-bdf7-497e-a7f4-d2be22b2884d",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/34dd262d-bdf7-497e-a7f4-d2be22b2884d' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/ce396db9-4eb1-4465-93bd-d9d1187540a6",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/ce396db9-4eb1-4465-93bd-d9d1187540a6' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/337df960-a47e-420e-8089-de1a9d509a81",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/337df960-a47e-420e-8089-de1a9d509a81' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/0c2179f6-3277-4f3a-ae63-c44c7bb9a77b",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/0c2179f6-3277-4f3a-ae63-c44c7bb9a77b' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/91413034-473e-4778-b28e-4c394bab6e2b",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/91413034-473e-4778-b28e-4c394bab6e2b' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/09c955c7-9cf6-4f4e-a455-65b645909f8c",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/09c955c7-9cf6-4f4e-a455-65b645909f8c' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/d8d6ced8-c5c5-4429-8060-c3365abb881a",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/d8d6ced8-c5c5-4429-8060-c3365abb881a' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/48214278-099c-4eaf-83d7-46bfbeddea90",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/48214278-099c-4eaf-83d7-46bfbeddea90' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/7fce5baa-b6e4-42af-864e-af73daa58c60",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/7fce5baa-b6e4-42af-864e-af73daa58c60' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/6d7eb996-fee7-4569-8d22-389fb0ef56b7",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/6d7eb996-fee7-4569-8d22-389fb0ef56b7' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/beef7e02-26af-41ce-9b41-b74d4d546ea5",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/beef7e02-26af-41ce-9b41-b74d4d546ea5' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/9a7dcce7-cd09-4c9c-bbe8-511b5cf489e5",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/9a7dcce7-cd09-4c9c-bbe8-511b5cf489e5' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/4bd354e8-f725-46e2-b80a-8111f5942932",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/4bd354e8-f725-46e2-b80a-8111f5942932' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/5a6c9da8-b496-4b76-87ce-494a1d4c5069",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/5a6c9da8-b496-4b76-87ce-494a1d4c5069' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/9d83860e-220d-45fc-bd2b-0fe7b274b728",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/9d83860e-220d-45fc-bd2b-0fe7b274b728' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/92872aae-b030-45fd-83a1-69c1d17eca17",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/92872aae-b030-45fd-83a1-69c1d17eca17' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/118582b5-de22-4afb-88ed-9beffebc86b4",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/118582b5-de22-4afb-88ed-9beffebc86b4' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/80fd871b-00c9-4080-b036-daab750488c8",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/80fd871b-00c9-4080-b036-daab750488c8' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/e64e1774-1009-4e23-b35b-83f82f2df7ff",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/e64e1774-1009-4e23-b35b-83f82f2df7ff' cannot be accessed from origin 'null'."
+            },
+            {
+              "url": "blob:null/3757e726-8e92-47a0-ae5d-abe34e353e8b",
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/3757e726-8e92-47a0-ae5d-abe34e353e8b' cannot be accessed from origin 'null'."
+            }
+          ],
+          "actual": {
+            "worker": 0,
+            "perRunPorts": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "F1-AFTER-CLEANUP-VALID",
+      "status": "PASS",
+      "input": {
+        "body": "return await page.title();",
+        "params": {},
+        "timeout": 5000
+      },
+      "expected": "later genuine run works",
+      "actual": {
+        "runId": "c3dd9065-41af-4dfc-98c5-7c7df74b4007",
+        "body": "return await page.title();",
+        "kind": "result",
+        "value": "OpenDesk real form",
+        "valueType": "string",
+        "valuePresent": true
+      },
+      "effect": [
+        {
+          "runId": "c3dd9065-41af-4dfc-98c5-7c7df74b4007",
+          "id": 1,
+          "method": "title",
+          "args": [],
+          "targetBefore": {
+            "tabId": 1315265878,
+            "documentId": "328B67F3100FFA86427BD0FD630E9F7D"
+          }
+        }
+      ],
+      "delivery": [
+        {
+          "runId": "c3dd9065-41af-4dfc-98c5-7c7df74b4007",
+          "id": 1,
+          "kind": "reply",
+          "value": "OpenDesk real form"
+        }
+      ],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 1,
+        "frame": 1,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      },
+      "documentId": "328B67F3100FFA86427BD0FD630E9F7D",
+      "world": "ISOLATED fixed scripting adapter"
+    },
+    {
+      "id": "F1-SW-HOST-RECONNECT",
+      "input": {
+        "sequence": [
+          "stop exact SW version",
+          "wake through genuine runtime message",
+          "dispose private host port",
+          "navigate fresh extension host and bind fresh channel"
+        ]
+      },
+      "expected": "SW epoch changes while control Worker survives; old resources released; new verified host epoch and genuine run",
+      "status": "PASS",
+      "actual": {
+        "swVersion": {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1790969558,
+          "scriptResponseTime": 0,
+          "controlledClients": [
+            "FC048197EE5AAA96C88B945DD7503AE5"
+          ],
+          "targetId": "1315E663E5C8EA61E03D89BB59861BF2"
+        },
+        "swBefore": {
+          "id": "klkhjgdgiamblehcbkepadedldbjklan",
+          "epoch": "fca5791a-73ab-4060-a573-1f76f31b4ee0"
+        },
+        "swAfter": {
+          "id": "klkhjgdgiamblehcbkepadedldbjklan",
+          "epoch": "55bd3008-a5be-4b4c-8342-a9e651d84343"
+        },
+        "controllerResult": {
+          "runId": "a1d9071d-4667-4687-ac16-d6aca8fd47c2",
+          "body": "await page.title(); await new Promise(r=>setTimeout(r,600)); return \"controller-survived-SW\";",
+          "kind": "result",
+          "value": "controller-survived-SW",
+          "valueType": "string",
+          "valuePresent": true
+        },
+        "oldHostEpoch": "a19dfab3-2c04-4f66-b6d3-073d90c31d71",
+        "newHostEpoch": "2c7201b9-1853-45e4-966e-108c539c73aa",
+        "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "reconnectResult": {
+          "runId": "2d896132-4250-4272-af41-c5e5c7d0fbce",
+          "body": "return await page.title();",
+          "kind": "result",
+          "value": "OpenDesk real form",
+          "valueType": "string",
+          "valuePresent": true
+        }
+      },
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 0,
+        "frame": 0,
+        "pageWaits": 0,
+        "resourceReplies": 0
+      }
+    }
+  ],
+  "initialized": {
+    "sandbox": {
+      "kind": "sandbox-ready",
+      "origin": "null",
+      "extensionAPI": false,
+      "parentAccess": false
+    },
+    "positiveNetwork": "reachable",
+    "tabId": 1315265880,
+    "documentId": "68084A9226B2109E58F86355EC313166",
+    "hostEpoch": "2c7201b9-1853-45e4-966e-108c539c73aa",
+    "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+    "manifest": {
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+      },
+      "host_permissions": [
+        "http://127.0.0.1/*"
+      ],
+      "manifest_version": 3,
+      "minimum_chrome_version": "138",
+      "name": "OpenDesk F1 user control v2",
+      "permissions": [
+        "scripting",
+        "tabs"
+      ],
+      "sandbox": {
+        "pages": [
+          "sandbox.html"
+        ]
+      },
+      "version": "0.0.2"
+    },
+    "world": "ISOLATED fixed scripting adapter"
+  },
+  "evidence": {
+    "records": [
+      {
+        "runId": "2d896132-4250-4272-af41-c5e5c7d0fbce",
+        "body": "return await page.title();",
+        "kind": "result",
+        "value": "OpenDesk real form",
+        "valueType": "string",
+        "valuePresent": true
+      }
+    ],
+    "operations": [
+      {
+        "runId": "2d896132-4250-4272-af41-c5e5c7d0fbce",
+        "id": 1,
+        "method": "title",
+        "args": [],
+        "targetBefore": {
+          "tabId": 1315265880,
+          "documentId": "68084A9226B2109E58F86355EC313166"
+        }
+      }
+    ],
+    "deliveries": [
+      {
+        "runId": "2d896132-4250-4272-af41-c5e5c7d0fbce",
+        "id": 1,
+        "kind": "reply",
+        "value": "OpenDesk real form"
+      }
+    ],
+    "rejects": [],
+    "policy": [],
+    "retired": [
+      {
+        "kind": "retired",
+        "runId": "2d896132-4250-4272-af41-c5e5c7d0fbce",
+        "reason": "result",
+        "revokedURL": "blob:null/763d06bb-0a3b-4add-b32a-292c73978e6f"
+      }
+    ],
+    "workers": [
+      {
+        "kind": "worker-created",
+        "runId": "2d896132-4250-4272-af41-c5e5c7d0fbce",
+        "url": "blob:null/763d06bb-0a3b-4add-b32a-292c73978e6f",
+        "name": "OpenDesk-F1-2d896132-4250-4272-af41-c5e5c7d0fbce"
+      },
+      {
+        "kind": "worker-bound",
+        "runId": "2d896132-4250-4272-af41-c5e5c7d0fbce",
+        "url": "blob:null/763d06bb-0a3b-4add-b32a-292c73978e6f",
+        "held": false
+      }
+    ],
+    "hostEpoch": "2c7201b9-1853-45e4-966e-108c539c73aa",
+    "active": null
+  },
+  "networkServerHits": [
+    {
+      "url": "/form",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970715309,
+      "kind": "http"
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970715328,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970715336,
+      "kind": "http"
+    },
+    {
+      "url": "/form?navigation",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970715380,
+      "kind": "http"
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970715387,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension&kind=fetch&token=network-1790970716562",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970716565,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension&kind=xhr&token=network-1790970716562",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970716566,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension&kind=ws&token=network-1790970716562",
+      "method": "GET",
+      "origin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+      "at": 1790970716568,
+      "kind": "websocket-upgrade"
+    },
+    {
+      "url": "/probe.js?positive=extension&token=network-1790970716562",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970716570,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension&kind=fetch&token=network-1790970716562",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970716712,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension&kind=xhr&token=network-1790970716562",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970716713,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension&kind=ws&token=network-1790970716562",
+      "method": "GET",
+      "origin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+      "at": 1790970716715,
+      "kind": "websocket-upgrade"
+    },
+    {
+      "url": "/probe.js?positive=extension&token=network-1790970716562",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970716716,
+      "kind": "http"
+    },
+    {
+      "url": "/form",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970723414,
+      "kind": "http"
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970723430,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970723442,
+      "kind": "http"
+    },
+    {
+      "url": "/form",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970725010,
+      "kind": "http"
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970725026,
+      "kind": "http"
+    },
+    {
+      "url": "/probe?positive=extension",
+      "method": "GET",
+      "origin": null,
+      "at": 1790970725037,
+      "kind": "http"
+    }
+  ],
+  "resourceBaseline": {
+    "pending": 0,
+    "timer": 0,
+    "port": 1,
+    "frame": 1,
+    "pageWaits": 0,
+    "resourceReplies": 0
+  },
+  "disposedResources": {
+    "pending": 0,
+    "timer": 0,
+    "port": 0,
+    "frame": 0,
+    "pageWaits": 0,
+    "resourceReplies": 0
+  },
+  "workerTargetsAfterDispose": [],
+  "notTested": [
+    "F2/F3 product migration",
+    "userScripts dimensions owned by separate lane"
+  ],
+  "historicalBefore": [
+    {
+      "path": "evidence/chrome-149/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/chrome-149/console.json",
+      "sha256": "42330b6fd6c0f12da8218d8f4257d43a5a72349a89a3751c1056f3433025463c"
+    },
+    {
+      "path": "evidence/chrome-149/attempt-2-debugger-attached/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-01.724Z/report.json",
+      "sha256": "d16144c5d5f1d3a1cd2d1acf63a67a20df9bae03e5c3543c6f8911467ffd7d16"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-50.488Z/report.json",
+      "sha256": "38796ab1b40ec6c038d0ff6fce0b2e1ce8c676a78614d47957b5628e4c641ea1"
+    }
+  ],
+  "cleanup": {
+    "ownedBrowserExited": true,
+    "ownedBrowserPid": 59406,
+    "exitCode": 0,
+    "signalCode": null,
+    "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-51-54.480Z/profile",
+    "ownedTargets": [
+      "FC048197EE5AAA96C88B945DD7503AE5"
+    ],
+    "serverClosed": true,
+    "cdpWaiters": 0,
+    "abortedCdpRequests": 0
+  },
+  "sourceUnchangedDuringRun": true,
+  "prototypeCandidateSha256": "da71b3142d1b0dde82a2e40446a65e5860713ddb15bb2db197b23477128c0850",
+  "backendPrototypePassed": false,
+  "requiresIndependentReview": true,
+  "historicalAfter": [
+    {
+      "path": "evidence/chrome-149/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/chrome-149/console.json",
+      "sha256": "42330b6fd6c0f12da8218d8f4257d43a5a72349a89a3751c1056f3433025463c"
+    },
+    {
+      "path": "evidence/chrome-149/attempt-2-debugger-attached/report.json",
+      "sha256": "fd512609788812443dfed31e025be0c8f9905b490f049181843790c7b5123b1b"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-01.724Z/report.json",
+      "sha256": "d16144c5d5f1d3a1cd2d1acf63a67a20df9bae03e5c3543c6f8911467ffd7d16"
+    },
+    {
+      "path": "evidence/native-2026-10-02T15-19-50.488Z/report.json",
+      "sha256": "38796ab1b40ec6c038d0ff6fce0b2e1ce8c676a78614d47957b5628e4c641ea1"
+    }
+  ],
+  "historicalEvidenceUnchanged": true
+}

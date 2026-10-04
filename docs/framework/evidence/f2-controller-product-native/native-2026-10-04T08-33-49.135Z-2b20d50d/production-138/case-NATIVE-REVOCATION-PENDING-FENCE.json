@@ -1,0 +1,38 @@
+{
+  "id": "NATIVE-REVOCATION-PENDING-FENCE",
+  "families": "NAV01/AUTH01",
+  "expected": "Actual native document or permission loss cancels the pending operation; no late effect, released slot and borrowed target survives",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "selected": true,
+  "productInputsSha256": "a35612438d3362b2d6ffe5d363712b6c9245d44a0246d853b4cf6b8952faa71f",
+  "verificationInputsSha256": "cd2b1a031d5b1d00b8e1dd13f3930312771f885863886f1ae169281cd3668a80",
+  "packageSha256": "99d6d07876c765701b4b2f4ee1470bc859588173151dc0f043f1bb9bdbafacbd",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791103310040,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'E_TIMEOUT'\n- 'E_PERMISSION'\n     ^\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'E_TIMEOUT'\n- 'E_PERMISSION'\n     ^\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:885:14\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:460:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:874:57)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:413:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:243:3",
+    "actual": "E_TIMEOUT"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "results",
+    "text": "任务 a00a3334-0d3c-4937-80c2-ec7b3054dc85：stopped",
+    "result": "{\"run\": {\"tag\": \"controller-run\", \"runId\": \"a00a3334-0d3c-4937-80c2-ec7b3054dc85\", \"state\": \"stopped\", \"runRevision\": 4, \"ownerEpoch\": 2, \"cancelSeq\": 1, \"identity\": {\"tag\": \"controller-run\", \"runId\": \"a00a3334-0d3c-4937-80c2-ec7b3054dc85\", \"hostInstanceId\": \"bcc0d5cc-4279-43db-ae46-ae0ba07ef36f\", \"hostDocumentId\": \"2A31536578ABB66D0872E04D26DF22EA\", \"ownerEpoch\": 1, \"scriptId\": \"native-05569f01-fa61-47af-8f00-f7c998b7f8ac\", \"revision\": 1, \"contentHash\": \"262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b\", \"target\": {\"tabId\": 179444655, \"frameId\": 0, \"documentId\": \"114FD42520617423B722DC5A0E9417C5\", \"url\": \"http://127.0.0.1:57522/form?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=fence-revocation\", \"allowedOrigin\": \"http://127.0.0.1:57522\", \"targetSessionId\": \"c7c0ff5d-17df-4683-a114-723180dc0969\", \"targetVersion\": 1, \"mode\": \"borrowed\", \"browserSessionIncarnation\": \"5dffd896-3a64-4d4d-bc0c-cba105050db8\"}}, \"target\": {\"tabId\": 179444655, \"frameId\": 0, \"documentId\": \"114FD42520617423B722DC5A0E9417C5\", \"url\": \"http://127.0.0.1:57522/form?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=fence-revocation\", \"allowedOrigin\": \"http://127.0.0.1:57522\", \"targetSessionId\": \"c7c0ff5d-17df-4683-a114-723180dc0969\", \"targetVersion\": 1, \"mode\": \"borrowed\", \"browserSessionIncarnation\": \"5dffd896-3a64-4d4d-bc0c-cba105050db8\"}, \"revision\": {\"scriptId\": \"native-05569f01-fa61-47af-8f00-f7c998b7f8ac\", \"revision\": 1, \"sourceHash\": \"262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b\", \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"a00a3334-0d3c-4937-80c2-ec7b3054dc85\\\",\\\"c2a4dafa-f121-4cdf-a917-7de29297d772\\\",\\\"native-05569f01-fa61-47af-8f00-f7c998b7f8ac\\\",1]\"}, \"deadlineAt\": 1791103399238, \"retirementId\": \"9227a32e-dd2a-4bca-9d1a-03675bdc5f16\", \"retirementState\": \"released\", \"resultId\": \"886149d4-59b8-4924-84f4-7c3b055d5dfb\", \"terminalReason\": {\"code\": \"E_TIMEOUT\", \"name\": \"FoundationError\", \"message\": \"Controller fenced\"}, \"workerRetired\": true, \"scriptId\": \"native-05569f01-fa61-47af-8f00-f7c998b7f8ac\", \"contentHash\": \"262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b\"}, \"results\": [{\"runId\": \"a00a3334-0d3c-4937-80c2-ec7b3054dc85\", \"resultId\": \"886149d4-59b8-4924-84f4-7c3b055d5dfb\", \"state\": \"stopped\", \"error\": {\"code\": \"E_TIMEOUT\", \"name\": \"FoundationError\", \"message\": \"Controller fenced\"}}]}",
+    "version": "已保存 r1 · 262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b",
+    "runId": "a00a3334-0d3c-4937-80c2-ec7b3054dc85",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 89255.47745800001
+}

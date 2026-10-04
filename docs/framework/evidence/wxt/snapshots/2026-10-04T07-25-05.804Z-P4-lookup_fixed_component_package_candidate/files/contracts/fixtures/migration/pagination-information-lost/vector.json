@@ -1,0 +1,304 @@
+{
+  "fixtureVersion": "1.0.0",
+  "id": "next-selector-was-memory-only",
+  "category": "pagination-information-lost",
+  "status": "planned",
+  "productResult": "not-run",
+  "input": {
+    "legacyBackup": {
+      "path": "pagination-information-lost/legacy-config.json",
+      "encoding": "utf-8",
+      "byteLength": 134,
+      "sha256": "17760099cb31a8d6d49305f34b609884a92c213710ce40b1cc07e4b51094bccf",
+      "bytesBase64": "IHsNCiAgIl9saXN0Q29udGFpbmVyIjogIi5yb3dzIiwNCiAgIm5hbWUiOiAiLm5hbWUiLA0KICAibmFtZS11cmwiOiAiLm5hbWU6OmhyZWYiLA0KICAiY291bnQiOiAiLmNvdW50IiwNCiAgImVuYWJsZWQiOiAiLmVuYWJsZWQiDQp9DQo=",
+      "text": " {\r\n  \"_listContainer\": \".rows\",\r\n  \"name\": \".name\",\r\n  \"name-url\": \".name::href\",\r\n  \"count\": \".count\",\r\n  \"enabled\": \".enabled\"\r\n}\r\n"
+    },
+    "legacyParsed": {
+      "_listContainer": ".rows",
+      "name": ".name",
+      "name-url": ".name::href",
+      "count": ".count",
+      "enabled": ".enabled"
+    },
+    "dom": {
+      "path": "pagination-information-lost/dom.html",
+      "encoding": "utf-8",
+      "byteLength": 1352,
+      "sha256": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af",
+      "bytesBase64": "PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9InpoIj48aGVhZD48bWV0YSBjaGFyc2V0PSJ1dGYtOCI+PGJhc2UgaHJlZj0iaHR0cHM6Ly9maXh0dXJlLmV4YW1wbGUvY2F0YWxvZy8iPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyIgZGF0YS1maXh0dXJlLXJvdz0iMCI+PGEgY2xhc3M9Im5hbWUiIGhyZWY9IiAuLi9pdGVtLzE/dGFnPeS4reaWhyZhbXA7bj0wICI+IAnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYkKIDwvYT48c3BhbiBjbGFzcz0iY291bnQiPiAwIDwvc3Bhbj48c3BhbiBjbGFzcz0iZW5hYmxlZCI+IGZhbHNlIDwvc3Bhbj48c3BhbiBjbGFzcz0iZW1wdHkiPjwvc3Bhbj48c3BhbiBjbGFzcz0ibm90ZSI+5Lit5paHLCZxdW90O+W8leWPtyZxdW90OwrnrKzkuozooYw8L3NwYW4+PC9hcnRpY2xlPjxhcnRpY2xlIGNsYXNzPSJyb3ciIGRhdGEtZml4dHVyZS1yb3c9IjEiPjxhIGNsYXNzPSJuYW1lIj48L2E+PHNwYW4gY2xhc3M9ImNvdW50Ij4xMi41PC9zcGFuPjxzcGFuIGNsYXNzPSJlbmFibGVkIj50cnVlPC9zcGFuPjxzcGFuIGNsYXNzPSJlbXB0eSI+PC9zcGFuPjxzcGFuIGNsYXNzPSJub3RlIj49U1VNKEExOkEyKTwvc3Bhbj48L2FydGljbGU+PGFydGljbGUgY2xhc3M9InJvdyIgZGF0YS1maXh0dXJlLXJvdz0iMiI+PGEgY2xhc3M9Im5hbWUiIGhyZWY9Ii4vaXRlbS8zP3g9MSZhbXA7eT0yIj49MSsxPC9hPjxzcGFuIGNsYXNzPSJjb3VudCI+LTI8L3NwYW4+PHNwYW4gY2xhc3M9ImVuYWJsZWQiPmZhbHNlPC9zcGFuPjxzcGFuIGNsYXNzPSJlbXB0eSI+PC9zcGFuPjxzcGFuIGNsYXNzPSJub3RlIj4rdGV4dDwvc3Bhbj48L2FydGljbGU+PC9tYWluPjxhIGNsYXNzPSJuZXh0IiBocmVmPSIvbGlzdD9wYWdlPTIiPuS4i+S4gOmhtTwvYT48L2JvZHk+PC9odG1sPgo=",
+      "text": "<!doctype html>\n<html lang=\"zh\"><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\" data-fixture-row=\"0\"><a class=\"name\" href=\" ../item/1?tag=中文&amp;n=0 \"> \t汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉\n </a><span class=\"count\"> 0 </span><span class=\"enabled\"> false </span><span class=\"empty\"></span><span class=\"note\">中文,&quot;引号&quot;\n第二行</span></article><article class=\"row\" data-fixture-row=\"1\"><a class=\"name\"></a><span class=\"count\">12.5</span><span class=\"enabled\">true</span><span class=\"empty\"></span><span class=\"note\">=SUM(A1:A2)</span></article><article class=\"row\" data-fixture-row=\"2\"><a class=\"name\" href=\"./item/3?x=1&amp;y=2\">=1+1</a><span class=\"count\">-2</span><span class=\"enabled\">false</span><span class=\"empty\"></span><span class=\"note\">+text</span></article></main><a class=\"next\" href=\"/list?page=2\">下一页</a></body></html>\n"
+    },
+    "context": {
+      "startUrl": null,
+      "allowedOrigin": null,
+      "documentUrl": "https://fixture.example/list?page=1",
+      "documentBaseUrl": "https://fixture.example/catalog/",
+      "frame": "top",
+      "listMeaningConfirmed": null,
+      "containerSelector": null,
+      "rowSelector": null,
+      "emptyMarkerSelector": null,
+      "allowEmpty": null,
+      "paginationConfirmed": null,
+      "nextSelector": null,
+      "columnOrder": null,
+      "fieldDefinitions": null,
+      "previewConfirmation": {
+        "confirmed": false,
+        "snapshotId": null,
+        "rowCount": null
+      },
+      "templateId": "migration-pagination-information-lost",
+      "limits": {
+        "maxPages": 50,
+        "maxRecords": 10000,
+        "maxDurationMs": 600000,
+        "maxStoredBytes": 20971520
+      },
+      "priorUiNextSelectorLost": true,
+      "priorPaginationIntent": "next-link"
+    }
+  },
+  "expected": {
+    "state": "needs-reconfigure",
+    "backupPreserved": true,
+    "templateRevision": null,
+    "draft": {
+      "formatVersion": "1.0.0",
+      "templateId": "migration-pagination-information-lost",
+      "revision": 1,
+      "parentRevision": null,
+      "selectorDialect": "css",
+      "requiredCapabilities": null,
+      "allowedOrigin": null,
+      "startUrl": null,
+      "list": {
+        "containerSelector": null,
+        "rowSelector": null,
+        "emptyMarkerSelector": null,
+        "allowEmpty": null
+      },
+      "fields": [
+        {
+          "id": "name",
+          "label": "名称",
+          "selector": ".name",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "name-url",
+          "label": "链接",
+          "selector": ".name",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        },
+        {
+          "id": "count",
+          "label": "数量",
+          "selector": ".count",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "enabled",
+          "label": "启用",
+          "selector": ".enabled",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      ],
+      "pagination": {
+        "mode": null,
+        "nextSelector": null
+      },
+      "columns": null,
+      "limits": {
+        "maxPages": 50,
+        "maxRecords": 10000,
+        "maxDurationMs": 600000,
+        "maxStoredBytes": 20971520
+      },
+      "detail": null,
+      "contentHash": null
+    },
+    "errors": [
+      {
+        "code": "E_MIGRATION_START_URL_REQUIRED",
+        "path": "/startUrl",
+        "value": null,
+        "remediation": "explicitly-supply-start-url"
+      },
+      {
+        "code": "E_MIGRATION_ROW_MEANING_REQUIRED",
+        "path": "/list",
+        "value": null,
+        "remediation": "explicitly-confirm-container-and-row-selectors"
+      },
+      {
+        "code": "E_MIGRATION_EMPTY_POLICY_REQUIRED",
+        "path": "/list/allowEmpty",
+        "value": null,
+        "remediation": "explicitly-confirm-empty-policy"
+      },
+      {
+        "code": "E_MIGRATION_PAGINATION_REQUIRED",
+        "path": "/pagination/mode",
+        "value": null,
+        "remediation": "explicitly-confirm-pagination-mode"
+      },
+      {
+        "code": "E_MIGRATION_NEXT_SELECTOR_LOST",
+        "path": "/pagination/nextSelector",
+        "value": null,
+        "remediation": "explicitly-reselect-next-link-or-button"
+      },
+      {
+        "code": "E_MIGRATION_COLUMNS_REQUIRED",
+        "path": "/columns",
+        "value": null,
+        "remediation": "explicitly-confirm-column-order"
+      },
+      {
+        "code": "E_MIGRATION_FIELD_DEFINITIONS_REQUIRED",
+        "path": "/fields",
+        "value": null,
+        "remediation": "explicitly-confirm-label-type-required-and-transforms"
+      },
+      {
+        "code": "E_MIGRATION_PREVIEW_REQUIRED",
+        "path": "/previewConfirmation",
+        "value": false,
+        "remediation": "preview-and-explicitly-confirm-completed-draft"
+      }
+    ],
+    "columns": [],
+    "rawRecords": [],
+    "typedRecords": [],
+    "recordErrors": [],
+    "previewRecords": [],
+    "runRecords": [],
+    "recordCount": 0,
+    "operations": {
+      "saveAllowed": false,
+      "runAllowed": false,
+      "exportAllowed": false,
+      "followNextAllowed": false
+    },
+    "exports": {
+      "json": {
+        "allowed": false,
+        "errorCode": "E_MIGRATION_NOT_EXECUTABLE",
+        "artifact": null,
+        "byteLength": 0,
+        "bytesBase64": "",
+        "emittedBytes": {
+          "path": "pagination-information-lost/expected-json-emitted.bin",
+          "encoding": "utf-8",
+          "byteLength": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytesBase64": "",
+          "text": ""
+        }
+      },
+      "csv": {
+        "allowed": false,
+        "errorCode": "E_MIGRATION_NOT_EXECUTABLE",
+        "artifact": null,
+        "byteLength": 0,
+        "bytesBase64": "",
+        "emittedBytes": {
+          "path": "pagination-information-lost/expected-csv-emitted.bin",
+          "encoding": "utf-8",
+          "byteLength": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytesBase64": "",
+          "text": ""
+        }
+      }
+    },
+    "inferencesForbidden": [
+      "startUrl-from-documentUrl",
+      "container-or-row-from-DOM",
+      "nextSelector-from-a.next",
+      "pagination-none-as-fallback",
+      "column-order-from-object-keys"
+    ],
+    "partialMapping": {
+      "legacyListSelector": ".rows",
+      "fields": [
+        {
+          "id": "name",
+          "label": "名称",
+          "selector": ".name",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "name-url",
+          "label": "链接",
+          "selector": ".name",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        },
+        {
+          "id": "count",
+          "label": "数量",
+          "selector": ".count",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "enabled",
+          "label": "启用",
+          "selector": ".enabled",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      ]
+    },
+    "blockedReason": "Zero records means extraction was not attempted, not a successful empty list."
+  }
+}

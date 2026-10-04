@@ -1,0 +1,29 @@
+✔ frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority (9.33525ms)
+✔ stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed (5.333125ms)
+✔ post-dispatch epoch/target/grant fences prevent stale Chrome use (3.335375ms)
+✔ script or command callback failure records unknown and cannot be blindly retried (3.239458ms)
+✔ raw reception is durable but frame ACK requires matching staged rows, then full end signature is stored (3.27525ms)
+✔ duplicate frame does not emit again; conflicting digest durably blocks whole page (2.376375ms)
+✔ actual sender document defeats payload identity spoof; stop rejects new raw data (1.133541ms)
+✔ raw backpressure refuses a second unacked frame; full signature includes changed sixth row (3.862791ms)
+✔ fixed raw DOM reader retains long text, explicit empty string and optional missing attr without transforms (0.88575ms)
+✔ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (2.104375ms)
+✔ page transport sends its first frame before starting the EOF signature hash (1.771125ms)
+✔ run-scoped submit/raw/effect journals preserve both runs and stay outside the unique command index (7.37425ms)
+✔ raw frame and ACK never infer a missing run or accept a command with a rewritten revision (2.201708ms)
+✔ negative fixed-agent receipt is unknown and its run-scoped submission cannot replay (2.988791ms)
+✔ packaged agent and page port exchange a durable run-bound ACK before saving the complete EOF (5.201625ms)
+✔ agent command and ACK namespaces separate equal command IDs and digests across runs (2.820125ms)
+✔ single-use real action ticket binds actual source document, no run/records/slot created (1.406209ms)
+✔ new operation durably cancels old; old source result audited and rejected, new result goes only to original host (2.137083ms)
+✔ cancel/release are durable before cleanup; duplicate release cannot mutate context (1.443125ms)
+✔ preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written (3.549292ms)
+✔ placeholder SelectorUI reports MODULE_NOT_INSTALLED, never fabricates selected status (0.734459ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 118.062583

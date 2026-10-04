@@ -1,0 +1,136 @@
+[
+  {
+    "version": "138.0.7204.183",
+    "path": "extensions/browser/user_script_manager.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/browser/user_script_manager.cc",
+    "sha256": "a86cbe32f05264eca8dd1fc97d7efe2655508b69d74bd59a1200dd58ba58fb35",
+    "bytes": 12268,
+    "matches": [
+      {
+        "line": 111,
+        "text": "map_entry.second->SetSourceEnabled(source, enabled);"
+      },
+      {
+        "line": 157,
+        "text": "void UserScriptManager::SetUserScriptPrefEnabled("
+      },
+      {
+        "line": 188,
+        "text": "loader->SetSourceEnabled(UserScript::Source::kDynamicUserScript, enabled);"
+      },
+      {
+        "line": 191,
+        "text": "->OnUserScriptsAllowedChanged(extension_id, /*allowed=*/enabled);"
+      },
+      {
+        "line": 257,
+        "text": "loader->SetSourceEnabled(UserScript::Source::kDynamicUserScript,"
+      },
+      {
+        "line": 298,
+        "text": "SetUserScriptPrefEnabled(extension.id(), permission_granted && dev_mode_on);"
+      }
+    ]
+  },
+  {
+    "version": "138.0.7204.183",
+    "path": "extensions/browser/extension_user_script_loader.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/browser/extension_user_script_loader.cc",
+    "sha256": "6b7f01a5fe2d98fce560afa0d24eed74eae9e0b6a9a6543ebeefe7150f9974bc",
+    "bytes": 39463,
+    "matches": [
+      {
+        "line": 670,
+        "text": "void ExtensionUserScriptLoader::SetSourceEnabled(UserScript::Source source,"
+      }
+    ]
+  },
+  {
+    "version": "138.0.7204.183",
+    "path": "extensions/renderer/dispatcher.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/renderer/dispatcher.cc",
+    "error": "The read operation timed out"
+  },
+  {
+    "version": "138.0.7204.183",
+    "path": "extensions/common/api/user_scripts.idl",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/common/api/user_scripts.idl",
+    "sha256": "4e4f0c6eca94037292b40fbdef81feaadcf88bc57ad40b8f42b6674aab96e2ad",
+    "bytes": 10003,
+    "matches": [
+      {
+        "line": 7,
+        "text": "namespace userScripts {"
+      },
+      {
+        "line": 178,
+        "text": "static void getScripts("
+      },
+      {
+        "line": 222,
+        "text": "static void getWorldConfigurations("
+      }
+    ]
+  },
+  {
+    "version": "154.0.8037.92",
+    "path": "extensions/browser/user_script_manager.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/browser/user_script_manager.cc",
+    "sha256": "8a0c286b6aeaeffb73e1f5ce5fd2270f21269f6e62a89962367a8986c5b9007e",
+    "bytes": 9964,
+    "matches": [
+      {
+        "line": 95,
+        "text": "map_entry.second->SetSourceEnabled(source, enabled);"
+      },
+      {
+        "line": 130,
+        "text": "void UserScriptManager::SetUserScriptPrefEnabled("
+      },
+      {
+        "line": 161,
+        "text": "loader->SetSourceEnabled(UserScript::Source::kDynamicUserScript, enabled);"
+      },
+      {
+        "line": 164,
+        "text": "->OnUserScriptsAllowedChanged(extension_id, /*allowed=*/enabled);"
+      },
+      {
+        "line": 230,
+        "text": "loader->SetSourceEnabled(UserScript::Source::kDynamicUserScript,"
+      }
+    ]
+  },
+  {
+    "version": "154.0.8037.92",
+    "path": "extensions/browser/extension_user_script_loader.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/browser/extension_user_script_loader.cc",
+    "sha256": "847bd0c72ce0ac95520ccfa664ee9895631f5d8f08c3c78fef78bf4a87e4b87c",
+    "bytes": 40077,
+    "matches": [
+      {
+        "line": 684,
+        "text": "void ExtensionUserScriptLoader::SetSourceEnabled(UserScript::Source source,"
+      }
+    ]
+  },
+  {
+    "version": "154.0.8037.92",
+    "path": "extensions/renderer/dispatcher.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/renderer/dispatcher.cc",
+    "sha256": "3c6d1b2328a485461039a479661e1b0d7d9e07df9f7f5f9ad64c6bca2243cf61",
+    "bytes": 66731,
+    "matches": [
+      {
+        "line": 1304,
+        "text": "void Dispatcher::SetUserScriptsAllowed(const ExtensionId& extension_id,"
+      }
+    ]
+  },
+  {
+    "version": "154.0.8037.92",
+    "path": "extensions/common/api/user_scripts.idl",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/common/api/user_scripts.idl",
+    "error": "HTTP Error 404: Not Found"
+  }
+]

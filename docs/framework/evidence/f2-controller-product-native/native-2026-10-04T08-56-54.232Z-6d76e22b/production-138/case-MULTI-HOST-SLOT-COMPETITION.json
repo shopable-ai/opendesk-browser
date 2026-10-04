@@ -1,0 +1,12 @@
+{
+  "id": "MULTI-HOST-SLOT-COMPETITION",
+  "families": "CTRL03/AUTH01",
+  "expected": "Two real product hosts contend; loser gets E_OWNER; no loser run/effect; winner retains slot",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791104337413,
+  "elapsedMs": 0.00041599999531172216
+}

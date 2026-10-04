@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-03T20:20:53.458596+00:00",
+  "consecutiveGoalTurnsWithSameBlocker": 3,
+  "blocker": "E_NATIVE_DESKTOP_LOCKED",
+  "currentObservation": "cua.listApps: Mac locked; automatic unlock could not unlock",
+  "nativeRunnerProcesses": [],
+  "inputDrift": false,
+  "snapshot": "docs/framework/evidence/wxt/snapshots/2026-10-03T20-19-37.631Z-P2-package_component_passed_native_driver_preflight",
+  "actualReturn7AndReopenPassed": false,
+  "safeIndependentWorkCompleted": [
+    "WXT dual builds and packs",
+    "fixed classic entry and manifest verification",
+    "400 component tests",
+    "native preflight",
+    "native selection assist",
+    "immutable content snapshots"
+  ],
+  "requiredExternalAction": "Unlock Mac and resume goal; refresh preflight and receipt, operate only fresh owned browser PID",
+  "finalProductPassed": false
+}

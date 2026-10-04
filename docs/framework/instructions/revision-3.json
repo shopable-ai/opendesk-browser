@@ -1,0 +1,27 @@
+{
+  "revision": 3,
+  "purpose": "Clarify product steps and observable progress; no requirement, execution backend or gate relaxation",
+  "updatedAt": "2026-10-02T15:24:30.287149+00:00",
+  "previousRevision": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/instructions/revision-2.json",
+    "sha256": "16f20288ed7661a4eecbfe991da65dbdacf14c9d037786c5efeba1c9878a0ba6",
+    "revision": 2,
+    "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+    "promptSha256": "8b851e5e6df372ac1c6586590ab50fcebecfcfceb568e0dba9167780847b3b35",
+    "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+    "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+  },
+  "previousPrompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/instructions/revision-3-before-prompt.md",
+  "previousPromptSha256": "8b851e5e6df372ac1c6586590ab50fcebecfcfceb568e0dba9167780847b3b35",
+  "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+  "promptSha256": "d240b8af383ff1033a3ebe97ac20026a92c4c4173335fe963166b8daad605b93",
+  "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+  "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96",
+  "progress": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/progress.md",
+  "progressSha256": "ff0f359b93a483f884a68e8ab0a5a7c5b16849fcc858c1e967bb5476a42b258b",
+  "nativeGoalObservedStatus": "paused",
+  "nativeGoalThreadId": "01a0fd25-57a0-7e13-8da0-1fe3ee2986c1",
+  "nativeGoalResumed": false,
+  "productCodeChangedInThisPromptRevision": false,
+  "newPassClaims": false
+}

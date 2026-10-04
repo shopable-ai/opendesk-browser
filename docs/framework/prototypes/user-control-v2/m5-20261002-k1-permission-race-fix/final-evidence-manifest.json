@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "kind": "K1 frozen author source/evidence replacement; independent union review required",
+  "createdAtUtc": "2026-10-02T22:00:13.265941+00:00",
+  "planHash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "sourceSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+  "fullReports": [
+    "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+    "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json"
+  ],
+  "nativePendingPromiseProbe": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/report.json",
+  "files": [
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/blocker-closure-evidence.json",
+      "bytes": 3614,
+      "sha256": "fb33900b9a16a6267f9417c574e10b3059ba784023317fffb38d0681615d6483"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/final-cleanup-audit.json",
+      "bytes": 4908,
+      "sha256": "e311527c0df0617e9a8314e05e69721265f0b2f878286978d50438fa777f10bc"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/final-contract-mapping.json",
+      "bytes": 14315,
+      "sha256": "8fcc5a6a97a7211b58f64f15ee1cdf159ab1bee9de598abe2e3a3b896174c92b"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/final-handoff.md",
+      "bytes": 3970,
+      "sha256": "c17224c67ab93d9cc6c0f3b1bb589097c62b4dc3fe8d51cf8ae49f62f1bd4e88"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/final-matrix.json",
+      "bytes": 19276,
+      "sha256": "ae775a4618d4faa311c6e94b9489ffd26c0cd73d1abe80d25f9b790814e7f8d7"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/final-source-manifest.json",
+      "bytes": 1631,
+      "sha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/final-validation.json",
+      "bytes": 2282,
+      "sha256": "2bff3ad4fecc6bef448d45698460c6aaf756a417634f038f752b854672b9b368"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/freeze-evidence.py",
+      "bytes": 22721,
+      "sha256": "7c0f6eca43bb3cb6f3f83ad69eef3c67c81f2b180706419ec77b08cddb2f2251"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/historical-before.json",
+      "bytes": 40026,
+      "sha256": "44558929c8bee408d832d2c671b94bd7578b78de21fe8eef17d70db6c5685f5f"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/historical-immutability-final.json",
+      "bytes": 272,
+      "sha256": "c502e62befa5d63666a86df7ebc22d64e86a7e40487616e98d654b77ff6db8f6"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/independent-review-before.json",
+      "bytes": 337,
+      "sha256": "a0520453b94ef55be4f083991ec2f5060b12521a32c74de1d2f2344d89943d32"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/candidate-manifest.json",
+      "bytes": 1631,
+      "sha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/console.json",
+      "bytes": 413350,
+      "sha256": "0f304bdb364a2e10580729bc965df21bf8c4156e6532f9cb96f1b707f4cdd116"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/extension-ui.json",
+      "bytes": 7306,
+      "sha256": "fa35d8e053791dcfd7ed41b02d40559a629623f75f6f907955654a716a8d8b9f"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/extension-ui.png",
+      "bytes": 29373,
+      "sha256": "3ac5f647943e4925084fd65b783e809d72f01bc86d8de891030de16a6b456b1e"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/protocol.json",
+      "bytes": 386644,
+      "sha256": "9a9664adfa39c7a2a3a5ecd26508292609ebc7445930834919b8f211f8adcd9b"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+      "bytes": 1428655,
+      "sha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/trace.json",
+      "bytes": 4273920,
+      "sha256": "70fcb0497c02da878ca23181cbb65480823f35ed2d4de6e7dda5b972e0b354a8"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/workbench.png",
+      "bytes": 54569,
+      "sha256": "982733283c116fafaca10caaefffe1e2817ac5d42458f8b9ab8f325c0c41ae59"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/candidate-manifest.json",
+      "bytes": 1631,
+      "sha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/console.json",
+      "bytes": 437706,
+      "sha256": "4dabe1b5227ce500fa4bb74f1ef51aab08635bc986a905d8e15d785d8fbd8718"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/extension-ui.json",
+      "bytes": 7463,
+      "sha256": "aceb3652e61df4e9415b6cb05cd5357f0296240ff61df92228e35c6ac62fe63f"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/extension-ui.png",
+      "bytes": 27434,
+      "sha256": "46df7fdc7ce1086699ab895ee3ea52fa235d7952d70c145da13cf5843494e67f"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/protocol.json",
+      "bytes": 408931,
+      "sha256": "254f0ca6f76acf28b5719f8c80f63b41b522cbfeede6deeaa815f6bd8590e6c8"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+      "bytes": 1522967,
+      "sha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/trace.json",
+      "bytes": 5502506,
+      "sha256": "817edf4e5925e4fa1aa74bd6aea90984f3fc32975e47ccf54107c0e944847ad7"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/workbench.png",
+      "bytes": 47960,
+      "sha256": "7e158dbc4ec67bc9e7e5f4c2c9ea9c531e0d987c5fb2d8d1ad49c937f4aa56ec"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/adaptation.json",
+      "bytes": 1005,
+      "sha256": "89b1fc46f548d29fc768dab8817aac1de3deb6c34ec4b18ca690fe015b623a14"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/probe.mjs",
+      "bytes": 5432,
+      "sha256": "03af2d2a6810c06e857b351aa52ecbe4967f9b41125008aceb3750843e083cf7"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/raw-stdout.json",
+      "bytes": 15536,
+      "sha256": "7093d38996a94f17a75292bdcee09321a5e204b740d65321a53c73e0e8b49746"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/report.json",
+      "bytes": 23956,
+      "sha256": "9dfdf4cd7999c5b1f66ce7f222ae3ce3a21e19ea082e363426e159f087591ba4"
+    }
+  ],
+  "profileFilesExcluded": "Browser cache/profile state is not proof; fresh owned path, binary/OS/version/identity and final process audit are recorded.",
+  "backendPrototypePassed": false,
+  "F2": false,
+  "requiresIndependentReview": true
+}

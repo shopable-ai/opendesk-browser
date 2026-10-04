@@ -1,0 +1,43 @@
+{
+  "pid": 40368,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t",
+  "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "about:blank"
+  ],
+  "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t/chrome.log",
+  "launcherPid": 40366,
+  "python": "/usr/bin/python3",
+  "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "launcherArgs": [
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c/production-154/launcher-1.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "about:blank"
+  ],
+  "actualMainProcess": "40368 40366 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank",
+  "freshProfileObserved": {
+    "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-iv281p8t",
+    "birthtimeMs": 1791017926265.4192,
+    "previouslyPresent": false,
+    "mode": "0700"
+  },
+  "endpoint": "ws://127.0.0.1:65427/devtools/browser/4cea9cce-42e3-427b-9ee8-1354bfbcdba3"
+}

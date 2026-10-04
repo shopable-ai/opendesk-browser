@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 1,
+  "scope": "saved-r1 prefix, not a product completion certificate",
+  "evidenceDirectory": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8",
+  "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+  "evidenceReadNoDrift": true,
+  "observations": [
+    {
+      "scope": "native UI input and committed immutable r1 only",
+      "savePrefixVerified": true,
+      "originalCaseStatus": "BLOCKED",
+      "originalCasePassed": false,
+      "revision": {
+        "tag": "script-revision",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "scriptId": "native-2b2e0c85-02f4-43c1-8a34-e21fd4a51ee2",
+        "revision": 1,
+        "parentRevision": 0,
+        "contentHash": "76e21f5515f3cf05d6fb3f83d476b928547b8648184157dbc69f62700c8650a8",
+        "sourceUtf8": "await page.goto(params.url); const typed=await page.type('#name',params.name); const clicked=await page.click('#submit'); await page.waitForSelector('#result[data-done=\"true\"]'); return {typed,clicked,read:await page.snapshot('#result'),title:await page.title(),url:await page.url(),revision:params.revision,f:false,z:0,u:undefined};"
+      },
+      "nativeInputProofs": [
+        {
+          "selector": "#script-id",
+          "selectionLines": [
+            71,
+            72
+          ],
+          "insertLines": [
+            73,
+            74
+          ],
+          "echoLines": [
+            75,
+            76
+          ]
+        },
+        {
+          "selector": "#script-source",
+          "selectionLines": [
+            89,
+            90
+          ],
+          "insertLines": [
+            91,
+            92
+          ],
+          "echoLines": [
+            93,
+            94
+          ]
+        },
+        {
+          "selector": "#script-params",
+          "selectionLines": [
+            107,
+            108
+          ],
+          "insertLines": [
+            109,
+            110
+          ],
+          "echoLines": [
+            111,
+            112
+          ]
+        }
+      ],
+      "idbReadProof": {
+        "requestLine": 129,
+        "responseLine": 130,
+        "revisionKey": "script:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"native-2b2e0c85-02f4-43c1-8a34-e21fd4a51ee2\",1]",
+        "database": [
+          {
+            "name": "opendesk-browser",
+            "version": 2
+          }
+        ]
+      },
+      "nativeSaveProof": {
+        "buttonPositionLines": [
+          117,
+          118
+        ],
+        "mousePressedLines": [
+          119,
+          120
+        ],
+        "mouseReleasedLines": [
+          121,
+          122
+        ],
+        "savedStateLines": [
+          125,
+          126
+        ]
+      },
+      "runStatus": "BLOCKED",
+      "reason": "E_NATIVE_PERMISSION_WAIT",
+      "notProved": [
+        "admission",
+        "run context",
+        "controller execution",
+        "runtime params binding",
+        "r1/r2 isolation",
+        "pin/tombstone/GC",
+        "return/error/stop",
+        "durable run result",
+        "download complete/disk hash",
+        "product resource baselines"
+      ],
+      "f3Accepted": false,
+      "original603Closed": false,
+      "environment": {
+        "mode": "production",
+        "browser": "Chrome/138.0.7204.183",
+        "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+        "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89"
+      },
+      "sessionCaseCounts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "BLOCKED": 1,
+        "NOT_TESTED": 22
+      }
+    },
+    {
+      "scope": "saved-r1 prefix rejected by evidence checks",
+      "savePrefixVerified": false,
+      "verificationError": "Native run inputs drifted",
+      "originalCaseStatus": "BLOCKED",
+      "originalCasePassed": false,
+      "nativeInputDrift": {
+        "package": false,
+        "launcher": true
+      },
+      "f3Accepted": false,
+      "original603Closed": false,
+      "environment": {
+        "mode": "production",
+        "browser": "Chrome/154.0.8037.92",
+        "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+        "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89"
+      },
+      "sessionCaseCounts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "BLOCKED": 1,
+        "NOT_TESTED": 22
+      }
+    }
+  ],
+  "references": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/raw-cdp.jsonl",
+      "bytes": 8816773,
+      "sha256": "02dbbbf0d7d8dc61b2804cbdf604f71f09823434d4da5cf20918681d6ebb9b75"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-138/report.json",
+      "bytes": 24997,
+      "sha256": "8efde03f328315500faa7f5c4454df2ffede528e78a9c178afa8d2e43da2d78b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-138/ui-input.jsonl",
+      "bytes": 2078,
+      "sha256": "74d9b52e882836736358b08f38779d03ed4a0819215bd6ec1f9dc719e69fac72"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-138/native-permission-state.json",
+      "bytes": 1101,
+      "sha256": "119a511d66153cbec96b7d5344518d99ec3f43b924976da300b3575f78b20dad"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-138/revision-native-2b2e0c85-02f4-43c1-8a34-e21fd4a51ee2-r1.json",
+      "bytes": 628,
+      "sha256": "6107230f08ac5d0b814c83d3dd0afde6f8f62db14c7bffe8ad2f36be41991e76"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-154/report.json",
+      "bytes": 24990,
+      "sha256": "142a1d4c242a4f2836d30faf7ba649d62f9fa98e44297a78608e9d49ebf7d036"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-154/ui-input.jsonl",
+      "bytes": 2086,
+      "sha256": "91d2ed26c380896838ab91c71305ecdef67a490716cf4c18ea00b8181dc5aa79"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-154/native-permission-state.json",
+      "bytes": 1101,
+      "sha256": "2aba88b9cb803e03106cf049422f3d842f1f363bc69ed5f0335a1b0affc6c0ab"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-154/revision-native-58c71c75-7111-4122-968f-cc0c7d060055-r1.json",
+      "bytes": 628,
+      "sha256": "3f3453791966b90e074db97743151eff62396aa13b0910c3222b76d7ea6174fb"
+    }
+  ],
+  "allSavePrefixesVerified": false,
+  "f3Accepted": false,
+  "original603Closed": false,
+  "frameworkFunctionalMigrationComplete": false
+}

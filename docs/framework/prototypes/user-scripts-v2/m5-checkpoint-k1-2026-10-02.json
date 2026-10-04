@@ -1,0 +1,2591 @@
+{
+  "schema": 1,
+  "lane": "K1/F1 user-scripts-v2",
+  "status": "evidence-ready-independent-disposition-pending",
+  "createdAt": "2026-10-02T19:54:20.567468+00:00",
+  "approvedPlanManifestSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "prototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "sourceChanges": [
+    {
+      "path": "run-headed.mjs",
+      "oldSha256": "12212055d7b7cd348755d76066c82e6db640cb84ccdf665300b9331c3181284b",
+      "newSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "changed": true
+    },
+    {
+      "path": "fixture/adapter.js",
+      "oldSha256": "ddd235656167922308f674b02d70b1784737f9d27aac6b641b90c921808c29a6",
+      "newSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "changed": true
+    },
+    {
+      "path": "fixture/file-source.js",
+      "oldSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "newSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "changed": false
+    },
+    {
+      "path": "fixture/host.html",
+      "oldSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "newSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "changed": false
+    },
+    {
+      "path": "fixture/host.js",
+      "oldSha256": "476d817a69c9cbd4160275b7172fea94e5dfe4ba7d582fab6e8eef4475393b9d",
+      "newSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "changed": true
+    },
+    {
+      "path": "fixture/manifest.json",
+      "oldSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "newSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "changed": false
+    },
+    {
+      "path": "fixture/sw.js",
+      "oldSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "newSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "changed": false
+    }
+  ],
+  "finalRuns": [
+    {
+      "version": "138.0.7204.183",
+      "evidencePath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+      "reportSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+      "evidenceManifestSha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7",
+      "prototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "environment": {
+        "version": "138.0.7204.183",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "executableSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+        "channel": "CfT milestone138",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1",
+        "fixtureIdentity": {
+          "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*",
+              "http://localhost/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 userScripts v2 fixture",
+            "permissions": [
+              "userScripts",
+              "scripting",
+              "tabs",
+              "webNavigation"
+            ],
+            "version": "0.0.2"
+          }
+        }
+      },
+      "caseAccounting": {
+        "passedCases": 80,
+        "failedCases": 5,
+        "rawFunctionAttempts": 100,
+        "actualChromeUserScriptsExecuteInvocations": 99,
+        "unavailableBeforeNative": 1,
+        "nativeResolved": 90,
+        "nativeRejected": 9,
+        "rawPendingAtEnd": 0,
+        "actualChromeScriptingExecuteInvocations": 3,
+        "packagedResolved": 1,
+        "packagedRejected": 2,
+        "adapterPrevalidationCases": 7,
+        "otherRequiredFailures": 0
+      },
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "nativeErrorShape": [
+        {
+          "id": "USER_SCRIPT-RAW-THROW",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "USER_SCRIPT-RAW-REJECT",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "MAIN-RAW-THROW",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "MAIN-RAW-REJECT",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        }
+      ],
+      "hostUi": {
+        "transitions": 22,
+        "observedNaturalHostRebuilds": 0,
+        "reconnectBranchValidated": false,
+        "fenceLayer": "prototype real browser authorization checks/events only; not product broker"
+      },
+      "approvedContractCoverage": [
+        {
+          "contract": {
+            "id": "F1-PAGE-SOURCE-DOC",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX04",
+              "AUTH01"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "sources": [
+                "code",
+                "packaged file"
+              ],
+              "targets": [
+                "top document",
+                "same-origin frame doc",
+                "cross-origin granted frame doc",
+                "old doc"
+              ],
+              "invalid": [
+                "code+file",
+                "empty",
+                "func/args",
+                "doc+frame",
+                "missing file"
+              ]
+            },
+            "expected": "real execute uses tabId+documentIds only; selected document altered; others unchanged; invalid rejects without dispatch; returned documentId matches; old document cannot mutate fresh",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "USER_SCRIPT-CODE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-CODE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-BOTH",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-NEITHER",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-FUNC-ARGS",
+              "pass": true
+            },
+            {
+              "id": "TARGET-DOC-FRAME",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-MISSING-FILE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-OLD-DOCUMENT-RACE",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-PAGE-TYPED-RESULTS",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX04",
+              "CMP03",
+              "CMP10"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "functions": [
+                "delayed Promise true",
+                "return false",
+                "return 0",
+                "return '';",
+                "return null",
+                "return undefined",
+                "throw new Error('sync');",
+                "Promise.reject(new Error(\"async\"))",
+                "return {PageBrigeCode:1,message:\"domain\"}",
+                "return missingClosure"
+              ],
+              "arguments": [
+                "undefined tag",
+                "nonfinite",
+                "BigInt",
+                "cycle",
+                "native/bound function"
+              ]
+            },
+            "expected": "wrapper awaits/returns typed false/0/empty/null/undefined; actual throw/rejection/closure error once; business PageBrigeCode unchanged; unsupported args/source reject predispatch; native diagnostics distinct, no claim native error fields all work",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "USER_SCRIPT-CODE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-THROW",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-REJECT",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-TRUE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-FALSE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-ZERO",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-EMPTY",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-NULL",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-BUSINESS",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-CLOSURE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-CODE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-THROW",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-REJECT",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-TRUE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-FALSE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-ZERO",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-EMPTY",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-NULL",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-BUSINESS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-CLOSURE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-BOUND",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-NONFINITE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-FUNCTIONARG",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-BIGINT",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-CYCLE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-MISSINGTARGET",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-PAGE-NATIVE-DIAGNOSTICS",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX04"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "code": [
+                "throw",
+                "rejected Promise",
+                "undefined"
+              ],
+              "legacyFailedIds": [
+                "USER_SCRIPT-RAW-THROW",
+                "USER_SCRIPT-RAW-REJECT",
+                "MAIN-RAW-THROW",
+                "MAIN-RAW-REJECT"
+              ]
+            },
+            "expected": "save actual raw API resolved/rejected/error/result shape in each version, keep all historical failure objects immutable; classify separately from wrapper; independent F1 reviewer must close effect on promised API contract, no silent pass replacement",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "USER_SCRIPT-RAW-THROW",
+              "pass": false
+            },
+            {
+              "id": "USER_SCRIPT-RAW-REJECT",
+              "pass": false
+            },
+            {
+              "id": "USER_SCRIPT-RAW-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-RAW-THROW",
+              "pass": false
+            },
+            {
+              "id": "MAIN-RAW-REJECT",
+              "pass": false
+            },
+            {
+              "id": "MAIN-RAW-UNDEFINED",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-PAGE-AUTH-CSP",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX01",
+              "EX04",
+              "AUTH01"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "UI": [
+                "Allow User Scripts OFF/ON",
+                "actual site access revoke/restore"
+              ],
+              "barrier": [
+                "before dispatch",
+                "pending slow page response",
+                "after native effect before accepted result"
+              ],
+              "pageCSP": [
+                "baseline",
+                "restrictive"
+              ],
+              "legacyFailure": "HOST-PERMISSION-REVOKE required permission removal failed"
+            },
+            "expected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "SWITCH-OFF",
+              "pass": true
+            },
+            {
+              "id": "SWITCH-ON",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+              "pass": true
+            },
+            {
+              "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-REVOKE-RESTORE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-RACE-PENDING",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-MAIN-PAGE",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-USER_SCRIPT-ALLOW",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-USER_SCRIPT-DENY",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-MAIN-PAGE",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-PAGE-OLD-DOC-RACE",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX04",
+              "NAV01"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "sequence": [
+                "hold evaluation",
+                "navigate",
+                "new document handshake",
+                "release old",
+                "new evaluation"
+              ],
+              "callback": "fixed packaged MAIN ChromeBridgeOperationCompleted"
+            },
+            "expected": "old pending result/old callback rejected and cannot settle new request; new real document call works; original target/from-to recorded where navigation adapter applies; no assumed world/run sender fields",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "PACKAGED-MAIN-CALLBACK",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-OLD-DOCUMENT-RACE",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-VERSION-MATRIX",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX01",
+              "EX02",
+              "EX03",
+              "EX04",
+              "EX08"
+            ],
+            "input": {
+              "candidateMinimum": 138,
+              "stable": "actual officially acquired current Stable full version",
+              "dimensions": [
+                "userScripts ON/OFF",
+                "code/file",
+                "precise doc",
+                "both worlds",
+                "world CSP",
+                "UI revoke/restore/pending",
+                "Worker CSP/private RPC/loop/resources"
+              ]
+            },
+            "expected": "per binary real complete required matrix; 149 local evidence insufficient; minimum cannot infer from manifest120; inability/failure138 requires explicit scope delta and independent renewed approval before manifest range narrowing",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "SWITCH-OFF",
+              "pass": true
+            },
+            {
+              "id": "SWITCH-ON",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-RAW-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-RAW-THROW",
+              "pass": false
+            },
+            {
+              "id": "USER_SCRIPT-RAW-REJECT",
+              "pass": false
+            },
+            {
+              "id": "USER_SCRIPT-RAW-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-CODE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-THROW",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-REJECT",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-TRUE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-FALSE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-ZERO",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-EMPTY",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-NULL",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-BUSINESS",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-CLOSURE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-WORLD",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-LEGACY",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-RAW-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-RAW-THROW",
+              "pass": false
+            },
+            {
+              "id": "MAIN-RAW-REJECT",
+              "pass": false
+            },
+            {
+              "id": "MAIN-RAW-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-CODE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-THROW",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-REJECT",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-TRUE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-FALSE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-ZERO",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-EMPTY",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-NULL",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-BUSINESS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-CLOSURE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-WORLD",
+              "pass": true
+            },
+            {
+              "id": "MAIN-LEGACY",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-BOTH",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-NEITHER",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-FUNC-ARGS",
+              "pass": true
+            },
+            {
+              "id": "TARGET-DOC-FRAME",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-MISSING-FILE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-BOUND",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-NONFINITE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-FUNCTIONARG",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-BIGINT",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-CYCLE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-MISSINGTARGET",
+              "pass": true
+            },
+            {
+              "id": "PACKAGED-MAIN-CALLBACK",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+              "pass": true
+            },
+            {
+              "id": "MAIN-OLD-DOCUMENT-RACE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-REVOKE-RESTORE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-RACE-PENDING",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-MAIN-PAGE",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-USER_SCRIPT-ALLOW",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-USER_SCRIPT-DENY",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-MAIN-PAGE",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+              "pass": true
+            },
+            {
+              "id": "HOST-PERMISSION-REVOKE",
+              "pass": false
+            },
+            {
+              "id": "HOST-PERMISSION-RESTORE",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        }
+      ],
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "integrity": {
+        "evidenceFilesVerified": 34,
+        "currentSourcesMatch": true,
+        "frozenApprovedInputsMatch": true
+      },
+      "userScriptsRequiredCasesPassed": false
+    },
+    {
+      "version": "154.0.8037.92",
+      "evidencePath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+      "reportSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+      "evidenceManifestSha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790",
+      "prototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "environment": {
+        "version": "154.0.8037.92",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "executableSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+        "channel": "CfT Stable154",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1",
+        "fixtureIdentity": {
+          "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*",
+              "http://localhost/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 userScripts v2 fixture",
+            "permissions": [
+              "userScripts",
+              "scripting",
+              "tabs",
+              "webNavigation"
+            ],
+            "version": "0.0.2"
+          }
+        }
+      },
+      "caseAccounting": {
+        "passedCases": 80,
+        "failedCases": 5,
+        "rawFunctionAttempts": 100,
+        "actualChromeUserScriptsExecuteInvocations": 99,
+        "unavailableBeforeNative": 1,
+        "nativeResolved": 90,
+        "nativeRejected": 9,
+        "rawPendingAtEnd": 0,
+        "actualChromeScriptingExecuteInvocations": 3,
+        "packagedResolved": 1,
+        "packagedRejected": 2,
+        "adapterPrevalidationCases": 7,
+        "otherRequiredFailures": 0
+      },
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "nativeErrorShape": [
+        {
+          "id": "USER_SCRIPT-RAW-THROW",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "USER_SCRIPT-RAW-REJECT",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "MAIN-RAW-THROW",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "MAIN-RAW-REJECT",
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          }
+        }
+      ],
+      "hostUi": {
+        "transitions": 22,
+        "observedNaturalHostRebuilds": 0,
+        "reconnectBranchValidated": false,
+        "fenceLayer": "prototype real browser authorization checks/events only; not product broker"
+      },
+      "approvedContractCoverage": [
+        {
+          "contract": {
+            "id": "F1-PAGE-SOURCE-DOC",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX04",
+              "AUTH01"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "sources": [
+                "code",
+                "packaged file"
+              ],
+              "targets": [
+                "top document",
+                "same-origin frame doc",
+                "cross-origin granted frame doc",
+                "old doc"
+              ],
+              "invalid": [
+                "code+file",
+                "empty",
+                "func/args",
+                "doc+frame",
+                "missing file"
+              ]
+            },
+            "expected": "real execute uses tabId+documentIds only; selected document altered; others unchanged; invalid rejects without dispatch; returned documentId matches; old document cannot mutate fresh",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "USER_SCRIPT-CODE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-CODE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-BOTH",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-NEITHER",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-FUNC-ARGS",
+              "pass": true
+            },
+            {
+              "id": "TARGET-DOC-FRAME",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-MISSING-FILE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-OLD-DOCUMENT-RACE",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-PAGE-TYPED-RESULTS",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX04",
+              "CMP03",
+              "CMP10"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "functions": [
+                "delayed Promise true",
+                "return false",
+                "return 0",
+                "return '';",
+                "return null",
+                "return undefined",
+                "throw new Error('sync');",
+                "Promise.reject(new Error(\"async\"))",
+                "return {PageBrigeCode:1,message:\"domain\"}",
+                "return missingClosure"
+              ],
+              "arguments": [
+                "undefined tag",
+                "nonfinite",
+                "BigInt",
+                "cycle",
+                "native/bound function"
+              ]
+            },
+            "expected": "wrapper awaits/returns typed false/0/empty/null/undefined; actual throw/rejection/closure error once; business PageBrigeCode unchanged; unsupported args/source reject predispatch; native diagnostics distinct, no claim native error fields all work",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "USER_SCRIPT-CODE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-THROW",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-REJECT",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-TRUE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-FALSE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-ZERO",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-EMPTY",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-NULL",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-BUSINESS",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-CLOSURE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-CODE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-THROW",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-REJECT",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-TRUE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-FALSE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-ZERO",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-EMPTY",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-NULL",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-BUSINESS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-CLOSURE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-BOUND",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-NONFINITE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-FUNCTIONARG",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-BIGINT",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-CYCLE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-MISSINGTARGET",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-PAGE-NATIVE-DIAGNOSTICS",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX04"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "code": [
+                "throw",
+                "rejected Promise",
+                "undefined"
+              ],
+              "legacyFailedIds": [
+                "USER_SCRIPT-RAW-THROW",
+                "USER_SCRIPT-RAW-REJECT",
+                "MAIN-RAW-THROW",
+                "MAIN-RAW-REJECT"
+              ]
+            },
+            "expected": "save actual raw API resolved/rejected/error/result shape in each version, keep all historical failure objects immutable; classify separately from wrapper; independent F1 reviewer must close effect on promised API contract, no silent pass replacement",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "USER_SCRIPT-RAW-THROW",
+              "pass": false
+            },
+            {
+              "id": "USER_SCRIPT-RAW-REJECT",
+              "pass": false
+            },
+            {
+              "id": "USER_SCRIPT-RAW-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-RAW-THROW",
+              "pass": false
+            },
+            {
+              "id": "MAIN-RAW-REJECT",
+              "pass": false
+            },
+            {
+              "id": "MAIN-RAW-UNDEFINED",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-PAGE-AUTH-CSP",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX01",
+              "EX04",
+              "AUTH01"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "UI": [
+                "Allow User Scripts OFF/ON",
+                "actual site access revoke/restore"
+              ],
+              "barrier": [
+                "before dispatch",
+                "pending slow page response",
+                "after native effect before accepted result"
+              ],
+              "pageCSP": [
+                "baseline",
+                "restrictive"
+              ],
+              "legacyFailure": "HOST-PERMISSION-REVOKE required permission removal failed"
+            },
+            "expected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "SWITCH-OFF",
+              "pass": true
+            },
+            {
+              "id": "SWITCH-ON",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+              "pass": true
+            },
+            {
+              "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-REVOKE-RESTORE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-RACE-PENDING",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-MAIN-PAGE",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-USER_SCRIPT-ALLOW",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-USER_SCRIPT-DENY",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-MAIN-PAGE",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-PAGE-OLD-DOC-RACE",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX04",
+              "NAV01"
+            ],
+            "input": {
+              "worlds": [
+                "USER_SCRIPT",
+                "MAIN"
+              ],
+              "sequence": [
+                "hold evaluation",
+                "navigate",
+                "new document handshake",
+                "release old",
+                "new evaluation"
+              ],
+              "callback": "fixed packaged MAIN ChromeBridgeOperationCompleted"
+            },
+            "expected": "old pending result/old callback rejected and cannot settle new request; new real document call works; original target/from-to recorded where navigation adapter applies; no assumed world/run sender fields",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "PACKAGED-MAIN-CALLBACK",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-OLD-DOCUMENT-RACE",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        },
+        {
+          "contract": {
+            "id": "F1-VERSION-MATRIX",
+            "phase": "F1",
+            "layer": "actual Chrome prototype",
+            "required": true,
+            "families": [
+              "EX01",
+              "EX02",
+              "EX03",
+              "EX04",
+              "EX08"
+            ],
+            "input": {
+              "candidateMinimum": 138,
+              "stable": "actual officially acquired current Stable full version",
+              "dimensions": [
+                "userScripts ON/OFF",
+                "code/file",
+                "precise doc",
+                "both worlds",
+                "world CSP",
+                "UI revoke/restore/pending",
+                "Worker CSP/private RPC/loop/resources"
+              ]
+            },
+            "expected": "per binary real complete required matrix; 149 local evidence insufficient; minimum cannot infer from manifest120; inability/failure138 requires explicit scope delta and independent renewed approval before manifest range narrowing",
+            "status": "not-tested",
+            "actual": null,
+            "prototypeCandidateSha256": null,
+            "productPackageSha256": null,
+            "evidence": []
+          },
+          "observedCases": [
+            {
+              "id": "SWITCH-OFF",
+              "pass": true
+            },
+            {
+              "id": "SWITCH-ON",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-RAW-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-RAW-THROW",
+              "pass": false
+            },
+            {
+              "id": "USER_SCRIPT-RAW-REJECT",
+              "pass": false
+            },
+            {
+              "id": "USER_SCRIPT-RAW-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-CODE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-THROW",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-REJECT",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-TRUE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-FALSE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-ZERO",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-EMPTY",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-NULL",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-BUSINESS",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-ADAPTER-CLOSURE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-WORLD",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-LEGACY",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-RAW-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-RAW-THROW",
+              "pass": false
+            },
+            {
+              "id": "MAIN-RAW-REJECT",
+              "pass": false
+            },
+            {
+              "id": "MAIN-RAW-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-CODE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-PROMISE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-THROW",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-REJECT",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-UNDEFINED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-TRUE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-FALSE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-ZERO",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-EMPTY",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-NULL",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-BUSINESS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-ADAPTER-CLOSURE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-WORLD",
+              "pass": true
+            },
+            {
+              "id": "MAIN-LEGACY",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "MAIN-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-TOP",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-SAME",
+              "pass": true
+            },
+            {
+              "id": "MAIN-FILE-DOCUMENT-CROSS",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-BOTH",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-NEITHER",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-FUNC-ARGS",
+              "pass": true
+            },
+            {
+              "id": "TARGET-DOC-FRAME",
+              "pass": true
+            },
+            {
+              "id": "SOURCE-MISSING-FILE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-BOUND",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-NONFINITE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-FUNCTIONARG",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-BIGINT",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-CYCLE",
+              "pass": true
+            },
+            {
+              "id": "PRE-DISPATCH-MISSINGTARGET",
+              "pass": true
+            },
+            {
+              "id": "PACKAGED-MAIN-CALLBACK",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-OLD-DOCUMENT-RACE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-SWITCH-REVOKE-INFLIGHT",
+              "pass": true
+            },
+            {
+              "id": "MAIN-OLD-DOCUMENT-RACE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+              "pass": true
+            },
+            {
+              "id": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+              "pass": true
+            },
+            {
+              "id": "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-REVOKE-RESTORE",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-RACE-PENDING",
+              "pass": true
+            },
+            {
+              "id": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-MAIN-PAGE",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-USER_SCRIPT-ALLOW",
+              "pass": true
+            },
+            {
+              "id": "CSP-BASELINE-USER_SCRIPT-DENY",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-MAIN-PAGE",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+              "pass": true
+            },
+            {
+              "id": "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+              "pass": true
+            },
+            {
+              "id": "HOST-PERMISSION-REVOKE",
+              "pass": false
+            },
+            {
+              "id": "HOST-PERMISSION-RESTORE",
+              "pass": true
+            }
+          ],
+          "independentDisposition": "pending",
+          "scope": "page lane only; combined control/page version matrix belongs to main writer"
+        }
+      ],
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "integrity": {
+        "evidenceFilesVerified": 34,
+        "currentSourcesMatch": true,
+        "frozenApprovedInputsMatch": true
+      },
+      "userScriptsRequiredCasesPassed": false
+    }
+  ],
+  "runHistory": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T19-30-48-228Z-m5-ui-138-e41c4bc7",
+      "reportSha256": "e64e92f0f36251ec789e60678c8199b5b88ae9e14399ee53d2720254e21fd218",
+      "prototypeCandidateSha256": "e587b05aa61538b886369cbc163c7b3b824f12929406b291f3c60eaa8d55c07c",
+      "passedCases": 0,
+      "failedIds": [],
+      "initializationFailure": null,
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-33-06-969Z-m5-site-ui-138-8407f82b",
+      "reportSha256": "2d593ec6fe803ced6815f0cfed6d6648407011648b1dc338ea8b7f034b1ae325",
+      "prototypeCandidateSha256": "483239ead39e236099834bab214626a665c4727a8db32cdd408276bddb92def2",
+      "passedCases": 0,
+      "failedIds": [],
+      "initializationFailure": null,
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-33-06-969Z-m5-site-ui-154-a7511219",
+      "reportSha256": "a052f30ab680e215a26f964c59d10e13b7628f3e5af8b5519852911f42e9b40a",
+      "prototypeCandidateSha256": "483239ead39e236099834bab214626a665c4727a8db32cdd408276bddb92def2",
+      "passedCases": 0,
+      "failedIds": [],
+      "initializationFailure": null,
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-36-03-462Z-m5-matrix-154-r1-dfa18ab3",
+      "reportSha256": "61e52a53c04a9cae1e6b846c05ece84c76e56478bb4d468349a5b5ef98fc4847",
+      "prototypeCandidateSha256": "3f0487ee5201705e039cda3948dc4b6ccf8e45a1ea1fe3e89ba24a551bc6b807",
+      "passedCases": 59,
+      "failedIds": [
+        "SWITCH-OFF",
+        "SWITCH-ON",
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+        "MAIN-SWITCH-REVOKE-INFLIGHT",
+        "USER_SCRIPT-HOST-UI-REVOKE-RESTORE"
+      ],
+      "initializationFailure": {
+        "name": "Error",
+        "message": "page.evaluate: Target page, context or browser has been closed",
+        "stack": "page.evaluate: Target page, context or browser has been closed\n    at call (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:85:41)\n    at runCase (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:101:111)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:380:9"
+      },
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-36-03-463Z-m5-matrix-138-r1-8fa2a785",
+      "reportSha256": "ce927d8e9f8bd2a310dac580761ad8106fba2914c01f668e504256995637d955",
+      "prototypeCandidateSha256": "3f0487ee5201705e039cda3948dc4b6ccf8e45a1ea1fe3e89ba24a551bc6b807",
+      "passedCases": 63,
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT"
+      ],
+      "initializationFailure": {
+        "name": "Error",
+        "message": "page.evaluate: Target page, context or browser has been closed",
+        "stack": "page.evaluate: Target page, context or browser has been closed\n    at call (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:85:41)\n    at runCase (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:101:111)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:368:7"
+      },
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-40-30-144Z-m5-matrix-138-r2-3e399c37",
+      "reportSha256": "fc3ff2d64bb21b44505662b6bfd8414b0d8184e1a0a0da7dfb94d9f80f4ef7b9",
+      "prototypeCandidateSha256": "99e01dc5fd75a6b3a99425ae62913b270752c6e9e18013839706c57c398c1d09",
+      "passedCases": 76,
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "initializationFailure": null,
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-40-30-144Z-m5-matrix-154-r2-0c0848b1",
+      "reportSha256": "5718c288a6a62cbacb19a1ea27cc22282a1174e39fbef400744e1ae5094274db",
+      "prototypeCandidateSha256": "99e01dc5fd75a6b3a99425ae62913b270752c6e9e18013839706c57c398c1d09",
+      "passedCases": 76,
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "initializationFailure": null,
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-47-18-280Z-m5-final-154-r3-b24ed429",
+      "reportSha256": "272b3898536d651d8c51d46e97707bc8072ddb8557f4435dc4b13a7fbeed6628",
+      "prototypeCandidateSha256": "50894a4c4e7794ea13f83a6fb69a6ee7a559a9ee8c206f72f2c06727dc6e9180",
+      "passedCases": 80,
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "initializationFailure": null,
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-47-18-281Z-m5-final-138-r3-f185065d",
+      "reportSha256": "570f3a747fafd0d49af6dffb31d1ba752544460b2a8b7e5139babd54016e4f58",
+      "prototypeCandidateSha256": "50894a4c4e7794ea13f83a6fb69a6ee7a559a9ee8c206f72f2c06727dc6e9180",
+      "passedCases": 80,
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "initializationFailure": null,
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+      "reportSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+      "prototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "passedCases": 80,
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "initializationFailure": null,
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+      "reportSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+      "prototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "passedCases": 80,
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "initializationFailure": null,
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "finalSourceEvidence": true
+    }
+  ],
+  "historyNotes": [
+    "R1: owner terminated only owned Chrome browser PIDs 54154 and 54155 to end stalled tool observations; resulting page/context closed initializationFailure is intervention/tool failure, not backend impossibility. Both runner finally blocks closed context/server.",
+    "R1 Stable154 aria-pressed-only observation was wrong: actual Chrome154 uses aria-checked. Initial async waitForFunction check was not valid permission evidence. Final source uses observed DOM attributes and separately awaited actual Chrome permissions. R1 records are immutable.",
+    "R2/R3 are prior-source observations; only R4 matches current final source hash. Do not accumulate passes across rounds."
+  ],
+  "semantics": [
+    "Typed wrapper in both worlds preserves Promise/true/false/0/empty/null/undefined, synchronous/rejected errors, business PageBrigeCode, closure errors and typed arguments. Prevalidation remains separate from browser execution.",
+    "Both worlds raw throw/rejection still resolve result:null without error. Four expectation failures remain required=true/pass=false. Raw undefined remains null; typed undefined uses its own tag.",
+    "Required host permissions.remove still throws You cannot remove required permissions. Kept failed. Legacy request success explicitly has restorationProven=false. Actual restoration evidence uses Chrome site UI only.",
+    "Raw direct execute while real site access withheld stays pending at 1s observation deadline; later old-document disposal resolves result:null. This is not native rejection/cancellation. Wrapper new operations reject before dispatch; real permission checks/events fence old results even after regrant.",
+    "Effects already issued may complete; raw delivery, adapter accepted/rejected result and resource cleanup are distinct. Prototype settlement counters are not F2 atomic admission or effect-once proof.",
+    "22 real UI transitions per final version did not rebuild host document/timeOrigin. Natural host reconstruction branch is not claimed tested.",
+    "CSP baseline/restrictive page and allowed/denied USER_SCRIPT worlds use actual HTTP positive/negative controls, console violations, exact document and packaged file observations. No privileged eval or alternate backend.",
+    "Final accounting uses immutable per-case input snapshots: 100 raw attempts, 99 actual Chrome execute calls, 1 unavailable before native. The final host trace has 99 entries because explicit runner reload at SWITCH-ON clears the earlier unavailable trace; it is not a complete lifetime attempt ledger."
+  ],
+  "preservedHistory": {
+    "oldCheckpointJsonSha256": "1fcc9b312d74df6325cacb1065bf656fc692146cf961a049e534c065b84af3e8",
+    "oldCheckpointMdSha256": "a39cceeac532f17efa121598418aaca14bb120d19bb4c87cd0409fadb9006739",
+    "oldReports": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-16-35-242Z-installed-cft-149-221265ae/report.json",
+        "sha256": "4b29a0174922ef2d00297c291234501d94f873fa972cc74be3ef43f15104173f",
+        "unchanged": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-17-39-461Z-installed-cft-149-1853a61f/report.json",
+        "sha256": "6ced4003058d5e18dbf020c4428ad2a15b480228c4456fadd6dbb11ee3802da5",
+        "unchanged": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-06-447Z-installed-cft-149-90b95412/report.json",
+        "sha256": "3adecb50d4b5bff416717fd81895bbbd1a8faaedd09865d614c0cc76c12b8d71",
+        "unchanged": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-28-823Z-installed-cft-149-689ca983/report.json",
+        "sha256": "0e998d297d234978ad67f1c3a2c737bbb03b3fcee80ce30021e07daf424a1203",
+        "unchanged": true
+      }
+    ]
+  },
+  "verification": {
+    "syntaxChecks": [
+      {
+        "command": "node --check tests/prototypes/user-scripts-v2/run-headed.mjs",
+        "exitCode": 0
+      },
+      {
+        "command": "node --input-type=module --check < tests/prototypes/user-scripts-v2/fixture/host.js",
+        "exitCode": 0
+      },
+      {
+        "command": "node --input-type=module --check < tests/prototypes/user-scripts-v2/fixture/adapter.js",
+        "exitCode": 0
+      }
+    ],
+    "remainingOwnedBrowserPids": [],
+    "sharedGatesWritten": false,
+    "productSourceWritten": false,
+    "dependenciesInstalled": false
+  },
+  "remaining": [
+    "Independent F1 review of native error/missing-error and withheld-permission pending semantics against promised typed contract.",
+    "Main writer combines this page lane with control lane and owns version support/public backend/F2 gates.",
+    "F2 product integration and F3 product acceptance not performed by this lane."
+  ],
+  "officialReferenceUrls": [
+    "https://developer.chrome.com/docs/extensions/reference/api/userScripts",
+    "https://developer.chrome.com/docs/extensions/reference/api/permissions"
+  ]
+}

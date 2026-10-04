@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-8082f00c-1f49-4b54-ac7e-e28520d7a7f0",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "76e21f5515f3cf05d6fb3f83d476b928547b8648184157dbc69f62700c8650a8",
+  "sourceUtf8": "await page.goto(params.url); const typed=await page.type('#name',params.name); const clicked=await page.click('#submit'); await page.waitForSelector('#result[data-done=\"true\"]'); return {typed,clicked,read:await page.snapshot('#result'),title:await page.title(),url:await page.url(),revision:params.revision,f:false,z:0,u:undefined};"
+}

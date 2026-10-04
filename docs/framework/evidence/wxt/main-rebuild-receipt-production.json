@@ -1,0 +1,16 @@
+{
+  "runnerSha256": "0671b002632aa55e6b063892807064fa18542800e0402dd06a3286ec2cc71f2a",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "sourceHash": "28bde6980f946faae45b72cf349b9c610da523bec5f0d454d755512b245c07c3",
+  "packages": {
+    "production": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280"
+  },
+  "productInputsSha256": "b67428ed1c8ff45f516a947e2fb365e950530043f773e24134d06857f6df3ebf",
+  "verificationInputsSha256": "deaa7112f8c25767b975fac588626140ba093595d49843985d865cb4be9a059c",
+  "readyForControllerNative": true,
+  "executionWindow": {
+    "lane": "controller-product-native",
+    "sdkRunnerIdle": true
+  },
+  "contractCheckEvidence": "docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T20-09-27.136Z-6948cb0f/ready.json"
+}

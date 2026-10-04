@@ -1,0 +1,183 @@
+{
+  "corpusId": "synthetic-http-catalog-2026-10-01",
+  "files": {
+    "fixtures/heldout/cardinality.html": {
+      "bytes": 575,
+      "sha256": "f348f3d4a07e7fc3323a2a324818c65c00571d12f6010062dc34bbb95715c09e"
+    },
+    "fixtures/heldout/detail-h1.html": {
+      "bytes": 389,
+      "sha256": "13eae82de3019a2c8e216dbba89f74f9984fb8c0071c00c1d525cfa5eeffc4b0"
+    },
+    "fixtures/heldout/detail-h2.html": {
+      "bytes": 390,
+      "sha256": "92d3afe905b984fbf200931f51e05332fbbb057084c94c08eb433507a4ea9c47"
+    },
+    "fixtures/heldout/detail-h3.html": {
+      "bytes": 440,
+      "sha256": "e0e1f64b44396e38d84e5b51ac47f6a19589e2cd36faedd19647d3b26cc7f926"
+    },
+    "fixtures/heldout/detail-h4.html": {
+      "bytes": 385,
+      "sha256": "5dd43b80531294d66d2134aa37c90daf3aab4ffc7c3f2fb1a85b26db4f9204c0"
+    },
+    "fixtures/heldout/detail-h5.html": {
+      "bytes": 437,
+      "sha256": "9db28fe788b2b2f4dc4d501d600b56f3c8e5a5d41692af6c34be1890ee66f1d8"
+    },
+    "fixtures/heldout/detail-mismatch.html": {
+      "bytes": 451,
+      "sha256": "566fce04e7da24a3d652be0ebc8f21dedf9c78dade16ce3ed31b073ba4db3527"
+    },
+    "fixtures/heldout/duplicate.html": {
+      "bytes": 583,
+      "sha256": "176ef58e62b45244c72c3f8a80d3638353c09a0f8795a2dc520247dd79b01056"
+    },
+    "fixtures/heldout/empty.html": {
+      "bytes": 308,
+      "sha256": "dcbba5f6ace762547d1925c49dc8ceba701c4dd8755fd8b1c94d1421996d3a8c"
+    },
+    "fixtures/heldout/error-region.html": {
+      "bytes": 916,
+      "sha256": "ec28d2f257d866e08d24d83e2a34e06a8ad411a1aa45ffdb5026386d1e4f1fd3"
+    },
+    "fixtures/heldout/error.html": {
+      "bytes": 519,
+      "sha256": "2a1a739c2edeeaf4d43859b563fd573223f21dd9411c3528844c6eff01395f5f"
+    },
+    "fixtures/heldout/list-page-1.html": {
+      "bytes": 958,
+      "sha256": "7e2e93f2bde719908b27f7db77de08deafc7b31018d4e2b180ea05f5b127195b"
+    },
+    "fixtures/heldout/list-page-2.html": {
+      "bytes": 1204,
+      "sha256": "52ad913dbaf40acf0719c6513c42640160dacabcf4f80e9c0a7d8c476cb7902d"
+    },
+    "fixtures/heldout/login.html": {
+      "bytes": 444,
+      "sha256": "8dda6721bc6d695c4ff850c1324378592a87cca6f843515019d3536a24362469"
+    },
+    "fixtures/heldout/missing-required.html": {
+      "bytes": 372,
+      "sha256": "ba479d8569aa224463b59e79deca8d92a49e9e602630330f0797fbb7d4f48500"
+    },
+    "fixtures/training/cardinality.html": {
+      "bytes": 542,
+      "sha256": "2515a5ab4298e96ba92df5681195e6376b9cbab3f7b642ff7366ee2da87431d5"
+    },
+    "fixtures/training/detail-mismatch.html": {
+      "bytes": 340,
+      "sha256": "4d935a3958adeefddf85e5eb121d40d9a5721e0cd379c78881831c997b3191aa"
+    },
+    "fixtures/training/detail-t1.html": {
+      "bytes": 308,
+      "sha256": "67af7de2563d7162b3c5b4ab91269cf03d639330e0de2cff9334b7407d5dc762"
+    },
+    "fixtures/training/detail-t2.html": {
+      "bytes": 301,
+      "sha256": "1f1fcbee2128e84054ce6aa0ba460c3d4a135d1d4f28fa3b1c7bd195bf7afe3e"
+    },
+    "fixtures/training/detail-t3.html": {
+      "bytes": 273,
+      "sha256": "dc25b1ba9ab5f15fd03960e97dc093d11577f4a3ac1cbb7a2a15d1f6240611a7"
+    },
+    "fixtures/training/detail-t4.html": {
+      "bytes": 373,
+      "sha256": "c7197f692db407277b770c7ed3fffde3af9301dec08aa532fd632eb0b4c316ab"
+    },
+    "fixtures/training/detail-t5.html": {
+      "bytes": 381,
+      "sha256": "f27004694e483f0d45919f96f60ef2400e12ad98a789b7281712741dcc6451d8"
+    },
+    "fixtures/training/duplicate.html": {
+      "bytes": 545,
+      "sha256": "c04283666793d5b34a4785e64d0daa1fed1bdb2d2676c5f539c6d9de9a91b4a1"
+    },
+    "fixtures/training/empty.html": {
+      "bytes": 285,
+      "sha256": "d6810db2790c886214d9dbcebbb8293db10bce3b8c1922a1c54424660907759a"
+    },
+    "fixtures/training/error-region.html": {
+      "bytes": 845,
+      "sha256": "4650e0e7636b0d58053c8e994ba544ba0dd08e9189123b15c6feca27862dab92"
+    },
+    "fixtures/training/error.html": {
+      "bytes": 441,
+      "sha256": "25983a088ffd34cd7aaed4fc0828813c0528c65ad2c2969f56c186bcc08438df"
+    },
+    "fixtures/training/list-page-1.html": {
+      "bytes": 943,
+      "sha256": "509ed3af1dc89093b1da964360132f6f81d2b03770fe0c15a3611f19fa15c9ab"
+    },
+    "fixtures/training/list-page-2.html": {
+      "bytes": 950,
+      "sha256": "c78caba7022753d5ed056c01329dd0047f0f1909170817d9f8c84e3da7823119"
+    },
+    "fixtures/training/login.html": {
+      "bytes": 500,
+      "sha256": "14a68caa9cfd45ae95aeba58c452ac1cfdd12eb26abeac86951e733cbca18284"
+    },
+    "fixtures/training/missing-required.html": {
+      "bytes": 401,
+      "sha256": "d7c58232616d0e7b1eb767f9351106836a71f3de82c7d2b8b776c224e79ccfec"
+    },
+    "labels/heldout.json": {
+      "bytes": 13858,
+      "sha256": "ea8fb3c2f26bc8757ea89d159342ec1d700076268751f1e64ccc059088974bc7"
+    },
+    "labels/training.json": {
+      "bytes": 13899,
+      "sha256": "6012276ddc85c27e1e5b119e7b22a1b96d53fbbf9219fb2d70ee62eeaf2152cc"
+    },
+    "reference-task.json": {
+      "bytes": 4539,
+      "sha256": "2b1a5280f5737239aab9df88bdc74de78adb811c71d9ced2daa0b5e5a0e9fd76"
+    }
+  },
+  "oraclePolicy": "Immutable independent literal annotations; no candidate-derived oracle and no weakened expectations. Fixtures/gold author only; implementation/tests have read-only access.",
+  "profile": "http-cheerio",
+  "referenceTask": {
+    "path": "reference-task.json",
+    "sha256": "2b1a5280f5737239aab9df88bdc74de78adb811c71d9ced2daa0b5e5a0e9fd76"
+  },
+  "schemaVersion": 1,
+  "splits": {
+    "heldout": {
+      "caseCount": 15,
+      "fixtureCount": 15,
+      "labels": "labels/heldout.json",
+      "labelsSha256": "ea8fb3c2f26bc8757ea89d159342ec1d700076268751f1e64ccc059088974bc7",
+      "templateFamilies": [
+        "heldout-definition-detail",
+        "heldout-table",
+        "heldout-table-detail",
+        "heldout-tiles"
+      ]
+    },
+    "training": {
+      "caseCount": 15,
+      "fixtureCount": 15,
+      "labels": "labels/training.json",
+      "labelsSha256": "6012276ddc85c27e1e5b119e7b22a1b96d53fbbf9219fb2d70ee62eeaf2152cc",
+      "templateFamilies": [
+        "training-article-detail",
+        "training-cards",
+        "training-main-detail",
+        "training-ul"
+      ]
+    }
+  },
+  "successPerSplit": {
+    "detailPages": 5,
+    "listPages": 2,
+    "records": 5,
+    "requests": 7,
+    "stopReason": "end"
+  },
+  "synthetic": true,
+  "unsupported": [
+    "browser-ai",
+    "playwright",
+    "xpath"
+  ]
+}

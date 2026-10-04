@@ -1,0 +1,46 @@
+{
+  "state": "selection-observed",
+  "label": "138",
+  "pid": 18690,
+  "launcherPid": 18687,
+  "endpoint": "ws://127.0.0.1:61132/devtools/browser/fe584b48-5192-4b77-8cfd-c7e7187f6070",
+  "toolId": "2BAAB05F0111290A087AABC93D656470",
+  "targetId": "2BAAB05F0111290A087AABC93D656470",
+  "selector": "#sdk-document",
+  "desired": "A61A6B4A77E335C03A0BFC0CF19CE703",
+  "optionIndex": 1,
+  "before": {
+    "value": "",
+    "selectedIndex": 0,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择当前精确文档",
+        "disabled": false
+      },
+      {
+        "value": "A61A6B4A77E335C03A0BFC0CF19CE703",
+        "text": "frame 0 · A61A6B4A77E335C03A0BFC0CF19CE703 · http://127.0.0.1:61120/target?seed=138-6e6f7011-dc66-44fe-beee-5fe7a3ee5534",
+        "disabled": false
+      }
+    ]
+  },
+  "instruction": "Leader CUA must commit this exact option in the bound native Chrome window; no DOM assignment or synthetic UI events",
+  "after": {
+    "value": "A61A6B4A77E335C03A0BFC0CF19CE703",
+    "selectedIndex": 1,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择当前精确文档",
+        "disabled": false
+      },
+      {
+        "value": "A61A6B4A77E335C03A0BFC0CF19CE703",
+        "text": "frame 0 · A61A6B4A77E335C03A0BFC0CF19CE703 · http://127.0.0.1:61120/target?seed=138-6e6f7011-dc66-44fe-beee-5fe7a3ee5534",
+        "disabled": false
+      }
+    ]
+  },
+  "input": "Native UI assist; readback verified; leader CUA action transcript required"
+}

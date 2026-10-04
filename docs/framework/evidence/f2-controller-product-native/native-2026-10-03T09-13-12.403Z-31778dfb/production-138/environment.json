@@ -1,0 +1,409 @@
+{
+  "mode": "production",
+  "label": "138",
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+  "requestedVersion": "138.0.7204.183",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+  "sourceHash": "1e11e9f512bdd2e53d6e6b0b48a868648edeff16fc7b6ba882f076757b9fbdbe",
+  "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+  "stage": "F2",
+  "f3Accepted": false,
+  "original603Closed": false,
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+  "manifest": {
+    "manifest_version": 3,
+    "name": "OpenDesk Browser",
+    "version": "0.1.0",
+    "description": "OpenDesk Browser 浏览器自动化框架。",
+    "minimum_chrome_version": "138",
+    "permissions": [
+      "storage",
+      "scripting",
+      "activeTab",
+      "downloads",
+      "tabs",
+      "webNavigation",
+      "userScripts"
+    ],
+    "optional_permissions": [
+      "cookies",
+      "notifications"
+    ],
+    "optional_host_permissions": [
+      "http://*/*",
+      "https://*/*"
+    ],
+    "background": {
+      "service_worker": "sw.js"
+    },
+    "action": {
+      "default_title": "打开 OpenDesk Browser"
+    },
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'",
+      "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+    },
+    "incognito": "not_allowed",
+    "sandbox": {
+      "pages": [
+        "scripting/sandbox/sandbox.html"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+      "families": "A01/NAV01/CMP09",
+      "expected": "Real owned page navigates; BaseAlice, Typed/clicked; HTTP effect and durable typed return agree",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+      "families": "USC01/USC02/USC03",
+      "expected": "Running r1 remains pinned while UI saves r2 and tombstones head; r1 source/params/result stay unchanged until retirement; new start from another real host holding r2 is rejected E_TOMBSTONE",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+      "families": "A01/A02/AUTH01",
+      "expected": "Explicit borrowed document changes; activated decoy and other documents do not; borrowed target survives",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+      "families": "A02/AUTH01",
+      "expected": "Actual child document selected from native frame inventory; only child changes; top/decoy survive",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DURABLE-FALSE",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DURABLE-ZERO",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DURABLE-UNDEFINED",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DURABLE-OWN-UNDEFINED",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DURABLE-TRUE",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DURABLE-BUSINESS",
+      "families": "USC03/CMP03/CMP10",
+      "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DOWNLOAD-FALSE",
+      "families": "DLGEN01/DLGEN02",
+      "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DOWNLOAD-ZERO",
+      "families": "DLGEN01/DLGEN02",
+      "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DOWNLOAD-UNDEFINED",
+      "families": "DLGEN01/DLGEN02",
+      "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "DOWNLOAD-OWN-UNDEFINED",
+      "families": "DLGEN01/DLGEN02",
+      "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "THROW",
+      "families": "USC03/EX02",
+      "expected": "Actual Worker throw persists failed typed error exactly once",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "REJECTION",
+      "families": "USC03/EX02",
+      "expected": "Actual rejected Promise persists failed typed error exactly once",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "MULTI-HOST-SLOT-COMPETITION",
+      "families": "CTRL03/AUTH01",
+      "expected": "Two real product hosts contend; loser gets E_OWNER; no loser run/effect; winner retains slot",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "STOP-PENDING-FENCE",
+      "families": "CTRL01/LEAK01",
+      "expected": "Real UI stop during native page wait; durable cancel; no late page operation; borrowed target survives",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "WORKER-INFINITE-STOP",
+      "families": "CTRL03/EX03/LEAK01",
+      "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "WORKER-INFINITE-DEADLINE",
+      "families": "CTRL03/EX03/LEAK01",
+      "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "WORKER-INFINITE-HOST-CLOSE",
+      "families": "CTRL03/EX03/LEAK01",
+      "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "REOPEN-PERSISTENT-RESULT",
+      "families": "USC03/CTRL03",
+      "expected": "Closing/reopening actual tool reads original durable outcome without executing old source",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "CLEANUP-NO-SCRAPING-RECORDS",
+      "families": "A01/LEAK01",
+      "expected": "Controller targets/frames retired, slot released; no template/row/seal/business run prerequisite",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "NOT_TESTED"
+    }
+  ],
+  "environment": {
+    "origin": "http://127.0.0.1:49256"
+  },
+  "launcherPid": 63469,
+  "launcher": {
+    "command": {
+      "at": 1791018792789,
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 63469,
+      "executable": "/usr/bin/python3",
+      "args": [
+        "/Users/shopme/.codex/browser-testing/launch.py",
+        "--executable",
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--report",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-13-12.403Z-31778dfb/production-138/launcher-metadata.json",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "chromeArgs": [
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+    },
+    "metadata": {
+      "pid": 63471,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "args": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb/chrome.log"
+    },
+    "profileStat": {
+      "birthtimeMs": 1791018792857.0288,
+      "mode": 448
+    },
+    "actualMainProcess": {
+      "psExecutable": "/bin/ps",
+      "psArgs": [
+        "-p",
+        "63471",
+        "-ww",
+        "-o",
+        "pid=,ppid=,command="
+      ],
+      "stdout": "63471 63469 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb --enable-automation --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank\n",
+      "pid": 63471,
+      "ppid": 63469
+    },
+    "endpoint": "ws://127.0.0.1:49261/devtools/browser/af6d19c1-ce1c-47cc-ab2a-ceec36d51593"
+  },
+  "endpoint": "ws://127.0.0.1:49261/devtools/browser/af6d19c1-ce1c-47cc-ab2a-ceec36d51593",
+  "pid": 63471,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb",
+  "browserArgs": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb",
+    "--enable-automation",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "about:blank"
+  ],
+  "debuggingURL": "http://127.0.0.1:49261",
+  "cdpVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/138.0.7204.183",
+    "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "jsVersion": "13.8.258.30"
+  },
+  "completeVersion": "Chrome/138.0.7204.183",
+  "actualBrowserCommandLine": {
+    "arguments": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb",
+      "--enable-automation",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--flag-switches-begin",
+      "--flag-switches-end",
+      "about:blank"
+    ]
+  },
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "actualSW": {
+    "targetId": "3389DCDB25FF7FBAE9918BC66EC58A9F",
+    "id": "efhcmggbgamacpfhhmooelgdkepdcghh",
+    "manifest": {
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+      },
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "incognito": "not_allowed",
+      "manifest_version": 3,
+      "minimum_chrome_version": "138",
+      "name": "OpenDesk Browser",
+      "optional_host_permissions": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "optional_permissions": [
+        "cookies",
+        "notifications"
+      ],
+      "permissions": [
+        "storage",
+        "scripting",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts"
+      ],
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html"
+        ]
+      },
+      "version": "0.1.0"
+    },
+    "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js"
+  }
+}

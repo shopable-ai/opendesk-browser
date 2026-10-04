@@ -1,0 +1,45 @@
+✔ schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes (7.623083ms)
+✔ no native IDB in Node is reported as unavailable; storage entry exports factory (0.393125ms)
+✔ immutable template save CAS, exact duplicate, hash lookup and name-only CAS (25.035166ms)
+✔ template admission hook uses same transaction and cannot overwrite immutable revision (6.28325ms)
+✔ beginPage permits preparing run, reserves exact command key and idempotently reACKs (7.873083ms)
+✔ stage rejects undispatched reservation and atomically aborts open snapshot (4.509416ms)
+✔ three batches: first two durable ACKs, third exact-byte failure hides whole page (16.547333ms)
+✔ exact staged duplicate does not add bytes; conflicting valid digest aborts page (12.69925ms)
+✔ host/epoch/target mismatch is rejected without aborting rightful open page (2.727625ms)
+✔ admission cannot bypass transaction reread of cancellation (2.343625ms)
+✔ stage may acknowledge authenticated raw frames before end; seal requires complete end (12.160208ms)
+✔ seal recomputes all six rows; prefix-only signature fails (9.31175ms)
+✔ batch gap, record key/field mismatch, and raw-end evidence mismatch reject (23.933292ms)
+✔ stop wins before seal; seal wins before stop and preserves historic original ACK (24.825584ms)
+✔ run revision and authenticated host registration cannot be bypassed (9.412667ms)
+✔ reader pins freeze watermark/count, paginate long typed values, and reject other cursors (19.248583ms)
+✔ zero-batch empty page requires authenticated allowed-empty proof (15.728916ms)
+✔ repeated full page signature without end is rejected and left invisible (18.318917ms)
+✔ whole-page run limits, two pending ACKs, profile budget and injected disk quota (26.199292ms)
+✔ delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data (9.36775ms)
+✔ retention defaults seven days, preserves active runs and raw migration duplicates (7.837583ms)
+✔ shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS (16.463625ms)
+✔ REGRESSION-R3-host-gone: document loss persists retirement without requiring the old host (3.295041ms)
+✔ REGRESSION-R4-control-states: late stop preserves an existing retirement (0.770042ms)
+✔ REGRESSION-R4-control-states: session recovery preserves a durable retirement (0.898208ms)
+✔ REGRESSION-R5-terminal-fence-gap: every committed terminal has a durable retirement (0.640834ms)
+✔ REGRESSION-R6-false-completion: caller naturalEnd cannot complete an unbound run (0.49175ms)
+✔ REGRESSION-R8-journal-key-collision: a caller command ID cannot replace host metadata (8.053792ms)
+✔ CMP11-API01/02/03/04: bound constructors, immutable pins and independent owners (2.788083ms)
+✔ CMP10-API05/06 and CMP01-API36: raw callbacks and raw execute never dispatch (0.151166ms)
+✔ CMP10-API35: typed values and statement ignored args before registration (0.996875ms)
+✔ CMP03-API34 and CORE-EVALUATE-EXPRESSION: explicit modes and no extra parameters (0.2825ms)
+✔ CMP02-API12/13-LIMIT: Worker DOM snapshots reject; serialized alternatives preserve null/[] (0.262083ms)
+✔ NAV01 + ChromeElement: only attested navigation advances root; old element/keyboard sequence stay bound (0.46325ms)
+✔ CTRL owner fencing: stop/deadline/host-close settle pending once; stale request never rebinds new ctx (1.174041ms)
+✔ Private Worker port: global fake peer, wrong owner, wrong correlation and reply replay cannot settle (30.632083ms)
+✔ Host relay rejects cross-owner/old revision/old target before the shared transport (0.417667ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 343.352417

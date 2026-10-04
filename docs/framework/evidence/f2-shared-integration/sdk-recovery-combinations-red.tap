@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs
+not ok 1 - SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs
+  ---
+  duration_ms: 22.53575
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs:58:1'
+  failureType: 'testCodeFailure'
+  error: 'SDK durable result binding differs'
+  code: 'E_EFFECT_UNKNOWN'
+  name: 'FoundationError'
+  stack: |-
+    invariant (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:14:25)
+    file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js:311:11
+    async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs:23:22
+  ...
+# Subtest: SDK recovery reconciles atomic storage durable result before broker receipt and never replays it
+ok 2 - SDK recovery reconciles atomic storage durable result before broker receipt and never replays it
+  ---
+  duration_ms: 5.506334
+  type: 'test'
+  ...
+# Subtest: SDK restart at dispatched cut pauses its run with original unknown effect and no replacement
+ok 3 - SDK restart at dispatched cut pauses its run with original unknown effect and no replacement
+  ---
+  duration_ms: 5.330417
+  type: 'test'
+  ...
+# Subtest: SDK Hello needs native document/grant and never claims a controller slot
+ok 4 - SDK Hello needs native document/grant and never claims a controller slot
+  ---
+  duration_ms: 1.558042
+  type: 'test'
+  ...
+# Subtest: SDK grant and request payload cannot carry page authority/namespace/bare args
+ok 5 - SDK grant and request payload cannot carry page authority/namespace/bare args
+  ---
+  duration_ms: 4.10975
+  type: 'test'
+  ...
+# Subtest: SDK sender/document/lifecycle fences reject before any storage effect
+ok 6 - SDK sender/document/lifecycle fences reject before any storage effect
+  ---
+  duration_ms: 0.974042
+  type: 'test'
+  ...
+# Subtest: 100 same-ID concurrent persistent calls commit one effect and one result
+ok 7 - 100 same-ID concurrent persistent calls commit one effect and one result
+  ---
+  duration_ms: 40.69275
+  type: 'test'
+  ...
+# Subtest: same ID with changed args or deadline conflicts and does not overwrite effect
+ok 8 - same ID with changed args or deadline conflicts and does not overwrite effect
+  ---
+  duration_ms: 11.121416
+  type: 'test'
+  ...
+# Subtest: native session adapter preserves own undefined/false/0 across Chrome JSON storage
+ok 9 - native session adapter preserves own undefined/false/0 across Chrome JSON storage
+  ---
+  duration_ms: 38.549541
+  type: 'test'
+  ...
+# Subtest: durable session duplicate after authority restart does not resubmit native set
+not ok 10 - durable session duplicate after authority restart does not resubmit native set
+  ---
+  duration_ms: 9.027208
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs:164:1'
+  failureType: 'testCodeFailure'
+  error: 'SDK durable result binding differs'
+  code: 'E_EFFECT_UNKNOWN'
+  name: 'FoundationError'
+  stack: |-
+    invariant (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:14:25)
+    file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js:311:11
+    async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs:23:22
+  ...
+# Subtest: native session failure records unknown dispatch and will not retry same write
+ok 11 - native session failure records unknown dispatch and will not retry same write
+  ---
+  duration_ms: 3.680208
+  type: 'test'
+  ...
+# Subtest: SW recovery fences dispatched write gap and retains original identity/deadline
+ok 12 - SW recovery fences dispatched write gap and retains original identity/deadline
+  ---
+  duration_ms: 31.211583
+  type: 'test'
+  ...
+# Subtest: durable duplicate cannot extend original 15s service deadline
+ok 13 - durable duplicate cannot extend original 15s service deadline
+  ---
+  duration_ms: 5.489333
+  type: 'test'
+  ...
+# Subtest: native permission remove then regrant cannot revive old request/grant
+ok 14 - native permission remove then regrant cannot revive old request/grant
+  ---
+  duration_ms: 8.050958
+  type: 'test'
+  ...
+# Subtest: observed navigation invalidates current page Hello and pending admission
+ok 15 - observed navigation invalidates current page Hello and pending admission
+  ---
+  duration_ms: 1.249875
+  type: 'test'
+  ...
+# Subtest: notification permission removal with empty origins revokes the affected grant
+ok 16 - notification permission removal with empty origins revokes the affected grant
+  ---
+  duration_ms: 0.715375
+  type: 'test'
+  ...
+# Subtest: notification native receipt and durable undefined survive delivery revocation
+ok 17 - notification native receipt and durable undefined survive delivery revocation
+  ---
+  duration_ms: 1.783833
+  type: 'test'
+  ...
+# Subtest: successful HTTP business envelope remains data and stores native result before delivery
+ok 18 - successful HTTP business envelope remains data and stores native result before delivery
+  ---
+  duration_ms: 59.369375
+  type: 'test'
+  ...
+# Subtest: SDK backend timer clamps to earlier caller deadline even for hung native callback
+ok 19 - SDK backend timer clamps to earlier caller deadline even for hung native callback
+  ---
+  duration_ms: 3.333375
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 17
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 506.088167

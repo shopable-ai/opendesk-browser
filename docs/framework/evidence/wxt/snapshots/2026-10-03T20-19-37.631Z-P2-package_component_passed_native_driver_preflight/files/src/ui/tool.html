@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenDesk Browser</title><link rel="stylesheet" href="tool-shell.css"></head>
+<body>
+<header><h1>OpenDesk Browser</h1><p>JavaScript 工作台与网页 SDK</p></header>
+<main>
+  <section aria-labelledby="script-title"><h2 id="script-title">JavaScript 工作台</h2>
+    <p>保存脚本版本，选择目标后运行。脚本可通过 page 操作选定文档；保存新版本不会改变正在运行的版本。</p>
+    <div class="row"><label for="script-id">脚本 ID</label><input id="script-id" value="my-script"><label for="script-revision">版本</label><input id="script-revision" type="number" min="1" placeholder="留空加载最新版本"><button id="script-load">加载持久版本</button></div>
+    <label for="script-source">脚本</label><textarea id="script-source" rows="8" spellcheck="false">return {title: await page.title(), url: await page.url(), value: params.value};</textarea>
+    <label for="script-params">参数（JSON）</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea>
+    <div class="row"><button id="script-save">保存新版本</button><button id="script-delete" disabled>删除脚本</button><span id="script-version">尚未保存</span></div>
+    <div class="row"><label for="script-target-mode">目标方式</label><select id="script-target-mode"><option value="owned">创建隔离网页</option><option value="borrowed">使用明确选定的现有文档</option></select><input id="script-owned-url" type="url" placeholder="请输入隔离网页地址"></div>
+    <div class="row"><label for="script-tab">现有网页</label><select id="script-tab"><option value="">请选择具体网页</option></select><button id="script-refresh">刷新网页列表</button><label for="script-document">精确文档</label><select id="script-document"><option value="">请选择当前精确文档</option></select></div>
+    <div class="row"><button id="script-run" disabled>授权目标并运行选定版本</button><button id="script-stop" disabled>停止任务</button></div>
+    <div class="row"><label for="script-run-id">任务 ID</label><input id="script-run-id" placeholder="留空查看持久结果列表"><button id="script-read">读取持久结果</button></div>
+    <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p><pre id="script-result" aria-label="脚本持久结果"></pre>
+    <div class="row"><label for="script-download-result">已完成的持久结果</label><select id="script-download-result"><option value="">请选择要下载的结果</option></select><button id="script-download" disabled>下载结果 JSON</button></div>
+    <p id="script-download-status" role="status">结果下载保留类型信息，包括 undefined。</p>
+  </section>
+  <section id="scraping-panel" aria-label="采集模块"></section>
+  <section aria-labelledby="sdk-title"><h2 id="sdk-title">独立网页 SDK</h2>
+    <p>选定一个网页及其当前文档，再选择允许的短服务。安装后网页可直接使用 OpenDeskSDK，无需运行控制脚本。导航后须重新选择并授权。</p>
+    <div class="row"><label for="sdk-tab">网页</label><select id="sdk-tab"><option value="">请选择具体网页</option></select><button id="sdk-refresh">刷新网页列表</button></div>
+    <div class="row"><label for="sdk-document">精确文档</label><select id="sdk-document" disabled><option value="">先选择网页，再选择文档</option></select></div>
+    <fieldset id="sdk-capabilities"><legend>允许的服务（仅授予勾选项）</legend></fieldset>
+    <div class="row"><button id="sdk-install" disabled>授权选定文档并安装 SDK</button></div>
+    <p id="sdk-status" role="status" data-state="idle">请选择网页、文档和服务</p><pre id="sdk-result" aria-label="SDK 安装结果"></pre>
+  </section>
+  <section aria-labelledby="health-title"><h2 id="health-title">目标健康检查</h2>
+    <p>检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。</p>
+    <div class="row"><label for="target-url">测试页面地址</label><input id="target-url" type="url" placeholder="https://example.com/"><button id="create-target">授权并创建检查页</button></div>
+    <div class="row"><button id="check-source">检查原页面</button><button id="check-target" disabled>检查已绑定文档</button><button id="open-tool">聚焦工具窗口</button></div>
+    <p id="status" role="status">环境入口已加载</p><pre id="health-result" aria-label="目标检查结果"></pre>
+  </section>
+  <aside>SDK 只调用获准的短服务；目标健康检查仅证明环境通信。</aside>
+</main>
+<script src="tool-shell.js"></script>
+</body></html>

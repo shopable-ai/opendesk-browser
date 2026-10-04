@@ -1,0 +1,96 @@
+{
+  "scope": "F2/K5 minimal native independent SDK product entry and targeted runner",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "allowedWriteFiles": [
+    "src/ui/tool.html",
+    "src/ui/tool-shell.js",
+    "tests/framework/k5-sdk-native.mjs"
+  ],
+  "singleHostClient": "foundationClient = createHostClient(); future createRunHost({client:foundationClient}) shares same identity",
+  "productChain": [
+    "user explicitly selects chrome tab id",
+    "chrome.webNavigation.getAllFrames exact document id + frame id",
+    "trusted click directly chrome.permissions.request",
+    "foundationClient actual registerHost registration",
+    "foundationClient.request installSdk {tabId,frameId,documentId,capabilities}",
+    "broker authority grant then fixed ISOLATED relay then MAIN SDK",
+    "page ready native sender validation"
+  ],
+  "runnerCommand": [
+    "node",
+    "tests/framework/k5-sdk-native.mjs",
+    "--mode=all",
+    "--chrome=all",
+    "--headed",
+    "--permission-timeout=600000"
+  ],
+  "runnerNeeds": [
+    "current build production/development after main shared connection is stable",
+    "src/ui/tool.html and tool-shell.js rebuilt into same package",
+    "actual cached Chrome138/154"
+  ],
+  "runnerBoundaries": {
+    "manifestChanged": false,
+    "newExtension": false,
+    "mockSender": false,
+    "sameCurrentProductPackage": true,
+    "F3Accepted": false,
+    "original603Closure": false
+  },
+  "notClaimed": [
+    "four native crash points",
+    "full independent B05",
+    "1000 mixed lifecycle rounds",
+    "10 reconnect rounds",
+    "2 plugin disables",
+    "same-final-package independent review"
+  ],
+  "files": [
+    {
+      "path": "src/ui/tool.html",
+      "sha256": "2a2b82befec3da17619d71c4a71c3cc9796b54dd86ef8dcbab6f1339e14d5962"
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "sha256": "eb83cae362cdfa8da816ac532139b91d4ffc2acd5b006b98e9ea0cc6836afcf2"
+    },
+    {
+      "path": "tests/framework/k5-sdk-native.mjs",
+      "sha256": "a763882db70b69deeedbf57319cd0be6880b28a223cd1055a825f1d906af9a93"
+    },
+    {
+      "path": "tests/framework/k5-sdk-native-launcher.mjs",
+      "sha256": "7a35db166295e31a32903ff80d92af3d4e86057a77dae142f3f4ee4bc2bda4f8"
+    }
+  ],
+  "currentWriteOwnership": {
+    "runner": "SDK native executor",
+    "ui": "main after T11 integration handoff"
+  },
+  "nativePermissionObservation": "Actual permission before/after and UI state persisted; unknown awaiting dialog is BLOCKED, returned install product errors are FAIL",
+  "nativeInspection": "Native CDP WebSocket; socket.close disconnects inspection, owned test lifecycle alone ends its own process",
+  "evidenceFiles": [
+    "source-manifest.json",
+    "source-manifest-after.json",
+    "raw-server-live.jsonl",
+    "raw-server.json",
+    "raw-cdp-live.jsonl",
+    "production-138/raw-cdp.json",
+    "production-138/native-install-state.json",
+    "production-138/install-*.json",
+    "production-138/report.json",
+    "summary.json"
+  ],
+  "filesAnnotation": "UI hashes preserve the SDK executor authored snapshot; main now owns UI integration. Runner hash is current.",
+  "launcherContract": "launcher-contract.json",
+  "supersededFrozenHash": "cc59457b8833ceac8de73f8cb4375d31f09f32e705bd21bea9d13ccf62ef2a1a",
+  "sameProfileReopen": {
+    "status": "NOT_TESTED",
+    "reason": "Global launcher is fresh-only and rejects caller user-data-dir; it deletes that profile after browser exit"
+  },
+  "exitCodes": {
+    "0": "all selected native cases passed",
+    "1": "failure or source/package drift",
+    "3": "BLOCKED/NOT_TESTED remains"
+  }
+}

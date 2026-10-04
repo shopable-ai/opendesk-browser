@@ -1,0 +1,177 @@
+{
+  "sourceHash": "652b7f62d75c6cac38baac6f2cfc69c07340bb1149068b0b7b7d14241da06c0d",
+  "points": {
+    "B05.SDK.crash.before-admission-commit": {
+      "range": [
+        217019,
+        217202
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 217019
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 217202
+      },
+      "text": "e.put(\"runs\",{tag:\"sdk-service\",driver:\"framework.sdk-service.v1\",runId:p.runId,opId:p.opId,namespace:p.namespace,browserSessionIncarnation:r,state:\"preparing\",createdAt:c()},p.runId)",
+      "senderExpression": null
+    },
+    "F2-K2-SDK-018": {
+      "range": [
+        79720,
+        79724
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 79720
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 79724
+      },
+      "text": "P(r)",
+      "resultExpression": "s",
+      "contextExpression": "r",
+      "senderExpression": null
+    },
+    "B05.native-kv-submission": {
+      "range": [
+        60562,
+        60593
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 60562
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 60593
+      },
+      "text": "t.onsuccess=()=>e.yes(t.result)",
+      "requestExpression": "t",
+      "actionExpression": "e.action",
+      "closureBindings": {
+        "store": "e",
+        "value": "t",
+        "key": "n"
+      },
+      "senderExpression": null
+    },
+    "B05.SDK.crash.after-admission-before-dispatch": {
+      "range": [
+        240393,
+        240399
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 240393
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 240399
+      },
+      "text": "I(d,a)",
+      "senderExpression": "n",
+      "payloadExpression": "t"
+    },
+    "B05.SDK.crash.after-durable-before-delivery": {
+      "range": [
+        240678,
+        240691
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 240678
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 240691
+      },
+      "text": "u.authorize()",
+      "senderExpression": "n",
+      "payloadExpression": "t"
+    },
+    "F2-K2-SDK-019": {
+      "range": [
+        233728,
+        233818
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 233728
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 233818
+      },
+      "text": "e(p.href,{method:i,headers:n,body:r,credentials:\"omit\",redirect:\"manual\",signal:m.signal})",
+      "senderExpression": null,
+      "payloadExpression": null,
+      "contextExpression": "u"
+    }
+  },
+  "admission": {
+    "id": "B05.SDK.crash.before-admission-commit",
+    "sourceSha256": "652b7f62d75c6cac38baac6f2cfc69c07340bb1149068b0b7b7d14241da06c0d",
+    "ready": true,
+    "transactionStores": [
+      "commandJournal",
+      "runs",
+      "results"
+    ],
+    "transactionMode": "readwrite",
+    "nativeTransactionStateBindings": {
+      "workDone": "u",
+      "ended": "p"
+    },
+    "bindings": {
+      "tx": "e",
+      "operation": "p",
+      "lockKey": "d",
+      "request": "t",
+      "sender": "n"
+    },
+    "point": {
+      "range": [
+        217019,
+        217202
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 217019
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 217202
+      },
+      "text": "e.put(\"runs\",{tag:\"sdk-service\",driver:\"framework.sdk-service.v1\",runId:p.runId,opId:p.opId,namespace:p.namespace,browserSessionIncarnation:r,state:\"preparing\",createdAt:c()},p.runId)"
+    },
+    "precedingJournalPuts": [
+      {
+        "range": [
+          216889,
+          216916
+        ],
+        "location": {
+          "lineNumber": 0,
+          "columnNumber": 216889
+        },
+        "text": "e.put(\"commandJournal\",p,l)"
+      },
+      {
+        "range": [
+          216923,
+          217012
+        ],
+        "location": {
+          "lineNumber": 0,
+          "columnNumber": 216923
+        },
+        "text": "e.put(\"commandJournal\",{tag:\"sdk-request\",grantIncarnation:n.grantIncarnation,opKey:l},d)"
+      }
+    ],
+    "rule": "Only an exact getPossibleBreakpoints location equal to point.location is eligible; no relocation or neighbour fallback"
+  },
+  "unavailable": {}
+}

@@ -1,0 +1,12 @@
+{
+  "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+  "families": "A01/A02/AUTH01",
+  "expected": "Explicit borrowed document changes; activated decoy and other documents do not; borrowed target survives",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791104337410,
+  "elapsedMs": 0.0007920000061858445
+}

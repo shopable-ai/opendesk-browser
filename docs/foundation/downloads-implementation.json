@@ -1,0 +1,273 @@
+{
+  "scope": "02B downloads executor",
+  "status": "implemented-node-injected-validation; real Chrome acceptance pending",
+  "contractVersion": "1.0.0",
+  "productDirectory": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "changedFiles": [
+    "src/platform/downloads/index.js",
+    "src/platform/downloads/blob-lifecycle.js",
+    "tests/foundation/download-service.test.mjs",
+    "docs/foundation/downloads-implementation.json"
+  ],
+  "entryPoint": "src/platform/downloads/index.js",
+  "exports": [
+    "createDownloadService",
+    "createHostBlobRegistry",
+    "canReleaseBlob",
+    "hashArtifactBytes"
+  ],
+  "createDownloadService": {
+    "signature": "createDownloadService({storage,api,clock=Date.now,assertHost})",
+    "return": "synchronous frozen service",
+    "clock": "function returning integer epoch milliseconds OR {now():integer}",
+    "api": "Chrome shape: runtime.id/runtime.lastError, downloads.download/search supporting callback or Promise, downloads.onCreated/onChanged",
+    "assertHost": "await assertHost(sender, storedRegistrationId), returns actual registrationId/hostInstanceId/hostDocumentId/browserSessionIncarnation; match stored run or export-intent",
+    "methods": {
+      "prepareExport": {
+        "signature": "prepareExport(ExportRequest, sender)",
+        "returns": "internal export-intent descriptor including readerPinId; not a schema ExportJob before nonempty artifacts/attempts exist",
+        "purpose": "Authenticate stored run registration; atomically pin commitSeq/committedCount and bind requestId to canonical request."
+      },
+      "prepareAttempts": {
+        "signature": "prepareAttempts({exportJobId, volumes:[{bytes:Uint8Array, filename, blobUrl, rowCount}]}, sender)",
+        "returns": "{job:ExportJob, artifacts:Artifact[], attempts:DownloadAttempt[]}",
+        "purpose": "Compute raw SHA-256 and validate all descriptors before transaction; persist byte chunks and fresh URL per volume atomically."
+      },
+      "readArtifact": {
+        "signature": "readArtifact({artifactId}, sender)",
+        "returns": "{artifact:Artifact, bytes:Uint8Array}",
+        "purpose": "Authenticated host byte access for retry; verify raw-byte hash after IDB read transaction."
+      },
+      "dispatchDownload": {
+        "signature": "dispatchDownload({attemptId}, sender)",
+        "returns": "{accepted:true,state:\"dispatched\"}",
+        "purpose": "Only prepared-to-dispatched commit winner may call downloads.download once; ACK never waits for Chrome callback; duplicate/gap never replays."
+      },
+      "reconcileDownload": {
+        "signature": "reconcileDownload({attemptId})",
+        "returns": "{attempt:DownloadAttempt, receipt:Receipt|null, job:ExportJob|null}",
+        "purpose": "Trusted foundation audit. Callback/known ID searched by ID; missing ID searched with exact URL and bounded time filters; candidates also checked by full URL/extension/time."
+      },
+      "reconcilePending": {
+        "signature": "reconcilePending()",
+        "returns": "array of reconciliation projections",
+        "purpose": "Trusted recovery/alarm audit only; never dispatches; skips terminal/deadline_unknown automatic polling. Conflict gets one deadline audit to release durable raw-record pin, then stops polling."
+      },
+      "recordResourceRelease": {
+        "signature": "recordResourceRelease({attemptId}, sender)",
+        "returns": "DownloadAttempt",
+        "purpose": "Owning RunHost calls after its registry revoked the URL. Persist true release timestamp only after host ACK; rejects active early release and clock rollback; preserves original release history."
+      },
+      "retryExport": {
+        "signature": "retryExport(RetryExportRequest, sender, {blobUrls:string[]})",
+        "returns": "{newExportJobId,attemptIds}",
+        "purpose": "Host obtains original bytes and creates fresh URLs first; service creates new artifacts/job/attempts and freezes old submission authority atomically. Original delivery aggregate remains auditable. Exact duplicate request returns original new job without fresh input."
+      },
+      "abandonExport": {
+        "signature": "abandonExport({exportJobId,explicitUserAction:true}, sender)",
+        "returns": "ExportJob",
+        "purpose": "Freeze original job, abandon unresolved attempts, release durable reader pin; late observations only audit."
+      },
+      "abandonRun": {
+        "signature": "abandonRun({runId})",
+        "returns": "{runId,abandoned:true}",
+        "purpose": "Internal deletion hook only, not a user message route. Requires tombstone OR terminal run retirementState=released and @slot no longer owned. Releases export pins and abandons jobs before storage.deleteRun."
+      },
+      "handleCreated": {
+        "signature": "handleCreated(Chrome.DownloadItem)",
+        "returns": "Promise<void>",
+        "purpose": "Trusted top-level SW route; cache only matching full-identity candidates and search before receipt."
+      },
+      "handleChanged": {
+        "signature": "handleChanged(Chrome.DownloadDelta)",
+        "returns": "Promise<void>",
+        "purpose": "Trusted top-level SW route; delta is only trigger; search confirms terminal state and interrupt reason."
+      },
+      "attach": {
+        "signature": "attach()",
+        "returns": "idempotent detach function",
+        "purpose": "Optional explicit listener registration; SW must instead register top-level listeners synchronously and route to handleCreated/handleChanged after initialization."
+      },
+      "drain": {
+        "signature": "drain()",
+        "returns": "Promise<void>",
+        "purpose": "Await local background submission/listener tasks for tests/shutdown observation; propagates background storage failures."
+      }
+    }
+  },
+  "hostExports": {
+    "hashArtifactBytes": "hashArtifactBytes(Uint8Array) -> Promise<lowercase SHA-256 hex>; raw bytes, not canonical JSON",
+    "canReleaseBlob": "canReleaseBlob(attempt, epochMs=Date.now(), {readerPinned=false}) -> bool; verified complete/interrupted, explicit abandoned, or downloadDeadline reached. Mapping-unknown and conflict alone do not allow early revoke.",
+    "createHostBlobRegistry": "createHostBlobRegistry({url=URL,BlobClass=Blob,clock=Date.now}) -> {create(bytes,mime):freshBlobUrl, pin(blobUrl):idempotentUnpin, release(attempt,{readerPinned}):bool, has(blobUrl):bool}; RunHost only; no automatic unsafe disposal"
+  },
+  "storage": {
+    "owner": "injected storage service only; this module never opens IndexedDB or creates stores",
+    "transactionStores": [
+      "runs",
+      "commandJournal",
+      "exportJobs",
+      "artifacts",
+      "downloadReceipts"
+    ],
+    "runs": "key=runId; @slot read only for deletion fence; tombstoned bool plus tombstone:runId blocks data resurrection",
+    "commandJournal": {
+      "export-intent:{jobId}": "tag export-intent, stored auth/owner-at-creation/pinned metadata/frozen submission authority",
+      "export-request:{requestId}": "tag export-request, immutable canonical request and jobId",
+      "reader:export:{jobId}": "tag reader-pin, readerPinId=export:{jobId}, runId, sealWatermark, committedCount, committedPages, released:boolean, numeric createdAt/releasedAt; compatible with shared readRecords/deleteRun",
+      "tombstone:{runId}": "read-only foundation deletion fence"
+    },
+    "exportJobs": "key=exportJobId, strict ExportJob object; activeAttemptIds never changed by retry",
+    "artifacts": {
+      "artifactId": "tag artifact, top-level artifactId/exportJobId sparse-index/cleanup metadata, nested strict artifact descriptor",
+      "chunk:{artifactId}": "tag artifact-chunk, artifactId=chunk primary key, parentArtifactId=descriptor id, exportJobId, Uint8Array bytes; separate indexed ID prevents descriptor/chunk unique-index collision"
+    },
+    "downloadReceipts": {
+      "attempt:{attemptId}": "tag attempt, nested strict DownloadAttempt plus top-level runId/exportJobId/artifactId/attemptId/state/fullBlobUrl; boundDownloadId present only when bound; internal callbackDownloadId and finite-search metadata",
+      "receipt:{attemptId}": "tag receipt, nested strict Receipt; terminal receipt not downgraded by later in_progress",
+      "candidate:{downloadId}": "tag candidate, downloadId/fullBlobUrl/byExtensionId/startTime/state/interruptReason; dedupe same ID; not sufficient terminal evidence without search"
+    },
+    "cryptoTransactions": "canonical/hash calculations run before or after transactions; transaction callbacks await only tx get/put/all requests and helpers containing such requests"
+  },
+  "invariants": [
+    "Artifact raw bytes <= 8MiB; nonempty volumes; sum rowCount equals pinned committedCount; no CSV/JSON formatter code.",
+    "Durable dispatch commit precedes at-most-one Chrome download invocation; lost callback and durable gap never permit replay.",
+    "Known download ID is authoritative; no callback fallback to another candidate; unique complete URL + extension + dispatchAt-2000ms through mappingDeadline required.",
+    "0 matches gives mapping_unknown at 60s; multiple/conflicting IDs gives conflict; no filename-only or clock-rollback mapping.",
+    "Bound ID is queried through 10-minute deadline; stalled/query-unknown gives deadline_unknown, never fabricated interrupted.",
+    "Late complete/interrupted only updates original attempt/job; timeout and actual resource-release history preserved.",
+    "All volumes complete => delivery_complete; any abandoned/interrupted/conflict => delivery_failed; unknown absent failure => delivery_unknown; preparing has no empty fake ExportJob.",
+    "Explicit retry creates new job/artifacts/attempts and never-reused URLs; old submission authority frozen; old delivery aggregate still updates from own evidence.",
+    "Explicit abandonment or deletion tombstone prevents late evidence from resurrecting job/run; evidence can still be audited.",
+    "Receipt diskHashVerified is always false, including browser complete; no filesystem verification claim.",
+    "RunHost alone creates/revokes object URLs. Local pins block revoke; resourceReleasedAt is only persisted after authenticated host release ACK."
+  ],
+  "verification": {
+    "nodeCommand": "node --test tests/foundation/download-service.test.mjs",
+    "testsPassed": 26,
+    "testsFailed": 0,
+    "level": "Node injected Chrome + serialized in-memory transaction storage; one test calls actual shared storage repository readRecords/deleteRun over injected storage",
+    "syntaxCommands": [
+      "node --check src/platform/downloads/index.js",
+      "node --check src/platform/downloads/blob-lifecycle.js",
+      "node --check tests/foundation/download-service.test.mjs",
+      "npm run check"
+    ],
+    "syntaxResult": "All three scoped node --check commands passed. Earlier npm run check passed 30 files; latest npm run check failed in concurrently-authored out-of-scope src/platform/storage/regression.js:124 with Unexpected reserved word (await inside non-async arrow). File not modified by downloads executor.",
+    "dependenciesAdded": [],
+    "browserExecuted": false,
+    "realIndexedDBExecuted": false,
+    "covered": [
+      "ACK-gap after commit",
+      "double-dispatch/reconstructed service",
+      "short ACK/delayed callback",
+      "callback-only API and runtime.lastError",
+      "onCreated duplicate/unique/full identity",
+      "top-level handlers without attach",
+      "known ID vs candidate conflict",
+      "0/multiple mapping and clock rollback",
+      "onChanged trigger plus search",
+      "actual interrupted reason",
+      "10min deadline_unknown",
+      "late completion original-job isolation",
+      "multi-volume aggregate",
+      "single-volume abandonment",
+      "explicit retry and old authority freeze",
+      "fresh URL reuse rejection",
+      "reader pin retention/release",
+      "revoke timing including conflict",
+      "actual release acknowledgment",
+      "delete tombstone and no resurrection",
+      "shared storage reader and artifact cleanup compatibility"
+    ],
+    "sharedCheckBlocker": {
+      "file": "src/platform/storage/regression.js",
+      "line": 124,
+      "error": "SyntaxError: Unexpected reserved word",
+      "action": "Reported in current chat; left to owning agent."
+    },
+    "artifactHashes": {
+      "src/platform/downloads/index.js": "0cd7bb5f610c26d7a23f8bc221b7dd0e3bfacfac64c1cfb5be820fecb0942b44",
+      "src/platform/downloads/blob-lifecycle.js": "7cd6786a9fedd5cec869944aa9e473082d550e08ea0737aea72d52fd0e756e45",
+      "tests/foundation/download-service.test.mjs": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936"
+    }
+  },
+  "provenance": {
+    "implementation": "new frozen-contract implementation; no old repo code imported/copied; old scrapyJs/scrapyJsChrome/todo-user-vue remain read-only",
+    "decisionId": "EXT-R21",
+    "dynamicEdges": [
+      "EXT-E19",
+      "EXT-E21"
+    ],
+    "capturedSources": [
+      {
+        "repo": "scrapyJsChrome",
+        "file": "www/popup_crawl.js",
+        "symbol": "downloadFile",
+        "capturedPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-deltas/scrapyJsChrome/www/popup_crawl.js",
+        "approvedSha256": "61545545a20873c26e370eaec207c9fc9089cb3a9bbeb5cf71c154d2a2860a56",
+        "observedSha256": "61545545a20873c26e370eaec207c9fc9089cb3a9bbeb5cf71c154d2a2860a56",
+        "decision": "drop",
+        "copiedCode": false,
+        "reason": "Replace anchor initiation with frozen Artifact/attempt/receipt protocol; no legacy completion logic inferred."
+      },
+      {
+        "repo": "scrapyJsChrome",
+        "file": "www/popup_crawl.js",
+        "symbol": "downloadFile",
+        "capturedPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-deltas/scrapyJsChrome/www/popup_crawl.js",
+        "approvedSha256": "61545545a20873c26e370eaec207c9fc9089cb3a9bbeb5cf71c154d2a2860a56",
+        "observedSha256": "61545545a20873c26e370eaec207c9fc9089cb3a9bbeb5cf71c154d2a2860a56",
+        "decision": "drop",
+        "copiedCode": false,
+        "reason": "Replace anchor initiation with frozen Artifact/attempt/receipt protocol; no legacy completion logic inferred."
+      },
+      {
+        "repo": "scrapyJsChrome",
+        "file": "manifest.json",
+        "symbol": "downloadFile",
+        "capturedPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/manifest.json",
+        "approvedSha256": "9e1f9a19eaf5925f2b4fb91fe27d69540e6ab01624ae15af14dec8ab1f4b36b3",
+        "observedSha256": "9e1f9a19eaf5925f2b4fb91fe27d69540e6ab01624ae15af14dec8ab1f4b36b3",
+        "decision": "drop",
+        "copiedCode": false,
+        "reason": "Replace anchor initiation with frozen Artifact/attempt/receipt protocol; no legacy completion logic inferred."
+      }
+    ],
+    "contractFiles": {
+      "contract.json": "f0e6d74475dcae4148333f9397dd835889a79612027e65cf0004827917efd4bd",
+      "semantics.md": "d3bd09974bc31e7dd88f41e226846f9e2871e95ad50bfdfd36f80739739134eb",
+      "schema.json": "eb95f9e9a7e54048377d551acce8c996dcc15f5fa87ed7ada19cb21b24c6d9b9",
+      "implementation-plan.md": "e036df486337a41b265b752127ab0fc8cf0280377214eedbf9ee724e94c2309f",
+      "reuse-decision.json": "284b04286ae29aca213ef551e84af19664e8fa1ca4b8302e2e1c8e28a4643a28"
+    },
+    "fixture": "contracts/fixtures/download-attempts.json",
+    "fixtureSha256": "01a3572a1416c8e2185dc7838b85e5604b5efe93cab164188a5548d81c136ef1",
+    "officialReferences": [
+      "https://developer.chrome.com/docs/extensions/reference/api/downloads",
+      "https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL_static"
+    ]
+  },
+  "brokerWiringRequired": [
+    "Synchronous top-level onCreated/onChanged listeners route init.then(service => service.handleCreated/handleChanged(event)); avoid duplicate attach registration.",
+    "Create registry in actual RunHost extension page; formatter passes Uint8Array/rowCount to host, never Blob via Chrome runtime messages.",
+    "Use prepareExport intent readerPinId with existing storage.readRecords cursor API; prepareAttempts receives fresh host URLs and rowCount per volume.",
+    "At terminal state or 10-minute deadline, RunHost invokes registry.release(attempt) after pins are released; if true, await recordResourceRelease({attemptId},sender). Persist actual release, not mere permission.",
+    "Schedule bounded SW reconcilePending alarm; event/manual reconciliation can audit late deadline_unknown and conflict attempts without replay.",
+    "Deletion coordinator fences and verifies retirement first, calls internal abandonRun, then storage.deleteRun; metadata history retained at least 7 days by foundation.",
+    "Host document closure revokes URLs implicitly; foundation must preserve unknown/late audit and avoid claiming a physical revoke acknowledgment from a missing host."
+  ],
+  "realChromeScenariosPending": [
+    "Actual packaged RunHost Blob URL accepted by SW chrome.downloads.download; SW createObjectURL absent; start vs complete shown distinctly.",
+    "SW asleep before onCreated/onChanged; top-level listeners wake worker, preserve queued event, and confirm state by search.",
+    "Kill SW after dispatched IDB commit before Chrome call; restart invokes no download again; 60s unknown and 10min resource bound.",
+    "Kill SW after Chrome call before callback ID persistence; unique full-URL/byExtensionId/startTime recovery; 0/multiple conflict cases.",
+    "Real callback/onCreated/onChanged ordering, callback-only and Promise API behavior, actual byExtensionId/full Blob URL/time fields.",
+    "Actual complete/interrupted/USER_CANCELED, paused/in-progress at 10min and unavailable search; no invented failure or disk hash verification.",
+    "Actual RunHost closure, tool window closure, extension reload/browser restart; URL teardown and late receipt audit remain original-job scoped.",
+    "Multi-volume complete+pending, complete+abandoned, abandoned+unknown; all-volumes completion only.",
+    "Explicit retry uses fresh host URL per volume/new job/new attempts; old late completion changes only old aggregate.",
+    "Actual IndexedDB unique indexes/out-of-line keys/transaction scheduling/abort/quota with the single storage connection.",
+    "Reader pin vs cleanup, no revoke before terminal/deadline, real revoke after local unpin with authenticated release ACK.",
+    "Deletion after fence/retirement abandons unresolved downloads, deletes artifact/chunk rows, retains audit tombstone at least 7 days, blocks late resurrection."
+  ]
+}

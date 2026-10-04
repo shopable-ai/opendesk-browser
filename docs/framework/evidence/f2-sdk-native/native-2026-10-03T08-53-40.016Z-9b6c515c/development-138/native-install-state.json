@@ -1,0 +1,46 @@
+{
+  "at": "2026-10-03T09:05:38.293Z",
+  "mode": "development",
+  "label": "138",
+  "number": 1,
+  "pid": 51592,
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "endpoint": "ws://127.0.0.1:56522/devtools/browser/5a634182-8ccd-4ea4-b9ee-bf4c671e444c",
+  "toolId": "9BEC43A4D4FEA0AFC8A4C2548283C495",
+  "tabId": 1913813129,
+  "frameId": 0,
+  "documentId": "A9A64921316BD63A504BB20FC6F78FC8",
+  "beforePermissions": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "currentPermissions": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "ui": {
+    "state": "installed",
+    "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+    "raw": "{\n  \"grantIncarnation\": \"47a97632-36c4-4168-93fd-00e5d454acf3\",\n  \"documentId\": \"A9A64921316BD63A504BB20FC6F78FC8\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}"
+  }
+}

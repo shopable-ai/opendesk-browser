@@ -1,0 +1,82 @@
+{
+  "databases": [
+    {
+      "name": "opendesk-browser",
+      "version": 2
+    }
+  ],
+  "data": {
+    "version": 2,
+    "stores": {
+      "commandJournal": [
+        {
+          "key": "host:dc541f0d-8619-4eb8-a0f5-645d77cbe4b5",
+          "value": {
+            "tag": "host",
+            "registrationId": "dc541f0d-8619-4eb8-a0f5-645d77cbe4b5",
+            "hostInstanceId": "60c1e284-8e16-4218-9410-a4b13ad8e94f",
+            "hostDocumentId": "AF69FA8D219797C8BDDE2264B4E99987",
+            "hostUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+            "hostTabId": 1669973069,
+            "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+            "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "active": true,
+            "revoked": false,
+            "registeredAt": "2026-10-04T09:35:35.766Z"
+          }
+        },
+        {
+          "key": "sdk-grant:[1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\"]",
+          "value": {
+            "tag": "sdk-grant",
+            "tabId": 1669973067,
+            "frameId": 0,
+            "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+            "origin": "http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "tabEpoch": 1,
+            "frameEpoch": 0,
+            "permissionEpoch": 0,
+            "notificationEpoch": 0,
+            "key": "sdk-grant:[1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\"]",
+            "namespace": "page:http://127.0.0.1:61120",
+            "capabilities": [
+              "network",
+              "storage.persistent",
+              "storage.session"
+            ],
+            "allowedOrigins": [
+              "http://127.0.0.1:61120"
+            ],
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "active": true,
+            "grantedAt": "2026-10-04T09:38:11.284Z",
+            "registrationId": "dc541f0d-8619-4eb8-a0f5-645d77cbe4b5"
+          }
+        }
+      ],
+      "runs": [],
+      "results": [],
+      "frameworkKV": []
+    }
+  },
+  "permissions": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "sessionStorage": {
+    "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0"
+  }
+}

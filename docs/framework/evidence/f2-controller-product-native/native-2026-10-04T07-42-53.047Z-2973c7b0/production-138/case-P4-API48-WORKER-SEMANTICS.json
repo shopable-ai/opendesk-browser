@@ -1,0 +1,318 @@
+{
+  "id": "P4-API48-WORKER-SEMANTICS",
+  "families": "API48/P4",
+  "expected": "All 48 members exercise supported calls or typed capability denial in the actual bound Worker; this does not close original host-context or final matrix variants",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "167a86738d821602a6092f76de37ceefc68613a39f988a92b19c4a32315991df",
+  "verificationInputsSha256": "079e0879f377d0705d86e013a402cd49abc3fbf5235cc47f8d0bb0323fd44f6a",
+  "packageSha256": "faad7957d67832a3ce767cbc371f503edde1837734a191b38d7327825b2cec9a",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791100241484,
+  "input": {
+    "source": "\nconst checks=[];\nasync function check(member,work){\n  try{const actual=await work();checks.push({member,ok:true,actual});}\n  catch(e){checks.push({member,ok:false,error:{code:e.code,name:e.name,message:e.message}});}\n}\nfunction eq(a,b){if(JSON.stringify(a)!==JSON.stringify(b))throw Error('Expected '+JSON.stringify(b)+' got '+JSON.stringify(a));return true;}\nasync function denied(work,codes){try{await work();}catch(e){if(codes.includes(e.code))return {code:e.code};throw e;}throw Error('Expected rejection');}\nawait check('ChromePage.keyboard',()=>eq(page.keyboard.page===page,true));\nawait check('ChromePage.environment',()=>eq(page.environment,'CHROME'));\nawait check('ChromePage.debug',()=>eq(page.debug,true));\nawait check('ChromePage.constructor',()=>denied(()=>new page.constructor(),['E_PAGE_CONTEXT_REQUIRED']));\nawait check('ChromePage.handleMessage',()=>denied(()=>page.handleMessage({}),['E_CALLBACK_UNAUTHORIZED']));\nawait check('ChromePage.operationCompleted',()=>denied(()=>page.operationCompleted({}),['E_CALLBACK_UNAUTHORIZED']));\nawait check('ChromePage.title',async()=>eq(await page.title(),'Controller api48'));\nawait check('ChromePage.content',async()=>eq((await page.content()).includes('id=\"marker\"'),true));\nawait check('ChromePage.url',async()=>eq(await page.url(),params.url));\nawait check('ChromePage.reload',async()=>eq(await page.reload({timeout:5000}),undefined));\nawait check('ChromePage.goto',async()=>eq(await page.goto(params.url,{timeout:5000}),undefined));\nawait check('ChromePage.$',()=>denied(()=>page.$('#marker'),['E_DOM_SNAPSHOT_CONTEXT']));\nawait check('ChromePage.$$',()=>denied(()=>page.$$('.item'),['E_DOM_SNAPSHOT_CONTEXT']));\nawait check('ChromePage.$eval',async()=>eq(await page.$eval('#marker',e=>e.textContent),'A'));\nawait check('ChromePage.$$eval',async()=>eq(await page.$$eval('.item',els=>els.map(e=>e.textContent)),['one','two']));\nawait check('ChromePage.addScriptTag',async()=>{await page.addScriptTag({content:'globalThis.__p4Tag=7;'});return eq(await page.evaluate(()=>globalThis.__p4Tag),7);});\nawait check('ChromePage.addStyleTag',async()=>{await page.addStyleTag({content:'#marker {color:rgb(1, 2, 3)}'});return eq(await page.$eval('#marker',e=>getComputedStyle(e).color),'rgb(1, 2, 3)');});\nawait check('ChromePage.cookies',async()=>eq(Array.isArray(await page.cookies(params.url)),true));\nawait check('ChromePage.setCookie',async()=>{await page.setCookie({url:params.url,name:'p4',value:'yes'});return eq((await page.cookies(params.url)).find(c=>c.name==='p4')?.value,'yes');});\nawait check('ChromePage.deleteCookie',async()=>{await page.deleteCookie({url:params.url,name:'p4'});return eq((await page.cookies(params.url)).some(c=>c.name==='p4'),false);});\nawait check('ChromePage.click',async()=>eq(await page.click('#submit'),'clicked'));\nawait check('ChromePage.type',async()=>eq(await page.type('#name','Native'),'Typed'));\nawait check('ChromePage.waitFor',async()=>{await page.waitFor('#marker');return true;});\nawait check('ChromePage.waitForTimeout',async()=>{await page.waitForTimeout(10);return true;});\nlet element;\nawait check('ChromePage.waitForSelector',async()=>{element=await page.waitForSelector('#name');return eq(element.selector,'#name');});\nawait check('ChromePage.waitForFunction',async()=>{await page.waitForFunction(()=>document.querySelector('#marker').textContent==='A',{timeout:2000});return true;});\nawait check('ChromePage.screenshot',()=>denied(()=>page.screenshot({fullPage:true}),['E_FULL_PAGE_UNSUPPORTED']));\nawait check('ChromePage.screenshotInWebview',()=>denied(()=>page.screenshotInWebview(),['E_CAPABILITY_UNAVAILABLE']));\nawait check('ChromePage.screenshotInChrome',()=>denied(()=>page.screenshotInChrome({format:'webp'}),['E_OPTION_UNSUPPORTED']));\nawait check('ChromePage.uploadFile',async()=>{await page.uploadFile('#file','data:text/plain;base64,YWJj');return eq(await page.$eval('#file',e=>e.files.length),1);});\nawait check('ChromePage._uploadFromBlob',async()=>{await page._uploadFromBlob('#file',new Uint8Array([97,98,99]).buffer);return eq(await page.$eval('#file',e=>e.files[0].size),3);});\nawait check('ChromePage._uploadFromDataUrl',async()=>{await page._uploadFromDataUrl('#file','data:text/plain;base64,YWJj');return eq(await page.$eval('#file',e=>e.files[0].size),3);});\nawait check('ChromePage._uploadFromUrl',async()=>{await page._uploadFromUrl('#file',params.fileURL);return eq(await page.$eval('#file',e=>e.files[0].size),3);});\nawait check('ChromePage.eval',async()=>eq(await page.eval('false',{mode:'expression'}),false));\nawait check('ChromePage.evaluate',async()=>eq(await page.evaluate(async value=>({value,zero:0}),false),{value:false,zero:0}));\nawait check('ChromePage._execute',()=>denied(()=>page._execute(),['E_INTERNAL_API_ONLY']));\nawait check('ChromeElement.page',()=>eq(element.page===page,true));\nawait check('ChromeElement.selector',()=>eq(element.selector,'#name'));\nlet button;\nawait check('ChromeElement.constructor',async()=>{button=await page.waitForSelector('#submit');const view=new button.constructor(page,'#submit');return eq(view.page===page,true);});\nawait check('ChromeElement.click',async()=>eq(await button.click(),'clicked'));\nawait check('ChromeElement.type',async()=>eq(await element.type('Element'),'Typed'));\nawait check('ChromeElement.uploadFile',async()=>{const file=await page.waitForSelector('#file');await file.uploadFile('data:text/plain;base64,YWJj');return eq(await page.$eval('#file',e=>e.files[0].size),3);});\nawait check('Keyboard.page',()=>eq(page.keyboard.page===page,true));\nawait check('Keyboard.constructor',()=>eq(new page.keyboard.constructor(page).page===page,true));\nawait check('Keyboard.type',async()=>eq(await page.keyboard.type('A'),undefined));\nawait check('Keyboard.press',async()=>eq(await page.keyboard.press('Enter'),undefined));\nawait check('Keyboard.down',async()=>eq(await page.keyboard.down('Shift'),undefined));\nawait check('Keyboard.up',async()=>eq(await page.keyboard.up('Shift'),undefined));\nreturn {checks,executionMode:'saved-controller-worker',originalMatrixClosed:false};\n",
+    "url": "http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=api48",
+    "executionMode": "saved-controller-worker",
+    "originalMatrixClosed": false
+  },
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "actual": {
+    "checks": [
+      {
+        "actual": true,
+        "member": "ChromePage.keyboard",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.environment",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.debug",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_PAGE_CONTEXT_REQUIRED"
+        },
+        "member": "ChromePage.constructor",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_CALLBACK_UNAUTHORIZED"
+        },
+        "member": "ChromePage.handleMessage",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_CALLBACK_UNAUTHORIZED"
+        },
+        "member": "ChromePage.operationCompleted",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.title",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.content",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.url",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.reload",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.goto",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_DOM_SNAPSHOT_CONTEXT"
+        },
+        "member": "ChromePage.$",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_DOM_SNAPSHOT_CONTEXT"
+        },
+        "member": "ChromePage.$$",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.$eval",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.$$eval",
+        "ok": true
+      },
+      {
+        "error": {
+          "message": "Expected 7 got undefined",
+          "name": "Error"
+        },
+        "member": "ChromePage.addScriptTag",
+        "ok": false
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.addStyleTag",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.cookies",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.setCookie",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.deleteCookie",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.click",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.type",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.waitFor",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.waitForTimeout",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.waitForSelector",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.waitForFunction",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_FULL_PAGE_UNSUPPORTED"
+        },
+        "member": "ChromePage.screenshot",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_CAPABILITY_UNAVAILABLE"
+        },
+        "member": "ChromePage.screenshotInWebview",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_OPTION_UNSUPPORTED"
+        },
+        "member": "ChromePage.screenshotInChrome",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.uploadFile",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage._uploadFromBlob",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage._uploadFromDataUrl",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage._uploadFromUrl",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.eval",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromePage.evaluate",
+        "ok": true
+      },
+      {
+        "actual": {
+          "code": "E_INTERNAL_API_ONLY"
+        },
+        "member": "ChromePage._execute",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromeElement.page",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromeElement.selector",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromeElement.constructor",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromeElement.click",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromeElement.type",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "ChromeElement.uploadFile",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "Keyboard.page",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "Keyboard.constructor",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "Keyboard.type",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "Keyboard.press",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "Keyboard.down",
+        "ok": true
+      },
+      {
+        "actual": true,
+        "member": "Keyboard.up",
+        "ok": true
+      }
+    ],
+    "executionMode": "saved-controller-worker",
+    "originalMatrixClosed": false
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   {\n+     error: {\n+       code: undefined,\n+       message: 'Expected 7 got undefined',\n+       name: 'Error'\n+     },\n+     member: 'ChromePage.addScriptTag',\n+     ok: false\n+   }\n+ ]\n- []\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   {\n+     error: {\n+       code: undefined,\n+       message: 'Expected 7 got undefined',\n+       name: 'Error'\n+     },\n+     member: 'ChromePage.addScriptTag',\n+     ok: false\n+   }\n+ ]\n- []\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:734:34\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:407:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:723:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:368:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:198:3",
+    "actual": [
+      {
+        "error": {
+          "message": "Expected 7 got undefined",
+          "name": "Error"
+        },
+        "member": "ChromePage.addScriptTag",
+        "ok": false
+      }
+    ]
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "results",
+    "text": "任务 6569b020-5f20-426e-bc59-e986317665fb：completed",
+    "result": "{\"run\": {\"tag\": \"controller-run\", \"runId\": \"6569b020-5f20-426e-bc59-e986317665fb\", \"state\": \"completed\", \"runRevision\": 6, \"ownerEpoch\": 2, \"cancelSeq\": 1, \"identity\": {\"tag\": \"controller-run\", \"runId\": \"6569b020-5f20-426e-bc59-e986317665fb\", \"hostInstanceId\": \"92d5e1c9-99b1-482c-900a-ccc6663dbd7e\", \"hostDocumentId\": \"1ED17715045A59661EA4286972E9F7DB\", \"ownerEpoch\": 1, \"scriptId\": \"native-0c7ec114-ae0d-4430-a025-1d5a1c6845cc\", \"revision\": 1, \"contentHash\": \"0027fc31ca6c157e5b63b8cb4c24bb9ef9b4a2b225dd8029c67ff338b68634d3\", \"target\": {\"tabId\": 937145919, \"frameId\": 0, \"documentId\": \"AB7A885513D734CF921DC21264009BFE\", \"url\": \"http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=api48\", \"allowedOrigin\": \"http://127.0.0.1:60682\", \"creationId\": \"80829fb7-d1a7-4edd-8e75-4bc2a14bf3dd\", \"targetSessionId\": \"e805bace-68e4-47e7-a9a4-1cf8a1f3cd73\", \"targetVersion\": 3, \"mode\": \"owned\", \"browserSessionIncarnation\": \"783c378f-9c0d-4717-8a68-c44dc6945261\"}}, \"target\": {\"tabId\": 937145919, \"frameId\": 0, \"documentId\": \"AB7A885513D734CF921DC21264009BFE\", \"url\": \"http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=api48\", \"allowedOrigin\": \"http://127.0.0.1:60682\", \"creationId\": \"80829fb7-d1a7-4edd-8e75-4bc2a14bf3dd\", \"targetSessionId\": \"e805bace-68e4-47e7-a9a4-1cf8a1f3cd73\", \"targetVersion\": 3, \"mode\": \"owned\", \"browserSessionIncarnation\": \"783c378f-9c0d-4717-8a68-c44dc6945261\"}, \"revision\": {\"scriptId\": \"native-0c7ec114-ae0d-4430-a025-1d5a1c6845cc\", \"revision\": 1, \"sourceHash\": \"0027fc31ca6c157e5b63b8cb4c24bb9ef9b4a2b225dd8029c67ff338b68634d3\", \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"6569b020-5f20-426e-bc59-e986317665fb\\\",\\\"631466e4-241a-4a89-97fa-6c1690c195fb\\\",\\\"native-0c7ec114-ae0d-4430-a025-1d5a1c6845cc\\\",1]\"}, \"deadlineAt\": 1791100376247, \"retirementId\": \"9a7dbd4b-0e96-4bca-822f-54e706ae32c4\", \"retirementState\": \"released\", \"resultId\": \"b6db449d-02b0-4f66-a074-26a1a422b7e5\", \"terminalReason\": null, \"workerRetired\": true, \"scriptId\": \"native-0c7ec114-ae0d-4430-a025-1d5a1c6845cc\", \"contentHash\": \"0027fc31ca6c157e5b63b8cb4c24bb9ef9b4a2b225dd8029c67ff338b68634d3\"}, \"results\": [{\"runId\": \"6569b020-5f20-426e-bc59-e986317665fb\", \"resultId\": \"b6db449d-02b0-4f66-a074-26a1a422b7e5\", \"state\": \"completed\", \"value\": {\"checks\": [{\"actual\": true, \"member\": \"ChromePage.keyboard\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.environment\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.debug\", \"ok\": true}, {\"actual\": {\"code\": \"E_PAGE_CONTEXT_REQUIRED\"}, \"member\": \"ChromePage.constructor\", \"ok\": true}, {\"actual\": {\"code\": \"E_CALLBACK_UNAUTHORIZED\"}, \"member\": \"ChromePage.handleMessage\", \"ok\": true}, {\"actual\": {\"code\": \"E_CALLBACK_UNAUTHORIZED\"}, \"member\": \"ChromePage.operationCompleted\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.title\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.content\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.url\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.reload\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.goto\", \"ok\": true}, {\"actual\": {\"code\": \"E_DOM_SNAPSHOT_CONTEXT\"}, \"member\": \"ChromePage.$\", \"ok\": true}, {\"actual\": {\"code\": \"E_DOM_SNAPSHOT_CONTEXT\"}, \"member\": \"ChromePage.$$\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.$eval\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.$$eval\", \"ok\": true}, {\"error\": {\"code\": undefined, \"message\": \"Expected 7 got undefined\", \"name\": \"Error\"}, \"member\": \"ChromePage.addScriptTag\", \"ok\": false}, {\"actual\": true, \"member\": \"ChromePage.addStyleTag\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.cookies\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.setCookie\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.deleteCookie\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.click\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.type\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.waitFor\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.waitForTimeout\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.waitForSelector\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.waitForFunction\", \"ok\": true}, {\"actual\": {\"code\": \"E_FULL_PAGE_UNSUPPORTED\"}, \"member\": \"ChromePage.screenshot\", \"ok\": true}, {\"actual\": {\"code\": \"E_CAPABILITY_UNAVAILABLE\"}, \"member\": \"ChromePage.screenshotInWebview\", \"ok\": true}, {\"actual\": {\"code\": \"E_OPTION_UNSUPPORTED\"}, \"member\": \"ChromePage.screenshotInChrome\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.uploadFile\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage._uploadFromBlob\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage._uploadFromDataUrl\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage._uploadFromUrl\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.eval\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromePage.evaluate\", \"ok\": true}, {\"actual\": {\"code\": \"E_INTERNAL_API_ONLY\"}, \"member\": \"ChromePage._execute\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromeElement.page\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromeElement.selector\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromeElement.constructor\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromeElement.click\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromeElement.type\", \"ok\": true}, {\"actual\": true, \"member\": \"ChromeElement.uploadFile\", \"ok\": true}, {\"actual\": true, \"member\": \"Keyboard.page\", \"ok\": true}, {\"actual\": true, \"member\": \"Keyboard.constructor\", \"ok\": true}, {\"actual\": true, \"member\": \"Keyboard.type\", \"ok\": true}, {\"actual\": true, \"member\": \"Keyboard.press\", \"ok\": true}, {\"actual\": true, \"member\": \"Keyboard.down\", \"ok\": true}, {\"actual\": true, \"member\": \"Keyboard.up\", \"ok\": true}], \"executionMode\": \"saved-controller-worker\", \"originalMatrixClosed\": false}}]}",
+    "version": "已保存 r1 · 0027fc31ca6c157e5b63b8cb4c24bb9ef9b4a2b225dd8029c67ff338b68634d3",
+    "runId": "6569b020-5f20-426e-bc59-e986317665fb",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 108468.07004199998
+}

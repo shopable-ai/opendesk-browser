@@ -1,0 +1,14 @@
+ERROR in asset size limit: The following asset(s) exceed the recommended size limit (256 KiB).
+This can impact web performance.
+Assets: 
+  sw.js (432 KiB)
+
+ERROR in entrypoint size limit: The following entrypoint(s) combined asset size exceeds the recommended limit (256 KiB). This can impact web performance.
+Entrypoints:
+  sw (432 KiB)
+      sw.js
+
+ERROR in webpack performance recommendations: 
+You can limit the size of your bundles by using import() or require.ensure to lazy load some parts of your application.
+For more info visit https://webpack.js.org/guides/code-splitting/
+

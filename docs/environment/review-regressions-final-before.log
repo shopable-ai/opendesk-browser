@@ -1,0 +1,155 @@
+TAP version 13
+# Subtest: concurrent window requests create once; new worker discovers existing window
+ok 1 - concurrent window requests create once; new worker discovers existing window
+  ---
+  duration_ms: 12.187083
+  type: 'test'
+  ...
+# Subtest: tool sender rejects foreign id, URL, frame, inactive document and missing document
+ok 2 - tool sender rejects foreign id, URL, frame, inactive document and missing document
+  ---
+  duration_ms: 0.159709
+  type: 'test'
+  ...
+# Subtest: URL policy rejects restricted/file/credentials and preserves exact origin including port
+ok 3 - URL policy rejects restricted/file/credentials and preserves exact origin including port
+  ---
+  duration_ms: 0.27825
+  type: 'test'
+  ...
+# Subtest: health waits for sender readiness and binds Chrome document metadata, not file result
+ok 4 - health waits for sender readiness and binds Chrome document metadata, not file result
+  ---
+  duration_ms: 5.088458
+  type: 'test'
+  ...
+# Subtest: revoked permission blocks even previously installed agent
+ok 5 - revoked permission blocks even previously installed agent
+  ---
+  duration_ms: 1.905875
+  type: 'test'
+  ...
+# Subtest: reload, cross-origin and closed tab reject bound target without automatic reinjection
+ok 6 - reload, cross-origin and closed tab reject bound target without automatic reinjection
+  ---
+  duration_ms: 3.83775
+  type: 'test'
+  ...
+# Subtest: forged health nonce and fake sender cannot satisfy exact target
+ok 7 - forged health nonce and fake sender cannot satisfy exact target
+  ---
+  duration_ms: 1.600208
+  type: 'test'
+  ...
+# Subtest: missing module has no capabilities or runner and can be mounted/disposed
+ok 8 - missing module has no capabilities or runner and can be mounted/disposed
+  ---
+  duration_ms: 0.199667
+  type: 'test'
+  ...
+# Subtest: focus failure while original exists must not create another tool window
+ok 9 - focus failure while original exists must not create another tool window
+  ---
+  duration_ms: 0.144291
+  type: 'test'
+  ...
+# Subtest: window API query failure is not evidence that the existing window disappeared
+not ok 10 - window API query failure is not evidence that the existing window disappeared
+  ---
+  duration_ms: 0.605334
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:105:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'E_TARGET'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:111:3)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: unknown authorization mode is rejected before another injection
+not ok 11 - unknown authorization mode is rejected before another injection
+  ---
+  duration_ms: 0.980792
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:113:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'E_PERMISSION'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:116:3)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: permission revoke reports permission failure even when Chrome hides tab URL
+not ok 12 - permission revoke reports permission failure even when Chrome hides tab URL
+  ---
+  duration_ms: 1.510542
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:119:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'E_TARGET'
+    -   code: 'E_PERMISSION'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'E_PERMISSION'
+  actual:
+  error: '目标地址无效'
+  stack: |-
+    httpUrl (file:///Users/shopme/Documents/workspace/opendesk-browser/src/environment.js:12:47)
+    requireTab (file:///Users/shopme/Documents/workspace/opendesk-browser/src/environment.js:86:26)
+    async Object.ping (file:///Users/shopme/Documents/workspace/opendesk-browser/src/environment.js:93:5)
+    async waitForActual (node:assert:615:5)
+    async strict.rejects (node:assert:738:25)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:122:3)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs:122:3)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: repeated agent ready preserves optional authorization and cannot bypass revoke
+ok 13 - repeated agent ready preserves optional authorization and cannot bypass revoke
+  ---
+  duration_ms: 1.605917
+  type: 'test'
+  ...
+# Subtest: same-document concurrent binding resolves all readiness waiters
+ok 14 - same-document concurrent binding resolves all readiness waiters
+  ---
+  duration_ms: 1.416458
+  type: 'test'
+  ...
+# Subtest: document invalidation and revoke while awaiting reply reject late health success
+ok 15 - document invalidation and revoke while awaiting reply reject late health success
+  ---
+  duration_ms: 0.359708
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 12
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 123.171167

@@ -1,0 +1,72 @@
+✔ prepare pins a watermark and persists byte hash; external descriptors satisfy frozen schema (19.103292ms)
+✔ partial export requires confirmation; request IDs bind immutable intent (2.603125ms)
+✔ host registration mismatch and tombstones reject creation/dispatch (24.661959ms)
+✔ double dispatch and reconstructed service invoke Chrome at most once (5.677708ms)
+✔ ACK-gap after durable dispatch does not replay and becomes mapping_unknown (4.442292ms)
+✔ short dispatch ACK does not wait for callback and cannot be resubmitted (5.794958ms)
+✔ onCreated/search deduplicates an ID and started is not delivery complete (5.104417ms)
+✔ multiple full-identity candidates conflict and never redownload (2.217875ms)
+✔ known callback ID is authoritative; another candidate conflicts rather than replacing it (2.995417ms)
+✔ wrong URL/extension/time and missing fields never bind by filename (22.220334ms)
+✔ clock rollback cannot bind unique-looking mapping evidence (1.640417ms)
+✔ onChanged complete must be confirmed by ID search; interrupted keeps Chrome reason (3.8675ms)
+✔ 10-minute timeout is unknown; late complete resolves only its original job (11.129958ms)
+✔ retry freezes old prepared submission; duplicate retry returns same new job (4.434ms)
+✔ multi-volume aggregate waits for every volume and releases pin only when all are releasable (10.844666ms)
+✔ single abandoned volume causes delivery_failed; late evidence cannot revive it (4.93875ms)
+✔ explicit job abandon and run tombstone retain late audit without resurrecting projection (26.287875ms)
+✔ lost callback can recover via unique full URL; finite mapping search throttles repeated observations (4.891833ms)
+✔ URL revoke waits for complete/interrupted/abandon or deadline and respects local reader pins (5.83525ms)
+✔ deadline URL release preserves metadata and completion evidence after host resources disappear (4.867333ms)
+✔ attach is idempotent; restart pending reconciliation never dispatches (3.31475ms)
+✔ top-level broker handlers work without attach and confirm changed state through search (5.028375ms)
+✔ callback-only Chrome API persists authoritative ID and handles runtime.lastError as unknown (2.657875ms)
+✔ conflict retains its Blob through deadline; pending audits stop after the deadline bound (5.275125ms)
+✔ deletion hook requires retirement proof and releases compatible storage reader pins before tombstone (1.436834ms)
+✔ shared repository reads through export pin and deletes descriptor/chunk rows only after fence and abandonment (12.308042ms)
+✖ generic APIs prepare committed typed values without templates, Blob creation or native dispatch (27.4615ms)
+✔ generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle (26.202583ms)
+✔ generic preparation rejects forged namespace, wrong result/run/principal/session and actual sender before writing (11.959583ms)
+✔ generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes (31.691125ms)
+✔ generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks (1253.483375ms)
+✔ generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs (8.841083ms)
+✔ generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified (4.7255ms)
+✔ generic current-document registration is rechecked inside attempt, read and dispatch transactions (7.2025ms)
+✔ generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion (3.527958ms)
+✔ generic missing issued namespace/principal fails closed and never derives authority from payload (1.469292ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 35
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1670.850542
+
+✖ failing tests:
+
+test at tests/framework/k2-generic-download.test.mjs:69:1
+✖ generic APIs prepare committed typed values without templates, Blob creation or native dispatch (27.4615ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + {
+  +   rows: [
+  +     false,
+  +     0,
+  +     null,
+  +     undefined
+  +   ]
+  + }
+  - undefined
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:72:73)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { rows: [ false, 0, null, undefined ] },
+    expected: undefined,
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

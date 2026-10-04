@@ -1,0 +1,100 @@
+{
+  "scope": "Independent interpretation of two actual native runs; no concurrency claim; no source/build/product changes",
+  "status": "PASS",
+  "source": "GUI production/138 native-2026-10-03T10-05-25.019Z-982bb2b6",
+  "checks": [
+    {
+      "file": "case-MINIMAL-RETURN7.json",
+      "runId": "ee8f6421-16af-416f-84b9-932f118a9100",
+      "valueWire": {
+        "type": "number",
+        "value": 7
+      },
+      "revisionHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+      "paramsWire": {
+        "type": "object",
+        "value": [
+          [
+            "f",
+            {
+              "type": "boolean",
+              "value": false
+            }
+          ],
+          [
+            "test",
+            {
+              "type": "string",
+              "value": "minimal"
+            }
+          ],
+          [
+            "z",
+            {
+              "type": "number",
+              "value": 0
+            }
+          ]
+        ]
+      },
+      "oneRun": true,
+      "oneResult": true,
+      "retired": true,
+      "noTemplateData": true
+    },
+    {
+      "file": "case-OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN.json",
+      "runId": "e3597f5a-3d81-426a-aff3-d63f145081d5",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "Controller goto"
+            }
+          ],
+          [
+            "url",
+            {
+              "type": "string",
+              "value": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+            }
+          ]
+        ]
+      },
+      "revisionHash": "bb9f16402ff617241a1acac5949f5526754c18d72ae263dccb0e5dce0b7d4ac7",
+      "paramsWire": {
+        "type": "object",
+        "value": [
+          [
+            "revision",
+            {
+              "type": "string",
+              "value": "r1"
+            }
+          ],
+          [
+            "url",
+            {
+              "type": "string",
+              "value": "http://127.0.0.1:62707/form?seed=50936926-2451-4c6b-8dbc-614412dd2778&role=goto"
+            }
+          ]
+        ]
+      },
+      "oneRun": true,
+      "oneResult": true,
+      "retired": true,
+      "noTemplateData": true
+    }
+  ],
+  "notProven": [
+    "Concurrent unique admission",
+    "Physical Worker termination <=3 seconds",
+    "Complete resource baseline",
+    "Tool/browser reopening",
+    "Downloads"
+  ]
+}

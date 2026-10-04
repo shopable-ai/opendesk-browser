@@ -1,0 +1,84 @@
+[
+  {
+    "url": "/",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "url": "/favicon.ico",
+    "method": "GET",
+    "status": 404
+  },
+  {
+    "url": "/tests/framework/native-idb-migration-verification.js",
+    "method": "GET",
+    "status": 200,
+    "path": "tests/framework/native-idb-migration-verification.js",
+    "bytes": 18563,
+    "sha256": "8f54ed144fc8a270ae1da8105c7a611cd7ecb3eac43d158361af8623c7968710"
+  },
+  {
+    "url": "/src/platform/storage/index.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/index.js",
+    "bytes": 3084,
+    "sha256": "94edf96711d534201d5be444b445da6944a15ab61017ab354982028bef37363e"
+  },
+  {
+    "url": "/tests/framework/native-idb-migration-fixture.js",
+    "method": "GET",
+    "status": 200,
+    "path": "tests/framework/native-idb-migration-fixture.js",
+    "bytes": 15915,
+    "sha256": "70d571a3feb3868064fc7278f2e6de2de04763aad381a42edee0035def2cff98"
+  },
+  {
+    "url": "/src/platform/journal.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/journal.js",
+    "bytes": 666,
+    "sha256": "e12202af97beebc45df42d6ec3e52b0c1b549ddd9ed90872eb8eb88ca73c8b67"
+  },
+  {
+    "url": "/src/platform/storage/regression.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/regression.js",
+    "bytes": 15317,
+    "sha256": "7ab921130e6064310916dc45649e05b343eabf34d27203cb39e71e7142f231ed"
+  },
+  {
+    "url": "/src/platform/protocol.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/protocol.js",
+    "bytes": 9075,
+    "sha256": "dc01d89ef1e473d7473794a8771caea5763bf28c5634ff6b66e80f38d082c358"
+  },
+  {
+    "url": "/src/platform/storage/idb.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/idb.js",
+    "bytes": 17016,
+    "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672"
+  },
+  {
+    "url": "/src/platform/storage/repository.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/repository.js",
+    "bytes": 43927,
+    "sha256": "b51bf6b08045c32a7644b4791972c4198f2a97a46928044eaf122942067b53cc"
+  },
+  {
+    "url": "/src/platform/schema.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/schema.js",
+    "bytes": 43891,
+    "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+  }
+]

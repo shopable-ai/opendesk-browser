@@ -1,0 +1,12 @@
+{
+  "id": "DURABLE-TRUE",
+  "families": "USC03/CMP03/CMP10",
+  "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791102999085,
+  "elapsedMs": 0.0009579999896232039
+}

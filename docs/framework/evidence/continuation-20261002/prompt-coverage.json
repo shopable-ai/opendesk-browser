@@ -1,0 +1,119 @@
+{
+  "kind": "Continuation-prompt presence/reference check, not independent approval or product gate",
+  "updatedAt": "2026-10-03T06:56:52.353921+00:00",
+  "prompt": "docs/framework/prompts/continue-product-migration-20261002.txt",
+  "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933",
+  "characters": 6493,
+  "lines": 91,
+  "v5": {
+    "path": "docs/framework/prompts/goal-migration-v5.txt",
+    "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+    "fullReadRequired": true
+  },
+  "checks": {
+    "original full documents remain required": {
+      "present": true,
+      "tokens": [
+        "完整读取",
+        "goal-migration-v5.txt",
+        "历史续接附件"
+      ]
+    },
+    "actual gates distinct from product acceptance": {
+      "present": true,
+      "tokens": [
+        "backendPrototypePassed=true",
+        "frameworkFunctionalMigrationComplete=false",
+        "a9ce67f85964"
+      ]
+    },
+    "complete ledger denominator preserved": {
+      "present": true,
+      "tokens": [
+        "183 capabilityItems",
+        "63 resourceItems",
+        "603个caseResults",
+        "184项正向/7项guard",
+        "103项排除"
+      ]
+    },
+    "old behavior contracts": {
+      "present": true,
+      "tokens": [
+        "E_PAGE_CONTEXT_REQUIRED",
+        "返回Typed",
+        "返回clicked",
+        "Backspace",
+        "忽略args并返回true"
+      ]
+    },
+    "immutable source and run lifecycle": {
+      "present": true,
+      "tokens": [
+        "committed UTF8 bytes",
+        "head CAS",
+        "tombstone",
+        "E_PAUSE_UNSUPPORTED"
+      ]
+    },
+    "approved F1 restrictions": {
+      "present": true,
+      "tokens": [
+        "3s内",
+        "严格2s FAIL",
+        "六个页面函数分支",
+        "观察到OFF即永久fence"
+      ]
+    },
+    "SDK explicit contract": {
+      "present": true,
+      "tokens": [
+        "argsWire:encodeValue(args)",
+        "valueWire:encodeValue",
+        "recordNativeReceipt",
+        "SDK_HELLO",
+        "grantSubset"
+      ]
+    },
+    "four crash points real 100 concurrency": {
+      "present": true,
+      "tokens": [
+        "commit前abort",
+        "尚未dispatch",
+        "无receipt标unknown",
+        "尚未delivery",
+        "100并发用真实页面SDK"
+      ]
+    },
+    "storage and artifacts": {
+      "present": true,
+      "tokens": [
+        "rawBackup",
+        "blocked/versionchange",
+        "浏览器session结束清空",
+        "8MiB/64块",
+        "实际磁盘文件hash"
+      ]
+    },
+    "all final acceptance obligations": {
+      "present": true,
+      "tokens": [
+        "原603项",
+        "R1–R8",
+        "1000轮混合",
+        "10轮host/SW重连",
+        "2轮插件禁用",
+        "独立代码与功能评审"
+      ]
+    },
+    "next implementation prioritized": {
+      "present": true,
+      "tokens": [
+        "真实sessionTyped",
+        "主run-host接线",
+        "不空等"
+      ]
+    }
+  },
+  "limitations": "Mechanical presence and explicit inheritance only; detailed frozen contracts, case rows and historical attachments must still be read in full. No F1/F3 or Goal completion claim."
+}

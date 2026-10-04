@@ -1,0 +1,18 @@
+✔ K5 fixed SDK/control and resource closure validates actual production package (142.34325ms)
+✔ K5 production Worker exception rejects eval/Function aliases and reflective extra constructors (788.544208ms)
+✔ K5 fixed SDK/control and resource closure validates actual development package (155.81375ms)
+✔ K5 development Worker exception rejects eval/Function aliases and reflective extra constructors (1185.078333ms)
+✔ K5 fixed SDK files remain subject to privileged dynamic-execution scanner (1039.400125ms)
+✔ K5 privileged and opaque CSP mutations cannot broaden execution (903.321916ms)
+✔ K5 every HTML is scanned and Worker cannot become a privileged script entry (1908.927917ms)
+✔ K5 required sandbox/Worker/icon/MIT and unknown assets fail closed (1027.283416ms)
+✔ K5 remote JS scanner distinguishes data URLs ending json/jsp without accepting scripts (0.447875ms)
+✔ K5 additional manifest resources, CSS script consumers and remote maps are rejected (454.307334ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7713.393625

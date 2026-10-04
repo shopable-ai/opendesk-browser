@@ -1,0 +1,60 @@
+{
+  "scope": "Separate native permission automation diagnostics from actual SDK product regressions",
+  "mainObserved": {
+    "fullPath": "tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app",
+    "AX": "OpenDesk Browser请求更多权限；读取和更改127.0.0.1；button index8 允许",
+    "clickResult": "NSOSStatus -600 procNotFound",
+    "refresh": "5s timeout",
+    "raise": "inactive",
+    "displayNameBinding": "mis-selected154 new tab",
+    "permissionsChanged": false,
+    "permissionConfirmed": false,
+    "oldProcessDiagnosis": "The old PID had already exited after an external Playwright inspector browser.close; AX state did not prove a live controllable process.",
+    "latestWarning": "Fullpath138 binding showed a profile warning rather than the requested127.0.0.1 permission dialog; main did not click an unmatched window."
+  },
+  "executorObserved": [
+    "SW target appeared before native chrome.runtime bindings; runner now Runtime.enable + waits bindings",
+    "headless trusted permissions.request remained awaiting native confirmation",
+    "exact138.app Cua state/click activation errors preserved",
+    "external Playwright connectOverCDP browser.close closed owned diagnostic browser; subsequent inspection must only close socket"
+  ],
+  "nextAlternative": "New owned headed process after stable rebuild; native CDP Target.activateTarget for its tool page, report actual PID and observed installing state, inspect via WebSocket and only close inspection socket.",
+  "finalProductPassed": false,
+  "f3Accepted": false,
+  "nativePermissionReturn": {
+    "run": "native-2026-10-03T07-17-21.428Z-0b89c413",
+    "file": "production-138/install-1-1791011961813.json",
+    "pid": 81965,
+    "tabId": 1738768422,
+    "documentId": "8DF0D5853D9907725001E05BB6DA543A",
+    "beforeOrigins": [],
+    "afterOrigins": [
+      "http://127.0.0.1/*"
+    ],
+    "nativePermissionReturned": true,
+    "confirmingActor": "not attributed by runner",
+    "separateFromInstallFailure": true
+  },
+  "productRedRegression": {
+    "code": "E_ENTITLEMENT",
+    "message": "Storage and a bound subject are required",
+    "actualUiState": "error",
+    "rawPreserved": true,
+    "classification": "actual product broker startup failure after native permission returned",
+    "mainDiagnosis": "Legacy entitlement service eagerly started without a bound subject and blocked ordinary foundation startup",
+    "mainReportedRepair": "Lazy registration of the six explicit legacy template methods; normal SDK and controller startup no longer depends on template entitlement",
+    "verifiedOnStablePackage": false
+  },
+  "launchServicesExperiment": {
+    "run": "native-2026-10-03T07-16-42.442Z-208e1631",
+    "result": "endpoint startup timeout",
+    "leftoverOwnedPid": 81319,
+    "cleanup": "owned PID SIGTERM only",
+    "runnerBranchRemoved": true
+  },
+  "notTouched": [
+    "unrelated Chrome154 PID73732",
+    "global ledgers",
+    "gates"
+  ]
+}

@@ -1,0 +1,1825 @@
+{
+  "label": "138",
+  "completeVersion": "Google Chrome for Testing 138.0.7204.183",
+  "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "extensionId": "glggmajneachmnglfhmhmebkchaiepim",
+  "cdpVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/138.0.7204.183",
+    "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.0.0 Safari/537.36",
+    "jsVersion": "13.8.258.30"
+  },
+  "targetId": "2027A4611E1945B444FB2AB80D11297F",
+  "browserPid": 21016,
+  "cases": [
+    {
+      "id": "ordinary-js-typed-dom",
+      "status": "PASS",
+      "actual": {
+        "runId": "55be93a1-6760-4aed-92f1-1996b3551ddc",
+        "state": "completed",
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "absent",
+              {
+                "type": "undefined"
+              }
+            ],
+            [
+              "list",
+              {
+                "type": "array",
+                "value": [
+                  {
+                    "type": "undefined"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            ],
+            [
+              "no",
+              {
+                "type": "boolean",
+                "value": false
+              }
+            ],
+            [
+              "title",
+              {
+                "type": "string",
+                "value": "Top fixture"
+              }
+            ],
+            [
+              "zero",
+              {
+                "type": "number",
+                "value": 0
+              }
+            ]
+          ]
+        },
+        "target": {
+          "tabId": 1363142249,
+          "frameId": 0,
+          "documentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+          "url": "http://127.0.0.1:60114/page",
+          "allowedOrigin": "http://127.0.0.1:60114",
+          "targetSessionId": "5bc5ef5e-c8b0-45df-aa0e-e5c65cc5ad74",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+        }
+      }
+    },
+    {
+      "id": "borrowed-child-exact-document",
+      "status": "PASS",
+      "actual": {
+        "target": {
+          "tabId": 1363142249,
+          "frameId": 4,
+          "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+          "url": "http://127.0.0.1:60114/child",
+          "allowedOrigin": "http://127.0.0.1:60114",
+          "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+          "targetSessionId": "8f3d2720-8422-49c4-a45d-31c0795aece5",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+        },
+        "userScripts": "E_USER_SCRIPTS_UNAVAILABLE",
+        "domRun": "0fa98e69-9a5b-496b-8a77-9199221e9a10"
+      }
+    },
+    {
+      "id": "headcas-r1-pinned-during-r2-save",
+      "status": "PASS",
+      "actual": {
+        "runId": "59570488-a42f-4329-a4f9-3ac4f62c1b26",
+        "pin": {
+          "scriptId": "pin-race",
+          "revision": 1,
+          "sourceHash": "74d2eb4ea6f58e4fef0bc16479f2fe8edf6229d8895f78af6ccc271b514839d3",
+          "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"59570488-a42f-4329-a4f9-3ac4f62c1b26\",\"a1f2e763-abd8-4121-826b-71f046f25b17\",\"pin-race\",1]"
+        },
+        "head": 2,
+        "conflict": "E_REVISION"
+      }
+    },
+    {
+      "id": "owned-navigation-handoff-old-element-fenced",
+      "status": "FAIL",
+      "error": {
+        "message": "Navigation failed {\"ok\":false,\"error\":{\"code\":\"E_DOM_SNAPSHOT_CONTEXT\",\"name\":\"PageError\",\"message\":\"E_DOM_SNAPSHOT_CONTEXT\"}}",
+        "stack": "Error: Navigation failed {\"ok\":false,\"error\":{\"code\":\"E_DOM_SNAPSHOT_CONTEXT\",\"name\":\"PageError\",\"message\":\"E_DOM_SNAPSHOT_CONTEXT\"}}\n    at expect (chrome-extension://glggmajneachmnglfhmhmebkchaiepim/ui/tool-shell.js:1539:56)\n    at chrome-extension://glggmajneachmnglfhmhmebkchaiepim/ui/tool-shell.js:1595:5\n    at async check (chrome-extension://glggmajneachmnglfhmhmebkchaiepim/ui/tool-shell.js:1558:21)\n    at async chrome-extension://glggmajneachmnglfhmhmebkchaiepim/ui/tool-shell.js:1592:3"
+      }
+    },
+    {
+      "id": "throw-durable-once",
+      "status": "PASS",
+      "actual": {
+        "runId": "9cf1f655-1b8a-4a68-adab-176156a92b5f",
+        "result": {
+          "tag": "controller-result",
+          "resultId": "71e487a9-e232-4046-9ae4-4653f0aea351",
+          "runId": "9cf1f655-1b8a-4a68-adab-176156a92b5f",
+          "namespace": "tool:glggmajneachmnglfhmhmebkchaiepim",
+          "principal": "extension-tool:glggmajneachmnglfhmhmebkchaiepim",
+          "revision": {
+            "scriptId": "native-5",
+            "revision": 1,
+            "sourceHash": "4d8a614e782c4395186f61d84006a793f5afc5c02bce6cbea73d3a7d4c2b3a26",
+            "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"9cf1f655-1b8a-4a68-adab-176156a92b5f\",\"39af2644-d23b-4d77-a685-99e8f4fb1518\",\"native-5\",1]"
+          },
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "native boom"
+            }
+          },
+          "committedAt": 1791013682404
+        }
+      }
+    },
+    {
+      "id": "busy-worker-stop-durable-then-retire",
+      "status": "PASS",
+      "actual": {
+        "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+        "trigger": {
+          "at": 1791013682999,
+          "monoMs": 2654.5999999046326
+        },
+        "retired": {
+          "kind": "retired",
+          "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+          "ownerEpoch": 1,
+          "reason": "stopped",
+          "url": "blob:null/101af3aa-c706-4fa9-abc0-fd17eb6b40f2",
+          "terminateAt": 1791013683005,
+          "terminateMonoMs": 576.8000001907349,
+          "retiredAt": 1791013683005,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          },
+          "hostObservedMonoMs": 2661.0999999046326
+        },
+        "result": {
+          "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+          "state": "stopped",
+          "result": {
+            "tag": "controller-result",
+            "resultId": "88d53abf-1f43-4a98-b386-bf63423bc1eb",
+            "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+            "namespace": "tool:glggmajneachmnglfhmhmebkchaiepim",
+            "principal": "extension-tool:glggmajneachmnglfhmhmebkchaiepim",
+            "revision": {
+              "scriptId": "native-6",
+              "revision": 1,
+              "sourceHash": "3be27a91a59f62fcd5ff9b4b0610461a5cda4f714e048b1de022f0c3ed294047",
+              "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"b1c713e0-0571-4e2e-85c2-8e1c17779085\",\"6823784c-a289-47a2-87d2-7d7a87bec7b4\",\"native-6\",1]"
+            },
+            "state": "stopped",
+            "outcome": {
+              "ok": false,
+              "error": {
+                "code": "E_CANCELLED",
+                "name": "FoundationError",
+                "message": "Controller fenced"
+              }
+            },
+            "committedAt": 1791013683009
+          },
+          "retirement": {
+            "state": "released",
+            "releaseCount": 1,
+            "retirementId": "679666c3-976d-42c6-9bee-0625b257d078"
+          }
+        }
+      }
+    },
+    {
+      "id": "deadline-forces-worker-stop",
+      "status": "PASS",
+      "actual": {
+        "runId": "9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+        "result": {
+          "runId": "9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+          "state": "stopped",
+          "result": {
+            "tag": "controller-result",
+            "resultId": "e6ff8792-0ed6-4257-9f86-66c8e7e06bc0",
+            "runId": "9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+            "namespace": "tool:glggmajneachmnglfhmhmebkchaiepim",
+            "principal": "extension-tool:glggmajneachmnglfhmhmebkchaiepim",
+            "revision": {
+              "scriptId": "native-7",
+              "revision": 1,
+              "sourceHash": "3be27a91a59f62fcd5ff9b4b0610461a5cda4f714e048b1de022f0c3ed294047",
+              "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"9e2bbec7-b3aa-42ae-b961-6ece742ec092\",\"fd306464-ae15-4f36-9a43-f602e03aa500\",\"native-7\",1]"
+            },
+            "state": "stopped",
+            "outcome": {
+              "ok": false,
+              "error": {
+                "code": "E_TIMEOUT",
+                "name": "FoundationError",
+                "message": "Controller fenced"
+              }
+            },
+            "committedAt": 1791013686308
+          },
+          "retirement": {
+            "state": "released",
+            "releaseCount": 1,
+            "retirementId": "4475e6b7-a0fd-46b4-ac79-e9af10f8e897"
+          }
+        }
+      }
+    },
+    {
+      "id": "borrowed-tab-survives-all-retirements",
+      "status": "PASS",
+      "actual": {
+        "tabId": 1363142249
+      }
+    }
+  ],
+  "events": [
+    {
+      "kind": "worker-created",
+      "runId": "55be93a1-6760-4aed-92f1-1996b3551ddc",
+      "ownerEpoch": 1,
+      "url": "blob:null/8b77a8eb-fae2-4c25-b31f-43d97fc970b8",
+      "name": "OpenDesk-Control-55be93a1-6760-4aed-92f1-1996b3551ddc",
+      "origin": "null",
+      "hostObservedMonoMs": 346.90000009536743
+    },
+    {
+      "kind": "bound",
+      "runId": "55be93a1-6760-4aed-92f1-1996b3551ddc",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/8b77a8eb-fae2-4c25-b31f-43d97fc970b8",
+        "name": "OpenDesk-Control-55be93a1-6760-4aed-92f1-1996b3551ddc",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 357.40000009536743
+    },
+    {
+      "kind": "operation",
+      "runId": "55be93a1-6760-4aed-92f1-1996b3551ddc",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "33b8162998eef230a7d15dbc4acaa661",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "55be93a1-6760-4aed-92f1-1996b3551ddc",
+          "hostInstanceId": "abafad5c-e1a0-410b-aca7-cc3e406ed71c",
+          "hostDocumentId": "0EEC76786EB0CE7CC82DDB41262FC463",
+          "ownerEpoch": 1,
+          "scriptId": "native-1",
+          "revision": 1,
+          "contentHash": "afd6cb5c502a16b4b5207e4f0401b9b971b7e06dbf5b98c434aceb12bb5971e1",
+          "target": {
+            "tabId": 1363142249,
+            "frameId": 0,
+            "documentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+            "url": "http://127.0.0.1:60114/page",
+            "allowedOrigin": "http://127.0.0.1:60114",
+            "targetSessionId": "5bc5ef5e-c8b0-45df-aa0e-e5c65cc5ad74",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+          }
+        },
+        "revision": {
+          "scriptId": "native-1",
+          "revision": 1,
+          "sourceHash": "afd6cb5c502a16b4b5207e4f0401b9b971b7e06dbf5b98c434aceb12bb5971e1",
+          "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"55be93a1-6760-4aed-92f1-1996b3551ddc\",\"200cfbef-61f0-45f2-b326-487b403f2619\",\"native-1\",1]"
+        },
+        "target": {
+          "tabId": 1363142249,
+          "frameId": 0,
+          "documentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+          "url": "http://127.0.0.1:60114/page",
+          "allowedOrigin": "http://127.0.0.1:60114",
+          "targetSessionId": "5bc5ef5e-c8b0-45df-aa0e-e5c65cc5ad74",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "title",
+          "args": {
+            "t": "array",
+            "v": []
+          }
+        }
+      },
+      "hostObservedMonoMs": 359
+    },
+    {
+      "kind": "result",
+      "runId": "55be93a1-6760-4aed-92f1-1996b3551ddc",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "object",
+        "v": [
+          [
+            "title",
+            {
+              "t": "string",
+              "v": "Top fixture"
+            }
+          ],
+          [
+            "no",
+            {
+              "t": "boolean",
+              "v": false
+            }
+          ],
+          [
+            "zero",
+            {
+              "t": "number",
+              "v": 0
+            }
+          ],
+          [
+            "absent",
+            {
+              "t": "undefined"
+            }
+          ],
+          [
+            "list",
+            {
+              "t": "array",
+              "v": [
+                {
+                  "t": "undefined"
+                },
+                {
+                  "t": "null"
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      "hostObservedMonoMs": 432.40000009536743
+    },
+    {
+      "kind": "retired",
+      "runId": "55be93a1-6760-4aed-92f1-1996b3551ddc",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/8b77a8eb-fae2-4c25-b31f-43d97fc970b8",
+      "terminateAt": 1791013680777,
+      "terminateMonoMs": 178.10000038146973,
+      "retiredAt": 1791013680777,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 433.09999990463257
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "55be93a1-6760-4aed-92f1-1996b3551ddc",
+      "reason": "succeeded",
+      "observedAt": 1791013680778,
+      "observedMonoMs": 433.19999980926514,
+      "hostObservedMonoMs": 433.2999997138977
+    },
+    {
+      "kind": "worker-created",
+      "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "ownerEpoch": 1,
+      "url": "blob:null/76fedfc4-5b84-4ab9-8931-3e91499ea789",
+      "name": "OpenDesk-Control-066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "origin": "null",
+      "hostObservedMonoMs": 533.1999998092651
+    },
+    {
+      "kind": "bound",
+      "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/76fedfc4-5b84-4ab9-8931-3e91499ea789",
+        "name": "OpenDesk-Control-066b8971-475e-4fe2-b2f2-0f75bba02f65",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 547
+    },
+    {
+      "kind": "operation",
+      "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "e1bb2bfc5f82f757dbae5c9b3b813fbd",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+          "hostInstanceId": "abafad5c-e1a0-410b-aca7-cc3e406ed71c",
+          "hostDocumentId": "0EEC76786EB0CE7CC82DDB41262FC463",
+          "ownerEpoch": 1,
+          "scriptId": "native-2",
+          "revision": 1,
+          "contentHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "target": {
+            "tabId": 1363142249,
+            "frameId": 4,
+            "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+            "url": "http://127.0.0.1:60114/child",
+            "allowedOrigin": "http://127.0.0.1:60114",
+            "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+            "targetSessionId": "8f3d2720-8422-49c4-a45d-31c0795aece5",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+          }
+        },
+        "revision": {
+          "scriptId": "native-2",
+          "revision": 1,
+          "sourceHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"066b8971-475e-4fe2-b2f2-0f75bba02f65\",\"9aacb9d2-1377-4a7c-876f-36e9746570c4\",\"native-2\",1]"
+        },
+        "target": {
+          "tabId": 1363142249,
+          "frameId": 4,
+          "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+          "url": "http://127.0.0.1:60114/child",
+          "allowedOrigin": "http://127.0.0.1:60114",
+          "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+          "targetSessionId": "8f3d2720-8422-49c4-a45d-31c0795aece5",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "type",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "#input"
+              },
+              {
+                "t": "string",
+                "v": "子页"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "delay",
+                    {
+                      "t": "number",
+                      "v": 0
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "hostObservedMonoMs": 548.4000000953674
+    },
+    {
+      "kind": "operation",
+      "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "ownerEpoch": 1,
+      "id": 2,
+      "envelope": {
+        "requestId": "02a3cc26a2d440f2003b33eeabd3275a",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+          "hostInstanceId": "abafad5c-e1a0-410b-aca7-cc3e406ed71c",
+          "hostDocumentId": "0EEC76786EB0CE7CC82DDB41262FC463",
+          "ownerEpoch": 1,
+          "scriptId": "native-2",
+          "revision": 1,
+          "contentHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "target": {
+            "tabId": 1363142249,
+            "frameId": 4,
+            "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+            "url": "http://127.0.0.1:60114/child",
+            "allowedOrigin": "http://127.0.0.1:60114",
+            "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+            "targetSessionId": "8f3d2720-8422-49c4-a45d-31c0795aece5",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+          }
+        },
+        "revision": {
+          "scriptId": "native-2",
+          "revision": 1,
+          "sourceHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"066b8971-475e-4fe2-b2f2-0f75bba02f65\",\"9aacb9d2-1377-4a7c-876f-36e9746570c4\",\"native-2\",1]"
+        },
+        "target": {
+          "tabId": 1363142249,
+          "frameId": 4,
+          "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+          "url": "http://127.0.0.1:60114/child",
+          "allowedOrigin": "http://127.0.0.1:60114",
+          "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+          "targetSessionId": "8f3d2720-8422-49c4-a45d-31c0795aece5",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "title",
+          "args": {
+            "t": "array",
+            "v": []
+          }
+        }
+      },
+      "hostObservedMonoMs": 607.0999999046326
+    },
+    {
+      "kind": "operation",
+      "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "ownerEpoch": 1,
+      "id": 3,
+      "envelope": {
+        "requestId": "b7aacac5bbe09f7ca3855cd96e59ee7d",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+          "hostInstanceId": "abafad5c-e1a0-410b-aca7-cc3e406ed71c",
+          "hostDocumentId": "0EEC76786EB0CE7CC82DDB41262FC463",
+          "ownerEpoch": 1,
+          "scriptId": "native-2",
+          "revision": 1,
+          "contentHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "target": {
+            "tabId": 1363142249,
+            "frameId": 4,
+            "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+            "url": "http://127.0.0.1:60114/child",
+            "allowedOrigin": "http://127.0.0.1:60114",
+            "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+            "targetSessionId": "8f3d2720-8422-49c4-a45d-31c0795aece5",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+          }
+        },
+        "revision": {
+          "scriptId": "native-2",
+          "revision": 1,
+          "sourceHash": "891a4fb1cedfe22c512eb4b616352b547be5f59da9b9637796a6e1ed10210ff4",
+          "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"066b8971-475e-4fe2-b2f2-0f75bba02f65\",\"9aacb9d2-1377-4a7c-876f-36e9746570c4\",\"native-2\",1]"
+        },
+        "target": {
+          "tabId": 1363142249,
+          "frameId": 4,
+          "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+          "url": "http://127.0.0.1:60114/child",
+          "allowedOrigin": "http://127.0.0.1:60114",
+          "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+          "targetSessionId": "8f3d2720-8422-49c4-a45d-31c0795aece5",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+        },
+        "operation": {
+          "kind": "user-script",
+          "method": "$eval",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "#input"
+              },
+              {
+                "t": "string",
+                "v": "e=>e.value"
+              },
+              {
+                "t": "array",
+                "v": []
+              }
+            ]
+          }
+        }
+      },
+      "hostObservedMonoMs": 652.2999997138977
+    },
+    {
+      "kind": "error",
+      "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_USER_SCRIPTS_UNAVAILABLE",
+        "name": "PageError",
+        "message": "E_USER_SCRIPTS_UNAVAILABLE"
+      },
+      "hostObservedMonoMs": 673.2999997138977
+    },
+    {
+      "kind": "retired",
+      "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "ownerEpoch": 1,
+      "reason": "error",
+      "url": "blob:null/76fedfc4-5b84-4ab9-8931-3e91499ea789",
+      "terminateAt": 1791013681018,
+      "terminateMonoMs": 219,
+      "retiredAt": 1791013681018,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 673.7999997138977
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "066b8971-475e-4fe2-b2f2-0f75bba02f65",
+      "reason": "error",
+      "observedAt": 1791013681018,
+      "observedMonoMs": 673.7999997138977,
+      "hostObservedMonoMs": 673.7999997138977
+    },
+    {
+      "kind": "worker-created",
+      "runId": "0fa98e69-9a5b-496b-8a77-9199221e9a10",
+      "ownerEpoch": 1,
+      "url": "blob:null/5c59dc8a-88d5-456c-9c7c-c61bbaf82e79",
+      "name": "OpenDesk-Control-0fa98e69-9a5b-496b-8a77-9199221e9a10",
+      "origin": "null",
+      "hostObservedMonoMs": 780.4000000953674
+    },
+    {
+      "kind": "bound",
+      "runId": "0fa98e69-9a5b-496b-8a77-9199221e9a10",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/5c59dc8a-88d5-456c-9c7c-c61bbaf82e79",
+        "name": "OpenDesk-Control-0fa98e69-9a5b-496b-8a77-9199221e9a10",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 789.2999997138977
+    },
+    {
+      "kind": "operation",
+      "runId": "0fa98e69-9a5b-496b-8a77-9199221e9a10",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "ce30fd57f591ab0a110c8643564be299",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "0fa98e69-9a5b-496b-8a77-9199221e9a10",
+          "hostInstanceId": "abafad5c-e1a0-410b-aca7-cc3e406ed71c",
+          "hostDocumentId": "0EEC76786EB0CE7CC82DDB41262FC463",
+          "ownerEpoch": 1,
+          "scriptId": "native-3",
+          "revision": 1,
+          "contentHash": "4fdfe390c445d509877bb8bb869b373f9d8c8b417b39a6e908717e4e93f78c4d",
+          "target": {
+            "tabId": 1363142249,
+            "frameId": 4,
+            "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+            "url": "http://127.0.0.1:60114/child",
+            "allowedOrigin": "http://127.0.0.1:60114",
+            "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+            "targetSessionId": "f2db33ed-baaa-460d-9157-d191f9e98edb",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+          }
+        },
+        "revision": {
+          "scriptId": "native-3",
+          "revision": 1,
+          "sourceHash": "4fdfe390c445d509877bb8bb869b373f9d8c8b417b39a6e908717e4e93f78c4d",
+          "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"0fa98e69-9a5b-496b-8a77-9199221e9a10\",\"40e45357-c9af-4f31-bfe5-a028b021f12f\",\"native-3\",1]"
+        },
+        "target": {
+          "tabId": 1363142249,
+          "frameId": 4,
+          "documentId": "A55D9E94C46528340A7BB79783E61FC3",
+          "url": "http://127.0.0.1:60114/child",
+          "allowedOrigin": "http://127.0.0.1:60114",
+          "rootDocumentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+          "targetSessionId": "f2db33ed-baaa-460d-9157-d191f9e98edb",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "title",
+          "args": {
+            "t": "array",
+            "v": []
+          }
+        }
+      },
+      "hostObservedMonoMs": 790.5
+    },
+    {
+      "kind": "result",
+      "runId": "0fa98e69-9a5b-496b-8a77-9199221e9a10",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "string",
+        "v": "Child fixture"
+      },
+      "hostObservedMonoMs": 851.6999998092651
+    },
+    {
+      "kind": "retired",
+      "runId": "0fa98e69-9a5b-496b-8a77-9199221e9a10",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/5c59dc8a-88d5-456c-9c7c-c61bbaf82e79",
+      "terminateAt": 1791013681196,
+      "terminateMonoMs": 155.80000019073486,
+      "retiredAt": 1791013681196,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 852.1999998092651
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "0fa98e69-9a5b-496b-8a77-9199221e9a10",
+      "reason": "succeeded",
+      "observedAt": 1791013681196,
+      "observedMonoMs": 852.1999998092651,
+      "hostObservedMonoMs": 852.2999997138977
+    },
+    {
+      "kind": "worker-created",
+      "runId": "59570488-a42f-4329-a4f9-3ac4f62c1b26",
+      "ownerEpoch": 1,
+      "url": "blob:null/fbfe9246-0dca-4ed5-a767-65857536810c",
+      "name": "OpenDesk-Control-59570488-a42f-4329-a4f9-3ac4f62c1b26",
+      "origin": "null",
+      "hostObservedMonoMs": 975.7999997138977
+    },
+    {
+      "kind": "bound",
+      "runId": "59570488-a42f-4329-a4f9-3ac4f62c1b26",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/fbfe9246-0dca-4ed5-a767-65857536810c",
+        "name": "OpenDesk-Control-59570488-a42f-4329-a4f9-3ac4f62c1b26",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 1000.7999997138977
+    },
+    {
+      "kind": "operation",
+      "runId": "59570488-a42f-4329-a4f9-3ac4f62c1b26",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "64ef50c27fee847b91dbecd223cf3270",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "59570488-a42f-4329-a4f9-3ac4f62c1b26",
+          "hostInstanceId": "abafad5c-e1a0-410b-aca7-cc3e406ed71c",
+          "hostDocumentId": "0EEC76786EB0CE7CC82DDB41262FC463",
+          "ownerEpoch": 1,
+          "scriptId": "pin-race",
+          "revision": 1,
+          "contentHash": "74d2eb4ea6f58e4fef0bc16479f2fe8edf6229d8895f78af6ccc271b514839d3",
+          "target": {
+            "tabId": 1363142249,
+            "frameId": 0,
+            "documentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+            "url": "http://127.0.0.1:60114/page",
+            "allowedOrigin": "http://127.0.0.1:60114",
+            "targetSessionId": "66bf5e4a-3601-4d09-9efa-c19beb430067",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+          }
+        },
+        "revision": {
+          "scriptId": "pin-race",
+          "revision": 1,
+          "sourceHash": "74d2eb4ea6f58e4fef0bc16479f2fe8edf6229d8895f78af6ccc271b514839d3",
+          "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"59570488-a42f-4329-a4f9-3ac4f62c1b26\",\"a1f2e763-abd8-4121-826b-71f046f25b17\",\"pin-race\",1]"
+        },
+        "target": {
+          "tabId": 1363142249,
+          "frameId": 0,
+          "documentId": "AC80FE3DD8311047E9BEA064BD137C8D",
+          "url": "http://127.0.0.1:60114/page",
+          "allowedOrigin": "http://127.0.0.1:60114",
+          "targetSessionId": "66bf5e4a-3601-4d09-9efa-c19beb430067",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "01930134-6512-47b7-bf37-20d55b47e806"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "waitForTimeout",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "number",
+                "v": 300
+              }
+            ]
+          }
+        }
+      },
+      "hostObservedMonoMs": 1002.5
+    },
+    {
+      "kind": "result",
+      "runId": "59570488-a42f-4329-a4f9-3ac4f62c1b26",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "boolean",
+        "v": false
+      },
+      "hostObservedMonoMs": 1564.4000000953674
+    },
+    {
+      "kind": "retired",
+      "runId": "59570488-a42f-4329-a4f9-3ac4f62c1b26",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/fbfe9246-0dca-4ed5-a767-65857536810c",
+      "terminateAt": 1791013681909,
+      "terminateMonoMs": 687,
+      "retiredAt": 1791013681909,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 1564.9000000953674
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "59570488-a42f-4329-a4f9-3ac4f62c1b26",
+      "reason": "succeeded",
+      "observedAt": 1791013681909,
+      "observedMonoMs": 1565,
+      "hostObservedMonoMs": 1565
+    },
+    {
+      "kind": "worker-created",
+      "runId": "79de39ee-dc42-4333-b707-52c3d6bdc69a",
+      "ownerEpoch": 1,
+      "url": "blob:null/8ced7b78-3bc7-4d90-8099-264e9cf0f249",
+      "name": "OpenDesk-Control-79de39ee-dc42-4333-b707-52c3d6bdc69a",
+      "origin": "null",
+      "hostObservedMonoMs": 1931.4000000953674
+    },
+    {
+      "kind": "bound",
+      "runId": "79de39ee-dc42-4333-b707-52c3d6bdc69a",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/8ced7b78-3bc7-4d90-8099-264e9cf0f249",
+        "name": "OpenDesk-Control-79de39ee-dc42-4333-b707-52c3d6bdc69a",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 1936.5999999046326
+    },
+    {
+      "kind": "error",
+      "runId": "79de39ee-dc42-4333-b707-52c3d6bdc69a",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_DOM_SNAPSHOT_CONTEXT",
+        "name": "PageError",
+        "message": "E_DOM_SNAPSHOT_CONTEXT"
+      },
+      "hostObservedMonoMs": 1937.5
+    },
+    {
+      "kind": "retired",
+      "runId": "79de39ee-dc42-4333-b707-52c3d6bdc69a",
+      "ownerEpoch": 1,
+      "reason": "error",
+      "url": "blob:null/8ced7b78-3bc7-4d90-8099-264e9cf0f249",
+      "terminateAt": 1791013682282,
+      "terminateMonoMs": 78.90000009536743,
+      "retiredAt": 1791013682282,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 1937.9000000953674
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "79de39ee-dc42-4333-b707-52c3d6bdc69a",
+      "reason": "error",
+      "observedAt": 1791013682282,
+      "observedMonoMs": 1937.9000000953674,
+      "hostObservedMonoMs": 1937.9000000953674
+    },
+    {
+      "kind": "worker-created",
+      "runId": "9cf1f655-1b8a-4a68-adab-176156a92b5f",
+      "ownerEpoch": 1,
+      "url": "blob:null/673c1dc8-78db-4ce1-97e6-73fdbcd19296",
+      "name": "OpenDesk-Control-9cf1f655-1b8a-4a68-adab-176156a92b5f",
+      "origin": "null",
+      "hostObservedMonoMs": 2050
+    },
+    {
+      "kind": "bound",
+      "runId": "9cf1f655-1b8a-4a68-adab-176156a92b5f",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/673c1dc8-78db-4ce1-97e6-73fdbcd19296",
+        "name": "OpenDesk-Control-9cf1f655-1b8a-4a68-adab-176156a92b5f",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 2054.9000000953674
+    },
+    {
+      "kind": "error",
+      "runId": "9cf1f655-1b8a-4a68-adab-176156a92b5f",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "native boom"
+      },
+      "hostObservedMonoMs": 2055.4000000953674
+    },
+    {
+      "kind": "retired",
+      "runId": "9cf1f655-1b8a-4a68-adab-176156a92b5f",
+      "ownerEpoch": 1,
+      "reason": "error",
+      "url": "blob:null/673c1dc8-78db-4ce1-97e6-73fdbcd19296",
+      "terminateAt": 1791013682400,
+      "terminateMonoMs": 79.80000019073486,
+      "retiredAt": 1791013682400,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 2055.9000000953674
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "9cf1f655-1b8a-4a68-adab-176156a92b5f",
+      "reason": "error",
+      "observedAt": 1791013682400,
+      "observedMonoMs": 2055.9000000953674,
+      "hostObservedMonoMs": 2055.9000000953674
+    },
+    {
+      "kind": "worker-created",
+      "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+      "ownerEpoch": 1,
+      "url": "blob:null/101af3aa-c706-4fa9-abc0-fd17eb6b40f2",
+      "name": "OpenDesk-Control-b1c713e0-0571-4e2e-85c2-8e1c17779085",
+      "origin": "null",
+      "hostObservedMonoMs": 2157.0999999046326
+    },
+    {
+      "kind": "bound",
+      "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/101af3aa-c706-4fa9-abc0-fd17eb6b40f2",
+        "name": "OpenDesk-Control-b1c713e0-0571-4e2e-85c2-8e1c17779085",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 2162.5
+    },
+    {
+      "kind": "retired",
+      "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+      "ownerEpoch": 1,
+      "reason": "stopped",
+      "url": "blob:null/101af3aa-c706-4fa9-abc0-fd17eb6b40f2",
+      "terminateAt": 1791013683005,
+      "terminateMonoMs": 576.8000001907349,
+      "retiredAt": 1791013683005,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 2661.0999999046326
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+      "reason": "stopped",
+      "observedAt": 1791013683005,
+      "observedMonoMs": 2661.199999809265,
+      "hostObservedMonoMs": 2661.199999809265
+    },
+    {
+      "kind": "worker-created",
+      "runId": "9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+      "ownerEpoch": 1,
+      "url": "blob:null/28cdc1a8-7700-4155-8dbf-f71316d4c29e",
+      "name": "OpenDesk-Control-9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+      "origin": "null",
+      "hostObservedMonoMs": 4847.5
+    },
+    {
+      "kind": "bound",
+      "runId": "9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/28cdc1a8-7700-4155-8dbf-f71316d4c29e",
+        "name": "OpenDesk-Control-9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 4852.299999713898
+    },
+    {
+      "kind": "retired",
+      "runId": "9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+      "ownerEpoch": 1,
+      "reason": "timeout",
+      "url": "blob:null/28cdc1a8-7700-4155-8dbf-f71316d4c29e",
+      "terminateAt": 1791013686303,
+      "terminateMonoMs": 1192.8000001907349,
+      "retiredAt": 1791013686303,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      },
+      "hostObservedMonoMs": 5958.799999713898
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "9e2bbec7-b3aa-42ae-b961-6ece742ec092",
+      "reason": "timeout",
+      "observedAt": 1791013686303,
+      "observedMonoMs": 5958.900000095367,
+      "hostObservedMonoMs": 5958.900000095367
+    }
+  ],
+  "summary": {
+    "PASS": 7,
+    "FAIL": 1
+  },
+  "finalProductPassed": false,
+  "physical": {
+    "exactTarget": {
+      "targetId": "830385910E914ED17E2345CDAB8DAB76",
+      "type": "worker",
+      "title": "",
+      "url": "",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+    },
+    "baselineWorkers": [],
+    "bound": {
+      "kind": "bound",
+      "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/101af3aa-c706-4fa9-abc0-fd17eb6b40f2",
+        "name": "OpenDesk-Control-b1c713e0-0571-4e2e-85c2-8e1c17779085",
+        "origin": "null"
+      },
+      "hostObservedMonoMs": 2162.5
+    },
+    "association": "unique fresh target at private bound barrier; native URL empty",
+    "triggerBefore": 5466.17825,
+    "probe": {
+      "stage": "stopped",
+      "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+      "bound": {
+        "kind": "bound",
+        "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+        "ownerEpoch": 1,
+        "identity": {
+          "url": "blob:null/101af3aa-c706-4fa9-abc0-fd17eb6b40f2",
+          "name": "OpenDesk-Control-b1c713e0-0571-4e2e-85c2-8e1c17779085",
+          "origin": "null"
+        },
+        "hostObservedMonoMs": 2162.5
+      },
+      "hostMonoMs": 2676,
+      "trigger": {
+        "at": 1791013682999,
+        "monoMs": 2654.5999999046326
+      },
+      "result": {
+        "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+        "state": "stopped",
+        "result": {
+          "tag": "controller-result",
+          "resultId": "88d53abf-1f43-4a98-b386-bf63423bc1eb",
+          "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+          "namespace": "tool:glggmajneachmnglfhmhmebkchaiepim",
+          "principal": "extension-tool:glggmajneachmnglfhmhmebkchaiepim",
+          "revision": {
+            "scriptId": "native-6",
+            "revision": 1,
+            "sourceHash": "3be27a91a59f62fcd5ff9b4b0610461a5cda4f714e048b1de022f0c3ed294047",
+            "pinKey": "script-pin:[\"tool:glggmajneachmnglfhmhmebkchaiepim\",\"b1c713e0-0571-4e2e-85c2-8e1c17779085\",\"6823784c-a289-47a2-87d2-7d7a87bec7b4\",\"native-6\",1]"
+          },
+          "state": "stopped",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CANCELLED",
+              "name": "FoundationError",
+              "message": "Controller fenced"
+            }
+          },
+          "committedAt": 1791013683009
+        },
+        "retirement": {
+          "state": "released",
+          "releaseCount": 1,
+          "retirementId": "679666c3-976d-42c6-9bee-0625b257d078"
+        }
+      },
+      "retired": {
+        "kind": "retired",
+        "runId": "b1c713e0-0571-4e2e-85c2-8e1c17779085",
+        "ownerEpoch": 1,
+        "reason": "stopped",
+        "url": "blob:null/101af3aa-c706-4fa9-abc0-fd17eb6b40f2",
+        "terminateAt": 1791013683005,
+        "terminateMonoMs": 576.8000001907349,
+        "retiredAt": 1791013683005,
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "hostObservedMonoMs": 2661.0999999046326
+      }
+    },
+    "causalTrace": {
+      "args": {
+        "data": {
+          "frame": "FA04B98BF1A7EAB9EF11AA5A5EC929C3",
+          "url": "blob:null/101af3aa-c706-4fa9-abc0-fd17eb6b40f2",
+          "workerId": "830385910E914ED17E2345CDAB8DAB76",
+          "workerThreadId": 38938665
+        }
+      },
+      "cat": "disabled-by-default-devtools.timeline",
+      "name": "TracingSessionIdForWorker",
+      "ph": "I",
+      "pid": 21220,
+      "s": "t",
+      "tid": 38938665,
+      "ts": 3010478614995,
+      "tts": 890
+    },
+    "cpuBefore": {
+      "monoMs": 5113.499791,
+      "sample": {
+        "processInfo": [
+          {
+            "type": "browser",
+            "id": 21016,
+            "cpuTime": 1.846065
+          },
+          {
+            "type": "renderer",
+            "id": 21220,
+            "cpuTime": 0.204621
+          },
+          {
+            "type": "renderer",
+            "id": 21219,
+            "cpuTime": 0.07072
+          },
+          {
+            "type": "renderer",
+            "id": 21216,
+            "cpuTime": 0.087517
+          },
+          {
+            "type": "renderer",
+            "id": 21210,
+            "cpuTime": 0.07789
+          },
+          {
+            "type": "renderer",
+            "id": 21174,
+            "cpuTime": 0.098591
+          },
+          {
+            "type": "renderer",
+            "id": 21159,
+            "cpuTime": 0.09592
+          },
+          {
+            "type": "renderer",
+            "id": 21154,
+            "cpuTime": 0.090838
+          },
+          {
+            "type": "renderer",
+            "id": 21147,
+            "cpuTime": 0.09543
+          },
+          {
+            "type": "renderer",
+            "id": 21069,
+            "cpuTime": 0.134816
+          },
+          {
+            "type": "renderer",
+            "id": 21047,
+            "cpuTime": 0.649977
+          },
+          {
+            "type": "renderer",
+            "id": 21213,
+            "cpuTime": 0.087561
+          },
+          {
+            "type": "renderer",
+            "id": 21044,
+            "cpuTime": 0.128299
+          },
+          {
+            "type": "GPU",
+            "id": 21028,
+            "cpuTime": 0.443974
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 21029,
+            "cpuTime": 0.163698
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 21034,
+            "cpuTime": 0.073375
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 21046,
+            "cpuTime": 0.073312
+          }
+        ]
+      }
+    },
+    "cpuLoop": {
+      "monoMs": 5465.345833,
+      "sample": {
+        "processInfo": [
+          {
+            "type": "browser",
+            "id": 21016,
+            "cpuTime": 1.850479
+          },
+          {
+            "type": "renderer",
+            "id": 21220,
+            "cpuTime": 0.547301
+          },
+          {
+            "type": "renderer",
+            "id": 21219,
+            "cpuTime": 0.070869
+          },
+          {
+            "type": "renderer",
+            "id": 21216,
+            "cpuTime": 0.087644
+          },
+          {
+            "type": "renderer",
+            "id": 21210,
+            "cpuTime": 0.079994
+          },
+          {
+            "type": "renderer",
+            "id": 21174,
+            "cpuTime": 0.10023
+          },
+          {
+            "type": "renderer",
+            "id": 21159,
+            "cpuTime": 0.096013
+          },
+          {
+            "type": "renderer",
+            "id": 21154,
+            "cpuTime": 0.090941
+          },
+          {
+            "type": "renderer",
+            "id": 21069,
+            "cpuTime": 0.135116
+          },
+          {
+            "type": "renderer",
+            "id": 21047,
+            "cpuTime": 0.651792
+          },
+          {
+            "type": "renderer",
+            "id": 21213,
+            "cpuTime": 0.08766
+          },
+          {
+            "type": "renderer",
+            "id": 21044,
+            "cpuTime": 0.130731
+          },
+          {
+            "type": "GPU",
+            "id": 21028,
+            "cpuTime": 0.445862
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 21029,
+            "cpuTime": 0.16506
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 21034,
+            "cpuTime": 0.073438
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 21046,
+            "cpuTime": 0.074521
+          }
+        ]
+      }
+    },
+    "loopCPU": 0.34268000000000004,
+    "postCPU": [
+      {
+        "monoMs": 5521.608416,
+        "sample": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 21016,
+              "cpuTime": 1.87139
+            },
+            {
+              "type": "renderer",
+              "id": 21220,
+              "cpuTime": 0.586649
+            },
+            {
+              "type": "renderer",
+              "id": 21219,
+              "cpuTime": 0.070869
+            },
+            {
+              "type": "renderer",
+              "id": 21216,
+              "cpuTime": 0.087644
+            },
+            {
+              "type": "renderer",
+              "id": 21210,
+              "cpuTime": 0.079994
+            },
+            {
+              "type": "renderer",
+              "id": 21174,
+              "cpuTime": 0.100599
+            },
+            {
+              "type": "renderer",
+              "id": 21159,
+              "cpuTime": 0.096013
+            },
+            {
+              "type": "renderer",
+              "id": 21069,
+              "cpuTime": 0.135928
+            },
+            {
+              "type": "renderer",
+              "id": 21047,
+              "cpuTime": 0.665756
+            },
+            {
+              "type": "renderer",
+              "id": 21213,
+              "cpuTime": 0.08766
+            },
+            {
+              "type": "renderer",
+              "id": 21044,
+              "cpuTime": 0.131032
+            },
+            {
+              "type": "GPU",
+              "id": 21028,
+              "cpuTime": 0.447038
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 21029,
+              "cpuTime": 0.165489
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 21034,
+              "cpuTime": 0.073438
+            },
+            {
+              "type": "tracing.mojom.TracingService",
+              "id": 21046,
+              "cpuTime": 0.075224
+            }
+          ]
+        }
+      },
+      {
+        "monoMs": 5674.664833,
+        "sample": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 21016,
+              "cpuTime": 1.876609
+            },
+            {
+              "type": "renderer",
+              "id": 21220,
+              "cpuTime": 0.660914
+            },
+            {
+              "type": "renderer",
+              "id": 21219,
+              "cpuTime": 0.070869
+            },
+            {
+              "type": "renderer",
+              "id": 21216,
+              "cpuTime": 0.087644
+            },
+            {
+              "type": "renderer",
+              "id": 21210,
+              "cpuTime": 0.080978
+            },
+            {
+              "type": "renderer",
+              "id": 21174,
+              "cpuTime": 0.101378
+            },
+            {
+              "type": "renderer",
+              "id": 21069,
+              "cpuTime": 0.135928
+            },
+            {
+              "type": "renderer",
+              "id": 21047,
+              "cpuTime": 0.666757
+            },
+            {
+              "type": "renderer",
+              "id": 21213,
+              "cpuTime": 0.08766
+            },
+            {
+              "type": "renderer",
+              "id": 21044,
+              "cpuTime": 0.131662
+            },
+            {
+              "type": "GPU",
+              "id": 21028,
+              "cpuTime": 0.448329
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 21029,
+              "cpuTime": 0.167741
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 21034,
+              "cpuTime": 0.073438
+            },
+            {
+              "type": "tracing.mojom.TracingService",
+              "id": 21046,
+              "cpuTime": 0.076115
+            }
+          ]
+        }
+      },
+      {
+        "monoMs": 5828.686875,
+        "sample": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 21016,
+              "cpuTime": 1.878542
+            },
+            {
+              "type": "renderer",
+              "id": 21220,
+              "cpuTime": 0.713762
+            },
+            {
+              "type": "renderer",
+              "id": 21219,
+              "cpuTime": 0.070869
+            },
+            {
+              "type": "renderer",
+              "id": 21216,
+              "cpuTime": 0.087644
+            },
+            {
+              "type": "renderer",
+              "id": 21210,
+              "cpuTime": 0.08154
+            },
+            {
+              "type": "renderer",
+              "id": 21174,
+              "cpuTime": 0.102144
+            },
+            {
+              "type": "renderer",
+              "id": 21069,
+              "cpuTime": 0.135928
+            },
+            {
+              "type": "renderer",
+              "id": 21047,
+              "cpuTime": 0.667494
+            },
+            {
+              "type": "renderer",
+              "id": 21213,
+              "cpuTime": 0.087887
+            },
+            {
+              "type": "renderer",
+              "id": 21044,
+              "cpuTime": 0.132465
+            },
+            {
+              "type": "GPU",
+              "id": 21028,
+              "cpuTime": 0.448714
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 21029,
+              "cpuTime": 0.167835
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 21034,
+              "cpuTime": 0.073438
+            },
+            {
+              "type": "tracing.mojom.TracingService",
+              "id": 21046,
+              "cpuTime": 0.076205
+            }
+          ]
+        }
+      }
+    ],
+    "postDeltas": [
+      0.07426500000000003,
+      0.052848000000000006
+    ],
+    "targetSamples": [
+      {
+        "monoMs": 5520.396208,
+        "targets": [
+          {
+            "targetId": "1333A41E59C10D5751DEA857F559DF09",
+            "type": "service_worker",
+            "title": "Service Worker chrome-extension://glggmajneachmnglfhmhmebkchaiepim/sw.js",
+            "url": "chrome-extension://glggmajneachmnglfhmhmebkchaiepim/sw.js",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "830385910E914ED17E2345CDAB8DAB76",
+            "type": "worker",
+            "title": "",
+            "url": "",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "2027A4611E1945B444FB2AB80D11297F",
+            "type": "page",
+            "title": "F2 controller proof",
+            "url": "chrome-extension://glggmajneachmnglfhmhmebkchaiepim/ui/tool.html",
+            "attached": true,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "0FAC9E23FD7FBA16EBDDF6BB80F5D10C",
+            "type": "page",
+            "title": "about:blank",
+            "url": "about:blank",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "29F2C0D87F35F1645674506E179D5475",
+            "type": "page",
+            "title": "Top fixture",
+            "url": "http://127.0.0.1:60114/page",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          }
+        ]
+      },
+      {
+        "monoMs": 5673.58825,
+        "targets": [
+          {
+            "targetId": "1333A41E59C10D5751DEA857F559DF09",
+            "type": "service_worker",
+            "title": "Service Worker chrome-extension://glggmajneachmnglfhmhmebkchaiepim/sw.js",
+            "url": "chrome-extension://glggmajneachmnglfhmhmebkchaiepim/sw.js",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "830385910E914ED17E2345CDAB8DAB76",
+            "type": "worker",
+            "title": "",
+            "url": "",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "2027A4611E1945B444FB2AB80D11297F",
+            "type": "page",
+            "title": "F2 controller proof",
+            "url": "chrome-extension://glggmajneachmnglfhmhmebkchaiepim/ui/tool.html",
+            "attached": true,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "0FAC9E23FD7FBA16EBDDF6BB80F5D10C",
+            "type": "page",
+            "title": "about:blank",
+            "url": "about:blank",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "29F2C0D87F35F1645674506E179D5475",
+            "type": "page",
+            "title": "Top fixture",
+            "url": "http://127.0.0.1:60114/page",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          }
+        ]
+      },
+      {
+        "monoMs": 5827.543916,
+        "targets": [
+          {
+            "targetId": "1333A41E59C10D5751DEA857F559DF09",
+            "type": "service_worker",
+            "title": "Service Worker chrome-extension://glggmajneachmnglfhmhmebkchaiepim/sw.js",
+            "url": "chrome-extension://glggmajneachmnglfhmhmebkchaiepim/sw.js",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "830385910E914ED17E2345CDAB8DAB76",
+            "type": "worker",
+            "title": "",
+            "url": "",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "2027A4611E1945B444FB2AB80D11297F",
+            "type": "page",
+            "title": "F2 controller proof",
+            "url": "chrome-extension://glggmajneachmnglfhmhmebkchaiepim/ui/tool.html",
+            "attached": true,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "0FAC9E23FD7FBA16EBDDF6BB80F5D10C",
+            "type": "page",
+            "title": "about:blank",
+            "url": "about:blank",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          },
+          {
+            "targetId": "29F2C0D87F35F1645674506E179D5475",
+            "type": "page",
+            "title": "Top fixture",
+            "url": "http://127.0.0.1:60114/page",
+            "attached": false,
+            "canAccessOpener": false,
+            "browserContextId": "B71A6BECEACBF3B6B696C6F54D5679AC"
+          }
+        ]
+      }
+    ],
+    "destroyed": {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "830385910E914ED17E2345CDAB8DAB76"
+      },
+      "observedMonoMs": 7497.3435
+    },
+    "inspectorAttached": false,
+    "passed": false
+  },
+  "scope": "Actual product SW/broker/authority/storage/client/RunHost/ctx/opaque sandbox/native driver. Fixture tool consumer and static localhost test permission. F2 targeted evidence only.",
+  "cleanup": {
+    "browserExit": {
+      "code": 0,
+      "signal": null
+    },
+    "browserPidAlive": false,
+    "ownedProfileRemoved": true
+  }
+}

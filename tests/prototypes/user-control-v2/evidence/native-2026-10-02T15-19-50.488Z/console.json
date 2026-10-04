@@ -1,0 +1,17 @@
+{
+  "events": [],
+  "logs": [
+    {
+      "source": "browser-stderr",
+      "text": "\nDevTools listening on ws://127.0.0.1:63833/devtools/browser/6505a043-4e14-48d1-b5a6-12fe8ea89134\n"
+    },
+    {
+      "source": "browser-stderr",
+      "text": "2026-10-02 08:19:51.252 Google Chrome for Testing[78969:35966324] error messaging the mach port for IMKCFRunLoopWakeUpReliable\n"
+    },
+    {
+      "source": "browser-stderr",
+      "text": "[78969:35966435:1002/081955.967734:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+    }
+  ]
+}

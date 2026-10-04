@@ -1,0 +1,78 @@
+{
+  "stage": "01-design-input",
+  "status": "planned",
+  "productResult": "not-run",
+  "fixtureIntegrity": "verified",
+  "checks": [
+    {
+      "method": "python-standard-library-fixture-checker",
+      "command": "python3 contracts/fixtures/migration/verify.py",
+      "coverage": [
+        "all-backup-dom-artifact-bytes-base64-length-sha256",
+        "closed-single-page-template-shape",
+        "raw-DOM-observation",
+        "canonical-template-hash",
+        "column-order-and-type-preservation",
+        "exact-json-and-safe-csv",
+        "blocked-zero-byte-exports",
+        "29-strict-conversion-oracles",
+        "9-template-rejection-oracles",
+        "source-sha256",
+        "19-URL-DOM-baseURI-raw-observations",
+        "45-CSV-Unicode-formula-exact-byte-oracles"
+      ]
+    },
+    {
+      "method": "independent-node-standard-library-reference-check",
+      "coverage": [
+        "canonical-template-exact-bytes-and-sha256",
+        "3-original-WHATWG-URL-resolutions",
+        "19-WHATWG-URL-data-versus-target-cases",
+        "45-String.trimStart-CSV-safety-and-JSON-byte-cases",
+        "29-Number-and-boolean-conversion-cases"
+      ],
+      "command": "node contracts/fixtures/migration/reference-check.cjs"
+    }
+  ],
+  "counts": {
+    "migration": 3,
+    "strictConversion": 29,
+    "templateRejection": 9,
+    "strictUrl": 19,
+    "csvFormulaSafety": 45
+  },
+  "templateContentHash": "3475cba7ddc43506711b82a1865ae0228c056f074b45b364706322c057d681fa",
+  "productConverterExecuted": false,
+  "chromeAcceptanceExecuted": false,
+  "independentXhighReview": {
+    "priorVectors": "main-agent-xhigh-review-and-alignment-decision-reported-by-user",
+    "newAlignmentVectors": "pending-independent-review",
+    "reviewerExecutionClaimedByFixtureAuthor": false
+  },
+  "limitations": [
+    "No production implementation.",
+    "Fixture integrity is not evidence of product migration/storage/preview/run/export/download acceptance.",
+    "Real CSS compilation and Chrome lifecycle/transactions remain untested.",
+    "Selected finite decimal/exponent and integer boundary cases only; not all decimal representations or rounding behavior.",
+    "Node built-in references are fixture checks, not real Chrome or product pipeline execution."
+  ],
+  "reviewDecisions": [
+    "URL/row/next absence blocks executable revision; no DOM/default inference.",
+    "Explicit none remains none even with a visible next link.",
+    "0 false empty string null and full 150 Chinese characters survive typed JSON.",
+    "CSV quotes multiline values, protects formula strings, and intentionally merges null/empty cell representations.",
+    "Data resolve-url accepts cross-origin HTTP(S) without username/password; empty URL rejected; execution and pagination targets remain single-origin.",
+    "CSV detects formula prefixes after leading ECMAScript trim whitespace and protects original strings starting TAB/CR; number fields remain unchanged.",
+    "Converted integral Number values must be safe integers regardless of decimal/exponent token form; finite non-integers allowed."
+  ],
+  "protectedFilesUnchanged": {
+    "template-revision.schema.json": "af61c01f5d6deaaf2a37da8853f9c8696ccfd012a6773b8e4438b6ffe3e27597",
+    "single-page/expected-template.json": "949d1037f77e8f69f5f6cd4d0b474a72d02b120390991d1637ce0960779bec01",
+    "single-page/template.canonical.json": "3475cba7ddc43506711b82a1865ae0228c056f074b45b364706322c057d681fa",
+    "single-page/vector.json": "b718cb214357212c73a6587ec5e90303e0fcc379994ce87f1c5bbf74db0eab78",
+    "single-page/legacy-config.json": "b7b1d4b617b7ebb8427809199aeee3ef42c6813b3d3b79172492d07afe79913f",
+    "single-page/dom.html": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af",
+    "single-page/expected.json": "19b0eb395ad83c589793896971fe116497579fbc17acdd1d2e1f34b1a3372c30",
+    "single-page/expected.csv": "5b49bf1d179ff7e5f32d31385a188f53ffa81648c79d0f4f1a601711d4619c65"
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "oldEvidence": [
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+      "manifest": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/evidence-manifest.json",
+        "bytes": 5539,
+        "sha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7"
+      },
+      "filesChecked": 34,
+      "allMatched": true,
+      "preservedFailures": [
+        {
+          "caseId": "USER_SCRIPT-RAW-THROW",
+          "pass": false,
+          "expectation": "Record native throw/rejection error shape; no adapter error hiding"
+        },
+        {
+          "caseId": "USER_SCRIPT-RAW-REJECT",
+          "pass": false,
+          "expectation": "Record native throw/rejection error shape; no adapter error hiding"
+        },
+        {
+          "caseId": "MAIN-RAW-THROW",
+          "pass": false,
+          "expectation": "Record native throw/rejection error shape; no adapter error hiding"
+        },
+        {
+          "caseId": "MAIN-RAW-REJECT",
+          "pass": false,
+          "expectation": "Record native throw/rejection error shape; no adapter error hiding"
+        },
+        {
+          "caseId": "HOST-PERMISSION-REVOKE",
+          "pass": false,
+          "expectation": "Actual host permission removal rejects execute, independent of userScripts switch"
+        }
+      ]
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+      "manifest": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/evidence-manifest.json",
+        "bytes": 5539,
+        "sha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790"
+      },
+      "filesChecked": 34,
+      "allMatched": true,
+      "preservedFailures": [
+        {
+          "caseId": "USER_SCRIPT-RAW-THROW",
+          "pass": false,
+          "expectation": "Record native throw/rejection error shape; no adapter error hiding"
+        },
+        {
+          "caseId": "USER_SCRIPT-RAW-REJECT",
+          "pass": false,
+          "expectation": "Record native throw/rejection error shape; no adapter error hiding"
+        },
+        {
+          "caseId": "MAIN-RAW-THROW",
+          "pass": false,
+          "expectation": "Record native throw/rejection error shape; no adapter error hiding"
+        },
+        {
+          "caseId": "MAIN-RAW-REJECT",
+          "pass": false,
+          "expectation": "Record native throw/rejection error shape; no adapter error hiding"
+        },
+        {
+          "caseId": "HOST-PERMISSION-REVOKE",
+          "pass": false,
+          "expectation": "Actual host permission removal rejects execute, independent of userScripts switch"
+        }
+      ]
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3",
+      "manifest": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3/evidence-manifest.json",
+        "bytes": 4075,
+        "sha256": "50906af99dfd647cd8bec89d76ec1a45f00ad0e806d424f8eb9837da6015fe2c"
+      },
+      "filesChecked": 23,
+      "allMatched": true
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-lifecycle-strengthening-2026-10-02T21-33-49-f8d0f68a",
+      "manifest": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-lifecycle-strengthening-2026-10-02T21-33-49-f8d0f68a/evidence-manifest.json",
+        "bytes": 877,
+        "sha256": "8904a22fae1471e7075a84eb74473007149819f5308ce2be9fa2432feab4d502"
+      },
+      "filesChecked": 5,
+      "allMatched": true
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-28-48-030Z-m5-life-138-r1-bf36fe1f",
+      "manifest": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-28-48-030Z-m5-life-138-r1-bf36fe1f/evidence-manifest.json",
+        "bytes": 10268,
+        "sha256": "9d52007671f4de6ccef95327abbdcb0e3b9db8b9aa9a6e55ef7b93c0315c4b58"
+      },
+      "filesChecked": 61,
+      "allMatched": true
+    },
+    {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-29-56-557Z-m5-life-154-r1-4e632233",
+      "manifest": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-29-56-557Z-m5-life-154-r1-4e632233/evidence-manifest.json",
+        "bytes": 10267,
+        "sha256": "6e262daf59566a86bccccce9fcaf17bebd5ac5ee564ba032589a72f3945599c5"
+      },
+      "filesChecked": 61,
+      "allMatched": true
+    }
+  ],
+  "protectedDigests": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-bounded-diagnostic-k1-2026-10-02.json",
+      "bytes": 99618,
+      "sha256": "837ad842e98e57d63279259698e602d5f4b9060e06d1dc2e299a2ca8d2741b0d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-bounded-diagnostic-k1-2026-10-02.md",
+      "bytes": 8165,
+      "sha256": "b93ebbedeaaf72bc9a22e2b32a9851149b4ff607309dfd8ebc5ee7ceb59b0b92"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/provisional-page-review.md",
+      "bytes": 18117,
+      "sha256": "7823c0e8595f131b2b649629ba5dd62e8eefbb7bcdd8db2fc9ecb0a19ad1399e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/page-provisional-review.json",
+      "bytes": 110453,
+      "sha256": "2a679e62128a53674a0f896af6d0f25e1ddc2a3651a51a1a223a0189c907bb4e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/fresh-page-fence-2026-10-02T20-08-38-871Z/report.json",
+      "bytes": 26119,
+      "sha256": "229c09c1bf381012d17c24771ec1dd0e38493a3dbaadccee32e99470035e46e6"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/report.json",
+      "bytes": 112016,
+      "sha256": "a3688fe2138ee62225f589203576339d5719bf3436a2cd67a789a5e54e51b53b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.md",
+      "bytes": 3049,
+      "sha256": "ff2c83d5794463e37f1a4670b8028536fc81256cbbbebe90f790d4ded38b0c37"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.json",
+      "bytes": 82186,
+      "sha256": "453d779d6a7d95f0a4e4214ad2ae01f84294ddf9b392ca9b74f9614b4debc0e4"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.sha256",
+      "bytes": 196,
+      "sha256": "6649f234f52a94dc7808b41e81333d6037afc1f75c3ba8ff0a1b2005467a10ff"
+    }
+  ],
+  "boundedDiagnosticEightOriginalFailures": [
+    {
+      "version": "138.0.7204.183",
+      "cases": 4,
+      "failures": 4
+    },
+    {
+      "version": "154.0.8037.92",
+      "cases": 4,
+      "failures": 4
+    }
+  ],
+  "newFinalOriginalHistoryFailures": 8,
+  "newFinalRawAndRequiredRemoveFailures": 10,
+  "noneRelabeledOrOverwritten": true,
+  "originalExpectedAndScopeChangesRetained": true,
+  "reviewedCompatibilityBoundary": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/user-scripts-switch-history-amendment.json",
+    "bytes": 10560,
+    "sha256": "debe23d682d956ad695c8cb71ea06372fa1ad6e3511ae48d53a15a8d31739167"
+  },
+  "rawWrapperQualification": "raw native diagnostics and typed wrapper separately recorded; author does not decide qualification"
+}

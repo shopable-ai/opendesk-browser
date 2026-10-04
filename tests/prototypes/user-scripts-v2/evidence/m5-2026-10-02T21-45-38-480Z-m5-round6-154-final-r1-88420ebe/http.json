@@ -1,0 +1,404 @@
+[
+  {
+    "method": "GET",
+    "url": "/top?id=target",
+    "host": "127.0.0.1:60848",
+    "at": 1790977539228
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977539234
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:60848",
+    "at": 1790977539235
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:60848",
+    "at": 1790977539236
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977539239
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:60848",
+    "at": 1790977539247
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:60848",
+    "at": 1790977539257
+  },
+  {
+    "method": "GET",
+    "url": "/other?id=negative",
+    "host": "127.0.0.1:60848",
+    "at": 1790977539258
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977539261
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:60848",
+    "at": 1790977539269
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=revoke-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977541844
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=navigate-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542140
+  },
+  {
+    "method": "GET",
+    "url": "/top?id=after-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542149
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542152
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542155
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:60848",
+    "at": 1790977542156
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542158
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:60848",
+    "at": 1790977542160
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542163
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=revoke-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542193
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=navigate-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542482
+  },
+  {
+    "method": "GET",
+    "url": "/top?id=after-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542491
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542494
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542497
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:60848",
+    "at": 1790977542498
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542500
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:60848",
+    "at": 1790977542503
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:60848",
+    "at": 1790977542505
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=host-pending-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977544175
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=SWITCH-OBSERVED-pending-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977546956
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=OWN-GRANT-pending-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977547293
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=CANCEL-pending-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977547409
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=DEADLINE-pending-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977547468
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=unobserved-original-pending-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977547683
+  },
+  {
+    "method": "GET",
+    "url": "/top?id=doc-completed-USER_SCRIPT",
+    "host": "127.0.0.1:60848",
+    "at": 1790977553808
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977553812
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:60848",
+    "at": 1790977553815
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:60848",
+    "at": 1790977553816
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977553818
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:60848",
+    "at": 1790977553822
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:60848",
+    "at": 1790977553824
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=host-pending-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977555687
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=SWITCH-OBSERVED-pending-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977558546
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=OWN-GRANT-pending-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977558944
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=CANCEL-pending-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977559067
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=DEADLINE-pending-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977559153
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=unobserved-original-pending-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977559400
+  },
+  {
+    "method": "GET",
+    "url": "/top?id=doc-completed-MAIN",
+    "host": "127.0.0.1:60848",
+    "at": 1790977565866
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977565870
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:60848",
+    "at": 1790977565874
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:60848",
+    "at": 1790977565874
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977565876
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:60848",
+    "at": 1790977565879
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:60848",
+    "at": 1790977565882
+  },
+  {
+    "method": "GET",
+    "url": "/top?id=csp-baseline",
+    "host": "127.0.0.1:60848",
+    "at": 1790977565999
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566002
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566006
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:60848",
+    "at": 1790977566007
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566009
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:60848",
+    "at": 1790977566011
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566014
+  },
+  {
+    "method": "GET",
+    "url": "/probe?token=csp-baseline-MAIN-page",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566038
+  },
+  {
+    "method": "GET",
+    "url": "/probe?token=csp-baseline-USER_SCRIPT-allow",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566206
+  },
+  {
+    "method": "GET",
+    "url": "/csp?id=csp-restrictive",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566567
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566571
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566574
+  },
+  {
+    "method": "GET",
+    "url": "/probe?token=csp-restrictive-USER_SCRIPT-allow",
+    "host": "127.0.0.1:60848",
+    "at": 1790977566770
+  }
+]

@@ -1,0 +1,102 @@
+{
+  "status": "stopped_at_user_request",
+  "stopped_at_utc": "2026-10-02T15:26:37.122677+00:00",
+  "scope": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/browsers",
+  "own_processes_found_at_stop": [],
+  "process_check_exit": 0,
+  "artifacts": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/browsers/cft_stable-154.0.8037.92-mac-arm64/chrome-mac-arm64.zip.part",
+      "bytes": 6243934,
+      "partial": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/browsers/chrome138-138.0.7204.183-mac-arm64/chrome-mac-arm64.zip.part",
+      "bytes": 7370456,
+      "partial": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/browsers/official-feed-provenance-f1.json",
+      "bytes": 3043,
+      "partial": false
+    }
+  ],
+  "portable_acquisition": "Incomplete: both initial curl transfers already exited28 after240 seconds; no complete archives or extracted executables.",
+  "failed": [
+    {
+      "role": "cft_stable",
+      "curl_exit": 28,
+      "downloaded_bytes": 6243934,
+      "expected_bytes": 191153086
+    },
+    {
+      "role": "chrome138",
+      "curl_exit": 28,
+      "downloaded_bytes": 7370456,
+      "expected_bytes": 161386556
+    },
+    "Full known-good catalog transfer timed out.",
+    "VersionHistory API connection timed out.",
+    "LAN proxy192.168.30.9:7897 refused TCP connection."
+  ],
+  "not_tested": [
+    "No browser launches or --version execution",
+    "No headed tests or other tests",
+    "No ZIP integrity verification or portable extraction completed",
+    "No user profiles inspected"
+  ],
+  "provenance_file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/browsers/official-feed-provenance-f1.json",
+  "official_selection": {
+    "cft_stable": {
+      "version": "154.0.8037.92",
+      "channel": "Stable",
+      "milestone": null,
+      "revision": "1689415",
+      "platform": "mac-arm64",
+      "download_url": "https://storage.googleapis.com/chrome-for-testing-public/154.0.8037.92/mac-arm64/chrome-mac-arm64.zip"
+    },
+    "chrome138": {
+      "version": "138.0.7204.183",
+      "channel": null,
+      "milestone": "138",
+      "revision": "1465706",
+      "platform": "mac-arm64",
+      "download_url": "https://storage.googleapis.com/chrome-for-testing-public/138.0.7204.183/mac-arm64/chrome-mac-arm64.zip"
+    }
+  },
+  "feed_timestamps": {
+    "last-known-good-versions-with-downloads": "2026-10-02T09:24:10.661Z",
+    "latest-versions-per-milestone-with-downloads": "2026-10-02T09:24:10.666Z"
+  },
+  "machine_reference_date": "2026-10-02",
+  "feed_machine_date_discrepancy": false,
+  "prior_local_verification": [
+    {
+      "executable": "/Users/shopme/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "plist_version": "154.0.8037.97",
+      "KSChannelID": "universal",
+      "normal_codesign_verify_exit": 0,
+      "channel": "ordinary Stable; supported by upstream channel mapping and official October Chrome Releases search result",
+      "strict_signature_note": "FinderInfo metadata attribute warning; app untouched"
+    },
+    {
+      "executable": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "plist_version": "154.0.8037.93",
+      "KSChannelID": "universal",
+      "normal_codesign_verify_exit": 0,
+      "channel": "ordinary Stable based on upstream channel mapping"
+    },
+    {
+      "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+      "plist_version": "149.0.7827.55",
+      "channel": "Chrome for Testing149; not relabeled stable"
+    }
+  ],
+  "prior_official_release_evidence": {
+    "url": "https://chromereleases.googleblog.com/2026/10/?amp=1",
+    "summary": "Previously retrieved official search result reports154.0.8037.97/.98 as Stable for Windows and Mac; dedicated post/feed not fetched before stop."
+  },
+  "requested_model": "gpt-6.1-sol/xhigh",
+  "effective_model_runtime": "Unknown; no independent evidence",
+  "resume_policy": "Await explicit user resume; do not automatically restart downloads or tests."
+}

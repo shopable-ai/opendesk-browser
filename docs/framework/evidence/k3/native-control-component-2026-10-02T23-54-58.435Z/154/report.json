@@ -1,0 +1,1327 @@
+{
+  "label": "154",
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+  "completeVersion": "Google Chrome for Testing 154.0.8037.92",
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "extensionId": "hnhlkngpboobfoghlffmooendllanlin",
+  "profile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/k3/native-control-component-2026-10-02T23-54-58.435Z/154/profile",
+  "browserPid": 4275,
+  "targetId": "10EEBE66E8C480BC8716C739BEAA1630",
+  "cdpVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/154.0.8037.92",
+    "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "jsVersion": "15.4.80.19"
+  },
+  "source": [
+    {
+      "path": "src/framework/ChromePage.js",
+      "sha256": "30957d075fd102be47cfe4c84894f8e4c3718d2cc642f3a55c127ddefce757cc"
+    },
+    {
+      "path": "src/framework/context.js",
+      "sha256": "59ce3768841ceb187fa70c2fd4238a2141af2323d64a196f1a283bcbc3dc9a0f"
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "sha256": "af23d28ee8b99fedc6dbda6f5abeff0e5ec5820d84e3584453676cfac1be0018"
+    },
+    {
+      "path": "src/scripting/packaged/registry.js",
+      "sha256": "29cb99fed55cb84e28580ba623a235ce9bea06ce7b2c11edb293f7bc4668853a"
+    },
+    {
+      "path": "src/scripting/sandbox/controller.js",
+      "sha256": "05dcf867b13148b4040a5d65f4810a7b1d5fde8ac73b15e4d64565e64cfd5988"
+    },
+    {
+      "path": "src/scripting/sandbox/page-proxy.js",
+      "sha256": "a2e3c5532b790f6c9c9eb58112226db9eabfff03573da832df97a620f72d7375"
+    },
+    {
+      "path": "src/scripting/sandbox/sandbox.html",
+      "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+    },
+    {
+      "path": "src/scripting/sandbox/sandbox.js",
+      "sha256": "a4bdf5d7b29b9215ae72e8f9688f64f7522fa99220c9424be685f2b226a0c602"
+    },
+    {
+      "path": "src/scripting/sandbox/worker-runtime.js",
+      "sha256": "67259344892326cd39f734cddea8d9fffdb119c69e56a8d4fa7998ebc5096de5"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-evaluator.js",
+      "sha256": "d71f12dfb94b06b17f28d05d8f58bda1bd225d5c01d38a885fc00ec7564e5517"
+    }
+  ],
+  "records": [
+    {
+      "name": "async-body-await-return",
+      "status": "FAIL",
+      "input": {
+        "body": "await new Promise(resolve=>setTimeout(resolve,5)); return {value:params.x, context:this.x};",
+        "params": {
+          "x": 7
+        },
+        "deadline": null,
+        "stop": null,
+        "resource": true
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": {
+          "value": 7,
+          "context": 7
+        }
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "f6d0f499-ee30-491e-897c-c4d98a6d1468",
+          "ownerEpoch": 1,
+          "url": "blob:null/f99bbcc6-df89-4a63-b8da-9317bad4b51a",
+          "name": "OpenDesk-Control-f6d0f499-ee30-491e-897c-c4d98a6d1468",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "f6d0f499-ee30-491e-897c-c4d98a6d1468",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "f6d0f499-ee30-491e-897c-c4d98a6d1468",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/f99bbcc6-df89-4a63-b8da-9317bad4b51a",
+          "terminateAt": 1790985300345,
+          "terminateMonoMs": 54.799999713897705,
+          "retiredAt": 1790985300345,
+          "resources": {
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/f99bbcc6-df89-4a63-b8da-9317bad4b51a' cannot be accessed from origin 'null'.",
+              "url": "blob:null/f99bbcc6-df89-4a63-b8da-9317bad4b51a",
+              "creatingOrigin": "null",
+              "startedMonoMs": 54.89999961853027,
+              "observedMonoMs": 55
+            },
+            "revokedMonoMs": 54.89999961853027
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "f6d0f499-ee30-491e-897c-c4d98a6d1468",
+          "reason": "worker-error",
+          "observedAt": 1790985300345,
+          "observedMonoMs": 106.2000002861023
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "private-channel-global-patch",
+      "status": "FAIL",
+      "input": {
+        "body": "self.postMessage({kind:\"result\",value:\"fake\"});self.postMessage=()=>{throw new Error(\"patched global\")};MessagePort.prototype.postMessage=()=>{throw new Error(\"patched prototype\")};return await page.title();",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": "private-loopback-only"
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "35971511-3324-47e4-8d19-35df92ed9b1c",
+          "ownerEpoch": 1,
+          "url": "blob:null/2b8b335a-2841-4584-8ba7-68751e62f8ea",
+          "name": "OpenDesk-Control-35971511-3324-47e4-8d19-35df92ed9b1c",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "35971511-3324-47e4-8d19-35df92ed9b1c",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "35971511-3324-47e4-8d19-35df92ed9b1c",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/2b8b335a-2841-4584-8ba7-68751e62f8ea",
+          "terminateAt": 1790985300390,
+          "terminateMonoMs": 44.39999961853027,
+          "retiredAt": 1790985300390,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "35971511-3324-47e4-8d19-35df92ed9b1c",
+          "reason": "worker-error",
+          "observedAt": 1790985300390,
+          "observedMonoMs": 151.60000038146973
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "business-value",
+      "status": "FAIL",
+      "input": {
+        "body": "return {PageBrigeCode:1,message:\"domain\"};",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": {
+          "PageBrigeCode": 1,
+          "message": "domain"
+        }
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "5f575388-6a76-4e76-867d-eb5d218c9cb3",
+          "ownerEpoch": 1,
+          "url": "blob:null/822a1e59-e873-400e-8097-15338b70c793",
+          "name": "OpenDesk-Control-5f575388-6a76-4e76-867d-eb5d218c9cb3",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "5f575388-6a76-4e76-867d-eb5d218c9cb3",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "5f575388-6a76-4e76-867d-eb5d218c9cb3",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/822a1e59-e873-400e-8097-15338b70c793",
+          "terminateAt": 1790985300434,
+          "terminateMonoMs": 43.19999980926514,
+          "retiredAt": 1790985300434,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "5f575388-6a76-4e76-867d-eb5d218c9cb3",
+          "reason": "worker-error",
+          "observedAt": 1790985300434,
+          "observedMonoMs": 195.5
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "throw",
+      "status": "FAIL",
+      "input": {
+        "body": "throw new Error(\"boom\");",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": true
+      },
+      "expected": {
+        "status": "error",
+        "error": "E_CONTROL_EXECUTION"
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+          "ownerEpoch": 1,
+          "url": "blob:null/b1cc3c86-3b29-49ae-a3c7-95ee5880e66d",
+          "name": "OpenDesk-Control-4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/b1cc3c86-3b29-49ae-a3c7-95ee5880e66d",
+          "terminateAt": 1790985300476,
+          "terminateMonoMs": 40.59999990463257,
+          "retiredAt": 1790985300476,
+          "resources": {
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/b1cc3c86-3b29-49ae-a3c7-95ee5880e66d' cannot be accessed from origin 'null'.",
+              "url": "blob:null/b1cc3c86-3b29-49ae-a3c7-95ee5880e66d",
+              "creatingOrigin": "null",
+              "startedMonoMs": 40.69999980926514,
+              "observedMonoMs": 40.80000019073486
+            },
+            "revokedMonoMs": 40.59999990463257
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+          "reason": "worker-error",
+          "observedAt": 1790985300476,
+          "observedMonoMs": 237.2000002861023
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "syntax-error",
+      "status": "FAIL",
+      "input": {
+        "body": "return {;",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "error",
+        "error": "E_CONTROL_EXECUTION"
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+          "ownerEpoch": 1,
+          "url": "blob:null/ea432047-79dd-438f-875b-f285f659da4e",
+          "name": "OpenDesk-Control-530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/ea432047-79dd-438f-875b-f285f659da4e",
+          "terminateAt": 1790985300518,
+          "terminateMonoMs": 41.799999713897705,
+          "retiredAt": 1790985300518,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+          "reason": "worker-error",
+          "observedAt": 1790985300518,
+          "observedMonoMs": 279.5
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "typed-invalid-result",
+      "status": "FAIL",
+      "input": {
+        "body": "return 1n;",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "error",
+        "error": "E_VALUE_SERIALIZATION"
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "ce2e9c15-b957-440a-b6fe-86f15b048305",
+          "ownerEpoch": 1,
+          "url": "blob:null/d0d3e298-0f20-44ff-987f-21c27ff522c7",
+          "name": "OpenDesk-Control-ce2e9c15-b957-440a-b6fe-86f15b048305",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "ce2e9c15-b957-440a-b6fe-86f15b048305",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "ce2e9c15-b957-440a-b6fe-86f15b048305",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/d0d3e298-0f20-44ff-987f-21c27ff522c7",
+          "terminateAt": 1790985300559,
+          "terminateMonoMs": 39.90000009536743,
+          "retiredAt": 1790985300559,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "ce2e9c15-b957-440a-b6fe-86f15b048305",
+          "reason": "worker-error",
+          "observedAt": 1790985300559,
+          "observedMonoMs": 320.30000019073486
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "deadline",
+      "status": "FAIL",
+      "input": {
+        "body": "await new Promise(()=>{});",
+        "params": {},
+        "deadline": 1000,
+        "stop": null,
+        "resource": true
+      },
+      "expected": {
+        "status": "timeout"
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "6d080fc0-18a0-497a-80ab-b3b048561aae",
+          "ownerEpoch": 1,
+          "url": "blob:null/3c27807b-5afd-4bbc-89cb-954f5375635f",
+          "name": "OpenDesk-Control-6d080fc0-18a0-497a-80ab-b3b048561aae",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "6d080fc0-18a0-497a-80ab-b3b048561aae",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "6d080fc0-18a0-497a-80ab-b3b048561aae",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/3c27807b-5afd-4bbc-89cb-954f5375635f",
+          "terminateAt": 1790985300601,
+          "terminateMonoMs": 40.90000009536743,
+          "retiredAt": 1790985300601,
+          "resources": {
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/3c27807b-5afd-4bbc-89cb-954f5375635f' cannot be accessed from origin 'null'.",
+              "url": "blob:null/3c27807b-5afd-4bbc-89cb-954f5375635f",
+              "creatingOrigin": "null",
+              "startedMonoMs": 41,
+              "observedMonoMs": 41
+            },
+            "revokedMonoMs": 40.90000009536743
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "6d080fc0-18a0-497a-80ab-b3b048561aae",
+          "reason": "worker-error",
+          "observedAt": 1790985300601,
+          "observedMonoMs": 362.1000003814697
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "stop",
+      "status": "FAIL",
+      "input": {
+        "body": "await new Promise(()=>{});",
+        "params": {},
+        "deadline": null,
+        "stop": "stop",
+        "resource": true
+      },
+      "expected": {
+        "status": "stopped"
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "3421db26-2adc-4f3a-b096-a85ed356950a",
+          "ownerEpoch": 1,
+          "url": "blob:null/ad1abced-39b5-4dad-9bd3-8c61febb1271",
+          "name": "OpenDesk-Control-3421db26-2adc-4f3a-b096-a85ed356950a",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "3421db26-2adc-4f3a-b096-a85ed356950a",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "3421db26-2adc-4f3a-b096-a85ed356950a",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/ad1abced-39b5-4dad-9bd3-8c61febb1271",
+          "terminateAt": 1790985300641,
+          "terminateMonoMs": 39.5,
+          "retiredAt": 1790985300641,
+          "resources": {
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/ad1abced-39b5-4dad-9bd3-8c61febb1271' cannot be accessed from origin 'null'.",
+              "url": "blob:null/ad1abced-39b5-4dad-9bd3-8c61febb1271",
+              "creatingOrigin": "null",
+              "startedMonoMs": 39.5,
+              "observedMonoMs": 39.69999980926514
+            },
+            "revokedMonoMs": 39.5
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "3421db26-2adc-4f3a-b096-a85ed356950a",
+          "reason": "worker-error",
+          "observedAt": 1790985300642,
+          "observedMonoMs": 402.90000009536743
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "host-close",
+      "status": "FAIL",
+      "input": {
+        "body": "await new Promise(()=>{});",
+        "params": {},
+        "deadline": null,
+        "stop": "close",
+        "resource": false
+      },
+      "expected": {
+        "status": "host-closed"
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "28804f76-0e0b-43d5-a3a2-a4650177b36d",
+          "ownerEpoch": 1,
+          "url": "blob:null/789afa08-2744-4d82-8959-82ea3d6e392b",
+          "name": "OpenDesk-Control-28804f76-0e0b-43d5-a3a2-a4650177b36d",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "28804f76-0e0b-43d5-a3a2-a4650177b36d",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "28804f76-0e0b-43d5-a3a2-a4650177b36d",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/789afa08-2744-4d82-8959-82ea3d6e392b",
+          "terminateAt": 1790985300683,
+          "terminateMonoMs": 40,
+          "retiredAt": 1790985300683,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "28804f76-0e0b-43d5-a3a2-a4650177b36d",
+          "reason": "worker-error",
+          "observedAt": 1790985300683,
+          "observedMonoMs": 443.7000002861023
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "strict-csp-worker-network",
+      "status": "FAIL",
+      "input": {
+        "body": "try {await fetch(params.url); return {blocked:false};} catch(error) {return {blocked:true};}",
+        "params": {
+          "url": "http://127.0.0.1:51366/network?kind=worker"
+        },
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": {
+          "blocked": true
+        }
+      },
+      "actual": {
+        "name": "PageError",
+        "code": "E_CONTROL_EXECUTION",
+        "message": "E_CONTROL_EXECUTION",
+        "stack": "PageError: E_CONTROL_EXECUTION\n    at finish (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:563:42)\n    at port.onmessage (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:606:34)"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+          "ownerEpoch": 1,
+          "url": "blob:null/7d263432-a850-4e4f-9e86-5614563adaa3",
+          "name": "OpenDesk-Control-cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+          "origin": "null"
+        },
+        {
+          "kind": "error",
+          "runId": "cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "WorkerError",
+            "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+          "ownerEpoch": 1,
+          "reason": "worker-error",
+          "url": "blob:null/7d263432-a850-4e4f-9e86-5614563adaa3",
+          "terminateAt": 1790985300724,
+          "terminateMonoMs": 39.09999990463257,
+          "retiredAt": 1790985300724,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+          "reason": "worker-error",
+          "observedAt": 1790985300724,
+          "observedMonoMs": 485
+        }
+      ],
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "harness",
+      "status": "FAIL",
+      "actual": {
+        "message": "no real CSP violation event observed",
+        "stack": "Error: no real CSP violation event observed\n    at require (chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:17:62)\n    at chrome-extension://hnhlkngpboobfoghlffmooendllanlin/host.js:69:3"
+      }
+    }
+  ],
+  "summary": {
+    "PASS": 0,
+    "FAIL": 11
+  },
+  "limitations": [
+    "Actual product modules in an isolated component extension; not the final integrated product package",
+    "Loopback title proves private client transport only, not native DOM authority or Chrome permissions",
+    "Pending async promise cancellation proves cleanup; no physical while(true) <=3s claim in this component test"
+  ],
+  "allEvents": [
+    {
+      "kind": "worker-created",
+      "runId": "f6d0f499-ee30-491e-897c-c4d98a6d1468",
+      "ownerEpoch": 1,
+      "url": "blob:null/f99bbcc6-df89-4a63-b8da-9317bad4b51a",
+      "name": "OpenDesk-Control-f6d0f499-ee30-491e-897c-c4d98a6d1468",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "f6d0f499-ee30-491e-897c-c4d98a6d1468",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "f6d0f499-ee30-491e-897c-c4d98a6d1468",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/f99bbcc6-df89-4a63-b8da-9317bad4b51a",
+      "terminateAt": 1790985300345,
+      "terminateMonoMs": 54.799999713897705,
+      "retiredAt": 1790985300345,
+      "resources": {
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/f99bbcc6-df89-4a63-b8da-9317bad4b51a' cannot be accessed from origin 'null'.",
+          "url": "blob:null/f99bbcc6-df89-4a63-b8da-9317bad4b51a",
+          "creatingOrigin": "null",
+          "startedMonoMs": 54.89999961853027,
+          "observedMonoMs": 55
+        },
+        "revokedMonoMs": 54.89999961853027
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "f6d0f499-ee30-491e-897c-c4d98a6d1468",
+      "reason": "worker-error",
+      "observedAt": 1790985300345,
+      "observedMonoMs": 106.2000002861023
+    },
+    {
+      "kind": "worker-created",
+      "runId": "35971511-3324-47e4-8d19-35df92ed9b1c",
+      "ownerEpoch": 1,
+      "url": "blob:null/2b8b335a-2841-4584-8ba7-68751e62f8ea",
+      "name": "OpenDesk-Control-35971511-3324-47e4-8d19-35df92ed9b1c",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "35971511-3324-47e4-8d19-35df92ed9b1c",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "35971511-3324-47e4-8d19-35df92ed9b1c",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/2b8b335a-2841-4584-8ba7-68751e62f8ea",
+      "terminateAt": 1790985300390,
+      "terminateMonoMs": 44.39999961853027,
+      "retiredAt": 1790985300390,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "35971511-3324-47e4-8d19-35df92ed9b1c",
+      "reason": "worker-error",
+      "observedAt": 1790985300390,
+      "observedMonoMs": 151.60000038146973
+    },
+    {
+      "kind": "worker-created",
+      "runId": "5f575388-6a76-4e76-867d-eb5d218c9cb3",
+      "ownerEpoch": 1,
+      "url": "blob:null/822a1e59-e873-400e-8097-15338b70c793",
+      "name": "OpenDesk-Control-5f575388-6a76-4e76-867d-eb5d218c9cb3",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "5f575388-6a76-4e76-867d-eb5d218c9cb3",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "5f575388-6a76-4e76-867d-eb5d218c9cb3",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/822a1e59-e873-400e-8097-15338b70c793",
+      "terminateAt": 1790985300434,
+      "terminateMonoMs": 43.19999980926514,
+      "retiredAt": 1790985300434,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "5f575388-6a76-4e76-867d-eb5d218c9cb3",
+      "reason": "worker-error",
+      "observedAt": 1790985300434,
+      "observedMonoMs": 195.5
+    },
+    {
+      "kind": "worker-created",
+      "runId": "4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+      "ownerEpoch": 1,
+      "url": "blob:null/b1cc3c86-3b29-49ae-a3c7-95ee5880e66d",
+      "name": "OpenDesk-Control-4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/b1cc3c86-3b29-49ae-a3c7-95ee5880e66d",
+      "terminateAt": 1790985300476,
+      "terminateMonoMs": 40.59999990463257,
+      "retiredAt": 1790985300476,
+      "resources": {
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/b1cc3c86-3b29-49ae-a3c7-95ee5880e66d' cannot be accessed from origin 'null'.",
+          "url": "blob:null/b1cc3c86-3b29-49ae-a3c7-95ee5880e66d",
+          "creatingOrigin": "null",
+          "startedMonoMs": 40.69999980926514,
+          "observedMonoMs": 40.80000019073486
+        },
+        "revokedMonoMs": 40.59999990463257
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "4e8d0fd6-f7a7-42f9-b292-b925208acd77",
+      "reason": "worker-error",
+      "observedAt": 1790985300476,
+      "observedMonoMs": 237.2000002861023
+    },
+    {
+      "kind": "worker-created",
+      "runId": "530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+      "ownerEpoch": 1,
+      "url": "blob:null/ea432047-79dd-438f-875b-f285f659da4e",
+      "name": "OpenDesk-Control-530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/ea432047-79dd-438f-875b-f285f659da4e",
+      "terminateAt": 1790985300518,
+      "terminateMonoMs": 41.799999713897705,
+      "retiredAt": 1790985300518,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "530b7f1a-8320-4e93-a057-45d8fd7a1a70",
+      "reason": "worker-error",
+      "observedAt": 1790985300518,
+      "observedMonoMs": 279.5
+    },
+    {
+      "kind": "worker-created",
+      "runId": "ce2e9c15-b957-440a-b6fe-86f15b048305",
+      "ownerEpoch": 1,
+      "url": "blob:null/d0d3e298-0f20-44ff-987f-21c27ff522c7",
+      "name": "OpenDesk-Control-ce2e9c15-b957-440a-b6fe-86f15b048305",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "ce2e9c15-b957-440a-b6fe-86f15b048305",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "ce2e9c15-b957-440a-b6fe-86f15b048305",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/d0d3e298-0f20-44ff-987f-21c27ff522c7",
+      "terminateAt": 1790985300559,
+      "terminateMonoMs": 39.90000009536743,
+      "retiredAt": 1790985300559,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "ce2e9c15-b957-440a-b6fe-86f15b048305",
+      "reason": "worker-error",
+      "observedAt": 1790985300559,
+      "observedMonoMs": 320.30000019073486
+    },
+    {
+      "kind": "worker-created",
+      "runId": "6d080fc0-18a0-497a-80ab-b3b048561aae",
+      "ownerEpoch": 1,
+      "url": "blob:null/3c27807b-5afd-4bbc-89cb-954f5375635f",
+      "name": "OpenDesk-Control-6d080fc0-18a0-497a-80ab-b3b048561aae",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "6d080fc0-18a0-497a-80ab-b3b048561aae",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "6d080fc0-18a0-497a-80ab-b3b048561aae",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/3c27807b-5afd-4bbc-89cb-954f5375635f",
+      "terminateAt": 1790985300601,
+      "terminateMonoMs": 40.90000009536743,
+      "retiredAt": 1790985300601,
+      "resources": {
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/3c27807b-5afd-4bbc-89cb-954f5375635f' cannot be accessed from origin 'null'.",
+          "url": "blob:null/3c27807b-5afd-4bbc-89cb-954f5375635f",
+          "creatingOrigin": "null",
+          "startedMonoMs": 41,
+          "observedMonoMs": 41
+        },
+        "revokedMonoMs": 40.90000009536743
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "6d080fc0-18a0-497a-80ab-b3b048561aae",
+      "reason": "worker-error",
+      "observedAt": 1790985300601,
+      "observedMonoMs": 362.1000003814697
+    },
+    {
+      "kind": "worker-created",
+      "runId": "3421db26-2adc-4f3a-b096-a85ed356950a",
+      "ownerEpoch": 1,
+      "url": "blob:null/ad1abced-39b5-4dad-9bd3-8c61febb1271",
+      "name": "OpenDesk-Control-3421db26-2adc-4f3a-b096-a85ed356950a",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "3421db26-2adc-4f3a-b096-a85ed356950a",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "3421db26-2adc-4f3a-b096-a85ed356950a",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/ad1abced-39b5-4dad-9bd3-8c61febb1271",
+      "terminateAt": 1790985300641,
+      "terminateMonoMs": 39.5,
+      "retiredAt": 1790985300641,
+      "resources": {
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/ad1abced-39b5-4dad-9bd3-8c61febb1271' cannot be accessed from origin 'null'.",
+          "url": "blob:null/ad1abced-39b5-4dad-9bd3-8c61febb1271",
+          "creatingOrigin": "null",
+          "startedMonoMs": 39.5,
+          "observedMonoMs": 39.69999980926514
+        },
+        "revokedMonoMs": 39.5
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "3421db26-2adc-4f3a-b096-a85ed356950a",
+      "reason": "worker-error",
+      "observedAt": 1790985300642,
+      "observedMonoMs": 402.90000009536743
+    },
+    {
+      "kind": "worker-created",
+      "runId": "28804f76-0e0b-43d5-a3a2-a4650177b36d",
+      "ownerEpoch": 1,
+      "url": "blob:null/789afa08-2744-4d82-8959-82ea3d6e392b",
+      "name": "OpenDesk-Control-28804f76-0e0b-43d5-a3a2-a4650177b36d",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "28804f76-0e0b-43d5-a3a2-a4650177b36d",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "28804f76-0e0b-43d5-a3a2-a4650177b36d",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/789afa08-2744-4d82-8959-82ea3d6e392b",
+      "terminateAt": 1790985300683,
+      "terminateMonoMs": 40,
+      "retiredAt": 1790985300683,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "28804f76-0e0b-43d5-a3a2-a4650177b36d",
+      "reason": "worker-error",
+      "observedAt": 1790985300683,
+      "observedMonoMs": 443.7000002861023
+    },
+    {
+      "kind": "worker-created",
+      "runId": "cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+      "ownerEpoch": 1,
+      "url": "blob:null/7d263432-a850-4e4f-9e86-5614563adaa3",
+      "name": "OpenDesk-Control-cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+      "origin": "null"
+    },
+    {
+      "kind": "error",
+      "runId": "cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "WorkerError",
+        "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'bind')"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+      "ownerEpoch": 1,
+      "reason": "worker-error",
+      "url": "blob:null/7d263432-a850-4e4f-9e86-5614563adaa3",
+      "terminateAt": 1790985300724,
+      "terminateMonoMs": 39.09999990463257,
+      "retiredAt": 1790985300724,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "cafbf925-d280-4b5e-bbb9-6007f6a81c8e",
+      "reason": "worker-error",
+      "observedAt": 1790985300724,
+      "observedMonoMs": 485
+    }
+  ],
+  "rawServerRequests": [
+    {
+      "url": "/network?kind=positive",
+      "at": 1790985300684,
+      "monoMs": 2317.472791
+    }
+  ],
+  "cleanup": {
+    "browserExit": {
+      "code": 0,
+      "signal": null
+    },
+    "ownedBrowserPidAlive": false,
+    "ownedProfileRemoved": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/k3/native-control-component-2026-10-02T23-54-58.435Z/154/profile"
+  }
+}

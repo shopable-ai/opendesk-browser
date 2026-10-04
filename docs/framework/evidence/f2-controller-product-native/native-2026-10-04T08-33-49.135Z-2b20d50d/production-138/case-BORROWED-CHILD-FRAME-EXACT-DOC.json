@@ -1,0 +1,12 @@
+{
+  "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+  "families": "A02/AUTH01",
+  "expected": "Actual child document selected from native frame inventory; only child changes; top/decoy survive",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791102996674,
+  "elapsedMs": 0.0004999999946448952
+}

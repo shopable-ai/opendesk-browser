@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-03T08:29:45.376Z",
+  "files": [
+    {
+      "path": "src/platform/page-port/codec.js",
+      "bytes": 7854,
+      "sha256": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124"
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "bytes": 6001,
+      "sha256": "0f293f2b31d0198d3e8f03b3bee45e8b9d2b25f284075240c18e4804696b34f8"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-evaluator.js",
+      "bytes": 6018,
+      "sha256": "d71f12dfb94b06b17f28d05d8f58bda1bd225d5c01d38a885fc00ec7564e5517"
+    }
+  ]
+}

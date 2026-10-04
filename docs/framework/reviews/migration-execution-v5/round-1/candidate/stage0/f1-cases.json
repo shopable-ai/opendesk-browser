@@ -1,0 +1,377 @@
+[
+  {
+    "id": "F1-CTRL-USER-ASYNC",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX01",
+      "EX02",
+      "USC01"
+    ],
+    "input": {
+      "bodies": [
+        "await page.goto(params.url); return {title:await page.title(),url:await page.url()};",
+        "await page.type('#name','Alice'); await page.click('#submit'); await page.waitForSelector('#result'); return await page.text('#result');",
+        "throw new Error('actual');",
+        "const = ;"
+      ],
+      "profiles": [
+        "138 candidate",
+        "implementation Stable"
+      ]
+    },
+    "expected": "actual user body compiles only inside Worker; awaited page calls in order; BaseAlice; actual values/error/syntax; no operation on unauthorized origin",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-CTRL-PRIVATE-CHANNEL",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX02",
+      "USC05",
+      "AUTH01"
+    ],
+    "input": {
+      "attacks": [
+        "wrong event.source peer",
+        "global postMessage forged completion",
+        "rebinding port",
+        "replay previous seq",
+        "wrong run/epoch",
+        "prototype/global patch"
+      ],
+      "channels": "private MessagePort bound once"
+    },
+    "expected": "reject attacks without true completion or extra page effect; true current run works; captured harness primitives remain safe; no extension API/DOM accessible",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-CTRL-CSP-NETWORK",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX02",
+      "EX08"
+    ],
+    "input": {
+      "probes": [
+        "opaque origin parent document read",
+        "chrome.runtime",
+        "fetch loopback reachable CORS positive endpoint",
+        "XHR/WebSocket/importScripts where exposed"
+      ],
+      "policy": "actual sandbox and inherited Worker effective policy"
+    },
+    "expected": "record real policy/CSP violation and positive reachability; denied direct network classified by evidence (not CORS inference); no allow-same-origin/SW eval or privileged fallback",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-CTRL-TRUE-TERMINATE",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX03",
+      "EX08",
+      "CTRL03"
+    ],
+    "input": {
+      "body": "await page.mark('loop-entered'); while(true){}",
+      "trigger": [
+        "stop",
+        "deadline",
+        "host close"
+      ],
+      "observation": "correct extension ID/host parent/Blob URL and run target; no attached debugger influencing infinite loop"
+    },
+    "expected": "loop entered; admission closed; browser independently observes Worker gone/CPU execution stopped within test 2s; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-CTRL-RESOURCE",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX03",
+      "LEAK01"
+    ],
+    "input": {
+      "rounds": {
+        "success": 5,
+        "throw": 5,
+        "timeout": 5,
+        "cancel": 5
+      },
+      "inspect": [
+        "pending",
+        "timer",
+        "port",
+        "Worker",
+        "Blob URL"
+      ]
+    },
+    "expected": "compare actual independent observations before/after and revoked URL load failure; all per-run resources return baseline; later valid run works; preserve old manually counted partial proof",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-PAGE-SOURCE-DOC",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX04",
+      "AUTH01"
+    ],
+    "input": {
+      "worlds": [
+        "USER_SCRIPT",
+        "MAIN"
+      ],
+      "sources": [
+        "code",
+        "packaged file"
+      ],
+      "targets": [
+        "top document",
+        "same-origin frame doc",
+        "cross-origin granted frame doc",
+        "old doc"
+      ],
+      "invalid": [
+        "code+file",
+        "empty",
+        "func/args",
+        "doc+frame",
+        "missing file"
+      ]
+    },
+    "expected": "real execute uses tabId+documentIds only; selected document altered; others unchanged; invalid rejects without dispatch; returned documentId matches; old document cannot mutate fresh",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-PAGE-TYPED-RESULTS",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX04",
+      "CMP03",
+      "CMP10"
+    ],
+    "input": {
+      "worlds": [
+        "USER_SCRIPT",
+        "MAIN"
+      ],
+      "functions": [
+        "delayed Promise true",
+        "return false",
+        "return 0",
+        "return '';",
+        "return null",
+        "return undefined",
+        "throw new Error('sync');",
+        "Promise.reject(new Error(\"async\"))",
+        "return {PageBrigeCode:1,message:\"domain\"}",
+        "return missingClosure"
+      ],
+      "arguments": [
+        "undefined tag",
+        "nonfinite",
+        "BigInt",
+        "cycle",
+        "native/bound function"
+      ]
+    },
+    "expected": "wrapper awaits/returns typed false/0/empty/null/undefined; actual throw/rejection/closure error once; business PageBrigeCode unchanged; unsupported args/source reject predispatch; native diagnostics distinct, no claim native error fields all work",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-PAGE-NATIVE-DIAGNOSTICS",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX04"
+    ],
+    "input": {
+      "worlds": [
+        "USER_SCRIPT",
+        "MAIN"
+      ],
+      "code": [
+        "throw",
+        "rejected Promise",
+        "undefined"
+      ],
+      "legacyFailedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT"
+      ]
+    },
+    "expected": "save actual raw API resolved/rejected/error/result shape in each version, keep all historical failure objects immutable; classify separately from wrapper; independent F1 reviewer must close effect on promised API contract, no silent pass replacement",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-PAGE-AUTH-CSP",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX01",
+      "EX04",
+      "AUTH01"
+    ],
+    "input": {
+      "worlds": [
+        "USER_SCRIPT",
+        "MAIN"
+      ],
+      "UI": [
+        "Allow User Scripts OFF/ON",
+        "actual site access revoke/restore"
+      ],
+      "barrier": [
+        "before dispatch",
+        "pending slow page response",
+        "after native effect before accepted result"
+      ],
+      "pageCSP": [
+        "baseline",
+        "restrictive"
+      ],
+      "legacyFailure": "HOST-PERMISSION-REVOKE required permission removal failed"
+    },
+    "expected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-PAGE-OLD-DOC-RACE",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX04",
+      "NAV01"
+    ],
+    "input": {
+      "worlds": [
+        "USER_SCRIPT",
+        "MAIN"
+      ],
+      "sequence": [
+        "hold evaluation",
+        "navigate",
+        "new document handshake",
+        "release old",
+        "new evaluation"
+      ],
+      "callback": "fixed packaged MAIN ChromeBridgeOperationCompleted"
+    },
+    "expected": "old pending result/old callback rejected and cannot settle new request; new real document call works; original target/from-to recorded where navigation adapter applies; no assumed world/run sender fields",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-SW-AND-PAGE-LOOP",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX05",
+      "EX06",
+      "CTRL03"
+    ],
+    "input": {
+      "sequence": [
+        "terminate actual SW/wake",
+        "disconnect host port/reconnect"
+      ],
+      "ownedTab": "page main-thread loop optional controlled retirement"
+    },
+    "expected": "long controller not moved SW; reconnect identity/epoch validated; MAIN loop no false terminate guarantee, only owned tab retirement allowed; borrowed tabs not closed",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  },
+  {
+    "id": "F1-VERSION-MATRIX",
+    "phase": "F1",
+    "layer": "actual Chrome prototype",
+    "required": true,
+    "families": [
+      "EX01",
+      "EX02",
+      "EX03",
+      "EX04",
+      "EX08"
+    ],
+    "input": {
+      "candidateMinimum": 138,
+      "stable": "actual officially acquired current Stable full version",
+      "dimensions": [
+        "userScripts ON/OFF",
+        "code/file",
+        "precise doc",
+        "both worlds",
+        "world CSP",
+        "UI revoke/restore/pending",
+        "Worker CSP/private RPC/loop/resources"
+      ]
+    },
+    "expected": "per binary real complete required matrix; 149 local evidence insufficient; minimum cannot infer from manifest120; inability/failure138 requires explicit scope delta and independent renewed approval before manifest range narrowing",
+    "status": "not-tested",
+    "actual": null,
+    "prototypeCandidateSha256": null,
+    "productPackageSha256": null,
+    "evidence": []
+  }
+]

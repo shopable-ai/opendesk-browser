@@ -1,0 +1,2708 @@
+{
+  "label": "154",
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+  "completeVersion": "Google Chrome for Testing 154.0.8037.92",
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "extensionId": "dpgmjklachidjmecgiacofmnekbhnoob",
+  "profile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/k3/native-control-component-2026-10-02T23-56-30.037Z/154/profile",
+  "browserPid": 4616,
+  "targetId": "007D3B06F7CC13F653C3109206CE5890",
+  "cdpVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/154.0.8037.92",
+    "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "jsVersion": "15.4.80.19"
+  },
+  "source": [
+    {
+      "path": "src/framework/ChromePage.js",
+      "sha256": "750269e6467ee0b88e59712bc0489bc53f2b1949648080a2e79560efc3daad66"
+    },
+    {
+      "path": "src/framework/context.js",
+      "sha256": "443a378c60f2ebbd77e1c667fe0538eca3c98cf4bc602d50711c89e612dc0c3c"
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "sha256": "0f293f2b31d0198d3e8f03b3bee45e8b9d2b25f284075240c18e4804696b34f8"
+    },
+    {
+      "path": "src/scripting/packaged/registry.js",
+      "sha256": "29cb99fed55cb84e28580ba623a235ce9bea06ce7b2c11edb293f7bc4668853a"
+    },
+    {
+      "path": "src/scripting/sandbox/controller.js",
+      "sha256": "3932cd0b7583f80e6ac10e06f6895d1c17b5b59d3a92ebec306b961e30679e17"
+    },
+    {
+      "path": "src/scripting/sandbox/page-proxy.js",
+      "sha256": "a2e3c5532b790f6c9c9eb58112226db9eabfff03573da832df97a620f72d7375"
+    },
+    {
+      "path": "src/scripting/sandbox/sandbox.html",
+      "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+    },
+    {
+      "path": "src/scripting/sandbox/sandbox.js",
+      "sha256": "a4bdf5d7b29b9215ae72e8f9688f64f7522fa99220c9424be685f2b226a0c602"
+    },
+    {
+      "path": "src/scripting/sandbox/worker-runtime.js",
+      "sha256": "67259344892326cd39f734cddea8d9fffdb119c69e56a8d4fa7998ebc5096de5"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-evaluator.js",
+      "sha256": "d71f12dfb94b06b17f28d05d8f58bda1bd225d5c01d38a885fc00ec7564e5517"
+    }
+  ],
+  "records": [
+    {
+      "name": "async-body-await-return",
+      "status": "PASS",
+      "input": {
+        "body": "await new Promise(resolve=>setTimeout(resolve,5)); return {value:params.x, context:this.x};",
+        "params": {
+          "x": 7
+        },
+        "deadline": null,
+        "stop": null,
+        "resource": true
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": {
+          "value": 7,
+          "context": 7
+        }
+      },
+      "actual": {
+        "status": "succeeded",
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "value",
+              {
+                "t": "number",
+                "v": 7
+              }
+            ],
+            [
+              "context",
+              {
+                "t": "number",
+                "v": 7
+              }
+            ]
+          ]
+        },
+        "identity": {
+          "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985392914,
+        "triggeredMonoMs": 113.69999980926514,
+        "decodedValue": {
+          "value": 7,
+          "context": 7
+        }
+      },
+      "bound": {
+        "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+        "name": "OpenDesk-Control-f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+          "ownerEpoch": 1,
+          "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+          "name": "OpenDesk-Control-f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+            "name": "OpenDesk-Control-f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "resource-positive",
+          "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+          "ownerEpoch": 1,
+          "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+            "creatingOrigin": "null",
+            "startedMonoMs": 49.700000286102295,
+            "observedMonoMs": 52.30000019073486
+          }
+        },
+        {
+          "kind": "result",
+          "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+          "ownerEpoch": 1,
+          "value": {
+            "t": "object",
+            "v": [
+              [
+                "value",
+                {
+                  "t": "number",
+                  "v": 7
+                }
+              ],
+              [
+                "context",
+                {
+                  "t": "number",
+                  "v": 7
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+          "ownerEpoch": 1,
+          "reason": "succeeded",
+          "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+          "terminateAt": 1790985392914,
+          "terminateMonoMs": 66.60000038146973,
+          "retiredAt": 1790985392914,
+          "resources": {
+            "positive": {
+              "loaded": true,
+              "message": {
+                "kind": "worker-ready"
+              },
+              "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+              "creatingOrigin": "null",
+              "startedMonoMs": 49.700000286102295,
+              "observedMonoMs": 52.30000019073486
+            },
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad' cannot be accessed from origin 'null'.",
+              "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+              "creatingOrigin": "null",
+              "startedMonoMs": 66.7000002861023,
+              "observedMonoMs": 66.7000002861023
+            },
+            "revokedMonoMs": 66.7000002861023
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+          "reason": "succeeded",
+          "observedAt": 1790985392914,
+          "observedMonoMs": 114
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+        "ownerEpoch": 1,
+        "reason": "succeeded",
+        "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+        "terminateAt": 1790985392914,
+        "terminateMonoMs": 66.60000038146973,
+        "retiredAt": 1790985392914,
+        "resources": {
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+            "creatingOrigin": "null",
+            "startedMonoMs": 49.700000286102295,
+            "observedMonoMs": 52.30000019073486
+          },
+          "negative": {
+            "loaded": false,
+            "error": "Failed to construct 'Worker': Script at 'blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad' cannot be accessed from origin 'null'.",
+            "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+            "creatingOrigin": "null",
+            "startedMonoMs": 66.7000002861023,
+            "observedMonoMs": 66.7000002861023
+          },
+          "revokedMonoMs": 66.7000002861023
+        },
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "private-channel-global-patch",
+      "status": "PASS",
+      "input": {
+        "body": "self.postMessage({kind:\"result\",value:\"fake\"});self.postMessage=()=>{throw new Error(\"patched global\")};MessagePort.prototype.postMessage=()=>{throw new Error(\"patched prototype\")};return await page.title();",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": "private-loopback-only"
+      },
+      "actual": {
+        "status": "succeeded",
+        "value": {
+          "t": "string",
+          "v": "private-loopback-only"
+        },
+        "identity": {
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985392959,
+        "triggeredMonoMs": 159,
+        "decodedValue": "private-loopback-only"
+      },
+      "bound": {
+        "url": "blob:null/cd5e5a6a-77d4-4a16-835c-6fb89df0653b",
+        "name": "OpenDesk-Control-955c2bf2-b412-490a-b35d-f50b51b850eb",
+        "origin": "null"
+      },
+      "operations": [
+        {
+          "requestId": "c3b375680fb16701d9263b4909eb6e88",
+          "identity": {
+            "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+            "ownerEpoch": 1,
+            "target": {
+              "tabId": 1,
+              "frameId": 0,
+              "documentId": "component-fixture-no-native-page-authority",
+              "targetVersion": 1
+            }
+          },
+          "revision": {
+            "revision": 1,
+            "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          },
+          "operation": {
+            "kind": "packaged",
+            "method": "title",
+            "args": {
+              "t": "array",
+              "v": []
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "ownerEpoch": 1,
+          "url": "blob:null/cd5e5a6a-77d4-4a16-835c-6fb89df0653b",
+          "name": "OpenDesk-Control-955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/cd5e5a6a-77d4-4a16-835c-6fb89df0653b",
+            "name": "OpenDesk-Control-955c2bf2-b412-490a-b35d-f50b51b850eb",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "rejected-global",
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "ownerEpoch": 1
+        },
+        {
+          "kind": "operation",
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "ownerEpoch": 1,
+          "id": 1,
+          "envelope": {
+            "requestId": "c3b375680fb16701d9263b4909eb6e88",
+            "identity": {
+              "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+              "ownerEpoch": 1,
+              "target": {
+                "tabId": 1,
+                "frameId": 0,
+                "documentId": "component-fixture-no-native-page-authority",
+                "targetVersion": 1
+              }
+            },
+            "revision": {
+              "revision": 1,
+              "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+            },
+            "target": {
+              "tabId": 1,
+              "frameId": 0,
+              "documentId": "component-fixture-no-native-page-authority",
+              "targetVersion": 1
+            },
+            "operation": {
+              "kind": "packaged",
+              "method": "title",
+              "args": {
+                "t": "array",
+                "v": []
+              }
+            }
+          }
+        },
+        {
+          "kind": "result",
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "ownerEpoch": 1,
+          "value": {
+            "t": "string",
+            "v": "private-loopback-only"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "ownerEpoch": 1,
+          "reason": "succeeded",
+          "url": "blob:null/cd5e5a6a-77d4-4a16-835c-6fb89df0653b",
+          "terminateAt": 1790985392959,
+          "terminateMonoMs": 44.19999980926514,
+          "retiredAt": 1790985392959,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "reason": "succeeded",
+          "observedAt": 1790985392959,
+          "observedMonoMs": 159.19999980926514
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+        "ownerEpoch": 1,
+        "reason": "succeeded",
+        "url": "blob:null/cd5e5a6a-77d4-4a16-835c-6fb89df0653b",
+        "terminateAt": 1790985392959,
+        "terminateMonoMs": 44.19999980926514,
+        "retiredAt": 1790985392959,
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "business-value",
+      "status": "PASS",
+      "input": {
+        "body": "return {PageBrigeCode:1,message:\"domain\"};",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": {
+          "PageBrigeCode": 1,
+          "message": "domain"
+        }
+      },
+      "actual": {
+        "status": "succeeded",
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "PageBrigeCode",
+              {
+                "t": "number",
+                "v": 1
+              }
+            ],
+            [
+              "message",
+              {
+                "t": "string",
+                "v": "domain"
+              }
+            ]
+          ]
+        },
+        "identity": {
+          "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985393001,
+        "triggeredMonoMs": 201.19999980926514,
+        "decodedValue": {
+          "PageBrigeCode": 1,
+          "message": "domain"
+        }
+      },
+      "bound": {
+        "url": "blob:null/4a666f8e-f151-4cda-8ef4-63c1173a23e0",
+        "name": "OpenDesk-Control-c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+          "ownerEpoch": 1,
+          "url": "blob:null/4a666f8e-f151-4cda-8ef4-63c1173a23e0",
+          "name": "OpenDesk-Control-c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/4a666f8e-f151-4cda-8ef4-63c1173a23e0",
+            "name": "OpenDesk-Control-c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "result",
+          "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+          "ownerEpoch": 1,
+          "value": {
+            "t": "object",
+            "v": [
+              [
+                "PageBrigeCode",
+                {
+                  "t": "number",
+                  "v": 1
+                }
+              ],
+              [
+                "message",
+                {
+                  "t": "string",
+                  "v": "domain"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+          "ownerEpoch": 1,
+          "reason": "succeeded",
+          "url": "blob:null/4a666f8e-f151-4cda-8ef4-63c1173a23e0",
+          "terminateAt": 1790985393001,
+          "terminateMonoMs": 41.40000009536743,
+          "retiredAt": 1790985393001,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+          "reason": "succeeded",
+          "observedAt": 1790985393001,
+          "observedMonoMs": 201.40000009536743
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+        "ownerEpoch": 1,
+        "reason": "succeeded",
+        "url": "blob:null/4a666f8e-f151-4cda-8ef4-63c1173a23e0",
+        "terminateAt": 1790985393001,
+        "terminateMonoMs": 41.40000009536743,
+        "retiredAt": 1790985393001,
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "throw",
+      "status": "PASS",
+      "input": {
+        "body": "throw new Error(\"boom\");",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": true
+      },
+      "expected": {
+        "status": "error",
+        "error": "E_CONTROL_EXECUTION"
+      },
+      "actual": {
+        "status": "error",
+        "error": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "boom"
+        },
+        "identity": {
+          "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985393051,
+        "triggeredMonoMs": 251
+      },
+      "bound": {
+        "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+        "name": "OpenDesk-Control-83556c60-1842-4db2-816d-fa6927d3672f",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+          "ownerEpoch": 1,
+          "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+          "name": "OpenDesk-Control-83556c60-1842-4db2-816d-fa6927d3672f",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+            "name": "OpenDesk-Control-83556c60-1842-4db2-816d-fa6927d3672f",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "resource-positive",
+          "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+          "ownerEpoch": 1,
+          "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+            "creatingOrigin": "null",
+            "startedMonoMs": 42.799999713897705,
+            "observedMonoMs": 45
+          }
+        },
+        {
+          "kind": "error",
+          "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "Error",
+            "message": "boom"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+          "ownerEpoch": 1,
+          "reason": "error",
+          "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+          "terminateAt": 1790985393051,
+          "terminateMonoMs": 49.19999980926514,
+          "retiredAt": 1790985393051,
+          "resources": {
+            "positive": {
+              "loaded": true,
+              "message": {
+                "kind": "worker-ready"
+              },
+              "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+              "creatingOrigin": "null",
+              "startedMonoMs": 42.799999713897705,
+              "observedMonoMs": 45
+            },
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d' cannot be accessed from origin 'null'.",
+              "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+              "creatingOrigin": "null",
+              "startedMonoMs": 49.299999713897705,
+              "observedMonoMs": 49.299999713897705
+            },
+            "revokedMonoMs": 49.299999713897705
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+          "reason": "error",
+          "observedAt": 1790985393051,
+          "observedMonoMs": 251.30000019073486
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+        "ownerEpoch": 1,
+        "reason": "error",
+        "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+        "terminateAt": 1790985393051,
+        "terminateMonoMs": 49.19999980926514,
+        "retiredAt": 1790985393051,
+        "resources": {
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+            "creatingOrigin": "null",
+            "startedMonoMs": 42.799999713897705,
+            "observedMonoMs": 45
+          },
+          "negative": {
+            "loaded": false,
+            "error": "Failed to construct 'Worker': Script at 'blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d' cannot be accessed from origin 'null'.",
+            "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+            "creatingOrigin": "null",
+            "startedMonoMs": 49.299999713897705,
+            "observedMonoMs": 49.299999713897705
+          },
+          "revokedMonoMs": 49.299999713897705
+        },
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "syntax-error",
+      "status": "PASS",
+      "input": {
+        "body": "return {;",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "error",
+        "error": "E_CONTROL_EXECUTION"
+      },
+      "actual": {
+        "status": "error",
+        "error": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "SyntaxError",
+          "message": "Unexpected token ';'"
+        },
+        "identity": {
+          "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985393093,
+        "triggeredMonoMs": 293.19999980926514
+      },
+      "bound": {
+        "url": "blob:null/2a48cb46-a081-4a41-a12a-d93816cbcba9",
+        "name": "OpenDesk-Control-8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+          "ownerEpoch": 1,
+          "url": "blob:null/2a48cb46-a081-4a41-a12a-d93816cbcba9",
+          "name": "OpenDesk-Control-8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/2a48cb46-a081-4a41-a12a-d93816cbcba9",
+            "name": "OpenDesk-Control-8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "error",
+          "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_CONTROL_EXECUTION",
+            "name": "SyntaxError",
+            "message": "Unexpected token ';'"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+          "ownerEpoch": 1,
+          "reason": "error",
+          "url": "blob:null/2a48cb46-a081-4a41-a12a-d93816cbcba9",
+          "terminateAt": 1790985393093,
+          "terminateMonoMs": 41.299999713897705,
+          "retiredAt": 1790985393093,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+          "reason": "error",
+          "observedAt": 1790985393093,
+          "observedMonoMs": 293.40000009536743
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+        "ownerEpoch": 1,
+        "reason": "error",
+        "url": "blob:null/2a48cb46-a081-4a41-a12a-d93816cbcba9",
+        "terminateAt": 1790985393093,
+        "terminateMonoMs": 41.299999713897705,
+        "retiredAt": 1790985393093,
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "typed-invalid-result",
+      "status": "PASS",
+      "input": {
+        "body": "return 1n;",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "error",
+        "error": "E_VALUE_SERIALIZATION"
+      },
+      "actual": {
+        "status": "error",
+        "error": {
+          "code": "E_VALUE_SERIALIZATION",
+          "name": "PageError",
+          "message": "Unsupported or cyclic value"
+        },
+        "identity": {
+          "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985393132,
+        "triggeredMonoMs": 332.5
+      },
+      "bound": {
+        "url": "blob:null/6803ec6f-6895-4d2a-a4b4-3711788c8a0e",
+        "name": "OpenDesk-Control-16908feb-9437-41f9-baf7-65e59936ebe7",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+          "ownerEpoch": 1,
+          "url": "blob:null/6803ec6f-6895-4d2a-a4b4-3711788c8a0e",
+          "name": "OpenDesk-Control-16908feb-9437-41f9-baf7-65e59936ebe7",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/6803ec6f-6895-4d2a-a4b4-3711788c8a0e",
+            "name": "OpenDesk-Control-16908feb-9437-41f9-baf7-65e59936ebe7",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "error",
+          "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+          "ownerEpoch": 1,
+          "error": {
+            "code": "E_VALUE_SERIALIZATION",
+            "name": "PageError",
+            "message": "Unsupported or cyclic value"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+          "ownerEpoch": 1,
+          "reason": "error",
+          "url": "blob:null/6803ec6f-6895-4d2a-a4b4-3711788c8a0e",
+          "terminateAt": 1790985393133,
+          "terminateMonoMs": 38.69999980926514,
+          "retiredAt": 1790985393133,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+          "reason": "error",
+          "observedAt": 1790985393133,
+          "observedMonoMs": 332.69999980926514
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+        "ownerEpoch": 1,
+        "reason": "error",
+        "url": "blob:null/6803ec6f-6895-4d2a-a4b4-3711788c8a0e",
+        "terminateAt": 1790985393133,
+        "terminateMonoMs": 38.69999980926514,
+        "retiredAt": 1790985393133,
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "deadline",
+      "status": "PASS",
+      "input": {
+        "body": "await new Promise(()=>{});",
+        "params": {},
+        "deadline": 1000,
+        "stop": null,
+        "resource": true
+      },
+      "expected": {
+        "status": "timeout"
+      },
+      "actual": {
+        "status": "timeout",
+        "identity": {
+          "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985394135,
+        "triggeredMonoMs": 1335.3000001907349
+      },
+      "bound": {
+        "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+        "name": "OpenDesk-Control-5564aa2e-9f5b-425b-94e1-5c312cb46329",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+          "ownerEpoch": 1,
+          "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+          "name": "OpenDesk-Control-5564aa2e-9f5b-425b-94e1-5c312cb46329",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+            "name": "OpenDesk-Control-5564aa2e-9f5b-425b-94e1-5c312cb46329",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "resource-positive",
+          "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+          "ownerEpoch": 1,
+          "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+            "creatingOrigin": "null",
+            "startedMonoMs": 39.5,
+            "observedMonoMs": 41.59999990463257
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+          "ownerEpoch": 1,
+          "reason": "timeout",
+          "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+          "terminateAt": 1790985394136,
+          "terminateMonoMs": 1002.9000000953674,
+          "retiredAt": 1790985394137,
+          "resources": {
+            "positive": {
+              "loaded": true,
+              "message": {
+                "kind": "worker-ready"
+              },
+              "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+              "creatingOrigin": "null",
+              "startedMonoMs": 39.5,
+              "observedMonoMs": 41.59999990463257
+            },
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0' cannot be accessed from origin 'null'.",
+              "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+              "creatingOrigin": "null",
+              "startedMonoMs": 1003.0999999046326,
+              "observedMonoMs": 1003.2999997138977
+            },
+            "revokedMonoMs": 1003.0999999046326
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+          "reason": "timeout",
+          "observedAt": 1790985394137,
+          "observedMonoMs": 1337.1999998092651
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+        "ownerEpoch": 1,
+        "reason": "timeout",
+        "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+        "terminateAt": 1790985394136,
+        "terminateMonoMs": 1002.9000000953674,
+        "retiredAt": 1790985394137,
+        "resources": {
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+            "creatingOrigin": "null",
+            "startedMonoMs": 39.5,
+            "observedMonoMs": 41.59999990463257
+          },
+          "negative": {
+            "loaded": false,
+            "error": "Failed to construct 'Worker': Script at 'blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0' cannot be accessed from origin 'null'.",
+            "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+            "creatingOrigin": "null",
+            "startedMonoMs": 1003.0999999046326,
+            "observedMonoMs": 1003.2999997138977
+          },
+          "revokedMonoMs": 1003.0999999046326
+        },
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "stop",
+      "status": "PASS",
+      "input": {
+        "body": "await new Promise(()=>{});",
+        "params": {},
+        "deadline": null,
+        "stop": "stop",
+        "resource": true
+      },
+      "expected": {
+        "status": "stopped"
+      },
+      "actual": {
+        "status": "stopped",
+        "identity": {
+          "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985394229,
+        "triggeredMonoMs": 1428.5999999046326
+      },
+      "bound": {
+        "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+        "name": "OpenDesk-Control-7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+          "ownerEpoch": 1,
+          "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+          "name": "OpenDesk-Control-7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+            "name": "OpenDesk-Control-7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "resource-positive",
+          "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+          "ownerEpoch": 1,
+          "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+            "creatingOrigin": "null",
+            "startedMonoMs": 65.2000002861023,
+            "observedMonoMs": 67.80000019073486
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+          "ownerEpoch": 1,
+          "reason": "stopped",
+          "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+          "terminateAt": 1790985394229,
+          "terminateMonoMs": 88.5,
+          "retiredAt": 1790985394229,
+          "resources": {
+            "positive": {
+              "loaded": true,
+              "message": {
+                "kind": "worker-ready"
+              },
+              "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+              "creatingOrigin": "null",
+              "startedMonoMs": 65.2000002861023,
+              "observedMonoMs": 67.80000019073486
+            },
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d' cannot be accessed from origin 'null'.",
+              "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+              "creatingOrigin": "null",
+              "startedMonoMs": 88.60000038146973,
+              "observedMonoMs": 88.60000038146973
+            },
+            "revokedMonoMs": 88.60000038146973
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+          "reason": "stopped",
+          "observedAt": 1790985394229,
+          "observedMonoMs": 1428.9000000953674
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+        "ownerEpoch": 1,
+        "reason": "stopped",
+        "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+        "terminateAt": 1790985394229,
+        "terminateMonoMs": 88.5,
+        "retiredAt": 1790985394229,
+        "resources": {
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+            "creatingOrigin": "null",
+            "startedMonoMs": 65.2000002861023,
+            "observedMonoMs": 67.80000019073486
+          },
+          "negative": {
+            "loaded": false,
+            "error": "Failed to construct 'Worker': Script at 'blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d' cannot be accessed from origin 'null'.",
+            "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+            "creatingOrigin": "null",
+            "startedMonoMs": 88.60000038146973,
+            "observedMonoMs": 88.60000038146973
+          },
+          "revokedMonoMs": 88.60000038146973
+        },
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "host-close",
+      "status": "PASS",
+      "input": {
+        "body": "await new Promise(()=>{});",
+        "params": {},
+        "deadline": null,
+        "stop": "close",
+        "resource": false
+      },
+      "expected": {
+        "status": "host-closed"
+      },
+      "actual": {
+        "status": "host-closed",
+        "identity": {
+          "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985394290,
+        "triggeredMonoMs": 1489.8000001907349
+      },
+      "bound": {
+        "url": "blob:null/d65baf3f-e709-454b-8382-7d33d53c2149",
+        "name": "OpenDesk-Control-2a9acba3-d3ab-4278-a862-98afc1166412",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+          "ownerEpoch": 1,
+          "url": "blob:null/d65baf3f-e709-454b-8382-7d33d53c2149",
+          "name": "OpenDesk-Control-2a9acba3-d3ab-4278-a862-98afc1166412",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/d65baf3f-e709-454b-8382-7d33d53c2149",
+            "name": "OpenDesk-Control-2a9acba3-d3ab-4278-a862-98afc1166412",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+          "ownerEpoch": 1,
+          "reason": "host-closed",
+          "url": "blob:null/d65baf3f-e709-454b-8382-7d33d53c2149",
+          "terminateAt": 1790985394290,
+          "terminateMonoMs": 59.80000019073486,
+          "retiredAt": 1790985394290,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+          "reason": "host-closed",
+          "observedAt": 1790985394290,
+          "observedMonoMs": 1490.1999998092651
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+        "ownerEpoch": 1,
+        "reason": "host-closed",
+        "url": "blob:null/d65baf3f-e709-454b-8382-7d33d53c2149",
+        "terminateAt": 1790985394290,
+        "terminateMonoMs": 59.80000019073486,
+        "retiredAt": 1790985394290,
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "strict-csp-worker-network",
+      "status": "PASS",
+      "input": {
+        "body": "try {await fetch(params.url); return {blocked:false};} catch(error) {return {blocked:true};}",
+        "params": {
+          "url": "http://127.0.0.1:51550/network?kind=worker"
+        },
+        "deadline": null,
+        "stop": null,
+        "resource": false
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": {
+          "blocked": true
+        }
+      },
+      "actual": {
+        "status": "succeeded",
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "blocked",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ]
+          ]
+        },
+        "identity": {
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985394335,
+        "triggeredMonoMs": 1534.8000001907349,
+        "decodedValue": {
+          "blocked": true
+        }
+      },
+      "bound": {
+        "url": "blob:null/79a0c7a5-772b-4b2c-8ea0-d24c218cdec5",
+        "name": "OpenDesk-Control-8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "ownerEpoch": 1,
+          "url": "blob:null/79a0c7a5-772b-4b2c-8ea0-d24c218cdec5",
+          "name": "OpenDesk-Control-8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/79a0c7a5-772b-4b2c-8ea0-d24c218cdec5",
+            "name": "OpenDesk-Control-8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "result",
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "ownerEpoch": 1,
+          "value": {
+            "t": "object",
+            "v": [
+              [
+                "blocked",
+                {
+                  "t": "boolean",
+                  "v": true
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "kind": "policy",
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "ownerEpoch": 1,
+          "directive": "connect-src",
+          "blockedURI": "http://127.0.0.1:51550/network?kind=worker",
+          "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+        },
+        {
+          "kind": "policy",
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "ownerEpoch": 1,
+          "directive": "connect-src",
+          "blockedURI": "http://127.0.0.1:51550/network?kind=worker",
+          "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+        },
+        {
+          "kind": "policy",
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "ownerEpoch": 1,
+          "directive": "connect-src",
+          "blockedURI": "http://127.0.0.1:51550/network?kind=worker",
+          "originalPolicy": "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+        },
+        {
+          "kind": "retired",
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "ownerEpoch": 1,
+          "reason": "succeeded",
+          "url": "blob:null/79a0c7a5-772b-4b2c-8ea0-d24c218cdec5",
+          "terminateAt": 1790985394335,
+          "terminateMonoMs": 42.69999980926514,
+          "retiredAt": 1790985394335,
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+          "reason": "succeeded",
+          "observedAt": 1790985394335,
+          "observedMonoMs": 1535.0999999046326
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+        "ownerEpoch": 1,
+        "reason": "succeeded",
+        "url": "blob:null/79a0c7a5-772b-4b2c-8ea0-d24c218cdec5",
+        "terminateAt": 1790985394335,
+        "terminateMonoMs": 42.69999980926514,
+        "retiredAt": 1790985394335,
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    },
+    {
+      "name": "new-valid-run-after-termination",
+      "status": "PASS",
+      "input": {
+        "body": "return {ok:true};",
+        "params": {},
+        "deadline": null,
+        "stop": null,
+        "resource": true
+      },
+      "expected": {
+        "status": "succeeded",
+        "value": {
+          "ok": true
+        }
+      },
+      "actual": {
+        "status": "succeeded",
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "ok",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ]
+          ]
+        },
+        "identity": {
+          "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "triggeredAt": 1790985394381,
+        "triggeredMonoMs": 1581,
+        "decodedValue": {
+          "ok": true
+        }
+      },
+      "bound": {
+        "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+        "name": "OpenDesk-Control-0194a10f-005f-4725-b7c5-7863dfbb4782",
+        "origin": "null"
+      },
+      "operations": [],
+      "events": [
+        {
+          "kind": "worker-created",
+          "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+          "ownerEpoch": 1,
+          "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+          "name": "OpenDesk-Control-0194a10f-005f-4725-b7c5-7863dfbb4782",
+          "origin": "null"
+        },
+        {
+          "kind": "bound",
+          "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+          "ownerEpoch": 1,
+          "identity": {
+            "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+            "name": "OpenDesk-Control-0194a10f-005f-4725-b7c5-7863dfbb4782",
+            "origin": "null"
+          }
+        },
+        {
+          "kind": "resource-positive",
+          "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+          "ownerEpoch": 1,
+          "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+            "creatingOrigin": "null",
+            "startedMonoMs": 38.90000009536743,
+            "observedMonoMs": 41.10000038146973
+          }
+        },
+        {
+          "kind": "result",
+          "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+          "ownerEpoch": 1,
+          "value": {
+            "t": "object",
+            "v": [
+              [
+                "ok",
+                {
+                  "t": "boolean",
+                  "v": true
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "kind": "retired",
+          "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+          "ownerEpoch": 1,
+          "reason": "succeeded",
+          "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+          "terminateAt": 1790985394381,
+          "terminateMonoMs": 45.30000019073486,
+          "retiredAt": 1790985394381,
+          "resources": {
+            "positive": {
+              "loaded": true,
+              "message": {
+                "kind": "worker-ready"
+              },
+              "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+              "creatingOrigin": "null",
+              "startedMonoMs": 38.90000009536743,
+              "observedMonoMs": 41.10000038146973
+            },
+            "negative": {
+              "loaded": false,
+              "error": "Failed to construct 'Worker': Script at 'blob:null/88fdf873-342f-496d-8498-0793bad46702' cannot be accessed from origin 'null'.",
+              "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+              "creatingOrigin": "null",
+              "startedMonoMs": 45.40000009536743,
+              "observedMonoMs": 45.5
+            },
+            "revokedMonoMs": 45.40000009536743
+          },
+          "baseline": {
+            "workers": 0,
+            "ports": 0,
+            "blobURLs": 0,
+            "probeWorkers": 0
+          }
+        },
+        {
+          "kind": "realm-retired",
+          "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+          "reason": "succeeded",
+          "observedAt": 1790985394381,
+          "observedMonoMs": 1581.1999998092651
+        }
+      ],
+      "retired": {
+        "kind": "retired",
+        "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+        "ownerEpoch": 1,
+        "reason": "succeeded",
+        "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+        "terminateAt": 1790985394381,
+        "terminateMonoMs": 45.30000019073486,
+        "retiredAt": 1790985394381,
+        "resources": {
+          "positive": {
+            "loaded": true,
+            "message": {
+              "kind": "worker-ready"
+            },
+            "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+            "creatingOrigin": "null",
+            "startedMonoMs": 38.90000009536743,
+            "observedMonoMs": 41.10000038146973
+          },
+          "negative": {
+            "loaded": false,
+            "error": "Failed to construct 'Worker': Script at 'blob:null/88fdf873-342f-496d-8498-0793bad46702' cannot be accessed from origin 'null'.",
+            "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+            "creatingOrigin": "null",
+            "startedMonoMs": 45.40000009536743,
+            "observedMonoMs": 45.5
+          },
+          "revokedMonoMs": 45.40000009536743
+        },
+        "baseline": {
+          "workers": 0,
+          "ports": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        },
+        "acknowledged": true
+      },
+      "cleanup": {
+        "active": false,
+        "settled": true,
+        "pending": 0,
+        "ownedFrames": 0,
+        "hostPorts": 0
+      }
+    }
+  ],
+  "summary": {
+    "PASS": 11,
+    "FAIL": 0
+  },
+  "limitations": [
+    "Actual product modules in an isolated component extension; not the final integrated product package",
+    "Loopback title proves private client transport only, not native DOM authority or Chrome permissions",
+    "Pending async promise cancellation proves cleanup; no physical while(true) <=3s claim in this component test"
+  ],
+  "allEvents": [
+    {
+      "kind": "worker-created",
+      "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+      "ownerEpoch": 1,
+      "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+      "name": "OpenDesk-Control-f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+        "name": "OpenDesk-Control-f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "resource-positive",
+      "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+      "ownerEpoch": 1,
+      "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+      "positive": {
+        "loaded": true,
+        "message": {
+          "kind": "worker-ready"
+        },
+        "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+        "creatingOrigin": "null",
+        "startedMonoMs": 49.700000286102295,
+        "observedMonoMs": 52.30000019073486
+      }
+    },
+    {
+      "kind": "result",
+      "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "object",
+        "v": [
+          [
+            "value",
+            {
+              "t": "number",
+              "v": 7
+            }
+          ],
+          [
+            "context",
+            {
+              "t": "number",
+              "v": 7
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+      "terminateAt": 1790985392914,
+      "terminateMonoMs": 66.60000038146973,
+      "retiredAt": 1790985392914,
+      "resources": {
+        "positive": {
+          "loaded": true,
+          "message": {
+            "kind": "worker-ready"
+          },
+          "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+          "creatingOrigin": "null",
+          "startedMonoMs": 49.700000286102295,
+          "observedMonoMs": 52.30000019073486
+        },
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad' cannot be accessed from origin 'null'.",
+          "url": "blob:null/74ae62c2-d2fb-4f62-a85f-58af28cf95ad",
+          "creatingOrigin": "null",
+          "startedMonoMs": 66.7000002861023,
+          "observedMonoMs": 66.7000002861023
+        },
+        "revokedMonoMs": 66.7000002861023
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "f4b63ab4-f7f2-43b0-9fd2-2a34e1c45f35",
+      "reason": "succeeded",
+      "observedAt": 1790985392914,
+      "observedMonoMs": 114
+    },
+    {
+      "kind": "worker-created",
+      "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+      "ownerEpoch": 1,
+      "url": "blob:null/cd5e5a6a-77d4-4a16-835c-6fb89df0653b",
+      "name": "OpenDesk-Control-955c2bf2-b412-490a-b35d-f50b51b850eb",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/cd5e5a6a-77d4-4a16-835c-6fb89df0653b",
+        "name": "OpenDesk-Control-955c2bf2-b412-490a-b35d-f50b51b850eb",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "rejected-global",
+      "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+      "ownerEpoch": 1
+    },
+    {
+      "kind": "operation",
+      "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+      "ownerEpoch": 1,
+      "id": 1,
+      "envelope": {
+        "requestId": "c3b375680fb16701d9263b4909eb6e88",
+        "identity": {
+          "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+          "ownerEpoch": 1,
+          "target": {
+            "tabId": 1,
+            "frameId": 0,
+            "documentId": "component-fixture-no-native-page-authority",
+            "targetVersion": 1
+          }
+        },
+        "revision": {
+          "revision": 1,
+          "sourceHash": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "target": {
+          "tabId": 1,
+          "frameId": 0,
+          "documentId": "component-fixture-no-native-page-authority",
+          "targetVersion": 1
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "title",
+          "args": {
+            "t": "array",
+            "v": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "result",
+      "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "string",
+        "v": "private-loopback-only"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/cd5e5a6a-77d4-4a16-835c-6fb89df0653b",
+      "terminateAt": 1790985392959,
+      "terminateMonoMs": 44.19999980926514,
+      "retiredAt": 1790985392959,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "955c2bf2-b412-490a-b35d-f50b51b850eb",
+      "reason": "succeeded",
+      "observedAt": 1790985392959,
+      "observedMonoMs": 159.19999980926514
+    },
+    {
+      "kind": "worker-created",
+      "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+      "ownerEpoch": 1,
+      "url": "blob:null/4a666f8e-f151-4cda-8ef4-63c1173a23e0",
+      "name": "OpenDesk-Control-c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/4a666f8e-f151-4cda-8ef4-63c1173a23e0",
+        "name": "OpenDesk-Control-c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "result",
+      "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "object",
+        "v": [
+          [
+            "PageBrigeCode",
+            {
+              "t": "number",
+              "v": 1
+            }
+          ],
+          [
+            "message",
+            {
+              "t": "string",
+              "v": "domain"
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/4a666f8e-f151-4cda-8ef4-63c1173a23e0",
+      "terminateAt": 1790985393001,
+      "terminateMonoMs": 41.40000009536743,
+      "retiredAt": 1790985393001,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "c6dc6b1f-39f9-4d68-b107-89aacb2d5a4b",
+      "reason": "succeeded",
+      "observedAt": 1790985393001,
+      "observedMonoMs": 201.40000009536743
+    },
+    {
+      "kind": "worker-created",
+      "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+      "ownerEpoch": 1,
+      "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+      "name": "OpenDesk-Control-83556c60-1842-4db2-816d-fa6927d3672f",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+        "name": "OpenDesk-Control-83556c60-1842-4db2-816d-fa6927d3672f",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "resource-positive",
+      "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+      "ownerEpoch": 1,
+      "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+      "positive": {
+        "loaded": true,
+        "message": {
+          "kind": "worker-ready"
+        },
+        "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+        "creatingOrigin": "null",
+        "startedMonoMs": 42.799999713897705,
+        "observedMonoMs": 45
+      }
+    },
+    {
+      "kind": "error",
+      "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "boom"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+      "ownerEpoch": 1,
+      "reason": "error",
+      "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+      "terminateAt": 1790985393051,
+      "terminateMonoMs": 49.19999980926514,
+      "retiredAt": 1790985393051,
+      "resources": {
+        "positive": {
+          "loaded": true,
+          "message": {
+            "kind": "worker-ready"
+          },
+          "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+          "creatingOrigin": "null",
+          "startedMonoMs": 42.799999713897705,
+          "observedMonoMs": 45
+        },
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d' cannot be accessed from origin 'null'.",
+          "url": "blob:null/d99756a5-8a13-4168-9423-e2c53b8a4e0d",
+          "creatingOrigin": "null",
+          "startedMonoMs": 49.299999713897705,
+          "observedMonoMs": 49.299999713897705
+        },
+        "revokedMonoMs": 49.299999713897705
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "83556c60-1842-4db2-816d-fa6927d3672f",
+      "reason": "error",
+      "observedAt": 1790985393051,
+      "observedMonoMs": 251.30000019073486
+    },
+    {
+      "kind": "worker-created",
+      "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+      "ownerEpoch": 1,
+      "url": "blob:null/2a48cb46-a081-4a41-a12a-d93816cbcba9",
+      "name": "OpenDesk-Control-8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/2a48cb46-a081-4a41-a12a-d93816cbcba9",
+        "name": "OpenDesk-Control-8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "error",
+      "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "SyntaxError",
+        "message": "Unexpected token ';'"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+      "ownerEpoch": 1,
+      "reason": "error",
+      "url": "blob:null/2a48cb46-a081-4a41-a12a-d93816cbcba9",
+      "terminateAt": 1790985393093,
+      "terminateMonoMs": 41.299999713897705,
+      "retiredAt": 1790985393093,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "8f153f4c-3011-4092-8ce4-c8d9a3fc80e2",
+      "reason": "error",
+      "observedAt": 1790985393093,
+      "observedMonoMs": 293.40000009536743
+    },
+    {
+      "kind": "worker-created",
+      "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+      "ownerEpoch": 1,
+      "url": "blob:null/6803ec6f-6895-4d2a-a4b4-3711788c8a0e",
+      "name": "OpenDesk-Control-16908feb-9437-41f9-baf7-65e59936ebe7",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/6803ec6f-6895-4d2a-a4b4-3711788c8a0e",
+        "name": "OpenDesk-Control-16908feb-9437-41f9-baf7-65e59936ebe7",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "error",
+      "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+      "ownerEpoch": 1,
+      "error": {
+        "code": "E_VALUE_SERIALIZATION",
+        "name": "PageError",
+        "message": "Unsupported or cyclic value"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+      "ownerEpoch": 1,
+      "reason": "error",
+      "url": "blob:null/6803ec6f-6895-4d2a-a4b4-3711788c8a0e",
+      "terminateAt": 1790985393133,
+      "terminateMonoMs": 38.69999980926514,
+      "retiredAt": 1790985393133,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "16908feb-9437-41f9-baf7-65e59936ebe7",
+      "reason": "error",
+      "observedAt": 1790985393133,
+      "observedMonoMs": 332.69999980926514
+    },
+    {
+      "kind": "worker-created",
+      "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+      "ownerEpoch": 1,
+      "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+      "name": "OpenDesk-Control-5564aa2e-9f5b-425b-94e1-5c312cb46329",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+        "name": "OpenDesk-Control-5564aa2e-9f5b-425b-94e1-5c312cb46329",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "resource-positive",
+      "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+      "ownerEpoch": 1,
+      "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+      "positive": {
+        "loaded": true,
+        "message": {
+          "kind": "worker-ready"
+        },
+        "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+        "creatingOrigin": "null",
+        "startedMonoMs": 39.5,
+        "observedMonoMs": 41.59999990463257
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+      "ownerEpoch": 1,
+      "reason": "timeout",
+      "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+      "terminateAt": 1790985394136,
+      "terminateMonoMs": 1002.9000000953674,
+      "retiredAt": 1790985394137,
+      "resources": {
+        "positive": {
+          "loaded": true,
+          "message": {
+            "kind": "worker-ready"
+          },
+          "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+          "creatingOrigin": "null",
+          "startedMonoMs": 39.5,
+          "observedMonoMs": 41.59999990463257
+        },
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0' cannot be accessed from origin 'null'.",
+          "url": "blob:null/6e807bfd-063f-49ff-9070-b93ad4ec96c0",
+          "creatingOrigin": "null",
+          "startedMonoMs": 1003.0999999046326,
+          "observedMonoMs": 1003.2999997138977
+        },
+        "revokedMonoMs": 1003.0999999046326
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "5564aa2e-9f5b-425b-94e1-5c312cb46329",
+      "reason": "timeout",
+      "observedAt": 1790985394137,
+      "observedMonoMs": 1337.1999998092651
+    },
+    {
+      "kind": "worker-created",
+      "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+      "ownerEpoch": 1,
+      "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+      "name": "OpenDesk-Control-7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+        "name": "OpenDesk-Control-7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "resource-positive",
+      "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+      "ownerEpoch": 1,
+      "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+      "positive": {
+        "loaded": true,
+        "message": {
+          "kind": "worker-ready"
+        },
+        "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+        "creatingOrigin": "null",
+        "startedMonoMs": 65.2000002861023,
+        "observedMonoMs": 67.80000019073486
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+      "ownerEpoch": 1,
+      "reason": "stopped",
+      "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+      "terminateAt": 1790985394229,
+      "terminateMonoMs": 88.5,
+      "retiredAt": 1790985394229,
+      "resources": {
+        "positive": {
+          "loaded": true,
+          "message": {
+            "kind": "worker-ready"
+          },
+          "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+          "creatingOrigin": "null",
+          "startedMonoMs": 65.2000002861023,
+          "observedMonoMs": 67.80000019073486
+        },
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d' cannot be accessed from origin 'null'.",
+          "url": "blob:null/ae6d3bef-93f5-411e-859f-246c8d502a9d",
+          "creatingOrigin": "null",
+          "startedMonoMs": 88.60000038146973,
+          "observedMonoMs": 88.60000038146973
+        },
+        "revokedMonoMs": 88.60000038146973
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "7eb69478-ecf2-4ca8-a760-736b0a4c9783",
+      "reason": "stopped",
+      "observedAt": 1790985394229,
+      "observedMonoMs": 1428.9000000953674
+    },
+    {
+      "kind": "worker-created",
+      "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+      "ownerEpoch": 1,
+      "url": "blob:null/d65baf3f-e709-454b-8382-7d33d53c2149",
+      "name": "OpenDesk-Control-2a9acba3-d3ab-4278-a862-98afc1166412",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/d65baf3f-e709-454b-8382-7d33d53c2149",
+        "name": "OpenDesk-Control-2a9acba3-d3ab-4278-a862-98afc1166412",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+      "ownerEpoch": 1,
+      "reason": "host-closed",
+      "url": "blob:null/d65baf3f-e709-454b-8382-7d33d53c2149",
+      "terminateAt": 1790985394290,
+      "terminateMonoMs": 59.80000019073486,
+      "retiredAt": 1790985394290,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "2a9acba3-d3ab-4278-a862-98afc1166412",
+      "reason": "host-closed",
+      "observedAt": 1790985394290,
+      "observedMonoMs": 1490.1999998092651
+    },
+    {
+      "kind": "worker-created",
+      "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "ownerEpoch": 1,
+      "url": "blob:null/79a0c7a5-772b-4b2c-8ea0-d24c218cdec5",
+      "name": "OpenDesk-Control-8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/79a0c7a5-772b-4b2c-8ea0-d24c218cdec5",
+        "name": "OpenDesk-Control-8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "result",
+      "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "object",
+        "v": [
+          [
+            "blocked",
+            {
+              "t": "boolean",
+              "v": true
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "kind": "policy",
+      "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "ownerEpoch": 1,
+      "directive": "connect-src",
+      "blockedURI": "http://127.0.0.1:51550/network?kind=worker",
+      "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+    },
+    {
+      "kind": "policy",
+      "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "ownerEpoch": 1,
+      "directive": "connect-src",
+      "blockedURI": "http://127.0.0.1:51550/network?kind=worker",
+      "originalPolicy": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+    },
+    {
+      "kind": "policy",
+      "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "ownerEpoch": 1,
+      "directive": "connect-src",
+      "blockedURI": "http://127.0.0.1:51550/network?kind=worker",
+      "originalPolicy": "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+    },
+    {
+      "kind": "retired",
+      "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/79a0c7a5-772b-4b2c-8ea0-d24c218cdec5",
+      "terminateAt": 1790985394335,
+      "terminateMonoMs": 42.69999980926514,
+      "retiredAt": 1790985394335,
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "8020daa0-7790-4cb0-bd89-1be44e15b2cb",
+      "reason": "succeeded",
+      "observedAt": 1790985394335,
+      "observedMonoMs": 1535.0999999046326
+    },
+    {
+      "kind": "worker-created",
+      "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+      "ownerEpoch": 1,
+      "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+      "name": "OpenDesk-Control-0194a10f-005f-4725-b7c5-7863dfbb4782",
+      "origin": "null"
+    },
+    {
+      "kind": "bound",
+      "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+      "ownerEpoch": 1,
+      "identity": {
+        "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+        "name": "OpenDesk-Control-0194a10f-005f-4725-b7c5-7863dfbb4782",
+        "origin": "null"
+      }
+    },
+    {
+      "kind": "resource-positive",
+      "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+      "ownerEpoch": 1,
+      "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+      "positive": {
+        "loaded": true,
+        "message": {
+          "kind": "worker-ready"
+        },
+        "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+        "creatingOrigin": "null",
+        "startedMonoMs": 38.90000009536743,
+        "observedMonoMs": 41.10000038146973
+      }
+    },
+    {
+      "kind": "result",
+      "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+      "ownerEpoch": 1,
+      "value": {
+        "t": "object",
+        "v": [
+          [
+            "ok",
+            {
+              "t": "boolean",
+              "v": true
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "kind": "retired",
+      "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+      "ownerEpoch": 1,
+      "reason": "succeeded",
+      "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+      "terminateAt": 1790985394381,
+      "terminateMonoMs": 45.30000019073486,
+      "retiredAt": 1790985394381,
+      "resources": {
+        "positive": {
+          "loaded": true,
+          "message": {
+            "kind": "worker-ready"
+          },
+          "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+          "creatingOrigin": "null",
+          "startedMonoMs": 38.90000009536743,
+          "observedMonoMs": 41.10000038146973
+        },
+        "negative": {
+          "loaded": false,
+          "error": "Failed to construct 'Worker': Script at 'blob:null/88fdf873-342f-496d-8498-0793bad46702' cannot be accessed from origin 'null'.",
+          "url": "blob:null/88fdf873-342f-496d-8498-0793bad46702",
+          "creatingOrigin": "null",
+          "startedMonoMs": 45.40000009536743,
+          "observedMonoMs": 45.5
+        },
+        "revokedMonoMs": 45.40000009536743
+      },
+      "baseline": {
+        "workers": 0,
+        "ports": 0,
+        "blobURLs": 0,
+        "probeWorkers": 0
+      }
+    },
+    {
+      "kind": "realm-retired",
+      "runId": "0194a10f-005f-4725-b7c5-7863dfbb4782",
+      "reason": "succeeded",
+      "observedAt": 1790985394381,
+      "observedMonoMs": 1581.1999998092651
+    }
+  ],
+  "rawServerRequests": [
+    {
+      "url": "/network?kind=positive",
+      "at": 1790985394291,
+      "monoMs": 4320.044125
+    }
+  ],
+  "cleanup": {
+    "browserExit": {
+      "code": 0,
+      "signal": null
+    },
+    "ownedBrowserPidAlive": false,
+    "ownedProfileRemoved": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/k3/native-control-component-2026-10-02T23-56-30.037Z/154/profile"
+  }
+}

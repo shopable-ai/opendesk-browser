@@ -1,0 +1,22 @@
+{
+  "reports": [
+    {
+      "label": "138",
+      "summary": {
+        "PASS": 8,
+        "FAIL": 0
+      },
+      "physicalPassed": true
+    },
+    {
+      "label": "154",
+      "summary": {
+        "PASS": 8,
+        "FAIL": 0
+      },
+      "physicalPassed": true
+    }
+  ],
+  "finalProductPassed": false,
+  "serverClosed": true
+}

@@ -1,0 +1,407 @@
+{
+  "methods": {
+    "prepareArtifact": {
+      "required": [
+        "requestId",
+        "runId",
+        "resultId",
+        "filename",
+        "format"
+      ],
+      "formats": [
+        "typed-json",
+        "data"
+      ],
+      "dataRequiredForData": {
+        "mime": [
+          "application/json",
+          "text/plain;charset=utf-8",
+          "application/octet-stream"
+        ],
+        "blocks": "canonical Base64 strings"
+      },
+      "response": [
+        "exportJobId",
+        "artifactId",
+        "artifact",
+        "job"
+      ],
+      "nativeEffects": false
+    },
+    "prepareAttempt": {
+      "required": [
+        "requestId",
+        "artifactId",
+        "blobUrl"
+      ],
+      "response": "DownloadAttempt",
+      "nativeEffects": false
+    },
+    "readArtifact": {
+      "required": [
+        "artifactId"
+      ],
+      "response": {
+        "artifact": "descriptor",
+        "bytes": "Uint8Array"
+      },
+      "chromeTransportOwner": "main: encode/decode Base64 blocks",
+      "brokerResponse": {
+        "artifact": "same descriptor",
+        "blocks": "canonical Base64, max 128KiB raw/block, 64 blocks, 8MiB total"
+      }
+    },
+    "recordResourceRelease": {
+      "required": [
+        "attemptId"
+      ],
+      "response": "DownloadAttempt"
+    },
+    "reconcileDownload": {
+      "required": [
+        "attemptId"
+      ],
+      "response": [
+        "attempt",
+        "receipt",
+        "job"
+      ],
+      "brokerSecondArgument": "actual Chrome sender",
+      "internalSecondArgument": "existing evidence/force options; callbacks/recovery can settle native receipts after host loss"
+    }
+  },
+  "limits": {
+    "artifactBytes": 8388608,
+    "blockBytes": 131072,
+    "blockCount": 64
+  },
+  "authoritativeSource": {
+    "run": "runs[runId], tag controller-run",
+    "result": "results[run.resultId], tag controller-result",
+    "wire": "result.outcome.valueWire",
+    "requiredSuccess": "run/result completed and outcome.ok true",
+    "host": "assertHost(actual sender) + transaction recheck of commandJournal host row"
+  },
+  "sameStores": [
+    "runs",
+    "results",
+    "commandJournal",
+    "exportJobs",
+    "artifacts",
+    "downloadReceipts"
+  ],
+  "sharedLifecycle": [
+    "dispatchDownload",
+    "submit",
+    "reconcileDownload",
+    "onCreated",
+    "onChanged",
+    "saveAttempt/aggregate",
+    "recordResourceRelease",
+    "createHostBlobRegistry",
+    "abandonExport",
+    "abandonRun"
+  ],
+  "noTemplateBinding": true,
+  "nativeDiskHashVerified": false,
+  "f3Approved": false,
+  "schemas": {
+    "artifact": {
+      "kind": "controller-artifact",
+      "required": [
+        "kind",
+        "artifactId",
+        "exportJobId",
+        "runId",
+        "resultId",
+        "namespace",
+        "principal",
+        "format",
+        "mime",
+        "bytes",
+        "byteCount",
+        "sha256",
+        "storageEncoding",
+        "chunkKeys",
+        "filename"
+      ],
+      "format": [
+        "typed-json",
+        "data"
+      ],
+      "storageEncoding": "Uint8Array-chunks",
+      "sha256": "lowercase 64 hex",
+      "byteCount": "equals bytes",
+      "chunkKeys": "1..64 unique chunk ids",
+      "templateFields": false
+    },
+    "job": {
+      "kind": "controller-artifact",
+      "required": [
+        "kind",
+        "exportJobId",
+        "runId",
+        "resultId",
+        "namespace",
+        "principal",
+        "format",
+        "artifactIds",
+        "activeAttemptIds",
+        "state"
+      ],
+      "artifactIds": "exactly one id",
+      "activeAttemptIds": "zero during preparing; at most one active attempt",
+      "state": [
+        "preparing",
+        "ready",
+        "delivering",
+        "delivery_complete",
+        "delivery_partial",
+        "delivery_unknown",
+        "delivery_failed",
+        "abandoned"
+      ],
+      "templateFields": false
+    },
+    "DownloadAttempt": {
+      "type": "object",
+      "properties": {
+        "attemptId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "exportJobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "artifactId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "artifactHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "artifactBytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8388608
+        },
+        "rowCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "hostInstanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "hostDocumentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        },
+        "ownerEpochAtCreation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "blobUrl": {
+          "type": "string",
+          "pattern": "^blob:chrome-extension://"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "preparedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "dispatchAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "mappingDeadline": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "downloadDeadline": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "state": {
+          "enum": [
+            "prepared",
+            "dispatched",
+            "mapping_unknown",
+            "in_progress",
+            "complete",
+            "interrupted",
+            "deadline_unknown",
+            "abandoned",
+            "conflict"
+          ]
+        },
+        "downloadId": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "resourceReleasedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "timedOutAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "candidateDownloadIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "uniqueItems": true
+        },
+        "mappedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "submissionCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "attemptId",
+        "exportJobId",
+        "runId",
+        "artifactId",
+        "artifactHash",
+        "artifactBytes",
+        "rowCount",
+        "hostInstanceId",
+        "hostDocumentId",
+        "ownerEpochAtCreation",
+        "blobUrl",
+        "filename",
+        "preparedAt",
+        "dispatchAt",
+        "mappingDeadline",
+        "downloadDeadline",
+        "state",
+        "downloadId",
+        "resourceReleasedAt",
+        "timedOutAt",
+        "candidateDownloadIds",
+        "mappedAt",
+        "submissionCount"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "states": {
+    "prepareArtifact": {
+      "job": "preparing",
+      "nativeDispatch": false
+    },
+    "prepareAttempt": {
+      "job": "ready",
+      "attempt": "prepared",
+      "nativeDispatch": false
+    },
+    "dispatchDownload": {
+      "ack": {
+        "accepted": true,
+        "state": "dispatched"
+      },
+      "nativeDeliveryKnown": false
+    },
+    "reconcileDownload": {
+      "response": [
+        "attempt",
+        "receipt",
+        "job"
+      ],
+      "browserDownloadComplete": "only after native search confirms complete",
+      "diskHashVerified": false
+    },
+    "recordResourceRelease": "only after terminal/abandon/deadline and registry release"
+  },
+  "publicRegistrationRequiresFixtureSeeding": false,
+  "errorCodes": [
+    "E_SCHEMA",
+    "E_VALUE_SERIALIZATION",
+    "E_OWNER",
+    "E_REQUEST_CONFLICT",
+    "E_HASH",
+    "E_QUOTA",
+    "E_TOMBSTONE"
+  ],
+  "completedHistoryAuthorization": {
+    "contractEvidence": "dlgen-contract-inspection.json",
+    "source": "same-store completed controller-run and immutable controller-result",
+    "stableBinding": [
+      "runId",
+      "resultId",
+      "namespace",
+      "principal",
+      "revision"
+    ],
+    "oldRunBrowserSessionIncarnationRequired": false,
+    "newCurrentHostAfterBrowserReopenAllowed": true,
+    "newExportIntentCaptures": [
+      "registrationId",
+      "hostInstanceId",
+      "hostDocumentId",
+      "browserSessionIncarnation"
+    ],
+    "currentHostAndIntentSessionFencesUnchanged": [
+      "readArtifact",
+      "prepareAttempt",
+      "dispatchDownload",
+      "public reconcileDownload",
+      "recordResourceRelease"
+    ],
+    "activeRunAuthorityOrReplayAllowed": false,
+    "oldIntentAdoptionAllowed": false,
+    "wireValidation": "existing foundation codec semantic depth/byte limits; no general canonical depth relaxation"
+  }
+}

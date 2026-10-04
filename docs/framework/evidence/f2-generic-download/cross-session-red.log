@@ -1,0 +1,39 @@
+✔ generic APIs prepare committed typed values without templates, Blob creation or native dispatch (81.162792ms)
+✔ generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle (22.360875ms)
+✔ generic preparation rejects forged namespace, wrong result/run/principal/session and actual sender before writing (23.72025ms)
+✔ generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes (20.569875ms)
+✔ generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks (892.467125ms)
+✔ generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs (12.574958ms)
+✔ generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified (7.54475ms)
+✔ generic current-document registration is rechecked inside attempt, read and dispatch transactions (14.328584ms)
+✔ generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion (6.066625ms)
+✔ generic missing issued namespace/principal fails closed and never derives authority from payload (3.447583ms)
+✔ generic unsuccessful/missing wire results and legacy template entry points cannot manufacture artifacts (10.078083ms)
+✔ generic immutable result and artifact chunks are rechecked before attempt transaction commits (11.359292ms)
+✔ generic onCreated is not completion; wrong native identity and callback/search conflicts cannot certify delivery (21.562958ms)
+✔ generic native interruption/runtime.lastError use shared failure/unknown states and never resubmit (10.866334ms)
+✔ generic explicit fresh retry shares job/artifact; late evidence cannot release the new active reader pin (8.3505ms)
+✔ generic later registered document exports stable namespace history without acquiring the old run owner (3.902125ms)
+✔ generic abandonRun fences timed-out retry history so shared repository deletion does not strand old attempts (5.476958ms)
+✔ generic public reconcile uses actual sender; internal Chrome callback reconciliation survives owning host revocation (5.092375ms)
+✖ generic completed immutable history exports after real new-session registration without replaying or adopting old download intents (5.7325ms)
+✔ generic cross-session history rejects foreign namespaces, tampered principals, nonterminal runs and current-host session loss (20.538334ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 19
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1351.979625
+
+✖ failing tests:
+
+test at tests/framework/k2-generic-download.test.mjs:301:1
+✖ generic completed immutable history exports after real new-session registration without replaying or adopting old download intents (5.7325ms)
+  Error [FoundationError]: Controller result belongs to another namespace or browser session
+      at invariant (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:14:25)
+      at controllerResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/downloads/index.js:138:5)
+      at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:23:23 {
+    code: 'E_OWNER'
+  }

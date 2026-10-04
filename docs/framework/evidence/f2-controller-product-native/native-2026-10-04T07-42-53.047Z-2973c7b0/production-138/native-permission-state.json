@@ -1,0 +1,46 @@
+{
+  "pid": 5127,
+  "launcherPid": 5126,
+  "endpoint": "ws://127.0.0.1:60688/devtools/browser/430ba00d-47c4-4354-926c-38d05622bb48",
+  "toolId": "1B10190258F76459B7D50FD21FE9035C",
+  "permissionsBefore": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "cookies",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "permissions": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "cookies",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "ui": {
+    "state": "authorizing",
+    "text": "正在授权选定目标…",
+    "result": "{\"scriptId\": \"native-c57bbc1c-f4f5-4dce-ad00-198006b92128\", \"revision\": 1, \"contentHash\": \"262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b\"}",
+    "version": "已保存 r1 · 262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b",
+    "runId": "aa9d48a4-9efd-4e20-bd7a-f81649378736",
+    "download": "浏览器已完成下载 · SHA-256 86a5afbc5b64b0384b705eff19812ef34f7e39bbc960b9574a6339df48474999",
+    "runDisabled": true,
+    "stopDisabled": false
+  }
+}

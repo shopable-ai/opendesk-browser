@@ -1,0 +1,3707 @@
+[
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async()=>{await new Promise(r=>setTimeout(r,100));return {value:'awaited',page:document.body.dataset.page};})()"
+        }
+      ]
+    },
+    "started": 1790970031517,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 104,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "page": "target",
+            "value": "awaited"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(()=>{throw new TypeError('native-sync-error');})()"
+        }
+      ]
+    },
+    "started": 1790970031625,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "Promise.reject(new RangeError('native-promise-error'))"
+        }
+      ]
+    },
+    "started": 1790970031628,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async()=>undefined)()"
+        }
+      ]
+    },
+    "started": 1790970031632,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async (text, absent, obj) => { await new Promise(r=>setTimeout(r,60)); return {text, absent: absent === undefined, proto: obj['__proto__'], missing: undefined, page: document.body.dataset.page}; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[{\"type\":\"string\",\"value\":\"\\\"'\\\\\\n中文 </script>\"},{\"type\":\"undefined\"},{\"type\":\"object\",\"value\":[[\"__proto__\",{\"type\":\"string\",\"value\":\"safe\"}]]}]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031637,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 62,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "text",
+                  {
+                    "type": "string",
+                    "value": "\"'\\\n中文 </script>"
+                  }
+                ],
+                [
+                  "absent",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "proto",
+                  {
+                    "type": "string",
+                    "value": "safe"
+                  }
+                ],
+                [
+                  "missing",
+                  {
+                    "type": "undefined"
+                  }
+                ],
+                [
+                  "page",
+                  {
+                    "type": "string",
+                    "value": "target"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {await new Promise(r=>setTimeout(r,90));return {ok:'awaited'};});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031707,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 94,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "ok",
+                  {
+                    "type": "string",
+                    "value": "awaited"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => {throw new TypeError('wrapped-sync-error');});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031810,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "error": {
+              "message": "wrapped-sync-error",
+              "name": "TypeError"
+            },
+            "ok": false,
+            "protocol": "opendesk.f1.user-scripts-v2"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {await Promise.resolve();throw new RangeError('wrapped-promise-error');});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031819,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "error": {
+              "message": "wrapped-promise-error",
+              "name": "RangeError"
+            },
+            "ok": false,
+            "protocol": "opendesk.f1.user-scripts-v2"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => undefined);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031826,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "undefined"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => { await new Promise(r => setTimeout(r, 40)); return true; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031833,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 42,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => false);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031884,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": false
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => 0);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031892,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "number",
+              "value": 0
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => '');\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031900,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "string",
+              "value": ""
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => null);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031910,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "null"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => ({PageBrigeCode:1,message:\"domain\"}));\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031920,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "PageBrigeCode",
+                  {
+                    "type": "number",
+                    "value": 1
+                  }
+                ],
+                [
+                  "message",
+                  {
+                    "type": "string",
+                    "value": "domain"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => missingClosureVariableF1);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970031934,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "error": {
+              "message": "missingClosureVariableF1 is not defined",
+              "name": "ReferenceError"
+            },
+            "ok": false,
+            "protocol": "opendesk.f1.user-scripts-v2"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970031948,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 78,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "href": "http://127.0.0.1:56779/top?id=target",
+            "kind": "file",
+            "page": "target"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "({pageGlobal: typeof globalThis.__mainOnly, extensionRuntime: typeof globalThis.chrome?.runtime?.sendMessage})"
+        }
+      ]
+    },
+    "started": 1790970032036,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "extensionRuntime": "undefined",
+            "pageGlobal": "undefined"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(function(){document.body.dataset.legacy='ran'; globalThis.__legacyArguments = arguments.length;\n;return true;})()"
+        }
+      ]
+    },
+    "started": 1790970032046,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": true,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "FCF8182CAAF5D9054AF16AE83EE471BD"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.precise=\"USER_SCRIPT-same\";return document.body.dataset.page;});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032058,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "FCF8182CAAF5D9054AF16AE83EE471BD",
+          "frameId": 8,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "string",
+              "value": "same"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "ACD0C537F070344A7FCFF4F58317FDBD"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.precise=\"USER_SCRIPT-cross\";return document.body.dataset.page;});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032075,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "ACD0C537F070344A7FCFF4F58317FDBD",
+          "frameId": 9,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "string",
+              "value": "cross"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970032092,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 77,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "href": "http://127.0.0.1:56779/top?id=target",
+            "kind": "file",
+            "page": "target"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "FCF8182CAAF5D9054AF16AE83EE471BD"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970032183,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 77,
+      "results": [
+        {
+          "documentId": "FCF8182CAAF5D9054AF16AE83EE471BD",
+          "frameId": 8,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "href": "http://127.0.0.1:56779/frame?id=same",
+            "kind": "file",
+            "page": "same"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "ACD0C537F070344A7FCFF4F58317FDBD"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970032273,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 77,
+      "results": [
+        {
+          "documentId": "ACD0C537F070344A7FCFF4F58317FDBD",
+          "frameId": 9,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "href": "http://localhost:56779/frame?id=cross",
+            "kind": "file",
+            "page": "cross"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async()=>{await new Promise(r=>setTimeout(r,100));return {value:'awaited',page:document.body.dataset.page};})()"
+        }
+      ]
+    },
+    "started": 1790970032363,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 101,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "page": "target",
+            "value": "awaited"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(()=>{throw new TypeError('native-sync-error');})()"
+        }
+      ]
+    },
+    "started": 1790970032476,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "Promise.reject(new RangeError('native-promise-error'))"
+        }
+      ]
+    },
+    "started": 1790970032488,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async()=>undefined)()"
+        }
+      ]
+    },
+    "started": 1790970032500,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async (text, absent, obj) => { await new Promise(r=>setTimeout(r,60)); return {text, absent: absent === undefined, proto: obj['__proto__'], missing: undefined, page: document.body.dataset.page}; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[{\"type\":\"string\",\"value\":\"\\\"'\\\\\\n中文 </script>\"},{\"type\":\"undefined\"},{\"type\":\"object\",\"value\":[[\"__proto__\",{\"type\":\"string\",\"value\":\"safe\"}]]}]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032513,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 61,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "text",
+                  {
+                    "type": "string",
+                    "value": "\"'\\\n中文 </script>"
+                  }
+                ],
+                [
+                  "absent",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "proto",
+                  {
+                    "type": "string",
+                    "value": "safe"
+                  }
+                ],
+                [
+                  "missing",
+                  {
+                    "type": "undefined"
+                  }
+                ],
+                [
+                  "page",
+                  {
+                    "type": "string",
+                    "value": "target"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {await new Promise(r=>setTimeout(r,90));return {ok:'awaited'};});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032589,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 93,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "ok",
+                  {
+                    "type": "string",
+                    "value": "awaited"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => {throw new TypeError('wrapped-sync-error');});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032697,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "error": {
+              "message": "wrapped-sync-error",
+              "name": "TypeError"
+            },
+            "ok": false,
+            "protocol": "opendesk.f1.user-scripts-v2"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {await Promise.resolve();throw new RangeError('wrapped-promise-error');});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032711,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "error": {
+              "message": "wrapped-promise-error",
+              "name": "RangeError"
+            },
+            "ok": false,
+            "protocol": "opendesk.f1.user-scripts-v2"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => undefined);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032727,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "undefined"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => { await new Promise(r => setTimeout(r, 40)); return true; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032741,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 42,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => false);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032800,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": false
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => 0);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032816,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "number",
+              "value": 0
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => '');\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032832,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "string",
+              "value": ""
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => null);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032849,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "null"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => ({PageBrigeCode:1,message:\"domain\"}));\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032867,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "PageBrigeCode",
+                  {
+                    "type": "number",
+                    "value": 1
+                  }
+                ],
+                [
+                  "message",
+                  {
+                    "type": "string",
+                    "value": "domain"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => missingClosureVariableF1);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970032884,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "error": {
+              "message": "missingClosureVariableF1 is not defined",
+              "name": "ReferenceError"
+            },
+            "ok": false,
+            "protocol": "opendesk.f1.user-scripts-v2"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970032901,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 77,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "href": "http://127.0.0.1:56779/top?id=target",
+            "kind": "file",
+            "page": "target"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "({pageGlobal: typeof globalThis.__mainOnly, extensionRuntime: typeof globalThis.chrome?.runtime?.sendMessage})"
+        }
+      ]
+    },
+    "started": 1790970032998,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "extensionRuntime": "undefined",
+            "pageGlobal": "string"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(function(){document.body.dataset.legacy='ran'; globalThis.__legacyArguments = arguments.length;\n;return true;})()"
+        }
+      ]
+    },
+    "started": 1790970033016,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": true,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "FCF8182CAAF5D9054AF16AE83EE471BD"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.precise=\"MAIN-same\";return document.body.dataset.page;});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970033035,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "FCF8182CAAF5D9054AF16AE83EE471BD",
+          "frameId": 8,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "string",
+              "value": "same"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "ACD0C537F070344A7FCFF4F58317FDBD"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.precise=\"MAIN-cross\";return document.body.dataset.page;});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970033055,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "ACD0C537F070344A7FCFF4F58317FDBD",
+          "frameId": 9,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "string",
+              "value": "cross"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970033076,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 77,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "href": "http://127.0.0.1:56779/top?id=target",
+            "kind": "file",
+            "page": "target"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "FCF8182CAAF5D9054AF16AE83EE471BD"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970033185,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 77,
+      "results": [
+        {
+          "documentId": "FCF8182CAAF5D9054AF16AE83EE471BD",
+          "frameId": 8,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "href": "http://127.0.0.1:56779/frame?id=same",
+            "kind": "file",
+            "page": "same"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "ACD0C537F070344A7FCFF4F58317FDBD"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970033284,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 77,
+      "results": [
+        {
+          "documentId": "ACD0C537F070344A7FCFF4F58317FDBD",
+          "frameId": 9,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "href": "http://localhost:56779/frame?id=cross",
+            "kind": "file",
+            "page": "cross"
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "document.body.dataset.invalid='bad'",
+          "file": "file-source.js"
+        }
+      ]
+    },
+    "started": 1790970033381,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "User script must specify exactly one of 'code' or 'file' as a js source.",
+        "stack": "Error: User script must specify exactly one of 'code' or 'file' as a js source."
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {}
+      ]
+    },
+    "started": 1790970033399,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "User script must specify exactly one of 'code' or 'file' as a js source.",
+        "stack": "Error: User script must specify exactly one of 'code' or 'file' as a js source."
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "func": "() => 1",
+          "args": []
+        }
+      ]
+    },
+    "started": 1790970033417,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 1,
+      "error": {
+        "name": "TypeError",
+        "message": "Error in invocation of userScripts.execute(userScripts.UserScriptInjection injection, optional function callback): Error at parameter 'injection': Error at property 'js': Error at index 0: Unexpected property: 'func'.",
+        "stack": "TypeError: Error in invocation of userScripts.execute(userScripts.UserScriptInjection injection, optional function callback): Error at parameter 'injection': Error at property 'js': Error at index 0: Unexpected property: 'func'.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:22:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ],
+        "frameIds": [
+          0
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "1"
+        }
+      ]
+    },
+    "started": 1790970033436,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "Cannot specify both 'frameIds' and 'documentIds'.",
+        "stack": "Error: Cannot specify both 'frameIds' and 'documentIds'."
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "file": "does-not-exist.js"
+        }
+      ]
+    },
+    "started": 1790970033454,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 1,
+      "error": {
+        "name": "Error",
+        "message": "Could not load file: 'does-not-exist.js'.",
+        "stack": "Error: Could not load file: 'does-not-exist.js'."
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => { document.body.dataset.pending = \"revoke-USER_SCRIPT\"; const value = await (await fetch(\"http://127.0.0.1:56779/hold?token=revoke-USER_SCRIPT\")).json(); document.body.dataset.finished = \"revoke-USER_SCRIPT\"; return value; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970033621,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 134,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "token",
+                  {
+                    "type": "string",
+                    "value": "revoke-USER_SCRIPT"
+                  }
+                ],
+                [
+                  "released",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "document.body.dataset.postRevoke=\"revoke-USER_SCRIPT\";1"
+        }
+      ]
+    },
+    "started": 1790970033754,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "'userScripts.execute' is not available in this context.",
+        "stack": "Error: 'userScripts.execute' is not available in this context.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:22:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => { document.body.dataset.pending = \"navigate-USER_SCRIPT\"; const value = await (await fetch(\"http://127.0.0.1:56779/hold?token=navigate-USER_SCRIPT\")).json(); document.body.dataset.finished = \"navigate-USER_SCRIPT\"; return value; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970033910,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 13,
+      "results": [
+        {
+          "documentId": "2305CB40B1AE5A2239851E2236C08EE8",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "2305CB40B1AE5A2239851E2236C08EE8"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "document.body.dataset.stale='bad';1"
+        }
+      ]
+    },
+    "started": 1790970033938,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "No document with id 2305CB40B1AE5A2239851E2236C08EE8 in tab with id 542102456",
+        "stack": "Error: No document with id 2305CB40B1AE5A2239851E2236C08EE8 in tab with id 542102456"
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "0908AB287D24C9CD29F950D1B67D8652"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => document.body.dataset.page);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970033939,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "0908AB287D24C9CD29F950D1B67D8652",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "string",
+              "value": "after-USER_SCRIPT"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "0908AB287D24C9CD29F950D1B67D8652"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => { document.body.dataset.pending = \"revoke-MAIN\"; const value = await (await fetch(\"http://127.0.0.1:56779/hold?token=revoke-MAIN\")).json(); document.body.dataset.finished = \"revoke-MAIN\"; return value; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970033966,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 138,
+      "results": [
+        {
+          "documentId": "0908AB287D24C9CD29F950D1B67D8652",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "token",
+                  {
+                    "type": "string",
+                    "value": "revoke-MAIN"
+                  }
+                ],
+                [
+                  "released",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "0908AB287D24C9CD29F950D1B67D8652"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "document.body.dataset.postRevoke=\"revoke-MAIN\";1"
+        }
+      ]
+    },
+    "started": 1790970034102,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "'userScripts.execute' is not available in this context.",
+        "stack": "Error: 'userScripts.execute' is not available in this context.\n    at Object.raw (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:22:46)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:47)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "0908AB287D24C9CD29F950D1B67D8652"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => { document.body.dataset.pending = \"navigate-MAIN\"; const value = await (await fetch(\"http://127.0.0.1:56779/hold?token=navigate-MAIN\")).json(); document.body.dataset.finished = \"navigate-MAIN\"; return value; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970034265,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 6,
+      "results": [
+        {
+          "documentId": "0908AB287D24C9CD29F950D1B67D8652",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "0908AB287D24C9CD29F950D1B67D8652"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "document.body.dataset.stale='bad';1"
+        }
+      ]
+    },
+    "started": 1790970034288,
+    "outcome": {
+      "kind": "rejected",
+      "elapsedMs": 0,
+      "error": {
+        "name": "Error",
+        "message": "No document with id 0908AB287D24C9CD29F950D1B67D8652 in tab with id 542102456",
+        "stack": "Error: No document with id 0908AB287D24C9CD29F950D1B67D8652 in tab with id 542102456"
+      }
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => document.body.dataset.page);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970034289,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "string",
+              "value": "after-MAIN"
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "document.body.dataset.hostDenied=\"host-denied-USER_SCRIPT\";1"
+        }
+      ]
+    },
+    "started": 1790970034455,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 7743,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970035592,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => { document.body.dataset.pending = \"host-pending-USER_SCRIPT\"; const value = await (await fetch(\"http://127.0.0.1:56779/hold?token=host-pending-USER_SCRIPT\")).json(); document.body.dataset.finished = \"host-pending-USER_SCRIPT\"; return value; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970035628,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1154,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "token",
+                  {
+                    "type": "string",
+                    "value": "host-pending-USER_SCRIPT"
+                  }
+                ],
+                [
+                  "released",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "document.body.dataset.postHostRevoke=\"host-pending-USER_SCRIPT\";1"
+        }
+      ]
+    },
+    "started": 1790970035779,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 6418,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970036913,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => {document.body.dataset.finished=\"host-native-completed-USER_SCRIPT\";return true;});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970036939,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "document.body.dataset.postHostRevoke=\"host-native-completed-USER_SCRIPT\";1"
+        }
+      ]
+    },
+    "started": 1790970037070,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 5127,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970038213,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "document.body.dataset.hostDenied=\"host-denied-MAIN\";1"
+        }
+      ]
+    },
+    "started": 1790970038388,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 3809,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970039528,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => { document.body.dataset.pending = \"host-pending-MAIN\"; const value = await (await fetch(\"http://127.0.0.1:56779/hold?token=host-pending-MAIN\")).json(); document.body.dataset.finished = \"host-pending-MAIN\"; return value; });\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970039560,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1139,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "token",
+                  {
+                    "type": "string",
+                    "value": "host-pending-MAIN"
+                  }
+                ],
+                [
+                  "released",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "document.body.dataset.postHostRevoke=\"host-pending-MAIN\";1"
+        }
+      ]
+    },
+    "started": 1790970039695,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 2502,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970040851,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => {document.body.dataset.finished=\"host-native-completed-MAIN\";return true;});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970040880,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "document.body.dataset.postHostRevoke=\"host-native-completed-MAIN\";1"
+        }
+      ]
+    },
+    "started": 1790970041022,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1175,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": null,
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "09F74EC867FD96B98E9B620726CC7A48"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042174,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "09F74EC867FD96B98E9B620726CC7A48",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "1B8A5F22764EC00B39BE943DACEE89D4"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.cspExecuted=\"csp-baseline-MAIN-page\";try {const response=await fetch(\"http://127.0.0.1:56779/probe?token=csp-baseline-MAIN-page\");return {network:true,status:response.status};} catch(error) {return {network:false,error:String(error)};}});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042229,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 2,
+      "results": [
+        {
+          "documentId": "1B8A5F22764EC00B39BE943DACEE89D4",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "network",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "status",
+                  {
+                    "type": "number",
+                    "value": 200
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "1B8A5F22764EC00B39BE943DACEE89D4"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "worldId": "m5-baseline-allow",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.cspExecuted=\"csp-baseline-USER_SCRIPT-allow\";try {const response=await fetch(\"http://127.0.0.1:56779/probe?token=csp-baseline-USER_SCRIPT-allow\");return {network:true,status:response.status};} catch(error) {return {network:false,error:String(error)};}});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042266,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 3,
+      "results": [
+        {
+          "documentId": "1B8A5F22764EC00B39BE943DACEE89D4",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "network",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "status",
+                  {
+                    "type": "number",
+                    "value": 200
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "1B8A5F22764EC00B39BE943DACEE89D4"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "worldId": "m5-baseline-deny",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.cspExecuted=\"csp-baseline-USER_SCRIPT-deny\";try {const response=await fetch(\"http://127.0.0.1:56779/probe?token=csp-baseline-USER_SCRIPT-deny\");return {network:true,status:response.status};} catch(error) {return {network:false,error:String(error)};}});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042301,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 2,
+      "results": [
+        {
+          "documentId": "1B8A5F22764EC00B39BE943DACEE89D4",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "network",
+                  {
+                    "type": "boolean",
+                    "value": false
+                  }
+                ],
+                [
+                  "error",
+                  {
+                    "type": "string",
+                    "value": "TypeError: Failed to fetch"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "373DF068751D9BB7AB473B23883C5BC9"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.cspExecuted=\"csp-restrictive-MAIN-page\";try {const response=await fetch(\"http://127.0.0.1:56779/probe?token=csp-restrictive-MAIN-page\");return {network:true,status:response.status};} catch(error) {return {network:false,error:String(error)};}});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042349,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "373DF068751D9BB7AB473B23883C5BC9",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "network",
+                  {
+                    "type": "boolean",
+                    "value": false
+                  }
+                ],
+                [
+                  "error",
+                  {
+                    "type": "string",
+                    "value": "TypeError: Failed to fetch"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "373DF068751D9BB7AB473B23883C5BC9"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "worldId": "m5-restrictive-allow",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.cspExecuted=\"csp-restrictive-USER_SCRIPT-allow\";try {const response=await fetch(\"http://127.0.0.1:56779/probe?token=csp-restrictive-USER_SCRIPT-allow\");return {network:true,status:response.status};} catch(error) {return {network:false,error:String(error)};}});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042386,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 3,
+      "results": [
+        {
+          "documentId": "373DF068751D9BB7AB473B23883C5BC9",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "network",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "status",
+                  {
+                    "type": "number",
+                    "value": 200
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "373DF068751D9BB7AB473B23883C5BC9"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "worldId": "m5-restrictive-deny",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (async () => {document.body.dataset.cspExecuted=\"csp-restrictive-USER_SCRIPT-deny\";try {const response=await fetch(\"http://127.0.0.1:56779/probe?token=csp-restrictive-USER_SCRIPT-deny\");return {network:true,status:response.status};} catch(error) {return {network:false,error:String(error)};}});\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042424,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 2,
+      "results": [
+        {
+          "documentId": "373DF068751D9BB7AB473B23883C5BC9",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "object",
+              "value": [
+                [
+                  "network",
+                  {
+                    "type": "boolean",
+                    "value": false
+                  }
+                ],
+                [
+                  "error",
+                  {
+                    "type": "string",
+                    "value": "TypeError: Failed to fetch"
+                  }
+                ]
+              ]
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "373DF068751D9BB7AB473B23883C5BC9"
+        ]
+      },
+      "world": "USER_SCRIPT",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042518,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 1,
+      "results": [
+        {
+          "documentId": "373DF068751D9BB7AB473B23883C5BC9",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  },
+  {
+    "injection": {
+      "target": {
+        "tabId": 542102456,
+        "documentIds": [
+          "373DF068751D9BB7AB473B23883C5BC9"
+        ]
+      },
+      "world": "MAIN",
+      "js": [
+        {
+          "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+        }
+      ]
+    },
+    "started": 1790970042520,
+    "outcome": {
+      "kind": "resolved",
+      "elapsedMs": 0,
+      "results": [
+        {
+          "documentId": "373DF068751D9BB7AB473B23883C5BC9",
+          "frameId": 0,
+          "keys": [
+            "documentId",
+            "frameId",
+            "result"
+          ],
+          "hasResult": true,
+          "resultIsUndefined": false,
+          "result": {
+            "ok": true,
+            "protocol": "opendesk.f1.user-scripts-v2",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "hasError": false
+        }
+      ]
+    }
+  }
+]

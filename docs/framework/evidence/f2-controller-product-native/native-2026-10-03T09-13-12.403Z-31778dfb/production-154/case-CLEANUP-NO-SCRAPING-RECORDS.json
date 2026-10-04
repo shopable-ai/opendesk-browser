@@ -1,0 +1,32 @@
+{
+  "id": "CLEANUP-NO-SCRAPING-RECORDS",
+  "families": "A01/LEAK01",
+  "expected": "Controller targets/frames retired, slot released; no template/row/seal/business run prerequisite",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "startedAt": 1791018807658,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- null\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- null\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:729:14\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:726:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "ready",
+    "text": "公共运行入口已就绪，请保存脚本并选择目标",
+    "result": "",
+    "version": "尚未保存",
+    "runId": "",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": true,
+    "stopDisabled": true
+  },
+  "elapsedMs": 25.03729199999907
+}

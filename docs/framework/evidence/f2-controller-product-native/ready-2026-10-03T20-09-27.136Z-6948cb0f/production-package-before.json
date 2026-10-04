@@ -1,0 +1,96 @@
+{
+  "files": [
+    {
+      "path": "agents/bootstrap.js",
+      "bytes": 1110,
+      "sha256": "f8c376a6080e713b7e0043872d5f19ae7e822443cebe908dd03f9600e4de09fe"
+    },
+    {
+      "path": "agents/health.js",
+      "bytes": 998,
+      "sha256": "98069ba8787f41e70b5610437b097512e0bc06dee8721981a6fa31bb70a9238a"
+    },
+    {
+      "path": "agents/page-agent.js",
+      "bytes": 53508,
+      "sha256": "c11f0e99519b967f1f316528f58e2ca51f1466d141013e099940544465ae9938"
+    },
+    {
+      "path": "agents/page-relay.js",
+      "bytes": 13770,
+      "sha256": "ae81f5028c15bf501ef60e6530b4b9f3767e43c4f0ef8e47c86439ae7598aa03"
+    },
+    {
+      "path": "agents/selection-entry.js",
+      "bytes": 565,
+      "sha256": "8cb86b8176c4b5824b9951e6190b37e2ef177be2c1574b3f50e4792bf65ef74c"
+    },
+    {
+      "path": "framework/sdk-main.js",
+      "bytes": 24401,
+      "sha256": "01fc16c3f28d5f38544c0288f7a14f2ed2369b7e240c175298e7cacda90a5382"
+    },
+    {
+      "path": "icons/notification.png",
+      "bytes": 595,
+      "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+    },
+    {
+      "path": "licenses/todo-user-vue-MIT.txt",
+      "bytes": 1096,
+      "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 946,
+      "sha256": "97c9d8bc15ccec14cdcf72e0ecf0cb5d25a3f3c766922b657b1efdf5e0d8215a"
+    },
+    {
+      "path": "scripting/packaged/page-session.js",
+      "bytes": 15863,
+      "sha256": "2912ccd4c3fd37f917445eab47dc27ed46d364bdce24fc928e12438f140caa02"
+    },
+    {
+      "path": "scripting/sandbox/sandbox.html",
+      "bytes": 385,
+      "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+    },
+    {
+      "path": "scripting/sandbox/sandbox.js",
+      "bytes": 4176,
+      "sha256": "c09f6b83c5a91809a52b85815f2e748108d07878c23eeb61ba0e8d023405a256"
+    },
+    {
+      "path": "scripting/sandbox/worker-runtime.js",
+      "bytes": 21109,
+      "sha256": "1fde9f4388f6c4fdbe34fccec5f1ac3b57d8b80b83b9cd48a9a7eebc4b01b334"
+    },
+    {
+      "path": "sw.js",
+      "bytes": 252820,
+      "sha256": "0b3ab6d1e3f3bf3e00711c00f6b7803edda13f51a6f8bd8c5758473b9209e299"
+    },
+    {
+      "path": "ui/target-bootstrap.html",
+      "bytes": 200,
+      "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+    },
+    {
+      "path": "ui/tool-shell.css",
+      "bytes": 1326,
+      "sha256": "6cc4f15df5945aa9ed0af7b21e5db611828bb64fb8496e06a4654f7697327401"
+    },
+    {
+      "path": "ui/tool-shell.js",
+      "bytes": 52832,
+      "sha256": "da9df79ab2b6d5aa62c4bcab52bfdeeb5cf889e3e72efee1f602f613a7d12fbb"
+    },
+    {
+      "path": "ui/tool.html",
+      "bytes": 4862,
+      "sha256": "7f966fa92d3412e641a967d46a15e65f4fbd57678fc6c861dcb15af9ee9ece13"
+    }
+  ],
+  "packageHash": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280",
+  "algorithm": "SHA256 UTF-8 JSON.stringify(path-sorted {path,bytes,sha256} array)"
+}

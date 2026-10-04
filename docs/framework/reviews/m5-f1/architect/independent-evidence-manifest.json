@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Independent reviewer probe and exact-tag source evidence integrity; browser profiles are temporary runtime data excluded",
+  "pageCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "files": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/page-transient-revoke-probe.mjs",
+      "bytes": 6258,
+      "sha256": "3700d7f3afc3262dee91b2d2d5bfb03acdca762a47686fbc86190418150f9f2b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/report.json",
+      "bytes": 112016,
+      "sha256": "a3688fe2138ee62225f589203576339d5719bf3436a2cd67a789a5e54e51b53b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-initial-on.png",
+      "bytes": 83594,
+      "sha256": "85caf9c158ccbf2d29afa480fa0d8f750f66e924ca643343124a6b61718163c7"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-site-MAIN-off.png",
+      "bytes": 84199,
+      "sha256": "4c339db7b2b0eefbf23d7d695ba58ecb76ce6fa9a005701c60afd9b94017f805"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-site-MAIN-on.png",
+      "bytes": 83907,
+      "sha256": "014eb48d5a4a86185787b708c6642289c0223db58368cc4c16df335c1727a638"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-site-USER_SCRIPT-off.png",
+      "bytes": 84180,
+      "sha256": "8769652318f8ee62aa01d67abf62cb0b8ecfc36fd2f9982e70bd7be9d6db74b3"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-site-USER_SCRIPT-on.png",
+      "bytes": 83882,
+      "sha256": "f6ee8bfe5de4ecf93a74a6a3776662940fad092e32a618f2ddf98f201b461b32"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-switch-MAIN-off.png",
+      "bytes": 83713,
+      "sha256": "c623ed91c1eb5b567a519cce204ff3645ca99c3aace317477d307c121bed0d92"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-switch-MAIN-on.png",
+      "bytes": 83697,
+      "sha256": "b377c00d28128c1954bfa4aeb380cedd641533020e4b2e4a169c213d3cd2f4e5"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-switch-USER_SCRIPT-off.png",
+      "bytes": 83645,
+      "sha256": "5e1c9e4eacd12bfbc04b1d2d32dd37bf312029dbd209d1b36ba714e7d4ff87d2"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/138.0.7204.183-switch-USER_SCRIPT-on.png",
+      "bytes": 83625,
+      "sha256": "5399d7501ca3c1c944884839ea9fc4a51f6c35b0451e74d2d060411e9224f560"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-initial-on.png",
+      "bytes": 76929,
+      "sha256": "d902c0ab0c834fec150bba4e079266ab9458368860e32edaa13d6ab2c3a7474d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-site-MAIN-off.png",
+      "bytes": 77720,
+      "sha256": "15845e31d4a9c852714a6387437bdfd6245ee4c9371c5aa3424353c63cb8c760"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-site-MAIN-on.png",
+      "bytes": 77492,
+      "sha256": "84110f231acb60261e8c51a9f1f03fdb097844f7606337e49bbbb3b80934ce38"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-site-USER_SCRIPT-off.png",
+      "bytes": 77940,
+      "sha256": "1f6b0b0b5bbf06488085b8958a2ef06c3092a82bf48f4cf24f714c20ee705f8f"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-site-USER_SCRIPT-on.png",
+      "bytes": 77417,
+      "sha256": "95617ad12d47b49d552ac8466bd194c8d945fae0183d3d86840fa2a78159c555"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-switch-MAIN-off.png",
+      "bytes": 77169,
+      "sha256": "14102330ae891af9b68a4b606ce7c7e62fc64be009c5d17d4c947841974f43b7"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-switch-MAIN-on.png",
+      "bytes": 77158,
+      "sha256": "d0c070ef5cdc71a27b38c918629cdff8d010f1bb34ae58bd4e789bb68b4a4690"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-switch-USER_SCRIPT-off.png",
+      "bytes": 77062,
+      "sha256": "4d1aa1bc1322bc6572e3a3b0d5aeb079c07dd0e32855d86543c59c82d1052028"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/154.0.8037.92-switch-USER_SCRIPT-on.png",
+      "bytes": 77055,
+      "sha256": "009e8e5c682db1e1c712c19b65555dd123f464c94a753273052b452740b3910d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/chromium-source-evidence/138.0.7204.183-worker_thread.cc",
+      "bytes": 42120,
+      "sha256": "7c989d222ed648eaf8650b7ce2f3d9ec4ab5b83e739ccb6788d7d667c5d0961e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/chromium-source-evidence/154.0.8037.92-worker_thread.cc",
+      "bytes": 41154,
+      "sha256": "f5e2a985450beea9dde7c0045654f789e22c38c43339c83292c364b1431e3a84"
+    }
+  ]
+}

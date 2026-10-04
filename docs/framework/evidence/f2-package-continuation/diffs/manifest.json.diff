@@ -1,0 +1,15 @@
+--- manifest.json before
+
++++ manifest.json
+
+@@ -9,6 +9,7 @@
+
+   "optional_host_permissions": ["http://*/*", "https://*/*"],
+   "background": {"service_worker": "sw.js"},
+   "action": {"default_title": "打开 OpenDesk Browser"},
+-  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'self'"},
+-  "incognito": "not_allowed"
++  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'self'", "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"},
++  "incognito": "not_allowed",
++  "sandbox": {"pages": ["scripting/sandbox/sandbox.html"]}
+ }

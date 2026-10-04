@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-10-02T14:13:24.423063+00:00",
+  "actualFileRows": 72,
+  "actualApiItems": 48,
+  "historyDefectMapping": 8,
+  "historyFailedTestMapping": 17,
+  "allGeneratedJsonParsed": true,
+  "fixtureExecutedOnce": true,
+  "nodeSyntaxCheckPassed": true,
+  "productTestsRerun": false,
+  "buildRun": false,
+  "oldAuditApprovalModified": false,
+  "prototypeRequiredAssertionsNotCompleted": true,
+  "independentPrototypeReview": "valid-final-PARTIAL_PROOF",
+  "backendPrototypePassed": false,
+  "fullImplementationReleased": false,
+  "frameworkFunctionalMigrationComplete": false,
+  "goalDisposition": "user-authorized-conditional-pause"
+}

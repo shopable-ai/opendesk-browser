@@ -1,0 +1,270 @@
+{
+  "at": "2026-10-03T09:02:36.286Z",
+  "ownedPid": 40368,
+  "endpoint": "ws://127.0.0.1:65427/devtools/browser/4cea9cce-42e3-427b-9ee8-1354bfbcdba3",
+  "toolId": "F040CED1A381E42D81CDC427C6EA1B27",
+  "version": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/154.0.8037.92",
+    "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "jsVersion": "15.4.80.19"
+  },
+  "process": [
+    {
+      "type": "browser",
+      "id": 40368,
+      "cpuTime": 3.0736
+    }
+  ],
+  "tool": {
+    "targetId": "F040CED1A381E42D81CDC427C6EA1B27",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "F430DD31DE0C38B5696145E3781B00E2"
+  },
+  "activation": {},
+  "window": {
+    "windowId": 1438489642,
+    "bounds": {
+      "left": 22,
+      "top": 55,
+      "width": 1200,
+      "height": 950,
+      "windowState": "normal"
+    }
+  },
+  "raw": [
+    {
+      "at": "2026-10-03T09:02:36.287Z",
+      "direction": "sent",
+      "message": {
+        "id": 1,
+        "method": "Browser.getVersion",
+        "params": {}
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.289Z",
+      "direction": "received",
+      "message": {
+        "id": 1,
+        "result": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/154.0.8037.92",
+          "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "jsVersion": "15.4.80.19"
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.289Z",
+      "direction": "sent",
+      "message": {
+        "id": 2,
+        "method": "SystemInfo.getProcessInfo",
+        "params": {}
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.290Z",
+      "direction": "received",
+      "message": {
+        "id": 2,
+        "result": {
+          "processInfo": [
+            {
+              "type": "browser",
+              "id": 40368,
+              "cpuTime": 3.0736
+            },
+            {
+              "type": "renderer",
+              "id": 40463,
+              "cpuTime": 0.043895
+            },
+            {
+              "type": "renderer",
+              "id": 40413,
+              "cpuTime": 0.046146
+            },
+            {
+              "type": "renderer",
+              "id": 40412,
+              "cpuTime": 0.08089
+            },
+            {
+              "type": "renderer",
+              "id": 40410,
+              "cpuTime": 1.490409
+            },
+            {
+              "type": "renderer",
+              "id": 40406,
+              "cpuTime": 0.22065
+            },
+            {
+              "type": "renderer",
+              "id": 40407,
+              "cpuTime": 0.075105
+            },
+            {
+              "type": "renderer",
+              "id": 40405,
+              "cpuTime": 0.346146
+            },
+            {
+              "type": "GPU",
+              "id": 40399,
+              "cpuTime": 0.739965
+            },
+            {
+              "type": "network.mojom.NetworkService",
+              "id": 40400,
+              "cpuTime": 0.124245
+            },
+            {
+              "type": "storage.mojom.StorageService",
+              "id": 40403,
+              "cpuTime": 0.033786
+            }
+          ]
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.290Z",
+      "direction": "sent",
+      "message": {
+        "id": 3,
+        "method": "Target.getTargets",
+        "params": {}
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.290Z",
+      "direction": "received",
+      "message": {
+        "id": 3,
+        "result": {
+          "targetInfos": [
+            {
+              "targetId": "D531E5E1D859986C2D672D929F8EDBEC",
+              "type": "service_worker",
+              "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+              "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+              "attached": true,
+              "canAccessOpener": false,
+              "browserContextId": "F430DD31DE0C38B5696145E3781B00E2"
+            },
+            {
+              "targetId": "C8F378F014B040A8B1D69E2E4DCD399F",
+              "type": "page",
+              "title": "about:blank",
+              "url": "about:blank",
+              "attached": false,
+              "canAccessOpener": false,
+              "browserContextId": "F430DD31DE0C38B5696145E3781B00E2"
+            },
+            {
+              "targetId": "F91C4BEBDE1FE073ADC751273684841B",
+              "type": "browser_ui",
+              "title": "Omnibox Popup",
+              "url": "chrome://omnibox-popup.top-chrome/",
+              "attached": false,
+              "canAccessOpener": false,
+              "browserContextId": "F430DD31DE0C38B5696145E3781B00E2"
+            },
+            {
+              "targetId": "A0FD7376D5E92CBC82F0959807086CA8",
+              "type": "page",
+              "title": "SDK target",
+              "url": "http://127.0.0.1:62228/target?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&session=1",
+              "attached": true,
+              "canAccessOpener": false,
+              "browserContextId": "F430DD31DE0C38B5696145E3781B00E2"
+            },
+            {
+              "targetId": "F040CED1A381E42D81CDC427C6EA1B27",
+              "type": "page",
+              "title": "OpenDesk Browser",
+              "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+              "attached": true,
+              "canAccessOpener": false,
+              "browserContextId": "F430DD31DE0C38B5696145E3781B00E2"
+            },
+            {
+              "targetId": "993872C3C1E6E67F259B0CD2DD357590",
+              "type": "browser_ui",
+              "title": "Omnibox Popup",
+              "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+              "attached": false,
+              "canAccessOpener": false,
+              "browserContextId": "F430DD31DE0C38B5696145E3781B00E2"
+            },
+            {
+              "targetId": "12C4DD8F671EB3136331B3EEDB2FACBC",
+              "type": "page",
+              "title": "SDK decoy",
+              "url": "http://127.0.0.1:62228/decoy?seed=sdk-native-fabb5ce0-98b8-450c-979a-32b2723cbed8&session=1",
+              "attached": true,
+              "canAccessOpener": false,
+              "browserContextId": "F430DD31DE0C38B5696145E3781B00E2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.290Z",
+      "direction": "sent",
+      "message": {
+        "id": 4,
+        "method": "Target.activateTarget",
+        "params": {
+          "targetId": "F040CED1A381E42D81CDC427C6EA1B27"
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.305Z",
+      "direction": "received",
+      "message": {
+        "id": 4,
+        "result": {}
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.305Z",
+      "direction": "sent",
+      "message": {
+        "id": 5,
+        "method": "Browser.getWindowForTarget",
+        "params": {
+          "targetId": "F040CED1A381E42D81CDC427C6EA1B27"
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T09:02:36.306Z",
+      "direction": "received",
+      "message": {
+        "id": 5,
+        "result": {
+          "windowId": 1438489642,
+          "bounds": {
+            "left": 22,
+            "top": 55,
+            "width": 1200,
+            "height": 950,
+            "windowState": "normal"
+          }
+        }
+      }
+    }
+  ]
+}

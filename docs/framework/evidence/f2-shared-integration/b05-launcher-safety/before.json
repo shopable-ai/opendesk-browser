@@ -1,0 +1,7 @@
+{
+  "at": "2026-10-03T09:19:08.098873+00:00",
+  "path": "tests/framework/b05-product-acceptance-20261003.mjs",
+  "sha256": "9fd9406a834fc6c01e6c4c99c2a7b5bc3e60bcecc15623819deca3f1b1006d16",
+  "scope": "test runner lifecycle only; not product source/package",
+  "reason": "Recheck PID parent/profile/executable immediately before fallback signal; all global launch bytes preserved"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+  "families": "USC01/USC02/USC03",
+  "expected": "Running r1 remains pinned while UI saves r2 and tombstones head; r1 source/params/result stay unchanged until retirement; new start from another real host holding r2 is rejected E_TOMBSTONE",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "startedAt": 1791022215702,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "E_OBSERVATION_TIMEOUT",
+    "name": "Error",
+    "message": "Observation timed out: native CUA selection #script-target-mode",
+    "stack": "Error: Observation timed out: native CUA selection #script-target-mode\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:197:17)\n    at async select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:462:7)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:484:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:590:75\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:393:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:588:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "saved",
+    "text": "r1 已持久保存；正在运行的旧版本保持原版本",
+    "result": "{\"scriptId\": \"native-3cd288a5-92e6-4620-bef2-029900b15cba\", \"revision\": 1, \"contentHash\": \"f9f9b55e6c3888b64d68e1ea9fe20ffc48275cd15b639a88cd9c2286950d14e6\"}",
+    "version": "已保存 r1 · f9f9b55e6c3888b64d68e1ea9fe20ffc48275cd15b639a88cd9c2286950d14e6",
+    "runId": "420e1c46-62fa-48e2-80f7-e664cf91c6c6",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 120138.67758399999
+}

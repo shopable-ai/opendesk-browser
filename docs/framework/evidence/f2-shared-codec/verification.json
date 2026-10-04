@@ -1,0 +1,565 @@
+{
+  "at": "2026-10-03T08:38:14.703Z",
+  "requestedModel": "gpt-6.1-sol",
+  "requestedEffort": "xhigh",
+  "resolvedModel": "unknown",
+  "resolvedEffort": "unknown",
+  "sourceFiles": [
+    {
+      "path": "src/platform/page-port/codec.js",
+      "bytes": 11956,
+      "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "bytes": 3317,
+      "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-evaluator.js",
+      "bytes": 6105,
+      "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+    },
+    {
+      "path": "tests/framework/k2-shared-codec.test.mjs",
+      "bytes": 11421,
+      "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+    }
+  ],
+  "factorySourceSha256": "f5982f2de5fc32cf0c2bbfd4ceb26a39850f5e2a001ef51eab0c3748d396f09e",
+  "checks": [
+    {
+      "command": "node --test --test-reporter=tap tests/framework/k2-shared-codec.test.mjs tests/framework/k2-codec.test.mjs tests/framework/k3-page-evaluator.test.mjs tests/framework/k3-context.test.mjs tests/framework/k3-native-driver.test.mjs tests/framework/k3-controller-authority.test.mjs",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exit": 0,
+      "signal": null,
+      "log": "targeted.log",
+      "before": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "after": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "drift": []
+    },
+    {
+      "command": "node --check src/platform/page-port/codec.js",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exit": 0,
+      "signal": null,
+      "log": "syntax.log",
+      "before": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "after": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "drift": []
+    },
+    {
+      "command": "node --check src/framework/control/value.js",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exit": 0,
+      "signal": null,
+      "log": "syntax-control.log",
+      "before": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "after": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "drift": []
+    },
+    {
+      "command": "node --check src/scripting/user-scripts/page-evaluator.js",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exit": 0,
+      "signal": null,
+      "log": "syntax-generated.log",
+      "before": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "after": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "drift": []
+    },
+    {
+      "command": "npm run check",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "exit": 0,
+      "signal": null,
+      "log": "source-check.log",
+      "before": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "after": [
+        {
+          "path": "src/platform/page-port/codec.js",
+          "bytes": 11956,
+          "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+        },
+        {
+          "path": "src/framework/control/value.js",
+          "bytes": 3317,
+          "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+        },
+        {
+          "path": "src/scripting/user-scripts/page-evaluator.js",
+          "bytes": 6105,
+          "sha256": "05a64fa495014d1a0f1cf8eca4ee9bfca51182b914d13944088b554626dd4bf7"
+        },
+        {
+          "path": "tests/framework/k2-shared-codec.test.mjs",
+          "bytes": 11421,
+          "sha256": "fe9a905405fe7cf35c279ae73c1d1ca27cb68c616b18867d4178e7f93a74bc0d"
+        },
+        {
+          "path": "tests/framework/k2-codec.test.mjs",
+          "bytes": 4306,
+          "sha256": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+        },
+        {
+          "path": "tests/framework/k3-page-evaluator.test.mjs",
+          "bytes": 4148,
+          "sha256": "e9dafb0f2301d8522377277407dea242eabcf271e9cac7747143dbb7b5e26b64"
+        },
+        {
+          "path": "tests/framework/k3-context.test.mjs",
+          "bytes": 9639,
+          "sha256": "7faff2e06c81294da009641961ce4c08a786fb3ff0f00449e6bf5f61f2d5cad7"
+        },
+        {
+          "path": "tests/framework/k3-native-driver.test.mjs",
+          "bytes": 32067,
+          "sha256": "6f9019c89ae5e57cff5d5092b32467f118c7c0d11655df7c1df0d4966405c9fd"
+        },
+        {
+          "path": "tests/framework/k3-controller-authority.test.mjs",
+          "bytes": 27511,
+          "sha256": "d3cea359166a3118c0549991595edd4da55114038b1278b9e974229e037513f2"
+        }
+      ],
+      "drift": []
+    }
+  ],
+  "originalRed": {
+    "command": "node --test tests/framework/k2-shared-codec.test.mjs",
+    "exit": 1,
+    "beforeManifest": "before/source-manifest.json",
+    "preserved": true
+  },
+  "foreignRealmRegression": {
+    "mainOriginalRed": "main-depth-original-9fail.tap",
+    "ownOriginalRed": "foreign-wire-red.log",
+    "ownOriginalRedExit": 1,
+    "fixtureReturnsRawVMResult": true,
+    "originalAuthorityAssertionsUnchanged": true
+  },
+  "readyForMainIntegration": true,
+  "scopeFrozen": true,
+  "productPackageRebuilt": false,
+  "packageHashFrozen": false,
+  "nativeBrowsersLaunched": 0,
+  "nativeOpaqueWorkerPassed": false,
+  "nativeUserScriptsPassed": false,
+  "nativeFollowup": "Main global launcher: same-source dual product packages and actual opaque Worker/userScripts qualification required.",
+  "F3": false,
+  "original603": false
+}

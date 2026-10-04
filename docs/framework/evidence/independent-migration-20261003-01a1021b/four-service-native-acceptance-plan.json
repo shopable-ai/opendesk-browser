@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "purpose": "四服务 production/Chrome138 定点原生验收准备；不是已执行测试、产品验收或F3证书",
+  "status": "NOT_TESTED",
+  "productWriter": "01a10654-4d29-7cc0-8cf3-e491cf07f9bf",
+  "scope": {
+    "mode": "production",
+    "chrome": "138.0.7204.183",
+    "oldSdkCall": "const bridge = service.bridge; await bridge.send(name, args)",
+    "controllerRuns": 0,
+    "runFullHistoricalSuite": false
+  },
+  "prerequisites": [
+    "writer提供构建后的准确包hash、源码/验证输入身份、资源清单及独占浏览器时段",
+    "只使用既有不可变受控launcher；独立profile；不启动个人Chrome",
+    "真实产品工具页授权/选择；读取实际tab/document值；CUA绑定实际本轮PID",
+    "记录Chrome实际MessageSender、grant、Hello及ISOLATED→MAIN固定注入",
+    "原页面没有controller参与；采集注册状态不充当普通JS或SDK前置",
+    "在任何产品断言以前发生授权/选择/CUA/CDP阻断时，记BLOCKED及原始前置证据"
+  ],
+  "methods": [
+    {
+      "name": "log",
+      "oldFile": "src-bex/background.ts:811",
+      "oldCall": "bridge.send('log',{message:'迁移验收',data:[0,false]})",
+      "newFiles": [
+        "src/framework/sdk/entry.js",
+        "src/framework/sdk/registry.js",
+        "src/platform/host/sdk-broker.js",
+        "src/platform/chrome/background-services.js"
+      ],
+      "expected": "外层own data，值undefined；可信sink只有opendesk.sdk.log、messageBytes=12、dataItems=2；一次效果；不输出原message/data",
+      "compatibilityDifference": "安全投影不保留旧日志正文，必须明确展示此差异"
+    },
+    {
+      "name": "getTime",
+      "oldFile": "src-bex/background.ts:816",
+      "oldCall": "bridge.send('getTime')",
+      "newFiles": [
+        "src/framework/sdk/entry.js",
+        "src/platform/host/sdk-methods.js",
+        "src/platform/chrome/background-services.js"
+      ],
+      "expected": "外层data为有限number；处于本机调用前后可信时钟范围；伪造参数由empty schema拒绝，不可先丢参数"
+    },
+    {
+      "name": "bexUrl",
+      "oldFile": "src-bex/background.ts:970; src-bex/my-content-script.ts:129",
+      "oldCall": "bridge.send('bexUrl').then(result=>result.data.url)",
+      "newFiles": [
+        "src/framework/sdk/entry.js",
+        "src/framework/sdk/resources.js",
+        "src/platform/chrome/background-services.js"
+      ],
+      "expected": "result.data.url精确等于Chrome runtime.getURL('/')，不是页面location；伪造root等参数拒绝"
+    },
+    {
+      "name": "requestResource",
+      "oldFile": "src-bex/background.ts:987; src-bex/my-content-script.ts:107",
+      "oldCall": "bridge.send('requestResource',{url}).then(result=>result.data)",
+      "newFiles": [
+        "src/framework/sdk/entry.js",
+        "src/framework/sdk/resources.js",
+        "src/framework/sdk/resource-contract.js",
+        "src/platform/chrome/background-services.js",
+        "scripts/build.mjs",
+        "scripts/verify-package.mjs"
+      ],
+      "expected": "result.data是{success:true,data:UTF8文本}；与当前包两固定文件及清单bytes/SHA相同；旧七别名读组合MAIN，不重复执行",
+      "originalCaseId": "RESOURCE01.F021.getResourceByUrl"
+    }
+  ],
+  "checks": [
+    {
+      "id": "independent-four-service-old-calls",
+      "status": "NOT_TESTED",
+      "assertions": [
+        "逐项运行四个旧调用",
+        "SDK原Promise回程、外层data和typed持久结果",
+        "真实sender/grant/document、唯一broker/IDB、无controller"
+      ]
+    },
+    {
+      "id": "independent-four-service-schema",
+      "status": "NOT_TESTED",
+      "assertions": [
+        "getTime/bexUrl未知字段拒绝",
+        "log非法data/未知字段/超限拒绝",
+        "非法请求无额外效果；保留真实typed错误"
+      ]
+    },
+    {
+      "id": "independent-four-service-packaged-resources",
+      "status": "NOT_TESTED",
+      "assertions": [
+        "两固定资源及旧七别名字节/UTF8/SHA",
+        "远程URL、穿越、非名单路径拒绝",
+        "受控HTTP端点计数为0；原始SW/page Network及服务器记录保留",
+        "不篡改最终包制造hash失配"
+      ]
+    },
+    {
+      "id": "independent-four-service-journal",
+      "status": "NOT_TESTED",
+      "assertions": [
+        "同一原requestId重复请求只有一次效果/原durable回程",
+        "真实效果不明时unknown，不再次执行；重试在原有效deadline内",
+        "不得用页面伪造sender、假的journal或组件fixture替代原生证据"
+      ]
+    },
+    {
+      "id": "independent-four-service-abi",
+      "status": "NOT_TESTED",
+      "assertions": [
+        "同一document重复固定注入refresh/Hello，身份及资源可解释",
+        "旧冻结ABI缺四项时明确冲突，不能静默复用",
+        "pending/timer/listener清理，旧Hello/timeout不污染新桥"
+      ]
+    }
+  ],
+  "harnessPreparation": {
+    "reference": "tests/framework/k5-sdk-native.mjs",
+    "observationModule": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/four-service-native-observation-calls.mjs",
+    "readyToLaunch": false,
+    "pending": "原native脚本默认18方法/多环境，不能直接当四服务选择性入口。待包交付后在独立evidence范围组合定点runner；复用受控launcher/CDP/真实UI授权与IDB只读采样，不修改原runner。",
+    "nativeModulePrerequisites": "观察模块必须运行在已经由真实产品安装SDK的网页MAIN；模块本身不安装SDK、不授权、不构造sender、不能自行证明PASS"
+  },
+  "evidencePerMethod": [
+    "旧→新及加载消费者",
+    "具体操作与预期/实际值",
+    "该方法结果可见的截图（不是安装页）",
+    "原始case/CDP/HTTP及真实IDB引用",
+    "包hash/源码/验证输入身份/Chrome版本/清理记录"
+  ],
+  "finalBoundary": "所有检查均未执行；不改正式603+19账本，不标F3/Goal完成；历史99d6或faad证据不能覆盖新增四服务包"
+}

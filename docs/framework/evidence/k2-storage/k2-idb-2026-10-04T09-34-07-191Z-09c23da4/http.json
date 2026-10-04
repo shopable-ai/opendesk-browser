@@ -1,0 +1,198 @@
+[
+  {
+    "url": "/",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "url": "/favicon.ico",
+    "method": "GET",
+    "status": 404
+  },
+  {
+    "url": "/tests/framework/native-idb-migration-verification.js",
+    "method": "GET",
+    "status": 200,
+    "path": "tests/framework/native-idb-migration-verification.js",
+    "bytes": 34262,
+    "sha256": "e9bd70aa99db6d7211c853d319047180fdd30a244df02b29f5af2829e9c31c0f"
+  },
+  {
+    "url": "/tests/framework/native-idb-migration-fixture.js",
+    "method": "GET",
+    "status": 200,
+    "path": "tests/framework/native-idb-migration-fixture.js",
+    "bytes": 15915,
+    "sha256": "70d571a3feb3868064fc7278f2e6de2de04763aad381a42edee0035def2cff98"
+  },
+  {
+    "url": "/src/platform/storage/index.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/index.js",
+    "bytes": 3168,
+    "sha256": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c"
+  },
+  {
+    "url": "/src/platform/journal.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/journal.js",
+    "bytes": 666,
+    "sha256": "e12202af97beebc45df42d6ec3e52b0c1b549ddd9ed90872eb8eb88ca73c8b67"
+  },
+  {
+    "url": "/src/platform/protocol.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/protocol.js",
+    "bytes": 10946,
+    "sha256": "fe8bad378d7641eab4c5e5b5e6193c82ce8079e13f8e4fec7cb388b895e669c9"
+  },
+  {
+    "url": "/src/platform/storage/regression.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/regression.js",
+    "bytes": 15317,
+    "sha256": "7ab921130e6064310916dc45649e05b343eabf34d27203cb39e71e7142f231ed"
+  },
+  {
+    "url": "/src/platform/page-port/codec.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/page-port/codec.js",
+    "bytes": 11956,
+    "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+  },
+  {
+    "url": "/src/platform/storage/idb.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/idb.js",
+    "bytes": 17016,
+    "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672"
+  },
+  {
+    "url": "/src/platform/storage/repository.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/repository.js",
+    "bytes": 62232,
+    "sha256": "79b63ca70898032772b5ed845da8b965f9bcec6201c84ea10990df23e9e32089"
+  },
+  {
+    "url": "/src/platform/schema.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/schema.js",
+    "bytes": 43891,
+    "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+  },
+  {
+    "url": "/legacy/src/platform/storage/index.js",
+    "method": "GET",
+    "status": 200,
+    "path": "legacy/src/platform/storage/index.js",
+    "bytes": 2984,
+    "sha256": "3bc726648e15bb2741e784e02eda1a8c99068259d33c8d4a153a3981762f1936"
+  },
+  {
+    "url": "/legacy/src/platform/protocol.js",
+    "method": "GET",
+    "status": 200,
+    "path": "legacy/src/platform/protocol.js",
+    "bytes": 7556,
+    "sha256": "39ae55cdfbc75e2d9e8d2e00b0b07c42ab34ef585b9357436c1fee7e19621f43"
+  },
+  {
+    "url": "/legacy/src/platform/storage/idb.js",
+    "method": "GET",
+    "status": 200,
+    "path": "legacy/src/platform/storage/idb.js",
+    "bytes": 8320,
+    "sha256": "1016aa470bd0ece215e7a11c6bfe0df7998d2c87ff480ebb8d981102194b23f9"
+  },
+  {
+    "url": "/legacy/src/platform/storage/repository.js",
+    "method": "GET",
+    "status": 200,
+    "path": "legacy/src/platform/storage/repository.js",
+    "bytes": 43815,
+    "sha256": "5851a52643fd84f98dee4efe2bd554ce52e813e4c6c436e209b934d95dd1b5d4"
+  },
+  {
+    "url": "/legacy/src/platform/schema.js",
+    "method": "GET",
+    "status": 200,
+    "path": "legacy/src/platform/schema.js",
+    "bytes": 43891,
+    "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+  },
+  {
+    "url": "/",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "url": "/favicon.ico",
+    "method": "GET",
+    "status": 404
+  },
+  {
+    "url": "/src/platform/storage/index.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/index.js",
+    "bytes": 3168,
+    "sha256": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c"
+  },
+  {
+    "url": "/src/platform/protocol.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/protocol.js",
+    "bytes": 10946,
+    "sha256": "fe8bad378d7641eab4c5e5b5e6193c82ce8079e13f8e4fec7cb388b895e669c9"
+  },
+  {
+    "url": "/src/platform/storage/repository.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/repository.js",
+    "bytes": 62232,
+    "sha256": "79b63ca70898032772b5ed845da8b965f9bcec6201c84ea10990df23e9e32089"
+  },
+  {
+    "url": "/src/platform/storage/idb.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/storage/idb.js",
+    "bytes": 17016,
+    "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672"
+  },
+  {
+    "url": "/src/platform/schema.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/schema.js",
+    "bytes": 43891,
+    "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+  },
+  {
+    "url": "/src/platform/journal.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/journal.js",
+    "bytes": 666,
+    "sha256": "e12202af97beebc45df42d6ec3e52b0c1b549ddd9ed90872eb8eb88ca73c8b67"
+  },
+  {
+    "url": "/src/platform/page-port/codec.js",
+    "method": "GET",
+    "status": 200,
+    "path": "src/platform/page-port/codec.js",
+    "bytes": 11956,
+    "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+  }
+]

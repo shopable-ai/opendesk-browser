@@ -1,0 +1,35 @@
+{
+  "state": "installed",
+  "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+  "raw": "{\n  \"grantIncarnation\": \"63c2d115-b26c-4b36-8f8e-312f1f259853\",\n  \"documentId\": \"F8E22B0C6C0A662E92D663F664D4DC75\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}",
+  "beforePermissions": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "afterPermissions": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "documentId": "F8E22B0C6C0A662E92D663F664D4DC75",
+  "tabId": 1274217093
+}

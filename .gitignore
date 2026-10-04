@@ -1,0 +1,32 @@
+node_modules/
+dist/
+artifacts/
+.DS_Store
+work/
+
+# Local build and agent state
+.wxt/
+.omx/
+__pycache__/
+*.pyc
+
+# Browser downloads, caches and per-run profiles
+.cache/
+profiles/
+profile/
+profile-*/
+*.zip.part
+*.dmg
+*.crdownload
+
+# Large raw browser protocol recordings; keep reports and assertions
+raw-cdp*.json
+raw-cdp*.jsonl
+
+# Local credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12

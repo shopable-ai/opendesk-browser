@@ -1,0 +1,183 @@
+{
+  "type": "K1 F1 author final source/evidence delivery; not Stage0 approval candidate or independent functional acceptance",
+  "executionContractManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "approvalReports": [
+    {
+      "path": "docs/framework/reviews/migration-execution-v5/round-5/architect.json",
+      "sha256": "d2c9263779f3e72249bca83a353106c3f325dec8d8f2fd0b6d575f2009e576b2",
+      "candidateManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+      "verdict": "APPROVE"
+    },
+    {
+      "path": "docs/framework/reviews/migration-execution-v5/round-5/critic.json",
+      "sha256": "8f4dad9153d106237a3ae106e6283c2e77f0c20193ae22dcd5952f16857033ee",
+      "candidateManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+      "verdict": "APPROVE"
+    }
+  ],
+  "sourceSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+  "sourceManifest": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-source-manifest.json",
+  "fullMatrices": [
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/report.json",
+      "version": "Chrome/138.0.7204.183",
+      "caseStatuses": {
+        "PASS": 46
+      }
+    },
+    {
+      "report": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/report.json",
+      "version": "Chrome/154.0.8037.92",
+      "caseStatuses": {
+        "PASS": 46
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/candidate-manifest.json",
+      "bytes": 1631,
+      "sha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/console.json",
+      "bytes": 216173,
+      "sha256": "86a6443fade296a17a36371296e378842c497501ea9e2b3ddacec2429423ccf8"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/extension-ui.json",
+      "bytes": 7306,
+      "sha256": "fa35d8e053791dcfd7ed41b02d40559a629623f75f6f907955654a716a8d8b9f"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/extension-ui.png",
+      "bytes": 29373,
+      "sha256": "4935ff964f17524f96d9fbdc4d0dd4515723ae137d9d992e0ebee11e6dc13f6c"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/protocol.json",
+      "bytes": 202100,
+      "sha256": "979b599c2d8ef06c49c2394e1aa615a35e661ee2417a9be5b9b8f74f711bb571"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/report.json",
+      "bytes": 400787,
+      "sha256": "12a48b63a9696ff95bb3c3f7d530ec53eb0c6c6d3e0de2346467d799bfece172"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/trace.json",
+      "bytes": 4328678,
+      "sha256": "33efe04f2befeedb4b512a774aa84fc286dc0e66f724cb28b83763297afc312d"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/workbench.png",
+      "bytes": 52770,
+      "sha256": "fdf1e36f9febb976f26fed1656d762ed90aad0700fb2910142807356895e9c3d"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/candidate-manifest.json",
+      "bytes": 1631,
+      "sha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/console.json",
+      "bytes": 239024,
+      "sha256": "a8ea751b55cad3a22e3843f60c099cac48bcf5b2c8fb84d2e281a43b22db979c"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/extension-ui.json",
+      "bytes": 7463,
+      "sha256": "aceb3652e61df4e9415b6cb05cd5357f0296240ff61df92228e35c6ac62fe63f"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/extension-ui.png",
+      "bytes": 27444,
+      "sha256": "58d583e6f2c2cd95329993e803508c2fa1ddc19204cad5bef66218dd0e941b31"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/protocol.json",
+      "bytes": 222521,
+      "sha256": "c82b7e868ca85d43b38b87930b6ae17c34d62ae4f61344893471b712914a0ee8"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/report.json",
+      "bytes": 482132,
+      "sha256": "80258c89f4316b6c08b12a20079ec8fd26ceb2f438ad317b42137a00ac530ad0"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/trace.json",
+      "bytes": 5733632,
+      "sha256": "780c5a2727318ab073c1b30ddeeebddbc8ae272d4df52b7918c5d2a4f5027097"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/workbench.png",
+      "bytes": 46037,
+      "sha256": "5fae2a1a4b81b145e2695adee67b6f904df6bc4a96954b0ddc890ffa053e3c04"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-source-manifest.json",
+      "bytes": 1631,
+      "sha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-matrix.json",
+      "bytes": 14190,
+      "sha256": "b82a760c196b541ca1951ac46d09274c75bdf1bd6fe362afa675f163c0c03efa"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-cleanup-audit.json",
+      "bytes": 11343,
+      "sha256": "6a75f7ae2eeba7a25eef3c2fba70d2aaf9d7260be11e9d211926ad0aa92580c9"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/round4-artifacts-before-round5.json",
+      "bytes": 28047,
+      "sha256": "fc9e2e123678981bc52aa9cb90b7cb1b89a473d2dfd3b95470a2f7527ffd051f"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/round4-immutability-final.json",
+      "bytes": 42872,
+      "sha256": "084e4488dd27f51f9fa65efd10a12c88ccc5f82d8d34165e0be7583bf1cf8e0e"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-validation.json",
+      "bytes": 658,
+      "sha256": "e800fa7cf3d5e756ac8e9f8c84a0e4b4a23a582a55c254287a47de7b99d76f69"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-handoff.md",
+      "bytes": 5044,
+      "sha256": "ed35fa30575a6167c5444a67f9c67d72fd2fc75e2bf06c3311a98485460d8cb7"
+    },
+    {
+      "path": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-contract-mapping.json",
+      "bytes": 21480,
+      "sha256": "e009608bf8c8d737ead92ca81d6144309eb7664a5b89aa8601621cbc40cf8ebf"
+    }
+  ],
+  "oldRound4ArtifactsPreserved": {
+    "count": 119,
+    "allByteUnchanged": true,
+    "audit": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/round4-immutability-final.json"
+  },
+  "round5DiagnosticAttemptsPreserved": [
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-causal-oracle-check-2026-10-02T20-53-14.707Z/report.json",
+      "sha256": "3ead07c5af881100bcda28f6b79144c49f9d7c15e15e6bd2d03b539d7806a165",
+      "sourceSha256": "9ca06d106eba15775200c52e5e3ce9d4759a6d2b2e68ef9fad2bc829ca1e0d9c"
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round5-138-causal-oracle-check2-2026-10-02T20-53-57.509Z/report.json",
+      "sha256": "453e7015cb069745744451cd0251a45f024415b105840947dcfabe934d47662a",
+      "sourceSha256": "304791209ecfbad100197717f3b1db956301c9ffc4b7ecc5ac313340568d0254"
+    }
+  ],
+  "allOwnedProcessesGone": true,
+  "authorMatrixPassed": true,
+  "requiresIndependentReview": true,
+  "backendPrototypePassed": false,
+  "F2": false,
+  "productMigrationPassed": false,
+  "noProductOrPublicGateWrites": true,
+  "controlContractMapping": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-contract-mapping.json"
+}

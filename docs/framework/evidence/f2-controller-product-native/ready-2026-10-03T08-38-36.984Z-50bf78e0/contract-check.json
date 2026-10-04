@@ -1,0 +1,87 @@
+{
+  "f1": [
+    {
+      "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+      "bytes": 17201,
+      "sha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+      "bytes": 47920,
+      "sha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+      "bytes": 73891,
+      "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+      "bytes": 197858,
+      "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f"
+    }
+  ],
+  "launcher": {
+    "python": "/usr/bin/python3",
+    "path": "/Users/shopme/.codex/browser-testing/launch.py",
+    "sha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+    "bytes": 4689,
+    "profileOwner": "global launcher: fresh mkdtemp codex-cft-*; no runner profile writes",
+    "lifecycle": "launcher stays running; owned Chrome Browser.close or launcher SIGTERM; launcher finally removes profile",
+    "nativeArgumentsProof": "actual main PID/PPID and ps command plus Browser.getBrowserCommandLine; mock keychain/password-store/profile/loopback verified",
+    "logPreservation": "read-only chrome.log file descriptor held across launcher unlink; bytes copied to evidence",
+    "resolveOnly": [
+      {
+        "at": "2026-10-03T08:38:37.052Z",
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "pid": 9727,
+        "executable": "/usr/bin/python3",
+        "args": [
+          "/Users/shopme/.codex/browser-testing/launch.py",
+          "--resolve-only",
+          "--executable",
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+        ],
+        "stdout": "{\"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\"}\n",
+        "stderr": "",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "requestedVersion": "138.0.7204.183",
+        "nativeExecuted": false,
+        "resolvedExecutable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+      },
+      {
+        "at": "2026-10-03T08:38:37.096Z",
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "pid": 9729,
+        "executable": "/usr/bin/python3",
+        "args": [
+          "/Users/shopme/.codex/browser-testing/launch.py",
+          "--resolve-only",
+          "--executable",
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+        ],
+        "stdout": "{\"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\"}\n",
+        "stderr": "",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "requestedVersion": "154.0.8037.92",
+        "nativeExecuted": false,
+        "resolvedExecutable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+      }
+    ]
+  },
+  "previousRunnerSha256": "dd33ded5d8dc90efbb17342a0d03f59cb4acf7fb0894419b67e4605679d11d77",
+  "checked": [
+    "Global launcher identity/lifecycle and exact binaries via resolve-only (no Chrome process)",
+    "Preserved dd33 original runner",
+    "Frozen same-candidate independent F1 qualifications",
+    "Actual UI selectors/outcome/typed artifact contract",
+    "Shared codec JSON-hop kind/presence assertions"
+  ],
+  "nativeExecuted": false
+}

@@ -1,0 +1,70 @@
+{
+  "candidateSha256": "3f0487ee5201705e039cda3948dc4b6ccf8e45a1ea1fe3e89ba24a551bc6b807",
+  "files": [
+    {
+      "path": "candidate-manifest.json",
+      "bytes": 2281,
+      "sha256": "3f0487ee5201705e039cda3948dc4b6ccf8e45a1ea1fe3e89ba24a551bc6b807"
+    },
+    {
+      "path": "cases-live.json",
+      "bytes": 274312,
+      "sha256": "c518d41066211aefa074836ba9de9991d4c7dd3e5dc30efb315fe7e66d07b276"
+    },
+    {
+      "path": "console.json",
+      "bytes": 674,
+      "sha256": "d31ec97fce6ffdde1fdf7f061bb92f492a2f9766f70430f1e117b8f8e57e5eb5"
+    },
+    {
+      "path": "host-off-USER_SCRIPT.png",
+      "bytes": 91549,
+      "sha256": "9287a749f1a9a6c6c5666ff8944442bee6844c6f81ebfe857335eac2af95cf45"
+    },
+    {
+      "path": "http.json",
+      "bytes": 3273,
+      "sha256": "67a466e4d2cfd317fa3ec6218f1ea761ac6a1dde57115e26af34a5d505e59890"
+    },
+    {
+      "path": "initial-details.png",
+      "bytes": 91156,
+      "sha256": "456ec60397a1bd1e2e0914029559b7f1ea2ca390db20be831d06f8610eda2ed0"
+    },
+    {
+      "path": "re-enabled-MAIN.png",
+      "bytes": 90831,
+      "sha256": "4efc57ea34c5a5c29178039614addb766471928945fa12ba813cc930060d665a"
+    },
+    {
+      "path": "re-enabled-USER_SCRIPT.png",
+      "bytes": 90795,
+      "sha256": "33cf57f68cab47e6102909e42da88c554c11ab4f0da05b314c5d2126b4402507"
+    },
+    {
+      "path": "report.json",
+      "bytes": 293342,
+      "sha256": "ce927d8e9f8bd2a310dac580761ad8106fba2914c01f668e504256995637d955"
+    },
+    {
+      "path": "revoke-MAIN.png",
+      "bytes": 90819,
+      "sha256": "82e7899a84aa4634f0d4eafeee2d978a54cf329354b4646162d0a1b1e82db498"
+    },
+    {
+      "path": "revoke-USER_SCRIPT.png",
+      "bytes": 90808,
+      "sha256": "8fd201271e574521e714d4738147acbdf7afbe5a2f298932c368da09bdb3af7d"
+    },
+    {
+      "path": "switch-off.png",
+      "bytes": 90251,
+      "sha256": "823174a6c1609d714d947b612e7b00bf34fd8498c82397ebd9d936eb0705fad1"
+    },
+    {
+      "path": "switch-on.png",
+      "bytes": 90830,
+      "sha256": "d9766c97e9df6c402b13a788a42e48bd141fa82ef886d03c9d447d552073f0b4"
+    }
+  ]
+}

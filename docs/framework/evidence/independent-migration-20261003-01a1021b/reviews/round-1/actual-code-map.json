@@ -1,0 +1,3097 @@
+{
+  "createdAtUTC": "2026-10-03T15:31:45.115747+00:00",
+  "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+  "scope": "Bounded existing mapping and actual assets/js filenames; no full library audit, no product modifications",
+  "rows": [
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/ChromePage.ts",
+      "sourceId": "F001",
+      "oldSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "upload.dataUrlToBlob",
+          "lines": [
+            894,
+            904
+          ],
+          "id": "TOOL.F001.upload.dataUrlToBlob"
+        },
+        {
+          "name": "upload.inputFilesAndChange",
+          "lines": [
+            906,
+            912
+          ],
+          "id": "TOOL.F001.upload.inputFilesAndChange"
+        },
+        {
+          "name": "upload.blobReader",
+          "lines": [
+            875,
+            889
+          ],
+          "id": "TOOL.F001.upload.blobReader"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/ChromePage.js",
+          "symbolAnchor": "export class ChromePage",
+          "line": 53,
+          "sha256": "750269e6467ee0b88e59712bc0489bc53f2b1949648080a2e79560efc3daad66"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/context.js",
+          "symbolAnchor": "export function createRunContext",
+          "line": 19,
+          "sha256": "443a378c60f2ebbd77e1c667fe0538eca3c98cf4bc602d50711c89e612dc0c3c"
+        }
+      ],
+      "loading": "tool.html 的 tool-shell.js→mountScriptEditor→createRunHost；UI commit/load/start→同 broker/authority controller methods→固定 sandbox/worker-runtime 产物→per-run ctx.page。",
+      "consumer": "startControllerRun durable admission→pinScriptRevision→精确 target→RunHost.startController→Worker page proxy→controllerOperation→native-driver→持久 result→retire target/pin→UI。",
+      "retainedAndGaps": "48 成员门面使用每 run context；最小 goto/title/url durable 已有 GUI 证据，其余 API48 仍须逐合同复验。",
+      "tasks": [
+        "T01",
+        "T02",
+        "T03",
+        "T04",
+        "T06",
+        "T07",
+        "T08",
+        "T09",
+        "T10",
+        "T11",
+        "T12",
+        "T13"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F001",
+        "AUTH-API01-FENCE",
+        "AUTH-API02-FENCE",
+        "AUTH-API03-FENCE",
+        "AUTH-API04-FENCE",
+        "AUTH-API05-FENCE",
+        "AUTH-API06-FENCE",
+        "AUTH-API07-FENCE",
+        "AUTH-API08-FENCE",
+        "AUTH-API09-FENCE",
+        "AUTH-API10-FENCE",
+        "AUTH-API11-FENCE",
+        "AUTH-API12-FENCE",
+        "AUTH-API13-FENCE",
+        "AUTH-API14-FENCE",
+        "AUTH-API15-FENCE",
+        "AUTH-API16-FENCE",
+        "AUTH-API17-FENCE",
+        "AUTH-API18-FENCE",
+        "AUTH-API19-FENCE",
+        "AUTH-API20-FENCE",
+        "AUTH-API21-FENCE",
+        "AUTH-API22-FENCE",
+        "AUTH-API23-FENCE",
+        "AUTH-API24-FENCE",
+        "AUTH-API25-FENCE",
+        "AUTH-API26-FENCE",
+        "AUTH-API27-FENCE",
+        "AUTH-API28-FENCE",
+        "AUTH-API29-FENCE",
+        "AUTH-API30-FENCE",
+        "AUTH-API31-FENCE",
+        "AUTH-API32-FENCE",
+        "AUTH-API33-FENCE",
+        "AUTH-API34-FENCE",
+        "AUTH-API35-FENCE",
+        "AUTH-API36-FENCE",
+        "AUTH-API37-FENCE",
+        "AUTH-API38-FENCE",
+        "AUTH-API39-FENCE",
+        "AUTH-API40-FENCE",
+        "AUTH-API41-FENCE",
+        "AUTH-API42-FENCE",
+        "AUTH-API43-FENCE",
+        "AUTH-API44-FENCE",
+        "AUTH-API45-FENCE",
+        "AUTH-API46-FENCE",
+        "AUTH-API47-FENCE",
+        "AUTH-API48-FENCE",
+        "CMP01-API07-ERR",
+        "CMP01-API07-LIMIT",
+        "CMP01-API07-OK",
+        "CMP01-API08-ERR",
+        "CMP01-API08-LIMIT",
+        "CMP01-API08-OK",
+        "CMP01-API09-ERR",
+        "CMP01-API09-LIMIT",
+        "CMP01-API09-OK",
+        "CMP01-API23-ERR",
+        "CMP01-API23-LIMIT",
+        "CMP01-API23-OK",
+        "CMP01-API24-ERR",
+        "CMP01-API24-LIMIT",
+        "CMP01-API24-OK",
+        "CMP01-API25-ERR",
+        "CMP01-API25-LIMIT",
+        "CMP01-API25-OK",
+        "CMP01-API36-ERR",
+        "CMP01-API36-LIMIT",
+        "CMP01-API36-OK",
+        "CMP01-API37-ERR",
+        "CMP01-API37-LIMIT",
+        "CMP01-API37-OK",
+        "CMP01-API38-ERR",
+        "CMP01-API38-LIMIT",
+        "CMP01-API38-OK",
+        "CMP01-API39-ERR",
+        "CMP01-API39-LIMIT",
+        "CMP01-API39-OK",
+        "CMP01-API43-ERR",
+        "CMP01-API43-LIMIT",
+        "CMP01-API43-OK",
+        "CMP01-API44-ERR",
+        "CMP01-API44-LIMIT",
+        "CMP01-API44-OK",
+        "CMP01-API45-ERR",
+        "CMP01-API45-LIMIT",
+        "CMP01-API45-OK",
+        "CMP01-API46-ERR",
+        "CMP01-API46-LIMIT",
+        "CMP01-API46-OK",
+        "CMP01-API47-ERR",
+        "CMP01-API47-LIMIT",
+        "CMP01-API47-OK",
+        "CMP01-API48-ERR",
+        "CMP01-API48-LIMIT",
+        "CMP01-API48-OK",
+        "CMP01-RUN-CONTEXT",
+        "CMP02-API12-ERR",
+        "CMP02-API12-LIMIT",
+        "CMP02-API12-OK",
+        "CMP02-API13-ERR",
+        "CMP02-API13-LIMIT",
+        "CMP02-API13-OK",
+        "CMP03-API14-ERR",
+        "CMP03-API14-LIMIT",
+        "CMP03-API14-OK",
+        "CMP03-API15-ERR",
+        "CMP03-API15-LIMIT",
+        "CMP03-API15-OK",
+        "CMP03-API26-ERR",
+        "CMP03-API26-LIMIT",
+        "CMP03-API26-OK",
+        "CMP03-API34-ERR",
+        "CMP03-API34-LIMIT",
+        "CMP03-API34-OK",
+        "CMP04-API18-ERR",
+        "CMP04-API18-LIMIT",
+        "CMP04-API18-OK",
+        "CMP04-API19-ERR",
+        "CMP04-API19-LIMIT",
+        "CMP04-API19-OK",
+        "CMP04-API20-ERR",
+        "CMP04-API20-LIMIT",
+        "CMP04-API20-OK",
+        "CMP04-API27-ERR",
+        "CMP04-API27-LIMIT",
+        "CMP04-API27-OK",
+        "CMP04-API28-ERR",
+        "CMP04-API28-LIMIT",
+        "CMP04-API28-OK",
+        "CMP04-API29-ERR",
+        "CMP04-API29-LIMIT",
+        "CMP04-API29-OK",
+        "CMP04-API30-ERR",
+        "CMP04-API30-LIMIT",
+        "CMP04-API30-OK",
+        "CMP04-API31-ERR",
+        "CMP04-API31-LIMIT",
+        "CMP04-API31-OK",
+        "CMP04-API32-ERR",
+        "CMP04-API32-LIMIT",
+        "CMP04-API32-OK",
+        "CMP04-API33-ERR",
+        "CMP04-API33-LIMIT",
+        "CMP04-API33-OK",
+        "CMP04-API42-ERR",
+        "CMP04-API42-LIMIT",
+        "CMP04-API42-OK",
+        "CMP09-API21-ERR",
+        "CMP09-API21-LIMIT",
+        "CMP09-API21-OK",
+        "CMP09-API22-ERR",
+        "CMP09-API22-LIMIT",
+        "CMP09-API22-OK",
+        "CMP09-API40-ERR",
+        "CMP09-API40-LIMIT",
+        "CMP09-API40-OK",
+        "CMP09-API41-ERR",
+        "CMP09-API41-LIMIT",
+        "CMP09-API41-OK",
+        "CMP10-API05-ERR",
+        "CMP10-API05-LIMIT",
+        "CMP10-API05-OK",
+        "CMP10-API06-ERR",
+        "CMP10-API06-LIMIT",
+        "CMP10-API06-OK",
+        "CMP10-API35-ERR",
+        "CMP10-API35-LIMIT",
+        "CMP10-API35-OK",
+        "CMP11-API01-ERR",
+        "CMP11-API01-LIMIT",
+        "CMP11-API01-OK",
+        "CMP11-API02-ERR",
+        "CMP11-API02-LIMIT",
+        "CMP11-API02-OK",
+        "CMP11-API03-ERR",
+        "CMP11-API03-LIMIT",
+        "CMP11-API03-OK",
+        "CMP11-API04-ERR",
+        "CMP11-API04-LIMIT",
+        "CMP11-API04-OK",
+        "CORE-EVALUATE-EXPRESSION-VALUES-FENCES",
+        "CORE-SERIALIZED-SNAPSHOTS-VALUES-FENCES",
+        "NAV01-API10-ERR",
+        "NAV01-API10-LIMIT",
+        "NAV01-API10-OK",
+        "NAV01-API11-ERR",
+        "NAV01-API11-LIMIT",
+        "NAV01-API11-OK",
+        "NAV01-TRANSITION",
+        "RESOURCE01-API16-ERR",
+        "RESOURCE01-API16-LIMIT",
+        "RESOURCE01-API16-OK",
+        "RESOURCE01-API17-ERR",
+        "RESOURCE01-API17-LIMIT",
+        "RESOURCE01-API17-OK",
+        "SVC01.F001.upload.blobReader",
+        "SVC01.F001.upload.dataUrlToBlob",
+        "SVC01.F001.upload.inputFilesAndChange"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/Env.js",
+      "sourceId": "F002",
+      "oldSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "CHROME_PAGE_TYPE",
+          "lines": [
+            3,
+            3
+          ],
+          "id": "SDK.F002.CHROME_PAGE_TYPE"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/bridge.js",
+          "symbolAnchor": "export const CHROME_PAGE_TYPE",
+          "line": 4,
+          "sha256": "1e29c660de8ae3c85e6111875418721325192af41082d8f9cd40aa5433240462"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "值为 CHROME_EXTENSION；随固定 SDK bundle 安装，尚无正式 RESOURCE load/error 同包验收。",
+      "tasks": [
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F002",
+        "CMP05.F002.CHROME_PAGE_TYPE",
+        "RESOURCE01.F002.failure",
+        "RESOURCE01.F002.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/TraceTimeCore.js",
+      "sourceId": "F025",
+      "oldSha256": "b08ef7530fd4a41bd1cf83e77a313c2b4deed07b0e588c71741e8c7042f747ef",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            3
+          ],
+          "id": "F025"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 business-deferred",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。旧业务/整包UI本轮不实施；保留来源与必需边界证据",
+      "retainedAndGaps": "旧 business-deferred；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F025",
+        "RESOURCE01.F025.defer"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/TraceTimeUtil.js",
+      "sourceId": "F023",
+      "oldSha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            346
+          ],
+          "id": "F023"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 business-deferred",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。旧业务/整包UI本轮不实施；保留来源与必需边界证据",
+      "retainedAndGaps": "旧 business-deferred；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F023",
+        "RESOURCE01.F023.defer"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/axios.min.js",
+      "sourceId": "F054",
+      "oldSha256": "48106a6db52931958f232a527e036fbdec1ae1b3ee95e42acaf1893c12abe084",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            4
+          ],
+          "id": "F054"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F054",
+        "RESOURCE01.F054.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/controller/csdn.js",
+      "sourceId": "F027",
+      "oldSha256": "b29cd2fa803bc01086c47b7fdfcd2cd33235af5b9068316478013618cab608ab",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            478
+          ],
+          "id": "F027"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 business-deferred",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。旧业务/整包UI本轮不实施；保留来源与必需边界证据",
+      "retainedAndGaps": "旧 business-deferred；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F027",
+        "RESOURCE01.F027.defer"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/appLocal.js",
+      "sourceId": "F003",
+      "oldSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "AppLocal.setItem",
+          "lines": [
+            2,
+            4
+          ],
+          "id": "SDK.F003.AppLocal.setItem"
+        },
+        {
+          "name": "AppLocal.getItem",
+          "lines": [
+            5,
+            7
+          ],
+          "id": "SDK.F003.AppLocal.getItem"
+        },
+        {
+          "name": "AppLocal.removeItem",
+          "lines": [
+            8,
+            10
+          ],
+          "id": "SDK.F003.AppLocal.removeItem"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/storage.js",
+          "symbolAnchor": "const AppLocal",
+          "line": 8,
+          "sha256": "77e7545c01752ebc3074b182012638cd7981f3cafce82e19e9a782f907bfc7eb"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/session.js",
+          "symbolAnchor": "export function createSessionTyped",
+          "line": 8,
+          "sha256": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "同 authority namespace 下 chrome.storage.session typed 值；需要 SW 重启和浏览器 session 结束分别证明寿命。",
+      "tasks": [
+        "T04",
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F003",
+        "CMP07.F003.AppLocal.getItem",
+        "CMP07.F003.AppLocal.removeItem",
+        "CMP07.F003.AppLocal.setItem",
+        "RESOURCE01.F003.failure",
+        "RESOURCE01.F003.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/appStorage.js",
+      "sourceId": "F004",
+      "oldSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "AppStorage.setItem",
+          "lines": [
+            2,
+            4
+          ],
+          "id": "SDK.F004.AppStorage.setItem"
+        },
+        {
+          "name": "AppStorage.getItem",
+          "lines": [
+            5,
+            7
+          ],
+          "id": "SDK.F004.AppStorage.getItem"
+        },
+        {
+          "name": "AppStorage.removeItem",
+          "lines": [
+            8,
+            10
+          ],
+          "id": "SDK.F004.AppStorage.removeItem"
+        },
+        {
+          "name": "AppStorage.clear",
+          "lines": [
+            11,
+            13
+          ],
+          "id": "SDK.F004.AppStorage.clear"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/storage.js",
+          "symbolAnchor": "const AppStorage",
+          "line": 2,
+          "sha256": "77e7545c01752ebc3074b182012638cd7981f3cafce82e19e9a782f907bfc7eb"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "namespace IDB KV、字符串化及 missing=null；clear 仅本 namespace user area；需要真实重启/事务/原 Promise 证据。",
+      "tasks": [
+        "T04",
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F004",
+        "CMP07.F004.AppStorage.clear",
+        "CMP07.F004.AppStorage.getItem",
+        "CMP07.F004.AppStorage.removeItem",
+        "CMP07.F004.AppStorage.setItem",
+        "RESOURCE01.F004.failure",
+        "RESOURCE01.F004.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/axiosx.js",
+      "sourceId": "F005",
+      "oldSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "axiosx.get",
+          "lines": [
+            12,
+            14
+          ],
+          "id": "SDK.F005.axiosx.get"
+        },
+        {
+          "name": "axiosx.post",
+          "lines": [
+            15,
+            17
+          ],
+          "id": "SDK.F005.axiosx.post"
+        },
+        {
+          "name": "axiosx.put",
+          "lines": [
+            18,
+            20
+          ],
+          "id": "SDK.F005.axiosx.put"
+        },
+        {
+          "name": "axiosx.delete",
+          "lines": [
+            21,
+            23
+          ],
+          "id": "SDK.F005.axiosx.delete"
+        },
+        {
+          "name": "callChromeBridgeInterface",
+          "lines": [
+            26,
+            43
+          ],
+          "id": "SDK.F005.callChromeBridgeInterface"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/http.js",
+          "symbolAnchor": "export function createHttp",
+          "line": 1,
+          "sha256": "1be88c4ae271ab751a1a848e02a78a08adad76140e850e385d4d6555c46c0e62"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/bridge.js",
+          "symbolAnchor": "const callChromeBridgeInterface",
+          "line": 81,
+          "sha256": "1e29c660de8ae3c85e6111875418721325192af41082d8f9cd40aa5433240462"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "四方法与 BridgeUrl_Inject→url 已接线到共享 network；config 投影/错误/15s/真实四方法仍需原调用式验收。没有 axios npm runtime 依赖。",
+      "tasks": [
+        "T06",
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F005",
+        "CMP13.F005.axiosx.delete",
+        "CMP13.F005.axiosx.get",
+        "CMP13.F005.axiosx.post",
+        "CMP13.F005.axiosx.put",
+        "CMP15.F005.callChromeBridgeInterface",
+        "RESOURCE01.F005.failure",
+        "RESOURCE01.F005.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/brige.js",
+      "sourceId": "F006",
+      "oldSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "generateEventId",
+          "lines": [
+            2,
+            4
+          ],
+          "id": "SDK.F006.generateEventId"
+        },
+        {
+          "name": "ChromeBridgeEvents",
+          "lines": [
+            5,
+            5
+          ],
+          "id": "SDK.F006.ChromeBridgeEvents"
+        },
+        {
+          "name": "decodeBase64",
+          "lines": [
+            7,
+            7
+          ],
+          "id": "SDK.F006.decodeBase64"
+        },
+        {
+          "name": "ChromeBridgeOperationCompleted",
+          "lines": [
+            16,
+            43
+          ],
+          "id": "SDK.F006.ChromeBridgeOperationCompleted"
+        },
+        {
+          "name": "executeInBg_executeScript",
+          "lines": [
+            45,
+            50
+          ],
+          "id": "SDK.F006.executeInBg_executeScript"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/bridge.js",
+          "symbolAnchor": "export function createSdkBridge",
+          "line": 9,
+          "sha256": "1e29c660de8ae3c85e6111875418721325192af41082d8f9cd40aa5433240462"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/entry.js",
+          "symbolAnchor": "const ChromeBridgeOperationCompleted",
+          "line": 82,
+          "sha256": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "固定回调/Map/timer/Promise 单次结算已写入；executeInBg/executeScript 明确 E_CAPABILITY，不能算任意后台脚本正向迁移。",
+      "tasks": [
+        "T01",
+        "T08",
+        "T09",
+        "T10",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F006",
+        "B01.F006.ChromeBridgeOperationCompleted",
+        "B02.F006.decodeBase64",
+        "B05.F006.generateEventId",
+        "CTRL01.F006.executeInBg_executeScript",
+        "LEAK01.F006.ChromeBridgeEvents",
+        "RESOURCE01.F006.codec-unicode",
+        "RESOURCE01.F006.failure",
+        "RESOURCE01.F006.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/common.js",
+      "sourceId": "F007",
+      "oldSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "createNotify",
+          "lines": [
+            2,
+            9
+          ],
+          "id": "SDK.F007.createNotify"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/notifications.js",
+          "symbolAnchor": "export function createNotifications",
+          "line": 2,
+          "sha256": "a139446cb979971db9487c1e9ae905f19588909acd2f4cf56ab57d9ae29dff41"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "createNotify string/body→共享 Chrome notification；null/非法输入 typed 拒绝；原生权限/通知/icon/回程待验。",
+      "tasks": [
+        "T06",
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F007",
+        "RESOURCE01.F007.failure",
+        "RESOURCE01.F007.load",
+        "SVC01.F007.createNotify"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/serverUtils.js",
+      "sourceId": "F008",
+      "oldSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "serverUtils.checkServer",
+          "lines": [
+            19,
+            28
+          ],
+          "id": "SDK.F008.serverUtils.checkServer"
+        },
+        {
+          "name": "serverUtils.getFastestServer",
+          "lines": [
+            31,
+            49
+          ],
+          "id": "SDK.F008.serverUtils.getFastestServer"
+        },
+        {
+          "name": "serverUtils.checkServers",
+          "lines": [
+            52,
+            74
+          ],
+          "id": "SDK.F008.serverUtils.checkServers"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/servers.js",
+          "symbolAnchor": "export function createServers",
+          "line": 6,
+          "sha256": "1bf8e33ba8079914b4c3b11e700af948e594f73872b491c1126f4fe69e333089"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "原方法保留；最快 server 修正为全部可观察结果中最小 latency。旧加载器六 core 列表未包含 serverUtils；真实 timeout/error 待验。",
+      "tasks": [
+        "T06",
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F008",
+        "CMP14.F008.serverUtils.checkServer",
+        "CMP14.F008.serverUtils.checkServers",
+        "CMP14.F008.serverUtils.getFastestServer",
+        "RESOURCE01.F008.failure",
+        "RESOURCE01.F008.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/utils.js",
+      "sourceId": "F009",
+      "oldSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "sleep",
+          "lines": [
+            1,
+            1
+          ],
+          "id": "SDK.F009.sleep"
+        },
+        {
+          "name": "getFingerprint",
+          "lines": [
+            4,
+            17
+          ],
+          "id": "SDK.F009.getFingerprint"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/utils.js",
+          "symbolAnchor": "export function createSleep",
+          "line": 2,
+          "sha256": "21f0d3e6efd9f690f375e45f6ab6274a9254675e89e4b01cf08b43f1c4284a97"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/utils.js",
+          "symbolAnchor": "export async function getFingerprint",
+          "line": 15,
+          "sha256": "21f0d3e6efd9f690f375e45f6ab6274a9254675e89e4b01cf08b43f1c4284a97"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "sleep 已安装到网页全局；getFingerprint 只有 E_RESOURCE_UNAVAILABLE，旧 fingerprintjs@3.js 实际缺失，不能算指纹支持。",
+      "tasks": [
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F009",
+        "CMP08.F009.getFingerprint",
+        "CMP08.F009.sleep",
+        "RESOURCE01.F009.failure",
+        "RESOURCE01.F009.fingerprint-missing",
+        "RESOURCE01.F009.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/custom_event.js",
+      "sourceId": "F010",
+      "oldSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "CustomEventDetector.messager",
+          "lines": [
+            7,
+            24
+          ],
+          "id": "SDK.F010.CustomEventDetector.messager"
+        },
+        {
+          "name": "CustomEventDetector.addEventListeners",
+          "lines": [
+            25,
+            29
+          ],
+          "id": "SDK.F010.CustomEventDetector.addEventListeners"
+        },
+        {
+          "name": "CustomEventDetector.removeEventListeners",
+          "lines": [
+            30,
+            35
+          ],
+          "id": "SDK.F010.CustomEventDetector.removeEventListeners"
+        },
+        {
+          "name": "CustomChromeEvt",
+          "lines": [
+            1,
+            1
+          ],
+          "id": "EVENT.F010.CustomChromeEvt"
+        },
+        {
+          "name": "CHROME_PAGE_EXECUTE",
+          "lines": [
+            2,
+            2
+          ],
+          "id": "EVENT.F010.CHROME_PAGE_EXECUTE"
+        },
+        {
+          "name": "CHROME_BRIDGE_INTERFACE",
+          "lines": [
+            3,
+            3
+          ],
+          "id": "EVENT.F010.CHROME_BRIDGE_INTERFACE"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+          "symbolAnchor": "export function installPageRelay",
+          "line": 6,
+          "sha256": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "ISOLATED relay 实际 runtime.sendMessage 交给 Chrome 填 sender；旧 chromeCustomEvt/CHROME_PAGE_EXECUTE typed 拒绝；导航/清理待同包证明。",
+      "tasks": [
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F010",
+        "B03.F010.CustomEventDetector.addEventListeners",
+        "B03.F010.CustomEventDetector.messager",
+        "B03.F010.CustomEventDetector.removeEventListeners",
+        "CMP05.F010.CHROME_BRIDGE_INTERFACE",
+        "CMP05.F010.CHROME_PAGE_EXECUTE",
+        "CMP05.F010.CustomChromeEvt",
+        "RESOURCE01.F010.failure",
+        "RESOURCE01.F010.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/detect_focus.js",
+      "sourceId": "F024",
+      "oldSha256": "0f7cf85ea6d0d08f847f7ab2ea7d5ccec61925c38ee5607d3d45f62e9b384e9f",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            43
+          ],
+          "id": "F024"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 business-deferred",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。旧业务/整包UI本轮不实施；保留来源与必需边界证据",
+      "retainedAndGaps": "旧 business-deferred；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F024",
+        "RESOURCE01.F024.defer"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/growl-notification.min.js",
+      "sourceId": "F055",
+      "oldSha256": "2c2a5f5eb4c8880e1fb8885fab3b18428adf3a6d237835c10ed50c26c68e55a4",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            1
+          ],
+          "id": "F055"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F055",
+        "RESOURCE01.F055.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/jquery.min.js",
+      "sourceId": "F056",
+      "oldSha256": "87083882cc6015984eb0411a99d3981817f5dc5c90ba24f0940420c5548d82de",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            4
+          ],
+          "id": "F056"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F056",
+        "RESOURCE01.F056.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/js.cookie.min.js",
+      "sourceId": "F057",
+      "oldSha256": "582cc085dd8fea044917d1efde838e77e845262fd025bbfe0339f808607c81f6",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            2
+          ],
+          "id": "F057"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F057",
+        "RESOURCE01.F057.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/lodash.min.js",
+      "sourceId": "F058",
+      "oldSha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            140
+          ],
+          "id": "F058"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F058",
+        "RESOURCE01.F058.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/moment.min.js",
+      "sourceId": "F059",
+      "oldSha256": "d618d4869738e0dc22360f0ec0cbb6433257843f24723fac240dda0906685238",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            7
+          ],
+          "id": "F059"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F059",
+        "RESOURCE01.F059.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/psl.min.js",
+      "sourceId": "F060",
+      "oldSha256": "a8796612f4cc8ea76489e6fcafeff6a48050b5e83ea83039daf0e311a6c6e3ec",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            1
+          ],
+          "id": "F060"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F060",
+        "RESOURCE01.F060.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/quasar.umd.js",
+      "sourceId": "F061",
+      "oldSha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            41083
+          ],
+          "id": "F061"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F061",
+        "RESOURCE01.F061.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/query-string.min.js",
+      "sourceId": "F062",
+      "oldSha256": "63091f36b5a961fb09507dd1d3fae3bff7eb6c59c53616b52d77ec796e00032a",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            8
+          ],
+          "id": "F062"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F062",
+        "RESOURCE01.F062.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/socket.io.min.js",
+      "sourceId": "F063",
+      "oldSha256": "3030e83ceb32702ada126cb0a3703d29a425ea8e4d46614cfeb94aa1b91cc566",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            7
+          ],
+          "id": "F063"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F063",
+        "RESOURCE01.F063.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/store.legacy.min.js",
+      "sourceId": "F064",
+      "oldSha256": "5b70a52d159d5b5ae8cd55c2e89b3b1856cd7a0810292bc264c0cef2ec8da1b8",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            2
+          ],
+          "id": "F064"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F064",
+        "RESOURCE01.F064.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/testMonkey.esm.js",
+      "sourceId": "F029",
+      "oldSha256": "190592ff7bf574e532a0ccdc33ebb431242e9c0ee4c7a0194f06703996fa902c",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            24956
+          ],
+          "id": "F029"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 business-deferred",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。旧业务UI延期未迁移，CMP06/PROV保留，不复制bundle/不替代主48",
+      "retainedAndGaps": "旧 business-deferred；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F029",
+        "CMP06.F029.independent-semantics",
+        "PROV02.F029.deferred-bundle",
+        "RESOURCE01.F029.defer"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/utils.js",
+      "sourceId": "F011",
+      "oldSha256": "8941e8bad5bb2720b88bd306d7605c05e01db596fb0ad76d7f4055e76646de70",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "sleep_duplicate",
+          "lines": [
+            1,
+            1
+          ],
+          "id": "SDK.F011.sleep_duplicate"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/utils.js",
+          "symbolAnchor": "export function createSleep",
+          "line": 2,
+          "sha256": "21f0d3e6efd9f690f375e45f6ab6274a9254675e89e4b01cf08b43f1c4284a97"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "本轮仅重复 sleep 对应同一 createSleep，不等于迁移旧业务工具全集。",
+      "tasks": [
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F011",
+        "PROV01.F011.sleep_duplicate",
+        "RESOURCE01.F011.failure",
+        "RESOURCE01.F011.load"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/vue.global.prod.js",
+      "sourceId": "F065",
+      "oldSha256": "bd59cd2afb497b04e917ffe003d69848f40d3d26e7b620a0159471be846b2852",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "本地 bundle/资源（未迁入，无新导出映射）",
+          "lines": [
+            1,
+            1
+          ],
+          "id": "F065"
+        }
+      ],
+      "newNodes": [],
+      "loading": "当前 production 无该文件/入口；原合同处置 excluded",
+      "consumer": "当前有限生产闭包无对应消费者；旧声明/注入不等于新消费。无本轮固定consumer或非runtime；保留来源hash，不生成占位或复制vendor",
+      "retainedAndGaps": "旧 excluded；当前未迁入。本轮有实际必要消费者且无等价实现时才按用户政策携入原版本/原文件名，不改第三方源码。不能以创建 vendor 目录或复制文件算功能完成。",
+      "tasks": [
+        "T12",
+        "T13:边界"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F065",
+        "RESOURCE01.F065.exclude"
+      ],
+      "implementationState": "未迁入（旧合同排除/业务延期，未计迁移完成）",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts",
+      "sourceId": "F020",
+      "oldSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "handleChromeBridgeInterface",
+          "lines": [
+            102,
+            110
+          ],
+          "id": "SVC.F020.handleChromeBridgeInterface"
+        },
+        {
+          "name": "tokenSubstitution",
+          "lines": [
+            112,
+            114
+          ],
+          "id": "SVC.F020.tokenSubstitution"
+        },
+        {
+          "name": "axiosUrlNormalization",
+          "lines": [
+            115,
+            118
+          ],
+          "id": "SVC.F020.axiosUrlNormalization"
+        },
+        {
+          "name": "AXIOS_GET",
+          "lines": [
+            119,
+            121
+          ],
+          "id": "SVC.F020.AXIOS_GET"
+        },
+        {
+          "name": "AXIOS_POST",
+          "lines": [
+            122,
+            125
+          ],
+          "id": "SVC.F020.AXIOS_POST"
+        },
+        {
+          "name": "AXIOS_PUT",
+          "lines": [
+            126,
+            129
+          ],
+          "id": "SVC.F020.AXIOS_PUT"
+        },
+        {
+          "name": "AXIOS_DELETE",
+          "lines": [
+            130,
+            132
+          ],
+          "id": "SVC.F020.AXIOS_DELETE"
+        },
+        {
+          "name": "APPSTORAGE_SETITEM",
+          "lines": [
+            134,
+            135
+          ],
+          "id": "SVC.F020.APPSTORAGE_SETITEM"
+        },
+        {
+          "name": "APPSTORAGE_GETITEM",
+          "lines": [
+            136,
+            137
+          ],
+          "id": "SVC.F020.APPSTORAGE_GETITEM"
+        },
+        {
+          "name": "APPSTORAGE_REMOVEITEM",
+          "lines": [
+            138,
+            139
+          ],
+          "id": "SVC.F020.APPSTORAGE_REMOVEITEM"
+        },
+        {
+          "name": "APPSTORAGE_CLEAR",
+          "lines": [
+            140,
+            141
+          ],
+          "id": "SVC.F020.APPSTORAGE_CLEAR"
+        },
+        {
+          "name": "APPLOCAL_SETITEM",
+          "lines": [
+            142,
+            143
+          ],
+          "id": "SVC.F020.APPLOCAL_SETITEM"
+        },
+        {
+          "name": "APPLOCAL_GETITEM",
+          "lines": [
+            144,
+            145
+          ],
+          "id": "SVC.F020.APPLOCAL_GETITEM"
+        },
+        {
+          "name": "APPLOCAL_REMOVEITEM",
+          "lines": [
+            146,
+            150
+          ],
+          "id": "SVC.F020.APPLOCAL_REMOVEITEM"
+        },
+        {
+          "name": "CREATE_NOTIFY",
+          "lines": [
+            153,
+            155
+          ],
+          "id": "SVC.F020.CREATE_NOTIFY"
+        },
+        {
+          "name": "CSDN_READ_ARTICLE",
+          "lines": [
+            157,
+            157
+          ],
+          "id": "SVC.F020.CSDN_READ_ARTICLE"
+        },
+        {
+          "name": "CSDN_DOWNLOAD",
+          "lines": [
+            158,
+            158
+          ],
+          "id": "SVC.F020.CSDN_DOWNLOAD"
+        },
+        {
+          "name": "CSDN_VIP_LOGIN",
+          "lines": [
+            160,
+            242
+          ],
+          "id": "SVC.F020.CSDN_VIP_LOGIN"
+        },
+        {
+          "name": "bridgeFinalCatchUnknown",
+          "lines": [
+            243,
+            248
+          ],
+          "id": "SVC.F020.bridgeFinalCatchUnknown"
+        },
+        {
+          "name": "backgroundSleepFallback",
+          "lines": [
+            19,
+            19
+          ],
+          "id": "SVC.F020.backgroundSleepFallback"
+        },
+        {
+          "name": "globalPage",
+          "lines": [
+            27,
+            27
+          ],
+          "id": "SVC.F020.globalPage"
+        },
+        {
+          "name": "TraceTimeUtilGlobalPrerequisite",
+          "lines": [
+            29,
+            29
+          ],
+          "id": "SVC.F020.TraceTimeUtilGlobalPrerequisite"
+        },
+        {
+          "name": "runtimeMessageListener",
+          "lines": [
+            33,
+            66
+          ],
+          "id": "SVC.F020.runtimeMessageListener"
+        },
+        {
+          "name": "message.mousemove",
+          "lines": [
+            40,
+            44
+          ],
+          "id": "SVC.F020.message.mousemove"
+        },
+        {
+          "name": "message.notifications",
+          "lines": [
+            45,
+            47
+          ],
+          "id": "SVC.F020.message.notifications"
+        },
+        {
+          "name": "message.chromeCustomEvt",
+          "lines": [
+            48,
+            50
+          ],
+          "id": "SVC.F020.message.chromeCustomEvt"
+        },
+        {
+          "name": "message.CHROME_BRIDGE_INTERFACE",
+          "lines": [
+            51,
+            53
+          ],
+          "id": "SVC.F020.message.CHROME_BRIDGE_INTERFACE"
+        },
+        {
+          "name": "message.CHROME_PAGE_EXECUTE",
+          "lines": [
+            54,
+            56
+          ],
+          "id": "SVC.F020.message.CHROME_PAGE_EXECUTE"
+        },
+        {
+          "name": "message.default",
+          "lines": [
+            57,
+            59
+          ],
+          "id": "SVC.F020.message.default"
+        },
+        {
+          "name": "handleHidMouseMove",
+          "lines": [
+            68,
+            81
+          ],
+          "id": "SVC.F020.handleHidMouseMove"
+        },
+        {
+          "name": "handleNotifications",
+          "lines": [
+            84,
+            92
+          ],
+          "id": "SVC.F020.handleNotifications"
+        },
+        {
+          "name": "handleChromeCustomEvent",
+          "lines": [
+            95,
+            99
+          ],
+          "id": "SVC.F020.handleChromeCustomEvent"
+        },
+        {
+          "name": "extractDomainFromUrl",
+          "lines": [
+            250,
+            263
+          ],
+          "id": "SVC.F020.extractDomainFromUrl"
+        },
+        {
+          "name": "deleteCookiesByUrl",
+          "lines": [
+            265,
+            277
+          ],
+          "id": "SVC.F020.deleteCookiesByUrl"
+        },
+        {
+          "name": "settingProxy",
+          "lines": [
+            280,
+            315
+          ],
+          "id": "SVC.F020.settingProxy"
+        },
+        {
+          "name": "setCookies",
+          "lines": [
+            317,
+            356
+          ],
+          "id": "SVC.F020.setCookies"
+        },
+        {
+          "name": "getHistoryUrls",
+          "lines": [
+            358,
+            385
+          ],
+          "id": "SVC.F020.getHistoryUrls"
+        },
+        {
+          "name": "getCookies",
+          "lines": [
+            386,
+            399
+          ],
+          "id": "SVC.F020.getCookies"
+        },
+        {
+          "name": "handleChromePageExecute",
+          "lines": [
+            403,
+            408
+          ],
+          "id": "SVC.F020.handleChromePageExecute"
+        },
+        {
+          "name": "executeScript",
+          "lines": [
+            414,
+            418
+          ],
+          "id": "SVC.F020.executeScript"
+        },
+        {
+          "name": "getActiveTab",
+          "lines": [
+            483,
+            495
+          ],
+          "id": "SVC.F020.getActiveTab"
+        },
+        {
+          "name": "checkLastError",
+          "lines": [
+            687,
+            694
+          ],
+          "id": "SVC.F020.checkLastError"
+        },
+        {
+          "name": "executeScriptInCurrentPage",
+          "lines": [
+            704,
+            711
+          ],
+          "id": "SVC.F020.executeScriptInCurrentPage"
+        },
+        {
+          "name": "encodeToBase64",
+          "lines": [
+            714,
+            714
+          ],
+          "id": "SVC.F020.encodeToBase64"
+        },
+        {
+          "name": "ChromeBridgeCallBack",
+          "lines": [
+            716,
+            737
+          ],
+          "id": "SVC.F020.ChromeBridgeCallBack"
+        },
+        {
+          "name": "createNotify",
+          "lines": [
+            741,
+            774
+          ],
+          "id": "SVC.F020.createNotify"
+        },
+        {
+          "name": "notify.inner",
+          "lines": [
+            758,
+            773
+          ],
+          "id": "SVC.F020.notify.inner"
+        },
+        {
+          "name": "notify.onshow",
+          "lines": [
+            761,
+            763
+          ],
+          "id": "SVC.F020.notify.onshow"
+        },
+        {
+          "name": "notify.onclose",
+          "lines": [
+            764,
+            766
+          ],
+          "id": "SVC.F020.notify.onclose"
+        },
+        {
+          "name": "notify.onclick",
+          "lines": [
+            767,
+            772
+          ],
+          "id": "SVC.F020.notify.onclick"
+        },
+        {
+          "name": "idleLocked",
+          "lines": [
+            420,
+            427
+          ],
+          "id": "SVC.F020.idleLocked"
+        },
+        {
+          "name": "onInstalledGuide",
+          "lines": [
+            429,
+            443
+          ],
+          "id": "SVC.F020.onInstalledGuide"
+        },
+        {
+          "name": "onCreatedNewtabRedirect",
+          "lines": [
+            454,
+            460
+          ],
+          "id": "SVC.F020.onCreatedNewtabRedirect"
+        },
+        {
+          "name": "initAutoPage",
+          "lines": [
+            477,
+            480
+          ],
+          "id": "SVC.F020.initAutoPage"
+        },
+        {
+          "name": "initSocket",
+          "lines": [
+            497,
+            531
+          ],
+          "id": "SVC.F020.initSocket"
+        },
+        {
+          "name": "socket.connect",
+          "lines": [
+            502,
+            502
+          ],
+          "id": "SVC.F020.socket.connect"
+        },
+        {
+          "name": "socket.event",
+          "lines": [
+            503,
+            503
+          ],
+          "id": "SVC.F020.socket.event"
+        },
+        {
+          "name": "socket.disconnect",
+          "lines": [
+            504,
+            504
+          ],
+          "id": "SVC.F020.socket.disconnect"
+        },
+        {
+          "name": "socket.reconnect_attempt",
+          "lines": [
+            505,
+            505
+          ],
+          "id": "SVC.F020.socket.reconnect_attempt"
+        },
+        {
+          "name": "socket.reconnect_failed",
+          "lines": [
+            506,
+            506
+          ],
+          "id": "SVC.F020.socket.reconnect_failed"
+        },
+        {
+          "name": "socket.data",
+          "lines": [
+            507,
+            512
+          ],
+          "id": "SVC.F020.socket.data"
+        },
+        {
+          "name": "socket.getSocketIds",
+          "lines": [
+            513,
+            515
+          ],
+          "id": "SVC.F020.socket.getSocketIds"
+        },
+        {
+          "name": "socket.SCRIPT_RUN",
+          "lines": [
+            517,
+            522
+          ],
+          "id": "SVC.F020.socket.SCRIPT_RUN"
+        },
+        {
+          "name": "socket.DEVICE_INFO",
+          "lines": [
+            523,
+            528
+          ],
+          "id": "SVC.F020.socket.DEVICE_INFO"
+        },
+        {
+          "name": "initUserInfoWs",
+          "lines": [
+            532,
+            543
+          ],
+          "id": "SVC.F020.initUserInfoWs"
+        },
+        {
+          "name": "initDataBusiness",
+          "lines": [
+            588,
+            612
+          ],
+          "id": "SVC.F020.initDataBusiness"
+        },
+        {
+          "name": "checkAndLogoutWEB",
+          "lines": [
+            614,
+            643
+          ],
+          "id": "SVC.F020.checkAndLogoutWEB"
+        },
+        {
+          "name": "onInstalledDetectFocus",
+          "lines": [
+            697,
+            703
+          ],
+          "id": "SVC.F020.onInstalledDetectFocus"
+        },
+        {
+          "name": "getAllInWindow",
+          "lines": [
+            853,
+            864
+          ],
+          "id": "SVC.F020.getAllInWindow"
+        },
+        {
+          "name": "startCounter",
+          "lines": [
+            865,
+            879
+          ],
+          "id": "SVC.F020.startCounter"
+        },
+        {
+          "name": "getRedirectUrl",
+          "lines": [
+            880,
+            886
+          ],
+          "id": "SVC.F020.getRedirectUrl"
+        },
+        {
+          "name": "doBlackCounter",
+          "lines": [
+            888,
+            913
+          ],
+          "id": "SVC.F020.doBlackCounter"
+        },
+        {
+          "name": "cancelBlackCounte",
+          "lines": [
+            915,
+            920
+          ],
+          "id": "SVC.F020.cancelBlackCounte"
+        },
+        {
+          "name": "resetDebug",
+          "lines": [
+            922,
+            928
+          ],
+          "id": "SVC.F020.resetDebug"
+        },
+        {
+          "name": "check2End",
+          "lines": [
+            930,
+            942
+          ],
+          "id": "SVC.F020.check2End"
+        },
+        {
+          "name": "doRemovedBusiness",
+          "lines": [
+            943,
+            948
+          ],
+          "id": "SVC.F020.doRemovedBusiness"
+        },
+        {
+          "name": "doUpdatedBusiness",
+          "lines": [
+            949,
+            952
+          ],
+          "id": "SVC.F020.doUpdatedBusiness"
+        },
+        {
+          "name": "focusState",
+          "lines": [
+            957,
+            969
+          ],
+          "id": "SVC.F020.focusState"
+        },
+        {
+          "name": "tokenBusiness",
+          "lines": [
+            975,
+            984
+          ],
+          "id": "SVC.F020.tokenBusiness"
+        },
+        {
+          "name": "initApp",
+          "lines": [
+            463,
+            476
+          ],
+          "id": "SVC.F020.initApp"
+        },
+        {
+          "name": "initEngine",
+          "lines": [
+            548,
+            557
+          ],
+          "id": "SVC.F020.initEngine"
+        },
+        {
+          "name": "initEnvLocal",
+          "lines": [
+            558,
+            561
+          ],
+          "id": "SVC.F020.initEnvLocal"
+        },
+        {
+          "name": "initEnvRemote",
+          "lines": [
+            562,
+            573
+          ],
+          "id": "SVC.F020.initEnvRemote"
+        },
+        {
+          "name": "updateEnvInfo",
+          "lines": [
+            575,
+            583
+          ],
+          "id": "SVC.F020.updateEnvInfo"
+        },
+        {
+          "name": "tracetime_webrequest_begun",
+          "lines": [
+            647,
+            657
+          ],
+          "id": "SVC.F020.tracetime_webrequest_begun"
+        },
+        {
+          "name": "tracetime_webrequest_done",
+          "lines": [
+            658,
+            664
+          ],
+          "id": "SVC.F020.tracetime_webrequest_done"
+        },
+        {
+          "name": "onHeadersReceived",
+          "lines": [
+            666,
+            671
+          ],
+          "id": "SVC.F020.onHeadersReceived"
+        },
+        {
+          "name": "webRequest.onBeforeRequest",
+          "lines": [
+            674,
+            679
+          ],
+          "id": "SVC.F020.webRequest.onBeforeRequest"
+        },
+        {
+          "name": "webRequest.onCompleted",
+          "lines": [
+            680,
+            681
+          ],
+          "id": "SVC.F020.webRequest.onCompleted"
+        },
+        {
+          "name": "browserAction.onClicked",
+          "lines": [
+            777,
+            792
+          ],
+          "id": "SVC.F020.browserAction.onClicked"
+        },
+        {
+          "name": "BexEventMap",
+          "lines": [
+            795,
+            806
+          ],
+          "id": "SVC.F020.BexEventMap"
+        },
+        {
+          "name": "bexBackgroundRegistration",
+          "lines": [
+            808,
+            1015
+          ],
+          "id": "SVC.F020.bexBackgroundRegistration"
+        },
+        {
+          "name": "service.log",
+          "lines": [
+            811,
+            814
+          ],
+          "id": "SVC.F020.service.log"
+        },
+        {
+          "name": "service.getTime",
+          "lines": [
+            816,
+            818
+          ],
+          "id": "SVC.F020.service.getTime"
+        },
+        {
+          "name": "service.storage.get.key",
+          "lines": [
+            820,
+            832
+          ],
+          "id": "SVC.F020.service.storage.get.key"
+        },
+        {
+          "name": "service.storage.get.all",
+          "lines": [
+            822,
+            826
+          ],
+          "id": "SVC.F020.service.storage.get.all"
+        },
+        {
+          "name": "service.storage.set",
+          "lines": [
+            836,
+            840
+          ],
+          "id": "SVC.F020.service.storage.set"
+        },
+        {
+          "name": "service.storage.remove",
+          "lines": [
+            844,
+            848
+          ],
+          "id": "SVC.F020.service.storage.remove"
+        },
+        {
+          "name": "tabs.onRemoved.register",
+          "lines": [
+            953,
+            955
+          ],
+          "id": "SVC.F020.tabs.onRemoved.register"
+        },
+        {
+          "name": "tabs.onUpdated.register",
+          "lines": [
+            954,
+            956
+          ],
+          "id": "SVC.F020.tabs.onUpdated.register"
+        },
+        {
+          "name": "service.bexUrl",
+          "lines": [
+            970,
+            974
+          ],
+          "id": "SVC.F020.service.bexUrl"
+        },
+        {
+          "name": "service.requestResource",
+          "lines": [
+            987,
+            1004
+          ],
+          "id": "SVC.F020.service.requestResource"
+        },
+        {
+          "name": "commented.onCreated.example",
+          "lines": [
+            1007,
+            1014
+          ],
+          "id": "SVC.F020.commented.onCreated.example"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/sw.js",
+          "symbolAnchor": "const foundation = createFoundationBroker",
+          "line": 8,
+          "sha256": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+          "symbolAnchor": "export async function createFoundationBroker",
+          "line": 19,
+          "sha256": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-broker.js",
+          "symbolAnchor": "export function createSdkBroker",
+          "line": 11,
+          "sha256": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9"
+        }
+      ],
+      "loading": "tool.html 的 tool-shell.js→mountScriptEditor→createRunHost；UI commit/load/start→同 broker/authority controller methods→固定 sandbox/worker-runtime 产物→per-run ctx.page。",
+      "consumer": "startControllerRun durable admission→pinScriptRevision→精确 target→RunHost.startController→Worker page proxy→controllerOperation→native-driver→持久 result→retire target/pin→UI。",
+      "retainedAndGaps": "拆分到 SW 短服务/唯一 broker；service.log/getTime/bexUrl/requestResource 仍无等价公开注册入口，合同 SVC.F020 四项缺口。",
+      "tasks": [
+        "T01",
+        "T02",
+        "T03",
+        "T04",
+        "T06",
+        "T07",
+        "T08",
+        "T09",
+        "T10",
+        "T11",
+        "T12",
+        "T13"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F020",
+        "A01-WORKBENCH-INTEGRATION",
+        "AUTH01-SENDER-MATRIX",
+        "AUTH01.BG.getActiveTab",
+        "AUTH01.BG.getHistoryUrls",
+        "AUTH01.BG.initEngine",
+        "AUTH01.BG.initEnvRemote",
+        "AUTH01.BG.settingProxy",
+        "AUTH01.BG.tokenSubstitution",
+        "AUTH01.BG.updateEnvInfo",
+        "B01.BG.runtimeMessageListener",
+        "B02.BG.ChromeBridgeCallBack",
+        "B02.BG.encodeToBase64",
+        "B02.BG.executeScriptInCurrentPage",
+        "B05-SDK-FOUR-CRASHES",
+        "B05-SDK-GRANT-GC",
+        "B05-SDK-NO-CONTROLLER",
+        "B05.BG.message.CHROME_BRIDGE_INTERFACE",
+        "CMP01.BG.globalPage",
+        "CMP05.BG.CSDN_DOWNLOAD",
+        "CMP05.BG.CSDN_READ_ARTICLE",
+        "CMP05.BG.CSDN_VIP_LOGIN",
+        "CMP05.BG.handleChromeCustomEvent",
+        "CMP05.BG.handleHidMouseMove",
+        "CMP05.BG.handleNotifications",
+        "CMP05.BG.message.chromeCustomEvt",
+        "CMP05.BG.message.mousemove",
+        "CMP05.BG.message.notifications",
+        "CMP07.BG.APPLOCAL_GETITEM",
+        "CMP07.BG.APPLOCAL_REMOVEITEM",
+        "CMP07.BG.APPLOCAL_SETITEM",
+        "CMP07.BG.APPSTORAGE_CLEAR",
+        "CMP07.BG.APPSTORAGE_GETITEM",
+        "CMP07.BG.APPSTORAGE_REMOVEITEM",
+        "CMP07.BG.APPSTORAGE_SETITEM",
+        "CMP07.BG.service.storage.get.all",
+        "CMP07.BG.service.storage.get.key",
+        "CMP07.BG.service.storage.remove",
+        "CMP07.BG.service.storage.set",
+        "CMP08.BG.backgroundSleepFallback",
+        "CMP13.BG.AXIOS_DELETE",
+        "CMP13.BG.AXIOS_GET",
+        "CMP13.BG.AXIOS_POST",
+        "CMP13.BG.AXIOS_PUT",
+        "CMP13.BG.axiosUrlNormalization",
+        "CMP15.BG.bridgeFinalCatchUnknown",
+        "CMP15.BG.handleChromeBridgeInterface",
+        "CMP15.BG.message.default",
+        "CTRL01-STOP-BARRIERS",
+        "CTRL01.BG.handleChromePageExecute",
+        "CTRL01.BG.message.CHROME_PAGE_EXECUTE",
+        "CTRL03.BG.tabs.onRemoved.register",
+        "EX01.BG.executeScript",
+        "FIX01-SCHEMA-KEYS",
+        "NAV01.BG.tabs.onUpdated.register",
+        "PROV01.BG.BexEventMap",
+        "PROV01.BG.bexBackgroundRegistration",
+        "PROV01.BG.commented.onCreated.example",
+        "PROV02.BG.TraceTimeUtilGlobalPrerequisite",
+        "PROV02.BG.cancelBlackCounte",
+        "PROV02.BG.check2End",
+        "PROV02.BG.checkAndLogoutWEB",
+        "PROV02.BG.doBlackCounter",
+        "PROV02.BG.doRemovedBusiness",
+        "PROV02.BG.doUpdatedBusiness",
+        "PROV02.BG.focusState",
+        "PROV02.BG.getAllInWindow",
+        "PROV02.BG.getRedirectUrl",
+        "PROV02.BG.idleLocked",
+        "PROV02.BG.initAutoPage",
+        "PROV02.BG.initDataBusiness",
+        "PROV02.BG.initSocket",
+        "PROV02.BG.initUserInfoWs",
+        "PROV02.BG.onCreatedNewtabRedirect",
+        "PROV02.BG.onHeadersReceived",
+        "PROV02.BG.onInstalledDetectFocus",
+        "PROV02.BG.onInstalledGuide",
+        "PROV02.BG.resetDebug",
+        "PROV02.BG.socket.DEVICE_INFO",
+        "PROV02.BG.socket.SCRIPT_RUN",
+        "PROV02.BG.socket.connect",
+        "PROV02.BG.socket.data",
+        "PROV02.BG.socket.disconnect",
+        "PROV02.BG.socket.event",
+        "PROV02.BG.socket.getSocketIds",
+        "PROV02.BG.socket.reconnect_attempt",
+        "PROV02.BG.socket.reconnect_failed",
+        "PROV02.BG.startCounter",
+        "PROV02.BG.tokenBusiness",
+        "PROV02.BG.tracetime_webrequest_begun",
+        "PROV02.BG.tracetime_webrequest_done",
+        "PROV02.BG.webRequest.onBeforeRequest",
+        "PROV02.BG.webRequest.onCompleted",
+        "RESOURCE01.BG.initEnvLocal",
+        "RESOURCE01.BG.service.bexUrl",
+        "RESOURCE01.BG.service.requestResource",
+        "SVC01.BG.CREATE_NOTIFY",
+        "SVC01.BG.checkLastError",
+        "SVC01.BG.createNotify",
+        "SVC01.BG.deleteCookiesByUrl",
+        "SVC01.BG.extractDomainFromUrl",
+        "SVC01.BG.getCookies",
+        "SVC01.BG.initApp",
+        "SVC01.BG.notify.inner",
+        "SVC01.BG.notify.onclick",
+        "SVC01.BG.notify.onclose",
+        "SVC01.BG.notify.onshow",
+        "SVC01.BG.service.getTime",
+        "SVC01.BG.service.log",
+        "SVC01.BG.setCookies",
+        "USC01-ASYNC-ERROR",
+        "USC01-ASYNC-RETURN",
+        "USC01.BG.browserAction.onClicked",
+        "USC02-REVISION-PIN",
+        "USC04-SOURCE-REJECT",
+        "USC05-GLOBAL-FORGE"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/chrome-local-storage-api.js",
+      "sourceId": "F012",
+      "oldSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "getObjectFromLocalStorage",
+          "lines": [
+            7,
+            17
+          ],
+          "id": "SDK.F012.getObjectFromLocalStorage"
+        },
+        {
+          "name": "saveObjectInLocalStorage",
+          "lines": [
+            23,
+            33
+          ],
+          "id": "SDK.F012.saveObjectInLocalStorage"
+        },
+        {
+          "name": "removeObjectFromLocalStorage",
+          "lines": [
+            40,
+            50
+          ],
+          "id": "SDK.F012.removeObjectFromLocalStorage"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/storage.js",
+          "symbolAnchor": "const storage = Object.freeze",
+          "line": 13,
+          "sha256": "77e7545c01752ebc3074b182012638cd7981f3cafce82e19e9a782f907bfc7eb"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "旧 helpers/service.storage 使用唯一 CHROME_LOCAL routes 和同 IDB namespace；不是第二 storage.local 或第二 DB；真实 missing/undefined 与 clear 待验。",
+      "tasks": [
+        "T04",
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F012",
+        "CMP07.F012.getObjectFromLocalStorage",
+        "CMP07.F012.removeObjectFromLocalStorage",
+        "CMP07.F012.saveObjectInLocalStorage",
+        "RESOURCE01.F012.failure",
+        "RESOURCE01.F012.load",
+        "SVC01-IDB-RECOVERY",
+        "SVC01-IDB-TRANSACTIONS"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/my-content-script.ts",
+      "sourceId": "F021",
+      "oldSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "appendScript",
+          "lines": [
+            79,
+            104
+          ],
+          "id": "INJECT.F021.appendScript"
+        },
+        {
+          "name": "getResourceByUrl",
+          "lines": [
+            107,
+            111
+          ],
+          "id": "INJECT.F021.getResourceByUrl"
+        },
+        {
+          "name": "appendCSS",
+          "lines": [
+            114,
+            119
+          ],
+          "id": "INJECT.F021.appendCSS"
+        },
+        {
+          "name": "fixedSdkInjection",
+          "lines": [
+            148,
+            171
+          ],
+          "id": "INJECT.F021.fixedSdkInjection"
+        },
+        {
+          "name": "environmentBranchLoader",
+          "lines": [
+            176,
+            191
+          ],
+          "id": "INJECT.F021.environmentBranchLoader"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+          "symbolAnchor": "async installSdk",
+          "line": 59,
+          "sha256": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/chrome/tabs.js",
+          "symbolAnchor": "export function createTabsService",
+          "line": 15,
+          "sha256": "cf077eaa8922e5e6fb8e280a44ff71a41cb551665d488acde2205bb66f5297e6"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/entry.js",
+          "symbolAnchor": "export function installPageSdk",
+          "line": 54,
+          "sha256": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "固定 ISOLATED relay→MAIN sdk-main，准确 documentIds；没有自动执行目录全部 JS。old loader 显式顺序与新 webpack import 顺序分别保存。",
+      "tasks": [
+        "T08",
+        "T09",
+        "T12",
+        "T13"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F021",
+        "RESOURCE01-LOAD-CLEANUP",
+        "RESOURCE01.F021.appendCSS",
+        "RESOURCE01.F021.appendScript",
+        "RESOURCE01.F021.duplicate",
+        "RESOURCE01.F021.environmentBranchLoader",
+        "RESOURCE01.F021.failure",
+        "RESOURCE01.F021.fixedSdkInjection",
+        "RESOURCE01.F021.getResourceByUrl",
+        "RESOURCE01.F021.load",
+        "RESOURCE01.F021.navigation",
+        "RESOURCE01.F021.order"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/Device.cst.ts",
+      "sourceId": "F015",
+      "oldSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "DeviceType.BROWSER",
+          "lines": [
+            5,
+            5
+          ],
+          "id": "EVENT.F015.DeviceType.BROWSER"
+        },
+        {
+          "name": "DeviceType.DESKTOP",
+          "lines": [
+            6,
+            6
+          ],
+          "id": "EVENT.F015.DeviceType.DESKTOP"
+        },
+        {
+          "name": "DeviceType.APP_H5",
+          "lines": [
+            7,
+            7
+          ],
+          "id": "EVENT.F015.DeviceType.APP_H5"
+        },
+        {
+          "name": "DeviceType.ANDROID",
+          "lines": [
+            8,
+            8
+          ],
+          "id": "EVENT.F015.DeviceType.ANDROID"
+        },
+        {
+          "name": "DeviceType.IOS",
+          "lines": [
+            9,
+            9
+          ],
+          "id": "EVENT.F015.DeviceType.IOS"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/utils/device.js",
+          "symbolAnchor": "export const DeviceType",
+          "line": 3,
+          "sha256": "f87e108419d29a2008b0dd360287d666570a374e367dcfa8e2a8e49688762df8"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "原枚举值对应 DeviceType；SDK 内部消费，不算独立产品验收。",
+      "tasks": [
+        "T08"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F015",
+        "CMP05.F015.DeviceType.ANDROID",
+        "CMP05.F015.DeviceType.APP_H5",
+        "CMP05.F015.DeviceType.BROWSER",
+        "CMP05.F015.DeviceType.DESKTOP",
+        "CMP05.F015.DeviceType.IOS"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/EventOperate.cst.ts",
+      "sourceId": "F016",
+      "oldSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "EVENT_OPERATE.DEVICE_INFO",
+          "lines": [
+            13,
+            13
+          ],
+          "id": "CORE-DEVICE-EVENT-CONSTANTS"
+        },
+        {
+          "name": "EVENT_OPERATE.SCRIPT_RUN",
+          "lines": [
+            5,
+            5
+          ],
+          "id": "EVENT.F016.EVENT_OPERATE.SCRIPT_RUN"
+        },
+        {
+          "name": "EVENT_OPERATE.SCRIPT_STOP",
+          "lines": [
+            6,
+            6
+          ],
+          "id": "EVENT.F016.EVENT_OPERATE.SCRIPT_STOP"
+        },
+        {
+          "name": "EVENT_OPERATE.SCRIPT_RUN_BY_API",
+          "lines": [
+            7,
+            7
+          ],
+          "id": "EVENT.F016.EVENT_OPERATE.SCRIPT_RUN_BY_API"
+        },
+        {
+          "name": "EVENT_OPERATE.SCRIPT_STOP_BY_API",
+          "lines": [
+            8,
+            8
+          ],
+          "id": "EVENT.F016.EVENT_OPERATE.SCRIPT_STOP_BY_API"
+        },
+        {
+          "name": "EVENT_OPERATE.DEVICE_USER_INFO",
+          "lines": [
+            11,
+            11
+          ],
+          "id": "EVENT.F016.EVENT_OPERATE.DEVICE_USER_INFO"
+        },
+        {
+          "name": "EVENT_OPERATE.DEVICE_USER_INFO_UNBIND",
+          "lines": [
+            12,
+            12
+          ],
+          "id": "EVENT.F016.EVENT_OPERATE.DEVICE_USER_INFO_UNBIND"
+        },
+        {
+          "name": "EVENT_OPERATE.DEVICE_INFO",
+          "lines": [
+            13,
+            13
+          ],
+          "id": "EVENT.F016.EVENT_OPERATE.DEVICE_INFO"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/events.js",
+          "symbolAnchor": "export const EVENT_OPERATE",
+          "line": 5,
+          "sha256": "f2953f29263bb5b5ec0ae5f58f39edc3cffdd133867008e82e602ac486b2fcc2"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/events.js",
+          "symbolAnchor": "export function dispatchFrameworkEvent",
+          "line": 8,
+          "sha256": "f2953f29263bb5b5ec0ae5f58f39edc3cffdd133867008e82e602ac486b2fcc2"
+        }
+      ],
+      "loading": "tool.html 的 tool-shell.js→mountScriptEditor→createRunHost；UI commit/load/start→同 broker/authority controller methods→固定 sandbox/worker-runtime 产物→per-run ctx.page。",
+      "consumer": "startControllerRun durable admission→pinScriptRevision→精确 target→RunHost.startController→Worker page proxy→controllerOperation→native-driver→持久 result→retire target/pin→UI。",
+      "retainedAndGaps": "原常量保留；dispatchFrameworkEvent 只有定义，无已查生产消费者；RunHost UI 直接调用 start/stop。设备业务拒绝。",
+      "tasks": [
+        "T01",
+        "T08",
+        "T12"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F016",
+        "CMP05-DEVICE-EVENT-CONSTANTS",
+        "CMP05.F016.EVENT_OPERATE.DEVICE_INFO",
+        "CMP05.F016.EVENT_OPERATE.DEVICE_USER_INFO",
+        "CMP05.F016.EVENT_OPERATE.DEVICE_USER_INFO_UNBIND",
+        "CMP05.F016.EVENT_OPERATE.SCRIPT_RUN",
+        "CMP05.F016.EVENT_OPERATE.SCRIPT_RUN_BY_API",
+        "CMP05.F016.EVENT_OPERATE.SCRIPT_STOP",
+        "CMP05.F016.EVENT_OPERATE.SCRIPT_STOP_BY_API"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilDevice.ts",
+      "sourceId": "F017",
+      "oldSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "isElectron",
+          "lines": [
+            7,
+            9
+          ],
+          "id": "TOOL.F017.isElectron"
+        },
+        {
+          "name": "isChromeExtension",
+          "lines": [
+            10,
+            12
+          ],
+          "id": "TOOL.F017.isChromeExtension"
+        },
+        {
+          "name": "UtilDevice.getInfo",
+          "lines": [
+            16,
+            36
+          ],
+          "id": "TOOL.F017.UtilDevice.getInfo"
+        },
+        {
+          "name": "UtilDevice.getBrowserInfo",
+          "lines": [
+            38,
+            56
+          ],
+          "id": "TOOL.F017.UtilDevice.getBrowserInfo"
+        },
+        {
+          "name": "UtilDevice.getInfoStr",
+          "lines": [
+            58,
+            66
+          ],
+          "id": "TOOL.F017.UtilDevice.getInfoStr"
+        },
+        {
+          "name": "UtilDevice.generateRandomString",
+          "lines": [
+            68,
+            78
+          ],
+          "id": "TOOL.F017.UtilDevice.generateRandomString"
+        },
+        {
+          "name": "UtilDevice.getAppId",
+          "lines": [
+            79,
+            97
+          ],
+          "id": "TOOL.F017.UtilDevice.getAppId"
+        },
+        {
+          "name": "UtilDevice.getFingerprint",
+          "lines": [
+            99,
+            110
+          ],
+          "id": "TOOL.F017.UtilDevice.getFingerprint"
+        },
+        {
+          "name": "UtilDevice.getAppIdInfo",
+          "lines": [
+            111,
+            123
+          ],
+          "id": "TOOL.F017.UtilDevice.getAppIdInfo"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/utils/device.js",
+          "symbolAnchor": "export function createDeviceUtils",
+          "line": 6,
+          "sha256": "f87e108419d29a2008b0dd360287d666570a374e367dcfa8e2a8e49688762df8"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "UA/DeviceType/稳定 namespace ID helper 已接 SDK；native 拒绝，getAppIdInfo 无可信 extensionId 返回 {}，fingerprint 未提供。",
+      "tasks": [
+        "T04",
+        "T08"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F017",
+        "CMP08.F017.UtilDevice.generateRandomString",
+        "CMP08.F017.UtilDevice.getAppId",
+        "CMP08.F017.UtilDevice.getAppIdInfo",
+        "CMP08.F017.UtilDevice.getBrowserInfo",
+        "CMP08.F017.UtilDevice.getFingerprint",
+        "CMP08.F017.UtilDevice.getInfo",
+        "CMP08.F017.UtilDevice.getInfoStr",
+        "CMP08.F017.isChromeExtension",
+        "CMP08.F017.isElectron"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilInfo.ts",
+      "sourceId": "F018",
+      "oldSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "UtilInfo.getIpInfo",
+          "lines": [
+            4,
+            14
+          ],
+          "id": "TOOL.F018.UtilInfo.getIpInfo"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/utils/network-info.js",
+          "symbolAnchor": "export function createNetworkInfo",
+          "line": 2,
+          "sha256": "2af82434ec8529dacc14eb2ba7fe06895909fe07a61a58d6d0cde21e7563c562"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-broker.js",
+          "symbolAnchor": "networkInfoEnabled:false",
+          "line": 15,
+          "sha256": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9"
+        }
+      ],
+      "loading": "tool.html→tool-shell.js 真实授权/installSdk→broker.installSdk→tabs.injectFixed；webpack entry sdk/entry.js→dist/production/framework/sdk-main.js MAIN；page-relay.js ISOLATED。",
+      "consumer": "网页旧 globals→entry/bridge/transport→page-relay runtime.sendMessage→sw→同 broker/sdk-broker→authority.admitSdk→sdk/service→共享 storage/network/notifications→valueWire→relay→固定 ChromeBridgeOperationCompleted→原 Promise。",
+      "retainedAndGaps": "原固定 IP URL 保留；networkInfoEnabled=false，UI 禁选，不能算 IP 查询已支持。",
+      "tasks": [
+        "T06",
+        "T08"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F018",
+        "SVC01.F018.UtilInfo.getIpInfo"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    },
+    {
+      "oldFile": "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilScrpt.ts",
+      "sourceId": "F019",
+      "oldSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "sourceHashMatchesLedger": true,
+      "oldSymbols": [
+        {
+          "name": "wrapAsync",
+          "lines": [
+            5,
+            35
+          ],
+          "id": "TOOL.F019.wrapAsync"
+        },
+        {
+          "name": "formatJSON",
+          "lines": [
+            39,
+            49
+          ],
+          "id": "TOOL.F019.formatJSON"
+        }
+      ],
+      "newNodes": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/utils/script.js",
+          "symbolAnchor": "export function formatJSON",
+          "line": 1,
+          "sha256": "55ab1758fd4bc217db40f195d27a781cad9dd9c97064534fe110ab870d7b45a0"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/utils/script.js",
+          "symbolAnchor": "export function wrapAsync",
+          "line": 5,
+          "sha256": "55ab1758fd4bc217db40f195d27a781cad9dd9c97064534fe110ab870d7b45a0"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/scripting/sandbox/worker-runtime.js",
+          "symbolAnchor": "const body = new AsyncBody",
+          "line": 33,
+          "sha256": "67259344892326cd39f734cddea8d9fffdb119c69e56a8d4fa7998ebc5096de5"
+        }
+      ],
+      "loading": "tool.html 的 tool-shell.js→mountScriptEditor→createRunHost；UI commit/load/start→同 broker/authority controller methods→固定 sandbox/worker-runtime 产物→per-run ctx.page。",
+      "consumer": "startControllerRun durable admission→pinScriptRevision→精确 target→RunHost.startController→Worker page proxy→controllerOperation→native-driver→持久 result→retire target/pin→UI。",
+      "retainedAndGaps": "formatJSON 由 SDK 消费；wrapAsync 符号仅定义，普通 JS 实际由 Worker AsyncBody 执行，需按 EX01 核实返回/异常等价。",
+      "tasks": [
+        "T01",
+        "T08",
+        "T10"
+      ],
+      "caseIds": [
+        "PROV-DISPOSITION-F019",
+        "CMP12.F019.formatJSON",
+        "EX01.F019.wrapAsync"
+      ],
+      "implementationState": "有源码对应/加载接线，具体缺口见本行",
+      "formalAcceptance": "NOT_TESTED",
+      "evidence": [
+        "docs/framework/evidence/independent-basic-20261003-coop/directory-mapping.md",
+        "docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md"
+      ]
+    }
+  ],
+  "baselineSpecificNativePass": [
+    "SAVE-R1-SELECT-PARAMS",
+    "MINIMAL-RETURN7",
+    "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN (source only goto/title/url)"
+  ],
+  "formalLedger": {
+    "original": 603,
+    "accepted": 0,
+    "additional": 19,
+    "f3Accepted": false
+  },
+  "independentReview": "尚未独立评分；两名原生子代理因429终止，未取得任何评分"
+}

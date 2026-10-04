@@ -1,0 +1,121 @@
+{
+  "stage": "02B",
+  "component": "entitlement",
+  "status": "implemented-unit-verified-integration-pending",
+  "productAcceptance": "not-run",
+  "contractVersion": "1.0.0",
+  "contractHash": "1486ff9c442807c0d447e542252830731faeede5f81cd685c5f146daecdba2a1",
+  "writeSet": [
+    "src/platform/entitlement/crypto.js",
+    "src/platform/entitlement/index.js",
+    "tests/foundation/policy-entitlement.test.mjs",
+    "docs/foundation/entitlement-implementation.json"
+  ],
+  "entryPoint": {
+    "path": "src/platform/entitlement/index.js",
+    "exports": ["createEntitlementService", "TRUSTED_KEYS", "OFFLINE_GRACE_MS", "entitlementSigningPayload", "revocationSigningPayload"],
+    "factory": "createEntitlementService({storage, clock?, keys?, subject}) -> service (synchronous)",
+    "serviceMethods": {
+      "get": "get() -> Promise<Entitlement>; schema-only normalized frozen value; rejected/expired/revoked cache becomes local-free",
+      "status": "status() -> Promise<internal status>; tier, reason, revocationVersion, trustedNowMs, lastTrustedVerifiedAt, exportsAllowed, existingRecordsAllowed, previewAllowed, deletionAllowed",
+      "getSnapshot": "getSnapshot({limits?, requiredCapabilities?} = {}) -> Promise<EntitlementSnapshot>; default requested limits are product hard budgets; frozen including nested values",
+      "admitRun": "admitRun(template) -> Promise<EntitlementSnapshot>; consumes template.limits and template.requiredCapabilities without mutating template",
+      "admitTemplate": "admitTemplate(request) -> Promise<EntitlementSnapshot>; resolves request.template.templateId or request.templateId; public preflight checks current capacity and returns quota. Optional {...request, tx, snapshot} bridge rechecks the same quota in the actual template write transaction; snapshot must be issued by this live service instance",
+      "install": "install(claim) -> Promise<Entitlement>; real signature verification and trusted clock.trustedNow required; invalid import rejects without replacing a previously valid claim",
+      "refresh": "refresh() -> Promise<Entitlement>; reverify cached signed claim and require fresh trusted time; may clear a rollback freeze only after authoritative time reaches durable high water",
+      "revoke": "revoke(signedEvidence) -> Promise<Entitlement>; signature/identity/future-time validation and strictly increasing revocationVersion required"
+    },
+    "cryptoModuleExports": ["TRUSTED_KEYS", "AUDIENCE", "POLICY_VERSION", "entitlementSigningPayload", "revocationSigningPayload", "createSignatureVerifier"],
+    "errors": "Policy failures use FoundationError E_ENTITLEMENT; frozen shared schema validation may use E_SCHEMA. Native crypto verification/import failures are normalized to E_ENTITLEMENT."
+  },
+  "integration": {
+    "claimRun": "Call await entitlement.admitRun(template), persist that exact EntitlementSnapshot with the approved run and retain it unchanged after license expiry, revocation or grace expiration. Run hard budgets, stop and origin authority still apply.",
+    "host": "Call getSnapshot() for the schema value; call status() separately for downgrade reason. Never expose clock.trustedNow or keys injection through untrusted runtime messages.",
+    "saveTemplate": [
+      "Main broker's accepted integration: outside the actual IDB write transaction obtain quota = await entitlement.getSnapshot(); pass that exact object through the second trusted context. Caller-provided snapshots are rejected. The optional public admitTemplate(request) preflight is also available.",
+      "Within storage's actual templates+entitlements readwrite transaction, call await entitlement.admitTemplate({...request, tx, snapshot: quota}) and pass returned maxSavedTemplates into storage's quota/CAS check before the template put.",
+      "Preflight alone does not reserve a template slot. Actual count/check/put must share one write transaction. No WebCrypto await occurs in this service's optional transaction bridge.",
+      "Only live metadata heads consume quota in the shared repository layout; retained immutable revision rows do not. Existing template revisions can be edited without consuming another ID. If entitlement revision/freshness changed, prepare a new quota."
+    ],
+    "clock": "Function clock is wall time only. Object clock supports now() -> epoch-ms, monotonicNow() -> nonnegative elapsed-ms, trustedNow() -> epoch-ms or Promise<epoch-ms>. Missing monotonicNow uses performance.now. Missing trustedNow cannot establish/refresh Pro. Production default uses Date.now/performance.now and has no trusted online verification source.",
+    "keys": "keys is an explicit map {keyId:{issuer,jwk:publicP256Jwk}}. Entries are copied at service construction, issuers and subjects are bound, private JWK d is rejected. Production TRUSTED_KEYS is an empty package-fixed frozen allowlist because no real issuer/public key has been provisioned. Default stays Free. TEST_ONLY keys are injected only by the Node test file."
+  },
+  "persistence": {
+    "owner": "Provided shared storage service; this module never calls indexedDB.open or owns another connection",
+    "store": "entitlements",
+    "key": "Explicit subject string, exactly; one internal entitlement-policy row per subject",
+    "internalRow": ["kind", "version", "subject", "revision", "claim", "claimHash", "verifiedAtMs", "lastTrustedTimeMs", "lastWallTimeMs", "rollback", "revocationVersion", "revokedThrough", "revocation"],
+    "externalSchema": "Internal persistence record is not returned as Entitlement and does not extend frozen schema.",
+    "transactions": "Crypto verification/digest complete outside write transactions. Commit CAS checks entitlement revision, merges durable time high water, and samples clock again. Template bridge reads the service-issued ticket and current durable state, counts heads and puts only the entitlement observation in the caller's transaction.",
+    "resultRetention": "Entitlement code never reads, writes, deletes or restricts records/pageSnapshots/exportJobs/artifacts. Preview/retrieval/export/deletion remain allowed regardless of tier. Actual reader pins, tombstones and seven-day cleanup are owned by storage/runtime, not this component."
+  },
+  "signature": {
+    "algorithm": "WebCrypto ECDSA P-256 SHA-256",
+    "encoding": "Exactly 64-byte IEEE-P1363 R||S, canonical unpadded base64url of length 86; DER, wrong hash, alternate trailing bits, padding and invalid signature bytes rejected",
+    "canonicalPayload": "All Entitlement fields except signature, verification, verifiedAt, lastTrustedTime. Thus tier/formatVersion/issuer/subject/audience/features/issuedAt/expiresAt/keyId/revocationVersion are signed.",
+    "metadataTrust": "Caller-provided verification/verifiedAt/lastTrustedTime never establishes trust or refreshes offline age. Schema-valid metadata is overwritten for output from private durable policy state.",
+    "revocationEvidenceBridge": {
+      "kind": "entitlement-revocation",
+      "formatVersion": "1.0.0",
+      "audience": "opendesk-browser",
+      "issuer": "allowlisted issuer",
+      "subject": "exact bound subject",
+      "keyId": "allowlisted keyId",
+      "revocationVersion": "safe nonnegative integer, strictly greater than durable version",
+      "issuedAt": "RFC3339, not in the future",
+      "signature": "same 64-byte P1363 base64url; signs canonical entire evidence except signature"
+    },
+    "revocationSemantics": "Reject stale license versions. Signed revocation revokes claims through its version; only a later valid signed license with a greater version can restore Pro. Cached claim and revocation signatures are reverified on new policy reads.",
+    "signingOperations": "No product signing code, private keys, billing, account flow, network service or dynamic code execution. Signing/key generation exists only in the test process."
+  },
+  "timeAndLimits": {
+    "free": {"maxSavedTemplates": 1, "maxPages": 1, "maxRecords": 100},
+    "pro": {"maxSavedTemplates": 50, "maxPages": 50, "maxRecords": 10000},
+    "hardLimits": {"maxPages": 50, "maxRecords": 10000, "maxDurationMs": 600000, "maxStoredBytes": 20971520},
+    "offlineGraceMs": 259200000,
+    "expiry": "Now must be strictly less than expiresAt. Grace is an additional inclusive <=72h condition; it never extends license expiry. Future issuedAt and impossible calendar dates reject.",
+    "rollback": "Wall or monotonic regression freezes new Pro and persists the freeze across service reload. Only explicit trusted refresh at/after durable time high water may recover it. Integer monotonic samples preserve elapsed time across submillisecond observations.",
+    "snapshot": "effectiveLimits are minimum of caller limits, tier and product hard budgets. approvedCapabilities for Pro are package capabilities intersected with signed features. Required capabilities absent from that grant reject. Free receives package capabilities with free budgets. runExpiryRevokes is always false.",
+    "productHint": "status().reason distinguishes no-claim, invalid-signature-or-claims, invalid-time, expired, revoked, clock-rollback, no-trusted-verification and offline-grace-exceeded. Runtime must show effective budgets and limit_reached rather than silent success."
+  },
+  "sourceMapping": {
+    "classification": "Original implementation against frozen stage01 contracts; no code copied from original scrapyJs, scrapyJsChrome or todo-user-vue",
+    "adoptedOriginalCode": [],
+    "approvedCapturedSourceHashesUsed": [],
+    "reason": "Reviewed reuse-decision has no entitlement target/decision; entitlement is a contract implementation, not a same-name migration.",
+    "inputs": [
+      {"path": "docs/contracts/contract.json", "sha256": "f0e6d74475dcae4148333f9397dd835889a79612027e65cf0004827917efd4bd", "mapping": "entitlementPolicy, budgets and single foundation IDB owner"},
+      {"path": "docs/contracts/semantics.md", "sha256": "d3bd09974bc31e7dd88f41e226846f9e2871e95ad50bfdfd36f80739739134eb", "mapping": "Entitlement boundary: signed key allowlist, trusted time/grace, snapshot and existing results"},
+      {"path": "docs/contracts/schema.json", "sha256": "eb95f9e9a7e54048377d551acce8c996dcc15f5fa87ed7ada19cb21b24c6d9b9", "mapping": "Entitlement, EntitlementSnapshot, Limits; validate via shared protocol"},
+      {"path": "docs/contracts/implementation-plan.md", "sha256": "e036df486337a41b265b752127ab0fc8cf0280377214eedbf9ee724e94c2309f", "mapping": "02B ownership and no mock/CFT claims of ordinary Chrome acceptance"},
+      {"path": "docs/contracts/reuse-decision.json", "sha256": "284b04286ae29aca213ef551e84af19664e8fa1ca4b8302e2e1c8e28a4643a28", "mapping": "Approved captured source boundary; no entitlement reuse match"}
+    ],
+    "officialAlgorithmReference": "https://www.w3.org/TR/webcrypto/#ecdsa-operations",
+    "fixtures": "No signed entitlement/revocation fixture exists in supplied contracts/fixtures. TEST_ONLY fixture claims are generated and signed in memory per test; production contains no generated key."
+  },
+  "verification": {
+    "layer": "Node unit with real WebCrypto and independent native Node crypto signature oracle",
+    "clock": "Injected deterministic wall/monotonic/trusted clocks; not a physical 72-hour wait",
+    "storage": "Explicit in-memory transaction double; not real IndexedDB",
+    "commands": [
+      {"command": "node --test --test-reporter=dot tests/foundation/policy*.test.mjs", "exitCode": 0, "tests": 32, "passed": 32, "failed": 0},
+      {"command": "node --check tests/foundation/policy-entitlement.test.mjs", "exitCode": 0},
+      {"command": "node --check src/platform/entitlement/index.js", "exitCode": 0},
+      {"command": "node --check src/platform/entitlement/crypto.js", "exitCode": 0},
+      {"command": "npm run check", "exitCode": 1, "meaning": "Latest repository JS syntax check is blocked by concurrent out-of-scope src/platform/storage/regression.js:124 (Unexpected reserved word: await in non-async arrow). An earlier check passed 29 files. This agent does not edit the shared storage owner's file."}
+    ],
+    "coverage": ["real P256/SHA256 and independent P1363 oracle", "all signed-field tampering", "unknown/untrusted key/issuer/subject", "wrong signer/hash/DER/base64url", "private-JWK rejection and allowlist mutation isolation", "future issuedAt/impossible date/inverted interval/exact expiry", "untrusted metadata and no trusted source", "72h inclusive and +1ms", "offline reload/explicit refresh", "persistent wall/monotonic rollback and trusted recovery", "monotonic elapsed time with fixed wall/submillisecond samples", "signed monotonic revocation and stale replay", "cached signatures reverified", "free/Pro hard and caller limit minimum", "feature capability binding", "free and Pro concurrent quota checks", "distinct IDs/live heads/revisions/delete-resave", "stale and forged template snapshots", "transaction freshness checks", "immutable approved-run snapshot and untouched sealed result/export stores"],
+    "build": "Not run by this scoped agent; dist/build outputs belong to the main owner. No product acceptance inferred from source or unit passes."
+  },
+  "pendingRealBrowserScenarios": [
+    {"case": "M10-free-boundaries", "needs": "Real IDB count/check/put atomicity, first/second template and edit/delete-resave; free 1 page/100 rows; 101-row whole-page abort limit_reached; original template limits intact"},
+    {"case": "M10-pro-template-limits", "needs": "Explicit TEST_ONLY public-key test build, 49/50/51 templates including concurrent final-slot saves, and actual shared-storage gate integration"},
+    {"case": "M10-signature-revocation", "needs": "Ordinary Chrome native WebCrypto signature cases, trusted clock adapter boundary, restart persistence and signed revocation/version replay; packaged production/test-key separation"},
+    {"case": "M10-offline-72h", "needs": "Real Chrome storage restart/offline and clock adapter tests at <=72h/+1ms, distinguish injected elapsed time from real wall-time measurement, confirm no grace extension of expiry"},
+    {"case": "M10-approved-run-snapshot", "needs": "Claim and run persistence with C2x3, expire/revoke during a live run, continue approved capabilities while rejecting new Pro, still honor stop/origin authority"},
+    {"case": "entitlement-exports", "needs": "Actual sealed record read, export/re-export/download after expired or revoked license; no network/license gate on retained data"},
+    {"case": "M10-delete-pins-retention", "needs": "Storage/runtime reader pins, tombstones and seven-day cleanup; entitlement unit test only proves this module leaves result stores untouched"},
+    {"case": "B120/B-STABLE", "needs": "Ordinary Chrome versions with extension/build/profile/channel hashes and actual native IDB evidence; no mock or CFT substitution"}
+  ],
+  "commercialGate": "M12 signing operations, real issuer/public key provisioning, paid pilot and billing remain pending; no paid service is implemented."
+}

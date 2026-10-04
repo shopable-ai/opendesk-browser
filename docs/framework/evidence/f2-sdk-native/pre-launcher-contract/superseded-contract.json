@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-03T08:25:39.436Z",
+  "path": "tests/framework/k5-sdk-native.mjs",
+  "sha256": "cc59457b8833ceac8de73f8cb4375d31f09f32e705bd21bea9d13ccf62ef2a1a",
+  "previousFrozenHash": "cc59457b8833ceac8de73f8cb4375d31f09f32e705bd21bea9d13ccf62ef2a1a",
+  "reason": "Latest user requires every macOS Chrome testing process through global launch.py; prior bare spawn startup is superseded",
+  "browserLaunched": false
+}

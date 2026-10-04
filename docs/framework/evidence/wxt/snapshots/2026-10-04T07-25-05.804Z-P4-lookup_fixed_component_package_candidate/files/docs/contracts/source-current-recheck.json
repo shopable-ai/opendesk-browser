@@ -1,0 +1,147 @@
+{
+  "checkedAt": "2026-10-01T19:05:18.575588+00:00",
+  "sources": [
+    {
+      "source": "scrapyJsChrome",
+      "snapshotManifestHash": "aa7b2424a8ce13ef4f9fc90cd4ee7fcc1afa47f571525783605bbbc22d0f13b3",
+      "currentChangedFiles": [
+        {
+          "path": "assets/js/ai/selector-contract.js",
+          "capturedHash": "95e42bf1bec6ede99eeed509600e254dd9c060b78702a53bf7bf8b672b88b773",
+          "currentHash": "63c6a77a77dd0ad978249f03c9a24ef1e043971e5b9f9917a135aef13f9d47b6"
+        },
+        {
+          "path": "assets/js/plugins/ChromePage.js",
+          "capturedHash": "6d745900dacd5ec5b0a5138148733baba4d83d3418a289931c211c0a36b1a47c",
+          "currentHash": "62b6c3f1b669525668177d14ceb7bf1aeeaa02347ef1db0ad11b088dd093a472"
+        },
+        {
+          "path": "assets/js/plugins/scrapyJs.js",
+          "capturedHash": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "currentHash": "f0ca18dcae34b299c6faa31e694a342e6af61a4077f0837448a6aba0fa3c589b"
+        },
+        {
+          "path": "assets/js/plugins/scrapyJs.source.json",
+          "capturedHash": "65627307a024644c291e143d38a67ae8f74c2d63a5be3e90570a173f90686b01",
+          "currentHash": "fb8112c8d432299075345a7fc5104e79cc71d4d60cfe7c9294cb026d5607fc04"
+        },
+        {
+          "path": "background-sw.js",
+          "capturedHash": "3614284f99cd7766f528c87b3df9549d7a337bc313ae84c753c4057cf20755fd",
+          "currentHash": "7cb5f2679fb3c46a856438eea966b77113d1cd5ea4eff187d4636f9aad882b58"
+        },
+        {
+          "path": "background.js",
+          "capturedHash": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "currentHash": "5055f34ff2b1b3462d9c2da8612e91f55e0c75ad52a735fc4ba36e56968d9449"
+        },
+        {
+          "path": "scripts/extension-check.cjs",
+          "capturedHash": "c5ff804d2ee46e4cae56d36f32613c385bce45fd46d47627bbd97a87eecf20e8",
+          "currentHash": "e75740a90599cce147cee44ffb61c1f731dc5c0f40c130129ee1f3457f180290"
+        },
+        {
+          "path": "test/devflow-contract.cjs",
+          "capturedHash": "fc63cf079c8a74a5aa97e376e26676234d4bfdcb4493d2318b4657f1ec34506c",
+          "currentHash": "7c7b202700c0e556c232d566a99bb5cc6c70ad6113d969eaf1868e460cafbf77"
+        },
+        {
+          "path": "test/protocol-regression.js",
+          "capturedHash": "5218ddf5f066aa168ccf50c8013e3d4b99b7c7c0c9bfaad02d36825b9e1a509e",
+          "currentHash": "ca35e6b1d474af710e80d8f674b6c8b30c35ffdef67851c683144bd063749f17"
+        },
+        {
+          "path": "www/popup_crawl.css",
+          "capturedHash": "18d13fe4c8e9aac19adc15e682fe27817ee8286114d1a6d14872ad5f7fb56d2b",
+          "currentHash": "e0112dede4afc55289b759989b34466ff8cf0ef02b8af6ac210f0e354456c963"
+        },
+        {
+          "path": "www/popup_crawl.html",
+          "capturedHash": "f169906a494432c771c84bb3f9ecf4e0f49c54953764d98fab61a1e4d371459a",
+          "currentHash": "877785f54875c495eeee319c25f93a736382171fefefb9e1c43912a6188f64fc"
+        },
+        {
+          "path": "www/popup_crawl.js",
+          "capturedHash": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "currentHash": "61545545a20873c26e370eaec207c9fc9089cb3a9bbeb5cf71c154d2a2860a56"
+        }
+      ],
+      "currentMissingFiles": [],
+      "currentStatusPorcelain": " M .DS_Store\n M README.md\n M assets/.DS_Store\n M assets/js/plugins/ChromePage.js\n M assets/js/plugins/scrapyJs.js\n M background-sw.js\n M background.js\n M test/protocol-regression.js\n M www/index.html\n M www/popup_crawl.css\n M www/popup_crawl.html\n M www/popup_crawl.js\n?? .gitignore\n?? ai-service/README.md\n?? ai-service/config.cjs\n?? ai-service/fixtures/products.request.json\n?? ai-service/proposals.cjs\n?? ai-service/server.cjs\n?? assets/js/ai/crawl-profile.js\n?? assets/js/ai/dom-agent.js\n?? assets/js/ai/selector-contract.js\n?? assets/js/ai/service-client.js\n?? assets/js/plugins/scrapyJs.source.json\n?? docs/AI_SELECTOR_ASSIST.md\n?? scripts/extension-check.cjs\n?? sdk-compatibility.json\n?? test/ai-browser-harness.js\n?? test/ai-browser.cjs\n?? test/ai-profile.test.cjs\n?? test/ai-selector-contract.test.cjs\n?? test/ai-service.test.cjs\n?? test/devflow-contract.cjs\n?? test/devflow-extension-pack.test.cjs\n?? www/ai-selector-assist.js",
+      "policy": "fixed captured snapshot remains baseline; changes from concurrent source task must be diffed before selective migration, no cleanup/overwrite"
+    },
+    {
+      "source": "scrapyJs",
+      "snapshotManifestHash": "9ac21100c7c8a59961a5bcbd51e127bbacf5ab00d25c64e42a645cdecded3945",
+      "currentChangedFiles": [
+        {
+          "path": "scripts/browser-smoke.cjs",
+          "capturedHash": "96265df7a04fbb3944f728c94b53ad49cfae2ee67e43fce8616610dc225be645",
+          "currentHash": "edb92376b4b381ca620d6427791149816efadd6a87c65ff48a99f1caaed9b11e"
+        },
+        {
+          "path": "scripts/consumer-smoke.cjs",
+          "capturedHash": "0529526ad8a14aaacd7a9e8785204a532e7f55668a0975eac4d890e0ad41ffa0",
+          "currentHash": "6a1e2d37dee76a356c0e4614e217b4bb52119f4f0cae35c01399c491f9b08c20"
+        },
+        {
+          "path": "scripts/sdk-sync.cjs",
+          "capturedHash": "67a0555bf2155c4305fb27df40c37803f78564f5ae0e6a88d9577445ac85c819",
+          "currentHash": "bd2d68aff7d1a98c1ed2bfae1f0c361efe4e23a55ed7b1a4a86476295b1f9b89"
+        },
+        {
+          "path": "src/core/CloseSpider.js",
+          "capturedHash": "01f2c87bf827b406fb8aa6dfc671deb25e6b721f9250eb03a3eeb27c37e4e136",
+          "currentHash": "214d53bbfb676254cc3c0cb91074f90c4d865c4dc8eab0a18a3119de67f51793"
+        },
+        {
+          "path": "src/core/RunFailure.js",
+          "capturedHash": "e39978bd182a68bf3399157f8fdff33e5ad56dcec190f26e1b313dc5aa0eeb88",
+          "currentHash": "5b63144e31284f59807674496165dd62d022018bd171b86ea9df183b148e9086"
+        },
+        {
+          "path": "src/core/Scheduler.js",
+          "capturedHash": "3b68ec995cde731f1a2a793024e49b8790953f10a8359fcb3ecf6fef3e335051",
+          "currentHash": "d09d4f4cae9f0ffdb9548bf6c6c38c796f4a0798f48d8d0fb2664f34a7f88113"
+        },
+        {
+          "path": "src/core/Scrapy.js",
+          "capturedHash": "a18211f8b666a07a699761a023de0075dbec2c09152734ab70f0a6a2087d48e4",
+          "currentHash": "f3ca9f44ac68ada3ec7163f80042ee50a9a05264971cde0a4b1ca2e04eb47289"
+        },
+        {
+          "path": "src/exporter/FeedExport.js",
+          "capturedHash": "8844006a1f874c94f1c4de159e95fd58ac03043bde05d5ec4da5229f09cfc461",
+          "currentHash": "203c3c54f63b7f9c4df3870fbe82ee8b5606492052b525bc966fc69cc1ae9453"
+        },
+        {
+          "path": "src/item/ItemLoader.js",
+          "capturedHash": "2a82e774f508274f36e5be140eb096bd0947b198e387d5566b2f3152a98c9df4",
+          "currentHash": "4e4999902bba4afd0690510b5523d6073e7cdb7b2437f67167b941c3e5dbfb68"
+        },
+        {
+          "path": "test/devflow-sync.test.cjs",
+          "capturedHash": "cbb6d967dac71442f0a567128fb280bc20ac0204700f14d8703529570fb68fd7",
+          "currentHash": "41c6582a510bbe2a45fcc10abb546b7583d162fb254786e43c2d7424f0936a1f"
+        },
+        {
+          "path": "webpack.config.js",
+          "capturedHash": "9727710f5c45535cc609076bba3c69973b8e88c8750947a1bbdf43c0ccef4eab",
+          "currentHash": "19692f7621ed631af4da72308a9b740d4f66eda89a4aeb0673ff6974df5d5885"
+        }
+      ],
+      "currentMissingFiles": [],
+      "currentStatusPorcelain": " M README.md\n M demo/ItemLoader.js\n M demo/MySpider.js\n M demo/baiduRuleSpider.js\n M demo/baiduSpider.js\n M demo/csdn.itemloader.js\n M demo/csdnArticleSpider.js\n M demo/ruleSpider.js\n M demo/taobaoSpider.js\n M demo/taobaoSpiderPipeline.js\n M demo/test.js\n M demo/zhipinSpider.js\n M gulpfile.js\n M src/core/ChromeSpider.js\n M src/core/CloseSpider.js\n M src/core/ListSpider.js\n M src/core/Pipeline.js\n M src/core/Scheduler.js\n M src/core/Scrapy.js\n M src/core/Spider.js\n M src/exporter/ExportManager.js\n M src/exporter/FeedExport.js\n M src/http/Request.js\n M src/http/Response.js\n M src/index.js\n M src/item/ItemLoader.js\n M src/middleware/IDownloaderMiddleware.js\n M test/ExportManager.js\n M test/ItemLoader.js\n M test/ItemLoader.parse1.js\n M test/Itemloader.parse.js\n M test/addPipline.js\n M test/demo.js\n M test/yield-await.js\n M test/yield.js\n M vitest.config.js\n M webpack.config.js\n?? .agents/skills/scrapyjs-devflow/SKILL.md\n?? .agents/skills/scrapyjs-devflow/agents/openai.yaml\n?? demo/data/taobao_detail.html\n?? demo/zhipin.js\n?? demo/zhipinHttpSpider.js\n?? docs/README.md\n?? docs/ai-scrapy-business-strategy.md\n?? docs/code-optimization-2026-10-01.md\n?? docs/devflow-evidence/2026-10-01/baseline-core.json\n?? docs/devflow-evidence/2026-10-01/baseline-extension.json\n?? docs/devflow-evidence/2026-10-01/browser-f0ca-snapshot.json\n?? docs/devflow-evidence/2026-10-01/build-incomplete-ai-snapshot.log\n?? docs/devflow-evidence/2026-10-01/consumer-55baa-snapshot.json\n?? docs/devflow-evidence/2026-10-01/consumer-9049.json\n?? docs/devflow-evidence/2026-10-01/core-tests-9049-source-after.json\n?? docs/devflow-evidence/2026-10-01/core-tests-9049-source-before.json\n?? docs/devflow-evidence/2026-10-01/core-tests-9049.log\n?? docs/devflow-evidence/2026-10-01/core-tests-fdb-source-after.json\n?? docs/devflow-evidence/2026-10-01/core-tests-fdb-source-before.json\n?? docs/devflow-evidence/2026-10-01/core-tests-fdb.log\n?? docs/devflow-evidence/2026-10-01/coverage-9049.log\n?? docs/devflow-evidence/2026-10-01/coverage-fdb.log\n?? docs/devflow-evidence/2026-10-01/extension-check.json\n?? docs/devflow-evidence/2026-10-01/extension-contract.json\n?? docs/devflow-evidence/2026-10-01/extension-pack-tests.log\n?? docs/devflow-evidence/2026-10-01/extension-pack.json\n?? docs/devflow-evidence/2026-10-01/lint.log\n?? docs/devflow-evidence/2026-10-01/preservation-audit.json\n?? docs/devflow-evidence/2026-10-01/product-55baa-snapshot.json\n?? docs/devflow-evidence/2026-10-01/product-9049.json\n?? docs/devflow-evidence/2026-10-01/protocol.log\n?? docs/devflow-evidence/2026-10-01/readme-preservation.json\n?? docs/devflow-evidence/2026-10-01/report-failure-check.json\n?? docs/devflow-evidence/2026-10-01/scrapyjs-1.0.0-55baa-snapshot.tgz\n?? docs/devflow-evidence/2026-10-01/scrapyjs-1.0.0-9049.tgz\n?? docs/devflow-evidence/2026-10-01/sdk-apply-f0ca.json\n?? docs/devflow-evidence/2026-10-01/sdk-build-9049.json\n?? docs/devflow-evidence/2026-10-01/sdk-build-9049.log\n?? docs/devflow-evidence/2026-10-01/sdk-build-f0ca-receipt.json\n?? docs/devflow-evidence/2026-10-01/sdk-first-adoption.json\n?? docs/devflow-roadmap.md\n?? docs/devflow.md\n?? docs/execution-backlog.md\n?? docs/mvp-feature-scope.md\n?? docs/optimization-reproductions/artifacts/concurrent.jsonl\n?? docs/optimization-reproductions/artifacts/failed-write.jsonl\n?? docs/optimization-reproductions/artifacts/integrated-concurrent.jsonl\n?? docs/optimization-reproductions/artifacts/late-column.csv\n?? docs/optimization-reproductions/artifacts/lost.jsonl\n?? docs/optimization-reproductions/artifacts/repeat-first.json\n?? docs/optimization-reproductions/artifacts/repeat.csv\n?? docs/optimization-reproductions/artifacts/repeat.json\n?? docs/optimization-reproductions/artifacts/stream-error.stderr.log\n?? docs/optimization-reproductions/reproduce.cjs\n?? docs/optimization-reproductions/results.json\n?? docs/optimization-reproductions/run.log\n?? docs/optimization-reproductions/source-manifest.json\n?? docs/optimization-reproductions/stream-error-child.cjs\n?? docs/optimization-reproductions/syntax-check.log\n?? docs/product-positioning.md\n?? docs/project-assessment-2026-10-01.md\n?? docs/scrapyJs-execution-plan.md\n?? docs/technical-baseline-2026-10-01.md\n?? docs/user-interview-questions.md\n?? docs/verification-2026-10-01.md\n?? docs/verification-2026-10-01/build.log\n?? docs/verification-2026-10-01/lint.log\n?? docs/verification-2026-10-01/npm-ci.log\n?? docs/verification-2026-10-01/pack.log\n?? docs/verification-2026-10-01/results.json\n?? docs/verification-2026-10-01/test-coverage.log\n?? project/app/douban.jpg\n?? project/app/empth.jpg\n?? project/chrome/csdn.js\n?? project/chrome/itemConfig.js\n?? project/chrome/listDetect.js\n?? project/chrome/test_html.md\n?? project/dev.md\n?? project/gpt.md\n?? project/popup_crawl.html\n?? project/popup_crawl.js\n?? project/quasar/popup_crawl.html\n?? project/quasar/popup_crawl.js\n?? project/vip.js\n?? scripts/browser-smoke.cjs\n?? scripts/consumer-smoke.cjs\n?? scripts/sdk-sync.cjs\n?? src/ai/ConfigExecutor.js\n?? src/ai/Provider.js\n?? src/ai/TaskSpec.js\n?? src/ai/Workflow.js\n?? src/ai/index.js\n?? src/core/RunFailure.js\n?? temp/DomUtils.js\n?? temp/PaginationSpider.js\n?? temp/loader.js\n?? temp/registerNavgationlistener.js\n?? temp/waitForNavigation.js\n?? temp/zhipinSpider.js\n?? test/ai-config/browser-boundary.spec.js\n?? test/ai-config/config-executor.spec.js\n?? test/ai-config/fixtures/heldout/cardinality.html\n?? test/ai-config/fixtures/heldout/detail-h1.html\n?? test/ai-config/fixtures/heldout/detail-h2.html\n?? test/ai-config/fixtures/heldout/detail-h3.html\n?? test/ai-config/fixtures/heldout/detail-h4.html\n?? test/ai-config/fixtures/heldout/detail-h5.html\n?? test/ai-config/fixtures/heldout/detail-mismatch.html\n?? test/ai-config/fixtures/heldout/duplicate.html\n?? test/ai-config/fixtures/heldout/empty.html\n?? test/ai-config/fixtures/heldout/error-region.html\n?? test/ai-config/fixtures/heldout/error.html\n?? test/ai-config/fixtures/heldout/list-page-1.html\n?? test/ai-config/fixtures/heldout/list-page-2.html\n?? test/ai-config/fixtures/heldout/login.html\n?? test/ai-config/fixtures/heldout/missing-required.html\n?? test/ai-config/fixtures/training/cardinality.html\n?? test/ai-config/fixtures/training/detail-mismatch.html\n?? test/ai-config/fixtures/training/detail-t1.html\n?? test/ai-config/fixtures/training/detail-t2.html\n?? test/ai-config/fixtures/training/detail-t3.html\n?? test/ai-config/fixtures/training/detail-t4.html\n?? test/ai-config/fixtures/training/detail-t5.html\n?? test/ai-config/fixtures/training/duplicate.html\n?? test/ai-config/fixtures/training/empty.html\n?? test/ai-config/fixtures/training/error-region.html\n?? test/ai-config/fixtures/training/error.html\n?? test/ai-config/fixtures/training/list-page-1.html\n?? test/ai-config/fixtures/training/list-page-2.html\n?? test/ai-config/fixtures/training/login.html\n?? test/ai-config/fixtures/training/missing-required.html\n?? test/ai-config/gold-manifest.json\n?? test/ai-config/gold-manifest.sha256\n?? test/ai-config/labels/heldout.json\n?? test/ai-config/labels/training.json\n?? test/ai-config/reference-task.json\n?? test/ai-config/task-generation.spec.js\n?? test/ai-config/workflow.spec.js\n?? test/core-adversarial.spec.js\n?? test/core-review-regressions.spec.js\n?? test/devflow-product.cjs\n?? test/devflow-sync.test.cjs\n?? test/export-contract.spec.js\n?? test/export-manager-extra.spec.js\n?? test/item-loader-explicit.spec.js\n?? test/itemloader/crawlTaobao.js\n?? test/itemloader/crawlTemp.js\n?? test/itemloader/taobao-v1.js\n?? test/itemloader/taobao.js\n?? test/itemloader/taobao.md\n?? test/itemloader/taobao_detail_captcha.html\n?? test/itemloader/taobao_detail_captcha_iframe.html\n?? test/reliability.spec.js\n?? test/request-contract.spec.js\n?? test/spider-boundaries.spec.js\n?? todo.md\n?? \"todo/\\344\\274\\230\\345\\214\\226\\346\\203\\263\\346\\263\\225.md\"",
+      "policy": "fixed captured snapshot remains baseline; changes from concurrent source task must be diffed before selective migration, no cleanup/overwrite"
+    },
+    {
+      "source": "todo-src-bex",
+      "snapshotManifestHash": "015732a350867064f8d08fc0a808e51b885d1ad8faae0e1e7872d42b7badd6bf",
+      "currentChangedFiles": [],
+      "currentMissingFiles": [],
+      "currentStatusPorcelain": "",
+      "policy": "fixed captured snapshot remains baseline; changes from concurrent source task must be diffed before selective migration, no cleanup/overwrite"
+    }
+  ],
+  "note": "read-only recheck, no write to source repositories"
+}

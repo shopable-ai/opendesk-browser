@@ -1,0 +1,6 @@
+{
+  "at": "2026-10-04T07:23:29.077739+00:00",
+  "passed": false,
+  "reason": "Package tests were started while production rebuild removed dist/production/manifest.json; prerequisite scheduling error. Run full component matrix after dual build+pack; retain this raw failure.",
+  "rawLog": "docs/framework/evidence/wxt/p4-p5/component-build-overlap-failure.log"
+}

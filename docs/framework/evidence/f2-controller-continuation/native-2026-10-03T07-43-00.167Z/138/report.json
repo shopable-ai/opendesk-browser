@@ -1,0 +1,20 @@
+{
+  "label": "138",
+  "error": {
+    "message": "Busy Worker native target is ambiguous or inspector attached",
+    "stack": "Error: Busy Worker native target is ambiguous or inspector attached\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-native.mjs:75:54"
+  },
+  "summary": {
+    "PASS": 0,
+    "FAIL": 1
+  },
+  "finalProductPassed": false,
+  "cleanup": {
+    "browserExit": {
+      "code": 0,
+      "signal": null
+    },
+    "browserPidAlive": false,
+    "ownedProfileRemoved": true
+  }
+}

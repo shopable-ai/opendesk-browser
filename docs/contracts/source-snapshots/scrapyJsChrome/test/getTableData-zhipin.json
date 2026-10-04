@@ -1,0 +1,461 @@
+{
+    "selector": ".rec-job-list",
+    "tableId": 0,
+    "data": [
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "经验不限"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "学历不限"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/7eacecdefe7d22631XF90t68Fw~~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·福田区·上步"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "经验不限"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/f409f37f83a6135b0nV_2d25EA~~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·南山区·科技园"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "5-10年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/95b4b47ef9141c671nd52ty_.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·福田区·石厦"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(4) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(4) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "3-5年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(4) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(4) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/b3e4ebdd780916c31nx-39W0EVI~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·龙华区·龙华"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(5) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(5) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "3-5年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(5) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(5) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/c8311034740eee121nVz09S7E1U~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·南山区·科技园"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(6) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(6) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "3-5年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(6) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(6) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/0454cb9d775764d41nB_2N--F1o~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·龙华区·民治"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(7) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(7) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "5-10年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(7) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(7) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/8f9a5714cffbc0e91XN7396_FFM~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·龙岗区·横岗"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(8) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(8) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "5-10年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(8) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(8) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "大专"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/b28d9c18b3ff84321nVz29m7Flc~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·龙岗区·南联"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(9) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(9) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "经验不限"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(9) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(9) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/db0c969b9fe32cb41Hx92dW0E1U~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·福田区·车公庙"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(10) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(10) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "5-10年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(10) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(10) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "大专"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/b46283e78efda3b01HV439S9EFU~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·龙华区·龙华"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(11) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(11) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "经验不限"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(11) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(11) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "硕士"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/75e654ad8df21d0b1XZ73d26FlY~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·福田区·保税区"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(12) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(12) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "1-3年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(12) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(12) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "大专"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/539f60341c980ad81nZ82t-8FFU~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·龙岗区·平湖"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(13) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(13) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "3-5年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(13) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(13) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/e55d03a6df8bd2a41nZ40tu6.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·南山区·科技园"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(14) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(14) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "3-5年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(14) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(14) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "本科"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/d65c53ba368ac5c01nRy0t27FVA~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·南山区·科技园"
+            }
+        },
+        {
+            ".tag-list": {
+                "selector": ".tag-list",
+                "tag": "ul",
+                "children": {
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(15) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(15) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(1)",
+                        "tag": "li",
+                        "index": 1,
+                        "text": "3-5年"
+                    },
+                    ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(15) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)": {
+                        "selector": ":root > :nth-child(2) > :nth-child(2) > :nth-child(2) > :nth-child(3) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(15) > :nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2) > :nth-child(2)",
+                        "tag": "li",
+                        "index": 2,
+                        "text": "大专"
+                    }
+                }
+            },
+            ".boss-info": {
+                "selector": ".boss-info",
+                "tag": "a",
+                "href": "https://www.zhipin.com/gongsi/9f4f80c4c69e76851nF-29q7FFc~.html?from=top-card"
+            },
+            ".company-location": {
+                "selector": ".company-location",
+                "tag": "span",
+                "text": "深圳·南山区·科技园"
+            }
+        }
+    ],
+    "itemCount": 15,
+    "goodClasses": [
+        "rec-job-list",
+        "listselector-highlight"
+    ]
+}

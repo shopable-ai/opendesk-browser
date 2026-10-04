@@ -1,0 +1,12 @@
+{
+  "id": "P4-API48-WORKER-SEMANTICS",
+  "families": "API48/P4",
+  "expected": "All 48 members exercise supported calls or typed capability denial in the actual bound Worker; this does not close original host-context or final matrix variants",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791104337410,
+  "elapsedMs": 0.0012500000011641532
+}

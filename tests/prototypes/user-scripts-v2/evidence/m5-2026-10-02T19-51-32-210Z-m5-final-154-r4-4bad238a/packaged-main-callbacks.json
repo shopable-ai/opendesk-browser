@@ -1,0 +1,77 @@
+[
+  {
+    "target": {
+      "tabId": 1243656837,
+      "documentIds": [
+        "502FEF6A0C05A5D72B75D04ABC6A49E8"
+      ]
+    },
+    "world": "MAIN",
+    "eventId": "fixed-return",
+    "value": {
+      "text": "中文\"\\\n",
+      "type": "fixture"
+    },
+    "started": 1790970697806,
+    "apiInvoked": true,
+    "outcome": {
+      "kind": "resolved",
+      "results": [
+        {
+          "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+          "frameId": 0,
+          "result": {
+            "delivered": true,
+            "eventId": "fixed-return"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "target": {
+      "tabId": 1243656837,
+      "documentIds": [
+        "502FEF6A0C05A5D72B75D04ABC6A49E8"
+      ]
+    },
+    "world": "MAIN",
+    "eventId": "old-return",
+    "value": {
+      "old": true
+    },
+    "started": 1790970698258,
+    "apiInvoked": true,
+    "outcome": {
+      "kind": "rejected",
+      "error": {
+        "name": "Error",
+        "message": "No document with id 502FEF6A0C05A5D72B75D04ABC6A49E8 in tab with id 1243656837",
+        "stack": "Error: No document with id 502FEF6A0C05A5D72B75D04ABC6A49E8 in tab with id 1243656837"
+      }
+    }
+  },
+  {
+    "target": {
+      "tabId": 1243656837,
+      "documentIds": [
+        "3B86AA9A4079594189FD0C07AD1EDF6B"
+      ]
+    },
+    "world": "MAIN",
+    "eventId": "old-return",
+    "value": {
+      "old": true
+    },
+    "started": 1790970698626,
+    "apiInvoked": true,
+    "outcome": {
+      "kind": "rejected",
+      "error": {
+        "name": "Error",
+        "message": "No document with id 3B86AA9A4079594189FD0C07AD1EDF6B in tab with id 1243656837",
+        "stack": "Error: No document with id 3B86AA9A4079594189FD0C07AD1EDF6B in tab with id 1243656837"
+      }
+    }
+  }
+]

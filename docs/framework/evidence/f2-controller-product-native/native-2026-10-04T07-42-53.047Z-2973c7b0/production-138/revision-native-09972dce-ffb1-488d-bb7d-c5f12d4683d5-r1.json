@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-09972dce-ffb1-488d-bb7d-c5f12d4683d5",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "10e0fa08a73f0cd151617165a96e7df8c8d14ecfc63d6f1f343559f16198939f",
+  "sourceUtf8": "return true;"
+}

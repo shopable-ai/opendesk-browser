@@ -1,0 +1,83 @@
+{
+	"name": "回顾时间",
+	"description": "访问网页的时间追踪插件",
+	"version": "3.12.0",
+	"manifest_version": 3,
+	"icons": {
+		"16": "icons/icon-16x16.png",
+		"48": "icons/icon-48x48.png",
+		"128": "icons/icon-128x128.png"
+	},
+	"action": {},
+	"background": {
+		"service_worker": [
+			"assets/js/store.legacy.min.js",
+			"assets/js/psl.min.js",
+			"assets/js/axios.min.js",
+			"assets/js/moment.min.js",
+			"assets/js/js.cookie.min.js",
+			"assets/js/TraceTimeUtil.js",
+			"assets/js/lodash.min.js",
+			"assets/js/query-string.min.js",
+			"background.js"
+		]
+	},
+	"options_page": "www/index.html#/todo/time-review-config",
+	"browser_action": {
+		"default_title": "回顾时间"
+	},
+	"content_scripts": [
+		{
+			"matches": ["*://*/*"],
+			"all_frames": true,
+			"match_about_blank": true,
+			"run_at": "document_start",
+			"js": [
+				"assets/js/moment.min.js",
+				"assets/js/jquery.min.js",
+				"assets/js/axios.min.js",
+				"assets/js/js.cookie.min.js",
+				"assets/js/growl-notification.min.js",
+				"my-content-script.js",
+				"assets/js/detect_focus.js",
+				"assets/js/custom_event.js",
+				"assets/js/utils.js",
+				"assets/js/Env.js"
+			],
+			"css": [
+				"assets/css/light-theme.min.css",
+				"assets/css/dark-theme.min.css",
+				"assets/css/colored-theme.min.css",
+				"assets/css/content-css.css",
+				"assets/css/quasarNoH16.css",
+				"assets/css/quasar.font.css",
+				"assets/css/quasar.addon.css"
+			]
+		}
+	],
+	"permissions": [
+		"<all_urls>",
+		"storage",
+		"downloads",
+		"cookies",
+		"tabs",
+		"activeTab",
+		"notifications",
+		"windows",
+		"idle",
+		"http://*/",
+		"https://*/",
+		"webRequest",
+		"webRequestBlocking"
+	],
+	"host_permissions": ["*://*/*"],
+	"web_accessible_resources": [
+		{
+			"resources": ["*"],
+			"matches": ["*://*/*"]
+		}
+	],
+	"content_security_policy": {
+		"extension_pages": "script-src 'self' 'unsafe-eval' https://www.googletagmanager.com https://todo6.com; object-src 'self';"
+	}
+}

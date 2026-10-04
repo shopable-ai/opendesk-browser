@@ -1,0 +1,43 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "argv": [
+    "node",
+    "--test",
+    "tests/framework/k2-generic-download.test.mjs",
+    "tests/foundation/download-service.test.mjs",
+    "tests/foundation/storage.test.mjs",
+    "tests/framework/k2-codec.test.mjs",
+    "tests/framework/k3-controller-authority.test.mjs"
+  ],
+  "exitCode": 0,
+  "summary": {
+    "tests": 84,
+    "pass": 84,
+    "fail": 0
+  },
+  "before": {
+    "src/platform/downloads/index.js": "ed52978bcc4b12a732770e8fda79e2ef3175b0ce58750e0fea1e7e6c6dc2fbbe",
+    "src/platform/downloads/blob-lifecycle.js": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66",
+    "tests/framework/k2-generic-download.test.mjs": "fb2b28ad37f22fcc45601b7c7b7d737828e59567ead1dec5c00e22762d1a5006",
+    "tests/foundation/download-service.test.mjs": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936",
+    "src/platform/host/controller-methods.js": "93b8acfcf5a69d983bdc4cc491b78e1002a4a2112ccb35bc37069d03aae37402",
+    "src/platform/storage/repository.js": "4f67bee828ae3d758da5fac4d8e4beca2bf0584aaf7839cb676140d4e19e4a68",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/host/broker.js": "095d44bd695d055faa32b57ce36272f3c2becc52f3fa09339bef38251f8fb948",
+    "src/ui/tool.html": "35b9cf7d83b4b650aecd94fa9874dac1e8c4c0a2ad69ec96039a0364c244eef0",
+    "src/ui/tool-shell.js": "37199af1af93f398b331ecadeadcc2a7acc01be77af6e4c1e524d78cbfa90d59"
+  },
+  "after": {
+    "src/platform/downloads/index.js": "ed52978bcc4b12a732770e8fda79e2ef3175b0ce58750e0fea1e7e6c6dc2fbbe",
+    "src/platform/downloads/blob-lifecycle.js": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66",
+    "tests/framework/k2-generic-download.test.mjs": "fb2b28ad37f22fcc45601b7c7b7d737828e59567ead1dec5c00e22762d1a5006",
+    "tests/foundation/download-service.test.mjs": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936",
+    "src/platform/host/controller-methods.js": "93b8acfcf5a69d983bdc4cc491b78e1002a4a2112ccb35bc37069d03aae37402",
+    "src/platform/storage/repository.js": "4f67bee828ae3d758da5fac4d8e4beca2bf0584aaf7839cb676140d4e19e4a68",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/host/broker.js": "095d44bd695d055faa32b57ce36272f3c2becc52f3fa09339bef38251f8fb948",
+    "src/ui/tool.html": "35b9cf7d83b4b650aecd94fa9874dac1e8c4c0a2ad69ec96039a0364c244eef0",
+    "src/ui/tool-shell.js": "37199af1af93f398b331ecadeadcc2a7acc01be77af6e4c1e524d78cbfa90d59"
+  },
+  "sourceDrift": {}
+}

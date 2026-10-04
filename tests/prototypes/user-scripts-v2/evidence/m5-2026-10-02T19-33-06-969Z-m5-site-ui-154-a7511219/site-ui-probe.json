@@ -1,0 +1,51 @@
+{
+  "off": {
+    "before": null,
+    "after": null,
+    "enabled": false,
+    "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+    "method": "rendered Chrome site access allHostsToggle click",
+    "permissions": {
+      "origins": [
+        "http://127.0.0.1/*",
+        "http://localhost/*"
+      ],
+      "permissions": [
+        "tabs",
+        "webNavigation",
+        "scripting",
+        "userScripts"
+      ]
+    },
+    "events": []
+  },
+  "on": {
+    "before": null,
+    "after": null,
+    "enabled": true,
+    "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl",
+    "method": "rendered Chrome site access allHostsToggle click",
+    "permissions": {
+      "origins": [],
+      "permissions": [
+        "tabs",
+        "webNavigation",
+        "scripting",
+        "userScripts"
+      ]
+    },
+    "events": [
+      {
+        "event": "removed",
+        "value": {
+          "origins": [
+            "http://127.0.0.1/*",
+            "http://localhost/*"
+          ],
+          "permissions": []
+        },
+        "at": 1790969590359
+      }
+    ]
+  }
+}

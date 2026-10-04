@@ -1,0 +1,91 @@
+请创建并执行“OpenDesk Browser 通用框架迁移续接 Goal”，继续完成现有产品迁移与验收。
+
+这是执行任务：迁移实际文件、完成框架关键基本功能、接入现有工程并证明行为正确。不要再次优化提示词、重新规划全套方案或用流程文档替代实现。当前阶段0和F1已真实通过，F2产品代码已落地，直接接续F2，不回到阶段0重复审批。
+
+目标工程：/Users/shopme/Documents/workspace/opendesk-browser
+原项目 todo-user-vue/src-bex 及冻结审计只读。当前工程没有.git；不要因此停止，也不要擅自初始化仓库。所有命令明确使用目标工程工作目录，不使用新对话默认cwd猜工程。
+
+一、读取要求与优先级
+
+1. 完整读取 /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt，并按其指示完整读取历史续接附件。不要只读摘要。保留其中本轮能力范围、职责边界、原始测试与完成判据。
+2. 完整读取 /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-continuation-checkpoint.json。这是本次对真实产品文件、最新检查和缺口的续接记录，不是完成证书。
+3. 读取现有 execution-plan.md、execution-tasks.json、execution-gates.json、source-compatibility-ledger.json、framework-handoff.json、public-owner.json、progress.md；完整读取 checkpoint 指向的实际合同、验证JSON及相关日志。按具体待实现职责读相关产品源码，不全库重审，不重复历史F0。
+4. 本提示词对旧附件中“当前未通过”的历史状态作定向更新：以当前冻结候选及实际证据确认状态，不能把历史等待重新当成当前门禁；也不能把F1和模块证据当成F3。
+
+二、已经完成的门禁与当前真实状态
+
+阶段0采用round6方案，manifest SHA256：
+da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1
+
+F1同一最终联合候选：
+docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json
+SHA256：a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66
+Architect实际独立报告：docs/framework/reviews/m5-f1/architect/final-union-review.json
+SHA256：c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6
+Critic实际独立报告：docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json
+SHA256：7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f
+双方对同一候选12/12必需合同通过、无阻断；168项绑定已有核验。保留原生FAIL、反例及不同层证据，不修改冻结候选与F1证据。
+
+backendPrototypePassed=true，fullImplementationReleased=true。
+frameworkFunctionalMigrationComplete=false，最终产品包SHA尚未确定，F3未验收。
+
+K2公共底座正在接线；K3控制API/执行组件和K4独立SDK/服务文件已实际落地，模块实现进行中；K5实际产品入口整合、K6同包验收未完成。不要只做目录骨架，也不要把基本冒烟当成整个Goal完成。
+
+最新主线程检查：npm run check通过，Syntax checked65；foundation+K2/K3/K4基础测试208/210、2失败，两项单独重跑1/2；environment16/20。当前日志、命令和源码hash见 docs/framework/evidence/basic-capability-readiness-20261002/verification.json，测试入口和故障细节见 docs/framework/basic-capability-test-entry.md。旧122/122、75/75仅为先前源码证据。检查期间输入无漂移；尚未证明主SDK原生接线，也未形成最终包。
+
+已有storage v2真实Chrome HTTP-origin IDB迁移证据、K3双Chrome组件证据、K4真实Node loopback HTTP证据。其边界见checkpoint与原报告；不能扩写为扩展origin、真实sender/SW/grant或最终产品通过。
+
+三、立即执行的关键任务与顺序
+
+沿用已批准T01–T13与K0–K6，不创建替代计划或新的层层审批门。
+
+1. 完成K2主接线并验证：唯一 storage/authority/broker；SDK_HELLO/SDK_REQUEST；原生sender、document、grant与namespace；持久回执、重复请求、冲突、撤销、硬deadline、SW重启未知效果。src/platform/host/sdk-broker.js和sdk-methods.js已存在，需要针对性验证与真实集成，不能仅凭语法通过宣布正确。
+2. 验证并完善已存在的真实chrome.storage.session AppLocal adapter：src/platform/storage/session.js和broker的sessionTyped注入、SW导航/权限/关页失效事件已写入源码，不重新建同职责实现；完成真实会话寿命、准入/回执/持久化/交付复核及崩溃测试，不建第二DB/第二namespace来源。
+3. 同一现有webpack/build/verify体系加入固定SDK入口、控制sandbox/Worker必要入口与资源、通知icon和MIT；严格校验包资源与特权CSP。SDK固定 ./src/framework/sdk/entry.js -> framework/sdk-main.js(MAIN)，./src/agents/page-relay.js -> agents/page-relay.js(ISOLATED)。不可为了过包扫描放宽所有动态执行；批准的动态执行只允许在既定sandbox边界。
+4. 完成K3对主run-host/authority/target的实际接线：迁移48个ChromePage成员及本轮扩展、通用脚本运行与结果。普通JS运行不要求TemplateRevision、采集row或seal；ControllerRunSlot与短SDK服务保持职责区分，owned/borrowed target、取消和终止须符合冻结合同。
+5. 通过现有工作台验证实际集成；另设独立页面SDK入口，只由可信工具对精确document发grant并安装固定文件。页面SDK的Hello/调用不创建controller，不伪造sender，不自行注册host，不从payload解析grant或namespace。
+6. 构建当前同一候选包，重跑environment/package变异测试。历史npm test16/20中的4项因旧dist最低版本不符138提前失败；必须更新主包后触达各测试真实scanner/asset/HTML断言，不能弱化断言。
+7. 完成K6/F3：冻结同一最终包，按唯一账本原始603项及本轮明确增项验收。保留PROV/CMP/RESOURCE/EX/NAV/B01–05/AUTH/USC/CTRL/FIX/PLG/SVC/DLGEN/LEAK，历史17失败、R1–R8逐条关闭；1000轮混合成功/异常/超时/取消/导航、10轮host/SW重连、2轮插件禁用、泄漏回baseline、真实下载complete及磁盘文件hash、SDK独立B05。最后由未参与当前候选编写的独立评审者顺序审查同一最终包，不用作者自评代替。
+
+四、SDK与共享服务最终接口，不重新发明
+
+PROTOCOL复用foundation；SDK_VERSION='1.0.0'。
+SDK_HELLO payload {sdkVersion:'1.0.0'}。
+成功必须 {ok:true,data:{ready:true,sdkVersion:'1.0.0',methods:grantSubset}}，后台或真实grant不可用不得ready。
+SDK_REQUEST payload {requestId,method,argsWire:encodeValue(args),deadlineAt}，禁止裸args及sender/namespace/ownGrant/host字段。
+relay decodeValue -> validateSdkRequest -> encodeValue，broker decode后normalize并原生admit。
+成功回复 {ok:true,data:{valueWire:encodeValue({PageBrigeCode:0,message:'',data:driverValue})}}。
+driver成功业务值中的PageBrigeCode/ok/error/message始终在data内，不猜业务错误；失败为foundation外层typed error。
+
+共享codec唯一来源 src/platform/page-port/codec.js：
+encodeValue(value,options?) / decodeValue(wire,options?)；
+encodeBase64(string) / decodeBase64(base64)是UTF8字符串；二进制用bytesToBase64/base64ToBytes。
+undefined与own presence必须跨实际JSON hop保留；禁止另建codec。
+
+createSdkService({network,notifications,storage,device}).execute(method,args,context)只分派职责。
+storage.executeSdk(method,args,context)，storage.getAppId(context)原子共享storage委托。
+context只能由broker/authority创建；使用authorizeInTransaction(tx)、authorize(request?)、recordEffect(rawValue)、recordNativeReceipt(nativeReceipt)。实际效果与交付权限分开，已发生效果不能因为交付失败被抹去或自动重放。
+
+network hook：authorize({capability:'network',url:最终规范化HTTP URL含params,method:'GET'|'POST'|'PUT'|'DELETE',phase:'pre'|'post'},context)。pre在fetch前，post在读取projection后交付前。缺hook E_PERMISSION；manual redirects、omit credentials、body限额、typed errors；backend硬15s并取更早context.deadlineAt，不随客户端30/60s延长。NETWORK_INFO默认禁用，需要显式独立network.info授权。
+
+src/platform/chrome/cookies.js是唯一Cookie driver，按冻结SVC.F020供Singer控制组件复用：
+createCookieService({api,authorize}).getCookies(url,context)/setCookies(cookies,context)/deleteCookiesByUrl(url,context)；
+authorize({capability:'cookies',url:精确URL,method:'get'|'set'|'remove',phase:'pre'|'post'},context)。不粗化co.uk，尊重expiry/session/__Host-，await回执/lastError。tabs.js提供checkLastError/chromeCall/createTabsService.injectFixed，固定文件与精确document。禁止第二Cookie driver。
+
+installPageSdk({global?,transport?})返回frozenSDK，global.OpenDeskSDK.ready()真实Hello，call(method,args)，pagehide清理pending与监听；18个method以registry.js实际allowlist为准。
+
+MIT原1096字节：docs/contracts/licenses/todo-user-vue-MIT.txt
+SHA256 e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29
+打包为 licenses/todo-user-vue-MIT.txt，不新复制vendor。
+
+五、执行约束与报告
+
+不恢复或等待旧子代理。旧ID在当前runtime不可用，SDK旧actor曾429；必要时使用新的原生子代理，最多6个，明确无重叠写范围。主代理立即处理共享接线，不把核心阻塞外包后空等。最终独立评审者不能兼任当前候选作者。
+
+不改原审计来源、不全库重新审计、不引入src/compat/src-bex或类似旧目录、不换构建体系、不新增未请求依赖、不进入完整采集业务/优化/发布、不自动commit/push。
+
+不要运行 tests/framework/assemble-stage0.py 覆盖当前门禁。不删除旧失败证据、不用摘要/评分/单元mock替换要求的原生证据。源码或资源变化使受影响证据失效，F3在固定最终包上全量重验。
+
+首轮只需展示：当前真实状态和剩余门禁、既有计划的接续顺序、旧能力→新模块→行为决定→验证/完成条件、同候选独立评审状态；随后立即进入第一项实作，不在报告后等待普通许可。每次进度说明正在迁移哪项旧能力、实际验证了什么、还缺什么。可逆编辑—测试—验证自动继续。
+
+完成只由逐项迁移正确性及同一最终包的真实验收判断。页面SDK必须独立验收，工作台只证明集成。没有最终包、原始账本闭环与独立验收，就不能标记Goal或frameworkFunctionalMigrationComplete完成。

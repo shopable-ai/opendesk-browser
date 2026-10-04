@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "F2 controller product graph targeted proof",
+  "version": "0.1.0",
+  "description": "OpenDesk Browser 浏览器自动化框架。",
+  "minimum_chrome_version": "138",
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab",
+    "downloads",
+    "tabs",
+    "webNavigation",
+    "userScripts"
+  ],
+  "optional_permissions": [
+    "cookies",
+    "notifications"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "sw.js"
+  },
+  "action": {
+    "default_title": "打开 OpenDesk Browser"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'",
+    "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+  },
+  "incognito": "not_allowed",
+  "sandbox": {
+    "pages": [
+      "scripting/sandbox/sandbox.html"
+    ]
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqxPVLmwjoGNIfOK7thtrr1GAoySW5zEBsb3igJVHF4eC+prx2UNMGIduROTXswnDUScvb4FWPVfaJ2qwKRehTUU4lBa04Y1K4lcxvMoR9JVDtOR0AlSUSfAxP2xDAaqtWp1FnWX2vhjcXmReK78hzgwW0A9bG5zlB5n7lT09EcT0shLn19l4qPDs5LvZkWMsuzZwUjka7dVtKfZ1oWyS8Cci8Fr85qJW7F9KvpVEPq7cZZAmYBFJdgNW2zsfy43wtRLk+GEcI1KtCVrE2Rnrr77vgiW9yk6KntiIjZQV8J5sJ6Xy0FXeyKnF1qS+f7R7PfT3QoMi/474eLJnR3/4CQIDAQAB",
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ]
+}

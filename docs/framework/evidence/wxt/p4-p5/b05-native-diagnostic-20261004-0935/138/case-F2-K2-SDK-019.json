@@ -1,0 +1,20 @@
+{
+  "id": "F2-K2-SDK-019",
+  "label": "138",
+  "startedAt": "2026-10-04T09:40:55.922Z",
+  "status": "FAIL",
+  "evidence": {},
+  "error": {
+    "message": "138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out",
+    "stack": "Error: 138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out\n    at Timeout._onTimeout (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:265:67)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)"
+  },
+  "reason": "138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out",
+  "measurements": {
+    "elapsedMs": 40001.70612499997,
+    "rawCdpSequenceStart": 7750,
+    "rawCdpSequenceEnd": 7752,
+    "httpRecordCountStart": 6,
+    "httpRecordCountEnd": 6
+  },
+  "endedAt": "2026-10-04T09:41:35.994Z"
+}

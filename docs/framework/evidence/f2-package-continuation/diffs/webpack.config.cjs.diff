@@ -1,0 +1,27 @@
+--- webpack.config.cjs before
+
++++ webpack.config.cjs
+
+@@ -10,7 +10,11 @@
+
+     'agents/health': './src/agents/health.js',
+     'agents/selection-entry': './src/agents/selection-entry.js',
+     'agents/bootstrap': './src/agents/bootstrap.js',
+-    'agents/page-agent': './src/agents/page-agent.js'
++    'agents/page-agent': './src/agents/page-agent.js',
++    'agents/page-relay': './src/agents/page-relay.js',
++    'framework/sdk-main': './src/framework/sdk/entry.js',
++    'scripting/sandbox/sandbox': './src/scripting/sandbox/sandbox.js',
++    'scripting/sandbox/worker-runtime': './src/scripting/sandbox/worker-runtime.js'
+   },
+   output: { path: path.resolve(__dirname, 'dist', mode), filename: '[name].js', iife: true, clean: true },
+   devtool: mode === 'development' ? 'source-map' : false,
+@@ -20,5 +24,6 @@
+
+     minimize: mode === 'production',
+     minimizer: [new TerserPlugin({parallel: false, extractComments: false, terserOptions: {format: {comments: false}}})]
+   },
+-  performance: {hints: 'error', maxEntrypointSize: 256 * 1024, maxAssetSize: 256 * 1024}
++  // Development preserves readable code for the sole SW; production retains the 256 KiB budget.
++  performance: {hints: 'error', maxEntrypointSize: (mode === 'development' ? 512 : 256) * 1024, maxAssetSize: (mode === 'development' ? 512 : 256) * 1024}
+ });

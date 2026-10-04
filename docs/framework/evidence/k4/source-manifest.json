@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-02T23:55:54.138285+00:00",
+  "kind": "F2 scoped SDK implementation source evidence",
+  "ownerScope": "K4 SDK executor, not F3 independent acceptance",
+  "sourceFiles": {
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/ChromePage.ts": {
+      "actualSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "frozenExpectedSha256": "8ad986b65648b3a7bb0bb8287ec6fecc9a51fa05f840a76069e438f7563750d6",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/my-content-script.ts": {
+      "actualSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "frozenExpectedSha256": "8c954d6243126364eea25ad689b877fc10b9d506f34a5dfcf1abbead23a45831",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/EventOperate.cst.ts": {
+      "actualSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "frozenExpectedSha256": "cbe412f55fd57bff98c36a1f13e3769cd33aa9fc2e085e77935a4a39d574742a",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/brige.js": {
+      "actualSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "frozenExpectedSha256": "77c6f2d48a47832e407a9f206d3c22a25e12c3d676599b0fbf3cc9b757b9e15b",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/axiosx.js": {
+      "actualSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "frozenExpectedSha256": "50a1c60f3d5850d624f0fe422678d77d40c3b00085dcf26d3275758971d0470d",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/appStorage.js": {
+      "actualSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "frozenExpectedSha256": "7c82ed6244fe9bbadcfab75106be4cafdc099144634a0a46ff8440b2140b5edd",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/appLocal.js": {
+      "actualSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "frozenExpectedSha256": "31ad396cd0c10ffad2c8fc005eaa63d9d3a0feac4383e99ec742dd4ab26f741b",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/common.js": {
+      "actualSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "frozenExpectedSha256": "5cc8635379651972c22455f513829ee96bca447bb644d6fa8f86b9ed56ba4e20",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/serverUtils.js": {
+      "actualSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "frozenExpectedSha256": "4761430f4253e32e466ebc7c0386169fa7e8a1b6beea2b4f765efa836b8cc603",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/core/utils.js": {
+      "actualSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "frozenExpectedSha256": "a74d624e273cc8d95d82cbc03b8e58d50ccc63cec68e26a3e30b6b3010738b9c",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/custom_event.js": {
+      "actualSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "frozenExpectedSha256": "e4bb28643d8e8d61118977490ae76df19a7a55d56c2e958f09a5cbb62660f56d",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/chrome-local-storage-api.js": {
+      "actualSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "frozenExpectedSha256": "ce109c35f4679eb14e6a01526a9b3dec46d39d07876e7993bb1ed74aa9644c38",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilScrpt.ts": {
+      "actualSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "frozenExpectedSha256": "16f7cd344f378bbb96b718f7cd0dd652017cf1a2dbfe4ddffa68af112a1e4fa3",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilDevice.ts": {
+      "actualSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "frozenExpectedSha256": "9e2f7c53a48ba26bb7d0083edee43932cc16ecad067132ffad4ca9f7678f42d0",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/utils/UtilInfo.ts": {
+      "actualSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "frozenExpectedSha256": "9e07eb4ea8f88e488a0f0839b193d42c10c2795c6d2f5fedf31735fb165a36b4",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/operate/Device.cst.ts": {
+      "actualSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "frozenExpectedSha256": "91c725b72e6289d6cb1a292352463d5a157b4b854e5e8d28a1b34a2d5cf1831c",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/assets/js/Env.js": {
+      "actualSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "frozenExpectedSha256": "4571d4984d910a08af5355b50103b7877eff02f5059340d998f0ca918ebfe121",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    },
+    "/Users/shopme/Documents/workspace/todo-user-vue/src-bex/background.ts": {
+      "actualSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "frozenExpectedSha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+      "matchesFrozenActual": true,
+      "writeState": "read-only"
+    }
+  },
+  "productSourceFiles": [
+    {
+      "path": "src/framework/sdk/bridge.js",
+      "bytes": 5632,
+      "sha256": "1e29c660de8ae3c85e6111875418721325192af41082d8f9cd40aa5433240462"
+    },
+    {
+      "path": "src/framework/sdk/entry.js",
+      "bytes": 3446,
+      "sha256": "88b1d6dd2f00e271fdb30bb853c56d6d17f972db9529b04e78a5b7a3852f9fa8"
+    },
+    {
+      "path": "src/framework/sdk/http.js",
+      "bytes": 339,
+      "sha256": "1be88c4ae271ab751a1a848e02a78a08adad76140e850e385d4d6555c46c0e62"
+    },
+    {
+      "path": "src/framework/sdk/notifications.js",
+      "bytes": 503,
+      "sha256": "a139446cb979971db9487c1e9ae905f19588909acd2f4cf56ab57d9ae29dff41"
+    },
+    {
+      "path": "src/framework/sdk/registry.js",
+      "bytes": 8276,
+      "sha256": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb"
+    },
+    {
+      "path": "src/framework/sdk/servers.js",
+      "bytes": 983,
+      "sha256": "1bf8e33ba8079914b4c3b11e700af948e594f73872b491c1126f4fe69e333089"
+    },
+    {
+      "path": "src/framework/sdk/service.js",
+      "bytes": 1786,
+      "sha256": "df46b84eaef58a374f195762dbce67783cdfeee65b94a6b86e96ea196aef51ca"
+    },
+    {
+      "path": "src/framework/sdk/storage.js",
+      "bytes": 1040,
+      "sha256": "77e7545c01752ebc3074b182012638cd7981f3cafce82e19e9a782f907bfc7eb"
+    },
+    {
+      "path": "src/framework/sdk/transport.js",
+      "bytes": 4037,
+      "sha256": "215cf7975fbf6fb6ac1284a784475251875905e514b0c800edaff367843371f0"
+    },
+    {
+      "path": "src/framework/sdk/utils.js",
+      "bytes": 970,
+      "sha256": "21f0d3e6efd9f690f375e45f6ab6274a9254675e89e4b01cf08b43f1c4284a97"
+    },
+    {
+      "path": "src/framework/utils/device.js",
+      "bytes": 2319,
+      "sha256": "f87e108419d29a2008b0dd360287d666570a374e367dcfa8e2a8e49688762df8"
+    },
+    {
+      "path": "src/framework/utils/network-info.js",
+      "bytes": 223,
+      "sha256": "2af82434ec8529dacc14eb2ba7fe06895909fe07a61a58d6d0cde21e7563c562"
+    },
+    {
+      "path": "src/framework/utils/script.js",
+      "bytes": 365,
+      "sha256": "55ab1758fd4bc217db40f195d27a781cad9dd9c97064534fe110ab870d7b45a0"
+    },
+    {
+      "path": "src/framework/events.js",
+      "bytes": 1206,
+      "sha256": "f2953f29263bb5b5ec0ae5f58f39edc3cffdd133867008e82e602ac486b2fcc2"
+    },
+    {
+      "path": "src/agents/page-relay.js",
+      "bytes": 6106,
+      "sha256": "ca20e6ddf2881e14c6f5e54905c948d8ea8bcd7a2144ba3fe551d231a766d3fc"
+    },
+    {
+      "path": "src/platform/chrome/cookies.js",
+      "bytes": 3609,
+      "sha256": "644053a629b6511ffdaeabc682c2b4f3ba2efc537653e520e8d2b05b3c242a80"
+    },
+    {
+      "path": "src/platform/chrome/network.js",
+      "bytes": 6768,
+      "sha256": "9916cca4c064fa64b3818b5c6557a5151220217399c7bb2605d5c52aeeefd6d7"
+    },
+    {
+      "path": "src/platform/chrome/notifications.js",
+      "bytes": 2762,
+      "sha256": "191a49cfecf3fe2e2d6fd48e56e52f04367b72bc914b10bedfac7c295cc35639"
+    },
+    {
+      "path": "src/platform/chrome/tabs.js",
+      "bytes": 1747,
+      "sha256": "cf077eaa8922e5e6fb8e280a44ff71a41cb551665d488acde2205bb66f5297e6"
+    },
+    {
+      "path": "tests/framework/k4-chrome-services.test.mjs",
+      "bytes": 6094,
+      "sha256": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b"
+    },
+    {
+      "path": "tests/framework/k4-network.test.mjs",
+      "bytes": 11407,
+      "sha256": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306"
+    },
+    {
+      "path": "tests/framework/k4-resources.test.mjs",
+      "bytes": 1757,
+      "sha256": "f852330eefe96e9eb1cdbc3845c9911b847783bb778f948dc22076c36c95a0bf"
+    },
+    {
+      "path": "tests/framework/k4-sdk.test.mjs",
+      "bytes": 19833,
+      "sha256": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c"
+    },
+    {
+      "path": "docs/contracts/licenses/todo-user-vue-MIT.txt",
+      "bytes": 1096,
+      "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+    }
+  ],
+  "mappedCapabilityIds": [
+    "SDK.F006.generateEventId",
+    "SDK.F006.ChromeBridgeEvents",
+    "SDK.F006.ChromeBridgeOperationCompleted",
+    "SDK.F006.executeInBg_executeScript",
+    "SDK.F005.axiosx.get",
+    "SDK.F005.axiosx.post",
+    "SDK.F005.axiosx.put",
+    "SDK.F005.axiosx.delete",
+    "SDK.F005.callChromeBridgeInterface",
+    "SDK.F004.AppStorage.setItem",
+    "SDK.F004.AppStorage.getItem",
+    "SDK.F004.AppStorage.removeItem",
+    "SDK.F004.AppStorage.clear",
+    "SDK.F003.AppLocal.setItem",
+    "SDK.F003.AppLocal.getItem",
+    "SDK.F003.AppLocal.removeItem",
+    "SDK.F007.createNotify",
+    "SDK.F008.serverUtils.checkServer",
+    "SDK.F008.serverUtils.getFastestServer",
+    "SDK.F008.serverUtils.checkServers",
+    "SDK.F009.sleep",
+    "SDK.F009.getFingerprint",
+    "SDK.F010.CustomEventDetector.messager",
+    "SDK.F010.CustomEventDetector.addEventListeners",
+    "SDK.F010.CustomEventDetector.removeEventListeners",
+    "EVENT.F010.CustomChromeEvt",
+    "EVENT.F010.CHROME_PAGE_EXECUTE",
+    "EVENT.F010.CHROME_BRIDGE_INTERFACE",
+    "SDK.F012.getObjectFromLocalStorage",
+    "SDK.F012.saveObjectInLocalStorage",
+    "SDK.F012.removeObjectFromLocalStorage",
+    "TOOL.F019.wrapAsync",
+    "TOOL.F019.formatJSON",
+    "TOOL.F017.isElectron",
+    "TOOL.F017.isChromeExtension",
+    "TOOL.F017.UtilDevice.getInfo",
+    "TOOL.F017.UtilDevice.getBrowserInfo",
+    "TOOL.F017.UtilDevice.getInfoStr",
+    "TOOL.F017.UtilDevice.generateRandomString",
+    "TOOL.F017.UtilDevice.getAppId",
+    "TOOL.F017.UtilDevice.getFingerprint",
+    "TOOL.F017.UtilDevice.getAppIdInfo",
+    "TOOL.F018.UtilInfo.getIpInfo",
+    "EVENT.F015.DeviceType.BROWSER",
+    "EVENT.F015.DeviceType.DESKTOP",
+    "EVENT.F015.DeviceType.APP_H5",
+    "EVENT.F015.DeviceType.ANDROID",
+    "EVENT.F015.DeviceType.IOS",
+    "EVENT.F016.EVENT_OPERATE.SCRIPT_RUN",
+    "EVENT.F016.EVENT_OPERATE.SCRIPT_STOP",
+    "EVENT.F016.EVENT_OPERATE.SCRIPT_RUN_BY_API",
+    "EVENT.F016.EVENT_OPERATE.SCRIPT_STOP_BY_API",
+    "EVENT.F016.EVENT_OPERATE.DEVICE_USER_INFO",
+    "EVENT.F016.EVENT_OPERATE.DEVICE_USER_INFO_UNBIND",
+    "EVENT.F016.EVENT_OPERATE.DEVICE_INFO",
+    "SDK.F002.CHROME_PAGE_TYPE",
+    "SVC.F020.tokenSubstitution",
+    "SVC.F020.axiosUrlNormalization",
+    "SVC.F020.AXIOS_GET",
+    "SVC.F020.AXIOS_POST",
+    "SVC.F020.AXIOS_PUT",
+    "SVC.F020.AXIOS_DELETE",
+    "SVC.F020.CREATE_NOTIFY",
+    "SVC.F020.backgroundSleepFallback",
+    "SVC.F020.extractDomainFromUrl",
+    "SVC.F020.deleteCookiesByUrl",
+    "SVC.F020.setCookies",
+    "SVC.F020.getCookies",
+    "SVC.F020.checkLastError",
+    "SVC.F020.createNotify",
+    "SVC.F020.notify.inner",
+    "SVC.F020.notify.onshow",
+    "SVC.F020.notify.onclose",
+    "SVC.F020.notify.onclick"
+  ],
+  "writeBoundaries": [
+    "src/framework/sdk/**",
+    "src/framework/utils/**",
+    "src/framework/events.js",
+    "src/agents/page-relay.js",
+    "src/platform/chrome/**",
+    "tests/framework/k4-*",
+    "docs/framework/evidence/k4/**",
+    "docs/contracts/licenses/**"
+  ],
+  "knownLimitations": [
+    "Product webpack/SW/broker/grant/manifest wiring is owned by the main writer and is not claimed by this executor.",
+    "Native SDK100 concurrency, four SW crash points, real browser storage two lifetimes, revocation/navigation/resources and same-package F3 remain pending independent acceptance.",
+    "Cookie, notification and injection Chrome callback tests use explicit API fixtures.",
+    "HTTP loopback is actual HTTP with Node fetch; not native extension HTTP acceptance.",
+    "Current fingerprint resources are excluded; E_RESOURCE_UNAVAILABLE is guard behavior, not fingerprint implementation.",
+    "wrapAsync transforms source only; admitted execution and revision pinning belong to RunHost."
+  ],
+  "runtimePass": false,
+  "independentAcceptance": false,
+  "productPackageSha256": null,
+  "sharedDependencies": [
+    {
+      "path": "src/platform/protocol.js",
+      "sha256": "02c7d59230649c7c5df6f839335c399a09348a7e0587840883f8b1d4c38d1040",
+      "ownership": "read-only shared source; not K4-authored"
+    },
+    {
+      "path": "src/platform/page-port/codec.js",
+      "sha256": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124",
+      "ownership": "read-only shared source; not K4-authored"
+    }
+  ],
+  "reports": [
+    {
+      "path": "docs/framework/evidence/k4/router-contract.json",
+      "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f"
+    },
+    {
+      "path": "docs/framework/evidence/k4/unit-validation.log",
+      "sha256": "25ba92cf163997559bc7fae15339f8fc1a504ce692e3ac40740691b5235ea2f9"
+    },
+    {
+      "path": "docs/framework/evidence/k4/environment-validation.log",
+      "sha256": "0d1d841943f4ae481173fcd21e5df638ff8b0d607d52edee9d36dfa85d44e7e3"
+    }
+  ]
+}

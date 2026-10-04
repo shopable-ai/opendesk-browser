@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "M5-C1",
+  "round": 4,
+  "createdAt": "2026-10-02T18:59:03.367286+00:00",
+  "goal": "OpenDesk Browser 通用框架迁移 Goal",
+  "purpose": "Current execution plan stage0, not historical prompt/design approval",
+  "files": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/execution-plan.md",
+      "sha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+      "bytes": 16001,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-plan.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/execution-tasks.json",
+      "sha256": "1bf08df26a1f000a2818fff759dc50d646564ef2a13c2659b7dc2e3e7b2c530c",
+      "bytes": 6069,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-tasks.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/source-compatibility-ledger.json",
+      "sha256": "b398416c14b3f26ce0af70dad4eb29e907ec55521360a7692283660bd3413bda",
+      "bytes": 2201604,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/source-compatibility-ledger.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/migration-map-v5.md",
+      "sha256": "1eca520b39123ea685bc08ff08d4452e5286896e00f5fb38d4a447bde5423d98",
+      "bytes": 90739,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/migration-map-v5.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/compatibility-delta-v5.md",
+      "sha256": "f81734d752fc73df4bd5587b04512cd79a9c8e0c350945c53c83f5b06e79cb0e",
+      "bytes": 5684,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/compatibility-delta-v5.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/test-spec-v5.json",
+      "sha256": "aeddf4f9dd262aa2527dcc1af9f23c99488d05d82351a6b584c2e2f6a59ad5f6",
+      "bytes": 1141000,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/test-spec-v5.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/goal-constraints.md",
+      "sha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+      "bytes": 7870,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/goal-prompt.md",
+      "sha256": "e192b17a4142102ff8b40f6ab6018d21d34343bb602a528242ec24190288460a",
+      "bytes": 1453,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/baseline-ledger-v1.json",
+      "sha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1",
+      "bytes": 109039,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/baseline-ledger-v1.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/initial-state.json",
+      "sha256": "3dba640dd9bb08fc64554dca1cf3d679e50a6bf65d01aec8b02264ade5e9a28d",
+      "bytes": 32953,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/initial-state.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/inherited-contracts.json",
+      "sha256": "841d55e0eec8ec5029296b3ca8fd7ebcd2d18085916a44257ab5868415192a6f",
+      "bytes": 5620,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/inherited-contracts.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/api-member-draft.json",
+      "sha256": "f458f791503afc2e450229bade2aab35099fea1b7b519e4f121a3ba3a0fec095",
+      "bytes": 741995,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/api-member-draft.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/api-member-read-note.md",
+      "sha256": "5ed85744be958771a69a6c54c862de3fc39f675fd5d7737ab873e871157a3e9b",
+      "bytes": 15033,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/api-member-read-note.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/sdk-service-resource-draft.json",
+      "sha256": "529c7271f811e00393b43676b35ade1fb290f9cb1e164974fc0ad95a26f00dec",
+      "bytes": 1208355,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/sdk-service-resource-draft.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/sdk-service-resource-read-note.md",
+      "sha256": "517d3f952417b340d21aa0607f7308f28f9cbd2ee1a68654cd9c1297740da790",
+      "bytes": 5662,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/sdk-service-resource-read-note.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/main-capability-draft.json",
+      "sha256": "fcb1d297a4d29164f8583a819b9b26e9da3b05346c62e98256125581611f8083",
+      "bytes": 40190,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/main-capability-draft.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json",
+      "sha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+      "bytes": 10893,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/f1-cases.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/baseline-foundation.json",
+      "sha256": "39e592fff07bb3c161a5ca56b27fd637aeb82960da6028bf9542add0f96ff6a7",
+      "bytes": 2340,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/baseline-foundation.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/environment-source-baseline.json",
+      "sha256": "9053745b032575bbe93cb537ef3a8e3a898428c4727f7d4490ebac37eace4d70",
+      "bytes": 420,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/environment-source-baseline.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/historical-test-bindings.json",
+      "sha256": "da4d94fb9da2b1ace253e579d931cf4b87cc158ad4bdc697229b3686d7a00251",
+      "bytes": 6621,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/historical-test-bindings.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/license-evidence.json",
+      "sha256": "167e0094350bc95a6e00ed2765c87bb9e61b3798823b8702c6ccc8c78f251696",
+      "bytes": 599,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/license-evidence.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/legacy-project-license.txt",
+      "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+      "bytes": 1096,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/legacy-project-license.txt"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/version-discovery.json",
+      "sha256": "e6ca89e197dd3435989c5f0e691d1ccca7aac29ab143c04967f254bee75a8d81",
+      "bytes": 3863,
+      "liveSource": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/version-discovery.json"
+    }
+  ],
+  "inheritedContracts": [
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+      "bytes": 31648,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/file-tasks.md",
+      "sha256": "30a4e00a78d511169f38aa7017959984be6a88afdb04f474f65298874e1b7258",
+      "bytes": 7888,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/compatibility-delta.md",
+      "sha256": "777fb115b7852b0c9b9102683e0fdc6a81271e48b367457d6e67005198c00b34",
+      "bytes": 4221,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/protocol-contract.md",
+      "sha256": "33afffa92748ac1308d32a2ba1a883a196729704b9933cba7b5c3d0f59ceb7bc",
+      "bytes": 8502,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+      "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+      "bytes": 13767,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/migration-complete.md",
+      "sha256": "7319275eb58a031b3ec66af17b83dc4e5fab29c088d7d31d1a3f9ae36e5b0f96",
+      "bytes": 26715,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/source-evidence.md",
+      "sha256": "3889ed582b8bdafda19a63b2dd9580401c63caeb71ed315a3fa824c1268ebcb4",
+      "bytes": 3694,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/issues.md",
+      "sha256": "168b4b93e3ca1c5177a443041864cc99331a36828a26702757cabebc1814dbd3",
+      "bytes": 8665,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/migration-map.json",
+      "sha256": "47c231b965865175f749a2659f5264da54100812e53f45729b7608d2aa385551",
+      "bytes": 62234,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/public-api-contract.json",
+      "sha256": "4c994c58726e0732782a780f588990ba5fd1686dd4c418dbf74840a739b23edc",
+      "bytes": 31301,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/test-spec.md",
+      "sha256": "276bd53c687f737c888fa212887d19231132ae15b2ad30b3cd8e0c5e72b7ae1b",
+      "bytes": 19377,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/compatibility-and-file-map.md",
+      "sha256": "a73d2aecb41faa0c16b9e8a58271ee0dff8319117d10354dd2ca9c13fdce49b0",
+      "bytes": 15856,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/type-click-compatibility.md",
+      "sha256": "602f9b63b685673bd6e18a54344bfdba2bed2bd4b8eb2613ae904d9b94708fb3",
+      "bytes": 1841,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+      "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+      "bytes": 33202,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+      "bytes": 26219,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/historical-failure-mapping.json",
+      "sha256": "acd9ca12463cceee7e6d5e898b7fc6ca319fd959492edacb4550e71fea4376a5",
+      "bytes": 11500,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/source-handoff.json",
+      "sha256": "4316d972276ddbb1783e493fc6650b8fd876b2333696a32bd5819b260f841a74",
+      "bytes": 14759,
+      "scope": "historical evidence/current directive; current directory/phase overrides only"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/todo-user-vue/LICENSE",
+      "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+      "bytes": 1096,
+      "scope": "Project MIT attribution; vendor scopes not inferred"
+    }
+  ],
+  "runtimePass": false,
+  "productModifiedBeforeApproval": false,
+  "reviewProtocol": "Architect then independent Critic, same hash, honest score>=95 APPROVE with zero blockers; changes require both reviews on new candidate",
+  "previousManifestSha256": "7b0449ec02a4a2d07d5baea4f792d21e203faaeb65ce873686d23ebecec6ebf1",
+  "boundedChanges": [
+    "K4 relay path exactly follows v5 page-relay.js rather than invented sdk-relay alias",
+    "K4 explicitly assigns existing broker/storage/SW/manifest assembly to sole main writer; unique SDK modules to lane executor"
+  ],
+  "changedFiles": [
+    "execution-plan.md",
+    "execution-tasks.json"
+  ]
+}

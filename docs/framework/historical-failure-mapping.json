@@ -1,0 +1,310 @@
+{
+  "source": "/Users/shopme/Documents/workspace/opendesk-browser/docs/foundation/scope-checkpoint.json",
+  "R1_R8": [
+    {
+      "id": "R1-pointer",
+      "summary": "Nested schema $ref resolution fails for valid RulePlan/Command.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint",
+      "ownerTasks": [
+        "T02"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "requiredRealVerification": true
+    },
+    {
+      "id": "R2-unknown-properties",
+      "summary": "Inherited object-property names pass strict unknown-property checks.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint",
+      "ownerTasks": [
+        "T02"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "requiredRealVerification": true
+    },
+    {
+      "id": "R3-host-gone",
+      "summary": "Closed host leaves an interrupted run/held slot without an admitted replacement retirement path.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint",
+      "ownerTasks": [
+        "T01",
+        "T02"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "requiredRealVerification": true
+    },
+    {
+      "id": "R4-control-states",
+      "summary": "Host loss, late stop and session recovery overwrite control states.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint",
+      "ownerTasks": [
+        "T01",
+        "T02"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "requiredRealVerification": true
+    },
+    {
+      "id": "R5-terminal-fence-gap",
+      "summary": "A crash between terminal commit and fencing leaves a held slot without retirement recovery.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint",
+      "ownerTasks": [
+        "T02",
+        "T04"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "requiredRealVerification": true
+    },
+    {
+      "id": "R6-false-completion",
+      "summary": "Caller naturalEnd=true can complete a run with no target or committed page.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint",
+      "ownerTasks": [
+        "T01",
+        "T02",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "requiredRealVerification": true
+    },
+    {
+      "id": "R7-invalid-date-time",
+      "summary": "General schema validator accepts impossible or timezone-less date-time values.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint",
+      "ownerTasks": [
+        "T02"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "requiredRealVerification": true
+    },
+    {
+      "id": "R8-journal-key-collision",
+      "summary": "Unnamespaced commandId can overwrite a host journal key.",
+      "evidenceLevel": "fresh reproduced serial-memory seam; not real Chrome/IDB",
+      "status": "preserved-unfixed-at-scope-checkpoint",
+      "ownerTasks": [
+        "T02",
+        "T04"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "requiredRealVerification": true
+    }
+  ],
+  "historical17": [
+    {
+      "id": "HIST01",
+      "exactHistoricalTestName": "frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority",
+      "ownerTasks": [
+        "T02",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST02",
+      "exactHistoricalTestName": "stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed",
+      "ownerTasks": [
+        "T02",
+        "T03"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": null
+    },
+    {
+      "id": "HIST03",
+      "exactHistoricalTestName": "post-dispatch epoch/target/grant fences prevent stale Chrome use",
+      "ownerTasks": [
+        "T02",
+        "T03"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": null
+    },
+    {
+      "id": "HIST04",
+      "exactHistoricalTestName": "script or command callback failure records unknown and cannot be blindly retried",
+      "ownerTasks": [
+        "T02",
+        "T03"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": null
+    },
+    {
+      "id": "HIST05",
+      "exactHistoricalTestName": "packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature",
+      "ownerTasks": [
+        "T03",
+        "T09",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST06",
+      "exactHistoricalTestName": "preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written",
+      "ownerTasks": [
+        "T03",
+        "T09",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST07",
+      "exactHistoricalTestName": "three batches: first two durable ACKs, third exact-byte failure hides whole page",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST08",
+      "exactHistoricalTestName": "exact staged duplicate does not add bytes; conflicting valid digest aborts page",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST09",
+      "exactHistoricalTestName": "stage may acknowledge authenticated raw frames before end; seal requires complete end",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST10",
+      "exactHistoricalTestName": "seal recomputes all six rows; prefix-only signature fails",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST11",
+      "exactHistoricalTestName": "batch gap, record key/field mismatch, and raw-end evidence mismatch reject",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST12",
+      "exactHistoricalTestName": "stop wins before seal; seal wins before stop and preserves historic original ACK",
+      "ownerTasks": [
+        "T02",
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST13",
+      "exactHistoricalTestName": "reader pins freeze watermark/count, paginate long typed values, and reject other cursors",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST14",
+      "exactHistoricalTestName": "zero-batch empty page requires authenticated allowed-empty proof",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST15",
+      "exactHistoricalTestName": "repeated full page signature without end is rejected and left invisible",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST16",
+      "exactHistoricalTestName": "whole-page run limits, two pending ACKs, profile budget and injected disk quota",
+      "ownerTasks": [
+        "T04",
+        "T13"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": "Preserve/repair existing contract and externalize T13 business coupling only; no full scraping feature implementation"
+    },
+    {
+      "id": "HIST17",
+      "exactHistoricalTestName": "delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data",
+      "ownerTasks": [
+        "T04",
+        "T05"
+      ],
+      "currentGoalStatus": "NOT_RUN_UNCLOSED",
+      "currentGoalSkipped": false,
+      "historicalEvidenceOnly": true,
+      "scrapingBoundary": null
+    }
+  ],
+  "evidenceMeaning": "Explicit future ownership mapping. No fixes, reruns, closure or PASS claimed; F1 gate held before F2.",
+  "mandatoryCasesMayNotBeSkippedOrDeletedToObtainCompletion": true
+}

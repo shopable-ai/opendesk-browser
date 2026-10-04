@@ -1,0 +1,63 @@
+[
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "28E8CCFD7D3FC9F803261D555AE846D3",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F06404DEBABE80E3DEF8BB2347CAD203"
+      }
+    },
+    "observedMonoMs": 1435.593292,
+    "observedAt": 1791022465419
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "8A904D6FBD09B39DE6C8B380D3ABE653",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F06404DEBABE80E3DEF8BB2347CAD203"
+      }
+    },
+    "observedMonoMs": 1437.283458,
+    "observedAt": 1791022465421
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "8A904D6FBD09B39DE6C8B380D3ABE653",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "F06404DEBABE80E3DEF8BB2347CAD203"
+      }
+    },
+    "observedMonoMs": 1450.051667,
+    "observedAt": 1791022465434
+  },
+  {
+    "method": "Runtime.executionContextCreated",
+    "params": {
+      "context": {
+        "id": 1,
+        "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "name": "",
+        "uniqueId": "202502981672226874.8269073562210002889"
+      }
+    },
+    "observedMonoMs": 1893.928333,
+    "observedAt": 1791022465877
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "status": "CLEAR_FOR_MINIMUM_NATIVE_REOPEN",
+  "reviewerAgent": "01a105bd-3067-70d3-b502-a26197395805",
+  "reviewScope": "Independent read-only source review; native reopen not yet tested. Leader persists delegated result because reviewer role cannot write.",
+  "files": {
+    "tests/framework/k5-sdk-native-restart.py": "b99eb58f8e338c4c922b94de3f216066f37aa5304336a48e42777ce50533d529",
+    "tests/framework/k5-sdk-native-launcher.mjs": "095ee725488d1e7eb88c4605d116a90f8944e4d3bd71bb622826c02e6e0b2ed9",
+    "src/platform/host/controller-methods.js": "87966ace7f790cfa94961025e0285dbe418bb0c17f6de948ed0c8eb0647fa96a",
+    "src/framework/control/native-driver.js": "e2d7bdf2164e245474741a473df17ff4170365f2f0cc80ad9a0184ab425bb437"
+  },
+  "findings": [
+    "Known E_USER_SCRIPTS_UNAVAILABLE pre-effect lookup failure is narrow; generic native rejection without receipt remains effect_unknown.",
+    "No fabricated workerRetired acknowledgement; caller observes physical Worker retirement.",
+    "Restart cleanup owns child immediately after spawn, validates exact profile inode, retains ambiguous residuals and records cleanup failures.",
+    "No remaining P1/P2 found in reviewed SDK/IDB/B05 surfaces. Native reopen still requires execution."
+  ],
+  "verification": {
+    "pythonSelftests": 8,
+    "jsSelftests": 13,
+    "nativeBrowserStarted": false,
+    "logs": [
+      "/tmp/opendesk-p5-restart-python-selftest.log",
+      "/tmp/opendesk-p5-restart-js-selftest.log"
+    ]
+  },
+  "supersedesForCurrentSource": "restart-review.json retained as historical failure",
+  "at": "2026-10-04T07:36:25.836365+00:00"
+}

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "capturedAtUTC": "2026-10-04T06:21:44.411Z",
+  "purpose": "Read-only writer transfer baseline; no build, browser, test or acceptance",
+  "humanAuthorization": "创建新对话，继续完善，不要过度测试。设置合适目标和关键测试条件。",
+  "productWriterThreadId": "01a10590-5bc1-7d03-bad6-58f306a2b790",
+  "independentVerificationThreadId": "01a1021b-a6df-7a63-a9b0-d1049f342b35",
+  "oldWriter": {
+    "threadId": "01a1007d-556c-7783-b5dd-c09312a10236",
+    "transferConfirmed": true,
+    "reportedGoalStatus": "paused",
+    "reportedInFlightOperations": []
+  },
+  "oldHandoff": {
+    "source": {
+      "fileCount": 67,
+      "hash": "3067a66bc4b5f5605e92d2a20c080635e04e2bb12d08acfde84dcaafde77d1f4"
+    },
+    "production": {
+      "fileCount": 18,
+      "hash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89"
+    },
+    "development": {
+      "fileCount": 29,
+      "hash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60"
+    }
+  },
+  "oldWriterReported": {
+    "source": {
+      "fileCount": 78,
+      "hash": "bbc6b415e7179bf533f7abea5c70a5cf6af7ed4968d739c29109a553fcf1cf7f"
+    },
+    "production": {
+      "fileCount": 18,
+      "hash": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280"
+    },
+    "development": {
+      "fileCount": 29,
+      "hash": "bbbb168152de7684ae125fe554460d3f3b9575eb0c72ec4c614740733814a6fe"
+    },
+    "ledgerSha256": "26baeec72e00e783d5b58ca23cccaca05143d92526e20d381f0a6eae8fa2e0bd"
+  },
+  "current": {
+    "source": {
+      "fileCount": 78,
+      "hash": "bbc6b415e7179bf533f7abea5c70a5cf6af7ed4968d739c29109a553fcf1cf7f"
+    },
+    "production": {
+      "fileCount": 18,
+      "hash": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280"
+    },
+    "development": {
+      "fileCount": 29,
+      "hash": "bbbb168152de7684ae125fe554460d3f3b9575eb0c72ec4c614740733814a6fe"
+    },
+    "ledgerSha256": "26baeec72e00e783d5b58ca23cccaca05143d92526e20d381f0a6eae8fa2e0bd"
+  },
+  "reportMatchedAtCapture": true,
+  "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact bytes. Ledger uses file SHA256.",
+  "currentBuild": {
+    "path": "scripts/build.mjs",
+    "sha256": "6abed8598061716188650312278966fe05b3d432a76db3346d46a15dc0510425",
+    "invokesWxt": true,
+    "needsWriterReconciliation": "Current build invokes WXT; original handoff specified native MV3/webpack. Check newer human authority and actual entry/resource mapping before implementation/build; do not roll back or assert current build is authorized solely from this receipt."
+  },
+  "fourServiceFiles": {
+    "driver": false,
+    "resourceManifest": false
+  },
+  "newWriterObservation": "Read_thread saw new writer create Goal and explicitly identify source/package drift, retain old PASS as historical only, and inspect change source before edits.",
+  "evidenceRule": "Old package PASS is not evidence for current candidate. No fresh acceptance claims.",
+  "formalAcceptanceChanged": false,
+  "newBuilds": 0,
+  "newBrowserLaunches": 0,
+  "newTests": 0,
+  "productFilesModified": []
+}

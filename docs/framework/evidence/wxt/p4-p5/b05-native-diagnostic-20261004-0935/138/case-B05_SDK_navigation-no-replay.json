@@ -1,0 +1,46 @@
+{
+  "id": "B05.SDK.navigation-no-replay",
+  "label": "138",
+  "startedAt": "2026-10-04T09:42:16.009Z",
+  "status": "FAIL",
+  "evidence": {
+    "resources": {
+      "status": "NOT_TESTED",
+      "before": {
+        "at": "2026-10-04T09:42:16.009Z",
+        "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+        "main": {
+          "pending": 0,
+          "disposed": false
+        },
+        "relay": {
+          "pending": 0,
+          "subscriptions": 5,
+          "disposed": false
+        },
+        "unobserved": [
+          "host.pending",
+          "timers",
+          "ports",
+          "workers",
+          "blobs",
+          "main.subscriptions"
+        ]
+      },
+      "reason": "Destroyed-document and host resources cannot be fully observed"
+    }
+  },
+  "error": {
+    "message": "138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out",
+    "stack": "Error: 138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out\n    at Timeout._onTimeout (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:265:67)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)"
+  },
+  "reason": "138:0FD86BE862C91965EE5B2F9ABCD1FC89: Debugger.enable timed out",
+  "measurements": {
+    "elapsedMs": 40007.76462500001,
+    "rawCdpSequenceStart": 7758,
+    "rawCdpSequenceEnd": 7764,
+    "httpRecordCountStart": 6,
+    "httpRecordCountEnd": 6
+  },
+  "endedAt": "2026-10-04T09:42:56.017Z"
+}

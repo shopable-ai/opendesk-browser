@@ -1,0 +1,399 @@
+{
+  "schema": 1,
+  "status": "paused-by-user",
+  "at": "2026-10-02T15:26:20.329Z",
+  "reason": "User paused native Goal to revise prompt readability. No Goal resume and no new browser/test after pause.",
+  "scope": {
+    "allowed": [
+      "tests/prototypes/user-scripts-v2/**",
+      "docs/framework/prototypes/user-scripts-v2/**"
+    ],
+    "productOrGatesWritten": false,
+    "oldEvidenceWritten": false,
+    "otherLaneWritten": false
+  },
+  "requestedModel": {
+    "leader": "gpt-6.1-sol",
+    "reasoning": "xhigh",
+    "serverResolvedRuntime": "unknown"
+  },
+  "runs": [
+    {
+      "runId": "2026-10-02T15-16-35-242Z-installed-cft-149-221265ae",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-16-35-242Z-installed-cft-149-221265ae/report.json",
+      "reportSha256": "4b29a0174922ef2d00297c291234501d94f873fa972cc74be3ef43f15104173f",
+      "candidateSha256": "91a4a25aa7a979f972862d9818800fae4afc97834b3588e1c7c51c426792cfc0",
+      "actualBrowser": {
+        "version": "149.0.7827.55",
+        "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+        "channel": "Chrome for Testing (installed; historical channel unknown)",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/2026-10-02T15-16-35-242Z-installed-cft-149-221265ae",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1"
+      },
+      "recordedActual": 0,
+      "recordedFailed": 0,
+      "failedIds": [],
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "integrity": [
+        {
+          "path": "candidate-manifest.json",
+          "hashMatches": true
+        },
+        {
+          "path": "chrome-ui-dom.json",
+          "hashMatches": true
+        },
+        {
+          "path": "chrome-ui.txt",
+          "hashMatches": true
+        },
+        {
+          "path": "console.json",
+          "hashMatches": true
+        },
+        {
+          "path": "http.json",
+          "hashMatches": true
+        },
+        {
+          "path": "initial-details.png",
+          "hashMatches": true
+        },
+        {
+          "path": "report.json",
+          "hashMatches": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "runId": "2026-10-02T15-17-39-461Z-installed-cft-149-1853a61f",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-17-39-461Z-installed-cft-149-1853a61f/report.json",
+      "reportSha256": "6ced4003058d5e18dbf020c4428ad2a15b480228c4456fadd6dbb11ee3802da5",
+      "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a",
+      "actualBrowser": {
+        "version": "149.0.7827.55",
+        "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+        "channel": "Chrome for Testing (installed; historical channel unknown)",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/2026-10-02T15-17-39-461Z-installed-cft-149-1853a61f",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1"
+      },
+      "recordedActual": 0,
+      "recordedFailed": 0,
+      "failedIds": [],
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "integrity": [
+        {
+          "path": "candidate-manifest.json",
+          "hashMatches": true
+        },
+        {
+          "path": "chrome-ui-dom.json",
+          "hashMatches": true
+        },
+        {
+          "path": "chrome-ui.txt",
+          "hashMatches": true
+        },
+        {
+          "path": "console.json",
+          "hashMatches": true
+        },
+        {
+          "path": "http.json",
+          "hashMatches": true
+        },
+        {
+          "path": "initial-details.png",
+          "hashMatches": true
+        },
+        {
+          "path": "report.json",
+          "hashMatches": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "runId": "2026-10-02T15-18-06-447Z-installed-cft-149-90b95412",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-06-447Z-installed-cft-149-90b95412/report.json",
+      "reportSha256": "3adecb50d4b5bff416717fd81895bbbd1a8faaedd09865d614c0cc76c12b8d71",
+      "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a",
+      "actualBrowser": {
+        "version": "149.0.7827.55",
+        "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+        "channel": "Chrome for Testing (installed; historical channel unknown)",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/2026-10-02T15-18-06-447Z-installed-cft-149-90b95412",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1"
+      },
+      "recordedActual": 46,
+      "recordedFailed": 5,
+      "failedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "integrity": [
+        {
+          "path": "candidate-manifest.json",
+          "hashMatches": true
+        },
+        {
+          "path": "cases-live.json",
+          "hashMatches": true
+        },
+        {
+          "path": "console.json",
+          "hashMatches": true
+        },
+        {
+          "path": "http.json",
+          "hashMatches": true
+        },
+        {
+          "path": "initial-details.png",
+          "hashMatches": true
+        },
+        {
+          "path": "owned-target.png",
+          "hashMatches": true
+        },
+        {
+          "path": "raw-injections.json",
+          "hashMatches": true
+        },
+        {
+          "path": "re-enabled-MAIN.png",
+          "hashMatches": true
+        },
+        {
+          "path": "re-enabled-USER_SCRIPT.png",
+          "hashMatches": true
+        },
+        {
+          "path": "report.json",
+          "hashMatches": true
+        },
+        {
+          "path": "results.png",
+          "hashMatches": true
+        },
+        {
+          "path": "revoke-MAIN.png",
+          "hashMatches": true
+        },
+        {
+          "path": "revoke-USER_SCRIPT.png",
+          "hashMatches": true
+        },
+        {
+          "path": "switch-off.png",
+          "hashMatches": true
+        },
+        {
+          "path": "switch-on.png",
+          "hashMatches": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "runId": "2026-10-02T15-18-28-823Z-installed-cft-149-689ca983",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-28-823Z-installed-cft-149-689ca983/report.json",
+      "reportSha256": "0e998d297d234978ad67f1c3a2c737bbb03b3fcee80ce30021e07daf424a1203",
+      "candidateSha256": "5825d5ba02b73da38ad17992afb62cee199ff81fa5023c71123fed700bc5290f",
+      "actualBrowser": {
+        "version": "149.0.7827.55",
+        "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+        "channel": "Chrome for Testing (installed; historical channel unknown)",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/2026-10-02T15-18-28-823Z-installed-cft-149-689ca983",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1"
+      },
+      "recordedActual": 0,
+      "recordedFailed": 0,
+      "failedIds": [],
+      "cleanup": {
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "integrity": [
+        {
+          "path": "candidate-manifest.json",
+          "hashMatches": true
+        },
+        {
+          "path": "chrome-ui-dom.json",
+          "hashMatches": true
+        },
+        {
+          "path": "chrome-ui.txt",
+          "hashMatches": true
+        },
+        {
+          "path": "console.json",
+          "hashMatches": true
+        },
+        {
+          "path": "http.json",
+          "hashMatches": true
+        },
+        {
+          "path": "initial-details.png",
+          "hashMatches": true
+        },
+        {
+          "path": "report.json",
+          "hashMatches": true
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "currentSources": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "sha256": "12212055d7b7cd348755d76066c82e6db640cb84ccdf665300b9331c3181284b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "sha256": "ddd235656167922308f674b02d70b1784737f9d27aac6b641b90c921808c29a6"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+      "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+      "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "sha256": "476d817a69c9cbd4160275b7172fea94e5dfe4ba7d582fab6e8eef4475393b9d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+      "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+      "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+    }
+  ],
+  "actual": {
+    "browser": "Chrome for Testing149.0.7827.55; headed; fresh isolated profiles",
+    "functionalRun": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-06-447Z-installed-cft-149-90b95412/report.json",
+    "facts": [
+      "Allow User Scripts off rejects injection without mutation; on/reload exposes actual API",
+      "USER_SCRIPT and MAIN: native async Promise awaited; packaged file source executed; code/file-invalid sources rejected",
+      "Controlled wrapper: Promise values, synchronous errors, async errors, undefined and free-variable ReferenceError returned with typed codec",
+      "Actual selected same-origin/cross-origin iframe document mutated; parent/sibling/other owned tab negative controls unchanged",
+      "In-flight userScripts switch revocation: later native result still returns and script side effect occurs; new calls reject; adapter rejects late result using real API availability",
+      "Navigation pending barrier: real documentId changes; old Chrome injection and fixed MAIN callback reject; adapter rejects stale result; fresh target succeeds",
+      "Fixed packaged scripting.executeScript func/args callback delivered once to selected actual document",
+      "Pre-dispatch native/bound/nonfinite/function/BigInt/cycle/missing-document validators reject; these are adapter checks, not independent browser execution evidence"
+    ],
+    "cleanup": "All four run reports record browserContextClosed=true, loopbackServerClosed=true, outstandingHolds=0"
+  },
+  "failed": {
+    "preservedRun": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-06-447Z-installed-cft-149-90b95412/report.json",
+    "cases": [
+      "USER_SCRIPT-RAW-THROW",
+      "USER_SCRIPT-RAW-REJECT",
+      "MAIN-RAW-THROW",
+      "MAIN-RAW-REJECT",
+      "HOST-PERMISSION-REVOKE"
+    ],
+    "details": [
+      "Both worlds: unwrapped synchronous throw and Promise rejection resolve to result:null with no error field (four failed expectations)",
+      "permissions.remove on manifest-required hosts throws You cannot remove required permissions (one failed case)"
+    ],
+    "aggregateGate": "userScriptsRequiredCasesPassed=false; do not promote prototype/full F1 gates"
+  },
+  "notTested": [
+    "Chrome138 headed matrix (portable archive incomplete)",
+    "Ordinary Chrome154 actual launch, extension loading, UI switch, userScripts matrix (only plist inspected)",
+    "Actual host-permission revoke/restore UI and in-flight host-permission race",
+    "USER_SCRIPT world CSP and MAIN page-CSP variants",
+    "Independent final source/evidence review and final combined F1 disposition",
+    "F2/F3 product integration/revisions/persistence/download (outside this lane)",
+    "Worker/CSP/RPC/termination owned by leader; not duplicated"
+  ],
+  "limitations": [
+    "HOST-PERMISSION-RESTORE runner success is only a permission request when prior removal failed; does not prove restore after actual revocation",
+    "Raw undefined serializes as null on tested Chrome; wrapper encodes undefined explicitly",
+    "Trace dispatchCount is a shared trace delta; concurrent probes can inflate it and it is not a repeat-dispatch guarantee",
+    "F1 fixture pre/post checks do not implement F2 atomic authority admission/settlement",
+    "Recorded browser test candidate differs from current runner by later UI-probe traversal-only change; no final-source retest claimed",
+    "Native error diagnostics failure remains failed; optionality/required classification has not been revised during pause",
+    "No page infinite-loop termination guarantee"
+  ],
+  "ordinaryMetadataOnly": [
+    {
+      "path": "/Users/shopme/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "plistVersion": "154.0.8037.97",
+      "KSChannelID": "universal",
+      "actualBrowser": "not-tested",
+      "stableIdentity": "not independently verified"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "plistVersion": "154.0.8037.93",
+      "actualBrowser": "not-tested"
+    }
+  ],
+  "officialReferences": [
+    "https://developer.chrome.com/docs/extensions/reference/api/userScripts",
+    "https://developer.chrome.com/docs/extensions/reference/api/permissions",
+    "https://chromedevtools.github.io/devtools-protocol/tot/Extensions/"
+  ],
+  "continuation": "Only resume after explicit user authorization/native Goal resume; next bounded action is actual host-permission UI revocation, retain native error limitations, then same-candidate138/ordinary154 matrix and independent review.",
+  "browserAcquisitionCheckpoint": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/browsers/checkpoint.json",
+    "sha256": "22e25feb7f9d0bb1b68941b28782c1932ee277f52377a28076604c04b7f00a15",
+    "status": "stopped; no owned acquisition process remains; partial archives only"
+  }
+}

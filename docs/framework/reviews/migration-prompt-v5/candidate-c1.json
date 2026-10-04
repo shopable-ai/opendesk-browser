@@ -1,0 +1,17 @@
+{
+  "candidate": "migration-goal-prompt-v5-c1",
+  "scope": "prompt-and-migration-organization-only; not stage0/product approval",
+  "files": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+      "sha256": "ff1cde13a6b6af4c210c05493d0f3b1c6ef7e76b52a60c080e2f631817f0bb9a"
+    }
+  ],
+  "context": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055"
+    }
+  ],
+  "functionalGatesChanged": false
+}

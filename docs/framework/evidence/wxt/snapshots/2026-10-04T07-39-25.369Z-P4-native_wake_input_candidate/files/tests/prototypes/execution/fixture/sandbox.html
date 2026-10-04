@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>EX08 opaque sandbox</title>
+<p>Fixed probe in opaque manifest sandbox.</p>
+<script>
+// Fixed sandbox loader; no privileged compilation or public substrate.
+const cases = [];
+const violations = [];
+const resources = {workers: 0, ports: 0, blobs: 0, timers: 0};
+document.addEventListener('securitypolicyviolation', event => violations.push({
+  effectiveDirective: event.effectiveDirective, blockedURI: event.blockedURI,
+  originalPolicy: event.originalPolicy, disposition: event.disposition
+}));
+let parentAccess = false;
+try { void parent.document; parentAccess = true; } catch {}
+parent.postMessage({kind: 'sandbox-ready', origin: self.origin,
+  extensionAPI: !!globalThis.chrome?.runtime?.id, parentAccess}, '*');
+window.addEventListener('message', function bind(event) {
+  if (event.source !== parent || event.origin !== 'chrome-extension://' + location.host
+      || event.data?.kind !== 'bind-host' || event.ports.length !== 1) return;
+  window.removeEventListener('message', bind);
+  const hostPort = event.ports[0];
+  hostPort.onmessage = async ({data}) => {
+    if (data.kind !== 'probe') return;
+    for (const kind of ['classic-package', 'module-package', 'classic-blob', 'module-blob'])
+      cases.push(await probe(kind, data));
+    hostPort.postMessage({kind: 'complete', cases, resourcesAfter: {...resources},
+      cspViolations: violations});
+    hostPort.close();
+  };
+  hostPort.start();
+});
+async function probe(kind, data) {
+  const result = {id: 'EX08-' + kind, status: 'FAIL', phase: 'constructor',
+    policy: 'manifest sandbox allow-scripts without allow-same-origin'};
+  let worker, channel, blobURL;
+  const timers = new Set();
+  function deadline(fn, ms) {
+    resources.timers++;
+    const id = setTimeout(() => { timers.delete(id); resources.timers--; fn(); }, ms);
+    timers.add(id);
+    return id;
+  }
+  function clear(id) {
+    if (timers.delete(id)) { clearTimeout(id); resources.timers--; }
+  }
+  try {
+    const module = kind.startsWith('module');
+    const blob = kind.endsWith('blob');
+    const file = module ? 'worker-module.js' : 'worker-classic.js';
+    const url = blob
+      ? (blobURL = URL.createObjectURL(new Blob([data.source], {type: 'text/javascript'})))
+      : data.baseURL + file;
+    if (blob) resources.blobs++;
+    result.workerURL = url;
+    worker = new Worker(url, {type: module ? 'module' : 'classic', name: kind});
+    resources.workers++;
+    result.phase = 'worker-handshake';
+    await new Promise((resolve, reject) => {
+      const timer = deadline(() => reject(new Error('worker-ready timeout')), 2500);
+      worker.onmessage = ({data}) => {
+        if (data.kind === 'worker-ready') { clear(timer); resolve(); }
+      };
+      worker.onerror = event => {
+        clear(timer);
+        event.preventDefault();
+        reject(Object.assign(new Error(event.message || 'Worker error without message'),
+          {filename: event.filename, lineno: event.lineno, colno: event.colno}));
+      };
+    });
+    result.workerReady = true;
+    channel = new MessageChannel(); resources.ports += 2;
+    const token = crypto.randomUUID();
+    const pending = new Map();
+    let ready;
+    const portReady = new Promise((resolve, reject) => {
+      ready = resolve;
+      const timer = deadline(() => reject(new Error('private port-ready timeout')), 2500);
+      result.clearReady = () => clear(timer);
+    });
+    channel.port1.onmessage = ({data: response}) => {
+      if (response.token !== token) return;
+      if (response.kind === 'port-ready') { result.clearReady(); ready(); return; }
+      pending.get(response.id)?.(response.value);
+      pending.delete(response.id);
+    };
+    channel.port1.start();
+    worker.postMessage({kind: 'bind', token}, [channel.port2]);
+    await portReady; delete result.clearReady;
+    result.phase = 'private-rpc';
+    function rpc(method, extra = {}) {
+      const id = crypto.randomUUID();
+      return new Promise((resolve, reject) => {
+        const timer = deadline(() => { pending.delete(id); reject(new Error(method + ' timeout')); }, 2500);
+        pending.set(id, value => { clear(timer); resolve(value); });
+        channel.port1.postMessage({id, method, token, ...extra});
+      });
+    }
+    result.ping = await rpc('ping');
+    if (result.ping !== 'pong') throw new Error('private RPC mismatch');
+    result.phase = 'network-restriction';
+    result.network = await rpc('network', {url: data.networkURL});
+    if (!result.network.blocked) throw new Error('network unexpectedly allowed');
+    result.phase = 'infinite-loop-termination';
+    result.loop = await rpc('loop');
+    if (result.loop !== 'loop-entered') throw new Error('loop did not start');
+    const started = performance.now();
+    worker.terminate(); worker = null; resources.workers--;
+    await new Promise(resolve => deadline(resolve, 50));
+    result.afterTerminateHeartbeat = true;
+    result.terminateMilliseconds = performance.now() - started;
+    result.status = 'PASS'; result.phase = 'complete';
+  } catch (error) {
+    result.error = {name: error.name, message: error.message, stack: error.stack,
+      filename: error.filename, lineno: error.lineno, colno: error.colno};
+    result.notTested = result.phase === 'constructor' || result.phase === 'worker-handshake'
+      ? ['private Worker RPC', 'Worker network restriction', 'while(true) terminate']
+      : ['remaining phases after ' + result.phase];
+  } finally {
+    if (worker) { worker.terminate(); resources.workers--; }
+    if (channel) { channel.port1.close(); channel.port2.close(); resources.ports -= 2; }
+    if (blobURL) { URL.revokeObjectURL(blobURL); resources.blobs--; }
+    for (const timer of [...timers]) clear(timer);
+    delete result.clearReady;
+    result.resourcesAfter = {...resources};
+  }
+  return result;
+}
+</script></html>

@@ -1,0 +1,93 @@
+{
+  "name": "scrapyJsChrome",
+  "description": "网页爬虫",
+  "version": "3.15.0",
+  "manifest_version": 3,
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background-sw.js"
+  },
+  "options_page": "www/index.html",
+  "action": {
+    "default_title": "哔哩会员"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_start",
+      "js": [
+        "assets/js/libs/moment.min.js",
+        "assets/js/libs/axios.min.js",
+        "assets/js/libs/jquery.min.js",
+ 
+        "assets/js/core/custom_event.js",
+        "assets/js/core/utils.js",
+
+        "assets/js/growl-notification.min.js",
+        
+        "assets/js/plugins/detect_focus.js",
+        "assets/js/Env.js",
+
+        "my-content-script.js"
+      ],
+      "css": [
+        "assets/css/light-theme.min.css",
+        "assets/css/dark-theme.min.css",
+        "assets/css/colored-theme.min.css",
+        "assets/css/content-css.css"
+      ]
+    }
+  ],
+  "permissions": [
+    "scripting",
+    "proxy",
+    "storage",
+    "cookies",
+    "tabs",
+    "webNavigation",
+    "downloads",
+    "activeTab",
+    "alarms",
+    "contextMenus",
+    "notifications",
+    "windows",
+    "idle",
+    "webRequest",
+    "history"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*",
+        "assets/*/*",
+        "assets/*/*/*",
+        "assets/*/*/*/*",
+        "assets/*/*/*/*/*",
+        "assets/*/*/*/*/*/*",
+        "www/*",
+        "www/*/*",
+        "www/*/*/*",
+        "www/*/*/*/*",
+        "www/*/*/*/*/*",
+        "www/*/*/*/*/*/*",
+        "www/*/*/*/*/*/*/*",
+        "dom.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  }
+}

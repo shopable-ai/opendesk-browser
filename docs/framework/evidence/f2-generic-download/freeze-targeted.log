@@ -1,0 +1,454 @@
+TAP version 13
+# Subtest: prepare pins a watermark and persists byte hash; external descriptors satisfy frozen schema
+ok 1 - prepare pins a watermark and persists byte hash; external descriptors satisfy frozen schema
+  ---
+  duration_ms: 13.402375
+  type: 'test'
+  ...
+# Subtest: partial export requires confirmation; request IDs bind immutable intent
+ok 2 - partial export requires confirmation; request IDs bind immutable intent
+  ---
+  duration_ms: 1.471375
+  type: 'test'
+  ...
+# Subtest: host registration mismatch and tombstones reject creation/dispatch
+ok 3 - host registration mismatch and tombstones reject creation/dispatch
+  ---
+  duration_ms: 1.776166
+  type: 'test'
+  ...
+# Subtest: double dispatch and reconstructed service invoke Chrome at most once
+ok 4 - double dispatch and reconstructed service invoke Chrome at most once
+  ---
+  duration_ms: 3.146458
+  type: 'test'
+  ...
+# Subtest: ACK-gap after durable dispatch does not replay and becomes mapping_unknown
+ok 5 - ACK-gap after durable dispatch does not replay and becomes mapping_unknown
+  ---
+  duration_ms: 2.426708
+  type: 'test'
+  ...
+# Subtest: short dispatch ACK does not wait for callback and cannot be resubmitted
+ok 6 - short dispatch ACK does not wait for callback and cannot be resubmitted
+  ---
+  duration_ms: 1.605125
+  type: 'test'
+  ...
+# Subtest: onCreated/search deduplicates an ID and started is not delivery complete
+ok 7 - onCreated/search deduplicates an ID and started is not delivery complete
+  ---
+  duration_ms: 2.068583
+  type: 'test'
+  ...
+# Subtest: multiple full-identity candidates conflict and never redownload
+ok 8 - multiple full-identity candidates conflict and never redownload
+  ---
+  duration_ms: 1.21
+  type: 'test'
+  ...
+# Subtest: known callback ID is authoritative; another candidate conflicts rather than replacing it
+ok 9 - known callback ID is authoritative; another candidate conflicts rather than replacing it
+  ---
+  duration_ms: 3.873667
+  type: 'test'
+  ...
+# Subtest: wrong URL/extension/time and missing fields never bind by filename
+ok 10 - wrong URL/extension/time and missing fields never bind by filename
+  ---
+  duration_ms: 1.919666
+  type: 'test'
+  ...
+# Subtest: clock rollback cannot bind unique-looking mapping evidence
+ok 11 - clock rollback cannot bind unique-looking mapping evidence
+  ---
+  duration_ms: 1.040459
+  type: 'test'
+  ...
+# Subtest: onChanged complete must be confirmed by ID search; interrupted keeps Chrome reason
+ok 12 - onChanged complete must be confirmed by ID search; interrupted keeps Chrome reason
+  ---
+  duration_ms: 1.9115
+  type: 'test'
+  ...
+# Subtest: 10-minute timeout is unknown; late complete resolves only its original job
+ok 13 - 10-minute timeout is unknown; late complete resolves only its original job
+  ---
+  duration_ms: 3.762292
+  type: 'test'
+  ...
+# Subtest: retry freezes old prepared submission; duplicate retry returns same new job
+ok 14 - retry freezes old prepared submission; duplicate retry returns same new job
+  ---
+  duration_ms: 4.412541
+  type: 'test'
+  ...
+# Subtest: multi-volume aggregate waits for every volume and releases pin only when all are releasable
+ok 15 - multi-volume aggregate waits for every volume and releases pin only when all are releasable
+  ---
+  duration_ms: 3.069708
+  type: 'test'
+  ...
+# Subtest: single abandoned volume causes delivery_failed; late evidence cannot revive it
+ok 16 - single abandoned volume causes delivery_failed; late evidence cannot revive it
+  ---
+  duration_ms: 3.54425
+  type: 'test'
+  ...
+# Subtest: explicit job abandon and run tombstone retain late audit without resurrecting projection
+ok 17 - explicit job abandon and run tombstone retain late audit without resurrecting projection
+  ---
+  duration_ms: 3.916334
+  type: 'test'
+  ...
+# Subtest: lost callback can recover via unique full URL; finite mapping search throttles repeated observations
+ok 18 - lost callback can recover via unique full URL; finite mapping search throttles repeated observations
+  ---
+  duration_ms: 2.222791
+  type: 'test'
+  ...
+# Subtest: URL revoke waits for complete/interrupted/abandon or deadline and respects local reader pins
+ok 19 - URL revoke waits for complete/interrupted/abandon or deadline and respects local reader pins
+  ---
+  duration_ms: 2.145125
+  type: 'test'
+  ...
+# Subtest: deadline URL release preserves metadata and completion evidence after host resources disappear
+ok 20 - deadline URL release preserves metadata and completion evidence after host resources disappear
+  ---
+  duration_ms: 2.518167
+  type: 'test'
+  ...
+# Subtest: attach is idempotent; restart pending reconciliation never dispatches
+ok 21 - attach is idempotent; restart pending reconciliation never dispatches
+  ---
+  duration_ms: 2.742292
+  type: 'test'
+  ...
+# Subtest: top-level broker handlers work without attach and confirm changed state through search
+ok 22 - top-level broker handlers work without attach and confirm changed state through search
+  ---
+  duration_ms: 3.344834
+  type: 'test'
+  ...
+# Subtest: callback-only Chrome API persists authoritative ID and handles runtime.lastError as unknown
+ok 23 - callback-only Chrome API persists authoritative ID and handles runtime.lastError as unknown
+  ---
+  duration_ms: 2.9365
+  type: 'test'
+  ...
+# Subtest: conflict retains its Blob through deadline; pending audits stop after the deadline bound
+ok 24 - conflict retains its Blob through deadline; pending audits stop after the deadline bound
+  ---
+  duration_ms: 2.90375
+  type: 'test'
+  ...
+# Subtest: deletion hook requires retirement proof and releases compatible storage reader pins before tombstone
+ok 25 - deletion hook requires retirement proof and releases compatible storage reader pins before tombstone
+  ---
+  duration_ms: 1.433459
+  type: 'test'
+  ...
+# Subtest: shared repository reads through export pin and deletes descriptor/chunk rows only after fence and abandonment
+ok 26 - shared repository reads through export pin and deletes descriptor/chunk rows only after fence and abandonment
+  ---
+  duration_ms: 2.746625
+  type: 'test'
+  ...
+# Subtest: schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+ok 27 - schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+  ---
+  duration_ms: 6.862042
+  type: 'test'
+  ...
+# Subtest: no native IDB in Node is reported as unavailable; storage entry exports factory
+ok 28 - no native IDB in Node is reported as unavailable; storage entry exports factory
+  ---
+  duration_ms: 0.888166
+  type: 'test'
+  ...
+# Subtest: immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+ok 29 - immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+  ---
+  duration_ms: 22.264542
+  type: 'test'
+  ...
+# Subtest: template admission hook uses same transaction and cannot overwrite immutable revision
+ok 30 - template admission hook uses same transaction and cannot overwrite immutable revision
+  ---
+  duration_ms: 8.587042
+  type: 'test'
+  ...
+# Subtest: beginPage permits preparing run, reserves exact command key and idempotently reACKs
+ok 31 - beginPage permits preparing run, reserves exact command key and idempotently reACKs
+  ---
+  duration_ms: 6.908708
+  type: 'test'
+  ...
+# Subtest: stage rejects undispatched reservation and atomically aborts open snapshot
+ok 32 - stage rejects undispatched reservation and atomically aborts open snapshot
+  ---
+  duration_ms: 10.936708
+  type: 'test'
+  ...
+# Subtest: three batches: first two durable ACKs, third exact-byte failure hides whole page
+ok 33 - three batches: first two durable ACKs, third exact-byte failure hides whole page
+  ---
+  duration_ms: 18.163083
+  type: 'test'
+  ...
+# Subtest: exact staged duplicate does not add bytes; conflicting valid digest aborts page
+ok 34 - exact staged duplicate does not add bytes; conflicting valid digest aborts page
+  ---
+  duration_ms: 19.043167
+  type: 'test'
+  ...
+# Subtest: host/epoch/target mismatch is rejected without aborting rightful open page
+ok 35 - host/epoch/target mismatch is rejected without aborting rightful open page
+  ---
+  duration_ms: 5.629334
+  type: 'test'
+  ...
+# Subtest: admission cannot bypass transaction reread of cancellation
+ok 36 - admission cannot bypass transaction reread of cancellation
+  ---
+  duration_ms: 4.549625
+  type: 'test'
+  ...
+# Subtest: stage may acknowledge authenticated raw frames before end; seal requires complete end
+ok 37 - stage may acknowledge authenticated raw frames before end; seal requires complete end
+  ---
+  duration_ms: 12.539416
+  type: 'test'
+  ...
+# Subtest: seal recomputes all six rows; prefix-only signature fails
+ok 38 - seal recomputes all six rows; prefix-only signature fails
+  ---
+  duration_ms: 13.879333
+  type: 'test'
+  ...
+# Subtest: batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+ok 39 - batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+  ---
+  duration_ms: 24.253125
+  type: 'test'
+  ...
+# Subtest: stop wins before seal; seal wins before stop and preserves historic original ACK
+ok 40 - stop wins before seal; seal wins before stop and preserves historic original ACK
+  ---
+  duration_ms: 44.146875
+  type: 'test'
+  ...
+# Subtest: run revision and authenticated host registration cannot be bypassed
+ok 41 - run revision and authenticated host registration cannot be bypassed
+  ---
+  duration_ms: 33.383959
+  type: 'test'
+  ...
+# Subtest: reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+ok 42 - reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+  ---
+  duration_ms: 70.514458
+  type: 'test'
+  ...
+# Subtest: zero-batch empty page requires authenticated allowed-empty proof
+ok 43 - zero-batch empty page requires authenticated allowed-empty proof
+  ---
+  duration_ms: 16.49325
+  type: 'test'
+  ...
+# Subtest: repeated full page signature without end is rejected and left invisible
+ok 44 - repeated full page signature without end is rejected and left invisible
+  ---
+  duration_ms: 55.896625
+  type: 'test'
+  ...
+# Subtest: whole-page run limits, two pending ACKs, profile budget and injected disk quota
+ok 45 - whole-page run limits, two pending ACKs, profile budget and injected disk quota
+  ---
+  duration_ms: 70.46525
+  type: 'test'
+  ...
+# Subtest: delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+ok 46 - delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+  ---
+  duration_ms: 53.690625
+  type: 'test'
+  ...
+# Subtest: retention defaults seven days, preserves active runs and raw migration duplicates
+ok 47 - retention defaults seven days, preserves active runs and raw migration duplicates
+  ---
+  duration_ms: 31.301541
+  type: 'test'
+  ...
+# Subtest: shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS
+ok 48 - shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS
+  ---
+  duration_ms: 32.565792
+  type: 'test'
+  ...
+# Subtest: Chrome JSON hop retains undefined, falsy values, nested presence and business PageBrigeCode
+ok 49 - Chrome JSON hop retains undefined, falsy values, nested presence and business PageBrigeCode
+  ---
+  duration_ms: 3.909958
+  type: 'test'
+  ...
+# Subtest: outcome protocol separates actual errors from all user business objects
+ok 50 - outcome protocol separates actual errors from all user business objects
+  ---
+  duration_ms: 0.527166
+  type: 'test'
+  ...
+# Subtest: encoder rejects unsupported values, cycles and getters without evaluating a getter
+ok 51 - encoder rejects unsupported values, cycles and getters without evaluating a getter
+  ---
+  duration_ms: 2.273667
+  type: 'test'
+  ...
+# Subtest: decoder rejects forged tags, duplicate fields and byte limits; prototype names remain inert data
+ok 52 - decoder rejects forged tags, duplicate fields and byte limits; prototype names remain inert data
+  ---
+  duration_ms: 0.246834
+  type: 'test'
+  ...
+# Subtest: typed canonical input is stable across key order and distinguishes missing from undefined
+ok 53 - typed canonical input is stable across key order and distinguishes missing from undefined
+  ---
+  duration_ms: 0.127292
+  type: 'test'
+  ...
+# Subtest: Base64 string API preserves UTF-8 and rejects malformed Base64 and UTF-8
+ok 54 - Base64 string API preserves UTF-8 and rejects malformed Base64 and UTF-8
+  ---
+  duration_ms: 0.611708
+  type: 'test'
+  ...
+# Subtest: generic APIs prepare committed typed values without templates, Blob creation or native dispatch
+ok 55 - generic APIs prepare committed typed values without templates, Blob creation or native dispatch
+  ---
+  duration_ms: 75.957334
+  type: 'test'
+  ...
+# Subtest: generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle
+ok 56 - generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle
+  ---
+  duration_ms: 13.280875
+  type: 'test'
+  ...
+# Subtest: generic preparation rejects forged namespace, wrong result/principal/current host session and actual sender before writing
+ok 57 - generic preparation rejects forged namespace, wrong result/principal/current host session and actual sender before writing
+  ---
+  duration_ms: 17.239708
+  type: 'test'
+  ...
+# Subtest: generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes
+ok 58 - generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes
+  ---
+  duration_ms: 40.671625
+  type: 'test'
+  ...
+# Subtest: generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks
+ok 59 - generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks
+  ---
+  duration_ms: 1023.316125
+  type: 'test'
+  ...
+# Subtest: generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs
+ok 60 - generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs
+  ---
+  duration_ms: 11.005917
+  type: 'test'
+  ...
+# Subtest: generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified
+ok 61 - generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified
+  ---
+  duration_ms: 6.807417
+  type: 'test'
+  ...
+# Subtest: generic current-document registration is rechecked inside attempt, read and dispatch transactions
+ok 62 - generic current-document registration is rechecked inside attempt, read and dispatch transactions
+  ---
+  duration_ms: 15.723125
+  type: 'test'
+  ...
+# Subtest: generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion
+ok 63 - generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion
+  ---
+  duration_ms: 3.798042
+  type: 'test'
+  ...
+# Subtest: generic missing issued namespace/principal fails closed and never derives authority from payload
+ok 64 - generic missing issued namespace/principal fails closed and never derives authority from payload
+  ---
+  duration_ms: 3.616333
+  type: 'test'
+  ...
+# Subtest: generic unsuccessful/missing wire results and legacy template entry points cannot manufacture artifacts
+ok 65 - generic unsuccessful/missing wire results and legacy template entry points cannot manufacture artifacts
+  ---
+  duration_ms: 14.364791
+  type: 'test'
+  ...
+# Subtest: generic immutable result and artifact chunks are rechecked before attempt transaction commits
+ok 66 - generic immutable result and artifact chunks are rechecked before attempt transaction commits
+  ---
+  duration_ms: 13.81575
+  type: 'test'
+  ...
+# Subtest: generic onCreated is not completion; wrong native identity and callback/search conflicts cannot certify delivery
+ok 67 - generic onCreated is not completion; wrong native identity and callback/search conflicts cannot certify delivery
+  ---
+  duration_ms: 53.254333
+  type: 'test'
+  ...
+# Subtest: generic native interruption/runtime.lastError use shared failure/unknown states and never resubmit
+ok 68 - generic native interruption/runtime.lastError use shared failure/unknown states and never resubmit
+  ---
+  duration_ms: 23.649625
+  type: 'test'
+  ...
+# Subtest: generic explicit fresh retry shares job/artifact; late evidence cannot release the new active reader pin
+ok 69 - generic explicit fresh retry shares job/artifact; late evidence cannot release the new active reader pin
+  ---
+  duration_ms: 24.142625
+  type: 'test'
+  ...
+# Subtest: generic later registered document exports stable namespace history without acquiring the old run owner
+ok 70 - generic later registered document exports stable namespace history without acquiring the old run owner
+  ---
+  duration_ms: 4.802791
+  type: 'test'
+  ...
+# Subtest: generic abandonRun fences timed-out retry history so shared repository deletion does not strand old attempts
+ok 71 - generic abandonRun fences timed-out retry history so shared repository deletion does not strand old attempts
+  ---
+  duration_ms: 8.090167
+  type: 'test'
+  ...
+# Subtest: generic public reconcile uses actual sender; internal Chrome callback reconciliation survives owning host revocation
+ok 72 - generic public reconcile uses actual sender; internal Chrome callback reconciliation survives owning host revocation
+  ---
+  duration_ms: 7.597458
+  type: 'test'
+  ...
+# Subtest: generic completed immutable history exports after real new-session registration without replaying or adopting old download intents
+ok 73 - generic completed immutable history exports after real new-session registration without replaying or adopting old download intents
+  ---
+  duration_ms: 18.533833
+  type: 'test'
+  ...
+# Subtest: generic cross-session history rejects foreign namespaces, tampered principals, nonterminal runs and current-host session loss
+ok 74 - generic cross-session history rejects foreign namespaces, tampered principals, nonterminal runs and current-host session loss
+  ---
+  duration_ms: 29.573584
+  type: 'test'
+  ...
+1..74
+# tests 74
+# suites 0
+# pass 74
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1565.624

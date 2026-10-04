@@ -1,0 +1,38 @@
+✔ schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes (3.467917ms)
+✔ no native IDB in Node is reported as unavailable; storage entry exports factory (0.376833ms)
+✔ immutable template save CAS, exact duplicate, hash lookup and name-only CAS (13.767417ms)
+✔ template admission hook uses same transaction and cannot overwrite immutable revision (3.033166ms)
+✖ beginPage permits preparing run, reserves exact command key and idempotently reACKs (1.700292ms)
+✔ stage rejects undispatched reservation and atomically aborts open snapshot (4.012ms)
+✔ three batches: first two durable ACKs, third exact-byte failure hides whole page (7.154166ms)
+✔ exact staged duplicate does not add bytes; conflicting valid digest aborts page (3.999333ms)
+✔ host/epoch/target mismatch is rejected without aborting rightful open page (1.75275ms)
+✔ admission cannot bypass transaction reread of cancellation (1.780041ms)
+✔ stage may acknowledge authenticated raw frames before end; seal requires complete end (4.643667ms)
+✔ seal recomputes all six rows; prefix-only signature fails (5.083334ms)
+✔ batch gap, record key/field mismatch, and raw-end evidence mismatch reject (8ms)
+✔ stop wins before seal; seal wins before stop and preserves historic original ACK (12.102291ms)
+✔ run revision and authenticated host registration cannot be bypassed (3.280375ms)
+✔ reader pins freeze watermark/count, paginate long typed values, and reject other cursors (9.742917ms)
+✔ zero-batch empty page requires authenticated allowed-empty proof (4.985709ms)
+✔ repeated full page signature without end is rejected and left invisible (8.651041ms)
+✔ whole-page run limits, two pending ACKs, profile budget and injected disk quota (13.639459ms)
+✔ delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data (7.816042ms)
+✔ retention defaults seven days, preserves active runs and raw migration duplicates (2.111333ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 20
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 201.322584
+
+✖ failing tests:
+
+test at tests/foundation/storage.test.mjs:103:1
+✖ beginPage permits preparing run, reserves exact command key and idempotently reACKs (1.700292ms)
+  TypeError: Cannot read properties of undefined (reading 'tag')
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:109:25)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

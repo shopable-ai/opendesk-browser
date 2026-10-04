@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 2,
+  "scope": "bounded B05 preparation; author is not final reviewer",
+  "report": [
+    "packageBefore/After.{files,packageHash}",
+    "contractInputs.{path,sha256,bytes}",
+    "binary.{path,sha256,version}",
+    "profile",
+    "extensionId",
+    "sessions",
+    "cases",
+    "cleanup",
+    "summary",
+    "interfaceRequests"
+  ],
+  "case": [
+    "id",
+    "status: PASS|FAIL|BLOCKED|NOT_TESTED",
+    "startedAt",
+    "endedAt",
+    "evidence",
+    "observations per real environment",
+    "sourceHashes: absolute existing path -> actual SHA256",
+    "contractSha256: exact frozen manifest spec row, when original",
+    "reason?",
+    "error?"
+  ],
+  "evidence": [
+    "payload.{requestId,method,argsWire,deadlineAt}",
+    "nativeContext",
+    "sdkObservations",
+    "snapshots: paths with explicit IDB keys",
+    "operation.{opKey,requestDigest,runId,opId,resultId,grantIncarnation,state,submissionCount,deliveryState}",
+    "http: raw server request sequence references",
+    "nativeSender: optional real paused-frame value; never reconstructed",
+    "barrier.{sourceHash,range,requestedLocation,actualLocation,paused,observedState}",
+    "workerStop.{version,targetId,targetDestroyed,replacementTargetId}",
+    "replay: native response",
+    "effectCountBefore/After",
+    "launcher.{path,sha256,pid,metadata,actualProcess,freshProfile}",
+    "measurements: actual per-case elapsed/raw sequence window plus measured semantic counters",
+    "cleanup: NOT_TESTED for unobservable product baselines; actual session teardown separately scoped"
+  ],
+  "streams": [
+    "raw-cdp.jsonl: endpoint/direction/time/sequence/full message",
+    "raw-server.jsonl: request/finish/close/full body/hash"
+  ],
+  "invariants": [
+    "No sender in payload",
+    "No second driver/authority/database",
+    "No package/source mutation",
+    "response_ready is not delivered",
+    "Debugger proximity is not a crash-point proof",
+    "NOT_TESTED does not close B05",
+    "Do not use a declared campaign count or duplicate one physical round",
+    "Do not invent unobservable cleanup counters",
+    "No mutable current spec fallback",
+    "Only global Python launcher owns fresh profile; verify actual main argv before product tests"
+  ]
+}

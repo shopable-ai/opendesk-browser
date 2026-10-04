@@ -1,0 +1,50 @@
+{
+  "state": "native-selection-assist",
+  "mode": "production",
+  "label": "138",
+  "pid": 5127,
+  "launcherPid": 5126,
+  "endpoint": "ws://127.0.0.1:60688/devtools/browser/430ba00d-47c4-4354-926c-38d05622bb48",
+  "targetId": "1B10190258F76459B7D50FD21FE9035C",
+  "selector": "#script-tab",
+  "desired": "937145924",
+  "optionIndex": 5,
+  "before": {
+    "selectedIndex": 0,
+    "value": "",
+    "focused": false,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择具体网页",
+        "disabled": false
+      },
+      {
+        "value": "937145912",
+        "text": "[937145912] Controller borrowed · http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=borrowed",
+        "disabled": false
+      },
+      {
+        "value": "937145913",
+        "text": "[937145913] Controller decoy · http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=decoy",
+        "disabled": false
+      },
+      {
+        "value": "937145914",
+        "text": "[937145914] Controller top · http://127.0.0.1:60682/frames?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=top",
+        "disabled": false
+      },
+      {
+        "value": "937145923",
+        "text": "[937145923] Controller fence-navigation · http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=fence-navigation",
+        "disabled": false
+      },
+      {
+        "value": "937145924",
+        "text": "[937145924] Controller fence-revocation · http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=fence-revocation",
+        "disabled": false
+      }
+    ]
+  },
+  "instruction": "Use the bound live native Chrome window to commit this exact option; no DOM assignment or synthetic events"
+}

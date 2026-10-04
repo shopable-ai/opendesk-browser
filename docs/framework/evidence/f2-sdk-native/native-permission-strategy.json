@@ -1,0 +1,22 @@
+{
+  "scope": "Version-matched official native permission testing investigation",
+  "chromeVersion": "138.0.7204.183",
+  "sources": [
+    "https://raw.githubusercontent.com/chromium/chromium/138.0.7204.183/chrome/browser/extensions/api/permissions/permissions_api.cc",
+    "https://raw.githubusercontent.com/chromium/chromium/138.0.7204.183/extensions/browser/extension_dialog_auto_confirm.cc",
+    "https://raw.githubusercontent.com/chromium/chromium/138.0.7204.183/chrome/browser/extensions/extension_install_prompt.cc"
+  ],
+  "observed": "Native browser tests set C++ dialog controls. The inspected implementations do not expose them through Node or CDP.",
+  "inference": "These native test helpers are not callable by the existing packaged browser runner; no speculative permission-auto-confirm switch is added.",
+  "selectedPath": "Owned headed actual Chrome process, native permissions.request from trusted product button, matching native UI confirmation. Precise settings UI is an alternative only if actual dialog remains inaccessible.",
+  "forbidden": [
+    "mock chrome.permissions",
+    "fake MessageSender",
+    "write profile permissions",
+    "broaden all hosts",
+    "second demo extension"
+  ],
+  "actualPermissionReturnedRun": "native-2026-10-03T07-17-21.428Z-0b89c413",
+  "stableMatrixPending": true,
+  "f3Accepted": false
+}

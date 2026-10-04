@@ -1,0 +1,42 @@
+{
+  "at": "2026-10-03T07:18:58.111146+00:00",
+  "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+  "snapshotsBeforeMutation": [
+    {
+      "path": "docs/framework/public-owner.json",
+      "sha256": "9b9ad47df8a5ce3ff6458723d6d00a3a9c2e60c78e3aa57b9d3a1061cce6c406",
+      "bytes": 2913
+    },
+    {
+      "path": "docs/framework/execution-tasks.json",
+      "sha256": "5f2cc8d9d623896bac9d9bcf32e6fdf0080ab1092f2be5cde9d23c6e301b6d9b",
+      "bytes": 14200
+    },
+    {
+      "path": "docs/framework/execution-gates.json",
+      "sha256": "bd3e13b31d3fa9184d3277e9b5381e097d8e58f99c676950b74a29b5c5be8915",
+      "bytes": 19902
+    },
+    {
+      "path": "docs/framework/framework-handoff.json",
+      "sha256": "37c8dd73361ae0bfc86be4f252548054254a4a4a8f4281fa2d71bcc7ba13e8e8",
+      "bytes": 16577
+    },
+    {
+      "path": "docs/framework/source-compatibility-ledger.json",
+      "sha256": "4b01776aed995f76b8c649b8b992bc8d1f4a724f9749b3fff1ed2f7a645d5041",
+      "bytes": 2272861
+    },
+    {
+      "path": "docs/framework/product-continuation-checkpoint.json",
+      "sha256": "8ca4988e2b9705beaac91b33842c62385a4875f5d889dbfaa0efa05a24682020",
+      "bytes": 16407
+    }
+  ],
+  "original603CaseResultsSha256BeforeAndAfter": "ea54867e85910ae37f555eadacd639d6fe5f0493954585c3650393313e8b5c82",
+  "denominatorHistorySha256BeforeAndAfter": "399340a2a9f7f6853ef0048038152ffe6448370dc3b10279a945ed53d83d2130",
+  "originalCaseCount": 603,
+  "explicitAdditionalUnitCaseCount": 16,
+  "newPlanOrGateApprovalCreated": false,
+  "oldTasksResumedMessagedAwaited": false
+}

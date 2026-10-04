@@ -1,0 +1,244 @@
+--- 2ed/run-headed.mjs
++++ current/run-headed.mjs
+@@ -13,6 +13,8 @@
+ const fixture = resolve(root, 'fixture');
+ const project = resolve(root, '../../..');
+ const argv = process.argv.slice(2);
++const focusLifecycle = argv.includes('--focus-lifecycle');
++const notExecuted = [];
+ const option = (name, fallback) => argv.includes(name) ? argv[argv.indexOf(name) + 1] : fallback;
+ const label = option('--label', 'installed-cft-149');
+ if (!/^[a-z0-9-]+$/.test(label)) throw new Error('Unsafe label');
+@@ -30,16 +32,18 @@
+ for (const name of ['run-headed.mjs', ...((await readdir(fixture)).sort().map(name => `fixture/${name}`))]) {
+   const bytes = await readFile(resolve(root, name));
+   sources.push({path: name, bytes: bytes.length, sha256: sha(bytes)});
++  await mkdir(dirname(resolve(output, 'source', name)), {recursive: true});
++  await writeFile(resolve(output, 'source', name), bytes);
+ }
+ const audit = '/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85';
+ const inputs = [];
+-const approvedRoot = resolve(project, 'docs/framework/reviews/migration-execution-v5/round-4/candidate');
++const approvedRoot = resolve(project, 'docs/framework/reviews/migration-execution-v5/round-5/candidate');
+ for (const path of [resolve(approvedRoot, 'candidate-manifest.json'), resolve(approvedRoot, 'execution-plan.md'), resolve(approvedRoot, 'stage0/f1-cases.json'), resolve(approvedRoot, 'goal-constraints.md'), resolve(audit, 'outputs/design.md'), resolve(audit, 'outputs/test-spec.md')]) {
+   const bytes = await readFile(path);
+   inputs.push({path, bytes: bytes.length, sha256: sha(bytes)});
+ }
+ const candidate = {schema: 1, scope: 'F1 userScripts only; fixture, no F2', sources, frozenInputs: inputs,
+-  approvedPlanManifestSha256: 'dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1',
++  approvedPlanManifestSha256: 'a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b',
+   designManifestSha256: 'acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f'};
+ await writeJSON(resolve(output, 'candidate-manifest.json'), candidate);
+ const candidateSha256 = sha(await readFile(resolve(output, 'candidate-manifest.json')));
+@@ -95,6 +99,10 @@
+   screenshots.push({name, path: relative(output, path), url: page.url()});
+ };
+ async function runCase(id, expectation, body, required = true) {
++  if (focusLifecycle && !/^(SWITCH-(OFF|ON)$|.*-(SWITCH-|HOST-UI-|OLD-DOCUMENT-RACE|OWN-GRANT-|CANCEL-|DEADLINE-))/.test(id)) {
++    notExecuted.push({id, required, expectation, status: 'not-tested', reason: 'Targeted operation lifecycle run; original full matrix case retained'});
++    return;
++  }
+   const start = Date.now();
+   const consoleStart = logs.length;
+   const traceStart = host ? (await call('trace')).length : 0;
+@@ -130,7 +138,8 @@
+   return host.evaluate(async () => {
+     const tab = await chrome.tabs.getCurrent();
+     const frame = await chrome.webNavigation.getFrame({tabId: tab.id, frameId: 0});
+-    return {tabId: tab.id, documentId: frame?.documentId, runtimeId: chrome.runtime.id, url: location.href, timeOrigin: performance.timeOrigin,
++    const hostContext = (await chrome.runtime.getContexts({})).find(item => item.tabId === tab.id && item.documentUrl === location.href);
++    return {tabId: tab.id, documentId: frame?.documentId ?? hostContext?.documentId, runtimeId: chrome.runtime.id, url: location.href, timeOrigin: performance.timeOrigin,
+       operations: window.fixture?.operationSnapshots()};
+   });
+ }
+@@ -373,14 +382,15 @@
+         if (!holds.has(token)) await new Promise(done => setTimeout(done, 100));
+         if (!holds.has(token)) throw new Error('Network hold barrier not reached');
+         const ui = await switchState(false, `revoke-${world}`);
+-        const authorizationRecheck = await call('recheck', token);
++        await host.waitForFunction(token => window.fixture.poll(token)?.availabilityObservations.some(item => item.available === false), token);
++        const operationObservation = await call('poll', token);
+         const availability = await call('availability');
+         const next = await call('raw', {target: {tabId: top.tabId, documentIds: [top.documentId]}, world, js: [{code: `document.body.dataset.postRevoke=${JSON.stringify(token)};1`}]});
+         const released = release(token);
+         const settled = await settle(token);
+         const effects = await targetPage.evaluate(() => ({finished: document.body.dataset.finished || null, postRevoke: document.body.dataset.postRevoke || null}));
+         await switchState(true, `re-enabled-${world}`);
+-        return {actual: {ui, authorizationRecheck, availability, next, released, settled, effects}, pass: !availability.available && rejected(next) && settled.result.accepted.kind === 'rejected' && settled.settlementCount === 1 && effects.postRevoke !== token};
++        return {actual: {ui, operationObservation, availability, next, released, settled, effects}, pass: !availability.available && rejected(next) && settled.result.accepted.kind === 'rejected' && settled.settlementCount === 1 && effects.postRevoke !== token};
+       });
+       await runCase(`${world}-OLD-DOCUMENT-RACE`, 'Navigation at actual pending barrier changes real document; no old result completes new target; no stale mutation reaches new doc', async () => {
+         const old = await topTarget();
+@@ -402,19 +412,20 @@
+     }
+ 
+     for (const world of ['USER_SCRIPT', 'MAIN']) {
+-      await runCase(`${world}-SWITCH-REVOKE-AFTER-NATIVE`, 'Real switch revoked after native effect/delivery; actual recheck fences old result even when re-enabled before acceptance', async () => {
++      await runCase(`${world}-SWITCH-REVOKE-AFTER-NATIVE`, 'Original contract: real switch after native completion; operation-owned native observation fences old result after ON', async () => {
+         const token = `switch-after-native-${world}`;
+         await host.evaluate(({token, spec}) => window.fixture.start(token, spec), {token, spec: {target: top, world, source: `() => {document.body.dataset.finished=${JSON.stringify(token)};return true;}`, acceptanceBarrier: token}});
+         await host.waitForFunction(token => Boolean(window.fixture.poll(token)?.nativeCompletedAt), token);
+         const nativeCompleted = await call('poll', token);
+         const off = await switchState(false, `switch-after-native-off-${world}`);
+-        const recheck = await call('recheck', token);
++        await host.waitForFunction(token => window.fixture.poll(token)?.availabilityObservations.some(item => item.available === false), token);
++        const operationObservation = await call('poll', token);
+         const on = await switchState(true, `switch-after-native-on-${world}`);
+         await call('releaseAcceptance', token);
+         const settled = await settle(token);
+         const effect = await targetPage.evaluate(() => document.body.dataset.finished);
+         const fresh = await call('evaluate', {target: top, world, source: '() => true'});
+-        return {actual: {nativeCompleted, off, recheck, on, settled, effect, fresh}, pass: nativeCompleted.native?.kind === 'resolved' && rejected(recheck.check) && settled.result.accepted?.kind === 'rejected' && settled.settlementCount === 1 && effect === token && fresh.accepted?.value?.value === true};
++        return {actual: {nativeCompleted, off, operationObservation, on, settled, effect, fresh}, pass: nativeCompleted.native?.kind === 'resolved' && operationObservation.fence?.observedBy === 'operation-owned chrome.userScripts.getScripts' && settled.result.accepted?.kind === 'rejected' && settled.settlementCount === 1 && effect === token && fresh.accepted?.value?.value === true};
+       });
+       await runCase(`${world}-HOST-UI-REVOKE-RESTORE`, 'Real site UI revokes before dispatch; actual browser permission and mutation negative control; only real restoration permits new exact-doc call', async () => {
+         const before = await call('authorization', top);
+@@ -442,7 +453,6 @@
+           } else await host.waitForFunction(token => Boolean(window.fixture.poll(token)?.nativeCompletedAt), token);
+           const beforeRevoke = await call('poll', token);
+           const off = await siteState(false, `race-off-${phase}-${world}`);
+-          const recheck = await call('recheck', token);
+           const wrappedNext = await call('evaluate', {target: top, world, source: '() => true'});
+           const next = await call('observeRaw', {injection: {target: {tabId: top.tabId, documentIds: [top.documentId]}, world, js: [{code: `document.body.dataset.postHostRevoke=${JSON.stringify(token)};1`}]}});
+           const effectBeforeRestore = await targetPage.evaluate(() => document.body.dataset.postHostRevoke || null);
+@@ -454,9 +464,107 @@
+           const settled = await settle(token);
+           const effects = await targetPage.evaluate(() => ({finished: document.body.dataset.finished, postHostRevoke: document.body.dataset.postHostRevoke || null}));
+           const fresh = await call('evaluate', {target: top, world, source: '() => true'});
+-          return {actual: {beforeRevoke, off, recheck, wrappedNext, next, effectBeforeRestore, released, rawCompleted, on, settled, effectsAfterRestore: effects, fresh}, pass: rejected(recheck.check) && wrappedNext.accepted?.kind === 'rejected' && (rejected(next) || next.kind === 'pending-at-observation-deadline') && settled.result.accepted?.kind === 'rejected' && settled.settlementCount === 1 && effectBeforeRestore !== token && fresh.accepted?.value?.value === true};
++          return {actual: {beforeRevoke, off, wrappedNext, next, effectBeforeRestore, released, rawCompleted, on, settled, effectsAfterRestore: effects, fresh}, pass: settled.fence?.observedBy === 'chrome.permissions.onRemoved' && wrappedNext.accepted?.kind === 'rejected' && (rejected(next) || next.kind === 'pending-at-observation-deadline') && settled.result.accepted?.kind === 'rejected' && settled.settlementCount === 1 && effectBeforeRestore !== token && fresh.accepted?.value?.value === true};
+         });
+       }
++      for (const phase of ['pending', 'native-completed']) {
++        for (const cause of ['SWITCH-OBSERVED', 'OWN-GRANT', 'CANCEL', 'DEADLINE']) {
++          await runCase(`${world}-${cause}-${phase.toUpperCase()}`, 'Existing contract strengthening: actual operation-owned invalidation sticks, old result rejects once, genuinely new operation works', async () => {
++            const token = `${cause}-${phase}-${world}`;
++            const source = phase === 'pending' ? holdSource(token) : `() => {document.body.dataset.finished=${JSON.stringify(token)};return true;}`;
++            const spec = {target: top, world, source, acceptanceBarrier: token, ...(cause === 'DEADLINE' ? {deadlineMs: 150} : {})};
++            const grantBefore = await call('ownGrantState');
++            await host.evaluate(({token, spec}) => window.fixture.start(token, spec), {token, spec});
++            if (phase === 'pending') {
++              await targetPage.waitForFunction(token => document.body.dataset.pending === token, token);
++              for (let tries = 0; !holds.has(token) && tries < 100; tries++) await new Promise(done => setTimeout(done, 10));
++              if (!holds.has(token)) throw new Error('Actual pending HTTP barrier missing');
++            } else await host.waitForFunction(token => Boolean(window.fixture.poll(token)?.nativeCompletedAt), token);
++            let off, on, next, rawNext, offEffect;
++            if (cause === 'SWITCH-OBSERVED') {
++              off = await switchState(false, `${token}-off`);
++              await host.waitForFunction(token => window.fixture.poll(token)?.availabilityObservations.some(item => item.available === false), token);
++              next = await call('evaluate', {target: top, world, source: `() => {document.body.dataset.newOff=${JSON.stringify(token)};return true;}`});
++              rawNext = await call('raw', {target: {tabId: top.tabId, documentIds: [top.documentId]}, world, js: [{code: `document.body.dataset.newOff=${JSON.stringify(token)};true`}]});
++              offEffect = await targetPage.evaluate(() => document.body.dataset.newOff || null);
++              on = await switchState(true, `${token}-on`);
++            } else if (cause === 'OWN-GRANT') {
++              await host.locator('#revoke-own-grant').click();
++              off = await call('ownGrantState');
++              // Caller-provided authority fields have no role in the host's private epoch.
++              next = await call('evaluate', {target: top, world, source: '() => true', ownGrantEpoch: off.epoch, ownGrantEnabled: true});
++              await snapshot(`${token}-revoked`);
++              await host.locator('#renew-own-grant').click();
++              on = await call('ownGrantState');
++            } else if (cause === 'CANCEL') {
++              await host.locator('#cancel-operations').click();
++              off = await call('ownGrantState');
++            } else await host.waitForFunction(token => window.fixture.poll(token)?.fence?.message === 'E_OPERATION_DEADLINE', token);
++            const invalidated = await call('poll', token);
++            const released = phase === 'pending' ? release(token) : null;
++            await host.waitForFunction(token => Boolean(window.fixture.poll(token)?.nativeCompletedAt), token);
++            const nativeCompleted = await call('poll', token);
++            await call('releaseAcceptance', token);
++            const settled = await settle(token);
++            const effect = await targetPage.evaluate(() => document.body.dataset.finished || null);
++            const fresh = await call('evaluate', {target: top, world, source: '() => true'});
++            const grantAfter = await call('ownGrantState');
++            const expectedReason = { 'OWN-GRANT': 'E_OWN_GRANT_REVOKED', CANCEL: 'E_OPERATION_CANCELLED', DEADLINE: 'E_OPERATION_DEADLINE' }[cause];
++            const causeProved = cause === 'SWITCH-OBSERVED'
++              ? invalidated.fence?.observedBy === 'operation-owned chrome.userScripts.getScripts' && next.accepted?.kind === 'rejected' && rejected(rawNext) && offEffect !== token
++              : invalidated.fence?.message === expectedReason && (cause !== 'OWN-GRANT' || !off.enabled && on.enabled && on.epoch > off.epoch && next.accepted?.kind === 'rejected' && off.events.at(-1)?.isTrusted && on.events.at(-1)?.isTrusted);
++            return {actual: {phase, cause, spec, grantBefore, off, on, next, rawNext, offEffect, invalidated, released, nativeCompleted, settled, effect, fresh, grantAfter, runnerFenceWrites: false}, pass: causeProved && settled.result.accepted?.kind === 'rejected' && settled.settlementCount === 1 && settled.fence?.at === invalidated.fence?.at && effect === token && fresh.accepted?.value?.value === true};
++          });
++        }
++        await runCase(`${world}-SWITCH-UNOBSERVED-ORIGINAL-${phase.toUpperCase()}`, 'UNCHANGED original history contract requires old result fenced; an unobserved real OFF/ON is still FAIL if old result is accepted', async () => {
++          const token = `unobserved-original-${phase}-${world}`;
++          const source = phase === 'pending' ? holdSource(token) : `() => {document.body.dataset.finished=${JSON.stringify(token)};return true;}`;
++          await host.evaluate(({token, spec}) => window.fixture.start(token, spec), {token, spec: {target: top, world, source, acceptanceBarrier: token}});
++          if (phase === 'pending') {
++            await targetPage.waitForFunction(token => document.body.dataset.pending === token, token);
++            for (let tries = 0; !holds.has(token) && tries < 100; tries++) await new Promise(done => setTimeout(done, 10));
++            if (!holds.has(token)) throw new Error('Actual pending HTTP barrier missing');
++          } else await host.waitForFunction(token => Boolean(window.fixture.poll(token)?.nativeCompletedAt), token);
++          const beforeHost = await observeHost();
++          const before = await call('poll', token);
++          await settings.goto(`chrome://extensions/?id=${extensionId}`);
++          const toggle = settings.locator('extensions-detail-view #allow-user-scripts cr-toggle');
++          await toggle.waitFor({state: 'visible'});
++          // A real bounded host task blocks its event loop. The operation monitor
++          // stays enabled; no timer/API/fence state is disabled or injected.
++          const task = host.evaluate(durationMs => {
++            const started = Date.now();
++            while (Date.now() - started < durationMs) {}
++            return {started, finished: Date.now(), durationMs, monitorDisabled: false};
++          }, 2500);
++          const offStarted = Date.now();
++          await toggle.click(); await pollActual(async () => await readToggle(toggle) === 'false');
++          const offConfirmed = Date.now(); await snapshot(`${token}-off`, settings);
++          const released = phase === 'pending' ? release(token) : null;
++          await toggle.click(); await pollActual(async () => await readToggle(toggle) === 'true');
++          const onConfirmed = Date.now(); await snapshot(`${token}-on`, settings);
++          const hostTask = await task;
++          const afterHost = await observeHost();
++          await host.waitForFunction(token => Boolean(window.fixture.poll(token)?.nativeCompletedAt), token);
++          await call('releaseAcceptance', token);
++          const settled = await settle(token);
++          const fresh = await call('evaluate', {target: top, world, source: '() => true'});
++          const effect = await targetPage.evaluate(() => document.body.dataset.finished || null);
++          const actuallyObservedOff = settled.availabilityObservations.some(item => item.available === false);
++          const cycleWithinHostTask = offConfirmed >= hostTask.started && onConfirmed <= hostTask.finished;
++          return {actual: {phase, beforeHost, before, offStarted, offConfirmed, onConfirmed, hostTask, afterHost, cycleWithinHostTask, actuallyObservedOff, settled, fresh, effect, originalExpected: 'old result fenced', newExpectedAdopted: false, monitorAlwaysEnabled: true}, pass: cycleWithinHostTask && beforeHost.documentId === afterHost.documentId && beforeHost.timeOrigin === afterHost.timeOrigin && settled.result.accepted?.kind === 'rejected' && settled.settlementCount === 1 && fresh.accepted?.value?.value === true};
++        });
++      }
++      await runCase(`${world}-OLD-DOCUMENT-RACE-AFTER-NATIVE`, 'Actual document replacement monotonically fences a held native-completed result; fresh exact-doc call succeeds', async () => {
++        const token = `doc-completed-${world}`, old = top;
++        await host.evaluate(({token, spec}) => window.fixture.start(token, spec), {token, spec: {target: old, world, source: '() => true', acceptanceBarrier: token}});
++        await host.waitForFunction(token => Boolean(window.fixture.poll(token)?.nativeCompletedAt), token);
++        await targetPage.goto(`${base}/top?id=${token}`); top = await topTarget();
++        await call('releaseAcceptance', token);
++        const settled = await settle(token);
++        const fresh = await call('evaluate', {target: top, world, source: '() => true'});
++        return {actual: {old, current: top, settled, fresh}, pass: old.documentId !== top.documentId && settled.fence?.observedBy === 'chrome.webNavigation.onCommitted' && settled.result.accepted?.kind === 'rejected' && settled.settlementCount === 1 && fresh.accepted?.value?.value === true};
++      });
+     }
+ 
+     const queuedBeforeNavigation = {trace: await call('trace'), effects: await targetPage.evaluate(() => ({hostDenied: document.body.dataset.hostDenied || null, postHostRevoke: document.body.dataset.postHostRevoke || null}))};
+@@ -530,10 +638,12 @@
+     requestedModel: {leader: 'gpt-6.1-sol', reasoning: 'xhigh', serverResolvedRuntime: 'unknown'},
+     candidateSha256, approvedPlanManifestSha256: candidate.approvedPlanManifestSha256, designManifestSha256: candidate.designManifestSha256, frozenInputs: inputs, actualBrowser, httpServer: {base, requests: httpLog.length},
+     actual: cases.filter(item => item.status === 'actual'), failed,
++    executionMode: focusLifecycle ? 'targeted lifecycle strengthening under unchanged round5 contract' : 'full prototype matrix',
++    notExecuted, contractExpectedRevision: 'unchanged round5; round6 amendment not adopted',
+     notTested: ['F2 product integration and atomic authority admission/settlement', 'F3 real workbench/revisions/persistence/download', 'Worker/CSP/RPC/termination: owned by leader', 'page infinite-loop termination: no general guarantee'],
+     initializationFailure, screenshots, hostLifecycle, sourceHashes: sources, productPackageSha256: null,
+     cleanup: {resourceBaseline, fixtureResources, browserContextClosed, loopbackServerClosed: !server.listening, outstandingHolds: holds.size, error: cleanupError},
+-    userScriptsRequiredCasesPassed: !argv.includes('--probe-ui') && !initializationFailure && cases.length > 0 && failed.filter(item => item.required).length === 0,
++    userScriptsRequiredCasesPassed: !focusLifecycle && !argv.includes('--probe-ui') && !initializationFailure && cases.length > 0 && failed.filter(item => item.required).length === 0,
+     fullF1GateDecision: 'not made by this fixture; independent combined review required'};
+   if (initializationFailure) report.notTested.push('remaining planned browser cases after the recorded initialization failure');
+   const diagnosticIds = ['USER_SCRIPT-RAW-THROW', 'USER_SCRIPT-RAW-REJECT', 'MAIN-RAW-THROW', 'MAIN-RAW-REJECT', 'HOST-PERMISSION-REVOKE'];
+@@ -554,7 +664,7 @@
+     'F1-PAGE-SOURCE-DOC': item => /-CODE$|-FILE$|-DOCUMENT-|^SOURCE-|^TARGET-|OLD-DOCUMENT/.test(item.id),
+     'F1-PAGE-TYPED-RESULTS': item => /ADAPTER-|PRE-DISPATCH-|-CODE$/.test(item.id),
+     'F1-PAGE-NATIVE-DIAGNOSTICS': item => /RAW-(THROW|REJECT|UNDEFINED)/.test(item.id),
+-    'F1-PAGE-AUTH-CSP': item => /SWITCH-|HOST-UI-|^CSP-/.test(item.id),
++    'F1-PAGE-AUTH-CSP': item => /SWITCH-|HOST-UI-|OWN-GRANT-|CANCEL-|DEADLINE-|^CSP-/.test(item.id),
+     'F1-PAGE-OLD-DOC-RACE': item => /OLD-DOCUMENT|PACKAGED-MAIN-CALLBACK/.test(item.id),
+     'F1-VERSION-MATRIX': () => true
+   };
+@@ -562,7 +672,7 @@
+   await writeJSON(resolve(output, 'console.json'), logs);
+   await writeJSON(resolve(output, 'http.json'), httpLog);
+   await writeJSON(resolve(output, 'report.json'), report);
+-  const files = (await readdir(output)).filter(name => name !== 'evidence-manifest.json').sort();
++  const files = [...(await readdir(output)).filter(name => name !== 'evidence-manifest.json' && name !== 'source'), ...sources.map(item => `source/${item.path}`)].sort();
+   const evidence = [];
+   for (const name of files) { const bytes = await readFile(resolve(output, name)); evidence.push({path: name, bytes: bytes.length, sha256: sha(bytes)}); }
+   await writeJSON(resolve(output, 'evidence-manifest.json'), {candidateSha256, files: evidence});

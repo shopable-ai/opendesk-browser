@@ -1,0 +1,3537 @@
+{
+  "mode": "production",
+  "label": "138",
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+  "packageBefore": {
+    "files": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 1110,
+        "sha256": "f8c376a6080e713b7e0043872d5f19ae7e822443cebe908dd03f9600e4de09fe"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 998,
+        "sha256": "98069ba8787f41e70b5610437b097512e0bc06dee8721981a6fa31bb70a9238a"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 53508,
+        "sha256": "c11f0e99519b967f1f316528f58e2ca51f1466d141013e099940544465ae9938"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 14018,
+        "sha256": "1115c81994a2cc577a510fd5e8f53de58599aa793d156e73fa575625b0167eef"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 565,
+        "sha256": "8cb86b8176c4b5824b9951e6190b37e2ef177be2c1574b3f50e4792bf65ef74c"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 24731,
+        "sha256": "458d4d6929031c63ea02090cbcbb1e812062b46e887565a8117d3cc129a0c2a0"
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 946,
+        "sha256": "97c9d8bc15ccec14cdcf72e0ecf0cb5d25a3f3c766922b657b1efdf5e0d8215a"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 15863,
+        "sha256": "2912ccd4c3fd37f917445eab47dc27ed46d364bdce24fc928e12438f140caa02"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 4176,
+        "sha256": "c09f6b83c5a91809a52b85815f2e748108d07878c23eeb61ba0e8d023405a256"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 21109,
+        "sha256": "1fde9f4388f6c4fdbe34fccec5f1ac3b57d8b80b83b9cd48a9a7eebc4b01b334"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 255590,
+        "sha256": "652b7f62d75c6cac38baac6f2cfc69c07340bb1149068b0b7b7d14241da06c0d"
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 1326,
+        "sha256": "6cc4f15df5945aa9ed0af7b21e5db611828bb64fb8496e06a4654f7697327401"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 52898,
+        "sha256": "5deb9c446c7e2e4ef52303911933d52a42d2c6c6679d93d09865916f988551f4"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 4962,
+        "sha256": "13f9b283cffe72161ef24bc40b32c6c75fd8b9ee5be078735ac924384d1f0be2"
+      }
+    ],
+    "packageHash": "99d6d07876c765701b4b2f4ee1470bc859588173151dc0f043f1bb9bdbafacbd",
+    "algorithm": "SHA256 UTF-8 JSON.stringify(path-sorted {path,bytes,sha256} array)"
+  },
+  "productInputsSha256": "a35612438d3362b2d6ffe5d363712b6c9245d44a0246d853b4cf6b8952faa71f",
+  "verificationInputsSha256": "7b46513d6a01829e9e418425a4e3a67eb925e99c9d5b4184dc11086be94861be",
+  "packageHashes": {
+    "production": "99d6d07876c765701b4b2f4ee1470bc859588173151dc0f043f1bb9bdbafacbd",
+    "development": "ea1a596897d713aa861463938cb908f05ad1216695baef9069f6a60e8c51f676"
+  },
+  "zipHashes": {
+    "production": "abe7b4388c7407014c790f0e644eed32b3dc27ca81688d59f33e5e7e23bbdab4",
+    "development": "439f549fc5b432556e6fd8913377aed257b632c97a975769c745738ed0b3e323"
+  },
+  "zipSha256": "abe7b4388c7407014c790f0e644eed32b3dc27ca81688d59f33e5e7e23bbdab4",
+  "unchangedProductPackage": true,
+  "alteredManifest": false,
+  "finalProductPassed": false,
+  "f3Accepted": false,
+  "ledgerCasesClosed": [],
+  "cases": [
+    {
+      "id": "UI-EXPLICIT-TARGET-NO-DEFAULT",
+      "status": "PASS",
+      "actual": {
+        "tab": "",
+        "document": "",
+        "disabled": true,
+        "capabilities": []
+      }
+    },
+    {
+      "id": "UI-TRUSTED-GESTURE-EXACT-DOCUMENT-INSTALL",
+      "status": "PASS",
+      "actual": {
+        "state": "installed",
+        "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+        "raw": "{\n  \"grantIncarnation\": \"3ff00c18-e8b8-440b-a058-7f089fb7da6b\",\n  \"documentId\": \"ECADDDD941904C8BC5D55F18817585E7\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}",
+        "beforePermissions": {
+          "origins": [],
+          "permissions": [
+            "activeTab",
+            "downloads",
+            "storage",
+            "tabs",
+            "webNavigation",
+            "scripting",
+            "userScripts"
+          ]
+        },
+        "afterPermissions": {
+          "origins": [
+            "http://127.0.0.1/*"
+          ],
+          "permissions": [
+            "activeTab",
+            "downloads",
+            "storage",
+            "tabs",
+            "webNavigation",
+            "scripting",
+            "userScripts"
+          ]
+        },
+        "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+        "tabId": 1649397433,
+        "nativeInstall": {
+          "grantIncarnation": "3ff00c18-e8b8-440b-a058-7f089fb7da6b",
+          "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+          "installed": true,
+          "files": [
+            "agents/page-relay.js",
+            "framework/sdk-main.js"
+          ]
+        }
+      }
+    },
+    {
+      "id": "NATIVE-HELLO-GRANT-SUBSET-NO-CONTROLLER",
+      "status": "PASS",
+      "actual": {
+        "hello": {
+          "sdkVersion": "1.0.0",
+          "ready": true,
+          "methods": [
+            "AXIOS_GET",
+            "AXIOS_POST",
+            "AXIOS_PUT",
+            "AXIOS_DELETE",
+            "APPSTORAGE_GETITEM",
+            "APPSTORAGE_SETITEM",
+            "APPSTORAGE_REMOVEITEM",
+            "APPSTORAGE_CLEAR",
+            "APPLOCAL_GETITEM",
+            "APPLOCAL_SETITEM",
+            "APPLOCAL_REMOVEITEM",
+            "CHROME_LOCAL_GET",
+            "CHROME_LOCAL_SET",
+            "CHROME_LOCAL_REMOVE",
+            "SERVER_CHECK"
+          ]
+        },
+        "decoyHasSdk": false,
+        "journal": [
+          {
+            "key": "host:26e23339-23bd-4d6e-a77c-7b666dfd1740",
+            "value": {
+              "tag": "host",
+              "registrationId": "26e23339-23bd-4d6e-a77c-7b666dfd1740",
+              "hostInstanceId": "e2e8020d-2792-46b3-91cf-b7d298b51dee",
+              "hostDocumentId": "4455A0FC1A56F6E1DD69F71222B0FA70",
+              "hostUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+              "hostTabId": 1649397435,
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "browserSessionIncarnation": "395b88f1-9366-4354-a137-7d86f22377ca",
+              "active": true,
+              "revoked": false,
+              "registeredAt": "2026-10-04T09:07:12.807Z"
+            }
+          },
+          {
+            "key": "sdk-grant:[1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\"]",
+            "value": {
+              "tag": "sdk-grant",
+              "tabId": 1649397433,
+              "frameId": 0,
+              "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+              "origin": "http://127.0.0.1:57629",
+              "principal": "sdk:http://127.0.0.1:57629",
+              "tabEpoch": 1,
+              "frameEpoch": 0,
+              "permissionEpoch": 0,
+              "notificationEpoch": 0,
+              "key": "sdk-grant:[1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\"]",
+              "namespace": "page:http://127.0.0.1:57629",
+              "capabilities": [
+                "network",
+                "storage.persistent",
+                "storage.session"
+              ],
+              "allowedOrigins": [
+                "http://127.0.0.1:57629"
+              ],
+              "grantIncarnation": "3ff00c18-e8b8-440b-a058-7f089fb7da6b",
+              "browserSessionIncarnation": "395b88f1-9366-4354-a137-7d86f22377ca",
+              "active": true,
+              "grantedAt": "2026-10-04T09:10:54.720Z",
+              "registrationId": "26e23339-23bd-4d6e-a77c-7b666dfd1740"
+            }
+          }
+        ],
+        "controllerRuns": []
+      }
+    },
+    {
+      "id": "PERSISTENT-STRING-CONVERSION-AND-UNDEFINED-SETTLEMENT",
+      "status": "PASS",
+      "actual": {
+        "set": {
+          "ok": true,
+          "valueKind": "undefined",
+          "undefinedResult": true
+        },
+        "get": {
+          "ok": true,
+          "value": "false",
+          "valueKind": "string",
+          "undefinedResult": false
+        }
+      }
+    },
+    {
+      "id": "TYPED-JSON-HOP-FALSE-ZERO-OWN-NESTED-UNDEFINED",
+      "status": "PASS",
+      "actual": {
+        "falsePreserved": true,
+        "zeroPreserved": true,
+        "ownUndefined": true,
+        "nestedUndefined": true,
+        "arrayOwnUndefined": true,
+        "rawEvents": [
+          {
+            "at": 1791105054786,
+            "name": "OPEN_DESK_SDK_RESULT",
+            "message": {
+              "protocol": "opendesk.foundation.v1",
+              "requestId": "a1d18895-bab7-417f-8e6a-c772222a8729",
+              "response": {
+                "ok": true,
+                "data": {
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "PageBrigeCode",
+                        {
+                          "type": "number",
+                          "value": 0
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "undefined"
+                        }
+                      ],
+                      [
+                        "message",
+                        {
+                          "type": "string",
+                          "value": ""
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "at": 1791105054793,
+            "name": "OPEN_DESK_SDK_RESULT",
+            "message": {
+              "protocol": "opendesk.foundation.v1",
+              "requestId": "578901ad-e25e-4db6-bc49-cca7b7dcb85c",
+              "response": {
+                "ok": true,
+                "data": {
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "PageBrigeCode",
+                        {
+                          "type": "number",
+                          "value": 0
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "array",
+                              {
+                                "type": "array",
+                                "value": [
+                                  {
+                                    "type": "undefined"
+                                  },
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  },
+                                  {
+                                    "type": "number",
+                                    "value": 0
+                                  }
+                                ]
+                              }
+                            ],
+                            [
+                              "f",
+                              {
+                                "type": "boolean",
+                                "value": false
+                              }
+                            ],
+                            [
+                              "nested",
+                              {
+                                "type": "object",
+                                "value": [
+                                  [
+                                    "u",
+                                    {
+                                      "type": "undefined"
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            [
+                              "u",
+                              {
+                                "type": "undefined"
+                              }
+                            ],
+                            [
+                              "z",
+                              {
+                                "type": "number",
+                                "value": 0
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "message",
+                        {
+                          "type": "string",
+                          "value": ""
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "NATIVE-SESSION-TYPED-VALUES",
+      "status": "PASS",
+      "actual": {
+        "setUndefined": true,
+        "ownUndefined": true,
+        "f": false,
+        "z": 0,
+        "rawEvents": [
+          {
+            "at": 1791105054802,
+            "name": "OPEN_DESK_SDK_RESULT",
+            "message": {
+              "protocol": "opendesk.foundation.v1",
+              "requestId": "9d2963eb-58e3-4d99-9cbd-61642baddb56",
+              "response": {
+                "ok": true,
+                "data": {
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "PageBrigeCode",
+                        {
+                          "type": "number",
+                          "value": 0
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "undefined"
+                        }
+                      ],
+                      [
+                        "message",
+                        {
+                          "type": "string",
+                          "value": ""
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "at": 1791105054809,
+            "name": "OPEN_DESK_SDK_RESULT",
+            "message": {
+              "protocol": "opendesk.foundation.v1",
+              "requestId": "e722fdb1-017f-42c9-a055-44a85067a877",
+              "response": {
+                "ok": true,
+                "data": {
+                  "valueWire": {
+                    "type": "object",
+                    "value": [
+                      [
+                        "PageBrigeCode",
+                        {
+                          "type": "number",
+                          "value": 0
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "f",
+                              {
+                                "type": "boolean",
+                                "value": false
+                              }
+                            ],
+                            [
+                              "u",
+                              {
+                                "type": "undefined"
+                              }
+                            ],
+                            [
+                              "z",
+                              {
+                                "type": "number",
+                                "value": 0
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "message",
+                        {
+                          "type": "string",
+                          "value": ""
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "HTTP-GET-POST-PUT-DELETE-BUSINESS-DATA",
+      "status": "PASS",
+      "actual": [
+        {
+          "verb": "GET",
+          "value": {
+            "ok": true,
+            "value": {
+              "config": {
+                "method": "get",
+                "params": {
+                  "seed": "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c",
+                  "verb": "GET"
+                },
+                "url": "http://127.0.0.1:57629/echo?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&verb=GET",
+                "withCredentials": false
+              },
+              "data": {
+                "body": "",
+                "business": {
+                  "PageBrigeCode": 9,
+                  "error": "business-data",
+                  "message": "keep-as-data",
+                  "ok": false
+                },
+                "falseValue": false,
+                "method": "GET",
+                "path": "/echo",
+                "query": [
+                  [
+                    "seed",
+                    "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                  ],
+                  [
+                    "verb",
+                    "GET"
+                  ]
+                ],
+                "zero": 0
+              },
+              "headers": {
+                "cache-control": "no-store",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Sun, 04 Oct 2026 09:10:54 GMT",
+                "keep-alive": "timeout=5",
+                "transfer-encoding": "chunked"
+              },
+              "status": 200,
+              "statusText": "OK"
+            },
+            "valueKind": "object",
+            "undefinedResult": false
+          },
+          "rawServer": {
+            "sequence": 5,
+            "at": "2026-10-04T09:10:54.816Z",
+            "monoMs": 224387.747,
+            "method": "GET",
+            "url": "/echo?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&verb=GET",
+            "headers": {
+              "host": "127.0.0.1:57629",
+              "connection": "keep-alive",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+              "accept": "*/*",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "",
+            "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "finishedAt": "2026-10-04T09:10:54.817Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-04T09:10:54.817Z"
+          }
+        },
+        {
+          "verb": "POST",
+          "value": {
+            "ok": true,
+            "value": {
+              "config": {
+                "method": "post",
+                "params": {
+                  "seed": "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c",
+                  "verb": "POST"
+                },
+                "url": "http://127.0.0.1:57629/echo?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&verb=POST",
+                "withCredentials": false
+              },
+              "data": {
+                "body": "{\"falseValue\":false,\"zero\":0}",
+                "business": {
+                  "PageBrigeCode": 9,
+                  "error": "business-data",
+                  "message": "keep-as-data",
+                  "ok": false
+                },
+                "falseValue": false,
+                "method": "POST",
+                "path": "/echo",
+                "query": [
+                  [
+                    "seed",
+                    "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                  ],
+                  [
+                    "verb",
+                    "POST"
+                  ]
+                ],
+                "zero": 0
+              },
+              "headers": {
+                "cache-control": "no-store",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Sun, 04 Oct 2026 09:10:54 GMT",
+                "keep-alive": "timeout=5",
+                "transfer-encoding": "chunked"
+              },
+              "status": 200,
+              "statusText": "OK"
+            },
+            "valueKind": "object",
+            "undefinedResult": false
+          },
+          "rawServer": {
+            "sequence": 6,
+            "at": "2026-10-04T09:10:54.831Z",
+            "monoMs": 224403.382125,
+            "method": "POST",
+            "url": "/echo?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&verb=POST",
+            "headers": {
+              "host": "127.0.0.1:57629",
+              "connection": "keep-alive",
+              "content-length": "29",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+              "content-type": "application/json",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "{\"falseValue\":false,\"zero\":0}",
+            "bodySha256": "afa0827c4af5b6b4cc81fd96753e7390b4912b513f4ce4041e25fc49d79a9791",
+            "finishedAt": "2026-10-04T09:10:54.832Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-04T09:10:54.832Z"
+          }
+        },
+        {
+          "verb": "PUT",
+          "value": {
+            "ok": true,
+            "value": {
+              "config": {
+                "method": "put",
+                "params": {
+                  "seed": "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c",
+                  "verb": "PUT"
+                },
+                "url": "http://127.0.0.1:57629/echo?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&verb=PUT",
+                "withCredentials": false
+              },
+              "data": {
+                "body": "{\"falseValue\":false,\"zero\":0}",
+                "business": {
+                  "PageBrigeCode": 9,
+                  "error": "business-data",
+                  "message": "keep-as-data",
+                  "ok": false
+                },
+                "falseValue": false,
+                "method": "PUT",
+                "path": "/echo",
+                "query": [
+                  [
+                    "seed",
+                    "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                  ],
+                  [
+                    "verb",
+                    "PUT"
+                  ]
+                ],
+                "zero": 0
+              },
+              "headers": {
+                "cache-control": "no-store",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Sun, 04 Oct 2026 09:10:54 GMT",
+                "keep-alive": "timeout=5",
+                "transfer-encoding": "chunked"
+              },
+              "status": 200,
+              "statusText": "OK"
+            },
+            "valueKind": "object",
+            "undefinedResult": false
+          },
+          "rawServer": {
+            "sequence": 7,
+            "at": "2026-10-04T09:10:54.843Z",
+            "monoMs": 224415.04625,
+            "method": "PUT",
+            "url": "/echo?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&verb=PUT",
+            "headers": {
+              "host": "127.0.0.1:57629",
+              "connection": "keep-alive",
+              "content-length": "29",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+              "content-type": "application/json",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "{\"falseValue\":false,\"zero\":0}",
+            "bodySha256": "afa0827c4af5b6b4cc81fd96753e7390b4912b513f4ce4041e25fc49d79a9791",
+            "finishedAt": "2026-10-04T09:10:54.844Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-04T09:10:54.844Z"
+          }
+        },
+        {
+          "verb": "DELETE",
+          "value": {
+            "ok": true,
+            "value": {
+              "config": {
+                "method": "delete",
+                "params": {
+                  "seed": "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c",
+                  "verb": "DELETE"
+                },
+                "url": "http://127.0.0.1:57629/echo?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&verb=DELETE",
+                "withCredentials": false
+              },
+              "data": {
+                "body": "",
+                "business": {
+                  "PageBrigeCode": 9,
+                  "error": "business-data",
+                  "message": "keep-as-data",
+                  "ok": false
+                },
+                "falseValue": false,
+                "method": "DELETE",
+                "path": "/echo",
+                "query": [
+                  [
+                    "seed",
+                    "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                  ],
+                  [
+                    "verb",
+                    "DELETE"
+                  ]
+                ],
+                "zero": 0
+              },
+              "headers": {
+                "cache-control": "no-store",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Sun, 04 Oct 2026 09:10:54 GMT",
+                "keep-alive": "timeout=5",
+                "transfer-encoding": "chunked"
+              },
+              "status": 200,
+              "statusText": "OK"
+            },
+            "valueKind": "object",
+            "undefinedResult": false
+          },
+          "rawServer": {
+            "sequence": 8,
+            "at": "2026-10-04T09:10:54.854Z",
+            "monoMs": 224425.669667,
+            "method": "DELETE",
+            "url": "/echo?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&verb=DELETE",
+            "headers": {
+              "host": "127.0.0.1:57629",
+              "connection": "keep-alive",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "",
+            "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "finishedAt": "2026-10-04T09:10:54.854Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-04T09:10:54.854Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CONFIG-REDIRECT-HTTP-ERROR-AND-UNGRANTED-METHOD",
+      "status": "PASS",
+      "actual": {
+        "badConfig": {
+          "ok": false,
+          "error": {
+            "code": "E_CONFIG_UNSUPPORTED",
+            "message": "Unknown or missing argument"
+          }
+        },
+        "redirect": {
+          "ok": false,
+          "error": {
+            "code": "E_NETWORK",
+            "message": "HTTP response is not observable"
+          }
+        },
+        "error": {
+          "ok": false,
+          "error": {
+            "code": "E_HTTP",
+            "message": "HTTP 503"
+          }
+        },
+        "ungranted": {
+          "ok": false,
+          "error": {
+            "code": "E_CAPABILITY",
+            "message": "Method is absent from broker Hello allowlist"
+          }
+        }
+      }
+    },
+    {
+      "id": "REAL-RELAY-NATIVE-DUPLICATE-AND-CONFLICT",
+      "status": "PASS",
+      "actual": {
+        "payload": {
+          "requestId": "duplicate-bea37b7e-ae8c-4bce-872e-178c2f6d2090",
+          "method": "AXIOS_POST",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "f",
+                      {
+                        "type": "boolean",
+                        "value": false
+                      }
+                    ],
+                    [
+                      "z",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:57629/echo?duplicate=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791105084879
+        },
+        "original": {
+          "ok": true,
+          "data": {
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "PageBrigeCode",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ],
+                [
+                  "data",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "config",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "method",
+                              {
+                                "type": "string",
+                                "value": "post"
+                              }
+                            ],
+                            [
+                              "url",
+                              {
+                                "type": "string",
+                                "value": "http://127.0.0.1:57629/echo?duplicate=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "body",
+                              {
+                                "type": "string",
+                                "value": "{\"f\":false,\"z\":0}"
+                              }
+                            ],
+                            [
+                              "business",
+                              {
+                                "type": "object",
+                                "value": [
+                                  [
+                                    "PageBrigeCode",
+                                    {
+                                      "type": "number",
+                                      "value": 9
+                                    }
+                                  ],
+                                  [
+                                    "error",
+                                    {
+                                      "type": "string",
+                                      "value": "business-data"
+                                    }
+                                  ],
+                                  [
+                                    "message",
+                                    {
+                                      "type": "string",
+                                      "value": "keep-as-data"
+                                    }
+                                  ],
+                                  [
+                                    "ok",
+                                    {
+                                      "type": "boolean",
+                                      "value": false
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            [
+                              "falseValue",
+                              {
+                                "type": "boolean",
+                                "value": false
+                              }
+                            ],
+                            [
+                              "method",
+                              {
+                                "type": "string",
+                                "value": "POST"
+                              }
+                            ],
+                            [
+                              "path",
+                              {
+                                "type": "string",
+                                "value": "/echo"
+                              }
+                            ],
+                            [
+                              "query",
+                              {
+                                "type": "array",
+                                "value": [
+                                  {
+                                    "type": "array",
+                                    "value": [
+                                      {
+                                        "type": "string",
+                                        "value": "duplicate"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "value": "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ],
+                            [
+                              "zero",
+                              {
+                                "type": "number",
+                                "value": 0
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "headers",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "cache-control",
+                              {
+                                "type": "string",
+                                "value": "no-store"
+                              }
+                            ],
+                            [
+                              "connection",
+                              {
+                                "type": "string",
+                                "value": "keep-alive"
+                              }
+                            ],
+                            [
+                              "content-type",
+                              {
+                                "type": "string",
+                                "value": "application/json"
+                              }
+                            ],
+                            [
+                              "date",
+                              {
+                                "type": "string",
+                                "value": "Sun, 04 Oct 2026 09:10:54 GMT"
+                              }
+                            ],
+                            [
+                              "keep-alive",
+                              {
+                                "type": "string",
+                                "value": "timeout=5"
+                              }
+                            ],
+                            [
+                              "transfer-encoding",
+                              {
+                                "type": "string",
+                                "value": "chunked"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "status",
+                        {
+                          "type": "number",
+                          "value": 200
+                        }
+                      ],
+                      [
+                        "statusText",
+                        {
+                          "type": "string",
+                          "value": "OK"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "message",
+                  {
+                    "type": "string",
+                    "value": ""
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        "duplicate": {
+          "ok": true,
+          "data": {
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "PageBrigeCode",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ],
+                [
+                  "data",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "config",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "method",
+                              {
+                                "type": "string",
+                                "value": "post"
+                              }
+                            ],
+                            [
+                              "url",
+                              {
+                                "type": "string",
+                                "value": "http://127.0.0.1:57629/echo?duplicate=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "data",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "body",
+                              {
+                                "type": "string",
+                                "value": "{\"f\":false,\"z\":0}"
+                              }
+                            ],
+                            [
+                              "business",
+                              {
+                                "type": "object",
+                                "value": [
+                                  [
+                                    "PageBrigeCode",
+                                    {
+                                      "type": "number",
+                                      "value": 9
+                                    }
+                                  ],
+                                  [
+                                    "error",
+                                    {
+                                      "type": "string",
+                                      "value": "business-data"
+                                    }
+                                  ],
+                                  [
+                                    "message",
+                                    {
+                                      "type": "string",
+                                      "value": "keep-as-data"
+                                    }
+                                  ],
+                                  [
+                                    "ok",
+                                    {
+                                      "type": "boolean",
+                                      "value": false
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            [
+                              "falseValue",
+                              {
+                                "type": "boolean",
+                                "value": false
+                              }
+                            ],
+                            [
+                              "method",
+                              {
+                                "type": "string",
+                                "value": "POST"
+                              }
+                            ],
+                            [
+                              "path",
+                              {
+                                "type": "string",
+                                "value": "/echo"
+                              }
+                            ],
+                            [
+                              "query",
+                              {
+                                "type": "array",
+                                "value": [
+                                  {
+                                    "type": "array",
+                                    "value": [
+                                      {
+                                        "type": "string",
+                                        "value": "duplicate"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "value": "sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ],
+                            [
+                              "zero",
+                              {
+                                "type": "number",
+                                "value": 0
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "headers",
+                        {
+                          "type": "object",
+                          "value": [
+                            [
+                              "cache-control",
+                              {
+                                "type": "string",
+                                "value": "no-store"
+                              }
+                            ],
+                            [
+                              "connection",
+                              {
+                                "type": "string",
+                                "value": "keep-alive"
+                              }
+                            ],
+                            [
+                              "content-type",
+                              {
+                                "type": "string",
+                                "value": "application/json"
+                              }
+                            ],
+                            [
+                              "date",
+                              {
+                                "type": "string",
+                                "value": "Sun, 04 Oct 2026 09:10:54 GMT"
+                              }
+                            ],
+                            [
+                              "keep-alive",
+                              {
+                                "type": "string",
+                                "value": "timeout=5"
+                              }
+                            ],
+                            [
+                              "transfer-encoding",
+                              {
+                                "type": "string",
+                                "value": "chunked"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "status",
+                        {
+                          "type": "number",
+                          "value": 200
+                        }
+                      ],
+                      [
+                        "statusText",
+                        {
+                          "type": "string",
+                          "value": "OK"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "message",
+                  {
+                    "type": "string",
+                    "value": ""
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        "conflict": {
+          "ok": false,
+          "error": {
+            "code": "E_REQUEST_CONFLICT",
+            "message": "SDK request ID has conflicting arguments"
+          }
+        },
+        "rawServer": [
+          {
+            "sequence": 11,
+            "at": "2026-10-04T09:10:54.884Z",
+            "monoMs": 224455.815667,
+            "method": "POST",
+            "url": "/echo?duplicate=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c",
+            "headers": {
+              "host": "127.0.0.1:57629",
+              "connection": "keep-alive",
+              "content-length": "17",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+              "content-type": "application/json",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "{\"f\":false,\"z\":0}",
+            "bodySha256": "3a789a20e26cbaf1cb2a7bb9a5070cf1f13acb01dbacb33e9183768742947654",
+            "finishedAt": "2026-10-04T09:10:54.884Z",
+            "statusCode": 200,
+            "closedAt": "2026-10-04T09:10:54.884Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "NATIVE-100-CONCURRENT-SDK-PROMISES",
+      "status": "PASS",
+      "actual": {
+        "values": [
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          },
+          {
+            "ok": true,
+            "value": "false",
+            "valueKind": "string",
+            "undefinedResult": false
+          }
+        ],
+        "diagnostics": {
+          "pending": 0,
+          "disposed": false
+        }
+      }
+    },
+    {
+      "id": "SW-RESTART-AFTER-SERVER-EFFECT-UNKNOWN-NO-REPLAY",
+      "status": "PASS",
+      "actual": {
+        "payload": {
+          "requestId": "unknown-1cada6b9-f8e0-4906-b5d5-87abc3ce047b",
+          "method": "AXIOS_POST",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "effect",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:57629/hold?token=unknown-sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791105085313
+        },
+        "stopped": {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791102341,
+          "scriptResponseTime": 0,
+          "controlledClients": [
+            "39D03C925E83144C2B6D969C5B914EFB"
+          ],
+          "targetId": "DF477DD131F1DE2C62CBCFD4C2A8D56B"
+        },
+        "postRestartWake": {
+          "ok": true,
+          "value": "false",
+          "valueKind": "string",
+          "undefinedResult": false
+        },
+        "replay": {
+          "ok": false,
+          "error": {
+            "code": "E_EFFECT_UNKNOWN",
+            "message": "Dispatched SDK effect has no durable result; it cannot be repeated",
+            "invocation": {
+              "requestId": "unknown-1cada6b9-f8e0-4906-b5d5-87abc3ce047b",
+              "runId": "45fd7cd3-30c7-4211-97ad-1c27f06ffeed",
+              "opId": "b1a425c7-ca54-4bd5-bde5-481d9a3bdccb",
+              "grantIncarnation": "3ff00c18-e8b8-440b-a058-7f089fb7da6b"
+            }
+          }
+        },
+        "operation": {
+          "key": "sdk-operation:[\"sdk:http://127.0.0.1:57629\",1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\",\"3ff00c18-e8b8-440b-a058-7f089fb7da6b\",\"unknown-1cada6b9-f8e0-4906-b5d5-87abc3ce047b\"]",
+          "value": {
+            "tag": "sdk-operation",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:57629\",1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\",\"3ff00c18-e8b8-440b-a058-7f089fb7da6b\",\"unknown-1cada6b9-f8e0-4906-b5d5-87abc3ce047b\"]",
+            "tabId": 1649397433,
+            "frameId": 0,
+            "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+            "origin": "http://127.0.0.1:57629",
+            "principal": "sdk:http://127.0.0.1:57629",
+            "namespace": "page:http://127.0.0.1:57629",
+            "grantIncarnation": "3ff00c18-e8b8-440b-a058-7f089fb7da6b",
+            "runId": "45fd7cd3-30c7-4211-97ad-1c27f06ffeed",
+            "opId": "b1a425c7-ca54-4bd5-bde5-481d9a3bdccb",
+            "resultId": "fdb8f903-68d8-4671-b520-3d8ff225fbfc",
+            "requestId": "unknown-1cada6b9-f8e0-4906-b5d5-87abc3ce047b",
+            "requestDigest": "2e83a575bdb970cc0c7d3047262ba2598a43e9c3c76e63dcc18cc10309a3695e",
+            "method": "AXIOS_POST",
+            "capability": "network",
+            "effect": "write",
+            "deadlineAt": 1791105070315,
+            "browserSessionIncarnation": "395b88f1-9366-4354-a137-7d86f22377ca",
+            "state": "effect_unknown",
+            "cancelSeq": 0,
+            "submissionCount": 1,
+            "admittedAt": "2026-10-04T09:10:55.315Z",
+            "dispatchAt": "2026-10-04T09:10:55.316Z",
+            "recoveredAt": "2026-10-04T09:10:55.434Z",
+            "deliveryState": "denied",
+            "deliveryError": {
+              "code": "E_EFFECT_UNKNOWN",
+              "message": "Worker restarted after SDK dispatch; no effect replay"
+            }
+          }
+        },
+        "rawServer": [
+          {
+            "sequence": 12,
+            "at": "2026-10-04T09:10:55.318Z",
+            "monoMs": 224889.471667,
+            "method": "POST",
+            "url": "/hold?token=unknown-sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c",
+            "headers": {
+              "host": "127.0.0.1:57629",
+              "connection": "keep-alive",
+              "content-length": "15",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+              "content-type": "application/json",
+              "accept": "*/*",
+              "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-dest": "empty",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "body": "{\"effect\":true}",
+            "bodySha256": "dae16718b8dfd62d71692550d1afec91a345c28bfc924c2a1874a89e4fd37012",
+            "closedAt": "2026-10-04T09:10:55.350Z"
+          }
+        ],
+        "original": {
+          "ok": false,
+          "error": {
+            "code": "E_EFFECT_UNKNOWN",
+            "message": "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received"
+          }
+        }
+      }
+    },
+    {
+      "id": "SESSION-AND-PERSISTENT-SURVIVE-SW-RESTART",
+      "status": "PASS",
+      "actual": {
+        "sessionValue": {
+          "ok": true,
+          "value": {
+            "f": false,
+            "z": 0
+          },
+          "valueKind": "object",
+          "undefinedResult": false
+        },
+        "persistentValue": {
+          "ok": true,
+          "value": "false",
+          "valueKind": "string",
+          "undefinedResult": false
+        }
+      }
+    },
+    {
+      "id": "NATIVE-PERMISSION-REMOVAL-REVOKES-GRANT",
+      "status": "PASS",
+      "actual": {
+        "removed": true,
+        "value": {
+          "ok": false,
+          "error": {
+            "code": "E_PERMISSION",
+            "message": "SDK site permission was revoked"
+          }
+        },
+        "grants": [
+          {
+            "key": "sdk-grant:[1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\"]",
+            "value": {
+              "tag": "sdk-grant",
+              "tabId": 1649397433,
+              "frameId": 0,
+              "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+              "origin": "http://127.0.0.1:57629",
+              "principal": "sdk:http://127.0.0.1:57629",
+              "tabEpoch": 1,
+              "frameEpoch": 0,
+              "permissionEpoch": 0,
+              "notificationEpoch": 0,
+              "key": "sdk-grant:[1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\"]",
+              "namespace": "page:http://127.0.0.1:57629",
+              "capabilities": [
+                "network",
+                "storage.persistent",
+                "storage.session"
+              ],
+              "allowedOrigins": [
+                "http://127.0.0.1:57629"
+              ],
+              "grantIncarnation": "3ff00c18-e8b8-440b-a058-7f089fb7da6b",
+              "browserSessionIncarnation": "395b88f1-9366-4354-a137-7d86f22377ca",
+              "active": false,
+              "grantedAt": "2026-10-04T09:10:54.720Z",
+              "registrationId": "26e23339-23bd-4d6e-a77c-7b666dfd1740",
+              "closedAt": "2026-10-04T09:10:55.515Z",
+              "closeReason": "permission-removed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "TRUSTED-UI-REGRANT-DOES-NOT-REPLAY-OLD-REQUEST",
+      "status": "PASS",
+      "actual": {
+        "install": {
+          "state": "installed",
+          "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+          "raw": "{\n  \"grantIncarnation\": \"db777949-21ce-4bf1-aea3-4bd3c387b3cc\",\n  \"documentId\": \"ECADDDD941904C8BC5D55F18817585E7\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}",
+          "beforePermissions": {
+            "origins": [],
+            "permissions": [
+              "activeTab",
+              "downloads",
+              "storage",
+              "tabs",
+              "webNavigation",
+              "scripting",
+              "userScripts"
+            ]
+          },
+          "afterPermissions": {
+            "origins": [
+              "http://127.0.0.1/*"
+            ],
+            "permissions": [
+              "activeTab",
+              "downloads",
+              "storage",
+              "tabs",
+              "webNavigation",
+              "scripting",
+              "userScripts"
+            ]
+          },
+          "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+          "tabId": 1649397433,
+          "nativeInstall": {
+            "grantIncarnation": "db777949-21ce-4bf1-aea3-4bd3c387b3cc",
+            "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+            "installed": true,
+            "files": [
+              "agents/page-relay.js",
+              "framework/sdk-main.js"
+            ]
+          }
+        },
+        "old": {
+          "ok": false,
+          "error": {
+            "code": "E_TIMEOUT",
+            "message": "E_TIMEOUT"
+          }
+        },
+        "fresh": {
+          "ok": true,
+          "value": "false",
+          "valueKind": "string",
+          "undefinedResult": false
+        }
+      }
+    },
+    {
+      "id": "NATIVE-NAVIGATION-INVALIDATES-OLD-DOCUMENT",
+      "status": "PASS",
+      "actual": {
+        "previous": "ECADDDD941904C8BC5D55F18817585E7",
+        "staleUI": {
+          "state": "stale",
+          "disabled": true
+        },
+        "oldGrants": [
+          {
+            "key": "sdk-closed-grant:3ff00c18-e8b8-440b-a058-7f089fb7da6b",
+            "value": {
+              "tag": "sdk-grant",
+              "tabId": 1649397433,
+              "frameId": 0,
+              "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+              "origin": "http://127.0.0.1:57629",
+              "principal": "sdk:http://127.0.0.1:57629",
+              "tabEpoch": 1,
+              "frameEpoch": 0,
+              "permissionEpoch": 0,
+              "notificationEpoch": 0,
+              "key": "sdk-grant:[1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\"]",
+              "namespace": "page:http://127.0.0.1:57629",
+              "capabilities": [
+                "network",
+                "storage.persistent",
+                "storage.session"
+              ],
+              "allowedOrigins": [
+                "http://127.0.0.1:57629"
+              ],
+              "grantIncarnation": "3ff00c18-e8b8-440b-a058-7f089fb7da6b",
+              "browserSessionIncarnation": "395b88f1-9366-4354-a137-7d86f22377ca",
+              "active": false,
+              "grantedAt": "2026-10-04T09:10:54.720Z",
+              "registrationId": "26e23339-23bd-4d6e-a77c-7b666dfd1740",
+              "closedAt": "2026-10-04T09:11:53.574Z",
+              "closeReason": "permission-removed"
+            }
+          },
+          {
+            "key": "sdk-grant:[1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\"]",
+            "value": {
+              "tag": "sdk-grant",
+              "tabId": 1649397433,
+              "frameId": 0,
+              "documentId": "ECADDDD941904C8BC5D55F18817585E7",
+              "origin": "http://127.0.0.1:57629",
+              "principal": "sdk:http://127.0.0.1:57629",
+              "tabEpoch": 1,
+              "frameEpoch": 0,
+              "permissionEpoch": 1,
+              "notificationEpoch": 0,
+              "key": "sdk-grant:[1649397433,0,\"ECADDDD941904C8BC5D55F18817585E7\"]",
+              "namespace": "page:http://127.0.0.1:57629",
+              "capabilities": [
+                "network",
+                "storage.persistent",
+                "storage.session"
+              ],
+              "allowedOrigins": [
+                "http://127.0.0.1:57629"
+              ],
+              "grantIncarnation": "db777949-21ce-4bf1-aea3-4bd3c387b3cc",
+              "browserSessionIncarnation": "395b88f1-9366-4354-a137-7d86f22377ca",
+              "active": false,
+              "grantedAt": "2026-10-04T09:11:53.575Z",
+              "registrationId": "26e23339-23bd-4d6e-a77c-7b666dfd1740",
+              "closedAt": "2026-10-04T09:11:53.683Z",
+              "closeReason": "navigation"
+            }
+          }
+        ],
+        "install": {
+          "state": "installed",
+          "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+          "raw": "{\n  \"grantIncarnation\": \"2dac6050-0cfc-4cce-96e4-98f5086f9ebf\",\n  \"documentId\": \"E183C5141B0965EC5458A4A6B01CC91A\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}",
+          "beforePermissions": {
+            "origins": [
+              "http://127.0.0.1/*"
+            ],
+            "permissions": [
+              "activeTab",
+              "downloads",
+              "storage",
+              "tabs",
+              "webNavigation",
+              "scripting",
+              "userScripts"
+            ]
+          },
+          "afterPermissions": {
+            "origins": [
+              "http://127.0.0.1/*"
+            ],
+            "permissions": [
+              "activeTab",
+              "downloads",
+              "storage",
+              "tabs",
+              "webNavigation",
+              "scripting",
+              "userScripts"
+            ]
+          },
+          "documentId": "E183C5141B0965EC5458A4A6B01CC91A",
+          "tabId": 1649397433,
+          "nativeInstall": {
+            "grantIncarnation": "2dac6050-0cfc-4cce-96e4-98f5086f9ebf",
+            "documentId": "E183C5141B0965EC5458A4A6B01CC91A",
+            "installed": true,
+            "files": [
+              "agents/page-relay.js",
+              "framework/sdk-main.js"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SDK-18-METHODS-SHARED-SERVICE-SEMANTICS",
+      "status": "FAIL",
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "The expression evaluated to a falsy value:\n\n  assert((await invoke('APPSTORAGE_GETITEM',{key})).undefinedResult)\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert((await invoke('APPSTORAGE_GETITEM',{key})).undefinedResult)\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:399:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:155:22)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:387:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:482:20"
+      }
+    },
+    {
+      "id": "BROWSER-SESSION-END-PERSISTENT-SURVIVES-APPLOCAL-EXPIRES",
+      "status": "FAIL",
+      "error": {
+        "message": "Timed out: native exact SDK selection",
+        "stack": "Error: Timed out: native exact SDK selection\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:121:9)\n    at async selectNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:226:21)\n    at async Object.install (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:229:7)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:456:23\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:155:22)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:430:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:482:20"
+      }
+    }
+  ],
+  "sessions": [
+    {
+      "number": 1,
+      "launchMethod": "global Python launcher",
+      "launcher": {
+        "pid": 84884,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "args": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--disable-background-networking",
+          "--remote-debugging-address=127.0.0.1",
+          "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ],
+        "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec/chrome.log",
+        "launcherPid": 84883,
+        "python": "/usr/bin/python3",
+        "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+        "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+        "launcherArgs": [
+          "/Users/shopme/.codex/browser-testing/launch.py",
+          "--executable",
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--report",
+          "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-04T09-07-10.495Z-d3734cc5/production-138/launcher-1.json",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ],
+        "actualMainProcess": "84884 84883 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank",
+        "freshProfileObserved": {
+          "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+          "birthtimeMs": 1791104830763.7776,
+          "previouslyPresent": false,
+          "mode": "0700"
+        },
+        "endpoint": "ws://127.0.0.1:57655/devtools/browser/1704a133-1477-49e8-b929-2f1ba1c7a70f",
+        "restartHelper": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+        "restartHelperSha256": "b99eb58f8e338c4c922b94de3f216066f37aa5304336a48e42777ce50533d529",
+        "actualLauncherArgs": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "/Users/shopme/.codex/browser-testing/launch.py",
+          "--executable",
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--report",
+          "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-04T09-07-10.495Z-d3734cc5/production-138/launcher-1.json",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ]
+      },
+      "pid": 84884,
+      "chromeArgs": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "cdpVersion": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/138.0.7204.183",
+        "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+        "jsVersion": "13.8.258.30"
+      },
+      "nativeProcesses": [
+        {
+          "type": "browser",
+          "id": 84884,
+          "cpuTime": 0.669793
+        },
+        {
+          "type": "renderer",
+          "id": 84901,
+          "cpuTime": 0.059894
+        },
+        {
+          "type": "renderer",
+          "id": 84902,
+          "cpuTime": 0.072105
+        },
+        {
+          "type": "GPU",
+          "id": 84893,
+          "cpuTime": 0.175616
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 84894,
+          "cpuTime": 0.077014
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 84895,
+          "cpuTime": 0.047445
+        },
+        {
+          "type": "mac_notifications.mojom.MacNotificationProvider",
+          "id": 84896,
+          "cpuTime": 0
+        }
+      ],
+      "actualWorker": {
+        "targetId": "DF477DD131F1DE2C62CBCFD4C2A8D56B",
+        "id": "efhcmggbgamacpfhhmooelgdkepdcghh",
+        "manifest": {
+          "action": {
+            "default_title": "打开 OpenDesk Browser"
+          },
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "description": "OpenDesk Browser 浏览器自动化框架。",
+          "incognito": "not_allowed",
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk Browser",
+          "optional_host_permissions": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "optional_permissions": [
+            "cookies",
+            "notifications"
+          ],
+          "permissions": [
+            "storage",
+            "scripting",
+            "activeTab",
+            "downloads",
+            "tabs",
+            "webNavigation",
+            "userScripts"
+          ],
+          "sandbox": {
+            "pages": [
+              "scripting/sandbox/sandbox.html"
+            ]
+          },
+          "version": "0.1.0",
+          "web_accessible_resources": [
+            {
+              "matches": [
+                "http://*/*",
+                "https://*/*"
+              ],
+              "resources": [
+                "framework/sdk-main.js"
+              ]
+            }
+          ]
+        },
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js"
+      },
+      "target": {
+        "targetId": "FBA01967EBB7911A3AAA1AEFE3AAB97C",
+        "tabId": 1649397433,
+        "targetURL": "http://127.0.0.1:57629/target?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&session=1",
+        "decoyId": "3F02C3101FC5413DCEABC93A49EECA12",
+        "decoyURL": "http://127.0.0.1:57629/decoy?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&session=1",
+        "toolId": "39D03C925E83144C2B6D969C5B914EFB"
+      },
+      "documentId": "E183C5141B0965EC5458A4A6B01CC91A",
+      "browserEnded": {
+        "sameProfile": true,
+        "profileDevice": 16777234,
+        "profileInode": 14599531,
+        "previousPidAlive": false,
+        "lifecycle": [
+          {
+            "event": "started",
+            "at": 1791104830.766509,
+            "generation": 1,
+            "pid": 84884,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+            "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791105347.915929,
+            "generation": 1,
+            "pid": 84884,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "returncode": 0,
+            "reason": "native Browser.close"
+          },
+          {
+            "event": "restarted",
+            "at": 1791105347.927447,
+            "generation": 2,
+            "pid": 95901,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "previousPid": 84884,
+            "previousExitCode": 0,
+            "arguments": [
+              "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+              "--use-mock-keychain",
+              "--password-store=basic",
+              "--no-first-run",
+              "--no-default-browser-check",
+              "--disable-background-networking",
+              "--remote-debugging-address=127.0.0.1",
+              "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+              "--remote-debugging-port=0",
+              "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+              "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+              "about:blank"
+            ]
+          }
+        ]
+      },
+      "pidAliveAfterRestart": false,
+      "profileRetainedForRestart": true,
+      "profileRemoved": true,
+      "pidAliveAfterExit": false,
+      "cleanup": {
+        "exit": {
+          "code": 143,
+          "signal": null,
+          "observedEvent": "exit"
+        },
+        "pidAliveAfterExit": false,
+        "profileRemoved": true,
+        "profileState": "path-absent",
+        "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py",
+        "cleanupStatus": "PASS",
+        "lifecycle": [
+          {
+            "event": "started",
+            "at": 1791104830.766509,
+            "generation": 1,
+            "pid": 84884,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+            "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791105347.915929,
+            "generation": 1,
+            "pid": 84884,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "returncode": 0,
+            "reason": "native Browser.close"
+          },
+          {
+            "event": "restarted",
+            "at": 1791105347.927447,
+            "generation": 2,
+            "pid": 95901,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "previousPid": 84884,
+            "previousExitCode": 0,
+            "arguments": [
+              "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+              "--use-mock-keychain",
+              "--password-store=basic",
+              "--no-first-run",
+              "--no-default-browser-check",
+              "--disable-background-networking",
+              "--remote-debugging-address=127.0.0.1",
+              "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+              "--remote-debugging-port=0",
+              "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+              "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+              "about:blank"
+            ]
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791105649.63662,
+            "generation": 2,
+            "pid": 95901,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "returncode": -15,
+            "reason": "launcher stop"
+          }
+        ],
+        "originalErrors": [],
+        "cleanupErrors": [],
+        "residual": [],
+        "attempts": [
+          {
+            "number": 1,
+            "errors": [],
+            "raw": {
+              "stdout": "{\"event\": \"owned-child\", \"pid\": 84884, \"generation\": 1, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n{\"pid\": 84884, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"], \"log\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec/chrome.log\"}\n{\"event\": \"owned-child\", \"pid\": 95901, \"generation\": 2, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n",
+              "stderr": "",
+              "lifecycle": "{\"event\": \"started\", \"at\": 1791104830.766509, \"generation\": 1, \"pid\": 84884, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"profileDevice\": 16777234, \"profileInode\": 14599531, \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}\n{\"event\": \"browser-exited\", \"at\": 1791105347.915929, \"generation\": 1, \"pid\": 84884, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"profileDevice\": 16777234, \"profileInode\": 14599531, \"returncode\": 0, \"reason\": \"native Browser.close\"}\n{\"event\": \"restarted\", \"at\": 1791105347.927447, \"generation\": 2, \"pid\": 95901, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"profileDevice\": 16777234, \"profileInode\": 14599531, \"previousPid\": 84884, \"previousExitCode\": 0, \"arguments\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n{\"event\": \"browser-exited\", \"at\": 1791105649.63662, \"generation\": 2, \"pid\": 95901, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"profileDevice\": 16777234, \"profileInode\": 14599531, \"returncode\": -15, \"reason\": \"launcher stop\"}\n",
+              "adapterCleanup": "{\n  \"event\": \"adapter-cleanup\",\n  \"launcherPid\": 84883,\n  \"status\": \"PASS\",\n  \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n  \"profileIdentity\": [\n    16777234,\n    14599531\n  ],\n  \"profileStatus\": \"removed\",\n  \"children\": [\n    {\n      \"pid\": 84884,\n      \"state\": \"exited\",\n      \"returncode\": 0\n    },\n    {\n      \"pid\": 95901,\n      \"state\": \"exited\",\n      \"returncode\": -15\n    }\n  ],\n  \"residual\": [],\n  \"errors\": [],\n  \"events\": [\n    {\n      \"event\": \"started\",\n      \"at\": 1791104830.766509,\n      \"generation\": 1,\n      \"pid\": 84884,\n      \"launcherPid\": 84883,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 14599531,\n      \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\n      \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"\n    },\n    {\n      \"event\": \"browser-exited\",\n      \"at\": 1791105347.915929,\n      \"generation\": 1,\n      \"pid\": 84884,\n      \"launcherPid\": 84883,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 14599531,\n      \"returncode\": 0,\n      \"reason\": \"native Browser.close\"\n    },\n    {\n      \"event\": \"restarted\",\n      \"at\": 1791105347.927447,\n      \"generation\": 2,\n      \"pid\": 95901,\n      \"launcherPid\": 84883,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 14599531,\n      \"previousPid\": 84884,\n      \"previousExitCode\": 0,\n      \"arguments\": [\n        \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\",\n        \"--use-mock-keychain\",\n        \"--password-store=basic\",\n        \"--no-first-run\",\n        \"--no-default-browser-check\",\n        \"--disable-background-networking\",\n        \"--remote-debugging-address=127.0.0.1\",\n        \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n        \"--remote-debugging-port=0\",\n        \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\",\n        \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\",\n        \"about:blank\"\n      ]\n    },\n    {\n      \"event\": \"browser-exited\",\n      \"at\": 1791105649.63662,\n      \"generation\": 2,\n      \"pid\": 95901,\n      \"launcherPid\": 84883,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 14599531,\n      \"returncode\": -15,\n      \"reason\": \"launcher stop\"\n    }\n  ],\n  \"attempts\": 3\n}\n"
+            },
+            "lifecycle": [
+              {
+                "event": "started",
+                "at": 1791104830.766509,
+                "generation": 1,
+                "pid": 84884,
+                "launcherPid": 84883,
+                "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "profileDevice": 16777234,
+                "profileInode": 14599531,
+                "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+                "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+              },
+              {
+                "event": "browser-exited",
+                "at": 1791105347.915929,
+                "generation": 1,
+                "pid": 84884,
+                "launcherPid": 84883,
+                "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "profileDevice": 16777234,
+                "profileInode": 14599531,
+                "returncode": 0,
+                "reason": "native Browser.close"
+              },
+              {
+                "event": "restarted",
+                "at": 1791105347.927447,
+                "generation": 2,
+                "pid": 95901,
+                "launcherPid": 84883,
+                "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "profileDevice": 16777234,
+                "profileInode": 14599531,
+                "previousPid": 84884,
+                "previousExitCode": 0,
+                "arguments": [
+                  "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+                  "--use-mock-keychain",
+                  "--password-store=basic",
+                  "--no-first-run",
+                  "--no-default-browser-check",
+                  "--disable-background-networking",
+                  "--remote-debugging-address=127.0.0.1",
+                  "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "--remote-debugging-port=0",
+                  "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                  "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                  "about:blank"
+                ]
+              },
+              {
+                "event": "browser-exited",
+                "at": 1791105649.63662,
+                "generation": 2,
+                "pid": 95901,
+                "launcherPid": 84883,
+                "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "profileDevice": 16777234,
+                "profileInode": 14599531,
+                "returncode": -15,
+                "reason": "launcher stop"
+              }
+            ],
+            "adapterCleanup": {
+              "event": "adapter-cleanup",
+              "launcherPid": 84883,
+              "status": "PASS",
+              "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+              "profileIdentity": [
+                16777234,
+                14599531
+              ],
+              "profileStatus": "removed",
+              "children": [
+                {
+                  "pid": 84884,
+                  "state": "exited",
+                  "returncode": 0
+                },
+                {
+                  "pid": 95901,
+                  "state": "exited",
+                  "returncode": -15
+                }
+              ],
+              "residual": [],
+              "errors": [],
+              "events": [
+                {
+                  "event": "started",
+                  "at": 1791104830.766509,
+                  "generation": 1,
+                  "pid": 84884,
+                  "launcherPid": 84883,
+                  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "profileDevice": 16777234,
+                  "profileInode": 14599531,
+                  "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+                  "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+                },
+                {
+                  "event": "browser-exited",
+                  "at": 1791105347.915929,
+                  "generation": 1,
+                  "pid": 84884,
+                  "launcherPid": 84883,
+                  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "profileDevice": 16777234,
+                  "profileInode": 14599531,
+                  "returncode": 0,
+                  "reason": "native Browser.close"
+                },
+                {
+                  "event": "restarted",
+                  "at": 1791105347.927447,
+                  "generation": 2,
+                  "pid": 95901,
+                  "launcherPid": 84883,
+                  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "profileDevice": 16777234,
+                  "profileInode": 14599531,
+                  "previousPid": 84884,
+                  "previousExitCode": 0,
+                  "arguments": [
+                    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+                    "--use-mock-keychain",
+                    "--password-store=basic",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                    "--disable-background-networking",
+                    "--remote-debugging-address=127.0.0.1",
+                    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                    "--remote-debugging-port=0",
+                    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                    "about:blank"
+                  ]
+                },
+                {
+                  "event": "browser-exited",
+                  "at": 1791105649.63662,
+                  "generation": 2,
+                  "pid": 95901,
+                  "launcherPid": 84883,
+                  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "profileDevice": 16777234,
+                  "profileInode": 14599531,
+                  "returncode": -15,
+                  "reason": "launcher stop"
+                }
+              ],
+              "attempts": 3
+            }
+          }
+        ],
+        "candidates": [
+          {
+            "pid": 84884,
+            "state": "exited",
+            "returncode": 0
+          },
+          {
+            "pid": 95901,
+            "state": "exited",
+            "returncode": -15
+          }
+        ]
+      }
+    },
+    {
+      "number": 2,
+      "launchMethod": "global Python launcher",
+      "launcher": {
+        "pid": 95901,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "args": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--disable-background-networking",
+          "--remote-debugging-address=127.0.0.1",
+          "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ],
+        "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec/chrome.log",
+        "launcherPid": 84883,
+        "python": "/usr/bin/python3",
+        "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+        "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+        "launcherArgs": [
+          "/Users/shopme/.codex/browser-testing/launch.py",
+          "--executable",
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--report",
+          "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-04T09-07-10.495Z-d3734cc5/production-138/launcher-1.json",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ],
+        "actualMainProcess": "95901 84883 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank",
+        "freshProfileObserved": {
+          "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+          "birthtimeMs": 1791104830763.7776,
+          "previouslyPresent": false,
+          "mode": "0700"
+        },
+        "endpoint": "ws://127.0.0.1:59448/devtools/browser/c40f6cde-4933-4d65-aa49-54799e190491",
+        "restartHelper": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+        "restartHelperSha256": "b99eb58f8e338c4c922b94de3f216066f37aa5304336a48e42777ce50533d529",
+        "actualLauncherArgs": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "/Users/shopme/.codex/browser-testing/launch.py",
+          "--executable",
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--report",
+          "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-04T09-07-10.495Z-d3734cc5/production-138/launcher-1.json",
+          "--remote-debugging-port=0",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+          "about:blank"
+        ],
+        "previousPid": 84884,
+        "generation": 2,
+        "sameProfile": true,
+        "restartObserved": {
+          "sameProfile": true,
+          "profileDevice": 16777234,
+          "profileInode": 14599531,
+          "previousPidAlive": false,
+          "lifecycle": [
+            {
+              "event": "started",
+              "at": 1791104830.766509,
+              "generation": 1,
+              "pid": 84884,
+              "launcherPid": 84883,
+              "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+              "profileDevice": 16777234,
+              "profileInode": 14599531,
+              "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+              "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+            },
+            {
+              "event": "browser-exited",
+              "at": 1791105347.915929,
+              "generation": 1,
+              "pid": 84884,
+              "launcherPid": 84883,
+              "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+              "profileDevice": 16777234,
+              "profileInode": 14599531,
+              "returncode": 0,
+              "reason": "native Browser.close"
+            },
+            {
+              "event": "restarted",
+              "at": 1791105347.927447,
+              "generation": 2,
+              "pid": 95901,
+              "launcherPid": 84883,
+              "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+              "profileDevice": 16777234,
+              "profileInode": 14599531,
+              "previousPid": 84884,
+              "previousExitCode": 0,
+              "arguments": [
+                "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+                "--use-mock-keychain",
+                "--password-store=basic",
+                "--no-first-run",
+                "--no-default-browser-check",
+                "--disable-background-networking",
+                "--remote-debugging-address=127.0.0.1",
+                "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "--remote-debugging-port=0",
+                "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                "about:blank"
+              ]
+            }
+          ]
+        }
+      },
+      "pid": 95901,
+      "chromeArgs": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "cdpVersion": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/138.0.7204.183",
+        "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+        "jsVersion": "13.8.258.30"
+      },
+      "nativeProcesses": [
+        {
+          "type": "browser",
+          "id": 95901,
+          "cpuTime": 0.480942
+        },
+        {
+          "type": "renderer",
+          "id": 95920,
+          "cpuTime": 0
+        },
+        {
+          "type": "renderer",
+          "id": 95918,
+          "cpuTime": 0.054194
+        },
+        {
+          "type": "renderer",
+          "id": 95919,
+          "cpuTime": 0.061037
+        },
+        {
+          "type": "GPU",
+          "id": 95914,
+          "cpuTime": 0.158164
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 95915,
+          "cpuTime": 0.064166
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 95916,
+          "cpuTime": 0.04607
+        },
+        {
+          "type": "mac_notifications.mojom.MacNotificationProvider",
+          "id": 95917,
+          "cpuTime": 0.068819
+        }
+      ],
+      "actualWorker": {
+        "targetId": "BD9899ADB6AD0BCC6A1431245281E075",
+        "id": "efhcmggbgamacpfhhmooelgdkepdcghh",
+        "manifest": {
+          "action": {
+            "default_title": "打开 OpenDesk Browser"
+          },
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "description": "OpenDesk Browser 浏览器自动化框架。",
+          "incognito": "not_allowed",
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk Browser",
+          "optional_host_permissions": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "optional_permissions": [
+            "cookies",
+            "notifications"
+          ],
+          "permissions": [
+            "storage",
+            "scripting",
+            "activeTab",
+            "downloads",
+            "tabs",
+            "webNavigation",
+            "userScripts"
+          ],
+          "sandbox": {
+            "pages": [
+              "scripting/sandbox/sandbox.html"
+            ]
+          },
+          "version": "0.1.0",
+          "web_accessible_resources": [
+            {
+              "matches": [
+                "http://*/*",
+                "https://*/*"
+              ],
+              "resources": [
+                "framework/sdk-main.js"
+              ]
+            }
+          ]
+        },
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js"
+      },
+      "target": {
+        "targetId": "AE102E8F39BAB1B73629E53BDACD7B62",
+        "tabId": 1649397498,
+        "targetURL": "http://127.0.0.1:57629/target?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&session=2",
+        "decoyId": "35A1B8B1A4A3BE3FC4D47DD3BA64A461",
+        "decoyURL": "http://127.0.0.1:57629/decoy?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&session=2",
+        "toolId": "DF29514C49148085A5520DFA8C3E88D2"
+      },
+      "profileRemoved": true,
+      "pidAliveAfterExit": false,
+      "cleanup": {
+        "exit": {
+          "code": 143,
+          "signal": null,
+          "observedEvent": "exit"
+        },
+        "pidAliveAfterExit": false,
+        "profileRemoved": true,
+        "profileState": "path-absent",
+        "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py",
+        "cleanupStatus": "PASS",
+        "lifecycle": [
+          {
+            "event": "started",
+            "at": 1791104830.766509,
+            "generation": 1,
+            "pid": 84884,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+            "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791105347.915929,
+            "generation": 1,
+            "pid": 84884,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "returncode": 0,
+            "reason": "native Browser.close"
+          },
+          {
+            "event": "restarted",
+            "at": 1791105347.927447,
+            "generation": 2,
+            "pid": 95901,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "previousPid": 84884,
+            "previousExitCode": 0,
+            "arguments": [
+              "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+              "--use-mock-keychain",
+              "--password-store=basic",
+              "--no-first-run",
+              "--no-default-browser-check",
+              "--disable-background-networking",
+              "--remote-debugging-address=127.0.0.1",
+              "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+              "--remote-debugging-port=0",
+              "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+              "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+              "about:blank"
+            ]
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791105649.63662,
+            "generation": 2,
+            "pid": 95901,
+            "launcherPid": 84883,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+            "profileDevice": 16777234,
+            "profileInode": 14599531,
+            "returncode": -15,
+            "reason": "launcher stop"
+          }
+        ],
+        "originalErrors": [],
+        "cleanupErrors": [],
+        "residual": [],
+        "attempts": [
+          {
+            "number": 1,
+            "errors": [],
+            "raw": {
+              "stdout": "{\"event\": \"owned-child\", \"pid\": 84884, \"generation\": 1, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n{\"pid\": 84884, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"], \"log\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec/chrome.log\"}\n{\"event\": \"owned-child\", \"pid\": 95901, \"generation\": 2, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n",
+              "stderr": "",
+              "lifecycle": "{\"event\": \"started\", \"at\": 1791104830.766509, \"generation\": 1, \"pid\": 84884, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"profileDevice\": 16777234, \"profileInode\": 14599531, \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}\n{\"event\": \"browser-exited\", \"at\": 1791105347.915929, \"generation\": 1, \"pid\": 84884, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"profileDevice\": 16777234, \"profileInode\": 14599531, \"returncode\": 0, \"reason\": \"native Browser.close\"}\n{\"event\": \"restarted\", \"at\": 1791105347.927447, \"generation\": 2, \"pid\": 95901, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"profileDevice\": 16777234, \"profileInode\": 14599531, \"previousPid\": 84884, \"previousExitCode\": 0, \"arguments\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n{\"event\": \"browser-exited\", \"at\": 1791105649.63662, \"generation\": 2, \"pid\": 95901, \"launcherPid\": 84883, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\", \"profileDevice\": 16777234, \"profileInode\": 14599531, \"returncode\": -15, \"reason\": \"launcher stop\"}\n",
+              "adapterCleanup": "{\n  \"event\": \"adapter-cleanup\",\n  \"launcherPid\": 84883,\n  \"status\": \"PASS\",\n  \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n  \"profileIdentity\": [\n    16777234,\n    14599531\n  ],\n  \"profileStatus\": \"removed\",\n  \"children\": [\n    {\n      \"pid\": 84884,\n      \"state\": \"exited\",\n      \"returncode\": 0\n    },\n    {\n      \"pid\": 95901,\n      \"state\": \"exited\",\n      \"returncode\": -15\n    }\n  ],\n  \"residual\": [],\n  \"errors\": [],\n  \"events\": [\n    {\n      \"event\": \"started\",\n      \"at\": 1791104830.766509,\n      \"generation\": 1,\n      \"pid\": 84884,\n      \"launcherPid\": 84883,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 14599531,\n      \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\n      \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"\n    },\n    {\n      \"event\": \"browser-exited\",\n      \"at\": 1791105347.915929,\n      \"generation\": 1,\n      \"pid\": 84884,\n      \"launcherPid\": 84883,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 14599531,\n      \"returncode\": 0,\n      \"reason\": \"native Browser.close\"\n    },\n    {\n      \"event\": \"restarted\",\n      \"at\": 1791105347.927447,\n      \"generation\": 2,\n      \"pid\": 95901,\n      \"launcherPid\": 84883,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 14599531,\n      \"previousPid\": 84884,\n      \"previousExitCode\": 0,\n      \"arguments\": [\n        \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\",\n        \"--use-mock-keychain\",\n        \"--password-store=basic\",\n        \"--no-first-run\",\n        \"--no-default-browser-check\",\n        \"--disable-background-networking\",\n        \"--remote-debugging-address=127.0.0.1\",\n        \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n        \"--remote-debugging-port=0\",\n        \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\",\n        \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\",\n        \"about:blank\"\n      ]\n    },\n    {\n      \"event\": \"browser-exited\",\n      \"at\": 1791105649.63662,\n      \"generation\": 2,\n      \"pid\": 95901,\n      \"launcherPid\": 84883,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 14599531,\n      \"returncode\": -15,\n      \"reason\": \"launcher stop\"\n    }\n  ],\n  \"attempts\": 3\n}\n"
+            },
+            "lifecycle": [
+              {
+                "event": "started",
+                "at": 1791104830.766509,
+                "generation": 1,
+                "pid": 84884,
+                "launcherPid": 84883,
+                "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "profileDevice": 16777234,
+                "profileInode": 14599531,
+                "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+                "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+              },
+              {
+                "event": "browser-exited",
+                "at": 1791105347.915929,
+                "generation": 1,
+                "pid": 84884,
+                "launcherPid": 84883,
+                "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "profileDevice": 16777234,
+                "profileInode": 14599531,
+                "returncode": 0,
+                "reason": "native Browser.close"
+              },
+              {
+                "event": "restarted",
+                "at": 1791105347.927447,
+                "generation": 2,
+                "pid": 95901,
+                "launcherPid": 84883,
+                "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "profileDevice": 16777234,
+                "profileInode": 14599531,
+                "previousPid": 84884,
+                "previousExitCode": 0,
+                "arguments": [
+                  "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+                  "--use-mock-keychain",
+                  "--password-store=basic",
+                  "--no-first-run",
+                  "--no-default-browser-check",
+                  "--disable-background-networking",
+                  "--remote-debugging-address=127.0.0.1",
+                  "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "--remote-debugging-port=0",
+                  "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                  "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                  "about:blank"
+                ]
+              },
+              {
+                "event": "browser-exited",
+                "at": 1791105649.63662,
+                "generation": 2,
+                "pid": 95901,
+                "launcherPid": 84883,
+                "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                "profileDevice": 16777234,
+                "profileInode": 14599531,
+                "returncode": -15,
+                "reason": "launcher stop"
+              }
+            ],
+            "adapterCleanup": {
+              "event": "adapter-cleanup",
+              "launcherPid": 84883,
+              "status": "PASS",
+              "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+              "profileIdentity": [
+                16777234,
+                14599531
+              ],
+              "profileStatus": "removed",
+              "children": [
+                {
+                  "pid": 84884,
+                  "state": "exited",
+                  "returncode": 0
+                },
+                {
+                  "pid": 95901,
+                  "state": "exited",
+                  "returncode": -15
+                }
+              ],
+              "residual": [],
+              "errors": [],
+              "events": [
+                {
+                  "event": "started",
+                  "at": 1791104830.766509,
+                  "generation": 1,
+                  "pid": 84884,
+                  "launcherPid": 84883,
+                  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "profileDevice": 16777234,
+                  "profileInode": 14599531,
+                  "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+                  "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+                },
+                {
+                  "event": "browser-exited",
+                  "at": 1791105347.915929,
+                  "generation": 1,
+                  "pid": 84884,
+                  "launcherPid": 84883,
+                  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "profileDevice": 16777234,
+                  "profileInode": 14599531,
+                  "returncode": 0,
+                  "reason": "native Browser.close"
+                },
+                {
+                  "event": "restarted",
+                  "at": 1791105347.927447,
+                  "generation": 2,
+                  "pid": 95901,
+                  "launcherPid": 84883,
+                  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "profileDevice": 16777234,
+                  "profileInode": 14599531,
+                  "previousPid": 84884,
+                  "previousExitCode": 0,
+                  "arguments": [
+                    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+                    "--use-mock-keychain",
+                    "--password-store=basic",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                    "--disable-background-networking",
+                    "--remote-debugging-address=127.0.0.1",
+                    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                    "--remote-debugging-port=0",
+                    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+                    "about:blank"
+                  ]
+                },
+                {
+                  "event": "browser-exited",
+                  "at": 1791105649.63662,
+                  "generation": 2,
+                  "pid": 95901,
+                  "launcherPid": 84883,
+                  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+                  "profileDevice": 16777234,
+                  "profileInode": 14599531,
+                  "returncode": -15,
+                  "reason": "launcher stop"
+                }
+              ],
+              "attempts": 3
+            }
+          }
+        ],
+        "candidates": [
+          {
+            "pid": 84884,
+            "state": "exited",
+            "returncode": 0
+          },
+          {
+            "pid": 95901,
+            "state": "exited",
+            "returncode": -15
+          }
+        ]
+      }
+    }
+  ],
+  "origin": "http://127.0.0.1:57629",
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+  "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "boundary": "Targeted native independent SDK through current product UI and broker; not full B05/F3/603 acceptance",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyl0foec",
+  "completeVersion": "Chrome/138.0.7204.183",
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "profileRemoved": true,
+  "packageAfter": {
+    "files": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 1110,
+        "sha256": "f8c376a6080e713b7e0043872d5f19ae7e822443cebe908dd03f9600e4de09fe"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 998,
+        "sha256": "98069ba8787f41e70b5610437b097512e0bc06dee8721981a6fa31bb70a9238a"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 53508,
+        "sha256": "c11f0e99519b967f1f316528f58e2ca51f1466d141013e099940544465ae9938"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 14018,
+        "sha256": "1115c81994a2cc577a510fd5e8f53de58599aa793d156e73fa575625b0167eef"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 565,
+        "sha256": "8cb86b8176c4b5824b9951e6190b37e2ef177be2c1574b3f50e4792bf65ef74c"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 24731,
+        "sha256": "458d4d6929031c63ea02090cbcbb1e812062b46e887565a8117d3cc129a0c2a0"
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 946,
+        "sha256": "97c9d8bc15ccec14cdcf72e0ecf0cb5d25a3f3c766922b657b1efdf5e0d8215a"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 15863,
+        "sha256": "2912ccd4c3fd37f917445eab47dc27ed46d364bdce24fc928e12438f140caa02"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 4176,
+        "sha256": "c09f6b83c5a91809a52b85815f2e748108d07878c23eeb61ba0e8d023405a256"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 21109,
+        "sha256": "1fde9f4388f6c4fdbe34fccec5f1ac3b57d8b80b83b9cd48a9a7eebc4b01b334"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 255590,
+        "sha256": "652b7f62d75c6cac38baac6f2cfc69c07340bb1149068b0b7b7d14241da06c0d"
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 1326,
+        "sha256": "6cc4f15df5945aa9ed0af7b21e5db611828bb64fb8496e06a4654f7697327401"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 52898,
+        "sha256": "5deb9c446c7e2e4ef52303911933d52a42d2c6c6679d93d09865916f988551f4"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 4962,
+        "sha256": "13f9b283cffe72161ef24bc40b32c6c75fd8b9ee5be078735ac924384d1f0be2"
+      }
+    ],
+    "packageHash": "99d6d07876c765701b4b2f4ee1470bc859588173151dc0f043f1bb9bdbafacbd",
+    "algorithm": "SHA256 UTF-8 JSON.stringify(path-sorted {path,bytes,sha256} array)"
+  },
+  "packageDrift": false,
+  "summary": {
+    "PASS": 15,
+    "FAIL": 2,
+    "BLOCKED": 0,
+    "NOT_TESTED": 0
+  }
+}

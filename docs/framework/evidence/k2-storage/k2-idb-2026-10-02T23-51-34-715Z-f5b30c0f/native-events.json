@@ -1,0 +1,688 @@
+[
+  {
+    "type": "open",
+    "at": 57.59999990463257,
+    "id": 0,
+    "name": "opendesk-browser",
+    "requestedVersion": 1
+  },
+  {
+    "type": "upgradeneeded",
+    "at": 60.80000019073486,
+    "id": 0,
+    "oldVersion": 0,
+    "newVersion": 1,
+    "isTrusted": true
+  },
+  {
+    "type": "upgrade-complete",
+    "at": 62.80000019073486,
+    "id": 0,
+    "isTrusted": true
+  },
+  {
+    "type": "open-success",
+    "at": 62.80000019073486,
+    "id": 0,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 70.2000002861023,
+    "id": 4,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 70.59999990463257,
+    "id": 4,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 70.80000019073486,
+    "id": 4,
+    "version": 1
+  },
+  {
+    "type": "close",
+    "at": 72.09999990463257,
+    "id": 0,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 72.09999990463257,
+    "id": 8,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 72.5,
+    "id": 8,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 74,
+    "id": 8,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 74,
+    "id": 11,
+    "name": "opendesk-browser",
+    "requestedVersion": 2
+  },
+  {
+    "type": "upgradeneeded",
+    "at": 74.2000002861023,
+    "id": 11,
+    "oldVersion": 1,
+    "newVersion": 2,
+    "isTrusted": true
+  },
+  {
+    "type": "fault-injection",
+    "at": 74.2000002861023,
+    "id": 11,
+    "action": "native createObjectStore then actual versionchange transaction.abort",
+    "temporaryStores": [
+      "@k2-abort-marker",
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ]
+  },
+  {
+    "type": "upgrade-abort",
+    "at": 74.40000009536743,
+    "id": 11,
+    "isTrusted": true
+  },
+  {
+    "type": "open-error",
+    "at": 74.40000009536743,
+    "id": 11,
+    "error": {
+      "name": "AbortError",
+      "code": 20,
+      "message": "Version change transaction was aborted in upgradeneeded event handler."
+    },
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 74.40000009536743,
+    "id": 16,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 74.5,
+    "id": 16,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 76,
+    "id": 18,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 76,
+    "id": 18,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 76.2000002861023,
+    "id": 18,
+    "version": 1
+  },
+  {
+    "type": "close",
+    "at": 76.2000002861023,
+    "id": 16,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 76.2000002861023,
+    "id": 22,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 76.30000019073486,
+    "id": 22,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 76.30000019073486,
+    "id": 24,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 76.40000009536743,
+    "id": 24,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 77.59999990463257,
+    "id": 24,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 77.7000002861023,
+    "id": 27,
+    "name": "opendesk-browser",
+    "requestedVersion": 2
+  },
+  {
+    "type": "blocker-kept-open",
+    "at": 77.80000019073486,
+    "oldVersion": 1,
+    "newVersion": 2,
+    "isTrusted": true
+  },
+  {
+    "type": "blocked",
+    "at": 77.80000019073486,
+    "id": 27,
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 77.90000009536743,
+    "id": 22,
+    "version": 1
+  },
+  {
+    "type": "upgradeneeded",
+    "at": 78,
+    "id": 27,
+    "oldVersion": 1,
+    "newVersion": 2,
+    "isTrusted": true
+  },
+  {
+    "type": "upgrade-abort",
+    "at": 78.09999990463257,
+    "id": 27,
+    "isTrusted": true
+  },
+  {
+    "type": "open-error",
+    "at": 78.09999990463257,
+    "id": 27,
+    "error": {
+      "name": "AbortError",
+      "code": 20,
+      "message": "Version change transaction was aborted in upgradeneeded event handler."
+    },
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 90.2000002861023,
+    "id": 34,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 90.30000019073486,
+    "id": 34,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 91.7000002861023,
+    "id": 36,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 91.80000019073486,
+    "id": 36,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 91.90000009536743,
+    "id": 36,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 91.90000009536743,
+    "id": 39,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 91.90000009536743,
+    "id": 39,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 92.09999990463257,
+    "id": 39,
+    "version": 1
+  },
+  {
+    "type": "close",
+    "at": 92.09999990463257,
+    "id": 34,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 92.2000002861023,
+    "id": 43,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 92.30000019073486,
+    "id": 43,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 92.30000019073486,
+    "id": 45,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 92.30000019073486,
+    "id": 45,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "competing-write-committed",
+    "at": 93.5
+  },
+  {
+    "type": "close",
+    "at": 93.5,
+    "id": 43,
+    "version": 1
+  },
+  {
+    "type": "close",
+    "at": 93.90000009536743,
+    "id": 45,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 93.90000009536743,
+    "id": 50,
+    "name": "opendesk-browser",
+    "requestedVersion": 2
+  },
+  {
+    "type": "upgradeneeded",
+    "at": 94,
+    "id": 50,
+    "oldVersion": 1,
+    "newVersion": 2,
+    "isTrusted": true
+  },
+  {
+    "type": "upgrade-abort",
+    "at": 95,
+    "id": 50,
+    "isTrusted": true
+  },
+  {
+    "type": "open-error",
+    "at": 95,
+    "id": 50,
+    "error": {
+      "name": "AbortError",
+      "code": 20,
+      "message": "Version change transaction was aborted in upgradeneeded event handler."
+    },
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 95,
+    "id": 54,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 95.2000002861023,
+    "id": 54,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 96.80000019073486,
+    "id": 54,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 96.80000019073486,
+    "id": 57,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 96.90000009536743,
+    "id": 57,
+    "version": 1,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "pageSnapshots",
+      "records",
+      "runs",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 98.40000009536743,
+    "id": 57,
+    "version": 1
+  },
+  {
+    "type": "open",
+    "at": 98.40000009536743,
+    "id": 60,
+    "name": "opendesk-browser",
+    "requestedVersion": 2
+  },
+  {
+    "type": "upgradeneeded",
+    "at": 98.59999990463257,
+    "id": 60,
+    "oldVersion": 1,
+    "newVersion": 2,
+    "isTrusted": true
+  },
+  {
+    "type": "upgrade-complete",
+    "at": 101.2000002861023,
+    "id": 60,
+    "isTrusted": true
+  },
+  {
+    "type": "open-success",
+    "at": 101.30000019073486,
+    "id": 60,
+    "version": 2,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "frameworkKV",
+      "pageSnapshots",
+      "records",
+      "results",
+      "runs",
+      "scriptHeads",
+      "scriptRevisions",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "open",
+    "at": 102.90000009536743,
+    "id": 64,
+    "name": "opendesk-browser",
+    "requestedVersion": null
+  },
+  {
+    "type": "open-success",
+    "at": 103.09999990463257,
+    "id": 64,
+    "version": 2,
+    "stores": [
+      "artifacts",
+      "batches",
+      "commandJournal",
+      "downloadReceipts",
+      "entitlements",
+      "exportJobs",
+      "frameworkKV",
+      "pageSnapshots",
+      "records",
+      "results",
+      "runs",
+      "scriptHeads",
+      "scriptRevisions",
+      "templates"
+    ],
+    "isTrusted": true
+  },
+  {
+    "type": "close",
+    "at": 103.2000002861023,
+    "id": 64,
+    "version": 2
+  },
+  {
+    "type": "close",
+    "at": 129.5,
+    "id": 60,
+    "version": 2
+  },
+  {
+    "type": "close",
+    "at": 129.5,
+    "id": 43,
+    "version": 1
+  }
+]

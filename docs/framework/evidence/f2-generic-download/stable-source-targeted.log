@@ -1,0 +1,748 @@
+TAP version 13
+# Subtest: prepare pins a watermark and persists byte hash; external descriptors satisfy frozen schema
+ok 1 - prepare pins a watermark and persists byte hash; external descriptors satisfy frozen schema
+  ---
+  duration_ms: 64.832625
+  type: 'test'
+  ...
+# Subtest: partial export requires confirmation; request IDs bind immutable intent
+ok 2 - partial export requires confirmation; request IDs bind immutable intent
+  ---
+  duration_ms: 1.402208
+  type: 'test'
+  ...
+# Subtest: host registration mismatch and tombstones reject creation/dispatch
+ok 3 - host registration mismatch and tombstones reject creation/dispatch
+  ---
+  duration_ms: 3.897209
+  type: 'test'
+  ...
+# Subtest: double dispatch and reconstructed service invoke Chrome at most once
+ok 4 - double dispatch and reconstructed service invoke Chrome at most once
+  ---
+  duration_ms: 9.065833
+  type: 'test'
+  ...
+# Subtest: ACK-gap after durable dispatch does not replay and becomes mapping_unknown
+ok 5 - ACK-gap after durable dispatch does not replay and becomes mapping_unknown
+  ---
+  duration_ms: 2.328708
+  type: 'test'
+  ...
+# Subtest: short dispatch ACK does not wait for callback and cannot be resubmitted
+ok 6 - short dispatch ACK does not wait for callback and cannot be resubmitted
+  ---
+  duration_ms: 0.8865
+  type: 'test'
+  ...
+# Subtest: onCreated/search deduplicates an ID and started is not delivery complete
+ok 7 - onCreated/search deduplicates an ID and started is not delivery complete
+  ---
+  duration_ms: 4.349666
+  type: 'test'
+  ...
+# Subtest: multiple full-identity candidates conflict and never redownload
+ok 8 - multiple full-identity candidates conflict and never redownload
+  ---
+  duration_ms: 2.71175
+  type: 'test'
+  ...
+# Subtest: known callback ID is authoritative; another candidate conflicts rather than replacing it
+ok 9 - known callback ID is authoritative; another candidate conflicts rather than replacing it
+  ---
+  duration_ms: 3.46875
+  type: 'test'
+  ...
+# Subtest: wrong URL/extension/time and missing fields never bind by filename
+ok 10 - wrong URL/extension/time and missing fields never bind by filename
+  ---
+  duration_ms: 2.307625
+  type: 'test'
+  ...
+# Subtest: clock rollback cannot bind unique-looking mapping evidence
+ok 11 - clock rollback cannot bind unique-looking mapping evidence
+  ---
+  duration_ms: 1.97425
+  type: 'test'
+  ...
+# Subtest: onChanged complete must be confirmed by ID search; interrupted keeps Chrome reason
+ok 12 - onChanged complete must be confirmed by ID search; interrupted keeps Chrome reason
+  ---
+  duration_ms: 1.679333
+  type: 'test'
+  ...
+# Subtest: 10-minute timeout is unknown; late complete resolves only its original job
+ok 13 - 10-minute timeout is unknown; late complete resolves only its original job
+  ---
+  duration_ms: 11.3025
+  type: 'test'
+  ...
+# Subtest: retry freezes old prepared submission; duplicate retry returns same new job
+ok 14 - retry freezes old prepared submission; duplicate retry returns same new job
+  ---
+  duration_ms: 3.967625
+  type: 'test'
+  ...
+# Subtest: multi-volume aggregate waits for every volume and releases pin only when all are releasable
+ok 15 - multi-volume aggregate waits for every volume and releases pin only when all are releasable
+  ---
+  duration_ms: 3.129708
+  type: 'test'
+  ...
+# Subtest: single abandoned volume causes delivery_failed; late evidence cannot revive it
+ok 16 - single abandoned volume causes delivery_failed; late evidence cannot revive it
+  ---
+  duration_ms: 1.963625
+  type: 'test'
+  ...
+# Subtest: explicit job abandon and run tombstone retain late audit without resurrecting projection
+ok 17 - explicit job abandon and run tombstone retain late audit without resurrecting projection
+  ---
+  duration_ms: 2.257042
+  type: 'test'
+  ...
+# Subtest: lost callback can recover via unique full URL; finite mapping search throttles repeated observations
+ok 18 - lost callback can recover via unique full URL; finite mapping search throttles repeated observations
+  ---
+  duration_ms: 1.8085
+  type: 'test'
+  ...
+# Subtest: URL revoke waits for complete/interrupted/abandon or deadline and respects local reader pins
+ok 19 - URL revoke waits for complete/interrupted/abandon or deadline and respects local reader pins
+  ---
+  duration_ms: 1.358541
+  type: 'test'
+  ...
+# Subtest: deadline URL release preserves metadata and completion evidence after host resources disappear
+ok 20 - deadline URL release preserves metadata and completion evidence after host resources disappear
+  ---
+  duration_ms: 1.323709
+  type: 'test'
+  ...
+# Subtest: attach is idempotent; restart pending reconciliation never dispatches
+ok 21 - attach is idempotent; restart pending reconciliation never dispatches
+  ---
+  duration_ms: 1.315834
+  type: 'test'
+  ...
+# Subtest: top-level broker handlers work without attach and confirm changed state through search
+ok 22 - top-level broker handlers work without attach and confirm changed state through search
+  ---
+  duration_ms: 1.158875
+  type: 'test'
+  ...
+# Subtest: callback-only Chrome API persists authoritative ID and handles runtime.lastError as unknown
+ok 23 - callback-only Chrome API persists authoritative ID and handles runtime.lastError as unknown
+  ---
+  duration_ms: 3.582667
+  type: 'test'
+  ...
+# Subtest: conflict retains its Blob through deadline; pending audits stop after the deadline bound
+ok 24 - conflict retains its Blob through deadline; pending audits stop after the deadline bound
+  ---
+  duration_ms: 3.659084
+  type: 'test'
+  ...
+# Subtest: deletion hook requires retirement proof and releases compatible storage reader pins before tombstone
+ok 25 - deletion hook requires retirement proof and releases compatible storage reader pins before tombstone
+  ---
+  duration_ms: 0.896292
+  type: 'test'
+  ...
+# Subtest: shared repository reads through export pin and deletes descriptor/chunk rows only after fence and abandonment
+ok 26 - shared repository reads through export pin and deletes descriptor/chunk rows only after fence and abandonment
+  ---
+  duration_ms: 5.370792
+  type: 'test'
+  ...
+# Subtest: schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+ok 27 - schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+  ---
+  duration_ms: 7.878125
+  type: 'test'
+  ...
+# Subtest: no native IDB in Node is reported as unavailable; storage entry exports factory
+ok 28 - no native IDB in Node is reported as unavailable; storage entry exports factory
+  ---
+  duration_ms: 0.503042
+  type: 'test'
+  ...
+# Subtest: immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+ok 29 - immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+  ---
+  duration_ms: 23.923875
+  type: 'test'
+  ...
+# Subtest: template admission hook uses same transaction and cannot overwrite immutable revision
+ok 30 - template admission hook uses same transaction and cannot overwrite immutable revision
+  ---
+  duration_ms: 10.189667
+  type: 'test'
+  ...
+# Subtest: beginPage permits preparing run, reserves exact command key and idempotently reACKs
+ok 31 - beginPage permits preparing run, reserves exact command key and idempotently reACKs
+  ---
+  duration_ms: 4.635084
+  type: 'test'
+  ...
+# Subtest: stage rejects undispatched reservation and atomically aborts open snapshot
+ok 32 - stage rejects undispatched reservation and atomically aborts open snapshot
+  ---
+  duration_ms: 10.481708
+  type: 'test'
+  ...
+# Subtest: three batches: first two durable ACKs, third exact-byte failure hides whole page
+ok 33 - three batches: first two durable ACKs, third exact-byte failure hides whole page
+  ---
+  duration_ms: 17.501208
+  type: 'test'
+  ...
+# Subtest: exact staged duplicate does not add bytes; conflicting valid digest aborts page
+ok 34 - exact staged duplicate does not add bytes; conflicting valid digest aborts page
+  ---
+  duration_ms: 107.793458
+  type: 'test'
+  ...
+# Subtest: host/epoch/target mismatch is rejected without aborting rightful open page
+ok 35 - host/epoch/target mismatch is rejected without aborting rightful open page
+  ---
+  duration_ms: 25.449792
+  type: 'test'
+  ...
+# Subtest: admission cannot bypass transaction reread of cancellation
+ok 36 - admission cannot bypass transaction reread of cancellation
+  ---
+  duration_ms: 9.905417
+  type: 'test'
+  ...
+# Subtest: stage may acknowledge authenticated raw frames before end; seal requires complete end
+ok 37 - stage may acknowledge authenticated raw frames before end; seal requires complete end
+  ---
+  duration_ms: 53.793
+  type: 'test'
+  ...
+# Subtest: seal recomputes all six rows; prefix-only signature fails
+ok 38 - seal recomputes all six rows; prefix-only signature fails
+  ---
+  duration_ms: 53.543667
+  type: 'test'
+  ...
+# Subtest: batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+ok 39 - batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+  ---
+  duration_ms: 108.898666
+  type: 'test'
+  ...
+# Subtest: stop wins before seal; seal wins before stop and preserves historic original ACK
+ok 40 - stop wins before seal; seal wins before stop and preserves historic original ACK
+  ---
+  duration_ms: 119.397792
+  type: 'test'
+  ...
+# Subtest: run revision and authenticated host registration cannot be bypassed
+ok 41 - run revision and authenticated host registration cannot be bypassed
+  ---
+  duration_ms: 15.036958
+  type: 'test'
+  ...
+# Subtest: reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+ok 42 - reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+  ---
+  duration_ms: 36.727333
+  type: 'test'
+  ...
+# Subtest: zero-batch empty page requires authenticated allowed-empty proof
+ok 43 - zero-batch empty page requires authenticated allowed-empty proof
+  ---
+  duration_ms: 11.281833
+  type: 'test'
+  ...
+# Subtest: repeated full page signature without end is rejected and left invisible
+ok 44 - repeated full page signature without end is rejected and left invisible
+  ---
+  duration_ms: 22.704292
+  type: 'test'
+  ...
+# Subtest: whole-page run limits, two pending ACKs, profile budget and injected disk quota
+ok 45 - whole-page run limits, two pending ACKs, profile budget and injected disk quota
+  ---
+  duration_ms: 194.6925
+  type: 'test'
+  ...
+# Subtest: delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+ok 46 - delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+  ---
+  duration_ms: 84.790459
+  type: 'test'
+  ...
+# Subtest: retention defaults seven days, preserves active runs and raw migration duplicates
+ok 47 - retention defaults seven days, preserves active runs and raw migration duplicates
+  ---
+  duration_ms: 18.12775
+  type: 'test'
+  ...
+# Subtest: shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS
+ok 48 - shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS
+  ---
+  duration_ms: 21.59225
+  type: 'test'
+  ...
+# Subtest: Chrome JSON hop retains undefined, falsy values, nested presence and business PageBrigeCode
+ok 49 - Chrome JSON hop retains undefined, falsy values, nested presence and business PageBrigeCode
+  ---
+  duration_ms: 6.243292
+  type: 'test'
+  ...
+# Subtest: outcome protocol separates actual errors from all user business objects
+ok 50 - outcome protocol separates actual errors from all user business objects
+  ---
+  duration_ms: 0.569458
+  type: 'test'
+  ...
+# Subtest: encoder rejects unsupported values, cycles and getters without evaluating a getter
+ok 51 - encoder rejects unsupported values, cycles and getters without evaluating a getter
+  ---
+  duration_ms: 17.731792
+  type: 'test'
+  ...
+# Subtest: decoder rejects forged tags, duplicate fields and byte limits; prototype names remain inert data
+ok 52 - decoder rejects forged tags, duplicate fields and byte limits; prototype names remain inert data
+  ---
+  duration_ms: 0.404375
+  type: 'test'
+  ...
+# Subtest: typed canonical input is stable across key order and distinguishes missing from undefined
+ok 53 - typed canonical input is stable across key order and distinguishes missing from undefined
+  ---
+  duration_ms: 0.150875
+  type: 'test'
+  ...
+# Subtest: Base64 string API preserves UTF-8 and rejects malformed Base64 and UTF-8
+ok 54 - Base64 string API preserves UTF-8 and rejects malformed Base64 and UTF-8
+  ---
+  duration_ms: 0.46775
+  type: 'test'
+  ...
+# Subtest: generic APIs prepare committed typed values without templates, Blob creation or native dispatch
+ok 55 - generic APIs prepare committed typed values without templates, Blob creation or native dispatch
+  ---
+  duration_ms: 71.560125
+  type: 'test'
+  ...
+# Subtest: generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle
+ok 56 - generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle
+  ---
+  duration_ms: 129.764834
+  type: 'test'
+  ...
+# Subtest: generic preparation rejects forged namespace, wrong result/principal/current host session and actual sender before writing
+ok 57 - generic preparation rejects forged namespace, wrong result/principal/current host session and actual sender before writing
+  ---
+  duration_ms: 40.045917
+  type: 'test'
+  ...
+# Subtest: generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes
+ok 58 - generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes
+  ---
+  duration_ms: 68.269875
+  type: 'test'
+  ...
+# Subtest: generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks
+ok 59 - generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks
+  ---
+  duration_ms: 1758.263458
+  type: 'test'
+  ...
+# Subtest: generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs
+ok 60 - generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs
+  ---
+  duration_ms: 10.103542
+  type: 'test'
+  ...
+# Subtest: generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified
+ok 61 - generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified
+  ---
+  duration_ms: 8.724833
+  type: 'test'
+  ...
+# Subtest: generic current-document registration is rechecked inside attempt, read and dispatch transactions
+ok 62 - generic current-document registration is rechecked inside attempt, read and dispatch transactions
+  ---
+  duration_ms: 64.018542
+  type: 'test'
+  ...
+# Subtest: generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion
+ok 63 - generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion
+  ---
+  duration_ms: 5.596208
+  type: 'test'
+  ...
+# Subtest: generic missing issued namespace/principal fails closed and never derives authority from payload
+ok 64 - generic missing issued namespace/principal fails closed and never derives authority from payload
+  ---
+  duration_ms: 2.927667
+  type: 'test'
+  ...
+# Subtest: generic unsuccessful/missing wire results and legacy template entry points cannot manufacture artifacts
+ok 65 - generic unsuccessful/missing wire results and legacy template entry points cannot manufacture artifacts
+  ---
+  duration_ms: 19.241958
+  type: 'test'
+  ...
+# Subtest: generic immutable result and artifact chunks are rechecked before attempt transaction commits
+ok 66 - generic immutable result and artifact chunks are rechecked before attempt transaction commits
+  ---
+  duration_ms: 248.887416
+  type: 'test'
+  ...
+# Subtest: generic onCreated is not completion; wrong native identity and callback/search conflicts cannot certify delivery
+ok 67 - generic onCreated is not completion; wrong native identity and callback/search conflicts cannot certify delivery
+  ---
+  duration_ms: 245.068167
+  type: 'test'
+  ...
+# Subtest: generic native interruption/runtime.lastError use shared failure/unknown states and never resubmit
+ok 68 - generic native interruption/runtime.lastError use shared failure/unknown states and never resubmit
+  ---
+  duration_ms: 86.110167
+  type: 'test'
+  ...
+# Subtest: generic explicit fresh retry shares job/artifact; late evidence cannot release the new active reader pin
+ok 69 - generic explicit fresh retry shares job/artifact; late evidence cannot release the new active reader pin
+  ---
+  duration_ms: 35.299208
+  type: 'test'
+  ...
+# Subtest: generic later registered document exports stable namespace history without acquiring the old run owner
+ok 70 - generic later registered document exports stable namespace history without acquiring the old run owner
+  ---
+  duration_ms: 14.44975
+  type: 'test'
+  ...
+# Subtest: generic abandonRun fences timed-out retry history so shared repository deletion does not strand old attempts
+ok 71 - generic abandonRun fences timed-out retry history so shared repository deletion does not strand old attempts
+  ---
+  duration_ms: 186.529459
+  type: 'test'
+  ...
+# Subtest: generic public reconcile uses actual sender; internal Chrome callback reconciliation survives owning host revocation
+ok 72 - generic public reconcile uses actual sender; internal Chrome callback reconciliation survives owning host revocation
+  ---
+  duration_ms: 16.307167
+  type: 'test'
+  ...
+# Subtest: generic completed immutable history exports after real new-session registration without replaying or adopting old download intents
+ok 73 - generic completed immutable history exports after real new-session registration without replaying or adopting old download intents
+  ---
+  duration_ms: 25.3015
+  type: 'test'
+  ...
+# Subtest: generic cross-session history rejects foreign namespaces, tampered principals, nonterminal runs and current-host session loss
+ok 74 - generic cross-session history rejects foreign namespaces, tampered principals, nonterminal runs and current-host session loss
+  ---
+  duration_ms: 227.379459
+  type: 'test'
+  ...
+# Subtest: typed depth 4: params, operation args and immutable result survive wider JSON envelopes
+not ok 75 - typed depth 4: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 110.419708
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: typed depth 5: params, operation args and immutable result survive wider JSON envelopes
+not ok 76 - typed depth 5: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 17.828333
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: typed depth 6: params, operation args and immutable result survive wider JSON envelopes
+not ok 77 - typed depth 6: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 11.760459
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: typed depth 7: params, operation args and immutable result survive wider JSON envelopes
+not ok 78 - typed depth 7: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 15.117292
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: typed depth 8: params, operation args and immutable result survive wider JSON envelopes
+not ok 79 - typed depth 8: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 14.483334
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: typed depth 9: params, operation args and immutable result survive wider JSON envelopes
+not ok 80 - typed depth 9: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 10.727542
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: typed depth 10: params, operation args and immutable result survive wider JSON envelopes
+not ok 81 - typed depth 10: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 12.591959
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: typed depth 11: params, operation args and immutable result survive wider JSON envelopes
+not ok 82 - typed depth 11: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 10.852791
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: typed depth 12: params, operation args and immutable result survive wider JSON envelopes
+not ok 83 - typed depth 12: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 15.325875
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:81:44'
+  failureType: 'testCodeFailure'
+  error: 'Invalid wire shape'
+  code: 'E_RESULT_FORMAT'
+  name: 'PageError'
+  stack: |-
+    fail (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:23:31)
+    inspectWire (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:57:86)
+    decode (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:105:7)
+    decodeValue (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js:144:20)
+    readPageEvaluationResult (file:///Users/shopme/Documents/workspace/opendesk-browser/src/scripting/user-scripts/page-evaluator.js:65:10)
+    userScript (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:158:14)
+    async Object.execute (file:///Users/shopme/Documents/workspace/opendesk-browser/src/framework/control/native-driver.js:455:49)
+    async perform (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:372:23)
+    async Object.controllerOperation (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js:338:18)
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:95:15)
+  ...
+# Subtest: JSON envelope depth 48 never widens the typed depth-12 admission/result/args budgets
+ok 84 - JSON envelope depth 48 never widens the typed depth-12 admission/result/args budgets
+  ---
+  duration_ms: 5.536042
+  type: 'test'
+  ...
+# Subtest: controller script deletion is CAS tombstone only; GC waits for terminal, Worker and target retirement
+ok 85 - controller script deletion is CAS tombstone only; GC waits for terminal, Worker and target retirement
+  ---
+  duration_ms: 222.879667
+  type: 'test'
+  ...
+# Subtest: each controller lease pin binding is required; forged retired lease cannot authorize GC
+ok 86 - each controller lease pin binding is required; forged retired lease cannot authorize GC
+  ---
+  duration_ms: 12.810375
+  type: 'test'
+  ...
+# Subtest: recovery upgrades old terminal lease bindings without reviving its result, Worker or slot
+ok 87 - recovery upgrades old terminal lease bindings without reviving its result, Worker or slot
+  ---
+  duration_ms: 6.329042
+  type: 'test'
+  ...
+# Subtest: public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates
+ok 88 - public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates
+  ---
+  duration_ms: 5.893125
+  type: 'test'
+  ...
+# Subtest: borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does
+ok 89 - borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does
+  ---
+  duration_ms: 17.909875
+  type: 'test'
+  ...
+# Subtest: worker retirement gates durable result then borrowed release, without closing borrowed tab
+ok 90 - worker retirement gates durable result then borrowed release, without closing borrowed tab
+  ---
+  duration_ms: 5.372417
+  type: 'test'
+  ...
+# Subtest: owned retirement closes only exact created tab after durable terminal commit
+ok 91 - owned retirement closes only exact created tab after durable terminal commit
+  ---
+  duration_ms: 8.474375
+  type: 'test'
+  ...
+# Subtest: new registered host reads old namespace result without acquiring its owner or replaying
+ok 92 - new registered host reads old namespace result without acquiring its owner or replaying
+  ---
+  duration_ms: 4.194042
+  type: 'test'
+  ...
+# Subtest: permission removal matches exact origin patterns and remains fenced after regrant
+ok 93 - permission removal matches exact origin patterns and remains fenced after regrant
+  ---
+  duration_ms: 7.188458
+  type: 'test'
+  ...
+# Subtest: native receipt survives post-dispatch permission loss; request is never resubmitted
+ok 94 - native receipt survives post-dispatch permission loss; request is never resubmitted
+  ---
+  duration_ms: 4.772083
+  type: 'test'
+  ...
+# Subtest: public recovery pauses controller, holds slot and never replays committed source
+ok 95 - public recovery pauses controller, holds slot and never replays committed source
+  ---
+  duration_ms: 3.820791
+  type: 'test'
+  ...
+# Subtest: public hostGone interruption retires borrowed target and exact pin once
+ok 96 - public hostGone interruption retires borrowed target and exact pin once
+  ---
+  duration_ms: 3.599917
+  type: 'test'
+  ...
+# Subtest: hostGone after completed result preserves the immutable result and finishes pending retirement
+ok 97 - hostGone after completed result preserves the immutable result and finishes pending retirement
+  ---
+  duration_ms: 4.379417
+  type: 'test'
+  ...
+# Subtest: SDK short persistent service completes while controller owns the same unique slot
+ok 98 - SDK short persistent service completes while controller owns the same unique slot
+  ---
+  duration_ms: 8.989042
+  type: 'test'
+  ...
+# Subtest: injected foundationClient registers once; forced harnessWorker termination precedes durable result and slot release
+ok 99 - injected foundationClient registers once; forced harnessWorker termination precedes durable result and slot release
+  ---
+  duration_ms: 121.490167
+  type: 'test'
+  ...
+1..99
+# tests 99
+# suites 0
+# pass 90
+# fail 9
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3461.358625

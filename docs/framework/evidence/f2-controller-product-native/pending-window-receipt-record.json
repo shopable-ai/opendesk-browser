@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-03T08:57:59.292676+00:00",
+  "pid": 39076,
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "receiptPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/main-rebuild-receipt.json",
+  "receiptSha256": "1f6e803c1470ecbc869263acee89f486c1879d45a4ca17a8e0e141f35ae00383",
+  "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+  "sourceHash": "1e11e9f512bdd2e53d6e6b0b48a868648edeff16fc7b6ba882f076757b9fbdbe",
+  "nativeExecuted": false,
+  "window": "pending-exclusive-window",
+  "readyPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T08-55-22.609Z-c9aa2cc9/ready.json"
+}

@@ -1,0 +1,125 @@
+{
+  "role": "executor",
+  "finalIndependentAcceptance": false,
+  "timestampUtc": "2026-10-02T23:44:56.016478+00:00",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "nodeVersion": "v24.16.0",
+  "sourceBeforeSha256": {
+    "src/agents/page-agent.js": "d26f1b3531b783ea907f859850c8defe3b4118491fb2ee9c12cd14ecb9d1c966",
+    "src/platform/page-port/index.js": "ca33704b03d7aec838d5fe92f592961c590d6f9d70410d22805d737907f5c691",
+    "tests/foundation/page-port-service.test.mjs": "ff43e117c1430847cc15ddf0e33d7e00c6a25f69eee71e4d7fbc1d8caa663e2f"
+  },
+  "testInputsBeforeSha256": {
+    "src/agents/page-agent.js": "7f0843010e338c5cb86149a21e95254cbdbca2066b49651b5f100679db52a3c6",
+    "src/platform/page-port/index.js": "493118e8fc2a2bfc39fc8328de859fde11936639f1393073348096896ac6e0ca",
+    "tests/foundation/page-port-service.test.mjs": "1223415faf185e4eb7febb9ebad82bb543cc59c749ac246d81337fb1086ceab7",
+    "src/platform/journal.js": "e12202af97beebc45df42d6ec3e52b0c1b549ddd9ed90872eb8eb88ca73c8b67",
+    "src/platform/protocol.js": "02c7d59230649c7c5df6f839335c399a09348a7e0587840883f8b1d4c38d1040",
+    "src/platform/target/index.js": "8f02d2836366496b29efb24e56018d9e12b89eb1ab2006bc60c2ae94650ca29a",
+    "src/platform/storage/idb.js": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672"
+  },
+  "testInputsAfterSha256": {
+    "src/agents/page-agent.js": "7f0843010e338c5cb86149a21e95254cbdbca2066b49651b5f100679db52a3c6",
+    "src/platform/page-port/index.js": "493118e8fc2a2bfc39fc8328de859fde11936639f1393073348096896ac6e0ca",
+    "tests/foundation/page-port-service.test.mjs": "1223415faf185e4eb7febb9ebad82bb543cc59c749ac246d81337fb1086ceab7",
+    "src/platform/journal.js": "e12202af97beebc45df42d6ec3e52b0c1b549ddd9ed90872eb8eb88ca73c8b67",
+    "src/platform/protocol.js": "02c7d59230649c7c5df6f839335c399a09348a7e0587840883f8b1d4c38d1040",
+    "src/platform/target/index.js": "8f02d2836366496b29efb24e56018d9e12b89eb1ab2006bc60c2ae94650ca29a",
+    "src/platform/storage/idb.js": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672"
+  },
+  "ownedInputsStableDuringVerification": true,
+  "sharedInputsStableDuringVerification": true,
+  "oraclePreservation": {
+    "existingTestContentUnchangedAfterOnlyFixtureKeyAndACKIdentityAdaptation": true,
+    "addedRegressionTests": 6
+  },
+  "results": [
+    {
+      "name": "syntax-agent",
+      "command": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node --check src/agents/page-agent.js",
+      "exitCode": 0,
+      "summary": {},
+      "log": "syntax-agent.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "syntax-port",
+      "command": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node --check src/platform/page-port/index.js",
+      "exitCode": 0,
+      "summary": {},
+      "log": "syntax-port.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "syntax-tests",
+      "command": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node --check tests/foundation/page-port-service.test.mjs",
+      "exitCode": 0,
+      "summary": {},
+      "log": "syntax-tests.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "original-ack",
+      "command": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node --test '--test-name-pattern=packaged DOM agent returns short ACK' tests/foundation/page-port-service.test.mjs",
+      "exitCode": 0,
+      "summary": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "original-ack.log",
+      "logSha256": "935696352c60fa7896c111d3daab043dd6429706d4f3df957139f96838b2d80b"
+    },
+    {
+      "name": "page-port",
+      "command": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node --test tests/foundation/page-port-fixtures.test.mjs tests/foundation/page-port-service.test.mjs",
+      "exitCode": 0,
+      "summary": {
+        "tests": 22,
+        "pass": 22,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "page-port.log",
+      "logSha256": "ec418380a22b43da59ec46dce008a95227bb9c1b025c065642e879836f53a4bb"
+    },
+    {
+      "name": "foundation",
+      "command": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node --test tests/foundation/download-service.test.mjs tests/foundation/page-port-fixtures.test.mjs tests/foundation/page-port-service.test.mjs tests/foundation/policy-entitlement.test.mjs tests/foundation/protocol.test.mjs tests/foundation/runtime.test.mjs tests/foundation/storage.test.mjs tests/foundation/target-service.test.mjs",
+      "exitCode": 0,
+      "summary": {
+        "tests": 121,
+        "pass": 121,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "foundation.log",
+      "logSha256": "cb3d18ec6e0bdff39ebfaa71111932f4e5f1ce218d0058193d1b8c591dbecbd0"
+    }
+  ],
+  "changesDiffSha256": "bfe251fb3c1ae064d1af0dd17056fd9122e94b9e91ef84592745939a1628d050",
+  "baseline": {
+    "command": "node --test --test-name-pattern=\"packaged DOM agent returns short ACK\" tests/foundation/page-port-service.test.mjs",
+    "exitCode": 1,
+    "tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "log": "baseline.log",
+    "logSha256": "17dfe2f2065b8e3ed71e8b29a089adf74f124dd4263c06938b2808d32d6b51dd"
+  },
+  "scope": {
+    "ownedFiles": [
+      "src/agents/page-agent.js",
+      "src/platform/page-port/index.js",
+      "tests/foundation/page-port-service.test.mjs"
+    ],
+    "evidenceDirectory": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/k2-page-port/executor-transport-r8-20261002T234002Z"
+  }
+}

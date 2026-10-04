@@ -1,0 +1,23 @@
+{
+  "kind": "fresh-static-and-environment-only",
+  "check": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "syntaxFiles": 32
+  },
+  "environment": {
+    "command": "npm test",
+    "exitCode": 0,
+    "tests": 20,
+    "pass": 20,
+    "fail": 0
+  },
+  "foundation": {
+    "tests": 115,
+    "pass": 98,
+    "fail": 17,
+    "evidence": "baseline-foundation.json"
+  },
+  "aggregate": 135,
+  "productClaims": false
+}

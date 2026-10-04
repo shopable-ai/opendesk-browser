@@ -1,0 +1,49 @@
+{
+  "schema": "wxt.writer-handoff.v1",
+  "at": "2026-10-04T10:02:17.823061+00:00",
+  "fromThread": "01a10590-e67c-7631-8254-0736c469d974",
+  "toThread": "01a10654-4d29-7cc0-8cf3-e491cf07f9bf",
+  "authority": "Human-authored continuation instruction confirmed via read_thread in recipient chat",
+  "writeOwnershipReleased": true,
+  "inFlightOperations": [],
+  "subagentsClosed": true,
+  "productInputsSha256": "a35612438d3362b2d6ffe5d363712b6c9245d44a0246d853b4cf6b8952faa71f",
+  "verificationInputsSha256": "6462f703e8cabe8a2eac8bc385ad13b9434c1cb4e9b28c94c42ea4211cdc8576",
+  "packageHashes": {
+    "production": "99d6d07876c765701b4b2f4ee1470bc859588173151dc0f043f1bb9bdbafacbd",
+    "development": "ea1a596897d713aa861463938cb908f05ad1216695baef9069f6a60e8c51f676"
+  },
+  "zipHashes": {
+    "production": "abe7b4388c7407014c790f0e644eed32b3dc27ca81688d59f33e5e7e23bbdab4",
+    "development": "439f549fc5b432556e6fd8913377aed257b632c97a975769c745738ed0b3e323"
+  },
+  "handoffDocument": "docs/framework/evidence/wxt/p4-p5/handoff-20261004-to-old-features.md",
+  "sdkNativeSummary": {
+    "PASS": 17,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_TESTED": 0
+  },
+  "sdkVerificationInputsSha256": "992d3ccc8f8dc0f3d5039d58e986de6b57c86b87d2f1a7219c66a3dee242f4ee",
+  "b05DiagnosticSummary": {
+    "PASS": 3,
+    "FAIL": 7,
+    "BLOCKED": 0,
+    "NOT_TESTED": 8
+  },
+  "pending": [
+    "Four legacy services and resources",
+    "CP1 structural breakpoint update",
+    "F018 replacement startup observer",
+    "Native B05 rerun",
+    "Full P4 stable candidate27",
+    "Old facade compatibility",
+    "Frozen-contract same-package independent F3"
+  ],
+  "currentB05HarnessEditsNativeReverified": false,
+  "P4P5Completed": false,
+  "original603Closed": false,
+  "P6P7Executed": false,
+  "checkpoint": "docs/framework/evidence/wxt/snapshots/2026-10-04T10-02-18.109Z-P4-serial_writer_handoff_candidate",
+  "publicOwnerReleased": true
+}

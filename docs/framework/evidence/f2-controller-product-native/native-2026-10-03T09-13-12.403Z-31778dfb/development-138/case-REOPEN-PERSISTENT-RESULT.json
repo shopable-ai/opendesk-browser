@@ -1,0 +1,32 @@
+{
+  "id": "REOPEN-PERSISTENT-RESULT",
+  "families": "USC03/CTRL03",
+  "expected": "Closing/reopening actual tool reads original durable outcome without executing old source",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "startedAt": 1791018824023,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:\n\n  assert(original)\n",
+    "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(original)\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:719:57\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:58)\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:718:11)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "ready",
+    "text": "公共运行入口已就绪，请保存脚本并选择目标",
+    "result": "",
+    "version": "尚未保存",
+    "runId": "",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": true,
+    "stopDisabled": true
+  },
+  "elapsedMs": 1.6667080000006536
+}

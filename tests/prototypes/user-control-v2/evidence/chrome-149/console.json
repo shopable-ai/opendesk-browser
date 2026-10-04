@@ -1,0 +1,392 @@
+[
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/c588c58a-94a4-4e93-8b76-2f5a1c27507a' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/c588c58a-94a4-4e93-8b76-2f5a1c27507a' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/c588c58a-94a4-4e93-8b76-2f5a1c27507a. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/f6ebb937-a206-4644-b434-d6cc0668f854' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/f6ebb937-a206-4644-b434-d6cc0668f854' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/f6ebb937-a206-4644-b434-d6cc0668f854. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/b7308da3-dd81-4793-8b0a-542355844b6b' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/b7308da3-dd81-4793-8b0a-542355844b6b' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/b7308da3-dd81-4793-8b0a-542355844b6b. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/c49efeaf-6482-476b-b51b-41f4caed5a79' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/c49efeaf-6482-476b-b51b-41f4caed5a79' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/c49efeaf-6482-476b-b51b-41f4caed5a79. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/157de61b-4a56-4f78-b70d-0ea1f68b06f5' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/157de61b-4a56-4f78-b70d-0ea1f68b06f5' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/157de61b-4a56-4f78-b70d-0ea1f68b06f5. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/c5ba658f-166d-4f64-a2ea-be44499d8f2c' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/c5ba658f-166d-4f64-a2ea-be44499d8f2c' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/c5ba658f-166d-4f64-a2ea-be44499d8f2c. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/e076e21a-8362-4abf-bad6-9f6e22d89770' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/e076e21a-8362-4abf-bad6-9f6e22d89770' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/e076e21a-8362-4abf-bad6-9f6e22d89770. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/bcb033e1-5665-44e0-8e87-767bd0b65fe9' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/bcb033e1-5665-44e0-8e87-767bd0b65fe9' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/bcb033e1-5665-44e0-8e87-767bd0b65fe9. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/1cf06c3a-5cf5-42f6-b2ba-c6d228b83896' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/1cf06c3a-5cf5-42f6-b2ba-c6d228b83896' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/1cf06c3a-5cf5-42f6-b2ba-c6d228b83896. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/f9f4ac89-2a7f-4ffe-aa7c-fc01eaf09058' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/f9f4ac89-2a7f-4ffe-aa7c-fc01eaf09058' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/f9f4ac89-2a7f-4ffe-aa7c-fc01eaf09058. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/83229072-d2f4-4f4a-a365-dc8aabd06d65' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/83229072-d2f4-4f4a-a365-dc8aabd06d65' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/83229072-d2f4-4f4a-a365-dc8aabd06d65. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/3a28d2b6-0890-425e-b6ff-2c44fe2a7664' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/3a28d2b6-0890-425e-b6ff-2c44fe2a7664' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/3a28d2b6-0890-425e-b6ff-2c44fe2a7664. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/fa275164-03f5-4c10-b95c-d0ad038e8465' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/fa275164-03f5-4c10-b95c-d0ad038e8465' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/fa275164-03f5-4c10-b95c-d0ad038e8465. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/30017674-7388-41ae-9397-d0a72818d39f' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/30017674-7388-41ae-9397-d0a72818d39f' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/30017674-7388-41ae-9397-d0a72818d39f. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/7e0ae5b8-fa82-4ef7-81ba-2a49296a6092' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/7e0ae5b8-fa82-4ef7-81ba-2a49296a6092' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/7e0ae5b8-fa82-4ef7-81ba-2a49296a6092. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/f656fe7a-d1e1-4850-bf3d-4043b67e1ec4' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/f656fe7a-d1e1-4850-bf3d-4043b67e1ec4' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/f656fe7a-d1e1-4850-bf3d-4043b67e1ec4. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/378a12d7-9fa2-4f27-a009-eba984640a0c' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/378a12d7-9fa2-4f27-a009-eba984640a0c' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/378a12d7-9fa2-4f27-a009-eba984640a0c. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/5a6e3874-758f-409e-a81b-94850eac2f2d' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/5a6e3874-758f-409e-a81b-94850eac2f2d' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/5a6e3874-758f-409e-a81b-94850eac2f2d. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/1e3ead2b-46ef-4438-824c-627868a3a4f6' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/1e3ead2b-46ef-4438-824c-627868a3a4f6' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/1e3ead2b-46ef-4438-824c-627868a3a4f6. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/1e426094-eeed-403e-b3d7-5851a8d17e0e' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/1e426094-eeed-403e-b3d7-5851a8d17e0e' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/1e426094-eeed-403e-b3d7-5851a8d17e0e. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/1b9f0afd-1da2-4029-9bb8-a4f289b41bbf' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/1b9f0afd-1da2-4029-9bb8-a4f289b41bbf' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/1b9f0afd-1da2-4029-9bb8-a4f289b41bbf. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/053d9515-f2c7-439e-bede-0b90650353e4' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/053d9515-f2c7-439e-bede-0b90650353e4' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/053d9515-f2c7-439e-bede-0b90650353e4. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/c8a4dc92-642d-433e-b005-31fa5e801665' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/c8a4dc92-642d-433e-b005-31fa5e801665' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/c8a4dc92-642d-433e-b005-31fa5e801665. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/d122982f-5ad5-4cb1-9213-2f1a23059ed9' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/d122982f-5ad5-4cb1-9213-2f1a23059ed9' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/d122982f-5ad5-4cb1-9213-2f1a23059ed9. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/fac55c47-1f07-45a5-9a89-df8926185b64' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/fac55c47-1f07-45a5-9a89-df8926185b64' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/fac55c47-1f07-45a5-9a89-df8926185b64. Refused to connect because it violates the document's Content Security Policy."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/4dda9420-8c29-48de-9401-86f5fdfcb970' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Connecting to 'blob:null/4dda9420-8c29-48de-9401-86f5fdfcb970' violates the following Content Security Policy directive: \"connect-src 'none'\". The action has been blocked."
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Fetch API cannot load blob:null/4dda9420-8c29-48de-9401-86f5fdfcb970. Refused to connect because it violates the document's Content Security Policy."
+  }
+]

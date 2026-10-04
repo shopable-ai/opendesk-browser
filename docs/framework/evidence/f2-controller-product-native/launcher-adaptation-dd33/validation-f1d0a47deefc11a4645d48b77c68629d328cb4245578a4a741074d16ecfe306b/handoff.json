@@ -1,0 +1,79 @@
+{
+  "at": "2026-10-03T08:42:39.825886+00:00",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "runnerSha256": "f1d0a47deefc11a4645d48b77c68629d328cb4245578a4a741074d16ecfe306b",
+  "previousRunnerSha256": "dd33ded5d8dc90efbb17342a0d03f59cb4acf7fb0894419b67e4605679d11d77",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "readyPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T08-42-39.704Z-038da317/ready.json",
+  "sourceHash": "27dd3223cb2400cdba5f377f31333262cecc1275aafc5080bba9b3b9f5c8d38e",
+  "packages": {
+    "production": "4fc301a556ea4311e2a36c91c0aaf4bf260c280771a604c0cde34c10efb06152",
+    "development": "e8765b79ed33bf195f47bd8ea826b468839ee0f88525bdb9655d0d18b24cbada"
+  },
+  "packageDrift": {
+    "production": false,
+    "development": false
+  },
+  "sourceDrift": false,
+  "cases": 23,
+  "statusCounts": {
+    "NOT_TESTED": 23
+  },
+  "nativeExecuted": false,
+  "stage": "F2",
+  "f3Accepted": false,
+  "original603Closed": false,
+  "validation": [
+    {
+      "at": "2026-10-03T08:42:39.601180+00:00",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 12590,
+      "args": [
+        "node",
+        "--check",
+        "tests/framework/k5-controller-product-native.mjs"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "runnerSha256": "f1d0a47deefc11a4645d48b77c68629d328cb4245578a4a741074d16ecfe306b",
+      "nativeExecuted": false
+    },
+    {
+      "at": "2026-10-03T08:42:39.825409+00:00",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 12591,
+      "args": [
+        "node",
+        "tests/framework/k5-controller-product-native.mjs",
+        "--contract-check",
+        "--mode=all",
+        "--chrome=all"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 5436,
+      "stderrBytes": 0,
+      "runnerSha256": "f1d0a47deefc11a4645d48b77c68629d328cb4245578a4a741074d16ecfe306b",
+      "nativeExecuted": false
+    }
+  ],
+  "receiptContract": {
+    "readyForControllerNative": true,
+    "runnerSha256": "f1d0a47deefc11a4645d48b77c68629d328cb4245578a4a741074d16ecfe306b",
+    "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+    "sourceHash": "fresh sourceHash from runner --contract-check AFTER rebuild",
+    "packages": {
+      "production": "fresh packageHash",
+      "development": "fresh packageHash"
+    },
+    "executionWindow": {
+      "lane": "controller-product-native",
+      "sdkRunnerIdle": true
+    }
+  },
+  "nativeLaunchBlockedUntil": [
+    "Main stable rebuild receipt",
+    "SDK idle and Main assigned exclusive permission UI window"
+  ],
+  "separatorInLauncherArguments": false
+}

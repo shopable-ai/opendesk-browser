@@ -1,0 +1,447 @@
+{
+  "fixtureVersion": "1.0.0",
+  "id": "confirmed-single-page",
+  "category": "valid-single-page",
+  "status": "planned",
+  "productResult": "not-run",
+  "input": {
+    "legacyBackup": {
+      "path": "single-page/legacy-config.json",
+      "encoding": "utf-8",
+      "byteLength": 201,
+      "sha256": "b7b1d4b617b7ebb8427809199aeee3ef42c6813b3d3b79172492d07afe79913f",
+      "bytesBase64": "ew0KICAiX2xpc3RDb250YWluZXIiOiAiLnJvd3MiLA0KICAibmFtZSI6ICIubmFtZSIsDQogICJuYW1lLXVybCI6ICIubmFtZTo6aHJlZiIsDQogICJjb3VudCI6ICIuY291bnQiLA0KICAiZW5hYmxlZCI6ICIuZW5hYmxlZCIsDQogICJlbXB0eSI6ICIuZW1wdHkiLA0KICAibWlzc2luZyI6ICIubWlzc2luZyIsDQogICJub3RlIjogIi5ub3RlIg0KfQ0K",
+      "text": "{\r\n  \"_listContainer\": \".rows\",\r\n  \"name\": \".name\",\r\n  \"name-url\": \".name::href\",\r\n  \"count\": \".count\",\r\n  \"enabled\": \".enabled\",\r\n  \"empty\": \".empty\",\r\n  \"missing\": \".missing\",\r\n  \"note\": \".note\"\r\n}\r\n"
+    },
+    "legacyParsed": {
+      "_listContainer": ".rows",
+      "name": ".name",
+      "name-url": ".name::href",
+      "count": ".count",
+      "enabled": ".enabled",
+      "empty": ".empty",
+      "missing": ".missing",
+      "note": ".note"
+    },
+    "dom": {
+      "path": "single-page/dom.html",
+      "encoding": "utf-8",
+      "byteLength": 1352,
+      "sha256": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af",
+      "bytesBase64": "PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9InpoIj48aGVhZD48bWV0YSBjaGFyc2V0PSJ1dGYtOCI+PGJhc2UgaHJlZj0iaHR0cHM6Ly9maXh0dXJlLmV4YW1wbGUvY2F0YWxvZy8iPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyIgZGF0YS1maXh0dXJlLXJvdz0iMCI+PGEgY2xhc3M9Im5hbWUiIGhyZWY9IiAuLi9pdGVtLzE/dGFnPeS4reaWhyZhbXA7bj0wICI+IAnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYkKIDwvYT48c3BhbiBjbGFzcz0iY291bnQiPiAwIDwvc3Bhbj48c3BhbiBjbGFzcz0iZW5hYmxlZCI+IGZhbHNlIDwvc3Bhbj48c3BhbiBjbGFzcz0iZW1wdHkiPjwvc3Bhbj48c3BhbiBjbGFzcz0ibm90ZSI+5Lit5paHLCZxdW90O+W8leWPtyZxdW90OwrnrKzkuozooYw8L3NwYW4+PC9hcnRpY2xlPjxhcnRpY2xlIGNsYXNzPSJyb3ciIGRhdGEtZml4dHVyZS1yb3c9IjEiPjxhIGNsYXNzPSJuYW1lIj48L2E+PHNwYW4gY2xhc3M9ImNvdW50Ij4xMi41PC9zcGFuPjxzcGFuIGNsYXNzPSJlbmFibGVkIj50cnVlPC9zcGFuPjxzcGFuIGNsYXNzPSJlbXB0eSI+PC9zcGFuPjxzcGFuIGNsYXNzPSJub3RlIj49U1VNKEExOkEyKTwvc3Bhbj48L2FydGljbGU+PGFydGljbGUgY2xhc3M9InJvdyIgZGF0YS1maXh0dXJlLXJvdz0iMiI+PGEgY2xhc3M9Im5hbWUiIGhyZWY9Ii4vaXRlbS8zP3g9MSZhbXA7eT0yIj49MSsxPC9hPjxzcGFuIGNsYXNzPSJjb3VudCI+LTI8L3NwYW4+PHNwYW4gY2xhc3M9ImVuYWJsZWQiPmZhbHNlPC9zcGFuPjxzcGFuIGNsYXNzPSJlbXB0eSI+PC9zcGFuPjxzcGFuIGNsYXNzPSJub3RlIj4rdGV4dDwvc3Bhbj48L2FydGljbGU+PC9tYWluPjxhIGNsYXNzPSJuZXh0IiBocmVmPSIvbGlzdD9wYWdlPTIiPuS4i+S4gOmhtTwvYT48L2JvZHk+PC9odG1sPgo=",
+      "text": "<!doctype html>\n<html lang=\"zh\"><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\" data-fixture-row=\"0\"><a class=\"name\" href=\" ../item/1?tag=中文&amp;n=0 \"> \t汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉\n </a><span class=\"count\"> 0 </span><span class=\"enabled\"> false </span><span class=\"empty\"></span><span class=\"note\">中文,&quot;引号&quot;\n第二行</span></article><article class=\"row\" data-fixture-row=\"1\"><a class=\"name\"></a><span class=\"count\">12.5</span><span class=\"enabled\">true</span><span class=\"empty\"></span><span class=\"note\">=SUM(A1:A2)</span></article><article class=\"row\" data-fixture-row=\"2\"><a class=\"name\" href=\"./item/3?x=1&amp;y=2\">=1+1</a><span class=\"count\">-2</span><span class=\"enabled\">false</span><span class=\"empty\"></span><span class=\"note\">+text</span></article></main><a class=\"next\" href=\"/list?page=2\">下一页</a></body></html>\n"
+    },
+    "context": {
+      "startUrl": "https://fixture.example/list?page=1",
+      "allowedOrigin": "https://fixture.example",
+      "documentUrl": "https://fixture.example/list?page=1",
+      "documentBaseUrl": "https://fixture.example/catalog/",
+      "frame": "top",
+      "listMeaningConfirmed": "container-selector",
+      "containerSelector": ".rows",
+      "rowSelector": ":scope > .row",
+      "emptyMarkerSelector": null,
+      "allowEmpty": false,
+      "paginationConfirmed": "none",
+      "nextSelector": null,
+      "columnOrder": [
+        "count",
+        "enabled",
+        "name",
+        "name-url",
+        "empty",
+        "missing",
+        "note"
+      ],
+      "fieldDefinitions": [
+        {
+          "id": "name",
+          "label": "名称",
+          "selector": ".name",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "name-url",
+          "label": "链接",
+          "selector": ".name",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        },
+        {
+          "id": "count",
+          "label": "数量",
+          "selector": ".count",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "enabled",
+          "label": "启用",
+          "selector": ".enabled",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "empty",
+          "label": "空串",
+          "selector": ".empty",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": false,
+          "transforms": []
+        },
+        {
+          "id": "missing",
+          "label": "缺失",
+          "selector": ".missing",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": false,
+          "transforms": []
+        },
+        {
+          "id": "note",
+          "label": "备注",
+          "selector": ".note",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": false,
+          "transforms": []
+        }
+      ],
+      "previewConfirmation": {
+        "confirmed": true,
+        "snapshotId": "migration-single-page-dom-v1",
+        "rowCount": 3
+      },
+      "templateId": "migration-confirmed-single-page",
+      "limits": {
+        "maxPages": 50,
+        "maxRecords": 10000,
+        "maxDurationMs": 600000,
+        "maxStoredBytes": 20971520
+      }
+    }
+  },
+  "expected": {
+    "state": "ready-to-save-after-explicit-preview",
+    "backupPreserved": true,
+    "templateRevision": {
+      "formatVersion": "1.0.0",
+      "templateId": "migration-confirmed-single-page",
+      "revision": 1,
+      "parentRevision": null,
+      "selectorDialect": "css",
+      "requiredCapabilities": [
+        "dom.top.v1",
+        "read.text.v1",
+        "read.attribute.v1",
+        "transform.safe.v1",
+        "pagination.none.v1"
+      ],
+      "allowedOrigin": "https://fixture.example",
+      "startUrl": "https://fixture.example/list?page=1",
+      "list": {
+        "containerSelector": ".rows",
+        "rowSelector": ":scope > .row",
+        "emptyMarkerSelector": null,
+        "allowEmpty": false
+      },
+      "fields": [
+        {
+          "id": "name",
+          "label": "名称",
+          "selector": ".name",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "name-url",
+          "label": "链接",
+          "selector": ".name",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        },
+        {
+          "id": "count",
+          "label": "数量",
+          "selector": ".count",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "enabled",
+          "label": "启用",
+          "selector": ".enabled",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        },
+        {
+          "id": "empty",
+          "label": "空串",
+          "selector": ".empty",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": false,
+          "transforms": []
+        },
+        {
+          "id": "missing",
+          "label": "缺失",
+          "selector": ".missing",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": false,
+          "transforms": []
+        },
+        {
+          "id": "note",
+          "label": "备注",
+          "selector": ".note",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": false,
+          "transforms": []
+        }
+      ],
+      "pagination": {
+        "mode": "none"
+      },
+      "columns": [
+        "count",
+        "enabled",
+        "name",
+        "name-url",
+        "empty",
+        "missing",
+        "note"
+      ],
+      "limits": {
+        "maxPages": 50,
+        "maxRecords": 10000,
+        "maxDurationMs": 600000,
+        "maxStoredBytes": 20971520
+      },
+      "detail": null,
+      "contentHash": "3475cba7ddc43506711b82a1865ae0228c056f074b45b364706322c057d681fa"
+    },
+    "draft": null,
+    "errors": [],
+    "columns": [
+      "count",
+      "enabled",
+      "name",
+      "name-url",
+      "empty",
+      "missing",
+      "note"
+    ],
+    "rawRecords": [
+      {
+        "count": " 0 ",
+        "enabled": " false ",
+        "name": " \t汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉\n ",
+        "name-url": " ../item/1?tag=中文&n=0 ",
+        "empty": "",
+        "missing": null,
+        "note": "中文,\"引号\"\n第二行"
+      },
+      {
+        "count": "12.5",
+        "enabled": "true",
+        "name": "",
+        "name-url": null,
+        "empty": "",
+        "missing": null,
+        "note": "=SUM(A1:A2)"
+      },
+      {
+        "count": "-2",
+        "enabled": "false",
+        "name": "=1+1",
+        "name-url": "./item/3?x=1&y=2",
+        "empty": "",
+        "missing": null,
+        "note": "+text"
+      }
+    ],
+    "typedRecords": [
+      {
+        "count": 0,
+        "enabled": false,
+        "name": "汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉",
+        "name-url": "https://fixture.example/item/1?tag=%E4%B8%AD%E6%96%87&n=0",
+        "empty": "",
+        "missing": null,
+        "note": "中文,\"引号\"\n第二行"
+      },
+      {
+        "count": 12.5,
+        "enabled": true,
+        "name": "",
+        "name-url": null,
+        "empty": "",
+        "missing": null,
+        "note": "=SUM(A1:A2)"
+      },
+      {
+        "count": -2,
+        "enabled": false,
+        "name": "=1+1",
+        "name-url": "https://fixture.example/catalog/item/3?x=1&y=2",
+        "empty": "",
+        "missing": null,
+        "note": "+text"
+      }
+    ],
+    "recordErrors": [],
+    "previewRecords": [
+      {
+        "count": 0,
+        "enabled": false,
+        "name": "汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉",
+        "name-url": "https://fixture.example/item/1?tag=%E4%B8%AD%E6%96%87&n=0",
+        "empty": "",
+        "missing": null,
+        "note": "中文,\"引号\"\n第二行"
+      },
+      {
+        "count": 12.5,
+        "enabled": true,
+        "name": "",
+        "name-url": null,
+        "empty": "",
+        "missing": null,
+        "note": "=SUM(A1:A2)"
+      },
+      {
+        "count": -2,
+        "enabled": false,
+        "name": "=1+1",
+        "name-url": "https://fixture.example/catalog/item/3?x=1&y=2",
+        "empty": "",
+        "missing": null,
+        "note": "+text"
+      }
+    ],
+    "runRecords": [
+      {
+        "count": 0,
+        "enabled": false,
+        "name": "汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉",
+        "name-url": "https://fixture.example/item/1?tag=%E4%B8%AD%E6%96%87&n=0",
+        "empty": "",
+        "missing": null,
+        "note": "中文,\"引号\"\n第二行"
+      },
+      {
+        "count": 12.5,
+        "enabled": true,
+        "name": "",
+        "name-url": null,
+        "empty": "",
+        "missing": null,
+        "note": "=SUM(A1:A2)"
+      },
+      {
+        "count": -2,
+        "enabled": false,
+        "name": "=1+1",
+        "name-url": "https://fixture.example/catalog/item/3?x=1&y=2",
+        "empty": "",
+        "missing": null,
+        "note": "+text"
+      }
+    ],
+    "recordCount": 3,
+    "noTitleFilter": true,
+    "longText": {
+      "fieldId": "name",
+      "rowIndex": 0,
+      "unicodeScalarLength": 150,
+      "utf8ByteLength": 450,
+      "fullValue": "汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉"
+    },
+    "canonicalTemplate": {
+      "path": "single-page/template.canonical.json",
+      "encoding": "utf-8",
+      "byteLength": 1642,
+      "sha256": "3475cba7ddc43506711b82a1865ae0228c056f074b45b364706322c057d681fa",
+      "bytesBase64": "eyJhbGxvd2VkT3JpZ2luIjoiaHR0cHM6Ly9maXh0dXJlLmV4YW1wbGUiLCJjb2x1bW5zIjpbImNvdW50IiwiZW5hYmxlZCIsIm5hbWUiLCJuYW1lLXVybCIsImVtcHR5IiwibWlzc2luZyIsIm5vdGUiXSwiZGV0YWlsIjpudWxsLCJmaWVsZHMiOlt7ImF0dHJpYnV0ZSI6bnVsbCwiaWQiOiJuYW1lIiwibGFiZWwiOiLlkI3np7AiLCJyZWFkIjoidGV4dCIsInJlcXVpcmVkIjp0cnVlLCJzZWxlY3RvciI6Ii5uYW1lIiwidHJhbnNmb3JtcyI6WyJ0cmltIl0sInR5cGUiOiJzdHJpbmcifSx7ImF0dHJpYnV0ZSI6ImhyZWYiLCJpZCI6Im5hbWUtdXJsIiwibGFiZWwiOiLpk77mjqUiLCJyZWFkIjoiYXR0cmlidXRlIiwicmVxdWlyZWQiOmZhbHNlLCJzZWxlY3RvciI6Ii5uYW1lIiwidHJhbnNmb3JtcyI6WyJ0cmltIiwicmVzb2x2ZS11cmwiXSwidHlwZSI6InN0cmluZyJ9LHsiYXR0cmlidXRlIjpudWxsLCJpZCI6ImNvdW50IiwibGFiZWwiOiLmlbDph48iLCJyZWFkIjoidGV4dCIsInJlcXVpcmVkIjp0cnVlLCJzZWxlY3RvciI6Ii5jb3VudCIsInRyYW5zZm9ybXMiOlsidHJpbSJdLCJ0eXBlIjoibnVtYmVyIn0seyJhdHRyaWJ1dGUiOm51bGwsImlkIjoiZW5hYmxlZCIsImxhYmVsIjoi5ZCv55SoIiwicmVhZCI6InRleHQiLCJyZXF1aXJlZCI6dHJ1ZSwic2VsZWN0b3IiOiIuZW5hYmxlZCIsInRyYW5zZm9ybXMiOlsidHJpbSJdLCJ0eXBlIjoiYm9vbGVhbiJ9LHsiYXR0cmlidXRlIjpudWxsLCJpZCI6ImVtcHR5IiwibGFiZWwiOiLnqbrkuLIiLCJyZWFkIjoidGV4dCIsInJlcXVpcmVkIjpmYWxzZSwic2VsZWN0b3IiOiIuZW1wdHkiLCJ0cmFuc2Zvcm1zIjpbXSwidHlwZSI6InN0cmluZyJ9LHsiYXR0cmlidXRlIjpudWxsLCJpZCI6Im1pc3NpbmciLCJsYWJlbCI6Iue8uuWksSIsInJlYWQiOiJ0ZXh0IiwicmVxdWlyZWQiOmZhbHNlLCJzZWxlY3RvciI6Ii5taXNzaW5nIiwidHJhbnNmb3JtcyI6W10sInR5cGUiOiJzdHJpbmcifSx7ImF0dHJpYnV0ZSI6bnVsbCwiaWQiOiJub3RlIiwibGFiZWwiOiLlpIfms6giLCJyZWFkIjoidGV4dCIsInJlcXVpcmVkIjpmYWxzZSwic2VsZWN0b3IiOiIubm90ZSIsInRyYW5zZm9ybXMiOltdLCJ0eXBlIjoic3RyaW5nIn1dLCJmb3JtYXRWZXJzaW9uIjoiMS4wLjAiLCJsaW1pdHMiOnsibWF4RHVyYXRpb25NcyI6NjAwMDAwLCJtYXhQYWdlcyI6NTAsIm1heFJlY29yZHMiOjEwMDAwLCJtYXhTdG9yZWRCeXRlcyI6MjA5NzE1MjB9LCJsaXN0Ijp7ImFsbG93RW1wdHkiOmZhbHNlLCJjb250YWluZXJTZWxlY3RvciI6Ii5yb3dzIiwiZW1wdHlNYXJrZXJTZWxlY3RvciI6bnVsbCwicm93U2VsZWN0b3IiOiI6c2NvcGUgPiAucm93In0sInBhZ2luYXRpb24iOnsibW9kZSI6Im5vbmUifSwicGFyZW50UmV2aXNpb24iOm51bGwsInJlcXVpcmVkQ2FwYWJpbGl0aWVzIjpbImRvbS50b3AudjEiLCJyZWFkLnRleHQudjEiLCJyZWFkLmF0dHJpYnV0ZS52MSIsInRyYW5zZm9ybS5zYWZlLnYxIiwicGFnaW5hdGlvbi5ub25lLnYxIl0sInJldmlzaW9uIjoxLCJzZWxlY3RvckRpYWxlY3QiOiJjc3MiLCJzdGFydFVybCI6Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2xpc3Q/cGFnZT0xIiwidGVtcGxhdGVJZCI6Im1pZ3JhdGlvbi1jb25maXJtZWQtc2luZ2xlLXBhZ2UifQ==",
+      "text": "{\"allowedOrigin\":\"https://fixture.example\",\"columns\":[\"count\",\"enabled\",\"name\",\"name-url\",\"empty\",\"missing\",\"note\"],\"detail\":null,\"fields\":[{\"attribute\":null,\"id\":\"name\",\"label\":\"名称\",\"read\":\"text\",\"required\":true,\"selector\":\".name\",\"transforms\":[\"trim\"],\"type\":\"string\"},{\"attribute\":\"href\",\"id\":\"name-url\",\"label\":\"链接\",\"read\":\"attribute\",\"required\":false,\"selector\":\".name\",\"transforms\":[\"trim\",\"resolve-url\"],\"type\":\"string\"},{\"attribute\":null,\"id\":\"count\",\"label\":\"数量\",\"read\":\"text\",\"required\":true,\"selector\":\".count\",\"transforms\":[\"trim\"],\"type\":\"number\"},{\"attribute\":null,\"id\":\"enabled\",\"label\":\"启用\",\"read\":\"text\",\"required\":true,\"selector\":\".enabled\",\"transforms\":[\"trim\"],\"type\":\"boolean\"},{\"attribute\":null,\"id\":\"empty\",\"label\":\"空串\",\"read\":\"text\",\"required\":false,\"selector\":\".empty\",\"transforms\":[],\"type\":\"string\"},{\"attribute\":null,\"id\":\"missing\",\"label\":\"缺失\",\"read\":\"text\",\"required\":false,\"selector\":\".missing\",\"transforms\":[],\"type\":\"string\"},{\"attribute\":null,\"id\":\"note\",\"label\":\"备注\",\"read\":\"text\",\"required\":false,\"selector\":\".note\",\"transforms\":[],\"type\":\"string\"}],\"formatVersion\":\"1.0.0\",\"limits\":{\"maxDurationMs\":600000,\"maxPages\":50,\"maxRecords\":10000,\"maxStoredBytes\":20971520},\"list\":{\"allowEmpty\":false,\"containerSelector\":\".rows\",\"emptyMarkerSelector\":null,\"rowSelector\":\":scope > .row\"},\"pagination\":{\"mode\":\"none\"},\"parentRevision\":null,\"requiredCapabilities\":[\"dom.top.v1\",\"read.text.v1\",\"read.attribute.v1\",\"transform.safe.v1\",\"pagination.none.v1\"],\"revision\":1,\"selectorDialect\":\"css\",\"startUrl\":\"https://fixture.example/list?page=1\",\"templateId\":\"migration-confirmed-single-page\"}"
+    },
+    "operations": {
+      "saveAllowed": true,
+      "runAllowed": true,
+      "exportAllowed": true,
+      "followNextAllowed": false
+    },
+    "exports": {
+      "json": {
+        "path": "single-page/expected.json",
+        "encoding": "utf-8",
+        "byteLength": 871,
+        "sha256": "19b0eb395ad83c589793896971fe116497579fbc17acdd1d2e1f34b1a3372c30",
+        "bytesBase64": "W3siY291bnQiOjAsImVuYWJsZWQiOmZhbHNlLCJuYW1lIjoi5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJ5rGJIiwibmFtZS11cmwiOiJodHRwczovL2ZpeHR1cmUuZXhhbXBsZS9pdGVtLzE/dGFnPSVFNCVCOCVBRCVFNiU5NiU4NyZuPTAiLCJlbXB0eSI6IiIsIm1pc3NpbmciOm51bGwsIm5vdGUiOiLkuK3mlocsXCLlvJXlj7dcIlxu56ys5LqM6KGMIn0seyJjb3VudCI6MTIuNSwiZW5hYmxlZCI6dHJ1ZSwibmFtZSI6IiIsIm5hbWUtdXJsIjpudWxsLCJlbXB0eSI6IiIsIm1pc3NpbmciOm51bGwsIm5vdGUiOiI9U1VNKEExOkEyKSJ9LHsiY291bnQiOi0yLCJlbmFibGVkIjpmYWxzZSwibmFtZSI6Ij0xKzEiLCJuYW1lLXVybCI6Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvaXRlbS8zP3g9MSZ5PTIiLCJlbXB0eSI6IiIsIm1pc3NpbmciOm51bGwsIm5vdGUiOiIrdGV4dCJ9XQ==",
+        "text": "[{\"count\":0,\"enabled\":false,\"name\":\"汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉\",\"name-url\":\"https://fixture.example/item/1?tag=%E4%B8%AD%E6%96%87&n=0\",\"empty\":\"\",\"missing\":null,\"note\":\"中文,\\\"引号\\\"\\n第二行\"},{\"count\":12.5,\"enabled\":true,\"name\":\"\",\"name-url\":null,\"empty\":\"\",\"missing\":null,\"note\":\"=SUM(A1:A2)\"},{\"count\":-2,\"enabled\":false,\"name\":\"=1+1\",\"name-url\":\"https://fixture.example/catalog/item/3?x=1&y=2\",\"empty\":\"\",\"missing\":null,\"note\":\"+text\"}]"
+      },
+      "csv": {
+        "path": "single-page/expected.csv",
+        "encoding": "utf-8",
+        "byteLength": 700,
+        "sha256": "5b49bf1d179ff7e5f32d31385a188f53ffa81648c79d0f4f1a601711d4619c65",
+        "bytesBase64": "5pWw6YePLOWQr+eUqCzlkI3np7As6ZO+5o6lLOepuuS4siznvLrlpLEs5aSH5rOoDQowLGZhbHNlLOaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxieaxiSxodHRwczovL2ZpeHR1cmUuZXhhbXBsZS9pdGVtLzE/dGFnPSVFNCVCOCVBRCVFNiU5NiU4NyZuPTAsLCwi5Lit5paHLCIi5byV5Y+3IiIK56ys5LqM6KGMIg0KMTIuNSx0cnVlLCwsLCwnPVNVTShBMTpBMikNCi0yLGZhbHNlLCc9MSsxLGh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvaXRlbS8zP3g9MSZ5PTIsLCwnK3RleHQNCg==",
+        "text": "数量,启用,名称,链接,空串,缺失,备注\r\n0,false,汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉,https://fixture.example/item/1?tag=%E4%B8%AD%E6%96%87&n=0,,,\"中文,\"\"引号\"\"\n第二行\"\r\n12.5,true,,,,,'=SUM(A1:A2)\r\n-2,false,'=1+1,https://fixture.example/catalog/item/3?x=1&y=2,,,'+text\r\n"
+      }
+    }
+  }
+}

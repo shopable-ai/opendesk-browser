@@ -1,0 +1,26 @@
+{
+  "builds": [
+    {
+      "status": "fulfilled",
+      "value": {
+        "mode": "production",
+        "code": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "ERROR in asset size limit: The following asset(s) exceed the recommended size limit (256 KiB).\nThis can impact web performance.\nAssets: \n  sw.js (297 KiB)\n\nERROR in entrypoint size limit: The following entrypoint(s) combined asset size exceeds the recommended limit (256 KiB). This can impact web performance.\nEntrypoints:\n  sw (297 KiB)\n      sw.js\n\nERROR in webpack performance recommendations: \nYou can limit the size of your bundles by using import() or require.ensure to lazy load some parts of your application.\nFor more info visit https://webpack.js.org/guides/code-splitting/\n\n"
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "mode": "development",
+        "code": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "ERROR in asset size limit: The following asset(s) exceed the recommended size limit (512 KiB).\nThis can impact web performance.\nAssets: \n  sw.js (581 KiB)\n\nERROR in entrypoint size limit: The following entrypoint(s) combined asset size exceeds the recommended limit (512 KiB). This can impact web performance.\nEntrypoints:\n  sw (581 KiB)\n      sw.js\n\nERROR in webpack performance recommendations: \nYou can limit the size of your bundles by using import() or require.ensure to lazy load some parts of your application.\nFor more info visit https://webpack.js.org/guides/code-splitting/\n\n"
+      }
+    }
+  ],
+  "sourceDrift": false,
+  "f3Accepted": false
+}

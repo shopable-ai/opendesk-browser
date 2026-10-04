@@ -1,0 +1,717 @@
+[
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "C4C2A1C694CB936477B3A200652F1E7C",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 979.449292,
+    "observedAt": 1791022049619
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "1C7C2CAF7BDE645E587B905B7099A3B9",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 981.76425,
+    "observedAt": 1791022049621
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "1C7C2CAF7BDE645E587B905B7099A3B9",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 988.057417,
+    "observedAt": 1791022049628
+  },
+  {
+    "method": "Runtime.executionContextCreated",
+    "params": {
+      "context": {
+        "id": 1,
+        "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "name": "",
+        "uniqueId": "-3194376437461086088.8822439772365646782"
+      }
+    },
+    "observedMonoMs": 1023.674542,
+    "observedAt": 1791022049663
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "1C7C2CAF7BDE645E587B905B7099A3B9",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1070.825333,
+    "observedAt": 1791022049711
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "21A5B1955ACEB50571BD6FB3A9F24A18",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1121.769125,
+    "observedAt": 1791022049761
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "21A5B1955ACEB50571BD6FB3A9F24A18",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1150.726125,
+    "observedAt": 1791022049790
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "21A5B1955ACEB50571BD6FB3A9F24A18",
+        "type": "page",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1155.004542,
+    "observedAt": 1791022049795
+  },
+  {
+    "method": "Page.domContentEventFired",
+    "params": {
+      "timestamp": 3018846.044113
+    },
+    "observedMonoMs": 1184.483208,
+    "observedAt": 1791022049824
+  },
+  {
+    "method": "Page.loadEventFired",
+    "params": {
+      "timestamp": 3018846.044404
+    },
+    "observedMonoMs": 1184.780875,
+    "observedAt": 1791022049824
+  },
+  {
+    "method": "Page.frameStoppedLoading",
+    "params": {
+      "frameId": "21A5B1955ACEB50571BD6FB3A9F24A18"
+    },
+    "observedMonoMs": 1184.953167,
+    "observedAt": 1791022049825
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "E645CEFBB8205F0548988A75448243A4",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=borrowed",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1278.287125,
+    "observedAt": 1791022049918
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "E645CEFBB8205F0548988A75448243A4",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=borrowed",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1294.983542,
+    "observedAt": 1791022049935
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "E645CEFBB8205F0548988A75448243A4",
+        "type": "page",
+        "title": "127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=borrowed",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=borrowed",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1297.3115,
+    "observedAt": 1791022049937
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "D8571348D4FE6A9B48E141C45572208A",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=decoy",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1363.650958,
+    "observedAt": 1791022050003
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "D8571348D4FE6A9B48E141C45572208A",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=decoy",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1409.729,
+    "observedAt": 1791022050049
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "D8571348D4FE6A9B48E141C45572208A",
+        "type": "page",
+        "title": "127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=decoy",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=decoy",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1412.915083,
+    "observedAt": 1791022050053
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B6A8C3403858ACB9B33158B0C63D11CC",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:63864/frames?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=top",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1478.92175,
+    "observedAt": 1791022050119
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "B6A8C3403858ACB9B33158B0C63D11CC",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:63864/frames?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=top",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1502.096833,
+    "observedAt": 1791022050142
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "B6A8C3403858ACB9B33158B0C63D11CC",
+        "type": "page",
+        "title": "127.0.0.1:63864/frames?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=top",
+        "url": "http://127.0.0.1:63864/frames?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=top",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 1504.518333,
+    "observedAt": 1791022050144
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "381892015E3382F9416FACEAC59F784E",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/target-bootstrap.html?creationId=ae8a80ac-ca72-4322-9aba-6a84faec4774",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 6683.862625,
+    "observedAt": 1791022055324
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "381892015E3382F9416FACEAC59F784E",
+        "type": "page",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/target-bootstrap.html?creationId=ae8a80ac-ca72-4322-9aba-6a84faec4774",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/target-bootstrap.html?creationId=ae8a80ac-ca72-4322-9aba-6a84faec4774",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 6690.824708,
+    "observedAt": 1791022055330
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "381892015E3382F9416FACEAC59F784E",
+        "type": "page",
+        "title": "127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=minimal",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=minimal",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 6768.108833,
+    "observedAt": 1791022055408
+  },
+  {
+    "method": "Page.frameAttached",
+    "params": {
+      "frameId": "47FDC8F4CAFAEC4AE1DEC8193117F231",
+      "parentFrameId": "21A5B1955ACEB50571BD6FB3A9F24A18",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "te",
+            "scriptId": "5",
+            "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+            "lineNumber": 0,
+            "columnNumber": 23820
+          },
+          {
+            "functionName": "",
+            "scriptId": "5",
+            "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+            "lineNumber": 0,
+            "columnNumber": 29735
+          }
+        ]
+      }
+    },
+    "observedMonoMs": 6796.731083,
+    "observedAt": 1791022055436
+  },
+  {
+    "method": "Page.frameRequestedNavigation",
+    "params": {
+      "frameId": "47FDC8F4CAFAEC4AE1DEC8193117F231",
+      "reason": "initialFrameNavigation",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+      "disposition": "currentTab"
+    },
+    "observedMonoMs": 6796.884167,
+    "observedAt": 1791022055437
+  },
+  {
+    "method": "Page.frameStartedNavigating",
+    "params": {
+      "frameId": "47FDC8F4CAFAEC4AE1DEC8193117F231",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+      "loaderId": "7908BA1D3C10229020EEB69AF7AF4543",
+      "navigationType": "differentDocument"
+    },
+    "observedMonoMs": 6797.057625,
+    "observedAt": 1791022055437
+  },
+  {
+    "method": "Page.frameStartedLoading",
+    "params": {
+      "frameId": "47FDC8F4CAFAEC4AE1DEC8193117F231"
+    },
+    "observedMonoMs": 6797.207542,
+    "observedAt": 1791022055437
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "47FDC8F4CAFAEC4AE1DEC8193117F231",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 6799.405,
+    "observedAt": 1791022055439
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "47FDC8F4CAFAEC4AE1DEC8193117F231",
+        "type": "iframe",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 6839.280875,
+    "observedAt": 1791022055479
+  },
+  {
+    "method": "Page.frameDetached",
+    "params": {
+      "frameId": "47FDC8F4CAFAEC4AE1DEC8193117F231",
+      "reason": "swap"
+    },
+    "observedMonoMs": 6839.868417,
+    "observedAt": 1791022055480
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "C5FB6A0D234F70938CDC03AC8CBF00AF",
+        "type": "worker",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 6844.202875,
+    "observedAt": 1791022055484
+  },
+  {
+    "method": "Page.frameSubtreeWillBeDetached",
+    "params": {
+      "frameId": "47FDC8F4CAFAEC4AE1DEC8193117F231"
+    },
+    "observedMonoMs": 6848.44575,
+    "observedAt": 1791022055488
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "47FDC8F4CAFAEC4AE1DEC8193117F231"
+    },
+    "observedMonoMs": 6848.552,
+    "observedAt": 1791022055488
+  },
+  {
+    "method": "Page.frameDetached",
+    "params": {
+      "frameId": "47FDC8F4CAFAEC4AE1DEC8193117F231",
+      "reason": "remove"
+    },
+    "observedMonoMs": 6848.911042,
+    "observedAt": 1791022055489
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "C5FB6A0D234F70938CDC03AC8CBF00AF"
+    },
+    "observedMonoMs": 6848.9655,
+    "observedAt": 1791022055489
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "381892015E3382F9416FACEAC59F784E"
+    },
+    "observedMonoMs": 6856.501958,
+    "observedAt": 1791022055496
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B5BD93C23C2D42282784EC9296C49C09",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/target-bootstrap.html?creationId=c0109951-0cc2-417d-9b26-9acc4ea26448",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 7145.472417,
+    "observedAt": 1791022055785
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "B5BD93C23C2D42282784EC9296C49C09",
+        "type": "page",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/target-bootstrap.html?creationId=c0109951-0cc2-417d-9b26-9acc4ea26448",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/target-bootstrap.html?creationId=c0109951-0cc2-417d-9b26-9acc4ea26448",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 7153.309833,
+    "observedAt": 1791022055793
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "B5BD93C23C2D42282784EC9296C49C09",
+        "type": "page",
+        "title": "127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=owned",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=owned",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 7229.236083,
+    "observedAt": 1791022055869
+  },
+  {
+    "method": "Page.frameAttached",
+    "params": {
+      "frameId": "B4FDDF304349E619FAE6F4DDB0A52FD8",
+      "parentFrameId": "21A5B1955ACEB50571BD6FB3A9F24A18",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "te",
+            "scriptId": "5",
+            "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+            "lineNumber": 0,
+            "columnNumber": 23820
+          },
+          {
+            "functionName": "",
+            "scriptId": "5",
+            "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+            "lineNumber": 0,
+            "columnNumber": 29735
+          }
+        ]
+      }
+    },
+    "observedMonoMs": 7257.654167,
+    "observedAt": 1791022055897
+  },
+  {
+    "method": "Page.frameRequestedNavigation",
+    "params": {
+      "frameId": "B4FDDF304349E619FAE6F4DDB0A52FD8",
+      "reason": "initialFrameNavigation",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+      "disposition": "currentTab"
+    },
+    "observedMonoMs": 7257.855375,
+    "observedAt": 1791022055898
+  },
+  {
+    "method": "Page.frameStartedNavigating",
+    "params": {
+      "frameId": "B4FDDF304349E619FAE6F4DDB0A52FD8",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+      "loaderId": "59DC109676D0862E3C6A7A0E120A8F0B",
+      "navigationType": "differentDocument"
+    },
+    "observedMonoMs": 7258.113708,
+    "observedAt": 1791022055898
+  },
+  {
+    "method": "Page.frameStartedLoading",
+    "params": {
+      "frameId": "B4FDDF304349E619FAE6F4DDB0A52FD8"
+    },
+    "observedMonoMs": 7258.254292,
+    "observedAt": 1791022055898
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B4FDDF304349E619FAE6F4DDB0A52FD8",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 7260.056542,
+    "observedAt": 1791022055900
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "B4FDDF304349E619FAE6F4DDB0A52FD8",
+        "type": "iframe",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 7300.53175,
+    "observedAt": 1791022055940
+  },
+  {
+    "method": "Page.frameDetached",
+    "params": {
+      "frameId": "B4FDDF304349E619FAE6F4DDB0A52FD8",
+      "reason": "swap"
+    },
+    "observedMonoMs": 7300.978708,
+    "observedAt": 1791022055941
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "DF7DD454B0215FBB1FD4B88F6EF05E2A",
+        "type": "worker",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 7305.195167,
+    "observedAt": 1791022055945
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "B5BD93C23C2D42282784EC9296C49C09",
+        "type": "page",
+        "title": "127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=goto",
+        "url": "http://127.0.0.1:63864/form?seed=864dec5d-8ff1-4a48-90e3-22b8f4429507&role=goto",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "BE5CD0AEF79D3481974A2E1F73EF6936"
+      }
+    },
+    "observedMonoMs": 7371.362458,
+    "observedAt": 1791022056011
+  },
+  {
+    "method": "Page.frameSubtreeWillBeDetached",
+    "params": {
+      "frameId": "B4FDDF304349E619FAE6F4DDB0A52FD8"
+    },
+    "observedMonoMs": 7471.226375,
+    "observedAt": 1791022056111
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "B4FDDF304349E619FAE6F4DDB0A52FD8"
+    },
+    "observedMonoMs": 7471.418958,
+    "observedAt": 1791022056111
+  },
+  {
+    "method": "Page.frameDetached",
+    "params": {
+      "frameId": "B4FDDF304349E619FAE6F4DDB0A52FD8",
+      "reason": "remove"
+    },
+    "observedMonoMs": 7471.597667,
+    "observedAt": 1791022056111
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "DF7DD454B0215FBB1FD4B88F6EF05E2A"
+    },
+    "observedMonoMs": 7471.73,
+    "observedAt": 1791022056111
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "B5BD93C23C2D42282784EC9296C49C09"
+    },
+    "observedMonoMs": 7478.896458,
+    "observedAt": 1791022056119
+  }
+]

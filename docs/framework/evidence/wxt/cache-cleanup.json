@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-03T20:09:04.967721+00:00",
+  "removedDownloadCaches": [
+    {
+      "path": "tests/.cache/m5-browsers/138.0.7204.183.zip.part",
+      "bytes": 161386556,
+      "sha256": "2e83ec74a87928bdcd3425ba90901bceb2be6c5ffa6d9ebcac77f1dd3d1dd768",
+      "reason": "Disposable browser download cache; extracted exact-version binaries retained"
+    },
+    {
+      "path": "tests/.cache/m5-browsers/154.0.8037.92.zip.part",
+      "bytes": 191153086,
+      "sha256": "b62e904b6571c5ff5108ed7812cf93ac6d1c4027f10ae47ac34d8e229ed88001",
+      "reason": "Disposable browser download cache; extracted exact-version binaries retained"
+    }
+  ]
+}

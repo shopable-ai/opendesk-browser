@@ -1,0 +1,276 @@
+{
+  "id": "B05.SDK.no-controller",
+  "label": "138",
+  "startedAt": "2026-10-04T09:35:35.835Z",
+  "status": "PASS",
+  "evidence": {
+    "before": {
+      "tab": "",
+      "document": "",
+      "disabled": true,
+      "capabilities": []
+    },
+    "install": {
+      "ui": {
+        "state": "installed",
+        "text": "已向选定文档安装 SDK；网页 ready() 将验证真实授权",
+        "raw": "{\n  \"grantIncarnation\": \"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\n  \"documentId\": \"A61A6B4A77E335C03A0BFC0CF19CE703\",\n  \"installed\": true,\n  \"files\": [\n    \"agents/page-relay.js\",\n    \"framework/sdk-main.js\"\n  ]\n}"
+      },
+      "result": {
+        "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+        "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+        "installed": true,
+        "files": [
+          "agents/page-relay.js",
+          "framework/sdk-main.js"
+        ]
+      },
+      "tabSelection": {
+        "state": "selection-observed",
+        "label": "138",
+        "pid": 18690,
+        "launcherPid": 18687,
+        "endpoint": "ws://127.0.0.1:61132/devtools/browser/fe584b48-5192-4b77-8cfd-c7e7187f6070",
+        "toolId": "2BAAB05F0111290A087AABC93D656470",
+        "targetId": "2BAAB05F0111290A087AABC93D656470",
+        "selector": "#sdk-tab",
+        "desired": "1669973067",
+        "optionIndex": 1,
+        "before": {
+          "value": "",
+          "selectedIndex": 0,
+          "options": [
+            {
+              "value": "",
+              "text": "请选择具体网页",
+              "disabled": false
+            },
+            {
+              "value": "1669973067",
+              "text": "[1669973067] Native B05 — http://127.0.0.1:61120/target?seed=138-6e6f7011-dc66-44fe-beee-5fe7a3ee5534",
+              "disabled": false
+            },
+            {
+              "value": "1669973068",
+              "text": "[1669973068] Native B05 — http://127.0.0.1:61120/decoy",
+              "disabled": false
+            }
+          ]
+        },
+        "instruction": "Leader CUA must commit this exact option in the bound native Chrome window; no DOM assignment or synthetic UI events",
+        "after": {
+          "value": "1669973067",
+          "selectedIndex": 1,
+          "options": [
+            {
+              "value": "",
+              "text": "请选择具体网页",
+              "disabled": false
+            },
+            {
+              "value": "1669973067",
+              "text": "[1669973067] Native B05 — http://127.0.0.1:61120/target?seed=138-6e6f7011-dc66-44fe-beee-5fe7a3ee5534",
+              "disabled": false
+            },
+            {
+              "value": "1669973068",
+              "text": "[1669973068] Native B05 — http://127.0.0.1:61120/decoy",
+              "disabled": false
+            }
+          ]
+        },
+        "input": "Native UI assist; readback verified; leader CUA action transcript required"
+      },
+      "documentSelection": {
+        "state": "selection-observed",
+        "label": "138",
+        "pid": 18690,
+        "launcherPid": 18687,
+        "endpoint": "ws://127.0.0.1:61132/devtools/browser/fe584b48-5192-4b77-8cfd-c7e7187f6070",
+        "toolId": "2BAAB05F0111290A087AABC93D656470",
+        "targetId": "2BAAB05F0111290A087AABC93D656470",
+        "selector": "#sdk-document",
+        "desired": "A61A6B4A77E335C03A0BFC0CF19CE703",
+        "optionIndex": 1,
+        "before": {
+          "value": "",
+          "selectedIndex": 0,
+          "options": [
+            {
+              "value": "",
+              "text": "请选择当前精确文档",
+              "disabled": false
+            },
+            {
+              "value": "A61A6B4A77E335C03A0BFC0CF19CE703",
+              "text": "frame 0 · A61A6B4A77E335C03A0BFC0CF19CE703 · http://127.0.0.1:61120/target?seed=138-6e6f7011-dc66-44fe-beee-5fe7a3ee5534",
+              "disabled": false
+            }
+          ]
+        },
+        "instruction": "Leader CUA must commit this exact option in the bound native Chrome window; no DOM assignment or synthetic UI events",
+        "after": {
+          "value": "A61A6B4A77E335C03A0BFC0CF19CE703",
+          "selectedIndex": 1,
+          "options": [
+            {
+              "value": "",
+              "text": "请选择当前精确文档",
+              "disabled": false
+            },
+            {
+              "value": "A61A6B4A77E335C03A0BFC0CF19CE703",
+              "text": "frame 0 · A61A6B4A77E335C03A0BFC0CF19CE703 · http://127.0.0.1:61120/target?seed=138-6e6f7011-dc66-44fe-beee-5fe7a3ee5534",
+              "disabled": false
+            }
+          ]
+        },
+        "input": "Native UI assist; readback verified; leader CUA action transcript required"
+      },
+      "actualCapabilities": [
+        "network",
+        "storage.persistent",
+        "storage.session"
+      ],
+      "beforePermissions": {
+        "origins": [],
+        "permissions": [
+          "activeTab",
+          "downloads",
+          "storage",
+          "tabs",
+          "webNavigation",
+          "scripting",
+          "userScripts"
+        ]
+      },
+      "afterPermissions": {
+        "origins": [
+          "http://127.0.0.1/*"
+        ],
+        "permissions": [
+          "activeTab",
+          "downloads",
+          "storage",
+          "tabs",
+          "webNavigation",
+          "scripting",
+          "userScripts"
+        ]
+      },
+      "nativeContext": {
+        "id": 2,
+        "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+        "name": "OpenDesk Browser",
+        "uniqueId": "5200087296066726441.-5632947675371777983",
+        "auxData": {
+          "isDefault": false,
+          "type": "isolated",
+          "frameId": "421FF004A3C855B1BEA61EBE1B431D05"
+        }
+      }
+    },
+    "hello": {
+      "sdkVersion": "1.0.0",
+      "ready": true,
+      "methods": [
+        "AXIOS_GET",
+        "AXIOS_POST",
+        "AXIOS_PUT",
+        "AXIOS_DELETE",
+        "APPSTORAGE_GETITEM",
+        "APPSTORAGE_SETITEM",
+        "APPSTORAGE_REMOVEITEM",
+        "APPSTORAGE_CLEAR",
+        "APPLOCAL_GETITEM",
+        "APPLOCAL_SETITEM",
+        "APPLOCAL_REMOVEITEM",
+        "CHROME_LOCAL_GET",
+        "CHROME_LOCAL_SET",
+        "CHROME_LOCAL_REMOVE",
+        "SERVER_CHECK"
+      ]
+    },
+    "snapshots": [
+      "138/snapshot-1-hello.json"
+    ],
+    "grants": [
+      {
+        "key": "sdk-grant:[1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\"]",
+        "value": {
+          "tag": "sdk-grant",
+          "tabId": 1669973067,
+          "frameId": 0,
+          "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+          "origin": "http://127.0.0.1:61120",
+          "principal": "sdk:http://127.0.0.1:61120",
+          "tabEpoch": 1,
+          "frameEpoch": 0,
+          "permissionEpoch": 0,
+          "notificationEpoch": 0,
+          "key": "sdk-grant:[1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\"]",
+          "namespace": "page:http://127.0.0.1:61120",
+          "capabilities": [
+            "network",
+            "storage.persistent",
+            "storage.session"
+          ],
+          "allowedOrigins": [
+            "http://127.0.0.1:61120"
+          ],
+          "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+          "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+          "active": true,
+          "grantedAt": "2026-10-04T09:38:11.284Z",
+          "registrationId": "dc541f0d-8619-4eb8-a0f5-645d77cbe4b5"
+        }
+      }
+    ],
+    "sdkObservations": {
+      "events": [
+        {
+          "at": 1791106691293,
+          "name": "OPEN_DESK_SDK_READY",
+          "message": {
+            "protocol": "opendesk.foundation.v1",
+            "helloId": "b39f90e61c920a6cca5b8891a2c35287",
+            "response": {
+              "ok": true,
+              "data": {
+                "sdkVersion": "1.0.0",
+                "ready": true,
+                "methods": [
+                  "AXIOS_GET",
+                  "AXIOS_POST",
+                  "AXIOS_PUT",
+                  "AXIOS_DELETE",
+                  "APPSTORAGE_GETITEM",
+                  "APPSTORAGE_SETITEM",
+                  "APPSTORAGE_REMOVEITEM",
+                  "APPSTORAGE_CLEAR",
+                  "APPLOCAL_GETITEM",
+                  "APPLOCAL_SETITEM",
+                  "APPLOCAL_REMOVEITEM",
+                  "CHROME_LOCAL_GET",
+                  "CHROME_LOCAL_SET",
+                  "CHROME_LOCAL_REMOVE",
+                  "SERVER_CHECK"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "settlements": {},
+      "requests": {}
+    }
+  },
+  "measurements": {
+    "elapsedMs": 155497.551542,
+    "rawCdpSequenceStart": 54,
+    "rawCdpSequenceEnd": 7405,
+    "httpRecordCountStart": 4,
+    "httpRecordCountEnd": 4
+  },
+  "endedAt": "2026-10-04T09:38:11.331Z"
+}

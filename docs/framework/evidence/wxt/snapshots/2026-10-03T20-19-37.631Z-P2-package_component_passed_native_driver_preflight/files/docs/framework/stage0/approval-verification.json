@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-02T19:28:50.405125+00:00",
+  "manifest": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+  "sha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "candidateFilesVerified": 23,
+  "inheritedReferencesVerified": 18,
+  "productFilesUnchanged": 37,
+  "architect": 96,
+  "critic": 97,
+  "currentPlanApproved": true,
+  "backendPrototypePassed": false
+}

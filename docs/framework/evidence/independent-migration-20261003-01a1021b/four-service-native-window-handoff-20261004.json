@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "stage": "four-service-native-window-returned-before-launch",
+  "sourceThreadId": "01a1021b-a6df-7a63-a9b0-d1049f342b35",
+  "departingWriter": "01a10654-4d29-7cc0-8cf3-e491cf07f9bf",
+  "requestedSuccessor": "01a1067b-a17b-7870-8ca4-92af03c934f5",
+  "nativeStatus": "NOT_TESTED",
+  "reason": "人类新指令经实际writer核实，撤回新增原生轮窗口；功能齐备后集中验收",
+  "ownedOperations": {
+    "chromeStarted": false,
+    "launcherStarted": false,
+    "httpServerStarted": false,
+    "cdpConnected": false,
+    "cuaBound": false,
+    "pids": [],
+    "profiles": [],
+    "inFlight": false,
+    "cleanupRequired": false
+  },
+  "mutations": {
+    "product": false,
+    "build": false,
+    "originalRunner": false,
+    "formalLedger": false,
+    "independentEvidenceOnly": true
+  },
+  "independentReadChecks": {
+    "productionPackageHash": "a24b4c7fff62a9ebbd97f5b2fe4fd20b7fafdd0cb6ab72fc9995babff346270d",
+    "productionZipSha256": "d9cf788f277517275846094f270bdcf315976a81c879b040bf074177d68c3b5a",
+    "resourcesMatchCandidate": true,
+    "refreshedProductInputsSha256": "d290b157c4b298586ca09f46d006505174ae204848ec602729d5f1003c498b08",
+    "verificationInputsSha256": "41b5d090b8f7b05872267b6af47ab7e22b4eab8c32f01ba8c5644b76292e4389",
+    "refreshedInputIdentityMatchesCandidate": true,
+    "observationModuleSyntaxCheck": "PASS",
+    "scope": "字节及输入身份只读检查，不是四服务实际运行结果"
+  },
+  "preparedFiles": [
+    "four-service-native-acceptance-plan.json",
+    "four-service-native-observation-calls.mjs"
+  ],
+  "runnerAssembled": false,
+  "nativeCases": [],
+  "nativeRawEvidence": [],
+  "resultScreenshots": [],
+  "f3Accepted": false,
+  "finalGoalComplete": false
+}

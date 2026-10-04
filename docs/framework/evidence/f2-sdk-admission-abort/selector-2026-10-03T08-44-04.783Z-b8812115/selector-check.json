@@ -1,0 +1,131 @@
+{
+  "browserLaunched": false,
+  "nativeStatus": "NOT_TESTED",
+  "parseChecks": "PASS",
+  "selector": {
+    "id": "B05.SDK.crash.before-admission-commit",
+    "sourceSha256": "17e52f7a88d984246bfb57554c788caf2eef913492923f9434e52bb745c95111",
+    "ready": true,
+    "transactionStores": [
+      "commandJournal",
+      "runs",
+      "results"
+    ],
+    "transactionMode": "readwrite",
+    "nativeTransactionStateBindings": {
+      "workDone": "p",
+      "ended": "m"
+    },
+    "bindings": {
+      "tx": "e",
+      "operation": "I",
+      "lockKey": "d",
+      "request": "t",
+      "sender": "n"
+    },
+    "point": {
+      "range": [
+        238752,
+        238935
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 238752
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 238935
+      },
+      "text": "e.put(\"runs\",{tag:\"sdk-service\",driver:\"framework.sdk-service.v1\",runId:I.runId,opId:I.opId,namespace:I.namespace,browserSessionIncarnation:r,state:\"preparing\",createdAt:c()},I.runId)"
+    },
+    "precedingJournalPuts": [
+      {
+        "range": [
+          238622,
+          238649
+        ],
+        "location": {
+          "lineNumber": 0,
+          "columnNumber": 238622
+        },
+        "text": "e.put(\"commandJournal\",I,m)"
+      },
+      {
+        "range": [
+          238656,
+          238745
+        ],
+        "location": {
+          "lineNumber": 0,
+          "columnNumber": 238656
+        },
+        "text": "e.put(\"commandJournal\",{tag:\"sdk-request\",grantIncarnation:n.grantIncarnation,opKey:m},d)"
+      }
+    ],
+    "rule": "Only an exact getPossibleBreakpoints location equal to point.location is eligible; no relocation or neighbour fallback"
+  },
+  "packageBefore": {
+    "files": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 1231,
+        "sha256": "cd3d63b31e04113e7c1db38809938b081072c863817121284f2d72fc63eabb09"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 656,
+        "sha256": "641edccc816cb398d49a6bf946befa3ea92af23385bf046cf6cf2b00e446086d"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 53224,
+        "sha256": "12ed1ed142f5f21ce1723c5d45232530405e6f2c950db6f7ecea1ab867edd1ad"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 13913,
+        "sha256": "8ee5fa5882733a82dd3ddcac92e6f9b9269f71bc8508ee8c90d127b275111c72"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 203,
+        "sha256": "e50cab8ddf0c4a3ec03b59b0366f87651df8465fdeea39db380b0f5051d32f1f"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 24289,
+        "sha256": "e9e091da6bc172996f7e7356bd83a1378e9670c6b9e015d802c56daa92ae9755"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 20381,
+        "sha256": "d4ba6003b597b828007058183f0c38001fa6c520e877a36b037b1e292d42f945"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 3837,
+        "sha256": "4ee49c98af9cd2423571897d9384f5e55534f66ae1e88d41e56d059dea5b9f17"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 21056,
+        "sha256": "0218712c7ad70e51536b1187924f29facb69ec0dcc0e4bf7131c75b19e12ea57"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 304627,
+        "sha256": "17e52f7a88d984246bfb57554c788caf2eef913492923f9434e52bb745c95111"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 52993,
+        "sha256": "7b5755c656e17d6ba46c422b979f2f219f97320e442665eea9db6468cf8e4a67"
+      }
+    ],
+    "packageHash": "b4b3acef969fa1ae4c62a6c6b2be58599233e1a0ff5b87f90db3a0e469e547de"
+  },
+  "next": "--run requires the stable production package hash and a main-issued execution-slot; SDK four combinations have priority",
+  "f3Accepted": false,
+  "b05Closed": false,
+  "original603Closed": false
+}

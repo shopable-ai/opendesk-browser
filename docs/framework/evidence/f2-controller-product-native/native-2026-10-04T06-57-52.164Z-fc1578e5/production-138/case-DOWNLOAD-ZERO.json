@@ -1,0 +1,37 @@
+{
+  "id": "DOWNLOAD-ZERO",
+  "families": "DLGEN01/DLGEN02",
+  "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "66b244eff34b6f657ffb57f4cd0f589413f1ce9e2063cea63df87b38fe13d011",
+  "verificationInputsSha256": "7908725113607b9e2bd8f673c64a5e112349c24fe94cfa0cda111ba9134afcd1",
+  "packageSha256": "16f0b527f09beda7b9d284ba6c9fd7e2fea579c975c22f58ab798a52be9feb25",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791097493993,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "Required durable typed case failed; download blocked by product prerequisite",
+    "stack": "AssertionError [ERR_ASSERTION]: Required durable typed case failed; download blocked by product prerequisite\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:703:9\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:406:58)\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:702:81)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:367:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:197:3",
+    "actual": null
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "saved",
+    "text": "r1 已持久保存；正在运行的旧版本保持原版本",
+    "result": "{\"scriptId\": \"native-f67c24a3-86ea-44a0-82d6-7d6612251b1d\", \"revision\": 1, \"contentHash\": \"6be2e46a3d0765fd4d08def164c35b75afcc481db6fd11cc5118c4e2c20b634d\"}",
+    "version": "已保存 r1 · 6be2e46a3d0765fd4d08def164c35b75afcc481db6fd11cc5118c4e2c20b634d",
+    "runId": "6aa8321a-2713-46a4-82a7-4efa7e763b24",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 5.36104200000409
+}

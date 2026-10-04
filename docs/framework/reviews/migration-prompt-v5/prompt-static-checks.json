@@ -1,0 +1,24 @@
+{
+  "scope": "document preservation and explicit-instruction checks; not runtime tests",
+  "candidateSha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+  "checks": {
+    "five_migration_deliverables": true,
+    "stage0_before_F1": true,
+    "architecture_section_preserved": true,
+    "disputed_sentence_removed": true,
+    "independent_sdk_explicit": true,
+    "new_goal_not_old_resume": true,
+    "no_product_pass_from_prompt": true,
+    "stages_unified": true,
+    "no_implementation_during_stage0": true,
+    "no_hidden_denominator_change": true,
+    "author_reviewer_separation": true,
+    "current_candidate_both_reviews": true,
+    "history_attachment_absolute_path_correct": true,
+    "frozen_candidate_matches": true,
+    "original_product_and_gate_files_unchanged": true,
+    "critical_contract_preserved_except_npm_command_fix": true,
+    "modes_explicitly_conditional": true,
+    "npm_run_check_script_exists": true
+  }
+}

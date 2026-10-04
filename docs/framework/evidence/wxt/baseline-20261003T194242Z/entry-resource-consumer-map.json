@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "baseline": "docs/framework/evidence/wxt/baseline-20261003T194242Z",
+  "entries": [
+    {
+      "name": "sw",
+      "source": "src/sw.js",
+      "world": "SW",
+      "consumer": "MV3 background / sole broker",
+      "output": "sw.js",
+      "wxtEntrypoint": "src/entrypoints/background.js"
+    },
+    {
+      "name": "tool-shell",
+      "source": "src/ui/tool-shell.js",
+      "world": "extension page",
+      "consumer": "src/ui/tool.html",
+      "output": "ui/tool-shell.js",
+      "wxtEntrypoint": "src/entrypoints/tool-shell.js"
+    },
+    {
+      "name": "health",
+      "source": "src/agents/health.js",
+      "world": "ISOLATED",
+      "consumer": "src/environment.js health probe",
+      "output": "agents/health.js",
+      "wxtEntrypoint": "src/entrypoints/health.js"
+    },
+    {
+      "name": "selection-entry",
+      "source": "src/agents/selection-entry.js",
+      "world": "ISOLATED",
+      "consumer": "reserved static selection slot",
+      "output": "agents/selection-entry.js",
+      "wxtEntrypoint": "src/entrypoints/selection-entry.js"
+    },
+    {
+      "name": "bootstrap",
+      "source": "src/agents/bootstrap.js",
+      "world": "extension page",
+      "consumer": "src/ui/target-bootstrap.html / target service",
+      "output": "agents/bootstrap.js",
+      "wxtEntrypoint": "src/entrypoints/bootstrap.js"
+    },
+    {
+      "name": "page-agent",
+      "source": "src/agents/page-agent.js",
+      "world": "ISOLATED",
+      "consumer": "src/platform/chrome/tabs.js PagePort",
+      "output": "agents/page-agent.js",
+      "wxtEntrypoint": "src/entrypoints/page-agent.js"
+    },
+    {
+      "name": "page-relay",
+      "source": "src/agents/page-relay.js",
+      "world": "ISOLATED",
+      "consumer": "src/platform/host/sdk-broker.js / SDK_FILES.relay",
+      "output": "agents/page-relay.js",
+      "wxtEntrypoint": "src/entrypoints/page-relay.js"
+    },
+    {
+      "name": "sdk-main",
+      "source": "src/framework/sdk/entry.js",
+      "world": "MAIN",
+      "consumer": "src/platform/host/sdk-broker.js + page-session / SDK_FILES.main",
+      "output": "framework/sdk-main.js",
+      "wxtEntrypoint": "src/entrypoints/sdk-main.js"
+    },
+    {
+      "name": "page-session",
+      "source": "src/scripting/packaged/page-session.js",
+      "world": "ISOLATED",
+      "consumer": "src/platform/host/controller-methods.js packaged controller",
+      "output": "scripting/packaged/page-session.js",
+      "wxtEntrypoint": "src/entrypoints/page-session.js"
+    },
+    {
+      "name": "sandbox",
+      "source": "src/scripting/sandbox/sandbox.js",
+      "world": "opaque sandbox",
+      "consumer": "src/scripting/sandbox/host.js / sandbox.html",
+      "output": "scripting/sandbox/sandbox.js",
+      "wxtEntrypoint": "src/entrypoints/sandbox.js"
+    },
+    {
+      "name": "worker-runtime",
+      "source": "src/scripting/sandbox/worker-runtime.js",
+      "world": "classic Blob Worker",
+      "consumer": "src/scripting/sandbox/host.js fetch -> opaque sandbox",
+      "output": "scripting/sandbox/worker-runtime.js",
+      "wxtEntrypoint": "src/entrypoints/worker-runtime.js"
+    }
+  ],
+  "resources": [
+    {
+      "output": "ui/tool.html",
+      "source": "src/ui/tool.html",
+      "consumer": "tool HTML / target bootstrap / sandbox host"
+    },
+    {
+      "output": "ui/tool-shell.css",
+      "source": "src/ui/tool-shell.css",
+      "consumer": "tool HTML / target bootstrap / sandbox host"
+    },
+    {
+      "output": "ui/target-bootstrap.html",
+      "source": "src/ui/target-bootstrap.html",
+      "consumer": "tool HTML / target bootstrap / sandbox host"
+    },
+    {
+      "output": "scripting/sandbox/sandbox.html",
+      "source": "src/scripting/sandbox/sandbox.html",
+      "consumer": "tool HTML / target bootstrap / sandbox host"
+    },
+    {
+      "output": "icons/notification.png",
+      "source": "scripts/build.mjs deterministic notification PNG",
+      "consumer": "SDK notification broker"
+    },
+    {
+      "output": "licenses/todo-user-vue-MIT.txt",
+      "source": "docs/contracts/licenses/todo-user-vue-MIT.txt",
+      "consumer": "MIT attribution"
+    }
+  ]
+}

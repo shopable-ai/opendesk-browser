@@ -1,0 +1,22 @@
+{
+  "candidate": "migration-goal-prompt-v5-c2",
+  "scope": "prompt-and-migration-organization-only; not stage0/product approval",
+  "files": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+      "sha256": "b20ab40b6fc8099ebc8b8fbc53a61ceaa8e1ba666b22219c637f1fa568e4bf03"
+    }
+  ],
+  "immutableSnapshot": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-prompt-v5/candidate-c2.txt",
+  "context": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055"
+    }
+  ],
+  "changesSinceC1": [
+    "Use absolute history-attachment path",
+    "Disambiguate historical C2 handoff from current prompt"
+  ],
+  "functionalGatesChanged": false
+}

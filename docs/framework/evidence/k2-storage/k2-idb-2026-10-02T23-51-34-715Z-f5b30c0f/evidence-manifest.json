@@ -1,0 +1,131 @@
+{
+  "schema": "k2.native-idb-preparation-manifest.v1",
+  "runId": "k2-idb-2026-10-02T23-51-34-715Z-f5b30c0f",
+  "files": [
+    {
+      "path": "backups-typed.json",
+      "bytes": 5,
+      "sha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+    },
+    {
+      "path": "console.json",
+      "bytes": 126,
+      "sha256": "45e1ae051ca73714ff2e5455df4000d45906ea8a31452880ff6a10db0aaf8c13"
+    },
+    {
+      "path": "contract-boundary.json",
+      "bytes": 141396,
+      "sha256": "750f6e639da96dfa941348dc925716fdabfd77519f4dc314a4071c536b039d52"
+    },
+    {
+      "path": "http-origin-native-idb.png",
+      "bytes": 9441,
+      "sha256": "6bf5c5ca01166b6a7df2470d8344d916c05d69a8073bf4c48cea4110229e8a0b"
+    },
+    {
+      "path": "http.json",
+      "bytes": 2603,
+      "sha256": "f7c9372915afe660fd895d4c200c41d4c554c00b50c19c17f083c1d210a24b23"
+    },
+    {
+      "path": "key-value-inputs.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "native-events.json",
+      "bytes": 12227,
+      "sha256": "b985d10f3fdef6cbd9c29339ba1c93c420aad0352072721e679a7d09075acde1"
+    },
+    {
+      "path": "preparation.md",
+      "bytes": 1065,
+      "sha256": "5ddbf11afbd14eca2228e71166d6ba960245a2afd3ee8a6590eb5ea1bfa3388d"
+    },
+    {
+      "path": "report.json",
+      "bytes": 174292,
+      "sha256": "3945c26f475d829d9a7bdead738084a7d4ea475bd59de13b66ddf75e82772fd8"
+    },
+    {
+      "path": "source/legacy/src/platform/protocol.js",
+      "bytes": 7556,
+      "sha256": "39ae55cdfbc75e2d9e8d2e00b0b07c42ab34ef585b9357436c1fee7e19621f43"
+    },
+    {
+      "path": "source/legacy/src/platform/schema.js",
+      "bytes": 43891,
+      "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+    },
+    {
+      "path": "source/legacy/src/platform/storage/idb.js",
+      "bytes": 8320,
+      "sha256": "1016aa470bd0ece215e7a11c6bfe0df7998d2c87ff480ebb8d981102194b23f9"
+    },
+    {
+      "path": "source/legacy/src/platform/storage/index.js",
+      "bytes": 2984,
+      "sha256": "3bc726648e15bb2741e784e02eda1a8c99068259d33c8d4a153a3981762f1936"
+    },
+    {
+      "path": "source/legacy/src/platform/storage/repository.js",
+      "bytes": 43815,
+      "sha256": "5851a52643fd84f98dee4efe2bd554ce52e813e4c6c436e209b934d95dd1b5d4"
+    },
+    {
+      "path": "source/src/platform/journal.js",
+      "bytes": 666,
+      "sha256": "e12202af97beebc45df42d6ec3e52b0c1b549ddd9ed90872eb8eb88ca73c8b67"
+    },
+    {
+      "path": "source/src/platform/page-port/codec.js",
+      "bytes": 7854,
+      "sha256": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124"
+    },
+    {
+      "path": "source/src/platform/protocol.js",
+      "bytes": 9407,
+      "sha256": "02c7d59230649c7c5df6f839335c399a09348a7e0587840883f8b1d4c38d1040"
+    },
+    {
+      "path": "source/src/platform/schema.js",
+      "bytes": 43891,
+      "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+    },
+    {
+      "path": "source/src/platform/storage/idb.js",
+      "bytes": 17016,
+      "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672"
+    },
+    {
+      "path": "source/src/platform/storage/index.js",
+      "bytes": 3084,
+      "sha256": "94edf96711d534201d5be444b445da6944a15ab61017ab354982028bef37363e"
+    },
+    {
+      "path": "source/src/platform/storage/regression.js",
+      "bytes": 15317,
+      "sha256": "7ab921130e6064310916dc45649e05b343eabf34d27203cb39e71e7142f231ed"
+    },
+    {
+      "path": "source/src/platform/storage/repository.js",
+      "bytes": 60274,
+      "sha256": "424d4d8fef876c29ed3da692b7933276a55abcdbc8fa33811586c71c552cfc11"
+    },
+    {
+      "path": "source/tests/framework/native-idb-migration-fixture.js",
+      "bytes": 15915,
+      "sha256": "70d571a3feb3868064fc7278f2e6de2de04763aad381a42edee0035def2cff98"
+    },
+    {
+      "path": "source/tests/framework/native-idb-migration-preparation.mjs",
+      "bytes": 13015,
+      "sha256": "3a0cec3ceaa555884e5ab360ceb2fcf49f5c2bf8ac61e6e05e45b5a48257200d"
+    },
+    {
+      "path": "source/tests/framework/native-idb-migration-verification.js",
+      "bytes": 32713,
+      "sha256": "656bbe2897e72f41da26c3d6c035d37fe58265a49fe5d30c54681992fd6aed67"
+    }
+  ]
+}

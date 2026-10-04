@@ -1,0 +1,122 @@
+{
+  "generatedAt": "2026-10-02T06:47:20.648767+00:00",
+  "status": "passed",
+  "tests": {
+    "passed": 20,
+    "failed": 0
+  },
+  "results": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-0.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-1.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "pack"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-2.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "pack:dev"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-3.log"
+    },
+    {
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-4.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-5.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-6.log"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/build.mjs",
+        "production"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-build-production.log"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/pack.mjs",
+        "production"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-pack-production.log"
+    },
+    {
+      "test": "repeat-build-pack",
+      "mode": "production",
+      "status": "passed",
+      "packageHash": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+      "zipSha256": "ceb5efbd5b3fe5d9a9276a5ccc71b12629bfa32a28d3fdfb3b1965f10ecfb9cf"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/build.mjs",
+        "development"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-build-development.log"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/pack.mjs",
+        "development"
+      ],
+      "exitCode": 0,
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-pack-development.log"
+    },
+    {
+      "test": "repeat-build-pack",
+      "mode": "development",
+      "status": "passed",
+      "packageHash": "2867a88ab02272f1b21a368944508629d9654d49940ddb8cacaa319dafcd4fd3",
+      "zipSha256": "ed53b968c2abdba425ddd8f72be0025b9eb51a7d1b01e445fd6a7c663ab6030f"
+    }
+  ]
+}

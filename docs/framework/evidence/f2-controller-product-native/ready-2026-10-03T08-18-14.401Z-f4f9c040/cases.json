@@ -1,0 +1,186 @@
+[
+  {
+    "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+    "families": "A01/NAV01/CMP09",
+    "expected": "Real owned page navigates; BaseAlice, Typed/clicked; HTTP effect and durable typed return agree",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "R1-PINNED-WHILE-R2-SAVED",
+    "families": "USC01/USC02",
+    "expected": "r1 source UTF8 hash and params stay pinned while UI saves r2; explicit r2 run returns r2",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+    "families": "A01/A02/AUTH01",
+    "expected": "Explicit borrowed document changes; activated decoy and other documents do not; borrowed target survives",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+    "families": "A02/AUTH01",
+    "expected": "Actual child document selected from native frame inventory; only child changes; top/decoy survive",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DURABLE-FALSE",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DURABLE-ZERO",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DURABLE-UNDEFINED",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DURABLE-OWN-UNDEFINED",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DURABLE-TRUE",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DURABLE-BUSINESS",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DOWNLOAD-FALSE",
+    "families": "DLGEN01/DLGEN02",
+    "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DOWNLOAD-ZERO",
+    "families": "DLGEN01/DLGEN02",
+    "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DOWNLOAD-UNDEFINED",
+    "families": "DLGEN01/DLGEN02",
+    "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "DOWNLOAD-OWN-UNDEFINED",
+    "families": "DLGEN01/DLGEN02",
+    "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "THROW",
+    "families": "USC03/EX02",
+    "expected": "Actual Worker throw persists failed typed error exactly once",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "REJECTION",
+    "families": "USC03/EX02",
+    "expected": "Actual rejected Promise persists failed typed error exactly once",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "MULTI-HOST-SLOT-COMPETITION",
+    "families": "CTRL03/AUTH01",
+    "expected": "Two real product hosts contend; loser gets E_OWNER; no loser run/effect; winner retains slot",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "STOP-PENDING-FENCE",
+    "families": "CTRL01/LEAK01",
+    "expected": "Real UI stop during native page wait; durable cancel; no late page operation; borrowed target survives",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "WORKER-INFINITE-STOP",
+    "families": "CTRL03/EX03/LEAK01",
+    "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "WORKER-INFINITE-DEADLINE",
+    "families": "CTRL03/EX03/LEAK01",
+    "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "WORKER-INFINITE-HOST-CLOSE",
+    "families": "CTRL03/EX03/LEAK01",
+    "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "REOPEN-PERSISTENT-RESULT",
+    "families": "USC03/CTRL03",
+    "expected": "Closing/reopening actual tool reads original durable outcome without executing old source",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  },
+  {
+    "id": "CLEANUP-NO-SCRAPING-RECORDS",
+    "families": "A01/LEAK01",
+    "expected": "Controller targets/frames retired, slot released; no template/row/seal/business run prerequisite",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED"
+  }
+]

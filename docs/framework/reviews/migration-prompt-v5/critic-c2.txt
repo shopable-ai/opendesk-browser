@@ -1,0 +1,32 @@
+**APPROVE。独立 Critic 评分：98/100，无阻断项。**批准范围是这份可在新对话执行的 Goal 提示词及迁移组织方案；阶段0方案、F1机制和F3产品仍须分别验收。本评分独立形成，未继承 Architect 的99分。
+
+|评分项|得分|
+|---|---:|
+|需求来源|25/25|
+|职责边界|24/25|
+|依赖可执行|19/20|
+|验收追溯|20/20|
+|风险恢复|10/10|
+|**总分**|**98/100**|
+
+候选回应了用户反复要求的“先计划、新旧对应、判断正确与完成”，与[历史原话第14行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-prompt-v5/history-evidence.json:14)一致。迁移对象明确包括自动化API、控制脚本、独立网页SDK、公共服务和资源；工作台被限定为实际调用入口。旧名称运行时目录、import及打包路径均被禁止，未发现换名保留旧树的绕过空间。
+
+**扣分及最小修订，两项均非阻断：**
+
+- 职责边界扣1分：[第27–28行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:27)同时使用“当前为执行模式”和“当前为Plan Mode”。上下文能识别条件分支，但宜分别改为“若当前处于……”，避免新对话误读授权。
+- 依赖可执行扣1分：[第355行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:355)的 `npm check` 应改为 `npm run check`。[package.json第14行](/Users/shopme/Documents/workspace/opendesk-browser/package.json:14)确认它是自定义脚本，本机npm帮助也明确通过 `run` 调用。属于可直接纠正的命令错误，不破坏阶段依赖。
+
+**阻断列表：无。**以上建议若修改正文，应生成新hash，并按第371行要求对最终同一候选重新取得双方结论。
+
+**三场景推演结果均通过，非产品实测：**
+
+1. **首次接手：**[第210行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:210)将阶段0限定为计划、映射、测试规格和审批资料；先交付主计划及逐项清单，再补F1。执行者不能先写UI或补原型。未来实现文件不存在不妨碍“已映射”成立。
+2. **两条迁移链分别可追溯：**ChromePage.type由[第186行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:186)的门面，经每run上下文及唯一底座承接；第338行保留“追加输入、返回Typed”，阶段0必须落实具体输入、预期和证据。SDK另有注入、relay、服务、固定回调与原Promise链；[第299行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:299)要求不启动controller仍能调用，并完整关闭B05。底座初验不提前关闭B05，避免循环依赖或遗漏。
+3. **不会因局部成功误宣完成：**历史审批、原型证据、工作台单链均不能替代产品验收。[第324行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:324)要求同一最终包、全部必选回归及独立验收；缺失、失败、过期或阻断均不算完成。第370行另行区分四类审批对象，方案hash与产品包hash不能互代。
+
+风险处理保留了撤权、导航、未知写不重放、真实Worker终止、资源清理及数据库升级后的只读诊断与向前修复，未发现弱化原约束。
+
+候选及冻结副本逐字节一致，manifest匹配。SHA256：
+`b20ab40b6fc8099ebc8b8fbc53a61ceaa8e1ba666b22219c637f1fa568e4bf03`
+
+已完整读取指定角色、候选、附件、Architect报告及证据；仅为命令争议额外核对scripts与npm帮助。未遍历72来源，未因未来产物不存在扣分，未写文件、执行Goal、启动子代理或改配置。

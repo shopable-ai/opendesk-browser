@@ -1,0 +1,260 @@
+[
+  {
+    "method": "GET",
+    "url": "/top?id=target",
+    "host": "127.0.0.1:56779",
+    "at": 1790970031056
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970031062
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:56779",
+    "at": 1790970031063
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:56779",
+    "at": 1790970031065
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970031068
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:56779",
+    "at": 1790970031076
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:56779",
+    "at": 1790970031090
+  },
+  {
+    "method": "GET",
+    "url": "/other?id=negative",
+    "host": "127.0.0.1:56779",
+    "at": 1790970031091
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970031094
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:56779",
+    "at": 1790970031108
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=revoke-USER_SCRIPT",
+    "host": "127.0.0.1:56779",
+    "at": 1790970033622
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=navigate-USER_SCRIPT",
+    "host": "127.0.0.1:56779",
+    "at": 1790970033911
+  },
+  {
+    "method": "GET",
+    "url": "/top?id=after-USER_SCRIPT",
+    "host": "127.0.0.1:56779",
+    "at": 1790970033920
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970033924
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:56779",
+    "at": 1790970033927
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:56779",
+    "at": 1790970033928
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970033930
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:56779",
+    "at": 1790970033934
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:56779",
+    "at": 1790970033937
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=revoke-MAIN",
+    "host": "127.0.0.1:56779",
+    "at": 1790970033967
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=navigate-MAIN",
+    "host": "127.0.0.1:56779",
+    "at": 1790970034266
+  },
+  {
+    "method": "GET",
+    "url": "/top?id=after-MAIN",
+    "host": "127.0.0.1:56779",
+    "at": 1790970034268
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970034272
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:56779",
+    "at": 1790970034275
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:56779",
+    "at": 1790970034276
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970034278
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:56779",
+    "at": 1790970034283
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:56779",
+    "at": 1790970034286
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=host-pending-USER_SCRIPT",
+    "host": "127.0.0.1:56779",
+    "at": 1790970035634
+  },
+  {
+    "method": "GET",
+    "url": "/hold?token=host-pending-MAIN",
+    "host": "127.0.0.1:56779",
+    "at": 1790970039562
+  },
+  {
+    "method": "GET",
+    "url": "/top?id=csp-baseline",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042194
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042198
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=same",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042202
+  },
+  {
+    "method": "GET",
+    "url": "/frame?id=cross",
+    "host": "localhost:56779",
+    "at": 1790970042203
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042205
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "localhost:56779",
+    "at": 1790970042209
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042213
+  },
+  {
+    "method": "GET",
+    "url": "/probe?token=csp-baseline-MAIN-page",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042230
+  },
+  {
+    "method": "GET",
+    "url": "/probe?token=csp-baseline-USER_SCRIPT-allow",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042268
+  },
+  {
+    "method": "GET",
+    "url": "/csp?id=csp-restrictive",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042323
+  },
+  {
+    "method": "GET",
+    "url": "/page-script.js",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042327
+  },
+  {
+    "method": "GET",
+    "url": "/favicon.ico",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042332
+  },
+  {
+    "method": "GET",
+    "url": "/probe?token=csp-restrictive-USER_SCRIPT-allow",
+    "host": "127.0.0.1:56779",
+    "at": 1790970042388
+  }
+]

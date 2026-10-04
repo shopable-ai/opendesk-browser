@@ -1,0 +1,153 @@
+{
+  "contractVersion": "1.0.0",
+  "status": "planned-not-executed",
+  "envelopeDefinition": "{pageIdentity: exact normalized authenticated document URL, records:[{raw,values}] in rowIndex order; excludes recordKey/snapshotId/run/document metadata}",
+  "baseEnvelope": {
+    "pageIdentity": "https://fixture.example/list?page=2",
+    "records": [
+      {
+        "raw": {
+          "name": "\u884c0",
+          "count": "0"
+        },
+        "values": {
+          "name": "\u884c0",
+          "count": 0
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c1",
+          "count": "1"
+        },
+        "values": {
+          "name": "\u884c1",
+          "count": 1
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c2",
+          "count": "2"
+        },
+        "values": {
+          "name": "\u884c2",
+          "count": 2
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c3",
+          "count": "3"
+        },
+        "values": {
+          "name": "\u884c3",
+          "count": 3
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c4",
+          "count": "4"
+        },
+        "values": {
+          "name": "\u884c4",
+          "count": 4
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c5",
+          "count": "5"
+        },
+        "values": {
+          "name": "\u884c5",
+          "count": 5
+        }
+      }
+    ]
+  },
+  "canonicalUtf8": "{\"pageIdentity\":\"https://fixture.example/list?page=2\",\"records\":[{\"raw\":{\"count\":\"0\",\"name\":\"\u884c0\"},\"values\":{\"count\":0,\"name\":\"\u884c0\"}},{\"raw\":{\"count\":\"1\",\"name\":\"\u884c1\"},\"values\":{\"count\":1,\"name\":\"\u884c1\"}},{\"raw\":{\"count\":\"2\",\"name\":\"\u884c2\"},\"values\":{\"count\":2,\"name\":\"\u884c2\"}},{\"raw\":{\"count\":\"3\",\"name\":\"\u884c3\"},\"values\":{\"count\":3,\"name\":\"\u884c3\"}},{\"raw\":{\"count\":\"4\",\"name\":\"\u884c4\"},\"values\":{\"count\":4,\"name\":\"\u884c4\"}},{\"raw\":{\"count\":\"5\",\"name\":\"\u884c5\"},\"values\":{\"count\":5,\"name\":\"\u884c5\"}}]}",
+  "sha256": "68d21e66fd66dc6db1f20f368fdd008b15953ec839e19e794487bad6c6a56625",
+  "cases": [
+    {
+      "id": "same-content-new-snapshot",
+      "snapshotIdA": "P1",
+      "snapshotIdB": "P2",
+      "expectedEqual": true
+    },
+    {
+      "id": "same-first-five-sixth-changed",
+      "changedRowIndex": 5,
+      "fieldId": "name",
+      "changedValue": "changed-final-row",
+      "expectedEqual": false
+    }
+  ],
+  "changedEnvelope": {
+    "pageIdentity": "https://fixture.example/list?page=2",
+    "records": [
+      {
+        "raw": {
+          "name": "\u884c0",
+          "count": "0"
+        },
+        "values": {
+          "name": "\u884c0",
+          "count": 0
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c1",
+          "count": "1"
+        },
+        "values": {
+          "name": "\u884c1",
+          "count": 1
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c2",
+          "count": "2"
+        },
+        "values": {
+          "name": "\u884c2",
+          "count": 2
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c3",
+          "count": "3"
+        },
+        "values": {
+          "name": "\u884c3",
+          "count": 3
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c4",
+          "count": "4"
+        },
+        "values": {
+          "name": "\u884c4",
+          "count": 4
+        }
+      },
+      {
+        "raw": {
+          "name": "\u884c5",
+          "count": "5"
+        },
+        "values": {
+          "name": "changed-final-row",
+          "count": 5
+        }
+      }
+    ]
+  },
+  "changedSha256": "24e182bd975c96c9e76d3abf478eb4db9a97ba5c20bee79b2efb7617841a0e6d"
+}

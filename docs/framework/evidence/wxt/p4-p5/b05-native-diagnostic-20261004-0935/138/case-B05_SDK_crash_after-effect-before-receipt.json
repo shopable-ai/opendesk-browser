@@ -1,0 +1,139 @@
+{
+  "id": "B05.SDK.crash.after-effect-before-receipt",
+  "label": "138",
+  "startedAt": "2026-10-04T09:40:03.744Z",
+  "status": "FAIL",
+  "evidence": {
+    "payload": {
+      "requestId": "f3cfcdd7-8272-41f9-b044-b4e5133349a3",
+      "method": "AXIOS_POST",
+      "argsWire": {
+        "type": "object",
+        "value": [
+          [
+            "config",
+            {
+              "type": "object",
+              "value": []
+            }
+          ],
+          [
+            "data",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "effect",
+                  {
+                    "type": "string",
+                    "value": "crash-d96da613-f305-4294-a5f1-17c9fed05796"
+                  }
+                ],
+                [
+                  "f",
+                  {
+                    "type": "boolean",
+                    "value": false
+                  }
+                ],
+                [
+                  "z",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "url",
+            {
+              "type": "string",
+              "value": "http://127.0.0.1:61120/hold?token=crash-d96da613-f305-4294-a5f1-17c9fed05796"
+            }
+          ]
+        ]
+      },
+      "deadlineAt": 1791106833746
+    },
+    "snapshots": [
+      "138/snapshot-7-crash-before.json"
+    ],
+    "beforeRows": {
+      "operation": {
+        "tag": "sdk-operation",
+        "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"f3cfcdd7-8272-41f9-b044-b4e5133349a3\"]",
+        "tabId": 1669973067,
+        "frameId": 0,
+        "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+        "origin": "http://127.0.0.1:61120",
+        "principal": "sdk:http://127.0.0.1:61120",
+        "namespace": "page:http://127.0.0.1:61120",
+        "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+        "runId": "1dcf022a-6f86-4a85-926a-6de8f8f0bce4",
+        "opId": "2be33f5d-ba36-40a7-ad06-6a2c45bdf808",
+        "resultId": "7a46fbc7-95ac-4464-b390-400c3563623f",
+        "requestId": "f3cfcdd7-8272-41f9-b044-b4e5133349a3",
+        "requestDigest": "ca8cb1e56b068fbe9c53798df55d92e6a7a1e160402b6b0ef01625ab141fa288",
+        "method": "AXIOS_POST",
+        "capability": "network",
+        "effect": "write",
+        "deadlineAt": 1791106818788,
+        "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+        "state": "dispatched",
+        "cancelSeq": 0,
+        "submissionCount": 1,
+        "admittedAt": "2026-10-04T09:40:03.788Z",
+        "dispatchAt": "2026-10-04T09:40:03.789Z"
+      },
+      "runs": [
+        {
+          "key": "1dcf022a-6f86-4a85-926a-6de8f8f0bce4",
+          "value": {
+            "tag": "sdk-service",
+            "driver": "framework.sdk-service.v1",
+            "runId": "1dcf022a-6f86-4a85-926a-6de8f8f0bce4",
+            "opId": "2be33f5d-ba36-40a7-ad06-6a2c45bdf808",
+            "namespace": "page:http://127.0.0.1:61120",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "preparing",
+            "createdAt": "2026-10-04T09:40:03.788Z"
+          }
+        }
+      ],
+      "results": []
+    },
+    "effectCountBefore": 1,
+    "workerStop": {
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "runningStatus": "running",
+        "status": "activated",
+        "scriptLastModified": 1791102341,
+        "scriptResponseTime": 0,
+        "controlledClients": [
+          "2BAAB05F0111290A087AABC93D656470"
+        ],
+        "targetId": "0FD86BE862C91965EE5B2F9ABCD1FC89"
+      },
+      "targetId": "0FD86BE862C91965EE5B2F9ABCD1FC89",
+      "requestedAt": "2026-10-04T09:40:03.835Z"
+    }
+  },
+  "error": {
+    "message": "Timed out: SW targetDestroyed event",
+    "stack": "Error: Timed out: SW targetDestroyed event\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:244:9)\n    at async stopWorker (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:554:32)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:771:13\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:387:11)\n    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:755:62)\n    at async main (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:1037:3)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:1049:84"
+  },
+  "reason": "Timed out: SW targetDestroyed event",
+  "measurements": {
+    "elapsedMs": 12168.220584000053,
+    "rawCdpSequenceStart": 7707,
+    "rawCdpSequenceEnd": 7748,
+    "httpRecordCountStart": 5,
+    "httpRecordCountEnd": 6
+  },
+  "endedAt": "2026-10-04T09:40:15.912Z"
+}

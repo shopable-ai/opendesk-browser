@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-b27d2de6-6c3a-4d4a-a1fa-f504228ed218",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "dbe8b7a5c50349512e3a40ee1277ac4eee1ba03e56e9171729c602c52e3758a7",
+  "sourceUtf8": "await page.type('#name',JSON.stringify({workerName:self.name,workerURL:location.href})); await page.title(); while(true){}"
+}

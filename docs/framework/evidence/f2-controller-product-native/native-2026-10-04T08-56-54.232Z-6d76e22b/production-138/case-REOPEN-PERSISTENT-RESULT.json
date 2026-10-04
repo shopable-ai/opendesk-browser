@@ -1,0 +1,12 @@
+{
+  "id": "REOPEN-PERSISTENT-RESULT",
+  "families": "USC03/CTRL03",
+  "expected": "Closing/reopening actual tool reads original durable outcome without executing old source",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791104718301,
+  "elapsedMs": 0.005249999987427145
+}

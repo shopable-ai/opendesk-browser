@@ -1,0 +1,168 @@
+{
+  "stage": "01",
+  "checkedAt": "2026-10-01T20:50:53.811943+00:00",
+  "requirements": [
+    {
+      "id": "R01",
+      "requirement": "human product target/workflow/layout/scope",
+      "artifact": "docs/contracts/solution-overview.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R02",
+      "requirement": "framework comparison/recommendation/reversal/source evidence",
+      "artifact": "docs/contracts/framework-decision.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R03",
+      "requirement": "runtime architecture and normal/stop diagrams",
+      "artifact": "docs/contracts/solution-overview.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R04",
+      "requirement": "AI/buildtime/runtime/desktop boundary",
+      "artifact": "docs/contracts/solution-overview.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R05",
+      "requirement": "v5 task owner/DAG/input/write/deliverable/tests/ready blockers",
+      "artifact": "docs/contracts/task-breakdown.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R06",
+      "requirement": "read-only source hashes/dirty/license/manual provenance",
+      "artifact": "docs/contracts/source-ledger.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R07",
+      "requirement": "active loading chains and33behavior decisions",
+      "artifact": "docs/contracts/source-behaviors.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R08",
+      "requirement": "baseline442files and23captured delta byte integrity",
+      "artifact": "docs/contracts/artifact-validation.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R09",
+      "requirement": "version/capability/closed schemas and reject vectors",
+      "artifact": "docs/contracts/schema.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R10",
+      "requirement": "singleowner/slot/target/sender/stop/gap/lateepoch",
+      "artifact": "docs/contracts/semantics.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R11",
+      "requirement": "unknown abandon/target creation/session fence/retirement releaseCAS",
+      "artifact": "docs/contracts/semantics.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R12",
+      "requirement": "threebatch partial failure/atomicseal/duplicate/conflict/checkpoint",
+      "artifact": "docs/contracts/state-machines.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R13",
+      "requirement": "download deadlines0/1/many/late/reexport/isolation",
+      "artifact": "docs/contracts/semantics.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R14",
+      "requirement": "complete migration3classes/DOM/columns/types/backup/output bytes",
+      "artifact": "docs/contracts/migration.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R15",
+      "requirement": "falsy/empty/null/150chars/no-title/strictconversion/URL/CSV",
+      "artifact": "docs/contracts/test-plan.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R16",
+      "requirement": "M01-M11 realIDB/ordinary browser plan andM12separate",
+      "artifact": "docs/contracts/test-plan.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R17",
+      "requirement": "source selection/cancel/unsaved draft preview samecompiler",
+      "artifact": "docs/contracts/semantics.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R18",
+      "requirement": "exactrawframes/0batch/history/session/release22counterexamples",
+      "artifact": "docs/contracts/test-plan.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R19",
+      "requirement": "reviewed source/symbol/hash\u2192newmodule/owner/impact mapping",
+      "artifact": "docs/contracts/reuse-decision.json",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R20",
+      "requirement": "CodeGraph falseedges/manual dynamic borders andfixed sourcegeneration",
+      "artifact": "docs/contracts/reuse-decision.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R21",
+      "requirement": "02A environment distinct02B migration ledger/foundation handoff",
+      "artifact": "docs/contracts/implementation-plan.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    },
+    {
+      "id": "R22",
+      "requirement": "parallel06 realbuild-triggered smoke final04independent",
+      "artifact": "docs/contracts/implementation-plan.md",
+      "status": "covered-by-design-artifact",
+      "productionVerified": false
+    }
+  ],
+  "designClosure": "ready-design-only",
+  "productTestRuns": 0,
+  "releaseOnlyAfterFinalReady": true,
+  "stage05": "actual handoff reviewed-integrated",
+  "independentReviews": {
+    "protocol": "APPROVE",
+    "solution": "APPROVE"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "timestampUtc": "2026-10-03T08:34:32.101970+00:00",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/framework/k2-generic-download.test.mjs",
+    "tests/foundation/download-service.test.mjs",
+    "tests/foundation/storage.test.mjs",
+    "tests/framework/k2-codec.test.mjs"
+  ],
+  "exitCode": 0,
+  "summary": {
+    "tests": 74,
+    "pass": 74,
+    "fail": 0
+  },
+  "includes": "20 generic + 26 unchanged template downloads + 22 storage + 6 codec; shared controller failures retained separately",
+  "before": {
+    "src/platform/downloads/index.js": "741f2a85cfbee87de515f53a2299e8ab5ee1a908dbc5ddc1ce5a1338ccd3da9e",
+    "src/platform/downloads/blob-lifecycle.js": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66",
+    "src/platform/host/controller-methods.js": "4c29a6fde634b7c6d29f19a679dd012cf085a8e8712197d476783aabb3983447",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+    "src/platform/page-port/codec.js": "9bbc78e7adb9f171cdf06d93fb5850f7caf6f1c74583e093a412b31878955e76",
+    "tests/framework/k2-generic-download.test.mjs": "8c3d6433cc3005cb352447264dcf57a28c801eaf899f947e1da3457343990938",
+    "tests/foundation/download-service.test.mjs": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936",
+    "tests/foundation/storage.test.mjs": "6ab9765f0264a13966f85204f87892aabd089b291fdf27b25054f63028188522",
+    "tests/framework/k2-codec.test.mjs": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+  },
+  "after": {
+    "src/platform/downloads/index.js": "741f2a85cfbee87de515f53a2299e8ab5ee1a908dbc5ddc1ce5a1338ccd3da9e",
+    "src/platform/downloads/blob-lifecycle.js": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66",
+    "src/platform/host/controller-methods.js": "4c29a6fde634b7c6d29f19a679dd012cf085a8e8712197d476783aabb3983447",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+    "src/platform/page-port/codec.js": "9bbc78e7adb9f171cdf06d93fb5850f7caf6f1c74583e093a412b31878955e76",
+    "tests/framework/k2-generic-download.test.mjs": "8c3d6433cc3005cb352447264dcf57a28c801eaf899f947e1da3457343990938",
+    "tests/foundation/download-service.test.mjs": "e936106092ed36dbab2db70706d05b4a457df8bf094b77431d8ed111ec5a1936",
+    "tests/foundation/storage.test.mjs": "6ab9765f0264a13966f85204f87892aabd089b291fdf27b25054f63028188522",
+    "tests/framework/k2-codec.test.mjs": "53b2912ae41a0fd9434f0898be63d3ad82e9245c8ea161e99fe96137fce59b1a"
+  },
+  "sourceDrift": {}
+}

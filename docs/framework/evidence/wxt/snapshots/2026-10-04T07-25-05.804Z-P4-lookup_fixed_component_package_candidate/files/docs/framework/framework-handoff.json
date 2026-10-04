@@ -1,0 +1,517 @@
+{
+  "schemaVersion": 1,
+  "goal": "OpenDesk Browser 通用框架迁移 Goal",
+  "ownerThreadId": "01a1007d-556c-7783-b5dd-c09312a10236",
+  "status": "active-F2-K2-product-foundation-in-progress",
+  "createdAt": "2026-10-02T14:15:53.141844+00:00",
+  "isCompletionCertificate": false,
+  "frameworkFunctionalMigrationComplete": false,
+  "designApproved": true,
+  "boundedPrototypeResearchAllowed": true,
+  "backendPrototypePassed": true,
+  "fullImplementationReleased": true,
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+  "prototypeCandidateSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+  "finalProductPackageSha256": null,
+  "frozenFinalSDKAPISchemaVersionGrants": false,
+  "stageResults": {
+    "stage0": "IN_PROGRESS; current candidate independent approvals pending",
+    "F0": "historical72/48 retained; bounded drift check only",
+    "F1": "PASS: both independent reviews same final union, 12/12 each, zero blockers",
+    "F2": "K2 actual product foundation implementation in progress",
+    "F3": "PENDING: original603 and explicit extras require same final production package"
+  },
+  "stopReason": null,
+  "stopAuthorization": null,
+  "nextAction": "Close current grant/storage contract mismatch and ACK concurrency regression; verify existing session/lifecycle SDK wiring, package fixed entries/resources, integrate generic control run-host; then same-final-package F3.",
+  "evidence": {
+    "executionGates": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-gates.json",
+      "sha256": "195804d8fc1104395c12c00bddcdc5b0f3e2befc3d25f807dbc4e8a8af7ee59d"
+    },
+    "independentPrototypeReview": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/independent-review.json",
+      "sha256": "d04596a138f71e0eaab8875be046718bc82de91362bc5555070d046d1dca37cb"
+    },
+    "actualPrototypeReport": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/report.json",
+      "sha256": "18ce2c5b06870a4ac065d3c914abfedcb5f7b8919268c2821c14f5f331d26b80"
+    },
+    "screenshot": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/workbench.png",
+      "sha256": "c32be976ef88b5671552d2c389f228f2dfbe2cdf0e92915fa84a155225a4ee08"
+    },
+    "console": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/console.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "sourceAndAPI": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/source-compatibility-ledger.json",
+      "sha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1",
+      "actualSourceRowsRead": 72,
+      "actualAPIItemsRead": 48,
+      "runtimePass": false
+    },
+    "sourceFreshness": "evidence/source-handoff.json",
+    "historicalFailures": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/historical-failure-mapping.json",
+      "sha256": "acd9ca12463cceee7e6d5e898b7fc6ca319fd959492edacb4550e71fea4376a5",
+      "R1_R8Mapped": 8,
+      "actual17FailedNamesMapped": 17,
+      "closed": 0,
+      "rerun": 0
+    },
+    "prototypeReproduction": "prototypes/ex08/reproduction.md",
+    "modelEvidence": "local turn_context/request matched; server resolved runtime UNVERIFIED; no global model change"
+  },
+  "actualChrome": {
+    "version": "149.0.7827.55",
+    "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+    "channel": "Chrome for Testing",
+    "stable": false,
+    "extensionId": "ngflknmbhhjghcbeooahmdlbljakmjni",
+    "headed": true,
+    "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/profiles/chrome-149"
+  },
+  "variantAssessment": [
+    {
+      "variant": "classic-package",
+      "classification": "FAILED",
+      "finding": "Worker 构造时真实抛出 SecurityError，错误明确指出 chrome-extension URL 无法从 null origin 访问。此分支后续 RPC、网络和终止均未执行。",
+      "evidence": [
+        "R3",
+        "R4"
+      ]
+    },
+    {
+      "variant": "module-package",
+      "classification": "FAILED",
+      "finding": "同样在构造时被浏览器以 opaque origin 访问错误拒绝；尚未进入模块加载或执行，因此不能归因为 module 源码错误。",
+      "evidence": [
+        "R3",
+        "R5"
+      ]
+    },
+    {
+      "variant": "classic-blob",
+      "classification": "PARTIAL_PROOF",
+      "finding": "在 CfT 149.0.7827.55 中，Blob Worker 已加载、握手，并经私有 MessagePort 返回 pong。它是现有选定后端内技术可行的加载候选；当前证据不足以声明正式支持。",
+      "evidence": [
+        "R6",
+        "R7"
+      ]
+    },
+    {
+      "variant": "module-blob",
+      "classification": "FAILED_BEFORE_HANDSHAKE",
+      "finding": "构造后收到 Worker error，未取得 worker-ready。保留的错误没有具体加载诊断；不能据此确定 CSP、policy container、模块 origin 检查或其他机制为根因。Blob 使用的是 classic 文件的固定源码，不包含 worker-module.js 的相对 import，因此也不能归因为该 import。",
+      "evidence": [
+        "R3",
+        "R8",
+        "R9"
+      ]
+    }
+  ],
+  "passedActualAssertions": [
+    {
+      "assertion": "扩展页的固定包内 classic Worker 正对照取得 worker-ready",
+      "evidence": [
+        "R25"
+      ]
+    },
+    {
+      "assertion": "sandbox 报告 origin:null、chrome.runtime.id 不存在、读取 parent.document 被拒绝",
+      "evidence": [
+        "R16",
+        "R25"
+      ]
+    },
+    {
+      "assertion": "classic Blob Worker 握手、私有端口握手和 ping/pong 成功",
+      "evidence": [
+        "R6",
+        "R23"
+      ]
+    },
+    {
+      "assertion": "本次 fetch 失败且 loopback 请求数为零；拒绝机制尚未确定",
+      "evidence": [
+        "R6",
+        "R15"
+      ]
+    },
+    {
+      "assertion": "取得 loop-entered，执行 terminate，sandbox 随后的定时器完成；人工资源计数归零",
+      "evidence": [
+        "R6",
+        "R18",
+        "R19",
+        "R21"
+      ]
+    }
+  ],
+  "notTestedOrNotProven": [
+    {
+      "scope": "用户 async-body 编译执行、最小平台操作 adapter 的 await 语义、敌对用户代码隔离",
+      "status": "NOT_TESTED",
+      "evidence": [
+        "R9",
+        "R14",
+        "R24"
+      ]
+    },
+    {
+      "scope": "假 peer、global postMessage、重放、全局 patch 的实际拒绝",
+      "status": "NOT_TESTED",
+      "evidence": [
+        "R14",
+        "R23",
+        "R24"
+      ]
+    },
+    {
+      "scope": "Worker 有效 policy container、网络失败的 CSP 归因、独立 CPU 停止与资源回收观测",
+      "status": "NOT_PROVEN",
+      "evidence": [
+        "R13",
+        "R16",
+        "R19",
+        "R21"
+      ]
+    },
+    {
+      "scope": "userScripts 精确 document、USER_SCRIPT/MAIN 异步结果与异常、开关、撤权及 old-document race",
+      "status": "NOT_TESTED",
+      "evidence": [
+        "R24",
+        "R26",
+        "R27"
+      ]
+    },
+    {
+      "scope": "最低可支持版本、稳定版及授权开关矩阵",
+      "status": "NOT_TESTED",
+      "evidence": [
+        "R7",
+        "R27",
+        "R28"
+      ]
+    },
+    {
+      "scope": "失败加载变体的下游 RPC、网络和 CPU 终止，以及 F2/F3 产品链",
+      "status": "NOT_TESTED",
+      "evidence": [
+        "R4",
+        "R5",
+        "R8",
+        "R27"
+      ]
+    }
+  ],
+  "requiredF3Families": [
+    "PROV",
+    "CMP",
+    "RESOURCE",
+    "EX",
+    "NAV",
+    "B01-B05",
+    "AUTH",
+    "USC",
+    "CTRL",
+    "FIX",
+    "PLG",
+    "SVC",
+    "DLGEN",
+    "LEAK"
+  ],
+  "F3ActualPassClaimed": false,
+  "downloadCompleteAndActualArtifactHashVerified": false,
+  "evidenceFileHashesAreProductArtifactHashes": false,
+  "builtinBaselineCanReplaceFullFramework": false,
+  "compatibilityFreeze": "design evidence only; no functional compatibility certified",
+  "historicalSourceObservation": {
+    "generation": "continuation-current-02",
+    "same": 153,
+    "drift": 7,
+    "extraConsumers": 4,
+    "extraIncludedInDrift": false,
+    "same153Reaudited": false,
+    "newBoundedGeneration": "handoff-freshness-2026-10-02-01",
+    "selectedSourcesRehashed": 11,
+    "newDrift": 6
+  },
+  "cleanup": {
+    "browser": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/browser-cleanup.json",
+    "allNativeReviewHelpersClosed": true
+  },
+  "sideEffects": {
+    "productCodeChanged": false,
+    "dependenciesAdded": false,
+    "buildRun": false,
+    "oldAuditModified": false,
+    "oldGoalResumed": false,
+    "old2BResumed": false,
+    "oldTasksMessaged": false,
+    "scrapingOptimizationAcceptanceStarted": false,
+    "published": false
+  },
+  "nativeGoalStatusReference": "Current native Goal active; prior status belongs to prior Goal",
+  "instructionRevision": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/instructions/revision-4.json",
+    "sha256": "a4fca3a6464d8ab13a13a55cbd628e91e2a8ebf69ac169898e1a2d133ddc06ee",
+    "revision": 4,
+    "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+    "promptSha256": "6ca6d01c3210721f2b2ed76fa8699491bfe9f031dda6d33d23d2e027ecfb6b56",
+    "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+    "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+  },
+  "pauseRationaleCorrection": "Old PARTIAL_PROOF evidence remains valid and F1 gate closed. Untested work is pending work; it does not itself prove a missing prerequisite or backend failure. Per-loader failures do not establish backend-wide impossibility.",
+  "historicalLifecycle": {
+    "ownerThreadId": "01a0fcd7-ddff-7b41-be5c-b42b425b31af",
+    "status": "paused",
+    "stageResults": {
+      "F0": "read handoff and freeze 72-source/48-API evidence baseline; current selected drift appended; full migration/resource/license/grant implementation not claimed",
+      "F1": "real Chrome 149 tested four loaders; independent PARTIAL_PROOF, gate closed",
+      "F2": "NOT_STARTED; product code unchanged",
+      "F3": "NOT_STARTED; all mandatory cases remain unverified"
+    },
+    "stopReason": "necessary prerequisite missing; independent F1 terminal review confirms missing safety/semantics/userScripts/version evidence",
+    "nextAction": "Paused at required stop boundary. Do not automatically resume, broaden research, manufacture alternatives or start downstream scraping/optimization/acceptance. Any future approved work must preserve this partial evidence and explicitly resolve missing prerequisites.",
+    "nativeGoalStatusReference": "Native Goal status is authoritative; this handoff records the explicitly authorized pause disposition."
+  },
+  "currentPlanApproved": true,
+  "currentPlan": {
+    "id": "M5-C1",
+    "round": 6,
+    "manifest": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+    "manifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+    "architect": "APPROVE-98",
+    "critic": "APPROVE-98",
+    "approved": true,
+    "reports": {
+      "architect": "docs/framework/reviews/migration-execution-v5/round-6/architect.json",
+      "critic": "docs/framework/reviews/migration-execution-v5/round-6/critic.json"
+    },
+    "approvedAt": "2026-10-02T21:33:56.772669+00:00",
+    "reviewProvenance": {
+      "architectAgentId": "01a0fe35-0671-7821-83c0-55b45ac42612",
+      "criticAgentId": "01a0fe51-55cb-7902-9fd6-d44568a05b62",
+      "reportHashes": {
+        "architect": "201a8ca59a7c1ecf13bfa661910ffb4cab62a102d729048bc25d9179eb3c1ff3",
+        "critic": "e06be11d482bfb944611b7d625ded11519f3b6e1a062fcc5c217d899fef7db7a"
+      }
+    }
+  },
+  "currentLedger": "source-compatibility-ledger.json",
+  "currentCandidateManifest": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+  "currentCandidateManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "criticalTask": "K2",
+  "updatedAt": "2026-10-03T09:14:27.191803+00:00",
+  "preparedK1Executors": {
+    "control": "01a0fdf8-9bf1-73c1-bb20-d6a7763fcd75",
+    "pageFunction": "01a0fdf8-9cf2-76f1-959e-b81ef511177a"
+  },
+  "pendingPlanAmendment": {
+    "round": 6,
+    "manifest": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+    "manifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+    "status": "APPROVED-AND-PROMOTED",
+    "reason": "Eight actual native OFF-ON historical-fence counterexamples; explicit bounded compatibility proposal retains observed OFF sticky and all genuine authority/doc fences",
+    "originalCaseDenominator": 603,
+    "currentCaseDenominator": 603,
+    "requiredSubcasesWithinOriginalCase": 4,
+    "noFunctionalApproval": true,
+    "architectScore": 98,
+    "architectReport": "docs/framework/reviews/migration-execution-v5/round-6/architect.json",
+    "criticAgent": "01a0fe51-55cb-7902-9fd6-d44568a05b62",
+    "criticScore": 98,
+    "criticReport": "docs/framework/reviews/migration-execution-v5/round-6/critic.json",
+    "effectiveAt": "2026-10-02T21:33:56.772669+00:00"
+  },
+  "activeAgents": [],
+  "productMigrationItemsPassed": 0,
+  "F2Released": true,
+  "currentF1QualificationCandidate": {
+    "qualifiedAt": "2026-10-02T23:14:23.717624+00:00",
+    "candidateManifest": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+    "candidateManifestSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+    "approvedPlanManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+    "reviews": {
+      "architect": {
+        "status": "APPROVE",
+        "report": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+        "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6",
+        "agentId": "01a0fe35-0671-7821-83c0-55b45ac42612",
+        "required": 12,
+        "passed": 12,
+        "blockers": 0
+      },
+      "code-reviewer": {
+        "status": "APPROVE",
+        "report": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+        "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f",
+        "agentId": "01a0fe35-056b-7561-a230-0ebfe8efc095",
+        "required": 12,
+        "passed": 12,
+        "blockers": 0
+      }
+    },
+    "independentSequence": "Architect full report verified before Critic dispatch",
+    "artifactAndSourceBindingsVerified": 168,
+    "sourceOrEvidenceDrift": 0,
+    "requiredContracts": 12,
+    "allRequiredContractsPassed": true,
+    "scope": "F1 mechanism qualification under approved round6 contracts only",
+    "productRuntimePassAdded": false,
+    "productPackageSha256": null
+  },
+  "historicalGateTransitions": [
+    {
+      "observedAt": "2026-10-02T23:14:23.717624+00:00",
+      "status": "active-F1-real-blockers-under-repair",
+      "stopReason": "necessary prerequisite missing; independent F1 terminal review confirms missing safety/semantics/userScripts/version evidence",
+      "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815",
+      "backendPrototypePassed": false
+    }
+  ],
+  "productContinuationCheckpoint": {
+    "path": "docs/framework/product-continuation-checkpoint.json",
+    "sha256": "8ca4988e2b9705beaac91b33842c62385a4875f5d889dbfaa0efa05a24682020",
+    "isCompletionCertificate": false
+  },
+  "handoffRuntimeAvailability": {
+    "oldActorIds": "Unavailable in current native runtime; send_input returned agent not found for Singer/Confucius/Hume. Do not restore/wait/reuse old ids.",
+    "sdkActor": "Lorentz reported exceeded retry limit /429; its disk files/evidence exist. Read and continue; do not wait on old actor.",
+    "finalProductReviewers": "Not assigned for final product; prior independent approvals cover only F1"
+  },
+  "latestBasicCapabilityVerification": {
+    "path": "docs/framework/evidence/basic-capability-readiness-20261002/verification.json",
+    "basicPass": 208,
+    "basicTotal": 210,
+    "allBasicPassed": false,
+    "environmentPass": 16,
+    "environmentTotal": 20,
+    "f3Accepted": false
+  },
+  "currentContinuationExecution": {
+    "at": "2026-10-03T09:00:42.131909+00:00",
+    "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+    "stage": "F2 stable-package native verification",
+    "nativeGoalStatus": "active",
+    "stage0AndF1Retained": true,
+    "f1FrozenBindingsReverified": 176,
+    "original603Unchanged": true,
+    "componentVerification": {
+      "evidence": "docs/framework/evidence/f2-shared-integration/stable-rebuild-2026-10-03T08-50-41.030Z/stable-rebuild-receipt.json",
+      "passed": 392,
+      "failed": 0,
+      "syntaxFiles": 71,
+      "sourceFiles": 77,
+      "sourceDrift": false,
+      "isFinalProductAcceptance": false
+    },
+    "sourceStatus": "frozen through current native execution; stable production/development build-pack-verify passed within unchanged budgets",
+    "fixedEntryAdded": "scripting/packaged/page-session.js",
+    "f2CandidatePackages": {
+      "production": {
+        "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+        "packReceipt": {
+          "status": "passed",
+          "mode": "production",
+          "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+          "zipSha256": "4723dafa7e50b3ea87ec264f757628e214d1346120c292d93e47820c0ef47254",
+          "bytes": 134974
+        },
+        "swBytes": 252486
+      },
+      "development": {
+        "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+        "packReceipt": {
+          "status": "passed",
+          "mode": "development",
+          "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+          "zipSha256": "7c2eec9d6714edb947a8b66c182db18cf929d41fc3ed296c5eee9c6a96c01d58",
+          "bytes": 565480
+        },
+        "swBytes": 513045
+      }
+    },
+    "browserLaunchContract": {
+      "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+      "freshProfileRequired": true,
+      "actualMainProcessArgvProofRequired": true,
+      "sameProfileBrowserReopen": "NOT_TESTED: launcher creates and deletes its own fresh profile; no profile copying"
+    },
+    "nativeSdkExecution": {
+      "evidence": "docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c",
+      "matrix": "production/development x Chrome138/154 headed",
+      "status": "completed-targeted-native-current-package",
+      "production138Install": "actual native permission for127.0.0.1 allowed by Main CUA; exact selected document installed=true; page-service cases pending",
+      "summary": {
+        "PASS": 60,
+        "FAIL": 0,
+        "BLOCKED": 0,
+        "NOT_TESTED": 4
+      },
+      "summaryEvidence": "docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c/summary.json",
+      "notTested": "same-profile real browser reopen; global launcher fresh-only"
+    },
+    "nativeB05Passed": false,
+    "finalProductPackageSha256": null,
+    "f3Accepted": false,
+    "nextAction": "finish SDK native four combinations; actual controller product entry; CP1 and independent B05; then freeze same final package and close original603 plus explicit additions in F3",
+    "nativeExecutionWindow": {
+      "lane": "controller-product-native",
+      "sdkRunnerIdle": true,
+      "owner": "01a100ca-11bd-7923-841f-53415b3ce77a",
+      "state": "active"
+    },
+    "boundedNativeObservationOwners": {
+      "CP1": "01a10087-8299-7d60-8348-d34cdf1715e4; tests/framework/k5-sdk-admission-abort-native* and evidence/f2-sdk-admission-abort; pure ready awaiting later Main slot",
+      "API48": "01a10104-2070-7040-b91e-a02fbeb717d2; tests/framework/f3-api48-*; pure prep only",
+      "availablePeerGap": "SDK018 actual native storage durable-before-broker-receipt cut plus native KV write submission count; avoid duplicating assigned CP1"
+    }
+  },
+  "continuationExecutionHistory": [
+    {
+      "at": "2026-10-03T07:18:58.111146+00:00",
+      "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+      "stage": "F2 product implementation",
+      "stage0AndF1Retained": true,
+      "f1FrozenBindingsReverified": 176,
+      "sharedIntegrationEvidence": "docs/framework/evidence/f2-shared-integration/verification.json",
+      "original603Unchanged": true,
+      "nativeB05Passed": false,
+      "f3Accepted": false,
+      "nextAction": "finish controller and real product UI, rebuild exact packages, native SDK four combinations, then same-package F3"
+    },
+    {
+      "at": "2026-10-03T08:34:07.639616+00:00",
+      "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+      "stage": "F2 product implementation",
+      "nativeGoalStatus": "active",
+      "stage0AndF1Retained": true,
+      "f1FrozenBindingsReverified": 176,
+      "original603Unchanged": true,
+      "componentVerification": {
+        "evidence": "docs/framework/evidence/f2-shared-integration/integration-full-tests.json",
+        "passed": 349,
+        "failed": 0,
+        "scope": "prior source component tests; subsequent affected source changes require fresh validation",
+        "isFinalProductAcceptance": false
+      },
+      "sourceStatus": "pending codec/controller/download bounded slice freeze; stable package rebuild next",
+      "fixedEntryAdded": "scripting/packaged/page-session.js",
+      "browserLaunchContract": {
+        "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+        "freshProfileRequired": true,
+        "actualMainProcessArgvProofRequired": true,
+        "sameProfileBrowserReopen": "NOT_TESTED: launcher creates and deletes its own fresh profile; no profile copying"
+      },
+      "nativeB05Passed": false,
+      "finalProductPackageSha256": null,
+      "f3Accepted": false,
+      "nextAction": "freeze bounded source changes; build/pack/verify production+development; SDK native four combinations; actual controller product entry; then same-final-package F3"
+    }
+  ]
+}

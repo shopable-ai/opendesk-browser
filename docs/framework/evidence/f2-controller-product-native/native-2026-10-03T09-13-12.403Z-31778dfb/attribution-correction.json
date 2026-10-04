@@ -1,0 +1,852 @@
+{
+  "at": "2026-10-03T09:21:26.852715+00:00",
+  "pid": 74107,
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "rawRecordsChanged": false,
+  "rawStatusCounts": {
+    "PASS": 0,
+    "FAIL": 69,
+    "NOT_TESTED": 23
+  },
+  "productCasesReached": 0,
+  "sourceAndPackagesChanged": false,
+  "launcherDrift": false,
+  "browsers": {
+    "production-138": {
+      "rawReportSha256": "f76503e427b70866c5d10103d579537a0280eaed1a6244b594dedbd50b17b058",
+      "pid": 63471,
+      "launcherPid": 63469,
+      "endpoint": "ws://127.0.0.1:49261/devtools/browser/af6d19c1-ce1c-47cc-ab2a-ceec36d51593",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "toolTargetIds": [
+        "5942518570E3C73D0EAE61E6ECC3B8B7"
+      ],
+      "documentsFromActualReadonlyDB": [
+        {
+          "path": ".rows.commandJournal[0].value.hostDocumentId",
+          "value": "F6F128C1D030A344DB6680C1D7EC07D1"
+        }
+      ],
+      "permissionRequestReached": false,
+      "permissionState": "NOT_REACHED_RUN_UI",
+      "cases": [
+        {
+          "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-FALSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-ZERO",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-OWN-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-TRUE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-BUSINESS",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DOWNLOAD-FALSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-ZERO",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-OWN-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "THROW",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "REJECTION",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "MULTI-HOST-SLOT-COMPETITION",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "STOP-PENDING-FENCE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-STOP",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-DEADLINE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-HOST-CLOSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "REOPEN-PERSISTENT-RESULT",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "CLEANUP-NO-SCRAPING-RECORDS",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "No controller admission occurred; expected post-run slot row absent; product cleanup after execution NOT_TESTED"
+        }
+      ],
+      "cleanup": {
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "profileRemoved": true
+      }
+    },
+    "production-154": {
+      "rawReportSha256": "4064c4f24f2ac08c19339a92e11262ead99ee9a524205af55074a02d25f6db74",
+      "pid": 63841,
+      "launcherPid": 63840,
+      "endpoint": "ws://127.0.0.1:49414/devtools/browser/5a447967-a3d5-4eee-9beb-34c5c5358400",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "toolTargetIds": [
+        "C5FC4CD55144B8192510F35C3BC197D2"
+      ],
+      "documentsFromActualReadonlyDB": [
+        {
+          "path": ".rows.commandJournal[0].value.hostDocumentId",
+          "value": "3C79B51DF7A5C66883B9BCED2F2A7BDB"
+        }
+      ],
+      "permissionRequestReached": false,
+      "permissionState": "NOT_REACHED_RUN_UI",
+      "cases": [
+        {
+          "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-FALSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-ZERO",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-OWN-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-TRUE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-BUSINESS",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DOWNLOAD-FALSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-ZERO",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-OWN-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "THROW",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "REJECTION",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "MULTI-HOST-SLOT-COMPETITION",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "STOP-PENDING-FENCE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-STOP",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-DEADLINE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-HOST-CLOSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "REOPEN-PERSISTENT-RESULT",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "CLEANUP-NO-SCRAPING-RECORDS",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "No controller admission occurred; expected post-run slot row absent; product cleanup after execution NOT_TESTED"
+        }
+      ],
+      "cleanup": {
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "profileRemoved": true
+      }
+    },
+    "development-138": {
+      "rawReportSha256": "18ed913f2ef519155d4f6e5a2391ddee787bcad5eaff18f0ce919c1d7b72c5e8",
+      "pid": 63949,
+      "launcherPid": 63947,
+      "endpoint": "ws://127.0.0.1:49596/devtools/browser/3d95d76c-23c2-48e6-97bf-78e17d58cdf9",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "toolTargetIds": [
+        "87FB22745FADD5E82C464DE06A8D42E7"
+      ],
+      "documentsFromActualReadonlyDB": [
+        {
+          "path": ".rows.commandJournal[0].value.hostDocumentId",
+          "value": "F6FA993775AB05BF0E04838D901C8C6A"
+        }
+      ],
+      "permissionRequestReached": false,
+      "permissionState": "NOT_REACHED_RUN_UI",
+      "cases": [
+        {
+          "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-FALSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-ZERO",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-OWN-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-TRUE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DURABLE-BUSINESS",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "DOWNLOAD-FALSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-ZERO",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-OWN-UNDEFINED",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "THROW",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "REJECTION",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "MULTI-HOST-SLOT-COMPETITION",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "STOP-PENDING-FENCE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-STOP",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-DEADLINE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "WORKER-INFINITE-HOST-CLOSE",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input",
+          "productStatus": "NOT_TESTED",
+          "reason": "Native UI input prerequisite failed before save/run"
+        },
+        {
+          "id": "REOPEN-PERSISTENT-RESULT",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "CLEANUP-NO-SCRAPING-RECORDS",
+          "rawStatus": "FAIL",
+          "rawAttribution": "product-or-native-contract",
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "No controller admission occurred; expected post-run slot row absent; product cleanup after execution NOT_TESTED"
+        }
+      ],
+      "cleanup": {
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "profileRemoved": true
+      }
+    },
+    "development-154": {
+      "rawReportSha256": "48d8c8ac970b69edcf99dbe20ddb09334d13f0a6ce17d2f7f922c4de23503dd0",
+      "pid": 64156,
+      "launcherPid": 64155,
+      "endpoint": "ws://127.0.0.1:49778/devtools/browser/f2664307-c8a3-4a46-b2a7-c7155270d8c2",
+      "extensionId": null,
+      "toolTargetIds": [],
+      "documentsFromActualReadonlyDB": [],
+      "permissionRequestReached": false,
+      "permissionState": "NOT_REACHED_RUN_UI",
+      "cases": [
+        {
+          "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "DURABLE-FALSE",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "DURABLE-ZERO",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "DURABLE-UNDEFINED",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "DURABLE-OWN-UNDEFINED",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "DURABLE-TRUE",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "DURABLE-BUSINESS",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-FALSE",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-ZERO",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-UNDEFINED",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "DOWNLOAD-OWN-UNDEFINED",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "THROW",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "REJECTION",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "MULTI-HOST-SLOT-COMPETITION",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "STOP-PENDING-FENCE",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "WORKER-INFINITE-STOP",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "WORKER-INFINITE-DEADLINE",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "WORKER-INFINITE-HOST-CLOSE",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        },
+        {
+          "id": "REOPEN-PERSISTENT-RESULT",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-ui-input-prerequisite",
+          "productStatus": "NOT_TESTED",
+          "reason": "Required durable result never existed; product behavior NOT_TESTED"
+        },
+        {
+          "id": "CLEANUP-NO-SCRAPING-RECORDS",
+          "rawStatus": "NOT_TESTED",
+          "rawAttribution": null,
+          "attribution": "runner-sw-bootstrap",
+          "productStatus": "NOT_TESTED",
+          "reason": "Bare chrome reference read before SW globals ready; product entry NOT_TESTED"
+        }
+      ],
+      "cleanup": {
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "profileRemoved": true
+      }
+    }
+  },
+  "f3Accepted": false,
+  "original603Closed": false,
+  "nextRunnerRemediation": [
+    "Use native CDP editing command selectAll and verify focus/selection before Input.insertText; classify input assertions as runner failures",
+    "Guard SW readiness with globalThis.chrome?.runtime?.id before reading identity",
+    "Abort cascading cases on runner prerequisite failure; preserve original raw reds"
+  ]
+}

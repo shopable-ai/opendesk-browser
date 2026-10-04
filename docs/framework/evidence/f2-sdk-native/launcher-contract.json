@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-03T08:50:12.045Z",
+  "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "launcherReadCompletely": true,
+  "browserLaunched": false,
+  "syntax": "PASS",
+  "argparseProbe": "launcher-argparse-probe.json",
+  "argv": [
+    "/usr/bin/python3",
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "<exact cached138 or154 binary>",
+    "--report",
+    "<evidence metadata path>",
+    "--remote-debugging-port=0",
+    "--load-extension=<unchanged product directory>",
+    "--disable-extensions-except=<same directory>",
+    "<--headless=new only when requested>",
+    "about:blank"
+  ],
+  "noSwitchTerminator": true,
+  "mandatoryRuntimeObservations": [
+    "launcher reports native Chrome main PID and remains live",
+    "actual ps PPid equals launcher PID",
+    "actual main argv contains --use-mock-keychain and fresh explicit --user-data-dir",
+    "actual main argv contains remote-debugging and same-package load-extension flags",
+    "profile did not exist in prelaunch temporary directory inventory; fresh birthtime and0700 mode",
+    "SystemInfo native browser PID matches actual main PID",
+    "native DevTools endpoint and actual same-package service worker exist",
+    "actual manifest/version and loaded production SW hash match unchanged package",
+    "launcher owns profile cleanup"
+  ],
+  "cleanup": "Signal live owned launcher; fallback revalidates actual PID/PPid/binary/profile before killing only that Chrome PID; tolerates ESRCH; listens to exit and close; does not call Browser.close or remove profiles itself",
+  "sameProfileReopen": {
+    "status": "NOT_TESTED",
+    "reason": "Global launcher is fresh-only and rejects caller user-data-dir; it deletes that profile after browser exit"
+  },
+  "readyFiles": [
+    {
+      "path": "tests/framework/k5-sdk-native.mjs",
+      "sha256": "a763882db70b69deeedbf57319cd0be6880b28a223cd1055a825f1d906af9a93"
+    },
+    {
+      "path": "tests/framework/k5-sdk-native-launcher.mjs",
+      "sha256": "7a35db166295e31a32903ff80d92af3d4e86057a77dae142f3f4ee4bc2bda4f8"
+    }
+  ],
+  "f3Accepted": false,
+  "original603Closed": false
+}

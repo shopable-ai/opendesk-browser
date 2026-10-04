@@ -1,0 +1,96 @@
+import {PageError, requireValue, encodeValue, decodeValue, frozenCopy} from '../../framework/control/value.js';
+import {relayContextRequest} from '../../framework/context.js';
+
+// One controller owns exactly one opaque iframe/Worker, attached to one ctx.
+// The sole broker remains the transport; this module has no chrome permissions,
+// tabs, scripting or storage API and cannot select or retire borrowed pages.
+export function createControlController({context, sandboxURL, workerURL, document: doc = document, observeResources = false, onEvent = () => {}}) {
+  requireValue(context?.identity, 'E_PAGE_CONTEXT_REQUIRED');
+  const root = new URL(doc.location.href);
+  for (const value of [sandboxURL, workerURL]) {
+    const url = new URL(value); requireValue(url.protocol === 'chrome-extension:' && url.host === root.host, 'E_RESOURCE_URL_UNSUPPORTED');
+  }
+  const identity = context.identity, revision = context.revision;
+  const frame = doc.createElement('iframe'); frame.setAttribute('sandbox', 'allow-scripts'); frame.src = sandboxURL; frame.hidden = true;
+  const win = doc.defaultView;
+  const pending = new Set(); let port, send, active = true, executing = false, lastId = 0, settled = false, readyTimer, retiredTimer, retireResolve;
+  const retired = new Promise(resolve => { retireResolve = resolve; });
+  let readyResolve, readyReject, terminalResolve;
+  const ready = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
+  const result = new Promise(resolve => { terminalResolve = resolve; });
+  const workerSource = fetch(workerURL, {credentials: 'omit'}).then(response => { requireValue(response.ok, 'E_RESOURCE_LOAD'); return response.text(); });
+  workerSource.catch(error => finish('error', {error: {code: error.code || 'E_RESOURCE_LOAD', message: error.message}}));
+  function guard() { requireValue(active && !context.signal.aborted, context.signal.reason?.code || 'E_CANCELLED'); }
+  function observe(event) { try { onEvent(frozenCopy(event)); } catch {} }
+  function removeFrame(reason) {
+    // Remove only the controller's owned opaque realm, never an execution tab.
+    frame.remove(); port?.close(); clearTimeout(retiredTimer); retiredTimer = null;
+    observe({kind: 'realm-retired', runId: identity.runId, reason, observedAt: Date.now(), observedMonoMs: performance.now()});
+  }
+  function finish(status, payload = {}) {
+    if (settled) return; settled = true; active = false;
+    const triggeredMonoMs = performance.now(), triggeredAt = Date.now();
+    context.dispose(status === 'timeout' ? 'E_TIMEOUT' : status === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED');
+    clearTimeout(readyTimer); win.removeEventListener('message', bind);
+    context.signal.removeEventListener('abort', abort);
+    send?.({kind: 'retire', runId: identity.runId, ownerEpoch: identity.ownerEpoch, reason: status});
+    const record = {status, ...payload, identity, revision, triggeredAt, triggeredMonoMs};
+    terminalResolve(record); readyReject(new PageError(status === 'error' ? payload.error?.code || 'E_CONTROL_EXECUTION' : context.signal.reason?.code || 'E_CANCELLED', payload.error?.message));
+    // A bounded cleanup fallback if the realm cannot acknowledge. This is not a
+    // claim of physical stop: native qualification observes CPU + exact target.
+    retiredTimer = setTimeout(() => { removeFrame('retire-ack-timeout'); retireResolve({acknowledged: false}); }, 3000);
+    if (!port) { removeFrame(status); retireResolve({acknowledged: false, workerNeverCreated: true}); }
+    return record;
+  }
+  const abort = () => { const code = context.signal.reason?.code; finish(code === 'E_TIMEOUT' ? 'timeout' : code === 'E_HOST_CLOSED' ? 'host-closed' : 'stopped'); };
+  async function operation(data) {
+    guard(); requireValue(Number.isSafeInteger(data.id) && data.id === lastId + 1, 'E_OPERATION_REPLAY');
+    const envelope = data.envelope;
+    requireValue(envelope && envelope.identity.runId === identity.runId && envelope.identity.ownerEpoch === identity.ownerEpoch &&
+      JSON.stringify(envelope.revision) === JSON.stringify(revision), 'E_OWNER_CHANGED');
+    lastId = data.id;
+    // Capture the original owner + target BEFORE any asynchronous permission work.
+    // The injected broker must repeat this guard at every native effect dispatch.
+    const captured = frozenCopy(envelope); decodeValue(captured.operation.args, {maxBytes: captured.operation.method === 'uploadChunk' ? 131072 : 65536});
+    pending.add(data.id);
+    try {
+      guard(); const reply = await relayContextRequest(context, captured); guard();
+      requireValue(reply?.requestId === captured.requestId, 'E_RESULT_FORMAT');
+      send({kind: 'reply', runId: identity.runId, ownerEpoch: identity.ownerEpoch, id: data.id, reply});
+    } catch (error) {
+      if (active) send({kind: 'reply', runId: identity.runId, ownerEpoch: identity.ownerEpoch, id: data.id,
+        reply: {requestId: captured.requestId, error: {code: error.code || 'E_PAGE_EXECUTION', message: error.message}}});
+    } finally { pending.delete(data.id); }
+  }
+  function bind(event) {
+    if (!active || event.source !== frame.contentWindow || event.origin !== 'null' || event.data?.kind !== 'sandbox-ready') return;
+    requireValue(event.data.origin === 'null' && !event.data.extensionAPI && !event.data.parentAccess, 'E_SANDBOX_ISOLATION');
+    win.removeEventListener('message', bind);
+    const channel = new MessageChannel(); port = channel.port1; send = port.postMessage.bind(port);
+    port.onmessage = ({data}) => {
+      if (data.kind === 'host-bound') {
+        workerSource.then(source => { if (active) send({kind: 'start', identity, revision, target: context.target, workerSource: source, observeResources}); }).catch(() => {}); return;
+      }
+      if (data.runId !== identity.runId || data.ownerEpoch !== identity.ownerEpoch) { observe({kind: 'rejected-peer'}); return; }
+      observe(data);
+      if (data.kind === 'retired') { removeFrame(data.reason); retireResolve({...data, acknowledged: true}); return; }
+      if (!active) return;
+      if (data.kind === 'bound') { clearTimeout(readyTimer); readyResolve(data.identity); return; }
+      if (data.kind === 'operation') { operation(data).catch(error => observe({kind: 'rejected-operation', code: error.code})); return; }
+      if (data.kind === 'result') { try { decodeValue(data.value); finish('succeeded', {value: data.value}); } catch (error) { finish('error', {error: {code: error.code, message: error.message}}); } }
+      if (data.kind === 'error') finish('error', {error: data.error});
+    };
+    port.start(); frame.contentWindow.postMessage({kind: 'bind-host'}, '*', [channel.port2]);
+  }
+  win.addEventListener('message', bind); context.signal.addEventListener('abort', abort, {once: true});
+  readyTimer = setTimeout(() => finish('error', {error: {code: 'E_SANDBOX_TIMEOUT'}}), 10000);
+  doc.body.append(frame); if (context.signal.aborted) abort();
+  return Object.freeze({ready, result, retired,
+    async execute(body, params) {
+      requireValue(typeof body === 'string' && !executing, 'E_ARGUMENT_TYPE'); encodeValue(params); await ready; guard(); executing = true;
+      send({kind: 'execute', runId: identity.runId, ownerEpoch: identity.ownerEpoch, body, params: structuredClone(params)}); return result;
+    },
+    stop: () => finish('stopped'), close: () => finish('host-closed'),
+    async observeResource() { await ready; guard(); send({kind: 'observe-resource', runId: identity.runId, ownerEpoch: identity.ownerEpoch}); },
+    snapshot: () => ({active, settled, pending: pending.size, ownedFrames: frame.isConnected ? 1 : 0, hostPorts: port && frame.isConnected ? 1 : 0})});
+}

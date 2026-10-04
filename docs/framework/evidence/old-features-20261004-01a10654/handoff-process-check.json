@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-10-04T10:49:54.425Z",
+  "leaderLaunchedBrowser": false,
+  "leaderBrowserPids": [],
+  "leaderLaunchedServers": [],
+  "inFlightBuilds": [],
+  "independentStartedNative": false,
+  "independentReceipt": "01a1021b user delegation: no Chrome/launcher/HTTP/CDP/CUA started, no PID/profile, no native cases/screenshots; test window withdrawn",
+  "closedAgents": [
+    "01a10659-4094-74b3-b59f-62c8df743b64",
+    "01a10663-ff89-7c60-9a67-3dadc6867657"
+  ],
+  "writerReleased": true
+}

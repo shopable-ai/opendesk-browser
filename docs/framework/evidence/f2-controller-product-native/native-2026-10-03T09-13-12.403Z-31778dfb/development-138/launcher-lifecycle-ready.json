@@ -1,0 +1,67 @@
+{
+  "command": {
+    "at": 1791018808251,
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "pid": 63947,
+    "executable": "/usr/bin/python3",
+    "args": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-13-12.403Z-31778dfb/development-138/launcher-metadata.json",
+      "--enable-automation",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "chromeArgs": [
+      "--enable-automation",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+  },
+  "metadata": {
+    "pid": 63949,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+      "--enable-automation",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4/chrome.log"
+  },
+  "profileStat": {
+    "birthtimeMs": 1791018808348.9924,
+    "mode": 448
+  },
+  "actualMainProcess": {
+    "psExecutable": "/bin/ps",
+    "psArgs": [
+      "-p",
+      "63949",
+      "-ww",
+      "-o",
+      "pid=,ppid=,command="
+    ],
+    "stdout": "63949 63947 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4 --enable-automation --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development about:blank\n",
+    "pid": 63949,
+    "ppid": 63947
+  },
+  "endpoint": "ws://127.0.0.1:49596/devtools/browser/3d95d76c-23c2-48e6-97bf-78e17d58cdf9"
+}

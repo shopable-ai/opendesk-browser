@@ -1,0 +1,12 @@
+{
+  "mode": "development",
+  "compiledEntry": "framework/sdk-main.js",
+  "sha256": "81424bd19540b1c044db1bdaf3d28c9ba26d6202001972827a1f320dba604fa8",
+  "repeatedFixedBundleEvaluation": true,
+  "helloCount": 4,
+  "globalsPreserved": true,
+  "grantRefreshTested": true,
+  "boundary": "Actual WXT fixed MAIN entry evaluated in VM; Chrome runtime callback oracle, not actual Chrome file injection or native admission",
+  "F3": false,
+  "original603": false
+}

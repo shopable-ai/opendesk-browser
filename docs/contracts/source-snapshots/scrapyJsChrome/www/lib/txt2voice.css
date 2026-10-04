@@ -1,0 +1,47 @@
+.player-wrap {
+  z-index: 1000;
+  position:fixed;
+  top: 10px;
+  /*position: absolute;
+  left: 10px;
+  width: 100%;*/
+/*  margin-top: -15px;*/
+  
+}
+/*#mp3 {
+  width: 100%;
+}*/
+.pactive {
+  color: #00f;
+}
+.pplayed {
+  color: #333;
+}
+.pplaying {
+  text-shadow: 1px 0px 0px black;
+      background-color: #d4d4d4;
+    border-radius: 6px;
+}
+
+.btn-stop {
+  padding: 12px 10px;
+  border-radius: 5px;
+  float: right;
+  color: #fff;
+  letter-spacing: 1px;
+  text-decoration: none;
+  border-color: #3d78be;
+  background-color: #3d78be;
+}
+.tostop {
+  border-color: #8dafd7;
+  background-color: #8dafd7;
+}
+.markdown-section {
+  margin-top: 30px;
+}
+
+.book-body {
+  position: static!important;
+}
+#aplayer .aplayer-info {background-color: #efefef;}

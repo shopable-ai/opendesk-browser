@@ -1,0 +1,28 @@
+{
+  "stage": "F2",
+  "scope": "exclusive K5 packaging slice; no F3 approval",
+  "files": {
+    "webpack.config.cjs": "Add fixed MAIN/ISOLATED SDK and existing opaque sandbox/classic Worker entries, no chunks",
+    "scripts/build.mjs": "Copy sandbox HTML, fixed generated notification PNG, original MIT; verify both modes",
+    "scripts/verify-package.mjs": "Exact asset/entry/CSP allowlists, inspect every HTML/CSS/JS, only approved Worker constructor expression and safe function introspection",
+    "scripts/check-source.mjs": "Syntax plus fixed-entry/resource/manifest boundary checks",
+    "tests/environment/package.test.mjs": "Prove baseline passes before unchanged historical mutation expectations",
+    "tests/framework/k5-package.test.mjs": "Both packages and new CSP/Worker/license/icon/HTML/asset mutation guards"
+  },
+  "verification": [
+    "npm run build",
+    "npm run build:dev",
+    "npm run pack",
+    "npm run pack:dev",
+    "npm run verify",
+    "npm run check",
+    "npm test",
+    "node --test tests/framework/k5-package*.mjs"
+  ],
+  "notClaimed": [
+    "Native SDK B05",
+    "physical Worker termination",
+    "same-final-package F3 acceptance"
+  ],
+  "srcChangesRequired": []
+}

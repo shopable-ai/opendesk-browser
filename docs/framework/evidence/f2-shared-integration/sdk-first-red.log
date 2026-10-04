@@ -1,0 +1,68 @@
+✔ SDK Hello needs native document/grant and never claims a controller slot (8.952125ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (1.121167ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (1.307917ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (23.905292ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (3.336708ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (4.861292ms)
+✔ durable session duplicate after authority restart does not resubmit native set (1.97975ms)
+✖ native session failure records unknown dispatch and will not retry same write (1.88225ms)
+✖ SW recovery fences dispatched write gap and retains original identity/deadline (1.848125ms)
+✔ durable duplicate cannot extend original 15s service deadline (4.700792ms)
+✔ native permission remove then regrant cannot revive old request/grant (2.378917ms)
+✔ observed navigation invalidates current page Hello and pending admission (0.603375ms)
+✔ notification native receipt and durable undefined survive delivery revocation (0.90475ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (29.247042ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (1.617416ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 13
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 192.371458
+
+✖ failing tests:
+
+test at tests/framework/k2-sdk-broker.test.mjs:117:1
+✖ native session failure records unknown dispatch and will not retry same write (1.88225ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  FoundationError: native failure
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs:122:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: FoundationError: native failure
+        at Object.requestSdk [as request] (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-broker.js:47:47)
+        at async waitForActual (node:assert:615:5)
+        at async strict.rejects (node:assert:738:25)
+        at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs:122:3)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/framework/k2-sdk-broker.test.mjs:125:1
+✖ SW recovery fences dispatched write gap and retains original identity/deadline (1.848125ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  FoundationError: SDK request ID has conflicting arguments
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs:129:35)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: FoundationError: SDK request ID has conflicting arguments
+        at invariant (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:14:25)
+        at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js:203:22
+        at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs:22:22,
+    operator: 'rejects',
+    diff: 'simple'
+  }

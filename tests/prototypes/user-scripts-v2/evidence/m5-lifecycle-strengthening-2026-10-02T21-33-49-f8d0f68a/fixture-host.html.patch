@@ -1,0 +1,12 @@
+--- 2ed/fixture/host.html
++++ current/fixture/host.html
+@@ -6,6 +6,9 @@
+ <h1>F1 userScripts browser fixture</h1>
+ <p>Owned loopback documents. Isolated test profile. Prototype evidence only.</p>
+ <button id="restore-hosts">Restore loopback host permissions</button>
++<button id="revoke-own-grant">Revoke fixture operation grant</button>
++<button id="renew-own-grant">Renew fixture operation grant</button>
++<button id="cancel-operations">Cancel fixture pending operations</button>
+ <pre id="results">Fixture loading…</pre>
+ <script type="module" src="host.js"></script>
+ </body>

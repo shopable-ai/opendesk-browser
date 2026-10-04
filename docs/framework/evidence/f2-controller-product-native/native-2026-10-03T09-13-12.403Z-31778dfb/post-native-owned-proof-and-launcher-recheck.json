@@ -1,0 +1,460 @@
+{
+  "at": "2026-10-03T09:16:13.287633+00:00",
+  "launcherPath": "/Users/shopme/.codex/browser-testing/launch.py",
+  "actualLauncherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "launcherLines": 96,
+  "summarySourceDrift": false,
+  "browsers": [
+    {
+      "combination": "production-138",
+      "pid": 63471,
+      "launcherPid": 63469,
+      "psPpid": 63469,
+      "actualArgs": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--flag-switches-begin",
+        "--flag-switches-end",
+        "about:blank"
+      ],
+      "version": "Chrome/138.0.7204.183",
+      "endpoint": "ws://127.0.0.1:49261/devtools/browser/af6d19c1-ce1c-47cc-ab2a-ceec36d51593",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "actualSW": {
+        "targetId": "3389DCDB25FF7FBAE9918BC66EC58A9F",
+        "id": "efhcmggbgamacpfhhmooelgdkepdcghh",
+        "manifest": {
+          "action": {
+            "default_title": "\u6253\u5f00 OpenDesk Browser"
+          },
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "description": "OpenDesk Browser \u6d4f\u89c8\u5668\u81ea\u52a8\u5316\u6846\u67b6\u3002",
+          "incognito": "not_allowed",
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk Browser",
+          "optional_host_permissions": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "optional_permissions": [
+            "cookies",
+            "notifications"
+          ],
+          "permissions": [
+            "storage",
+            "scripting",
+            "activeTab",
+            "downloads",
+            "tabs",
+            "webNavigation",
+            "userScripts"
+          ],
+          "sandbox": {
+            "pages": [
+              "scripting/sandbox/sandbox.html"
+            ]
+          },
+          "version": "0.1.0"
+        },
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js"
+      },
+      "toolCreateRequests": [
+        {
+          "id": 6,
+          "method": "Target.createTarget",
+          "params": {
+            "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html"
+          }
+        }
+      ],
+      "counts": {
+        "PASS": 0,
+        "FAIL": 23,
+        "BLOCKED": 0,
+        "NOT_TESTED": 0
+      },
+      "firstFailure": {
+        "error": {
+          "code": "ERR_ASSERTION",
+          "name": "AssertionError",
+          "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-8a31ff23-c12a-4863-9cb1-653bc81ff761'\n- 'native-8a31ff23-c12a-4863-9cb1-653bc81ff761'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-8a31ff23-c12a-4863-9cb1-653bc81ff761'\n- 'native-8a31ff23-c12a-4863-9cb1-653bc81ff761'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:539:22\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:537:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+          "actual": "my-scriptnative-8a31ff23-c12a-4863-9cb1-653bc81ff761"
+        },
+        "ui": {
+          "state": "ready",
+          "text": "\u516c\u5171\u8fd0\u884c\u5165\u53e3\u5df2\u5c31\u7eea\uff0c\u8bf7\u4fdd\u5b58\u811a\u672c\u5e76\u9009\u62e9\u76ee\u6807",
+          "result": "",
+          "version": "\u5c1a\u672a\u4fdd\u5b58",
+          "runId": "",
+          "download": "\u7ed3\u679c\u4e0b\u8f7d\u4fdd\u7559\u7c7b\u578b\u4fe1\u606f\uff0c\u5305\u62ec undefined\u3002",
+          "runDisabled": true,
+          "stopDisabled": true
+        }
+      },
+      "permissionStateRecorded": false,
+      "cleanup": {
+        "exit": {
+          "at": 1791018804231,
+          "code": 0,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 63469,
+        "chromePid": 63471,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qyic4irb",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 98,
+        "nativeLogSha256": "f7b067b12d39332e38a155970e8696a41bb8cdebbdc2f9cc6113949c8b6aebab",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1085,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "packageDrift": false,
+      "launcherDrift": false
+    },
+    {
+      "combination": "production-154",
+      "pid": 63841,
+      "launcherPid": 63840,
+      "psPpid": 63840,
+      "actualArgs": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gwusn28_",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--flag-switches-begin",
+        "--flag-switches-end",
+        "about:blank"
+      ],
+      "version": "Chrome/154.0.8037.92",
+      "endpoint": "ws://127.0.0.1:49414/devtools/browser/5a447967-a3d5-4eee-9beb-34c5c5358400",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "actualSW": {
+        "targetId": "4C51D7D5AC00587FB7785282EC6BBDEB",
+        "id": "efhcmggbgamacpfhhmooelgdkepdcghh",
+        "manifest": {
+          "action": {
+            "default_title": "\u6253\u5f00 OpenDesk Browser"
+          },
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "description": "OpenDesk Browser \u6d4f\u89c8\u5668\u81ea\u52a8\u5316\u6846\u67b6\u3002",
+          "incognito": "not_allowed",
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk Browser",
+          "optional_host_permissions": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "optional_permissions": [
+            "cookies",
+            "notifications"
+          ],
+          "permissions": [
+            "storage",
+            "scripting",
+            "activeTab",
+            "downloads",
+            "tabs",
+            "webNavigation",
+            "userScripts"
+          ],
+          "sandbox": {
+            "pages": [
+              "scripting/sandbox/sandbox.html"
+            ]
+          },
+          "version": "0.1.0"
+        },
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js"
+      },
+      "toolCreateRequests": [
+        {
+          "id": 6,
+          "method": "Target.createTarget",
+          "params": {
+            "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html"
+          }
+        }
+      ],
+      "counts": {
+        "PASS": 0,
+        "FAIL": 23,
+        "BLOCKED": 0,
+        "NOT_TESTED": 0
+      },
+      "firstFailure": {
+        "error": {
+          "code": "ERR_ASSERTION",
+          "name": "AssertionError",
+          "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-10b62592-7c05-4668-a560-2f7eefe2832f'\n- 'native-10b62592-7c05-4668-a560-2f7eefe2832f'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-10b62592-7c05-4668-a560-2f7eefe2832f'\n- 'native-10b62592-7c05-4668-a560-2f7eefe2832f'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:539:22\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:537:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+          "actual": "my-scriptnative-10b62592-7c05-4668-a560-2f7eefe2832f"
+        },
+        "ui": {
+          "state": "ready",
+          "text": "\u516c\u5171\u8fd0\u884c\u5165\u53e3\u5df2\u5c31\u7eea\uff0c\u8bf7\u4fdd\u5b58\u811a\u672c\u5e76\u9009\u62e9\u76ee\u6807",
+          "result": "",
+          "version": "\u5c1a\u672a\u4fdd\u5b58",
+          "runId": "",
+          "download": "\u7ed3\u679c\u4e0b\u8f7d\u4fdd\u7559\u7c7b\u578b\u4fe1\u606f\uff0c\u5305\u62ec undefined\u3002",
+          "runDisabled": true,
+          "stopDisabled": true
+        }
+      },
+      "permissionStateRecorded": false,
+      "cleanup": {
+        "exit": {
+          "at": 1791018808194,
+          "code": 0,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 63840,
+        "chromePid": 63841,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-gwusn28_",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 98,
+        "nativeLogSha256": "ca96c035263c986236b1b6ace6bd09ba19817f555c3d2a9d92db60ede6f72b04",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1083,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "packageDrift": false,
+      "launcherDrift": false
+    },
+    {
+      "combination": "development-138",
+      "pid": 63949,
+      "launcherPid": 63947,
+      "psPpid": 63947,
+      "actualArgs": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "--flag-switches-begin",
+        "--flag-switches-end",
+        "about:blank"
+      ],
+      "version": "Chrome/138.0.7204.183",
+      "endpoint": "ws://127.0.0.1:49596/devtools/browser/3d95d76c-23c2-48e6-97bf-78e17d58cdf9",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "actualSW": {
+        "targetId": "950C8E8335C26BF6AEB046840BC99808",
+        "id": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "manifest": {
+          "action": {
+            "default_title": "\u6253\u5f00 OpenDesk Browser"
+          },
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "description": "OpenDesk Browser \u6d4f\u89c8\u5668\u81ea\u52a8\u5316\u6846\u67b6\u3002",
+          "incognito": "not_allowed",
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk Browser",
+          "optional_host_permissions": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "optional_permissions": [
+            "cookies",
+            "notifications"
+          ],
+          "permissions": [
+            "storage",
+            "scripting",
+            "activeTab",
+            "downloads",
+            "tabs",
+            "webNavigation",
+            "userScripts"
+          ],
+          "sandbox": {
+            "pages": [
+              "scripting/sandbox/sandbox.html"
+            ]
+          },
+          "version": "0.1.0"
+        },
+        "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js"
+      },
+      "toolCreateRequests": [
+        {
+          "id": 6,
+          "method": "Target.createTarget",
+          "params": {
+            "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html"
+          }
+        }
+      ],
+      "counts": {
+        "PASS": 0,
+        "FAIL": 23,
+        "BLOCKED": 0,
+        "NOT_TESTED": 0
+      },
+      "firstFailure": {
+        "error": {
+          "code": "ERR_ASSERTION",
+          "name": "AssertionError",
+          "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-cceb23880fe5'\n- 'native-40510d4b-61cc-4f68-b40b-cceb23880fe5'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-cceb23880fe5'\n- 'native-40510d4b-61cc-4f68-b40b-cceb23880fe5'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:501:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:539:22\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:537:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+          "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-cceb23880fe5"
+        },
+        "ui": {
+          "state": "ready",
+          "text": "\u516c\u5171\u8fd0\u884c\u5165\u53e3\u5df2\u5c31\u7eea\uff0c\u8bf7\u4fdd\u5b58\u811a\u672c\u5e76\u9009\u62e9\u76ee\u6807",
+          "result": "",
+          "version": "\u5c1a\u672a\u4fdd\u5b58",
+          "runId": "",
+          "download": "\u7ed3\u679c\u4e0b\u8f7d\u4fdd\u7559\u7c7b\u578b\u4fe1\u606f\uff0c\u5305\u62ec undefined\u3002",
+          "runDisabled": true,
+          "stopDisabled": true
+        }
+      },
+      "permissionStateRecorded": false,
+      "cleanup": {
+        "exit": {
+          "at": 1791018828276,
+          "code": 0,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 63947,
+        "chromePid": 63949,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-e3mlykk4",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 98,
+        "nativeLogSha256": "575bd4ab0e6ba5f405c37178b0e670c3b8f838471cfa4e234ba5c74d08357db3",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1087,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "packageDrift": false,
+      "launcherDrift": false
+    },
+    {
+      "combination": "development-154",
+      "pid": 64156,
+      "launcherPid": 64155,
+      "psPpid": 64155,
+      "actualArgs": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-7ob4oy6m",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "--flag-switches-begin",
+        "--flag-switches-end",
+        "about:blank"
+      ],
+      "version": "Chrome/154.0.8037.92",
+      "endpoint": "ws://127.0.0.1:49778/devtools/browser/f2664307-c8a3-4a46-b2a7-c7155270d8c2",
+      "extensionId": null,
+      "actualSW": null,
+      "toolCreateRequests": [],
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "BLOCKED": 0,
+        "NOT_TESTED": 23
+      },
+      "firstFailure": {
+        "code": "E_RUNNER_EVALUATE",
+        "name": "Error",
+        "message": "{\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: chrome is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"9000939585954684106.1.2\"}}",
+        "stack": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: chrome is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"9000939585954684106.1.2\"}}\n    at evaluate (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:214:45)\n    at async until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:190:50)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:531:22)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3"
+      },
+      "permissionStateRecorded": false,
+      "cleanup": {
+        "exit": {
+          "at": 1791018832174,
+          "code": 0,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 64155,
+        "chromePid": 64156,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-7ob4oy6m",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 98,
+        "nativeLogSha256": "3713e1de2837f7dc9cba6ade8e9568d18087ffd14c0b95c028d9d7fb8c540369",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1085,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "packageDrift": false,
+      "launcherDrift": false
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-04T09:04:18.931813+00:00",
+  "reviewers": [
+    {
+      "id": "01a10604-7463-7470-9b34-9d1c5d918e56",
+      "result": "Recovery product path CLEAR; two verification P2 reported and fixed by leader, native competition now PASS; subset preflight dependency closure PASS."
+    },
+    {
+      "id": "01a10615-d689-7f00-bf01-cbfe9c943c1b",
+      "result": "Revocation canonical grant removal and complete Worker JSON observer corrections present; no product fix indicated."
+    }
+  ],
+  "fileHashes": {
+    "src/platform/host/broker.js": "fe21e0cedf375521f07e9e97818df76395877996386d3d0ad9cf2507cf7e784c",
+    "src/sw.js": "35b72b98cc8a3b23d9422340fc9777dbd0ecd7551735f9359a9052684394702a",
+    "tests/framework/k3-controller-authority.test.mjs": "7b18bd64ae7bb5f6e8a6bb1057586dea155326b57df8deee93fd632b96216f96",
+    "tests/framework/k5-controller-product-native.mjs": "5a250ab09addbcd22fee93cd5d3c59b93bde77d64db187415c597cfe6fc197a2",
+    "tests/framework/p4-api48-native-source.mjs": "23736f3cb6eb3d4ebc463b4f7005f7087330f320d76a9861d100f5565b61400f"
+  },
+  "componentChecks": 413,
+  "nativeProofScope": "Current native remaining run in progress; full P4/P5 completion not yet accepted",
+  "primaryReferences": [
+    "https://developer.chrome.com/docs/extensions/reference/api/permissions",
+    "https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns"
+  ]
+}

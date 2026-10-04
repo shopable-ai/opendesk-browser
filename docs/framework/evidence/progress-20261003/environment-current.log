@@ -1,0 +1,39 @@
+
+> opendesk-browser@0.1.0 test
+> node --test tests/environment/*.test.mjs
+
+✔ concurrent window requests create once; new worker discovers existing window (13.574167ms)
+✔ tool sender rejects foreign id, URL, frame, inactive document and missing document (0.288792ms)
+✔ URL policy rejects restricted/file/credentials and preserves exact origin including port (0.401666ms)
+✔ health waits for sender readiness and binds Chrome document metadata, not file result (4.21075ms)
+✔ revoked permission blocks even previously installed agent (2.153333ms)
+✔ reload, cross-origin and closed tab reject bound target without automatic reinjection (5.467208ms)
+✔ forged health nonce and fake sender cannot satisfy exact target (0.771458ms)
+✔ missing module has no capabilities or runner and can be mounted/disposed (0.373583ms)
+✔ focus failure while original exists must not create another tool window (0.298333ms)
+✔ window API query failure is not evidence that the existing window disappeared (0.873458ms)
+✔ unknown authorization mode is rejected before another injection (1.098ms)
+✔ permission revoke reports permission failure even when Chrome hides tab URL (1.71175ms)
+✔ permission revoked during tabs.get is diagnosed before inspecting its hidden URL (1.936084ms)
+✔ repeated agent ready preserves optional authorization and cannot bypass revoke (1.776667ms)
+✔ same-document concurrent binding resolves all readiness waiters (1.730708ms)
+✔ document invalidation and revoke while awaiting reply reject late health success (0.91825ms)
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: eval"}
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: Function"}
+✔ final classic scanner rejects eval alias and function-constructor references (456.856083ms)
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/tool-shell.css"}
+✔ final package cannot omit a referenced local asset (184.1035ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe HTML","actualError":"Unsafe HTML resources in ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"Unexpected JS","actualError":"Unexpected JS/chunks: agents/bootstrap.js,agents/health.js,agents/page-agent.js,agents/page-relay.js,agents/selection-entry.js,chunk.js,framework/sdk-main.js,scripting/sandbox/sandbox.js,scripting/sandbox/worker-runtime.js,sw.js,ui/tool-shell.js"}
+✔ remote script and unexpected lazy chunk fail final package verification (755.764084ms)
+{"kind":"historical-package-mutation","expectedPattern":"Missing|required|ENOENT","actualError":"Missing required resource: ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"worker|entry|Missing","actualError":"Unexpected or missing worker entry"}
+✔ final package requires tool HTML/CSS and manifest worker references (383.702458ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1982.475584

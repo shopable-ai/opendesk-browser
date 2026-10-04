@@ -1,0 +1,23 @@
+{
+  "baseline": {
+    "pending": 0,
+    "activeOperations": 0,
+    "acceptanceBarriers": 0,
+    "observationTimers": 0,
+    "authorizationMonitors": 0,
+    "authorizationProbes": 0,
+    "deadlineTimers": 0,
+    "rawPending": 0
+  },
+  "after": {
+    "pending": 0,
+    "activeOperations": 0,
+    "acceptanceBarriers": 0,
+    "observationTimers": 0,
+    "authorizationMonitors": 0,
+    "authorizationProbes": 0,
+    "deadlineTimers": 0,
+    "rawPending": 0
+  },
+  "baselineRestored": true
+}

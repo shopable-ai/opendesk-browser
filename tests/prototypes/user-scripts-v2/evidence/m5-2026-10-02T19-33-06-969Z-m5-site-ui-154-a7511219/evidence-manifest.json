@@ -1,0 +1,55 @@
+{
+  "candidateSha256": "483239ead39e236099834bab214626a665c4727a8db32cdd408276bddb92def2",
+  "files": [
+    {
+      "path": "candidate-manifest.json",
+      "bytes": 2281,
+      "sha256": "483239ead39e236099834bab214626a665c4727a8db32cdd408276bddb92def2"
+    },
+    {
+      "path": "chrome-ui-dom.json",
+      "bytes": 439222,
+      "sha256": "078f6efc9d07e76fd886915d6dd2357c4b9cef5884730bed842e721d7b94c61f"
+    },
+    {
+      "path": "chrome-ui.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "console.json",
+      "bytes": 570,
+      "sha256": "d0410634baab4a79d5a3fc231d6781cdec9c8358179867b256a04161d9b4dab9"
+    },
+    {
+      "path": "http.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "initial-details.png",
+      "bytes": 83893,
+      "sha256": "c947fd13c4487855e061aa75f53b0d209bb6b82ee790cc6b9eff4665e4a08b41"
+    },
+    {
+      "path": "report.json",
+      "bytes": 3970,
+      "sha256": "a052f30ab680e215a26f964c59d10e13b7628f3e5af8b5519852911f42e9b40a"
+    },
+    {
+      "path": "site-off.png",
+      "bytes": 83896,
+      "sha256": "379ddb69dd3fc96d8b832fad6ede70e8b5038eb7a68fa1b9007331276738c886"
+    },
+    {
+      "path": "site-on.png",
+      "bytes": 84446,
+      "sha256": "727560ee2ddb260d644e2c7657cdedd9f69cf536b08eea62a6cba9024157bd39"
+    },
+    {
+      "path": "site-ui-probe.json",
+      "bytes": 1095,
+      "sha256": "c4bfec7873fd1e2f9502ec58e8e617f2cf10bf6a8654013d189eed089165a6f2"
+    }
+  ]
+}

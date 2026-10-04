@@ -1,0 +1,20 @@
+Minimal proposal for leader integration; no files touched.
+
+1. **Add flattened CDP routing** at [connect:246](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:246): `send(method, params = {}, sessionId)` includes optional top-level `sessionId`. Child listeners filter by session; raw logging preserves original messages.
+
+2. **Gate replacement startup before stopping** at [F018:719](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:719). Register `Target.attachedToTarget` first, then await:
+   ```js
+   Target.setAutoAttach({
+     autoAttach: true, waitForDebuggerOnStart: true, flatten: true,
+     filter: [{type: "service_worker", exclude: false}, {exclude: true}]
+   })
+   ```
+   Release any existing startup wait without `Debugger.resume`; preserve the original F018 breakpoint pause.
+
+3. **Accept validated physical termination** at [stopWorker:548](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:548): pinned old ID absent from `getTargets`, plus either actual `targetDestroyed`, or exact old-client `Inspector.targetCrashed` **and** matching version `stopped`. Preserve `targetDestroyed` as event-or-null. Retire stale worker state and skip dead-session breakpoint cleanup.
+
+4. **Start genuine SDK_HELLO without awaiting it**, then handle the exact bundled-URL startup attachment concurrently. Enable Debugger; install `setBreakpointByUrl` at the native KV AST location. If source is unavailable, install `beforeScriptExecution` instrumentation before `Runtime.runIfWaitingForDebugger`. At that pause, validate bundle SHA, exact executable location and resolved breakpoint, install the existing KV observer, then resume. Never accept relocation or late attachment as coverage.
+
+5. **Replace late observation** at [F018:736](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:736). Keep tracing through recovery and genuine retry. Allow reused target IDs; require a fresh execution-context unique ID. Missing startup gate means `NOT_TESTED`.
+
+Finally release owned waits/listeners. Leader needs a fresh native rerun; preserve existing diagnostic failures.

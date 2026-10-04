@@ -1,0 +1,40 @@
+{
+  "pid": 96374,
+  "launcherPid": 96373,
+  "endpoint": "ws://127.0.0.1:54532/devtools/browser/d06e2e47-512d-483f-81e8-07440a41497a",
+  "toolId": "E0FCF25BBB9B6DCDEFA78D653386F03D",
+  "permissionsBefore": {
+    "origins": [],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "permissions": {
+    "origins": [],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "ui": {
+    "state": "authorizing",
+    "text": "正在授权选定目标…",
+    "result": "{\"scriptId\": \"native-50a4f48f-500e-45d1-a6cd-8254387685c5\", \"revision\": 1, \"contentHash\": \"a2fda27769078f2a04a68f9f25358e8cc15836240685b3992a024872b37962f1\"}",
+    "version": "已保存 r1 · a2fda27769078f2a04a68f9f25358e8cc15836240685b3992a024872b37962f1",
+    "runId": "",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": true,
+    "stopDisabled": false
+  }
+}

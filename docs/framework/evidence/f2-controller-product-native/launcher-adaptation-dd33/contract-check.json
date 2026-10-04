@@ -1,0 +1,31 @@
+{
+  "at": "2026-10-03T08:38:37.120574+00:00",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "pid": 9726,
+  "args": [
+    "node",
+    "tests/framework/k5-controller-product-native.mjs",
+    "--contract-check",
+    "--mode=all",
+    "--chrome=all"
+  ],
+  "exitCode": 0,
+  "stdoutBytes": 5433,
+  "stderrBytes": 0,
+  "runnerSha256": "60f527d54a0371c850fc19d988d8643a677e03eed3e02d51ca4d9b12470ee6ed",
+  "nativeExecuted": false,
+  "readyPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T08-38-36.984Z-50bf78e0/ready.json",
+  "sourceDrift": false,
+  "packageDrift": {
+    "production": false,
+    "development": false
+  },
+  "sourceHash": "be55f5433ec5d2f9968ad83458b7ee8c379ca3e8e9520cdae305141bb7610423",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "packages": {
+    "production": "4fc301a556ea4311e2a36c91c0aaf4bf260c280771a604c0cde34c10efb06152",
+    "development": "e8765b79ed33bf195f47bd8ea826b468839ee0f88525bdb9655d0d18b24cbada"
+  },
+  "cases": 23,
+  "previousRunnerSha256": "dd33ded5d8dc90efbb17342a0d03f59cb4acf7fb0894419b67e4605679d11d77"
+}

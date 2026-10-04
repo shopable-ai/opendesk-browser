@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "capturedAtUTC": "2026-10-04T08:09:42.073Z",
+  "purpose": "Human-requested continuation prompt baseline; read-only status and existing evidence inspection, not final acceptance",
+  "humanRequest": "当前进度怎样，怎样继续推进，给出新提示词，新对话中继续推进，需要目标、关键测试条件、关键执行计划和步骤、检查方式，避免看不懂",
+  "currentWriter": {
+    "threadId": "01a10590-e67c-7631-8254-0736c469d974",
+    "title": "WXT P4—P5 控制与独立 SDK 完善",
+    "observedStatus": "active",
+    "handoffRequiredBeforeNewProductWriter": true
+  },
+  "otherCreatedThread": {
+    "threadId": "01a10590-5bc1-7d03-bad6-58f306a2b790",
+    "goalReportedStatus": "blocked",
+    "productChangesReported": 0
+  },
+  "buildBaseline": "Current WXT MV3 implementation; do not restore webpack from obsolete handoff",
+  "productionReadSnapshot": {
+    "files": 18,
+    "packageHash": "faad7957d67832a3ce767cbc371f503edde1837734a191b38d7327825b2cec9a",
+    "sourceClosureNotClaimed": true
+  },
+  "formalLedger": {
+    "caseCount": 603,
+    "statuses": {
+      "not-tested": 603
+    },
+    "additionalCount": 19,
+    "additionalStatuses": {
+      "unit-passed-native-pending": 19
+    },
+    "f3Passed": false
+  },
+  "latestNativeEvidence": {
+    "directory": "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138",
+    "finalReportAbsentAtRead": true,
+    "observedCasePasses": [
+      "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+      "R1-PINNED-R2-SAVED-HEAD-DELETED",
+      "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+      "BORROWED-CHILD-FRAME-EXACT-DOC",
+      "NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES",
+      "DURABLE-FALSE",
+      "DURABLE-ZERO",
+      "DURABLE-UNDEFINED",
+      "DURABLE-OWN-UNDEFINED",
+      "DURABLE-TRUE",
+      "DOWNLOAD-FALSE",
+      "DOWNLOAD-ZERO",
+      "DOWNLOAD-UNDEFINED",
+      "DOWNLOAD-OWN-UNDEFINED"
+    ],
+    "observedFailure": {
+      "id": "P4-API48-WORKER-SEMANTICS",
+      "member": "ChromePage.addScriptTag",
+      "actual": "Expected 7 got undefined",
+      "writerAttribution": "MAIN write vs USER_SCRIPT read in assertion; not yet repaired and reaccepted in read snapshot",
+      "failurePreserved": true
+    },
+    "nativeRetestNotPerformedByThisChat": true
+  },
+  "independentSavedDownloadInspection": {
+    "case": "DOWNLOAD-FALSE",
+    "status": "PASS",
+    "packageSha256": "faad7957d67832a3ce767cbc371f503edde1837734a191b38d7327825b2cec9a",
+    "runId": "d26a6e13-a559-41ff-89d4-a0e9b5c2d7ed",
+    "resultId": "6c0c0087-d5b1-41d5-9f96-124a09fca24c",
+    "nativeStates": [
+      "complete"
+    ],
+    "bytes": 175,
+    "artifactBytes": 175,
+    "diskSha256": "eaedfcf0390ca9dd1f863260b39f784e759fd441352674c4b5400fe4dc80857b",
+    "artifactSha256": "eaedfcf0390ca9dd1f863260b39f784e759fd441352674c4b5400fe4dc80857b",
+    "bytesAndHashMatch": true,
+    "typedContent": {
+      "protocol": "opendesk.value.v1",
+      "runId": "d26a6e13-a559-41ff-89d4-a0e9b5c2d7ed",
+      "resultId": "6c0c0087-d5b1-41d5-9f96-124a09fca24c",
+      "valueWire": {
+        "type": "boolean",
+        "value": false
+      }
+    },
+    "resourceReleasedAt": "2026-10-04T07:57:34.092Z",
+    "blobProbe": {
+      "resolved": false,
+      "name": "TypeError",
+      "message": "Failed to fetch"
+    },
+    "receiptDiskHashVerified": false,
+    "interpretation": "Disk hash was independently verified from saved bytes here; receipt flag itself remains false. Native suite is still running; this is a scoped existing evidence inspection, not a new product run."
+  },
+  "fourServices": {
+    "driverExists": false,
+    "resourceManifestExists": false,
+    "sdkEntryService": "storage only",
+    "status": "NOT_TESTED"
+  },
+  "prompt": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/continue-old-features-20261004.txt",
+    "scope": "Continue original migration with old-function-first reporting and minimal sufficient targeted verification; final F3 unchanged"
+  },
+  "actionsByThisChat": {
+    "productCodeModified": false,
+    "ownerLedgerGatesModified": false,
+    "newBuilds": 0,
+    "newBrowserLaunches": 0,
+    "newProductTests": 0,
+    "newThreadsCreated": 0,
+    "messagesToActiveWriterSent": 0
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "baseline": false,
+  "observations": [
+    {
+      "case": "fresh-MAIN",
+      "sameModuleIdempotent": true,
+      "reused": true
+    },
+    {
+      "case": "same-ID-changed-digest",
+      "nativeDispatches": 2,
+      "conflictReplies": 1
+    },
+    {
+      "case": "timeout-reused-ID-old-callback-first",
+      "pendingAfterOld": 1,
+      "replies": [
+        "E_TIMEOUT",
+        "E_REQUEST_CONFLICT"
+      ]
+    }
+  ]
+}

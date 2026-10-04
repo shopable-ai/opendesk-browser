@@ -1,0 +1,40 @@
+{
+  "candidateSha256": "5825d5ba02b73da38ad17992afb62cee199ff81fa5023c71123fed700bc5290f",
+  "files": [
+    {
+      "path": "candidate-manifest.json",
+      "bytes": 2181,
+      "sha256": "5825d5ba02b73da38ad17992afb62cee199ff81fa5023c71123fed700bc5290f"
+    },
+    {
+      "path": "chrome-ui-dom.json",
+      "bytes": 406993,
+      "sha256": "32b3729b1869e1d0ec19719fe2df3882e9252c341423743a0a507bf57974fb99"
+    },
+    {
+      "path": "chrome-ui.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "console.json",
+      "bytes": 142,
+      "sha256": "cba51d5fcefa1e3a82b4e79da992f3cd42b35f5f72daa46aa1ee0d0acc7b5b50"
+    },
+    {
+      "path": "http.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "initial-details.png",
+      "bytes": 83949,
+      "sha256": "3935a4bf6a8584fad1039833ca57166d4d994d55199544eecc1b30d2541f9835"
+    },
+    {
+      "path": "report.json",
+      "bytes": 2858,
+      "sha256": "0e998d297d234978ad67f1c3a2c737bbb03b3fcee80ce30021e07daf424a1203"
+    }
+  ]
+}

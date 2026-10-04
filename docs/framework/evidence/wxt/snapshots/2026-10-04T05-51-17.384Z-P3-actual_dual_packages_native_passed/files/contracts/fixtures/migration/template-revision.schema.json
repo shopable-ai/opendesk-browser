@@ -1,0 +1,233 @@
+{
+  "type": "object",
+  "properties": {
+    "formatVersion": {
+      "const": "1.0.0"
+    },
+    "templateId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "const": 1
+    },
+    "parentRevision": {
+      "type": "null"
+    },
+    "selectorDialect": {
+      "const": "css"
+    },
+    "requiredCapabilities": {
+      "const": [
+        "dom.top.v1",
+        "read.text.v1",
+        "read.attribute.v1",
+        "transform.safe.v1",
+        "pagination.none.v1"
+      ]
+    },
+    "allowedOrigin": {
+      "type": "string"
+    },
+    "startUrl": {
+      "type": "string"
+    },
+    "list": {
+      "type": "object",
+      "properties": {
+        "containerSelector": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rowSelector": {
+          "type": "string",
+          "minLength": 1
+        },
+        "emptyMarkerSelector": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allowEmpty": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "containerSelector",
+        "rowSelector",
+        "emptyMarkerSelector",
+        "allowEmpty"
+      ],
+      "additionalProperties": false
+    },
+    "fields": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string"
+          },
+          "selector": {
+            "type": "string",
+            "minLength": 1
+          },
+          "read": {
+            "enum": [
+              "text",
+              "attribute"
+            ]
+          },
+          "attribute": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "enum": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "transforms": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "trim",
+                "resolve-url"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "selector",
+          "read",
+          "attribute",
+          "type",
+          "required",
+          "transforms"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "read": {
+                  "const": "text"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "attribute": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "attribute": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "const": "none"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "additionalProperties": false
+    },
+    "columns": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "maxPages": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        },
+        "maxRecords": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "maxDurationMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 600000
+        },
+        "maxStoredBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20971520
+        }
+      },
+      "required": [
+        "maxPages",
+        "maxRecords",
+        "maxDurationMs",
+        "maxStoredBytes"
+      ],
+      "additionalProperties": false
+    },
+    "detail": {
+      "type": "null"
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "formatVersion",
+    "templateId",
+    "revision",
+    "parentRevision",
+    "selectorDialect",
+    "requiredCapabilities",
+    "allowedOrigin",
+    "startUrl",
+    "list",
+    "fields",
+    "pagination",
+    "columns",
+    "limits",
+    "detail",
+    "contentHash"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:opendesk:migration-fixture:single-page-template:1.0.0",
+  "description": "Stage 01 proposed single-page TemplateRevision acceptance shape; not a deployed validator."
+}

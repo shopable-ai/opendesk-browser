@@ -1,0 +1,240 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "sourceContracts": [
+    {
+      "path": "docs/framework/test-spec-v5.json",
+      "sha256": "9ccdc5995b89005661dabf62f39b63563c2cbce6e34c37c7e0879b2831febb4d",
+      "matches": [
+        {
+          "location": "/mandatoryFamilies/12",
+          "contractLine": "DLGEN01"
+        },
+        {
+          "location": "/mandatoryFamilies/13",
+          "contractLine": "DLGEN02"
+        },
+        {
+          "location": "/inheritedContracts/0/text",
+          "contractLine": "此规格与design.md及固定附件共同构成必选合同。优先继承../evidence/upstream-v3/test-spec.md的PROV01/02、CMP01–09、RESOURCE01、EX01–07、A01/02、NAV01、B01–04、CTRL01–03、FIX01、PLG01、SVC01、LEAK01、USC01–06、AUTH01、DLGEN01/02、SCR01–07、OPT01、INT01；CMP09具体定义见type-click-compatibility.md。下面明确前提、对抗样本和新增闭合，不削弱继承测试。预期不是PASS，所有实际结果初始pending。"
+        },
+        {
+          "location": "/inheritedContracts/0/families/9",
+          "contractLine": "DLGEN01"
+        },
+        {
+          "location": "/inheritedContracts/7/text",
+          "contractLine": "A01/DLGEN01：不注册scraping，不存在模板/收费/row/seal数据；从真实工作台保存脚本r1并运行goto→type→click→wait→read→return→durable→重开仍可读→artifact下载。ordinary undefined/null/false/0/空数组成功不得被采集empty-policy拒绝。下载Chrome complete且文件hash核对，interrupted/unknown单列。"
+        },
+        {
+          "location": "/inheritedContracts/7/families/1",
+          "contractLine": "DLGEN01"
+        },
+        {
+          "location": "/inheritedContracts/11/text",
+          "contractLine": "SVC/DLGEN02：真实IDB abort/upgrade blocked/versionchange/备份/迁移失败只读恢复；same-store revision+结果事务关系；binary base64块的长度/hash/乱序/缺块/冲突/超限与最终artifact commit；真实Chrome消息不能依赖typed array。下载attempt/receipt及host Blob丢失/释放和文件内容核对。"
+        },
+        {
+          "location": "/inheritedContracts/11/families/0",
+          "contractLine": "DLGEN02"
+        },
+        {
+          "location": "/inheritedContracts/50/text",
+          "contractLine": "DLGEN01：禁用scraping，无template/entitlement/rows/page-seal，非采集对象(false/0/空数组/null等)→durable generic artifact→prepareArtifact/prepareAttempt一致route→实际host Blob下载→Chrome complete/file hash；interrupted明确失败。采集serialization/buildVolumes/商业quota断言移插件且有替换测试。"
+        },
+        {
+          "location": "/inheritedContracts/50/families/0",
+          "contractLine": "DLGEN01"
+        },
+        {
+          "location": "/inheritedContracts/52/text",
+          "contractLine": "DLGEN02：bytes真实Chrome消息base64 chunks/raw长度/hash、0/127/128/255/UTF8、乱序/缺块/重复不同/超限，IDB finalize只有全部commit；download仅artifactRef取同服务bytes，不误传Uint8Array为JSON。B02追加固定scripting MAIN callback/docIds/legacy args实际load+callback、缺回调及页面篡改不能改变authority；goto代理等新doc handshake再更新，旧元素/回程失效。"
+        },
+        {
+          "location": "/inheritedContracts/52/families/0",
+          "contractLine": "DLGEN02"
+        },
+        {
+          "location": "/cases/204",
+          "record": {
+            "input": {
+              "values": [
+                false,
+                0,
+                [],
+                null,
+                {
+                  "x": "中"
+                }
+              ],
+              "scrapingRegistered": false,
+              "download": "same committed generic artifact"
+            },
+            "expected": "no template/entitlement/page seal; actual file bytes hash equals artifact; Chrome complete required; interrupted/unknown separate; no automatic unknown re-download",
+            "families": [
+              "DLGEN01",
+              "SVC01"
+            ],
+            "phase": "F2",
+            "layer": "Chrome+IDB",
+            "required": true,
+            "id": "DLGEN01-ACTUAL-FILE",
+            "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+            "capabilityIds": [
+              "CORE-GENERIC-DOWNLOAD"
+            ],
+            "source": {
+              "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/downloads/index.js",
+              "symbol": "createDownloadService/prepareExport/readArtifact",
+              "lines": [
+                1,
+                545
+              ],
+              "sha256": "0cd7bb5f610c26d7a23f8bc221b7dd0e3bfacfac64c1cfb5be820fecb0942b44",
+              "originClass": "existing-target-foundation-support"
+            }
+          }
+        },
+        {
+          "location": "/cases/205",
+          "record": {
+            "input": {
+              "bytes": [
+                0,
+                127,
+                128,
+                255
+              ],
+              "fixtures": [
+                "UTF8",
+                "out of order",
+                "missing chunk",
+                "duplicate same",
+                "conflict",
+                "over budget",
+                "host Blob lost"
+              ]
+            },
+            "expected": "JSON base64 bytes exact/hash; commit only full set; missing/conflict/oversize typed reject; duplicate no extra bytes; Blob lost unknown and release observable",
+            "families": [
+              "DLGEN02",
+              "LEAK01"
+            ],
+            "phase": "F2",
+            "layer": "Chrome+IDB",
+            "required": true,
+            "id": "DLGEN02-BINARY-CHUNKS",
+            "owner": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+            "capabilityIds": [
+              "CORE-GENERIC-DOWNLOAD"
+            ],
+            "source": {
+              "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/downloads/index.js",
+              "symbol": "createDownloadService/prepareExport/readArtifact",
+              "lines": [
+                1,
+                545
+              ],
+              "sha256": "0cd7bb5f610c26d7a23f8bc221b7dd0e3bfacfac64c1cfb5be820fecb0942b44",
+              "originClass": "existing-target-foundation-support"
+            }
+          }
+        },
+        {
+          "location": "/cases/209/families/4",
+          "contractLine": "DLGEN01"
+        }
+      ]
+    },
+    {
+      "path": "docs/framework/stage0/main-capability-draft.json",
+      "sha256": "fcb1d297a4d29164f8583a819b9b26e9da3b05346c62e98256125581611f8083",
+      "matches": [
+        {
+          "location": "/7/testCases/0",
+          "record": {
+            "id": "DLGEN01-ACTUAL-FILE",
+            "input": {
+              "values": [
+                false,
+                0,
+                [],
+                null,
+                {
+                  "x": "中"
+                }
+              ],
+              "scrapingRegistered": false,
+              "download": "same committed generic artifact"
+            },
+            "expected": "no template/entitlement/page seal; actual file bytes hash equals artifact; Chrome complete required; interrupted/unknown separate; no automatic unknown re-download",
+            "families": [
+              "DLGEN01",
+              "SVC01"
+            ],
+            "phase": "F2",
+            "layer": "Chrome+IDB",
+            "required": true,
+            "actual": null,
+            "productPackageSha256": null,
+            "status": "not-tested",
+            "evidence": []
+          }
+        },
+        {
+          "location": "/7/testCases/1",
+          "record": {
+            "id": "DLGEN02-BINARY-CHUNKS",
+            "input": {
+              "bytes": [
+                0,
+                127,
+                128,
+                255
+              ],
+              "fixtures": [
+                "UTF8",
+                "out of order",
+                "missing chunk",
+                "duplicate same",
+                "conflict",
+                "over budget",
+                "host Blob lost"
+              ]
+            },
+            "expected": "JSON base64 bytes exact/hash; commit only full set; missing/conflict/oversize typed reject; duplicate no extra bytes; Blob lost unknown and release observable",
+            "families": [
+              "DLGEN02",
+              "LEAK01"
+            ],
+            "phase": "F2",
+            "layer": "Chrome+IDB",
+            "required": true,
+            "actual": null,
+            "productPackageSha256": null,
+            "status": "not-tested",
+            "evidence": []
+          }
+        },
+        {
+          "location": "/9/testCases/0/families/4",
+          "contractLine": "DLGEN01"
+        }
+      ]
+    },
+    {
+      "path": "docs/framework/source-compatibility-ledger.json",
+      "sha256": "26baeec72e00e783d5b58ca23cccaca05143d92526e20d381f0a6eae8fa2e0bd",
+      "matches": [
+        {
+          "location": "/capabilityItems/7/caseIds/0",
+          "contractLine": "DLGEN01-ACTUAL-FILE"
+        },
+        {
+          "location": "/capabilityItems/7/caseIds/1",
+          "contractLine": "DLGEN02-BINARY-CHUNKS"
+        }
+      ]
+    }
+  ],
+  "decision": "No completed-result session-only requirement. Completed immutable results export under current stable authority-issued namespace/principal; current host and new download intent session fences remain."
+}

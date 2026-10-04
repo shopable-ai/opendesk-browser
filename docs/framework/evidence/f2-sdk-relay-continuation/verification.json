@@ -1,0 +1,292 @@
+{
+  "stage": "F2",
+  "task": "T09",
+  "recordedAt": "2026-10-03T08:05:33.927854+00:00",
+  "sourceOwnership": [
+    "src/framework/sdk/entry.js",
+    "src/agents/page-relay.js"
+  ],
+  "newTests": [
+    "tests/framework/k2-sdk-relay-races.test.mjs",
+    "tests/framework/k4-sdk-bundle-reinjection.test.mjs",
+    "tests/framework/k4-sdk-reinjection.test.mjs",
+    "tests/framework/k4-sdk.test.mjs"
+  ],
+  "runtime": {
+    "requestedModel": "gpt-6.1-sol",
+    "requestedReasoningEffort": "xhigh",
+    "actualResolvedModel": "unknown",
+    "actualResolvedReasoningEffort": "unknown",
+    "reason": "Serving model/effort is not exposed; no global settings changed. Direct scoped executor; no recursive orchestration."
+  },
+  "results": [
+    {
+      "name": "original-red",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "argv": [
+        "node",
+        "docs/framework/evidence/f2-sdk-relay-continuation/original-red-reproductions.mjs",
+        "--baseline"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "passedExpectation": true,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/original-red.log",
+      "logSha256": "40bb53a763f3f007a95fd1bd35d0be13ed0087edb384b4ac9ee740ff70b9f83b",
+      "sourceBefore": "original-red-source-before.json",
+      "sourceAfter": "original-red-source-after.json",
+      "sourceDrift": [],
+      "ownedSourceStable": true,
+      "highlights": []
+    },
+    {
+      "name": "original-green",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "argv": [
+        "node",
+        "docs/framework/evidence/f2-sdk-relay-continuation/original-red-reproductions.mjs"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passedExpectation": true,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/original-green.log",
+      "logSha256": "1363c6477ab8766f09c3eacc3794400f453c944e7b5b71f0c164fdf72696e664",
+      "sourceBefore": "original-green-source-before.json",
+      "sourceAfter": "original-green-source-after.json",
+      "sourceDrift": [],
+      "ownedSourceStable": true,
+      "highlights": []
+    },
+    {
+      "name": "original-exact-entry-reproducer",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "argv": [
+        "node",
+        "docs/framework/evidence/f2-sdk-relay-continuation/original-entry-reproducer.mjs"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passedExpectation": true,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/original-exact-entry-reproducer.log",
+      "logSha256": "a17fcf0a2f50e2d495e4f90ce263410edc183add6c62699a2facbccf60410f74",
+      "sourceBefore": "original-exact-entry-reproducer-source-before.json",
+      "sourceAfter": "original-exact-entry-reproducer-source-after.json",
+      "sourceDrift": [],
+      "ownedSourceStable": true,
+      "highlights": []
+    },
+    {
+      "name": "scoped-tests",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/framework/k2-sdk-relay-races.test.mjs",
+        "tests/framework/k4-sdk-bundle-reinjection.test.mjs",
+        "tests/framework/k4-sdk-reinjection.test.mjs",
+        "tests/framework/k4-sdk.test.mjs"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passedExpectation": true,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/scoped-tests.log",
+      "logSha256": "55518b90e9815705146ed0ac6c8eb9128bef2bed0a3e98fe8b317d8d8b2d1684",
+      "sourceBefore": "scoped-tests-source-before.json",
+      "sourceAfter": "scoped-tests-source-after.json",
+      "sourceDrift": [],
+      "ownedSourceStable": true,
+      "highlights": [
+        "\u2714 same-ID changed args/method/original deadline reaches broker and explicitly delivers conflict (3.383125ms)",
+        "\u2714 timeout plus reused ID: old success or rejection cannot finish/delete replacement (1.493875ms)",
+        "\u2714 100 same-ID same-digest real relay dispatches all reach product broker admission: serial oracle, not native B05 (111.190375ms)",
+        "\u2714 deadline, canonical codec and legitimate request ID hello remain exact at native boundary (0.708834ms)",
+        "\u2714 bad page fields/ACK errors never consume another entry; dispose clears timers and late callbacks (0.414375ms)",
+        "\u2714 production actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello (791.547041ms)",
+        "\u2714 development actual fixed MAIN bundle reevaluates intact own globals and refreshes Hello (86.8515ms)",
+        "\u2714 exact review reproducer: two fresh evaluations reuse frozen globals and perform new Hello (22.026667ms)",
+        "\u2714 fresh native Hello updates expanded/shrunken grant subset and refuses failed regrant (14.741375ms)",
+        "\u2714 reinjection preserves old pending legacy callback and stable ChromeBridgeEvents (4.525083ms)",
+        "\u2714 overlapping reinjections serialize fixed Hello so late old callback cannot supply fresh grant (4.562167ms)",
+        "\u2714 hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed (0.272417ms)",
+        "\u2714 dispose and pagehide are terminal: fresh evaluation cannot resurrect immutable installation (5.96375ms)",
+        "\u2714 borrowed lifecycle and forged function toString cannot impersonate ownership of a different global (0.277958ms)",
+        "\u2714 CMP15 callback preserves false (8.416875ms)",
+        "\u2714 CMP15 callback preserves 0 (3.5915ms)",
+        "\u2714 CMP15 callback preserves undefined (3.918792ms)",
+        "\u2714 CMP15 callback preserves null (0.736542ms)",
+        "\u2714 CMP15 callback preserves  (0.757125ms)",
+        "\u2714 CMP15 callback preserves 0 (0.988667ms)",
+        "\u2714 CMP15 callback preserves  (2.283375ms)",
+        "\u2714 CMP15 callback preserves [object Object] (1.787209ms)",
+        "\u2714 CMP15 inner business error business denied remains original rejection (2.132542ms)",
+        "\u2714 CMP15 inner business error [object Object] remains original rejection (1.789167ms)",
+        "\u2714 CMP15 inner business error null remains original rejection (0.640875ms)",
+        "\u2714 CMP15 inner business error undefined remains original rejection (0.73275ms)",
+        "\u2714 CMP15 inner business error false remains original rejection (0.27625ms)",
+        "\u2714 CMP15 inner business error 0 remains original rejection (0.355042ms)",
+        "\u2714 CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending (2.104167ms)",
+        "\u2714 CMP15 unicode legacy Base64 callback and ACK never settle early (0.3245ms)",
+        "\u2714 CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement (0.274792ms)",
+        "\u2714 B03 client deadline and document dispose clean original pending once (12.533875ms)",
+        "\u2714 CMP07 AppStorage String semantics and AppLocal typed presence cross codec (0.690833ms)",
+        "\u2714 CMP13 four HTTP facades preserve call shape (0.145625ms)",
+        "\u2714 schema/config/business refusal dispatches nothing (0.386583ms)",
+        "\u2714 CMP14 notifications preserve desc rules with typed null/body errors (0.533709ms)",
+        "\u2714 CMP14 server results use latency order, input ties and all-failed null (0.6375ms)",
+        "\u2714 CMP08 strict compact JSON never runs code; wrapAsync is only source transformation (0.468041ms)",
+        "\u2714 CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID (0.888958ms)",
+        "\u2714 CMP08 UtilInfo stays idle until explicit call and keeps original URL (0.078458ms)",
+        "\u2714 events retain old strings and route lifecycle solely to injected RunHost (0.36225ms)",
+        "\u2714 sleep resolves undefined and abort removes timer (4.145833ms)",
+        "\u2714 SDK install conflicts never overwrite page functions; same installation is idempotent (1.387625ms)",
+        "\u2714 Hello cannot be ready from partial or wrong-version allowlist (8.445542ms)",
+        "\u2714 fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority (5.008333ms)",
+        "\u2714 CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data (0.496875ms)",
+        "\u2714 Hello grant subset permits its methods and rejects other calls before native request (0.135916ms)",
+        "\u2714 fixture 100 concurrent original promises once settle; not native B05 evidence (13.530958ms)",
+        "\u2714 relay rejects page claims and raw script without native dispatch (3.893625ms)",
+        "\u2714 native typed authority/transport failure is outer error; business remains inner (1.242333ms)",
+        "\u2714 service dispatcher delegates storage and atomic device context without namespace from page (0.183042ms)",
+        "\u2139 tests 51",
+        "\u2139 suites 0",
+        "\u2139 pass 51",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 1033.332417"
+      ]
+    },
+    {
+      "name": "sdk-and-service-integration-tests",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/framework/k2-sdk-broker.test.mjs",
+        "tests/framework/k4-network.test.mjs",
+        "tests/framework/k4-chrome-services.test.mjs"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passedExpectation": true,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/sdk-and-service-integration-tests.log",
+      "logSha256": "964713a22eac3a75c10e2cf0a8d421682986536a606ab6b5c2274ec4c1198b1f",
+      "sourceBefore": "sdk-and-service-integration-tests-source-before.json",
+      "sourceAfter": "sdk-and-service-integration-tests-source-after.json",
+      "sourceDrift": [],
+      "ownedSourceStable": true,
+      "highlights": [
+        "\u2714 SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs (28.16825ms)",
+        "\u2714 SDK recovery reconciles atomic storage durable result before broker receipt and never replays it (3.531958ms)",
+        "\u2714 SDK restart at dispatched cut pauses its run with original unknown effect and no replacement (1.765208ms)",
+        "\u2714 SDK Hello needs native document/grant and never claims a controller slot (1.432583ms)",
+        "\u2714 SDK grant and request payload cannot carry page authority/namespace/bare args (1.678875ms)",
+        "\u2714 SDK sender/document/lifecycle fences reject before any storage effect (1.237666ms)",
+        "\u2714 100 same-ID concurrent persistent calls commit one effect and one result (31.931083ms)",
+        "\u2714 same ID with changed args or deadline conflicts and does not overwrite effect (6.153458ms)",
+        "\u2714 native session adapter preserves own undefined/false/0 across Chrome JSON storage (8.877166ms)",
+        "\u2714 durable session duplicate after authority restart does not resubmit native set (1.437208ms)",
+        "\u2714 native session failure records unknown dispatch and will not retry same write (2.42425ms)",
+        "\u2714 SW recovery fences dispatched write gap and retains original identity/deadline (3.314958ms)",
+        "\u2714 durable duplicate cannot extend original 15s service deadline (4.157584ms)",
+        "\u2714 native permission remove then regrant cannot revive old request/grant (2.401833ms)",
+        "\u2714 observed navigation invalidates current page Hello and pending admission (0.683167ms)",
+        "\u2714 notification permission removal with empty origins revokes the affected grant (0.442542ms)",
+        "\u2714 notification native receipt and durable undefined survive delivery revocation (3.51025ms)",
+        "\u2714 successful HTTP business envelope remains data and stores native result before delivery (34.138084ms)",
+        "\u2714 SDK backend timer clamps to earlier caller deadline even for hung native callback (1.414166ms)",
+        "\u2714 SVC cookie reads use exact URL; no public-suffix or neighboring-domain expansion (1.987208ms)",
+        "\u2714 SVC cookie batch preserves explicit expiry/default session and Host-prefix rules (3.126333ms)",
+        "\u2714 SVC cookie removal awaits all callbacks and checks each permission (5.384917ms)",
+        "\u2714 SVC Chrome lastError and missing cookie callbacks are typed failures (0.905042ms)",
+        "\u2714 SVC fixed injection requires exact doc and correct resource/world before Chrome call (0.848958ms)",
+        "\u2714 SVC notification click has no page URL, clears once, close/late events do not resettle (0.801375ms)",
+        "\u2714 CMP13 real loopback four HTTP methods, body and serializable projection (40.920791ms)",
+        "\u2714 CMP13 real response false retained (4.539459ms)",
+        "\u2714 CMP13 real response zero retained (1.772208ms)",
+        "\u2714 CMP13 real response null retained (2.605709ms)",
+        "\u2714 HTTP vs network vs bad JSON/UTF8 typed errors and restricted error response (10.536ms)",
+        "\u2714 denied URL and config have zero real HTTP; native grant rechecked post response (4.054416ms)",
+        "\u2714 private native receipt hook persists HTTP fact before post revocation, not normalized checkServer result (5.342375ms)",
+        "\u2714 manual redirect never follows unauthorized destination (2.063083ms)",
+        "\u2714 actual abort during stalled body/HTTP, size budget and caller cancellation (80.228666ms)",
+        "\u2714 backend 15s budget independent from client timeout and earlier native deadline (3.22425ms)",
+        "\u2714 stalled pre/post native permission validation still obeys driver deadline without replay (42.459291ms)",
+        "\u2714 server checks real observable success/failure and never reports opaque available (21.916125ms)",
+        "\u2714 external IP info disabled default and never calls original external endpoint in tests (0.190125ms)",
+        "\u2714 notification true callback wait, lastError refusal and pre/post authorization (0.87175ms)",
+        "\u2714 service HTTP result preserves business object inside response.data rather than outer authority (2.582084ms)",
+        "\u2139 tests 40",
+        "\u2139 suites 0",
+        "\u2139 pass 40",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 399.243708"
+      ]
+    },
+    {
+      "name": "source-check",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passedExpectation": true,
+      "log": "docs/framework/evidence/f2-sdk-relay-continuation/source-check.log",
+      "logSha256": "ba119928db1f91d179c6eb56519be1da6ec0f9bd8e92e15a1347d5f73d97d41f",
+      "sourceBefore": "source-check-source-before.json",
+      "sourceAfter": "source-check-source-after.json",
+      "sourceDrift": [],
+      "ownedSourceStable": true,
+      "highlights": [
+        "Syntax checked 70 source/test/build files; fixed SDK/control entries, strict CSP and original MIT checked"
+      ]
+    }
+  ],
+  "finalOwnedSource": {
+    "src/framework/sdk/entry.js": {
+      "sha256": "eb4885d2f694cdeef7967759a1e2ea25df933525bb287f0bf772baf9b5931700",
+      "bytes": 8014
+    },
+    "src/agents/page-relay.js": {
+      "sha256": "0bb95b6c920d8d8d8e54f381aef1f1b369cacb2b8a3c15e53bf7bec3469cb39c",
+      "bytes": 6460
+    },
+    "tests/framework/k2-sdk-relay-races.test.mjs": {
+      "sha256": "66870457ca64206230755b1fb57bb78514a0c6fd5cb35457cdc3ce60347bdd56",
+      "bytes": 8124
+    },
+    "tests/framework/k4-sdk-bundle-reinjection.test.mjs": {
+      "sha256": "2795cdc3484538a169f151d065f90f55206df9f6cb18907f051bf52e087a95ce",
+      "bytes": 4829
+    },
+    "tests/framework/k4-sdk-reinjection.test.mjs": {
+      "sha256": "cd251209e5d00fa659f175bfdfb4b6706954daa39ed445734c28abecf45a059b",
+      "bytes": 9204
+    },
+    "tests/framework/k4-sdk.test.mjs": {
+      "sha256": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+      "bytes": 19833
+    }
+  },
+  "allExpectedExits": true,
+  "ownedSourceStable": true,
+  "native100AtomicAccepted": false,
+  "stableProductPackageRebuilt": false,
+  "F3": false,
+  "original603": false,
+  "boundary": "F2 scoped source and production/development exact-entry VM / Chrome callback / serial transaction tests. Every100 same-ID actual relay requests admitted at product SDK broker. Not real Chrome native100/IDB atomic acceptance, two actual Chrome MAIN file injections, or stable final package acceptance.",
+  "parentContinues": [
+    "SDK grant epoch/recovery",
+    "stable package rebuild and native evidence"
+  ],
+  "originalReviewUnmodified": true
+}

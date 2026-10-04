@@ -1,0 +1,248 @@
+{
+  "schema": "k1.final-source-freeze.v1",
+  "createdAt": "2026-10-02T22:05:29.154911+00:00",
+  "effectivePlanSHA256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "prototypeCandidateSHA256": "f29dc4afa233a67457585e6a35cf327252760ead96d9edce6c16975f9a502c0a",
+  "unionCandidate": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+    "bytes": 47920,
+    "sha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66"
+  },
+  "candidateManifestCopies": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/candidate-manifest.json",
+      "bytes": 3229,
+      "sha256": "f29dc4afa233a67457585e6a35cf327252760ead96d9edce6c16975f9a502c0a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/candidate-manifest.json",
+      "bytes": 3229,
+      "sha256": "f29dc4afa233a67457585e6a35cf327252760ead96d9edce6c16975f9a502c0a"
+    }
+  ],
+  "sources": [
+    {
+      "relativePath": "run-headed.mjs",
+      "live": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+        "bytes": 67282,
+        "sha256": "f6b80c66282febdd217d5f3d666208d224f62fab9ad2fb5520747d99571c8e31"
+      },
+      "immutableCopies": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/source/run-headed.mjs",
+          "bytes": 67282,
+          "sha256": "f6b80c66282febdd217d5f3d666208d224f62fab9ad2fb5520747d99571c8e31"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/source/run-headed.mjs",
+          "bytes": 67282,
+          "sha256": "f6b80c66282febdd217d5f3d666208d224f62fab9ad2fb5520747d99571c8e31"
+        }
+      ]
+    },
+    {
+      "relativePath": "fixture/adapter.js",
+      "live": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+        "bytes": 4444,
+        "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+      },
+      "immutableCopies": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/source/fixture/adapter.js",
+          "bytes": 4444,
+          "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/source/fixture/adapter.js",
+          "bytes": 4444,
+          "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3"
+        }
+      ]
+    },
+    {
+      "relativePath": "fixture/file-source.js",
+      "live": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+        "bytes": 206,
+        "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+      },
+      "immutableCopies": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/source/fixture/file-source.js",
+          "bytes": 206,
+          "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/source/fixture/file-source.js",
+          "bytes": 206,
+          "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+        }
+      ]
+    },
+    {
+      "relativePath": "fixture/host.html",
+      "live": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+        "bytes": 622,
+        "sha256": "9fa43cf7eda700056b7b24208469a77e5f1ca36ddf46f12894bca2a266977211"
+      },
+      "immutableCopies": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/source/fixture/host.html",
+          "bytes": 622,
+          "sha256": "9fa43cf7eda700056b7b24208469a77e5f1ca36ddf46f12894bca2a266977211"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/source/fixture/host.html",
+          "bytes": 622,
+          "sha256": "9fa43cf7eda700056b7b24208469a77e5f1ca36ddf46f12894bca2a266977211"
+        }
+      ]
+    },
+    {
+      "relativePath": "fixture/host.js",
+      "live": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+        "bytes": 13453,
+        "sha256": "c4dc9e662bda70c6908459a1a20637464fd85287f78887ec3f8b5043b22959db"
+      },
+      "immutableCopies": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/source/fixture/host.js",
+          "bytes": 13453,
+          "sha256": "c4dc9e662bda70c6908459a1a20637464fd85287f78887ec3f8b5043b22959db"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/source/fixture/host.js",
+          "bytes": 13453,
+          "sha256": "c4dc9e662bda70c6908459a1a20637464fd85287f78887ec3f8b5043b22959db"
+        }
+      ]
+    },
+    {
+      "relativePath": "fixture/manifest.json",
+      "live": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+        "bytes": 408,
+        "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+      },
+      "immutableCopies": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/source/fixture/manifest.json",
+          "bytes": 408,
+          "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/source/fixture/manifest.json",
+          "bytes": 408,
+          "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+        }
+      ]
+    },
+    {
+      "relativePath": "fixture/sw.js",
+      "live": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+        "bytes": 176,
+        "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+      },
+      "immutableCopies": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/source/fixture/sw.js",
+          "bytes": 176,
+          "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/source/fixture/sw.js",
+          "bytes": 176,
+          "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+        }
+      ]
+    }
+  ],
+  "frozenInputs": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+      "bytes": 17201,
+      "sha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/execution-plan.md",
+      "bytes": 19540,
+      "sha256": "10b348b6811c13bf29bb0a5f0f289672ae70e20fa200fac810a1fdebce52fc35"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+      "bytes": 14013,
+      "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/user-scripts-switch-history-amendment.json",
+      "bytes": 10560,
+      "sha256": "debe23d682d956ad695c8cb71ea06372fa1ad6e3511ae48d53a15a8d31739167"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-6/candidate/goal-constraints.md",
+      "bytes": 7870,
+      "sha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "bytes": 31648,
+      "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+      "bytes": 13767,
+      "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4"
+    }
+  ],
+  "liveEffectiveContracts": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/f1-cases.json",
+      "bytes": 14013,
+      "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/user-scripts-switch-history-amendment.json",
+      "bytes": 10560,
+      "sha256": "debe23d682d956ad695c8cb71ea06372fa1ad6e3511ae48d53a15a8d31739167"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/test-spec-v5.json",
+      "bytes": 1144601,
+      "sha256": "9ccdc5995b89005661dabf62f39b63563c2cbce6e34c37c7e0879b2831febb4d"
+    }
+  ],
+  "sourceChanges": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "change": "operation-owned native getScripts availability monitor; observed OFF first-reason sticky invalidation across ON; dispatch/final-accept real authority revalidation; trusted private ownGrant epoch and real origin/document/target/host fences; cancel/deadline; finally drains probe and clears timer/monitor resources"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+      "change": "trusted host ownGrant revoke/renew and cancel UI; private epoch is not caller-writable"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "change": "remove all fixture.recheck fence-writing calls; actual UI lifecycle cases across two worlds/two phases; retain original failures and separate round6 limit assessments; source snapshots and required-subcase accounting"
+    }
+  ],
+  "adapterChanged": false,
+  "runnerRecheckEntryOrCallsPresent": false,
+  "syntaxValidation": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "command": "node --check",
+      "exitCode": 0
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "command": "node --check",
+      "exitCode": 0
+    }
+  ],
+  "sourceDisposition": "frozen for independent F1 review"
+}

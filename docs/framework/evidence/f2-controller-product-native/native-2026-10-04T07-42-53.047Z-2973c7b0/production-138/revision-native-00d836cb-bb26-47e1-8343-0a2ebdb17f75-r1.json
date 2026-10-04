@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-00d836cb-bb26-47e1-8343-0a2ebdb17f75",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "eb51747a71d6c19204c22e9dbdd19eef3f5f87a624102e38b8ff87507b5dbc25",
+  "sourceUtf8": "throw new TypeError('native-throw');"
+}

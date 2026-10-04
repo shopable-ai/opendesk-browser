@@ -1,0 +1,1 @@
+globalThis.__controllerFixtureBase="http://127.0.0.1:57615";

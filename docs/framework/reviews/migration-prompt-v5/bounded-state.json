@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-02",
+  "scope": "bounded prompt correction only",
+  "currentStage": "stage0 plan correction pending; historical F1 partial proof",
+  "executionPlanExists": false,
+  "frameworkChromePageExists": false,
+  "runContextExists": false,
+  "fileRows": 72,
+  "apiItems": 48,
+  "runtimePassTrue": {
+    "files": 0,
+    "apiItems": 0
+  },
+  "gates": {
+    "designApproved": true,
+    "backendPrototypePassed": false,
+    "fullImplementationReleased": false,
+    "frameworkFunctionalMigrationComplete": false
+  },
+  "notes": [
+    "designApproved applies only to historical candidate",
+    "run-host still imports createScrapingModule and compileTemplate",
+    "sw currently imports environment helpers",
+    "no product tests rerun; prompt quality validation only",
+    "target folder is not a git checkout; use file hashes for bounded read evidence"
+  ],
+  "readOnlyEvidence": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/run-host.js",
+      "sha256": "eff17d2253d8ac287e0c82557ecf705c4f88c333d66e0dcf0a16634e277b3294"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/sw.js",
+      "sha256": "db7067ecd80cc99f822d1e99a90edbac00db41d83bad7e5335dcea7c962908f7"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/source-compatibility-ledger.json",
+      "sha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-gates.json",
+      "sha256": "195804d8fc1104395c12c00bddcdc5b0f3e2befc3d25f807dbc4e8a8af7ee59d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/framework-handoff.json",
+      "sha256": "9b2305e208e45fa326053e94694288d133ef851203d1ac4e7aa3880f37ec3d2c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/public-owner.json",
+      "sha256": "6ec732bcf1076361aa61286ac2f9416a2153b0d4eba89c76c50b443a4cbc6e5c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+      "sha256": "6ca6d01c3210721f2b2ed76fa8699491bfe9f031dda6d33d23d2e027ecfb6b56"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+      "sha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+    }
+  ]
+}

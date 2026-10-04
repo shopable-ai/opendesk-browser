@@ -1,0 +1,4 @@
+{"event":"teardown-begin","at":1791022512313,"monoMs":48330.048958,"launcherPid":39194,"chromePid":39224}
+{"event":"launcher-sigterm-after-close-timeout","at":1791022517334,"monoMs":53350.748167,"launcherPid":39194,"chromePid":39224}
+{"event":"owned-native-main-sigkill-after-termination-timeout","at":1791022522335,"monoMs":58351.958167,"launcherPid":39194,"chromePid":39224}
+{"event":"teardown-finished","at":1791022522394,"monoMs":58410.501583,"launcherPid":39194,"chromePid":39224,"exit":{"at":1791022522392,"code":137,"signal":null},"pidAlive":false,"launcherPidAlive":false,"profile":"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ngrc1sld","profileOwner":"global launcher","profileRemoved":true,"profileRetainedForRawEvidence":false,"nativeLogBytes":98,"nativeLogSha256":"4de66241bb6b2ecb0fc330e46e3e245e31e3a7d1f834324f8d1a7168202da342","nativeLogPreservedAfterLauncherExit":true,"launcherStdoutBytes":1085,"launcherStderrBytes":0,"errors":[]}

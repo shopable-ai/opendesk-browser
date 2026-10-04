@@ -1,0 +1,429 @@
+{
+  "execution-gates.json": {
+    "schemaVersion": 1,
+    "goal": "OpenDesk Browser 通用框架迁移 Goal",
+    "ownerThreadId": "01a0fcd7-ddff-7b41-be5c-b42b425b31af",
+    "updatedAt": "2026-10-02T14:15:53.141844+00:00",
+    "decisionAuthority": "current development Goal owner acting on explicit user conditional authorization",
+    "designManifest": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/reviews/round-3/candidate/candidate-manifest.json",
+    "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+    "reports": [
+      {
+        "role": "architect",
+        "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/round-3/architect.md",
+        "reportSha256": "04ee23ccee00b3c481cd3823a4df4e161079592cbc136008b5b44672b5461557",
+        "json": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/round-3/architect.json",
+        "jsonSha256": "12240483ef670c0727efff1c8ecfcbbd40c73d22b67e07af82f7c1f5b0925ecf",
+        "score": 97,
+        "verdict": "APPROVE",
+        "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+        "validFinal": true,
+        "independent": true
+      },
+      {
+        "role": "critic",
+        "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/round-3/critic.md",
+        "reportSha256": "ba323bd70005e4fb964c2d9f7249df8d88b6ff8bb2942a3f63a7be35aeac047b",
+        "json": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/round-3/critic.json",
+        "jsonSha256": "b9b531d05258a3dce76774abc833e45d3d1ddb01aade1632db7d48d0a696f3f0",
+        "score": 98,
+        "verdict": "APPROVE",
+        "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+        "validFinal": true,
+        "independent": true
+      }
+    ],
+    "designApproved": true,
+    "boundedPrototypeResearchAllowed": true,
+    "backendPrototypePassed": false,
+    "fullImplementationReleased": false,
+    "frameworkFunctionalMigrationComplete": false,
+    "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815",
+    "prototypeReports": [
+      {
+        "role": "independent-prototype-review",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/independent-review.json",
+        "sha256": "d04596a138f71e0eaab8875be046718bc82de91362bc5555070d046d1dca37cb",
+        "validFinal": true,
+        "verdict": "PARTIAL_PROOF",
+        "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+        "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815"
+      }
+    ],
+    "stage": "F1-PARTIAL_PROOF-paused-on-missing-required-prerequisite",
+    "basis": "Valid same-hash Architect APPROVE 97 and independently scored Critic APPROVE 98; no new design blocker. Only bounded F1 permitted until actual backend evidence plus independent review.",
+    "oldAudit": {
+      "root": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85",
+      "approvalModified": false,
+      "falseFlagsInheritedAsPass": false,
+      "pausedGoalResumed": false,
+      "old2BResumed": false
+    },
+    "models": {
+      "requestedLeader": "openai/gpt-6.1-sol",
+      "requestedChild": "gpt-6.1-sol",
+      "requestedReasoningEffort": "xhigh",
+      "installedRolePromptCompletelyLoaded": true,
+      "nativeAgentType": "default",
+      "localTurnContextMatchesRequest": true,
+      "serverResolvedRuntimeVerified": false,
+      "globalConfigurationModified": false
+    },
+    "stopConditions": [
+      "final design review cannot approve",
+      "key backend prototype fails",
+      "necessary prerequisite missing"
+    ],
+    "stopBehavior": "Save actual repro/errors/passed/not-tested scope, pause this Goal, stop blocked branch; no automatic alternative backend or expanded research.",
+    "prototypeCandidate": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/candidate-manifest.json",
+    "prototypeStatus": "independently-reviewed-PARTIAL_PROOF-not-approved",
+    "actualPrototypeReport": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json",
+    "variantResults": {
+      "classic-package": "FAIL-constructor-SecurityError",
+      "module-package": "FAIL-constructor-SecurityError",
+      "classic-blob": "partial-proof-RPC-network-probe-loop-terminate",
+      "module-blob": "FAIL-before-handshake"
+    },
+    "gateInterpretation": "All loader branches were tested. The fixture AND flag is not itself an independent contract judgement; classic Blob partial evidence is not full F1 backend proof. Failed variants stopped. No F2 implementation.",
+    "goalStatus": "paused",
+    "pauseAuthorization": "Explicit user conditional stop clause for key backend prototype failure or missing necessary prerequisite",
+    "pauseTrigger": "necessary prerequisite missing; independent F1 terminal review confirms missing safety/semantics/userScripts/version evidence",
+    "failedVariantsStopped": [
+      "classic-package",
+      "module-package",
+      "module-blob"
+    ],
+    "selectedBackendImpossibleClaimed": false,
+    "automaticAlternativeStarted": false,
+    "blockedF2Started": false,
+    "instructionRevision": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/instructions/revision-4.json",
+      "sha256": "a4fca3a6464d8ab13a13a55cbd628e91e2a8ebf69ac169898e1a2d133ddc06ee",
+      "revision": 4,
+      "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+      "promptSha256": "6ca6d01c3210721f2b2ed76fa8699491bfe9f031dda6d33d23d2e027ecfb6b56",
+      "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+      "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+    },
+    "pauseRationaleCorrection": "Old PARTIAL_PROOF evidence remains valid and F1 gate closed. Untested work is pending work; it does not itself prove a missing prerequisite or backend failure. Per-loader failures do not establish backend-wide impossibility.",
+    "resumeDisposition": "Native Goal still paused; readable objective prepared for user-controlled update/resume. No new runtime or implementation PASS.",
+    "currentContinuation": {
+      "threadId": "01a0fd25-57a0-7e13-8da0-1fe3ee2986c1",
+      "nativeGoalObservedStatus": "paused",
+      "progress": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/progress.md",
+      "promptRevision": 4,
+      "reason": "User requested migration-focused prompt correction; native Goal remains paused",
+      "resumedByAgent": false
+    }
+  },
+  "framework-handoff.json": {
+    "schemaVersion": 1,
+    "goal": "OpenDesk Browser 通用框架迁移 Goal",
+    "ownerThreadId": "01a0fcd7-ddff-7b41-be5c-b42b425b31af",
+    "status": "paused",
+    "createdAt": "2026-10-02T14:15:53.141844+00:00",
+    "isCompletionCertificate": false,
+    "frameworkFunctionalMigrationComplete": false,
+    "designApproved": true,
+    "boundedPrototypeResearchAllowed": true,
+    "backendPrototypePassed": false,
+    "fullImplementationReleased": false,
+    "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+    "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815",
+    "finalProductPackageSha256": null,
+    "frozenFinalSDKAPISchemaVersionGrants": false,
+    "stageResults": {
+      "F0": "read handoff and freeze 72-source/48-API evidence baseline; current selected drift appended; full migration/resource/license/grant implementation not claimed",
+      "F1": "real Chrome 149 tested four loaders; independent PARTIAL_PROOF, gate closed",
+      "F2": "NOT_STARTED; product code unchanged",
+      "F3": "NOT_STARTED; all mandatory cases remain unverified"
+    },
+    "stopReason": "necessary prerequisite missing; independent F1 terminal review confirms missing safety/semantics/userScripts/version evidence",
+    "stopAuthorization": "Explicit user conditional stop clause for key backend prototype failure or missing necessary prerequisite",
+    "nextAction": "Paused at required stop boundary. Do not automatically resume, broaden research, manufacture alternatives or start downstream scraping/optimization/acceptance. Any future approved work must preserve this partial evidence and explicitly resolve missing prerequisites.",
+    "evidence": {
+      "executionGates": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-gates.json",
+        "sha256": "195804d8fc1104395c12c00bddcdc5b0f3e2befc3d25f807dbc4e8a8af7ee59d"
+      },
+      "independentPrototypeReview": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/independent-review.json",
+        "sha256": "d04596a138f71e0eaab8875be046718bc82de91362bc5555070d046d1dca37cb"
+      },
+      "actualPrototypeReport": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/report.json",
+        "sha256": "18ce2c5b06870a4ac065d3c914abfedcb5f7b8919268c2821c14f5f331d26b80"
+      },
+      "screenshot": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/workbench.png",
+        "sha256": "c32be976ef88b5671552d2c389f228f2dfbe2cdf0e92915fa84a155225a4ee08"
+      },
+      "console": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/console.json",
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "sourceAndAPI": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/source-compatibility-ledger.json",
+        "sha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1",
+        "actualSourceRowsRead": 72,
+        "actualAPIItemsRead": 48,
+        "runtimePass": false
+      },
+      "sourceFreshness": "evidence/source-handoff.json",
+      "historicalFailures": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/historical-failure-mapping.json",
+        "sha256": "acd9ca12463cceee7e6d5e898b7fc6ca319fd959492edacb4550e71fea4376a5",
+        "R1_R8Mapped": 8,
+        "actual17FailedNamesMapped": 17,
+        "closed": 0,
+        "rerun": 0
+      },
+      "prototypeReproduction": "prototypes/ex08/reproduction.md",
+      "modelEvidence": "local turn_context/request matched; server resolved runtime UNVERIFIED; no global model change"
+    },
+    "actualChrome": {
+      "version": "149.0.7827.55",
+      "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+      "channel": "Chrome for Testing",
+      "stable": false,
+      "extensionId": "ngflknmbhhjghcbeooahmdlbljakmjni",
+      "headed": true,
+      "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/profiles/chrome-149"
+    },
+    "variantAssessment": [
+      {
+        "variant": "classic-package",
+        "classification": "FAILED",
+        "finding": "Worker 构造时真实抛出 SecurityError，错误明确指出 chrome-extension URL 无法从 null origin 访问。此分支后续 RPC、网络和终止均未执行。",
+        "evidence": [
+          "R3",
+          "R4"
+        ]
+      },
+      {
+        "variant": "module-package",
+        "classification": "FAILED",
+        "finding": "同样在构造时被浏览器以 opaque origin 访问错误拒绝；尚未进入模块加载或执行，因此不能归因为 module 源码错误。",
+        "evidence": [
+          "R3",
+          "R5"
+        ]
+      },
+      {
+        "variant": "classic-blob",
+        "classification": "PARTIAL_PROOF",
+        "finding": "在 CfT 149.0.7827.55 中，Blob Worker 已加载、握手，并经私有 MessagePort 返回 pong。它是现有选定后端内技术可行的加载候选；当前证据不足以声明正式支持。",
+        "evidence": [
+          "R6",
+          "R7"
+        ]
+      },
+      {
+        "variant": "module-blob",
+        "classification": "FAILED_BEFORE_HANDSHAKE",
+        "finding": "构造后收到 Worker error，未取得 worker-ready。保留的错误没有具体加载诊断；不能据此确定 CSP、policy container、模块 origin 检查或其他机制为根因。Blob 使用的是 classic 文件的固定源码，不包含 worker-module.js 的相对 import，因此也不能归因为该 import。",
+        "evidence": [
+          "R3",
+          "R8",
+          "R9"
+        ]
+      }
+    ],
+    "passedActualAssertions": [
+      {
+        "assertion": "扩展页的固定包内 classic Worker 正对照取得 worker-ready",
+        "evidence": [
+          "R25"
+        ]
+      },
+      {
+        "assertion": "sandbox 报告 origin:null、chrome.runtime.id 不存在、读取 parent.document 被拒绝",
+        "evidence": [
+          "R16",
+          "R25"
+        ]
+      },
+      {
+        "assertion": "classic Blob Worker 握手、私有端口握手和 ping/pong 成功",
+        "evidence": [
+          "R6",
+          "R23"
+        ]
+      },
+      {
+        "assertion": "本次 fetch 失败且 loopback 请求数为零；拒绝机制尚未确定",
+        "evidence": [
+          "R6",
+          "R15"
+        ]
+      },
+      {
+        "assertion": "取得 loop-entered，执行 terminate，sandbox 随后的定时器完成；人工资源计数归零",
+        "evidence": [
+          "R6",
+          "R18",
+          "R19",
+          "R21"
+        ]
+      }
+    ],
+    "notTestedOrNotProven": [
+      {
+        "scope": "用户 async-body 编译执行、最小平台操作 adapter 的 await 语义、敌对用户代码隔离",
+        "status": "NOT_TESTED",
+        "evidence": [
+          "R9",
+          "R14",
+          "R24"
+        ]
+      },
+      {
+        "scope": "假 peer、global postMessage、重放、全局 patch 的实际拒绝",
+        "status": "NOT_TESTED",
+        "evidence": [
+          "R14",
+          "R23",
+          "R24"
+        ]
+      },
+      {
+        "scope": "Worker 有效 policy container、网络失败的 CSP 归因、独立 CPU 停止与资源回收观测",
+        "status": "NOT_PROVEN",
+        "evidence": [
+          "R13",
+          "R16",
+          "R19",
+          "R21"
+        ]
+      },
+      {
+        "scope": "userScripts 精确 document、USER_SCRIPT/MAIN 异步结果与异常、开关、撤权及 old-document race",
+        "status": "NOT_TESTED",
+        "evidence": [
+          "R24",
+          "R26",
+          "R27"
+        ]
+      },
+      {
+        "scope": "最低可支持版本、稳定版及授权开关矩阵",
+        "status": "NOT_TESTED",
+        "evidence": [
+          "R7",
+          "R27",
+          "R28"
+        ]
+      },
+      {
+        "scope": "失败加载变体的下游 RPC、网络和 CPU 终止，以及 F2/F3 产品链",
+        "status": "NOT_TESTED",
+        "evidence": [
+          "R4",
+          "R5",
+          "R8",
+          "R27"
+        ]
+      }
+    ],
+    "requiredF3Families": [
+      "PROV",
+      "CMP",
+      "RESOURCE",
+      "EX",
+      "NAV",
+      "B01-B05",
+      "AUTH",
+      "USC",
+      "CTRL",
+      "FIX",
+      "PLG",
+      "SVC",
+      "DLGEN",
+      "LEAK"
+    ],
+    "F3ActualPassClaimed": false,
+    "downloadCompleteAndActualArtifactHashVerified": false,
+    "evidenceFileHashesAreProductArtifactHashes": false,
+    "builtinBaselineCanReplaceFullFramework": false,
+    "compatibilityFreeze": "design evidence only; no functional compatibility certified",
+    "historicalSourceObservation": {
+      "generation": "continuation-current-02",
+      "same": 153,
+      "drift": 7,
+      "extraConsumers": 4,
+      "extraIncludedInDrift": false,
+      "same153Reaudited": false,
+      "newBoundedGeneration": "handoff-freshness-2026-10-02-01",
+      "selectedSourcesRehashed": 11,
+      "newDrift": 6
+    },
+    "cleanup": {
+      "browser": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/browser-cleanup.json",
+      "allNativeReviewHelpersClosed": true
+    },
+    "sideEffects": {
+      "productCodeChanged": false,
+      "dependenciesAdded": false,
+      "buildRun": false,
+      "oldAuditModified": false,
+      "oldGoalResumed": false,
+      "old2BResumed": false,
+      "oldTasksMessaged": false,
+      "scrapingOptimizationAcceptanceStarted": false,
+      "published": false
+    },
+    "nativeGoalStatusReference": "Native Goal status is authoritative; this handoff records the explicitly authorized pause disposition.",
+    "instructionRevision": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/instructions/revision-4.json",
+      "sha256": "a4fca3a6464d8ab13a13a55cbd628e91e2a8ebf69ac169898e1a2d133ddc06ee",
+      "revision": 4,
+      "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+      "promptSha256": "6ca6d01c3210721f2b2ed76fa8699491bfe9f031dda6d33d23d2e027ecfb6b56",
+      "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+      "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+    },
+    "pauseRationaleCorrection": "Old PARTIAL_PROOF evidence remains valid and F1 gate closed. Untested work is pending work; it does not itself prove a missing prerequisite or backend failure. Per-loader failures do not establish backend-wide impossibility."
+  },
+  "public-owner.json": {
+    "goal": "OpenDesk Browser 通用框架迁移 Goal",
+    "threadId": "01a0fd25-57a0-7e13-8da0-1fe3ee2986c1",
+    "scope": "sole-public-foundation-owner",
+    "createdAt": "2026-10-02T14:00:27.972979+00:00",
+    "authorization": "Explicit current user /goal continuation; prior owner verified idle and paused-reserved; no prior task resumed or messaged",
+    "observations": {
+      "otherPluginTask": "执行 OpenDesk 采集插件迁移",
+      "lastObservedActivity": "readonly F3 prerequisite check; no public-code writer observed",
+      "otherTaskMessaged": false,
+      "lsofTargetCwdCount": 0,
+      "oldScopeCheckpointStopped": true
+    },
+    "status": "paused-user-interruption",
+    "globalModelConfigurationModified": false,
+    "pausedAt": "2026-10-02T15:24:30.287149+00:00",
+    "writeOwnershipRetained": true,
+    "productImplementationActive": false,
+    "alternativeBackendAuthorized": false,
+    "previousOwner": {
+      "goal": "OpenDesk Browser 通用框架迁移 Goal",
+      "threadId": "01a0fcd7-ddff-7b41-be5c-b42b425b31af",
+      "scope": "sole-public-foundation-owner",
+      "createdAt": "2026-10-02T14:00:27.972979+00:00",
+      "authorization": "current user request; no other public writer observed",
+      "observations": {
+        "otherPluginTask": "执行 OpenDesk 采集插件迁移",
+        "lastObservedActivity": "readonly F3 prerequisite check; no public-code writer observed",
+        "otherTaskMessaged": false,
+        "lsofTargetCwdCount": 0,
+        "oldScopeCheckpointStopped": true
+      },
+      "status": "paused-reserved",
+      "globalModelConfigurationModified": false,
+      "pausedAt": "2026-10-02T14:15:53.141844+00:00",
+      "writeOwnershipRetained": true,
+      "productImplementationActive": false,
+      "alternativeBackendAuthorized": false
+    },
+    "resumedAt": "2026-10-02T15:07:15.860823+00:00",
+    "pauseBasis": "Actual native Goal paused after user interruption; prompt clarification only"
+  }
+}

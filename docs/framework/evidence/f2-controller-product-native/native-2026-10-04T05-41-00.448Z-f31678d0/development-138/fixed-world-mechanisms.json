@@ -1,0 +1,29 @@
+{
+  "sdkHello": {
+    "sdkVersion": "1.0.0",
+    "ready": true,
+    "methods": [
+      "APPLOCAL_GETITEM",
+      "APPLOCAL_SETITEM",
+      "APPLOCAL_REMOVEITEM"
+    ]
+  },
+  "isolated": [
+    {
+      "documentId": "91635EB01680BF50203B2FCEAA5E0888",
+      "frameId": 0,
+      "result": {
+        "origin": "http://127.0.0.1:57005",
+        "relay": true,
+        "sdk": false
+      }
+    }
+  ],
+  "main": {
+    "sdk": true,
+    "relay": false,
+    "origin": "http://127.0.0.1:57005"
+  },
+  "controllerAlreadyRetired": true,
+  "packageHash": "bbbb168152de7684ae125fe554460d3f3b9575eb0c72ec4c614740733814a6fe"
+}

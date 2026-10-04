@@ -1,0 +1,90 @@
+{
+  "stage": "02A",
+  "browserKind": "ordinary Chrome",
+  "version": "Google Chrome 154.0.8037.93",
+  "browserBinaryHash": "b4a14b08946ab78756169696fd272d6c3040a22df52da4f83f665225685f4c10",
+  "executablePath": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "packageHash": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+  "buildMode": "production",
+  "checks": [
+    {
+      "id": "ordinary-load-production",
+      "status": "passed",
+      "evidence": {
+        "id": "efhcmggbgamacpfhhmooelgdkepdcghh"
+      }
+    },
+    {
+      "id": "singleton-concurrent-open",
+      "status": "passed",
+      "count": 1,
+      "windowId": 661393507
+    },
+    {
+      "id": "classic-authenticated-document-health",
+      "status": "passed",
+      "evidence": {
+        "ok": true,
+        "data": {
+          "target": {
+            "tabId": 661393506,
+            "frameId": 0,
+            "documentId": "76D59663EFAD797880ED6E8CF65B43B7",
+            "agentInstanceId": "3c6ebbec-d275-42a3-90ba-be804c5c7e8a",
+            "origin": "http://127.0.0.1:18769",
+            "authorizationMode": "activeTab"
+          },
+          "readyState": "complete",
+          "scope": "environment-health-only",
+          "selectionImplemented": false
+        }
+      }
+    },
+    {
+      "id": "repeated-classic-init-stable-instance",
+      "status": "passed"
+    },
+    {
+      "id": "reloaded-document-refused",
+      "status": "passed",
+      "evidence": {
+        "ok": false,
+        "error": {
+          "code": "E_TARGET",
+          "message": "目标登记已失效，请重新绑定健康探针"
+        }
+      }
+    },
+    {
+      "id": "closed-tab-refused",
+      "status": "passed",
+      "evidence": {
+        "ok": false,
+        "error": {
+          "code": "E_TARGET",
+          "message": "目标标签页已关闭"
+        }
+      }
+    },
+    {
+      "id": "restricted-page-refused",
+      "status": "passed",
+      "evidence": {
+        "ok": false,
+        "error": {
+          "code": "E_TARGET",
+          "message": "请从 HTTP(S) 原页面点击扩展入口"
+        }
+      }
+    },
+    {
+      "id": "observed-tool-page-errors",
+      "status": "passed",
+      "errors": []
+    }
+  ],
+  "productionImplemented": false,
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "status": "passed",
+  "generatedAt": "2026-10-02T06:47:42.231Z"
+}

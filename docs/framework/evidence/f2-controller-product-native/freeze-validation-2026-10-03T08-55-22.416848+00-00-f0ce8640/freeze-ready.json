@@ -1,0 +1,69 @@
+{
+  "at": "2026-10-03T08:55:22.829629+00:00",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+  "sourceHash": "1e11e9f512bdd2e53d6e6b0b48a868648edeff16fc7b6ba882f076757b9fbdbe",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "readyPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T08-55-22.609Z-c9aa2cc9/ready.json",
+  "validation": [
+    {
+      "at": "2026-10-03T08:55:22.493599+00:00",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 34793,
+      "args": [
+        "node",
+        "--check",
+        "tests/framework/k5-controller-product-native.mjs"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+      "nativeExecuted": false
+    },
+    {
+      "at": "2026-10-03T08:55:22.829089+00:00",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 34794,
+      "args": [
+        "node",
+        "tests/framework/k5-controller-product-native.mjs",
+        "--contract-check",
+        "--mode=all",
+        "--chrome=all"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 8251,
+      "stderrBytes": 0,
+      "runnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+      "nativeExecuted": false
+    }
+  ],
+  "packageHashesMatchMain": true,
+  "packages": {
+    "production": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+    "development": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60"
+  },
+  "sourceDrift": false,
+  "packageDrift": {
+    "production": false,
+    "development": false
+  },
+  "cases": 23,
+  "nativeExecuted": false,
+  "stage": "F2",
+  "f3Accepted": false,
+  "original603Closed": false,
+  "sourceObservations": [
+    {
+      "caseId": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+      "status": "NOT_TESTED",
+      "attribution": "frozen-product-source-contract-risk",
+      "source": "src/platform/host/controller-methods.js",
+      "observed": "Durable preparing run admission precedes script pin; pin E_TOMBSTONE is settled/retired while the run row is retained",
+      "expected": "Original case requires E_TOMBSTONE and no new controller-run row; expectation is preserved",
+      "nativeVerificationRequired": true
+    }
+  ],
+  "receiptPendingExclusiveWindow": true
+}

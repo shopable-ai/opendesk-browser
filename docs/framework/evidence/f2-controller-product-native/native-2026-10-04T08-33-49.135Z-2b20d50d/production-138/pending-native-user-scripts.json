@@ -1,0 +1,17 @@
+{
+  "state": "native-user-scripts-assist",
+  "mode": "production",
+  "label": "138",
+  "pid": 52696,
+  "launcherPid": 52682,
+  "endpoint": "ws://127.0.0.1:57550/devtools/browser/35ad74c0-fc1b-4df4-8705-263fc156ae90",
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "settingsId": "3E52CE7713B7F53EFFDC080131084B2D",
+  "initialWorkerId": "8B6A2C89BD4CBB3B2790DD650BC41376",
+  "scriptAvailability": {
+    "available": false,
+    "reason": "undefined API"
+  },
+  "instruction": "Enable Developer mode for the owned test profile and Allow User Scripts for this exact test extension, then use its native Reload control so extension contexts refresh. No flags, manifest edits or private APIs.",
+  "ackPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-04T08-33-49.135Z-2b20d50d/production-138/native-user-scripts-ui-ack.json"
+}

@@ -1,0 +1,30 @@
+✔ SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs (115.73825ms)
+✔ SDK recovery reconciles atomic storage durable result before broker receipt and never replays it (29.109417ms)
+✔ SDK restart at dispatched cut pauses its run with original unknown effect and no replacement (68.550458ms)
+✔ B05 broker unknown error retains the original admission reference without replay or new writes (115.16775ms)
+✔ SDK Hello needs native document/grant and never claims a controller slot (2.474167ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (46.008041ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (11.437333ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (31.586ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (23.859875ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (9.495708ms)
+✔ durable session duplicate after authority restart does not resubmit native set (6.119709ms)
+✔ native session failure records unknown dispatch and will not retry same write (2.32725ms)
+✔ SW recovery fences dispatched write gap and retains original identity/deadline (5.332917ms)
+✔ durable duplicate cannot extend original 15s service deadline (8.057125ms)
+✔ native permission remove then regrant cannot revive old request/grant (9.774458ms)
+✔ observed navigation invalidates current page Hello and pending admission (2.479542ms)
+✔ notification permission removal with empty origins revokes the affected grant (0.539ms)
+✔ notification native receipt and durable undefined survive delivery revocation (1.312625ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (269.986667ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (71.874334ms)
+✔ legacy log uses shared dispatched journal before one safe sink; duplicate gets own-undefined receipt (5.546667ms)
+✔ legacy log unknown sink outcome is retained across recovery and is never submitted again (2.418792ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1496.313917

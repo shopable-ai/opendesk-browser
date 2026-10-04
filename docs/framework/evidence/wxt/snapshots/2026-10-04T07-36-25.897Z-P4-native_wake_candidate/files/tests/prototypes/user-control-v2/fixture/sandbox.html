@@ -1,0 +1,134 @@
+<!doctype html><meta charset="utf-8"><title>Opaque F1 sandbox</title>
+<script>
+(() => {
+  'use strict';
+  let host, current;
+  const retiredURLs = [], liveURLs = new Set(), probes = new Set();
+  let trustedSource;
+  const extensionOrigin = 'chrome-extension://' + location.host;
+  let parentAccess = false;
+  try { void parent.document; parentAccess = true; } catch {}
+  parent.postMessage({kind: 'sandbox-ready', origin: self.origin,
+    extensionAPI: !!globalThis.chrome?.runtime?.id, parentAccess}, '*');
+  function bind(event) {
+    if (host || event.source !== parent || event.origin !== extensionOrigin ||
+        event.data?.kind !== 'bind-host' || event.ports.length !== 1) return;
+    window.removeEventListener('message', bind);
+    host = event.ports[0];
+    async function cleanup(reason) {
+      if (!current) return;
+      const owner = current, {worker, channel, url, runId} = owner;
+      current = undefined;
+      worker.onmessage = null; worker.onerror = null; channel.port1.onmessage = null;
+      const terminateCalledAt = Date.now(); worker.terminate(); const terminateReturnedAt = Date.now();
+      channel.port1.close(); channel.port2.close(); URL.revokeObjectURL(url);
+      liveURLs.delete(url); retiredURLs.push(url);
+      const revokedMonoMs = performance.now();
+      let resourceObservation;
+      if (owner.observeResource) {
+        const negative = await loadURL(url);
+        resourceObservation = {runId, url, name: 'OpenDesk-F1-' + runId, creatingOrigin: self.origin,
+          positive: owner.resourcePositive, revokedMonoMs, negative,
+          actual: {worker: current ? 1 : 0, perRunPorts: current ? 2 : 0, blobURLs: liveURLs.size, probeWorkers: probes.size}};
+      }
+      host.postMessage({kind: 'retired', runId, reason, revokedURL: url, terminateCalledAt, terminateReturnedAt, retiredAt: Date.now(), resourceObservation});
+    }
+    async function loadURL(url) {
+      return new Promise(resolve => {
+        let worker, timer;
+        const startedMonoMs = performance.now();
+        const done = result => { clearTimeout(timer); if (worker) { worker.onmessage = null; worker.onerror = null; worker.terminate(); probes.delete(worker); } resolve({url, creatingOrigin: self.origin, startedMonoMs, finishedMonoMs: performance.now(), ...result}); };
+        try {
+          worker = new Worker(url, {name: 'OpenDesk-F1-resource-observation'}); probes.add(worker);
+          timer = setTimeout(() => done({loaded: false, timedOut: true}), 2000);
+          worker.onmessage = event => done({loaded: event.data?.kind === 'worker-ready', message: event.data});
+          worker.onerror = event => { event.preventDefault(); done({loaded: false, error: event.message || 'Worker loader rejected URL'}); };
+        } catch (error) { done({loaded: false, error: error.message}); }
+      });
+    }
+    host.onmessage = async ({data}) => {
+      if (data.kind === 'stop') { if (current?.runId === data.runId) cleanup(data.reason); return; }
+      if (data.kind === 'resource-before-retire') {
+        const owner = current;
+        if (!owner || owner.runId !== data.runId || !owner.observeResource) { host.postMessage({kind: 'resource-observation', requestId: data.requestId, error: 'No observed owner'}); return; }
+        const positive = await loadURL(owner.url);
+        if (current !== owner) { host.postMessage({kind: 'resource-observation', requestId: data.requestId, error: 'Owner retired during positive observation'}); return; }
+        owner.resourcePositive = positive;
+        host.postMessage({kind: 'resource-observation', requestId: data.requestId, runId: owner.runId, url: owner.url, positive});
+        return;
+      }
+      if (data.kind === 'resource-probe') {
+        if (current) { host.postMessage({kind: 'resource-observation', requestId: data.requestId, error: 'Run still active'}); return; }
+        const positiveURL = URL.createObjectURL(new Blob([trustedSource], {type: 'text/javascript'})); liveURLs.add(positiveURL);
+        const positive = await loadURL(positiveURL);
+        URL.revokeObjectURL(positiveURL); liveURLs.delete(positiveURL);
+        const negative = [];
+        for (const url of retiredURLs) negative.push(await loadURL(url));
+        negative.push(await loadURL(positiveURL));
+        host.postMessage({kind: 'resource-observation', requestId: data.requestId, positive, negative,
+          actual: {worker: current ? 1 : 0, perRunPorts: current ? 2 : 0, blobURLs: liveURLs.size, probeWorkers: probes.size}});
+        return;
+      }
+      if (data.kind === 'release') { if (current?.runId === data.runId) current.execute(); return; }
+      if (data.kind === 'reply') {
+        if (current?.runId === data.runId) current.channel.port1.postMessage(data);
+        return;
+      }
+      if (data.kind === 'fake-global') {
+        current?.worker.postMessage({kind: 'bind', runId: 'forged'});
+        return;
+      }
+      if (data.kind === 'replay') {
+        if (current?.lastOperation) host.postMessage(current.lastOperation);
+        return;
+      }
+      if (data.kind === 'wrong-run') {
+        if (current?.lastOperation) host.postMessage({...current.lastOperation, runId: 'forged-run', epoch: 'forged-epoch'});
+        return;
+      }
+      if (data.kind !== 'start' || current) return;
+      trustedSource = data.source;
+      const url = URL.createObjectURL(new Blob([data.source], {type: 'text/javascript'}));
+      liveURLs.add(url);
+      const worker = new Worker(url, {name: 'OpenDesk-F1-' + data.runId});
+      const channel = new MessageChannel();
+      current = {worker, channel, url, runId: data.runId, observeResource: data.observeResource};
+      const owner = current;
+      owner.execute = () => channel.port1.postMessage({kind: 'execute', runId: data.runId, body: data.body, params: data.params});
+      host.postMessage({kind: 'worker-created', runId: data.runId, url, name: 'OpenDesk-F1-' + data.runId});
+      worker.onerror = event => {
+        if (current !== owner) return;
+        event.preventDefault();
+        host.postMessage({kind: 'error', runId: data.runId,
+          error: {name: 'WorkerError', message: event.message || 'Worker error'}});
+        cleanup('worker-error');
+      };
+      worker.onmessage = event => {
+        if (current !== owner) return;
+        if (event.data?.kind !== 'worker-ready') {
+          host.postMessage({kind: 'rejected-global', runId: data.runId, received: event.data});
+          return;
+        }
+        // Ready is only allowed once, before untrusted execution starts.
+        worker.onmessage = event => host.postMessage({kind: 'rejected-global', runId: data.runId, received: event.data});
+        channel.port1.onmessage = ({data: message}) => {
+          if (current !== owner || message.runId !== data.runId) return;
+          if (message.kind === 'bound') {
+            if (message.identity?.url !== url || message.identity?.name !== 'OpenDesk-F1-' + data.runId || message.identity?.origin !== 'null') { cleanup('identity-mismatch'); return; }
+            host.postMessage({kind: 'worker-bound', runId: data.runId, url, held: data.held, identity: message.identity});
+            if (!data.held) owner.execute();
+          } else {
+            if (message.kind === 'operation') current.lastOperation = message;
+            host.postMessage(message);
+          }
+        };
+        channel.port1.start();
+        worker.postMessage({kind: 'bind', runId: data.runId}, [channel.port2]);
+      };
+    };
+    host.start();
+    host.postMessage({kind: 'host-bound'});
+  }
+  window.addEventListener('message', bind);
+})();
+</script>

@@ -1,0 +1,531 @@
+{
+  "schemaVersion": 3,
+  "reviewId": "independent-sdk-rereview-v3",
+  "role": "read-only bounded SDK/function reviewer",
+  "verdict": "COMMENT",
+  "scope": {
+    "primary": "SDK-REREVIEW-V2-01 Hello incarnation correlation fix",
+    "affectedDependency": "SDK foundation value codec factory, typed wire, same-ID admission and recovery",
+    "userAddedStartupFollowup": "Bounded read of broker.js and scraping/background.js assembly after T13 consumer extraction",
+    "excluded": [
+      "Whole repository review",
+      "Controller/UI/download behavior review",
+      "Full package size/build qualification",
+      "Native browser launch",
+      "B05 acceptance",
+      "F3 acceptance",
+      "New plan/approval gate"
+    ],
+    "permittedWrites": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/independent-sdk-rereview-v3.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/review-independent-sdk-rereview-v3-raw.log"
+    ],
+    "productEdits": false,
+    "gitCommands": false,
+    "dependencyChanges": false,
+    "globalLedgerOrGateEdits": false,
+    "orchestration": false
+  },
+  "runtime": {
+    "requestedModel": "gpt-6.1-sol",
+    "requestedReasoningEffort": "xhigh",
+    "resolvedModel": null,
+    "resolvedReasoningEffort": null,
+    "disclosure": "Actual resolved runtime model/effort is unavailable; requested settings are not proof of resolution.",
+    "nativeSubagentsUsed": false
+  },
+  "findingReview": {
+    "id": "SDK-REREVIEW-V2-01",
+    "previousPriority": "P2",
+    "status": "fixed_on_observed_Hello_sources",
+    "strongestOriginalCounterexample": "Old native Hello success after the old MAIN timeout supplied the old grant subset to a fresh Hello that the actual broker denied.",
+    "independentlyObservedNow": [
+      "Old MAIN times out; reinjection dispatches Hello2; Hello1 succeeds with APPLOCAL_GETITEM; fresh ready remains pending until Hello2 rejects E_GRANT_REVOKED, then rejects with that exact error.",
+      "Old MAIN times out; reinjection dispatches Hello2; old relay timeout is ignored by fresh transport; Hello2 success returns only APPSTORAGE_CLEAR."
+    ],
+    "rootCauseRepair": [
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/transport.js",
+        "line": 11,
+        "evidence": "Hello waiting state is keyed by a private Symbol, separate from literal SDK request ID 'hello'."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/transport.js",
+        "line": 23,
+        "evidence": "Ready requires the current waiting entry's 32 hex helloId; stale and uncorrelated Ready cannot settle it."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/transport.js",
+        "line": 43,
+        "evidence": "Timer checks entry identity before deleting/rejecting a reused slot."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/transport.js",
+        "line": 61,
+        "evidence": "Each Hello uses 16 random bytes rendered as 32 lowercase hex characters."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+        "line": 42,
+        "evidence": "helloId is validated only on the page Hello envelope; it is not permitted in a normal request or Hello payload."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+        "line": 52,
+        "evidence": "Native message explicitly strips the page envelope correlation; each observed native Hello was exactly {protocol,type:'SDK_HELLO',payload:{sdkVersion:'1.0.0'}}."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+        "line": 17,
+        "evidence": "Relay callback/timer closes only its own dispatch entry, and Ready carries that entry's helloId."
+      }
+    ],
+    "securityBoundary": "Correlation remains page-local. No grant, authority, namespace, native sender identity or frozen SDK_HELLO payload field was added. No broker authorization bypass or native replay was demonstrated.",
+    "requiredFixesRemainingInThisFinding": [],
+    "originalRedPreserved": true
+  },
+  "newFindings": [],
+  "severityCounts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "validation": {
+    "independentOriginalCounterexamples": {
+      "cases": 2,
+      "pass": 2,
+      "exitCodes": [
+        0,
+        0
+      ],
+      "commands": {
+        "stale": "node --input-type=module <<'JS'\nimport assert from 'node:assert/strict';\nimport {installPageSdk} from './src/framework/sdk/entry.js';\nimport {createWindowTransport} from './src/framework/sdk/transport.js';\nimport {installPageRelay} from './src/agents/page-relay.js';\nimport {SDK_READY_EVENT} from './src/framework/sdk/registry.js';\nclass DetailEvent extends Event { constructor(type,{detail}) {super(type); this.detail=detail;} }\nconst window=new EventTarget(), timers=new Map(), callbacks=[], results=[]; let next=0;\nconst setTimer=(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;}, clearTimer=id=>timers.delete(id);\nconst options={window,CustomEvent:DetailEvent,setTimer,clearTimer};\nconst relay=installPageRelay({...options,api:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}});\nwindow.addEventListener(SDK_READY_EVENT,e=>results.push(JSON.parse(e.detail)));\nconst page={window,CustomEvent:DetailEvent};\nconst sdk=installPageSdk({global:page,transport:createWindowTransport(options)});\nconst first=sdk.ready().then(x=>({ready:x}),e=>({error:e.code}));\nconst turn=()=>new Promise(resolve=>setImmediate(resolve));await turn();\nconst originalTimers=[...timers.keys()]; assert.equal(callbacks.length,1);\ninstallPageSdk({global:page,transport:createWindowTransport(options)});\nlet freshOutcome='pending'; const fresh=sdk.ready().then(x=>{freshOutcome={ready:x};return freshOutcome;},e=>{freshOutcome={error:e.code};return freshOutcome;});\nawait turn(); assert.equal(callbacks.length,1);\nconst oldMainTimer=timers.get(originalTimers[0]), oldRelayTimer=timers.get(originalTimers[1]);\noldMainTimer.fn(); await turn(); assert.equal(callbacks.length,2);\ncallbacks[0].cb({ok:true,data:{sdkVersion:'1.0.0',ready:true,methods:['APPLOCAL_GETITEM']}}); await turn();\ncallbacks[1].cb({ok:false,error:{code:'E_GRANT_REVOKED',message:'new actual Hello denied'}});await turn();\nassert.deepEqual(await first,{error:'E_TIMEOUT'}); assert.equal(callbacks.length,2); for(const {m} of callbacks){assert.deepEqual(Object.keys(m).sort(),['payload','protocol','type']);assert.equal(m.type,'SDK_HELLO');assert.deepEqual(m.payload,{sdkVersion:'1.0.0'});} assert.deepEqual(await fresh,{error:'E_GRANT_REVOKED'}); console.log(JSON.stringify({case:'reinjection-old-native-Hello-success-after-MAIN-timeout-poisons-fresh-denied-Hello',sameTimeoutMs:[oldMainTimer.ms,oldRelayTimer.ms],first:await first,fresh:await fresh,nativeHelloDispatches:callbacks.length,readyEvents:results}));\nsdk.dispose();relay.removeEventListeners();\nJS",
+        "timer": "node --input-type=module <<'JS'\nimport assert from 'node:assert/strict';\nimport {installPageSdk} from './src/framework/sdk/entry.js';\nimport {createWindowTransport} from './src/framework/sdk/transport.js';\nimport {installPageRelay} from './src/agents/page-relay.js';\nimport {SDK_READY_EVENT} from './src/framework/sdk/registry.js';\nclass DetailEvent extends Event { constructor(type,{detail}) {super(type); this.detail=detail;} }\nconst window=new EventTarget(), timers=new Map(), callbacks=[], results=[]; let next=0;\nconst setTimer=(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;}, clearTimer=id=>timers.delete(id);\nconst options={window,CustomEvent:DetailEvent,setTimer,clearTimer};\nconst relay=installPageRelay({...options,api:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}});\nwindow.addEventListener(SDK_READY_EVENT,e=>results.push(JSON.parse(e.detail)));\nconst page={window,CustomEvent:DetailEvent};\nconst sdk=installPageSdk({global:page,transport:createWindowTransport(options)});\nconst first=sdk.ready().then(x=>({ready:x}),e=>({error:e.code}));\nconst turn=()=>new Promise(resolve=>setImmediate(resolve));await turn();\nconst originalTimers=[...timers.keys()]; assert.equal(callbacks.length,1);\ninstallPageSdk({global:page,transport:createWindowTransport(options)});\nlet freshOutcome='pending'; const fresh=sdk.ready().then(x=>{freshOutcome={ready:x};return freshOutcome;},e=>{freshOutcome={error:e.code};return freshOutcome;});\nawait turn(); assert.equal(callbacks.length,1);\nconst oldMainTimer=timers.get(originalTimers[0]), oldRelayTimer=timers.get(originalTimers[1]);\noldMainTimer.fn(); await turn(); assert.equal(callbacks.length,2);\noldRelayTimer.fn(); await turn();\ncallbacks[1].cb({ok:true,data:{sdkVersion:'1.0.0',ready:true,methods:['APPSTORAGE_CLEAR']}});await turn();\nassert.deepEqual(await first,{error:'E_TIMEOUT'}); assert.equal(callbacks.length,2); for(const {m} of callbacks){assert.deepEqual(Object.keys(m).sort(),['payload','protocol','type']);assert.equal(m.type,'SDK_HELLO');assert.deepEqual(m.payload,{sdkVersion:'1.0.0'});} assert.deepEqual(await fresh,{ready:{sdkVersion:'1.0.0',ready:true,methods:['APPSTORAGE_CLEAR']}}); console.log(JSON.stringify({case:'reinjection-previous-Hello-MAIN-timeout-before-relay-timeout',sameTimeoutMs:[oldMainTimer.ms,oldRelayTimer.ms],first:await first,fresh:await fresh,nativeHelloDispatches:callbacks.length,readyEvents:results}));\nsdk.dispose();relay.removeEventListeners();\nJS"
+      },
+      "behavior": "Original event order kept; outcome assertions added, original v2 logs unchanged."
+    },
+    "scopedSuite": {
+      "command": "node --test tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-broker.test.mjs tests/framework/k4-chrome-services.test.mjs tests/framework/k4-network.test.mjs",
+      "tests": 99,
+      "pass": 99,
+      "fail": 0,
+      "exitCode": 0,
+      "rawLog": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/review-independent-sdk-rereview-v3-raw.log",
+      "inMemoryBundleCoverage": {
+        "modes": [
+          "production",
+          "development"
+        ],
+        "worlds": [
+          "MAIN",
+          "ISOLATED"
+        ],
+        "raceCombinationsPerMode": 6,
+        "totalRaceCombinations": 12,
+        "emittedFiles": false,
+        "qualification": "Fixed SDK assets compiled from webpack config with cache=false and shouldEmit=false; not full package/native evidence."
+      }
+    },
+    "independentFactoryRecovery": {
+      "cases": 8,
+      "pass": 8,
+      "exitCode": 0,
+      "command": "node --input-type=module <<'JS'\nimport assert from 'node:assert/strict';\nimport {readFile} from 'node:fs/promises';\nimport {pathToFileURL} from 'node:url';\nimport {validateSdkRequest} from './src/framework/sdk/registry.js';\nimport {decodeValue} from './src/platform/page-port/codec.js';\nlet source=await readFile('tests/framework/k2-sdk-broker.test.mjs','utf8');\nsource=source.slice(0,source.indexOf('const code = expected')).replace(/from '(\\.\\.[^']+)'/g,(_,p)=>`from '${new URL(p,pathToFileURL(process.cwd()+'/tests/framework/k2-sdk-broker.test.mjs')).href}'`);\nconst {fixture}=await import('data:text/javascript;base64,'+Buffer.from(source+'\\nexport {fixture};').toString('base64'));\nconst operation=f=>f.rows('commandJournal').then(rows=>rows.filter(x=>x.tag==='sdk-operation'));\nconst snapshot=async f=>({operations:await operation(f),runs:await f.rows('runs'),results:await f.rows('results')});\nconst request=p=>validateSdkRequest({requestId:p.requestId,method:p.method,args:decodeValue(p.argsWire),deadlineAt:p.deadlineAt});\nfor(const [kind,selector] of [['same-document-frame',{tabId:2,frameId:0,reason:'navigation'}],['new-document-tab',{tabId:2,reason:'navigation'}],['origin',{origins:['https://*.example/*'],permissions:[],reason:'permission-removed'}],['notifications',{origins:[],permissions:['notifications'],reason:'permission-removed'}]]){\n const f=await fixture();const originalGrant=await f.grant();const oldSender=structuredClone(f.sender);\n const p=f.payload('APPLOCAL_SETITEM',{key:'regrant',value:0},'old-regrant-id');await f.broker.request(p,f.sender);\n const oldAdmission=await f.authority.admitSdk(request(p),f.sender);\n await f.authority.revokeSdkGrants(selector);\n if(kind==='new-document-tab'){f.navigate('new-document');f.sender.documentId='new-document';}\n const newGrant=await f.grant();assert.notEqual(newGrant.grantIncarnation,originalGrant.grantIncarnation);\n const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);\n const broker=f.makeBroker(fresh);assert.equal((await broker.hello({sdkVersion:'1.0.0'},f.sender)).ready,true);\n await assert.rejects(broker.request(p,oldSender),e=>e.code===(kind==='new-document-tab'?'E_DOCUMENT_STALE':'E_GRANT_REVOKED'));\n await assert.rejects(oldAdmission.context.authorize(),e=>['E_DOCUMENT_STALE','E_GRANT_REVOKED'].includes(e.code));\n const result=decodeValue((await broker.request(f.payload('APPLOCAL_GETITEM',{key:'regrant'},'new-regrant-id'),f.sender)).valueWire);assert.equal(result.data,0);\n assert.equal(f.nativeCalls.filter(x=>x.method==='set').length,1);\n console.log(JSON.stringify({case:'regrant-double-recover',kind,status:'PASS',oldIncarnationAndRequestFenced:true,nativeSetCount:1,result:result.data}));broker.dispose();f.broker.dispose();\n}\n{\n const f=await fixture();await f.grant();const p=f.payload('APPSTORAGE_SETITEM',{key:'atomic-cut',value:false},'atomic-cut-id');\n const a=await f.authority.admitSdk(request(p),f.sender);await f.storage.executeSdk(p.method,request(p).args,a.context);\n assert.equal((await f.rows('runs'))[0].state,'preparing');assert.equal(f.storage.writes.filter(x=>x.store==='frameworkKV').length,1);\n const result=(await f.rows('results'))[0];assert.equal(result.state,'durable');\n for(const field of ['opKey','requestDigest','opId','runId','namespace','grantIncarnation','browserSessionIncarnation'])assert.equal(result[field],a.operation[field]);\n const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);\n const broker=f.makeBroker(fresh);const run=(await f.rows('runs'))[0];assert.equal(run.state,'completed');assert.equal(run.resultId,result.resultId);\n const reply=decodeValue((await broker.request(p,f.sender)).valueWire);assert.equal(reply.PageBrigeCode,0);assert(Object.hasOwn(reply,'data'));assert.equal(reply.data,undefined);\n assert.equal(f.storage.writes.filter(x=>x.store==='frameworkKV').length,1);assert.equal((await f.rows('frameworkKV')).length,1);assert.equal(decodeValue((await f.rows('frameworkKV'))[0].valueWire),'false');\n assert.equal((await f.rows('results')).length,1);assert.equal((await operation(f))[0].deliveryState,'response_ready');assert.notEqual((await operation(f))[0].deliveryState,'delivered');\n const operationAfter=(await operation(f))[0];for(const field of ['opId','opKey','requestDigest','deadlineAt','grantIncarnation','runId','resultId'])assert.equal(operationAfter[field],a.operation[field]);\n console.log(JSON.stringify({case:'atomic-result-before-broker-receipt-double-recover',status:'PASS',frameworkKVWrites:1,resultCount:1,runState:run.state,deliveryState:operationAfter.deliveryState,originalBindings:true}));broker.dispose();f.broker.dispose();\n}\nfor(const [method,args,capability] of [['AXIOS_POST',{url:'https://fixture.example/write',data:0},'network'],['APPLOCAL_SETITEM',{key:'unknown',value:0},'storage.session'],['CREATE_NOTIFY',{title:'unknown',content:'unknown'},'notifications']]){\n let fetchCount=0;const f=await fixture({fetchImpl:async()=>{fetchCount++;throw Error('should not dispatch');}});await f.grant();const p=f.payload(method,args,'unknown-cut-id');const a=await f.authority.admitSdk(request(p),f.sender);\n await a.context.authorize({capability,phase:'pre',...(capability==='network'?{url:args.url}:{})});\n const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);\n const broker=f.makeBroker(fresh);await assert.rejects(broker.request(p,f.sender),e=>e.code==='E_EFFECT_UNKNOWN');const op=(await operation(f))[0],run=(await f.rows('runs'))[0];\n assert.equal(op.state,'effect_unknown');assert.equal(run.state,'paused_unknown');assert.equal(op.submissionCount,1);assert.equal(op.deliveryState,'denied');\n for(const field of ['opId','opKey','requestDigest','deadlineAt','grantIncarnation','runId','resultId'])assert.equal(op[field],a.operation[field]);\n assert.equal((await operation(f)).length,1);assert.equal((await f.rows('runs')).length,1);assert.equal((await f.rows('results')).length,0);assert.equal(fetchCount,0);assert.equal(f.nativeCalls.length,0);\n console.log(JSON.stringify({case:'dispatched-double-recover-no-replay',method,status:'PASS',operationState:op.state,runState:run.state,dispatchesAfterRecovery:0,originalBindings:true}));broker.dispose();f.broker.dispose();\n}\nconsole.log('INDEPENDENT_COMBINATIONS 8/8 PASS; serial transaction/Chrome callback oracle only');\nJS",
+      "evidence": [
+        "Four revoke/regrant selectors followed by double recover retain new grant epochs and fence old IDs/incarnations.",
+        "Atomic frameworkKV result before broker receipt stays one effect/result and reconciles run to completed; all identity bindings preserved.",
+        "HTTP, session write and notification at dispatched cut reconcile to effect_unknown / paused_unknown without replay.",
+        "Durable result differs from effect completion and response_ready is not delivered; the raw command counts actual frameworkKV writes, not an unmatched tag."
+      ]
+    },
+    "independentAdditionalBoundaries": {
+      "cases": 8,
+      "pass": 8,
+      "exitCode": 0,
+      "command": "node --input-type=module <<'JS'\nimport assert from 'node:assert/strict';\nimport {createWindowTransport} from './src/framework/sdk/transport.js';\nimport {installPageRelay} from './src/agents/page-relay.js';\nimport {PROTOCOL,SDK_VERSION,SDK_HELLO_EVENT,SDK_REQUEST_EVENT,SDK_READY_EVENT} from './src/framework/sdk/registry.js';\nimport {encodeValue,decodeValue,createValueCodec} from './src/platform/page-port/codec.js';\nclass DetailEvent extends Event{constructor(type,{detail}){super(type);this.detail=detail;}}\nconst turn=()=>new Promise(resolve=>setImmediate(resolve));\nfunction fixture(){\n const window=new EventTarget(),callbacks=[],timers=new Map(),readyEvents=[];let next=0;\n const options={window,CustomEvent:DetailEvent,setTimer:(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;},clearTimer:id=>timers.delete(id)};\n const relay=installPageRelay({...options,api:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}});\n const transport=createWindowTransport(options);\n window.addEventListener(SDK_READY_EVENT,e=>readyEvents.push(JSON.parse(e.detail)));\n const dispatch=(type,message)=>window.dispatchEvent(new DetailEvent(type,{detail:JSON.stringify(message)}));\n const cleanup=()=>{transport.dispose();relay.removeEventListeners();assert.equal(timers.size,0);};\n return {window,callbacks,timers,readyEvents,relay,transport,dispatch,cleanup};\n}\nconst helloOk=()=>({ok:true,data:{sdkVersion:SDK_VERSION,ready:true,methods:['APPLOCAL_GETITEM']}});\nconst resultOk=value=>({ok:true,data:{valueWire:encodeValue({PageBrigeCode:0,data:value})}});\nconst request=()=>({requestId:'hello',method:'APPLOCAL_GETITEM',args:{key:'typed'},deadlineAt:Date.now()+10000});\nfunction nativeHelloExact(message){assert.deepEqual(message,{protocol:PROTOCOL,type:'SDK_HELLO',payload:{sdkVersion:SDK_VERSION}});}\nfor(const order of ['result-before-ready','ready-before-result','cancel-literal-before-ready']){\n const f=fixture();let helloSettled=false,requestSettled=false;\n const hello=f.transport.hello().then(x=>{helloSettled=true;return x;},e=>{helloSettled=true;throw e;});\n const req=f.transport.request(request()).then(x=>{requestSettled=true;return x;},e=>{requestSettled=true;return {error:e.code};});\n assert.equal(f.callbacks.length,2);nativeHelloExact(f.callbacks[0].m);assert.equal(f.transport.diagnostics().pending,2);\n if(order==='ready-before-result'){f.callbacks[0].cb(helloOk());await turn();assert.equal(requestSettled,false);f.callbacks[1].cb(resultOk(false));}\n else if(order==='cancel-literal-before-ready'){f.transport.cancel('hello');assert.deepEqual(await req,{error:'E_CANCELLED'});f.callbacks[1].cb(resultOk(false));await turn();assert.equal(helloSettled,false);f.callbacks[0].cb(helloOk());}\n else {f.callbacks[1].cb(resultOk(false));await turn();assert.equal(helloSettled,false);f.callbacks[0].cb(helloOk());}\n assert.deepEqual(await hello,helloOk().data);\n if(order!=='cancel-literal-before-ready')assert.deepEqual(await req,{requestId:'hello',result:{PageBrigeCode:0,data:false}});\n f.cleanup();console.log(JSON.stringify({case:'simultaneous-literal-hello',order,status:'PASS'}));\n}\n{\n const f=fixture();const first=f.transport.request(request());const oldTimer=[...f.timers.values()][0];\n f.callbacks[0].cb(resultOk(false));await first;\n const second=f.transport.request(request());let settled=false;second.then(()=>settled=true,()=>settled=true);\n oldTimer.fn();await turn();assert.equal(settled,false);assert.equal(f.transport.diagnostics().pending,1);\n f.callbacks[1].cb(resultOk(0));assert.deepEqual(await second,{requestId:'hello',result:{PageBrigeCode:0,data:0}});\n f.cleanup();console.log(JSON.stringify({case:'old-cleared-transport-timer-cannot-consume-reused-literal-id',status:'PASS'}));\n}\n{\n const f=fixture();f.dispatch(SDK_HELLO_EVENT,{protocol:PROTOCOL,type:'SDK_HELLO',payload:{sdkVersion:SDK_VERSION}});\n const current=f.transport.hello();let settled=false;current.then(()=>settled=true,()=>settled=true);\n f.callbacks.forEach(({m})=>nativeHelloExact(m));f.callbacks[0].cb(helloOk());await turn();assert.equal(settled,false);\n assert.equal(Object.hasOwn(f.readyEvents[0],'helloId'),false);\n f.callbacks[1].cb(helloOk());assert.deepEqual(await current,helloOk().data);f.cleanup();\n console.log(JSON.stringify({case:'native-uncorrelated-legacy-hello-cannot-consume-current-correlated-ready',status:'PASS'}));\n}\n{\n const f=fixture();const id='a'.repeat(32);\n const invalid=[\n [SDK_HELLO_EVENT,{protocol:PROTOCOL,type:'SDK_HELLO',helloId:'bad',payload:{sdkVersion:SDK_VERSION}}],\n [SDK_HELLO_EVENT,{protocol:PROTOCOL,type:'SDK_HELLO',helloId:id,payload:{sdkVersion:SDK_VERSION,helloId:id}}],\n [SDK_REQUEST_EVENT,{protocol:PROTOCOL,type:'SDK_REQUEST',helloId:id,payload:{requestId:'hello',method:'APPLOCAL_GETITEM',argsWire:encodeValue({key:'x'}),deadlineAt:Date.now()+10000}}]\n ];\n for(const [type,message] of invalid)f.dispatch(type,message);\n await turn();assert.equal(f.callbacks.length,0);assert.equal(f.relay.diagnostics().pending,0);\n f.cleanup();console.log(JSON.stringify({case:'correlation-id-is-page-hello-envelope-only-malformed-and-native-payload-claims-refused',status:'PASS',nativeDispatches:0}));\n}\n{\n const expected={type:'object',value:[\n ['a',{type:'undefined'}],['b',{type:'boolean',value:false}],['c',{type:'number',value:0}],\n ['d',{type:'number',value:0,negativeZero:true}],['e',{type:'null'}],['f',{type:'string',value:'中文🙂'}]]};\n const value={f:'中文🙂',e:null,d:-0,c:0,b:false,a:undefined};\n const factory=createValueCodec({profile:'foundation'});\n assert.deepEqual(encodeValue(value),expected);assert.deepEqual(factory.encodeValue(value),expected);\n const actual=decodeValue(JSON.parse(JSON.stringify(expected)));assert.deepEqual(actual,value);assert(Object.hasOwn(actual,'a'));assert(Object.is(actual.d,-0));\n assert.equal(JSON.stringify(encodeValue({key:'x',value:{b:0,a:false}})),JSON.stringify(encodeValue({value:{a:false,b:0},key:'x'})));\n console.log(JSON.stringify({case:'foundation-sdk-wire-exact-type-value-golden-and-canonical-digest-order',status:'PASS'}));\n}\n{\n const nested=depth=>{let x=0;for(let i=0;i<depth;i++)x={x};return x;};\n assert.deepEqual(decodeValue(encodeValue(nested(12))),nested(12));\n assert.deepEqual(decodeValue(encodeValue({key:'typed',value:nested(11)})),{key:'typed',value:nested(11)});\n assert.deepEqual(decodeValue(encodeValue({PageBrigeCode:0,data:nested(11)})),{PageBrigeCode:0,data:nested(11)});\n for(const value of [nested(13),{key:'typed',value:nested(12)},{PageBrigeCode:0,data:nested(12)}])\n assert.throws(()=>encodeValue(value),e=>e.code==='E_VALUE_SERIALIZATION'&&e.stage==='encode');\n const deepWire=depth=>{let x={type:'number',value:0};for(let i=0;i<depth;i++)x={type:'object',value:[['x',x]]};return x;};\n assert.throws(()=>decodeValue(deepWire(13)),e=>e.code==='E_VALUE_SERIALIZATION'&&e.stage==='decode');\n let getters=0;const wire={type:'number'};Object.defineProperty(wire,'value',{enumerable:true,get(){getters++;return 0;}});\n assert.throws(()=>decodeValue(wire),e=>e.code==='E_VALUE_SERIALIZATION'&&e.stage==='decode');assert.equal(getters,0);\n assert.throws(()=>decodeValue({type:'object',value:[['x',{type:'null'}],['x',{type:'null'}]]}),e=>e.code==='E_VALUE_SERIALIZATION');\n assert.throws(()=>encodeValue('\\ud800'),e=>e.code==='E_VALUE_SERIALIZATION');\n assert.throws(()=>encodeValue('汉',{maxBytes:1}),e=>e.code==='E_VALUE_SERIALIZATION');\n console.log(JSON.stringify({case:'foundation-sdk-wrapper-depth12-refusals-accessors-unicode-byte-boundary',status:'PASS'}));\n}\nconsole.log('INDEPENDENT_V3_BOUNDARIES 8/8 PASS; controlled window/Chrome callback oracle only');\nJS",
+      "evidence": [
+        "Simultaneous literal request ID hello and Hello: result first, Ready first, and cancel only the string ID.",
+        "Previously cleared transport timer cannot consume a reused string request ID.",
+        "Uncorrelated legacy native Hello Ready cannot consume current correlated Hello.",
+        "Malformed envelope ID, ID in frozen Hello payload, and ID on SDK_REQUEST produce zero native dispatch.",
+        "Exact foundation type/value spelling, own undefined/false/0/-0/null/unicode, canonical key order retained.",
+        "Foundation depth 12 including SDK args/result wrappers, over-depth rejection, accessor refusal without invoking getters, duplicate keys, Unicode and byte budget refusal."
+      ]
+    },
+    "postStartupDriftSdkSubset": {
+      "command": "node --test tests/framework/k2-sdk-broker.test.mjs",
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "exitCode": 0,
+      "qualification": "These tests exercise sdk-broker/authority/storage components directly. They do not instantiate createFoundationBroker or prove the new native startup assembly."
+    },
+    "syntax": {
+      "commands": [
+        "node --check src/framework/sdk/transport.js",
+        "node --check src/framework/sdk/entry.js",
+        "node --check src/agents/page-relay.js",
+        "node --check src/platform/page-port/codec.js",
+        "node --check tests/framework/k4-sdk-hello-races.test.mjs",
+        "node --check src/platform/host/broker.js",
+        "node --check src/features/scraping/background.js"
+      ],
+      "exitCodes": [
+        0,
+        0
+      ],
+      "qualification": "Syntax only, not LSP/type approval."
+    },
+    "suppliedMainLog": {
+      "path": "/tmp/opendesk-hello-incarnation-fixed.tap",
+      "sha256": "b13ef53a9cc0ec7ce2216e28e75a79ef204bd1d0a3421bf01c22c080dfabbf9c",
+      "independentlyRerun": true
+    },
+    "diagnostics": {
+      "lspAvailable": false,
+      "astGrepAvailable": false,
+      "approvalIssued": false
+    },
+    "rawLogSha256": "cae1d8539b8f60bf0049b555fdff77b3cf4ac3524ffbbed2ba5ce5191833ff27"
+  },
+  "boundedStartupAssemblyRead": {
+    "beforeAt": "2026-10-03T08:51:55.361598+00:00",
+    "afterAt": "2026-10-03T08:57:27.874985+00:00",
+    "beforeHashes": {
+      "src/platform/host/broker.js": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb",
+      "src/features/scraping/background.js": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+      "src/sw.js": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+      "src/platform/host/sdk-broker.js": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+      "src/platform/page-port/codec.js": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+      "src/framework/sdk/transport.js": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+      "src/agents/page-relay.js": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+      "src/framework/sdk/entry.js": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb"
+    },
+    "scope": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+      "/Users/shopme/Documents/workspace/opendesk-browser/src/features/scraping/background.js"
+    ],
+    "observed": [
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "line": 19,
+        "evidence": "Factory-only optional templateConsumer descriptor; no public message route registers it."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "line": 28,
+        "evidence": "Absent consumer leaves entitlement undefined and does not construct the paid service or call template plan validation."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "line": 37,
+        "evidence": "One storage and authority are used by the SDK, controller routes and downloads; consumer attach receives those exact references at line 44."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "line": 97,
+        "evidence": "SDK Hello/request delegate to the same SDK broker before legacy canonical JSON/template handling."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "line": 100,
+        "evidence": "Recognized legacy native-content events default to E_MODULE_NOT_INSTALLED without a consumer; packaged tool template operations do the same at line 104."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "line": 128,
+        "evidence": "Document loss calls the registered consumer's host invalidation and retirement reconciliation hooks; absent consumer adds no target/page-port work."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/features/scraping/background.js",
+        "line": 8,
+        "evidence": "Explicit consumer creation requires a bound subject. Licensing, target and legacy page-port imports live in this optional descriptor."
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/features/scraping/background.js",
+        "line": 12,
+        "evidence": "Consumer uses the injected storage, authority and downloads; it constructs no second broker/store/authority and exposes legacy routes only when attached."
+      }
+    ],
+    "result": "No new concrete P0/P1/P2 counterexample found in the bounded assembly read.",
+    "constraints": "Static factory-boundary inspection plus syntax only. Normal SW native startup, existing durable legacy rows, cross-slice lifecycle execution and final package budgets were not dynamically verified here.",
+    "startupRequiresPaidConsumer": false,
+    "plainSdkRequiresTemplateRevision": false,
+    "nativeStartupPassed": false,
+    "parentBuildReports": {
+      "independentlyVerified": false,
+      "firstStableBuildReported": "FAILED production 297 KiB / development 581 KiB",
+      "laterDiagnosticReportedBytes": {
+        "production": 251803,
+        "development": 512267
+      },
+      "finalRebuild": "Parent stable receipt now received; production/development package hashes and recorded checks aligned. Full native startup and package qualification remain outside this sidecar."
+    }
+  },
+  "sourceObservation": {
+    "initialAt": "2026-10-03T08:42:52.645458+00:00",
+    "afterAt": "2026-10-03T08:57:27.874985+00:00",
+    "beforeHashes": {
+      "/tmp/opendesk-hello-incarnation-fixed.tap": "b13ef53a9cc0ec7ce2216e28e75a79ef204bd1d0a3421bf01c22c080dfabbf9c",
+      "docs/framework/evidence/f2-shared-integration/independent-sdk-rereview-v2.json": "ac712cc8d56c12ab8947c0fa6bc4bcca2d5b2ea80d1b3df2809eb3705334a662",
+      "docs/framework/evidence/f2-shared-integration/independent-sdk-review.json": "c9f6d2329dc059173edfa64e5a942bd17dcef9fa67fa62ffba9b5096f51adfca",
+      "docs/framework/evidence/f2-shared-integration/review-independent-sdk-rereview-v2-raw.log": "c7493c1e251a7ebe0b6e2759be065c4c21f2c62de1972656fd6d457306c56ebd",
+      "docs/framework/evidence/k4/router-contract.json": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+      "src/agents/page-relay.js": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+      "src/framework/sdk/entry.js": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb",
+      "src/framework/sdk/registry.js": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+      "src/framework/sdk/transport.js": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+      "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+      "src/platform/host/broker.js": "5d27f3f2cfadfb007a618dfa02ef0fc3ca4b068d7c6774c545c96eab7bf7bcb6",
+      "src/platform/host/sdk-broker.js": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+      "src/platform/host/sdk-methods.js": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+      "src/platform/page-port/codec.js": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+      "src/platform/protocol.js": "3e54a49f76eefef607b3d431ac2fcf1ef205e16e108ec29cb6eab2912b70b5a5",
+      "src/platform/storage/index.js": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+      "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+      "src/platform/storage/session.js": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+      "src/sw.js": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+      "tests/framework/k2-sdk-broker.test.mjs": "d053acce3ea43f73cebcdacd3b67a0227c0253e49257a0df80490603cd2509cd",
+      "tests/framework/k2-sdk-relay-races.test.mjs": "66870457ca64206230755b1fb57bb78514a0c6fd5cb35457cdc3ce60347bdd56",
+      "tests/framework/k4-chrome-services.test.mjs": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b",
+      "tests/framework/k4-network.test.mjs": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306",
+      "tests/framework/k4-sdk-hello-races.test.mjs": "3ef082041a5fff7aef8661dcbede3d70733af4025ed22d145852f9963cd55979",
+      "tests/framework/k4-sdk-reinjection.test.mjs": "cd251209e5d00fa659f175bfdfb4b6706954daa39ed445734c28abecf45a059b",
+      "tests/framework/k4-sdk.test.mjs": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+      "webpack.config.cjs": "7625eb9d73b3ec1ff5109fd42162d2800c32840eda9b0f32ca38922b087f47c8"
+    },
+    "afterHashes": {
+      "/tmp/opendesk-hello-incarnation-fixed.tap": "b13ef53a9cc0ec7ce2216e28e75a79ef204bd1d0a3421bf01c22c080dfabbf9c",
+      "docs/framework/evidence/f2-shared-integration/independent-sdk-rereview-v2.json": "ac712cc8d56c12ab8947c0fa6bc4bcca2d5b2ea80d1b3df2809eb3705334a662",
+      "docs/framework/evidence/f2-shared-integration/independent-sdk-review.json": "c9f6d2329dc059173edfa64e5a942bd17dcef9fa67fa62ffba9b5096f51adfca",
+      "docs/framework/evidence/f2-shared-integration/review-independent-sdk-rereview-v2-raw.log": "c7493c1e251a7ebe0b6e2759be065c4c21f2c62de1972656fd6d457306c56ebd",
+      "docs/framework/evidence/k4/router-contract.json": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+      "src/agents/page-relay.js": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+      "src/framework/sdk/entry.js": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb",
+      "src/framework/sdk/registry.js": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+      "src/framework/sdk/transport.js": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+      "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+      "src/platform/host/broker.js": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb",
+      "src/platform/host/sdk-broker.js": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+      "src/platform/host/sdk-methods.js": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+      "src/platform/page-port/codec.js": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+      "src/platform/protocol.js": "3e54a49f76eefef607b3d431ac2fcf1ef205e16e108ec29cb6eab2912b70b5a5",
+      "src/platform/storage/index.js": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+      "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+      "src/platform/storage/session.js": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+      "src/sw.js": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+      "src/features/scraping/background.js": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+      "tests/framework/k2-sdk-broker.test.mjs": "d053acce3ea43f73cebcdacd3b67a0227c0253e49257a0df80490603cd2509cd",
+      "tests/framework/k2-sdk-relay-races.test.mjs": "66870457ca64206230755b1fb57bb78514a0c6fd5cb35457cdc3ce60347bdd56",
+      "tests/framework/k4-chrome-services.test.mjs": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b",
+      "tests/framework/k4-network.test.mjs": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306",
+      "tests/framework/k4-sdk-hello-races.test.mjs": "3ef082041a5fff7aef8661dcbede3d70733af4025ed22d145852f9963cd55979",
+      "tests/framework/k4-sdk-reinjection.test.mjs": "cd251209e5d00fa659f175bfdfb4b6706954daa39ed445734c28abecf45a059b",
+      "tests/framework/k4-sdk.test.mjs": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+      "webpack.config.cjs": "7625eb9d73b3ec1ff5109fd42162d2800c32840eda9b0f32ca38922b087f47c8",
+      "docs/framework/evidence/f2-sdk-native/native-2026-10-03T07-17-21.428Z-0b89c413/production-138/report.json": "7e60adcee96e006d8656a7fef9481398101f53867ea7a056f172d156b9b71202"
+    },
+    "initialSnapshotDrift": [
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "before": "5d27f3f2cfadfb007a618dfa02ef0fc3ca4b068d7c6774c545c96eab7bf7bcb6",
+        "after": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb"
+      }
+    ],
+    "startupFollowupDrift": [],
+    "newFileFirstIncluded": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/features/scraping/background.js",
+      "at": "2026-10-03T08:51:55.361598+00:00",
+      "sha256": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+      "initialSnapshotHash": null
+    },
+    "sdkHelloAndCodecDriftObserved": false,
+    "sourceFrozen": false,
+    "explanation": "Hello/codec sources stayed unchanged within this review window. Broker changed during the review, and the new consumer was read under a separate snapshot. Fixready is not a global freeze marker.",
+    "preWriteSourceHashCheck": "All recorded after hashes match immediately before exclusive output creation."
+  },
+  "protectedEvidence": {
+    "originalReview": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/independent-sdk-review.json",
+    "v2Review": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/independent-sdk-rereview-v2.json",
+    "v2Raw": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/review-independent-sdk-rereview-v2-raw.log",
+    "nativeRed": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-03T07-17-21.428Z-0b89c413/production-138/report.json",
+      "sha256": "7e60adcee96e006d8656a7fef9481398101f53867ea7a056f172d156b9b71202",
+      "status": "Historical E_ENTITLEMENT startup red retained; not relabelled as green."
+    },
+    "routerContract": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/k4/router-contract.json",
+      "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f"
+    },
+    "protectedHashesUnchanged": true
+  },
+  "freezeFollowup": {
+    "parentFreezeMarkReceived": true,
+    "newGate": false,
+    "scope": "Only the recorded SDK/relay/foundation codec, SDK authority/storage, SW wiring, broker/consumer and webpack hashes were aligned. The other receipt files were not reviewed or independently hashed.",
+    "neededIfHashesUnchanged": "No repeat of unaffected component tests. Parent still owns same-source dual-package rebuild and actual native SDK four combinations, including default startup without paid consumer/TemplateRevision.",
+    "nativeB05Closed": false,
+    "F3Closed": false,
+    "nativeBrowserLaunched": false,
+    "stablePackageQualification": false,
+    "parentFreezeMarkOrigin": "Same-thread user: Current stable F2 production/development package hashes and stable rebuild receipt.",
+    "completedAt": "2026-10-03T09:01:51.977226+00:00",
+    "status": "completed_for_recorded_SDK_and_startup_source_hashes",
+    "freshHashRevalidationAfterParentFreeze": true,
+    "freshTestRerunAfterParentFreeze": false,
+    "testRerunDecision": "All 16 recorded product/config hashes match the stable receipt and current source; recorded tests and prior evidence also have zero drift. Existing independent 99/99 and 18/18 evidence remains applicable within its recorded scope; no affected case requires repetition.",
+    "nativeSdkFourCombinations": "Parent currently executing; results not received by this reviewer.",
+    "nativeProgressUserReported": {
+      "productionBrowserVersion": 138,
+      "loopbackPermission": "Main clicked native permission allow",
+      "sdkInstalled": true,
+      "independentlyVerified": false,
+      "qualification": "Installation progress is not completion of all four native combinations or B05."
+    }
+  },
+  "stableReceiptFollowup": {
+    "at": "2026-10-03T09:01:51.977226+00:00",
+    "previousV3ReportSha256": "e908c3605224226df056c4f6113c263c9605c3cfc908ccc63b50347d18033068",
+    "receiptPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/stable-rebuild-2026-10-03T08-50-41.030Z/stable-rebuild-receipt.json",
+    "receiptSha256": "557c4250f1888b9086134f26e81a2ea3f8cfd5b6e0abbe5b0786507b5d053263",
+    "receiptAt": "2026-10-03T08:53:24.523Z",
+    "receiptSourceFileCount": 77,
+    "independentlyComparedRecordedProductConfigFiles": 16,
+    "comparison": {
+      "src/agents/page-relay.js": {
+        "v3Reviewed": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+        "stableReceipt": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+        "current": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+        "match": true
+      },
+      "src/framework/sdk/entry.js": {
+        "v3Reviewed": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb",
+        "stableReceipt": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb",
+        "current": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb",
+        "match": true
+      },
+      "src/framework/sdk/registry.js": {
+        "v3Reviewed": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+        "stableReceipt": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+        "current": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+        "match": true
+      },
+      "src/framework/sdk/transport.js": {
+        "v3Reviewed": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+        "stableReceipt": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+        "current": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+        "match": true
+      },
+      "src/platform/host/authority.js": {
+        "v3Reviewed": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+        "stableReceipt": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+        "current": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+        "match": true
+      },
+      "src/platform/host/broker.js": {
+        "v3Reviewed": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb",
+        "stableReceipt": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb",
+        "current": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb",
+        "match": true
+      },
+      "src/platform/host/sdk-broker.js": {
+        "v3Reviewed": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+        "stableReceipt": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+        "current": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+        "match": true
+      },
+      "src/platform/host/sdk-methods.js": {
+        "v3Reviewed": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+        "stableReceipt": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+        "current": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+        "match": true
+      },
+      "src/platform/page-port/codec.js": {
+        "v3Reviewed": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+        "stableReceipt": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+        "current": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+        "match": true
+      },
+      "src/platform/protocol.js": {
+        "v3Reviewed": "3e54a49f76eefef607b3d431ac2fcf1ef205e16e108ec29cb6eab2912b70b5a5",
+        "stableReceipt": "3e54a49f76eefef607b3d431ac2fcf1ef205e16e108ec29cb6eab2912b70b5a5",
+        "current": "3e54a49f76eefef607b3d431ac2fcf1ef205e16e108ec29cb6eab2912b70b5a5",
+        "match": true
+      },
+      "src/platform/storage/index.js": {
+        "v3Reviewed": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+        "stableReceipt": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+        "current": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+        "match": true
+      },
+      "src/platform/storage/repository.js": {
+        "v3Reviewed": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+        "stableReceipt": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+        "current": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+        "match": true
+      },
+      "src/platform/storage/session.js": {
+        "v3Reviewed": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+        "stableReceipt": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+        "current": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+        "match": true
+      },
+      "src/sw.js": {
+        "v3Reviewed": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+        "stableReceipt": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+        "current": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+        "match": true
+      },
+      "src/features/scraping/background.js": {
+        "v3Reviewed": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+        "stableReceipt": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+        "current": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+        "match": true
+      },
+      "webpack.config.cjs": {
+        "v3Reviewed": "7625eb9d73b3ec1ff5109fd42162d2800c32840eda9b0f32ca38922b087f47c8",
+        "stableReceipt": "7625eb9d73b3ec1ff5109fd42162d2800c32840eda9b0f32ca38922b087f47c8",
+        "current": "7625eb9d73b3ec1ff5109fd42162d2800c32840eda9b0f32ca38922b087f47c8",
+        "match": true
+      }
+    },
+    "drift": [],
+    "otherRecordedEvidenceOrTestDrift": {},
+    "receiptChecks": {
+      "syntax": 71,
+      "tests": 392,
+      "pass": 392,
+      "fail": 0,
+      "nodeExitCode": 0
+    },
+    "checksQualification": "392/392 and the 77-file build/check/pack drift result are parent receipt evidence, not a new full-suite rerun or full repository review by this sidecar.",
+    "packages": {
+      "production": {
+        "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+        "packReceipt": {
+          "status": "passed",
+          "mode": "production",
+          "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+          "zipSha256": "4723dafa7e50b3ea87ec264f757628e214d1346120c292d93e47820c0ef47254",
+          "bytes": 134974
+        },
+        "swBytes": 252486
+      },
+      "development": {
+        "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+        "packReceipt": {
+          "status": "passed",
+          "mode": "development",
+          "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+          "zipSha256": "7c2eec9d6714edb947a8b66c182db18cf929d41fc3ed296c5eee9c6a96c01d58",
+          "bytes": 565480
+        },
+        "swBytes": 513045
+      }
+    },
+    "packageQualification": "The package hashes in the receipt match the hashes supplied by the user. Archives and overall package qualification were not independently audited.",
+    "historicalSourceWindow": "The original sourceObservation.sourceFrozen=false and broker drift are retained as historical facts; this new followup records the subsequently supplied stable marker.",
+    "originalReviewV2NativeRedAndV3RawUnchanged": true,
+    "onlyFileWritten": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/independent-sdk-rereview-v3.json"
+  }
+}

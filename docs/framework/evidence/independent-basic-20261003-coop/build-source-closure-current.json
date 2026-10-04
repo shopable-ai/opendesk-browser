@@ -1,0 +1,318 @@
+{
+  "receiptPath": "docs/framework/evidence/f2-shared-integration/stable-rebuild-2026-10-03T08-50-41.030Z/stable-rebuild-receipt.json",
+  "receiptSha256": "557c4250f1888b9086134f26e81a2ea3f8cfd5b6e0abbe5b0786507b5d053263",
+  "closureField": "sourceFiles",
+  "count": 77,
+  "mismatches": [],
+  "allMatch": true,
+  "checks": [
+    {
+      "path": "docs/contracts/licenses/todo-user-vue-MIT.txt",
+      "matches": true
+    },
+    {
+      "path": "manifest.json",
+      "matches": true
+    },
+    {
+      "path": "package-lock.json",
+      "matches": true
+    },
+    {
+      "path": "package.json",
+      "matches": true
+    },
+    {
+      "path": "scripts/build.mjs",
+      "matches": true
+    },
+    {
+      "path": "scripts/check-source.mjs",
+      "matches": true
+    },
+    {
+      "path": "scripts/pack.mjs",
+      "matches": true
+    },
+    {
+      "path": "scripts/verify-package.mjs",
+      "matches": true
+    },
+    {
+      "path": "scripts/zip-package.py",
+      "matches": true
+    },
+    {
+      "path": "src/agents/bootstrap.js",
+      "matches": true
+    },
+    {
+      "path": "src/agents/health.js",
+      "matches": true
+    },
+    {
+      "path": "src/agents/page-agent.js",
+      "matches": true
+    },
+    {
+      "path": "src/agents/page-relay.js",
+      "matches": true
+    },
+    {
+      "path": "src/agents/selection-entry.js",
+      "matches": true
+    },
+    {
+      "path": "src/environment.js",
+      "matches": true
+    },
+    {
+      "path": "src/features/scraping/background.js",
+      "matches": true
+    },
+    {
+      "path": "src/features/scraping/index.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/ChromePage.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/context.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/control/native-driver.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/events.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/bridge.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/entry.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/http.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/notifications.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/registry.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/servers.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/service.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/storage.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/transport.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/sdk/utils.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/utils/device.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/utils/network-info.js",
+      "matches": true
+    },
+    {
+      "path": "src/framework/utils/script.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/chrome/cookies.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/chrome/network.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/chrome/notifications.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/chrome/tabs.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/downloads/blob-lifecycle.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/downloads/index.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/entitlement/crypto.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/entitlement/index.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/host/client.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/host/sdk-broker.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/host/sdk-methods.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/journal.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/page-port/codec.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/page-port/index.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/page-port/source.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/schema.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/storage/idb.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/storage/index.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/storage/regression.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/storage/repository.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/storage/session.js",
+      "matches": true
+    },
+    {
+      "path": "src/platform/target/index.js",
+      "matches": true
+    },
+    {
+      "path": "src/run-host.js",
+      "matches": true
+    },
+    {
+      "path": "src/scripting/packaged/page-session.js",
+      "matches": true
+    },
+    {
+      "path": "src/scripting/packaged/registry.js",
+      "matches": true
+    },
+    {
+      "path": "src/scripting/sandbox/controller.js",
+      "matches": true
+    },
+    {
+      "path": "src/scripting/sandbox/page-proxy.js",
+      "matches": true
+    },
+    {
+      "path": "src/scripting/sandbox/sandbox.html",
+      "matches": true
+    },
+    {
+      "path": "src/scripting/sandbox/sandbox.js",
+      "matches": true
+    },
+    {
+      "path": "src/scripting/sandbox/worker-runtime.js",
+      "matches": true
+    },
+    {
+      "path": "src/scripting/user-scripts/page-evaluator.js",
+      "matches": true
+    },
+    {
+      "path": "src/sw.js",
+      "matches": true
+    },
+    {
+      "path": "src/ui/script-editor.js",
+      "matches": true
+    },
+    {
+      "path": "src/ui/target-bootstrap.html",
+      "matches": true
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "matches": true
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "matches": true
+    },
+    {
+      "path": "src/ui/tool.html",
+      "matches": true
+    },
+    {
+      "path": "webpack.config.cjs",
+      "matches": true
+    }
+  ]
+}

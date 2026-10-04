@@ -1,0 +1,112 @@
+{
+  "id": "SAVE-R1-SELECT-PARAMS",
+  "families": "USC01",
+  "expected": "Trusted UI input replacement, immutable revision SHA256, exact revision selection and parameters",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "PASS",
+  "startedAt": 1791022050240,
+  "input": {
+    "source": "return 7;",
+    "params": {
+      "test": "minimal",
+      "f": false,
+      "z": 0
+    }
+  },
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "actual": {
+    "revision": {
+      "scriptId": "native-9dcc618e-553d-4c6b-a74a-fbaa31b8cfcf",
+      "revision": 1,
+      "sourceHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+      "source": "return 7;",
+      "params": {
+        "test": "minimal",
+        "f": false,
+        "z": 0
+      }
+    },
+    "selected": {
+      "revision": "1",
+      "source": "return 7;",
+      "params": {
+        "test": "minimal",
+        "f": false,
+        "z": 0
+      },
+      "targetMode": "owned"
+    },
+    "snapshot": {
+      "databases": [
+        {
+          "name": "opendesk-browser",
+          "version": 2
+        }
+      ],
+      "rows": {
+        "artifacts": [],
+        "batches": [],
+        "commandJournal": [
+          {
+            "key": "host:743b8281-2684-44b9-89dd-7389d5d04753",
+            "value": {
+              "tag": "host",
+              "registrationId": "743b8281-2684-44b9-89dd-7389d5d04753",
+              "hostInstanceId": "ddcf2253-9f3b-4650-b391-5c59b4480c0d",
+              "hostDocumentId": "C324F6D30637C0563484BE7F9C7AEA9D",
+              "hostUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+              "hostTabId": 515618136,
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "browserSessionIncarnation": "96146a77-246d-4336-80f0-4223e9d24b3f",
+              "active": true,
+              "revoked": false,
+              "registeredAt": "2026-10-03T10:07:29.819Z"
+            }
+          }
+        ],
+        "downloadReceipts": [],
+        "entitlements": [],
+        "exportJobs": [],
+        "frameworkKV": [],
+        "pageSnapshots": [],
+        "records": [],
+        "results": [],
+        "runs": [],
+        "scriptHeads": [
+          {
+            "key": "script:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"native-9dcc618e-553d-4c6b-a74a-fbaa31b8cfcf\"]",
+            "value": {
+              "tag": "script-head",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "scriptId": "native-9dcc618e-553d-4c6b-a74a-fbaa31b8cfcf",
+              "revision": 1,
+              "contentHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+              "tombstoned": false
+            }
+          }
+        ],
+        "scriptRevisions": [
+          {
+            "key": "script:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"native-9dcc618e-553d-4c6b-a74a-fbaa31b8cfcf\",1]",
+            "value": {
+              "tag": "script-revision",
+              "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+              "scriptId": "native-9dcc618e-553d-4c6b-a74a-fbaa31b8cfcf",
+              "revision": 1,
+              "parentRevision": 0,
+              "contentHash": "722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+              "sourceUtf8": "return 7;"
+            }
+          }
+        ],
+        "templates": []
+      }
+    }
+  },
+  "elapsedMs": 298.261084
+}

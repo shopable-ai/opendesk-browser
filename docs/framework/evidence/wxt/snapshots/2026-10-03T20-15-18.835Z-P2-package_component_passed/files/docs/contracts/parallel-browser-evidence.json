@@ -1,0 +1,62 @@
+{
+  "stage": "06",
+  "handoff": {
+    "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/handoff.json",
+    "sha256": "9be0b78e8a94b3dcb052179bcd7d9769762b63a41d920cdfeeb9aee435ce81cd",
+    "bytes": 7519
+  },
+  "environmentReady": true,
+  "installedBuild": null,
+  "actualProductBuildHash": null,
+  "productSmokeStatus": "pending",
+  "browser": {
+    "revision": 1228,
+    "executablePath": "/Users/shopme/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "version": "Google Chrome for Testing 149.0.7827.55",
+    "architecture": "/Users/shopme/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing: Mach-O 64-bit executable arm64",
+    "sha256": "b1b9e2dd063115031f08eadc10ed381ca0fa05b2284baff8f721d87f5f0f61b7"
+  },
+  "reportedProbeResult": {
+    "status": "passed",
+    "checksPassed": 9,
+    "fullRunsPassed": 2
+  },
+  "evidence": [
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/environment.json",
+      "sha256": "17fd5590f8f384bf4bb64ed57fded0dab1f99a64d83bb01a868d91cc84787eea",
+      "bytes": 8048
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/environment-report.md",
+      "sha256": "8dde2c972091c32379c69c9ba4d7f39b9a697ce3a6e526274780e4d02df17137",
+      "bytes": 4078
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/smoke-report.json",
+      "sha256": "4aaa0a44604a4d3e97568ea5a816bb4be1f497a707829c17ee84f27e95c3c62f",
+      "bytes": 7836
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/smoke-report.md",
+      "sha256": "c887bca39929ccc8924c2cad900f6b5ab730269e5f236e35ad4c187d7402261b",
+      "bytes": 2045
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/lifecycle-verification.json",
+      "sha256": "26d98e6cdc24a7425b6b646f29820d77659c0427f54b4acd70bdbf73ce397ada",
+      "bytes": 2013
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/source-integrity.json",
+      "sha256": "eb034a2f0b5797c6d4b56d63fdf87d2b88ce120c6b0299df2c244620b79eeb14",
+      "bytes": 4089
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/authorization-evidence.json",
+      "sha256": "3fb2832d2a861a8cc8225802592d44d5195a0faee31b0391659a68de5114587a",
+      "bytes": 1156
+    }
+  ],
+  "interpretation": "Read actual stage06 handoff/evidence; main did not rerun the probe. Isolated MV3 test facility only; not product/Chrome120/ordinary stable acceptance. Not a stage01 ready prerequisite."
+}

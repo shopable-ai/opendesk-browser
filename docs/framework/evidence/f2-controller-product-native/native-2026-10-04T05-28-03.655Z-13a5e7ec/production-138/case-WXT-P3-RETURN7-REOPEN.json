@@ -1,0 +1,43 @@
+{
+  "id": "WXT-P3-RETURN7-REOPEN",
+  "families": "USC03/CTRL03/EX08/RESOURCE",
+  "expected": "Real UI committed return 7; revision, params, exact document, permission, actual Worker, durable released run, reopened tool same runId value7",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "77089b49b354ab3a77cbab642ce80ef6ccda1b7096c27d27a59ccb337f4a7d23",
+  "verificationInputsSha256": "8624f641cc60bcd738f4a8ecfefcad9ca02a60d0b36870055f2d168aab2b8484",
+  "packageSha256": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791091685875,
+  "input": {
+    "source": "return 7;",
+    "params": {
+      "caseId": "WXT-P3-RETURN7-REOPEN",
+      "marker": 7
+    },
+    "expected": 7
+  },
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "E_OBSERVATION_TIMEOUT",
+    "name": "Error",
+    "message": "Observation timed out: actual opaque sandbox Blob Worker target",
+    "stack": "Error: Observation timed out: actual opaque sandbox Blob Worker target\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:197:17)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:578:9\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:395:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:568:7)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:191:3"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "results",
+    "text": "任务 5d3ceddd-08da-4470-8e29-d4dde38a47f9：completed",
+    "result": "{\"run\": {\"tag\": \"controller-run\", \"runId\": \"5d3ceddd-08da-4470-8e29-d4dde38a47f9\", \"state\": \"completed\", \"runRevision\": 4, \"ownerEpoch\": 2, \"cancelSeq\": 1, \"identity\": {\"tag\": \"controller-run\", \"runId\": \"5d3ceddd-08da-4470-8e29-d4dde38a47f9\", \"hostInstanceId\": \"bbac442b-4b66-4e77-a3e5-bf7c5ca5e621\", \"hostDocumentId\": \"8342A4E7CAE4015223D6DFB800A85A77\", \"ownerEpoch\": 1, \"scriptId\": \"native-a7fee703-d175-4536-bc2c-2563c082014a\", \"revision\": 1, \"contentHash\": \"722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902\", \"target\": {\"tabId\": 1899086012, \"frameId\": 0, \"documentId\": \"9C0861DA163AE31F464409710245DC3E\", \"url\": \"http://127.0.0.1:51399/form?seed=a80df464-5889-487b-bb98-6e790aebfa2a&role=borrowed\", \"allowedOrigin\": \"http://127.0.0.1:51399\", \"targetSessionId\": \"a5eca578-1d1d-4e50-b309-1513fee313ae\", \"targetVersion\": 1, \"mode\": \"borrowed\", \"browserSessionIncarnation\": \"9bf2c9fe-1ba7-4e3e-b789-91723f137bd0\"}}, \"target\": {\"tabId\": 1899086012, \"frameId\": 0, \"documentId\": \"9C0861DA163AE31F464409710245DC3E\", \"url\": \"http://127.0.0.1:51399/form?seed=a80df464-5889-487b-bb98-6e790aebfa2a&role=borrowed\", \"allowedOrigin\": \"http://127.0.0.1:51399\", \"targetSessionId\": \"a5eca578-1d1d-4e50-b309-1513fee313ae\", \"targetVersion\": 1, \"mode\": \"borrowed\", \"browserSessionIncarnation\": \"9bf2c9fe-1ba7-4e3e-b789-91723f137bd0\"}, \"revision\": {\"scriptId\": \"native-a7fee703-d175-4536-bc2c-2563c082014a\", \"revision\": 1, \"sourceHash\": \"722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902\", \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"5d3ceddd-08da-4470-8e29-d4dde38a47f9\\\",\\\"a4716b6e-f65b-446d-b81e-23b6a7ef6b1b\\\",\\\"native-a7fee703-d175-4536-bc2c-2563c082014a\\\",1]\"}, \"deadlineAt\": 1791091854993, \"retirementId\": \"75617212-30de-452b-a3cf-51e0bf0a6c15\", \"retirementState\": \"released\", \"resultId\": \"b7336c4a-701f-48f3-8e27-b191ce312a99\", \"terminalReason\": null, \"workerRetired\": true, \"scriptId\": \"native-a7fee703-d175-4536-bc2c-2563c082014a\", \"contentHash\": \"722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902\"}, \"results\": [{\"runId\": \"5d3ceddd-08da-4470-8e29-d4dde38a47f9\", \"resultId\": \"b7336c4a-701f-48f3-8e27-b191ce312a99\", \"state\": \"completed\", \"value\": 7}]}",
+    "version": "已保存 r1 · 722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+    "runId": "5d3ceddd-08da-4470-8e29-d4dde38a47f9",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 154326.57695900003
+}

@@ -1,0 +1,807 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "independent Critic review of bounded stage0 execution-plan contract amendment",
+  "reviewedAt": "2026-10-02T20:45:01.319073+00:00",
+  "candidateManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "score": 96,
+  "maximumScore": 100,
+  "verdict": "APPROVE",
+  "blockers": [],
+  "independent": true,
+  "reviewer": {
+    "identity": "Current Codex App session, independently designated Critic by the user",
+    "role": "Critic",
+    "systemIdentity": "Codex, GPT-6 family per system context; not server model-resolution evidence",
+    "requestedModel": "inherited/default; no model override issued by this reviewer",
+    "requestedReasoningEffort": "inherited; no override issued",
+    "v5DeclaredPreference": {
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "xhigh",
+      "meaning": "Historical/current prompt preference, not proof of this session actual resolved settings"
+    },
+    "actualResolvedModel": "unknown",
+    "actualResolvedReasoningEffort": "unknown",
+    "authoredCandidate": false,
+    "servedAsArchitect": false,
+    "authoredProductOrPrototype": false,
+    "delegated": false,
+    "messagedOtherTasks": false
+  },
+  "approvalScope": "Only round-5 stage0 plan and F1-CTRL-TRUE-TERMINATE physical-termination qualification amendment. Not prompt approval, F1 backend acceptance, F2 release or F3 completion.",
+  "scoreBreakdown": [
+    {
+      "criterion": "需求与来源覆盖",
+      "score": 25,
+      "maximum": 25,
+      "deduction": 0,
+      "reason": "24/18逐项校验；72来源原hash与48原签名基线一致；冻结账本、SDK独立分母和603必选用例不变。"
+    },
+    {
+      "criterion": "职责与边界",
+      "score": 25,
+      "maximum": 25,
+      "deduction": 0,
+      "reason": "只更正物理终止时间界；立即准入fence、一次结算、权限、后端、MAIN与借用页边界均保留，F1/F2/F3门仍独立。"
+    },
+    {
+      "criterion": "依赖与可执行性",
+      "score": 19,
+      "maximum": 20,
+      "deduction": 1,
+      "reason": "精确Worker因果归属和触发/采样时间界已成为硬验收要求，但本增量没有固定可复用的校时/采样记录格式；执行时仍需落实，不能以最高CPU进程代替。此为验证实现细节，不是阶段0前置功能。"
+    },
+    {
+      "criterion": "验收与追溯",
+      "score": 18,
+      "maximum": 20,
+      "deduction": 2,
+      "reason": "新增证据文档的constantLine 78/80与下载原始文件物理行82/84不同（-1）；约2.07s诊断使用进程CPU和HTTP/wall-clock观察点，缺采样请求时间界及Worker→PID证明（-1）。qualifiesF1=false已诚实声明，均不构成方案阻断。"
+    },
+    {
+      "criterion": "风险与恢复",
+      "score": 9,
+      "maximum": 10,
+      "deduction": 1,
+      "reason": "新增1s余量是固定资格测试预算，尚无两版本全触发负载分布证明其充分性；超过3s仍FAIL且保留旧FAIL，风险被安全门隔离，不能将3s宣传成浏览器普遍SLA。"
+    }
+  ],
+  "readContext": {
+    "rolePrompt": "/Users/shopme/.codex/prompts/critic.md",
+    "currentPrompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+    "historicalContinuation": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+    "fullContextRead": true,
+    "userOverrideOfRoleReadOnly": "User explicitly authorized only critic.json and critic.md report writes; all candidate/product/prototype/gate material remained read-only."
+  },
+  "architectPrerequisite": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/architect.json",
+    "sha256": "d2c9263779f3e72249bca83a353106c3f325dec8d8f2fd0b6d575f2009e576b2",
+    "candidateManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+    "score": 96,
+    "verdict": "APPROVE",
+    "blockers": [],
+    "independent": true
+  },
+  "integrity": {
+    "candidateFilesChecked": 24,
+    "inheritedReferencesChecked": 18,
+    "allSha256AndBytesMatch": true,
+    "inheritedReferencesIdenticalToRound4": true,
+    "checks": [
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/execution-plan.md",
+        "expectedSha256": "6f6aa2912c75809b6049d27da3c7e8abec63c56b7db08224cdbfb7d2c40bed1d",
+        "actualSha256": "6f6aa2912c75809b6049d27da3c7e8abec63c56b7db08224cdbfb7d2c40bed1d",
+        "expectedBytes": 17472,
+        "actualBytes": 17472,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/execution-tasks.json",
+        "expectedSha256": "1bf08df26a1f000a2818fff759dc50d646564ef2a13c2659b7dc2e3e7b2c530c",
+        "actualSha256": "1bf08df26a1f000a2818fff759dc50d646564ef2a13c2659b7dc2e3e7b2c530c",
+        "expectedBytes": 6069,
+        "actualBytes": 6069,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/source-compatibility-ledger.json",
+        "expectedSha256": "b398416c14b3f26ce0af70dad4eb29e907ec55521360a7692283660bd3413bda",
+        "actualSha256": "b398416c14b3f26ce0af70dad4eb29e907ec55521360a7692283660bd3413bda",
+        "expectedBytes": 2201604,
+        "actualBytes": 2201604,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/migration-map-v5.md",
+        "expectedSha256": "1eca520b39123ea685bc08ff08d4452e5286896e00f5fb38d4a447bde5423d98",
+        "actualSha256": "1eca520b39123ea685bc08ff08d4452e5286896e00f5fb38d4a447bde5423d98",
+        "expectedBytes": 90739,
+        "actualBytes": 90739,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/compatibility-delta-v5.md",
+        "expectedSha256": "f81734d752fc73df4bd5587b04512cd79a9c8e0c350945c53c83f5b06e79cb0e",
+        "actualSha256": "f81734d752fc73df4bd5587b04512cd79a9c8e0c350945c53c83f5b06e79cb0e",
+        "expectedBytes": 5684,
+        "actualBytes": 5684,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/test-spec-v5.json",
+        "expectedSha256": "67af5b9a3c7cf9b95c794bd0250e933e24045837846198aa7bf3cb909313acf4",
+        "actualSha256": "67af5b9a3c7cf9b95c794bd0250e933e24045837846198aa7bf3cb909313acf4",
+        "expectedBytes": 1141326,
+        "actualBytes": 1141326,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/goal-constraints.md",
+        "expectedSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+        "actualSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+        "expectedBytes": 7870,
+        "actualBytes": 7870,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/goal-prompt.md",
+        "expectedSha256": "e192b17a4142102ff8b40f6ab6018d21d34343bb602a528242ec24190288460a",
+        "actualSha256": "e192b17a4142102ff8b40f6ab6018d21d34343bb602a528242ec24190288460a",
+        "expectedBytes": 1453,
+        "actualBytes": 1453,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/baseline-ledger-v1.json",
+        "expectedSha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1",
+        "actualSha256": "11ac2101772f9ebeab69262dc71607003bfdca7ab585ad9b89d0eae239313fd1",
+        "expectedBytes": 109039,
+        "actualBytes": 109039,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/initial-state.json",
+        "expectedSha256": "3dba640dd9bb08fc64554dca1cf3d679e50a6bf65d01aec8b02264ade5e9a28d",
+        "actualSha256": "3dba640dd9bb08fc64554dca1cf3d679e50a6bf65d01aec8b02264ade5e9a28d",
+        "expectedBytes": 32953,
+        "actualBytes": 32953,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/inherited-contracts.json",
+        "expectedSha256": "841d55e0eec8ec5029296b3ca8fd7ebcd2d18085916a44257ab5868415192a6f",
+        "actualSha256": "841d55e0eec8ec5029296b3ca8fd7ebcd2d18085916a44257ab5868415192a6f",
+        "expectedBytes": 5620,
+        "actualBytes": 5620,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/api-member-draft.json",
+        "expectedSha256": "f458f791503afc2e450229bade2aab35099fea1b7b519e4f121a3ba3a0fec095",
+        "actualSha256": "f458f791503afc2e450229bade2aab35099fea1b7b519e4f121a3ba3a0fec095",
+        "expectedBytes": 741995,
+        "actualBytes": 741995,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/api-member-read-note.md",
+        "expectedSha256": "5ed85744be958771a69a6c54c862de3fc39f675fd5d7737ab873e871157a3e9b",
+        "actualSha256": "5ed85744be958771a69a6c54c862de3fc39f675fd5d7737ab873e871157a3e9b",
+        "expectedBytes": 15033,
+        "actualBytes": 15033,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/sdk-service-resource-draft.json",
+        "expectedSha256": "529c7271f811e00393b43676b35ade1fb290f9cb1e164974fc0ad95a26f00dec",
+        "actualSha256": "529c7271f811e00393b43676b35ade1fb290f9cb1e164974fc0ad95a26f00dec",
+        "expectedBytes": 1208355,
+        "actualBytes": 1208355,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/sdk-service-resource-read-note.md",
+        "expectedSha256": "517d3f952417b340d21aa0607f7308f28f9cbd2ee1a68654cd9c1297740da790",
+        "actualSha256": "517d3f952417b340d21aa0607f7308f28f9cbd2ee1a68654cd9c1297740da790",
+        "expectedBytes": 5662,
+        "actualBytes": 5662,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/main-capability-draft.json",
+        "expectedSha256": "fcb1d297a4d29164f8583a819b9b26e9da3b05346c62e98256125581611f8083",
+        "actualSha256": "fcb1d297a4d29164f8583a819b9b26e9da3b05346c62e98256125581611f8083",
+        "expectedBytes": 40190,
+        "actualBytes": 40190,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/f1-cases.json",
+        "expectedSha256": "bf763f22a2182dbaba4b56ba08647fd0cd16e36bdea8694514ba687107ff3173",
+        "actualSha256": "bf763f22a2182dbaba4b56ba08647fd0cd16e36bdea8694514ba687107ff3173",
+        "expectedBytes": 11219,
+        "actualBytes": 11219,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/baseline-foundation.json",
+        "expectedSha256": "39e592fff07bb3c161a5ca56b27fd637aeb82960da6028bf9542add0f96ff6a7",
+        "actualSha256": "39e592fff07bb3c161a5ca56b27fd637aeb82960da6028bf9542add0f96ff6a7",
+        "expectedBytes": 2340,
+        "actualBytes": 2340,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/environment-source-baseline.json",
+        "expectedSha256": "9053745b032575bbe93cb537ef3a8e3a898428c4727f7d4490ebac37eace4d70",
+        "actualSha256": "9053745b032575bbe93cb537ef3a8e3a898428c4727f7d4490ebac37eace4d70",
+        "expectedBytes": 420,
+        "actualBytes": 420,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/historical-test-bindings.json",
+        "expectedSha256": "da4d94fb9da2b1ace253e579d931cf4b87cc158ad4bdc697229b3686d7a00251",
+        "actualSha256": "da4d94fb9da2b1ace253e579d931cf4b87cc158ad4bdc697229b3686d7a00251",
+        "expectedBytes": 6621,
+        "actualBytes": 6621,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/license-evidence.json",
+        "expectedSha256": "167e0094350bc95a6e00ed2765c87bb9e61b3798823b8702c6ccc8c78f251696",
+        "actualSha256": "167e0094350bc95a6e00ed2765c87bb9e61b3798823b8702c6ccc8c78f251696",
+        "expectedBytes": 599,
+        "actualBytes": 599,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/legacy-project-license.txt",
+        "expectedSha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+        "actualSha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+        "expectedBytes": 1096,
+        "actualBytes": 1096,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/version-discovery.json",
+        "expectedSha256": "e6ca89e197dd3435989c5f0e691d1ccca7aac29ab143c04967f254bee75a8d81",
+        "actualSha256": "e6ca89e197dd3435989c5f0e691d1ccca7aac29ab143c04967f254bee75a8d81",
+        "expectedBytes": 3863,
+        "actualBytes": 3863,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "candidate",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/native-worker-termination-amendment.json",
+        "expectedSha256": "1cd55983bbd985bde1053ff55fef287f27cc8265f048555bc2d96e05bb33e4c8",
+        "actualSha256": "1cd55983bbd985bde1053ff55fef287f27cc8265f048555bc2d96e05bb33e4c8",
+        "expectedBytes": 2616,
+        "actualBytes": 2616,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+        "expectedSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+        "actualSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+        "expectedBytes": 31648,
+        "actualBytes": 31648,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/file-tasks.md",
+        "expectedSha256": "30a4e00a78d511169f38aa7017959984be6a88afdb04f474f65298874e1b7258",
+        "actualSha256": "30a4e00a78d511169f38aa7017959984be6a88afdb04f474f65298874e1b7258",
+        "expectedBytes": 7888,
+        "actualBytes": 7888,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/compatibility-delta.md",
+        "expectedSha256": "777fb115b7852b0c9b9102683e0fdc6a81271e48b367457d6e67005198c00b34",
+        "actualSha256": "777fb115b7852b0c9b9102683e0fdc6a81271e48b367457d6e67005198c00b34",
+        "expectedBytes": 4221,
+        "actualBytes": 4221,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/protocol-contract.md",
+        "expectedSha256": "33afffa92748ac1308d32a2ba1a883a196729704b9933cba7b5c3d0f59ceb7bc",
+        "actualSha256": "33afffa92748ac1308d32a2ba1a883a196729704b9933cba7b5c3d0f59ceb7bc",
+        "expectedBytes": 8502,
+        "actualBytes": 8502,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+        "expectedSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+        "actualSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+        "expectedBytes": 13767,
+        "actualBytes": 13767,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/migration-complete.md",
+        "expectedSha256": "7319275eb58a031b3ec66af17b83dc4e5fab29c088d7d31d1a3f9ae36e5b0f96",
+        "actualSha256": "7319275eb58a031b3ec66af17b83dc4e5fab29c088d7d31d1a3f9ae36e5b0f96",
+        "expectedBytes": 26715,
+        "actualBytes": 26715,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/source-evidence.md",
+        "expectedSha256": "3889ed582b8bdafda19a63b2dd9580401c63caeb71ed315a3fa824c1268ebcb4",
+        "actualSha256": "3889ed582b8bdafda19a63b2dd9580401c63caeb71ed315a3fa824c1268ebcb4",
+        "expectedBytes": 3694,
+        "actualBytes": 3694,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/issues.md",
+        "expectedSha256": "168b4b93e3ca1c5177a443041864cc99331a36828a26702757cabebc1814dbd3",
+        "actualSha256": "168b4b93e3ca1c5177a443041864cc99331a36828a26702757cabebc1814dbd3",
+        "expectedBytes": 8665,
+        "actualBytes": 8665,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/migration-map.json",
+        "expectedSha256": "47c231b965865175f749a2659f5264da54100812e53f45729b7608d2aa385551",
+        "actualSha256": "47c231b965865175f749a2659f5264da54100812e53f45729b7608d2aa385551",
+        "expectedBytes": 62234,
+        "actualBytes": 62234,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/public-api-contract.json",
+        "expectedSha256": "4c994c58726e0732782a780f588990ba5fd1686dd4c418dbf74840a739b23edc",
+        "actualSha256": "4c994c58726e0732782a780f588990ba5fd1686dd4c418dbf74840a739b23edc",
+        "expectedBytes": 31301,
+        "actualBytes": 31301,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/test-spec.md",
+        "expectedSha256": "276bd53c687f737c888fa212887d19231132ae15b2ad30b3cd8e0c5e72b7ae1b",
+        "actualSha256": "276bd53c687f737c888fa212887d19231132ae15b2ad30b3cd8e0c5e72b7ae1b",
+        "expectedBytes": 19377,
+        "actualBytes": 19377,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/compatibility-and-file-map.md",
+        "expectedSha256": "a73d2aecb41faa0c16b9e8a58271ee0dff8319117d10354dd2ca9c13fdce49b0",
+        "actualSha256": "a73d2aecb41faa0c16b9e8a58271ee0dff8319117d10354dd2ca9c13fdce49b0",
+        "expectedBytes": 15856,
+        "actualBytes": 15856,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/upstream-v3/type-click-compatibility.md",
+        "expectedSha256": "602f9b63b685673bd6e18a54344bfdba2bed2bd4b8eb2613ae904d9b94708fb3",
+        "actualSha256": "602f9b63b685673bd6e18a54344bfdba2bed2bd4b8eb2613ae904d9b94708fb3",
+        "expectedBytes": 1841,
+        "actualBytes": 1841,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+        "expectedSha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+        "actualSha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+        "expectedBytes": 33202,
+        "actualBytes": 33202,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+        "expectedSha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+        "actualSha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+        "expectedBytes": 26219,
+        "actualBytes": 26219,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/historical-failure-mapping.json",
+        "expectedSha256": "acd9ca12463cceee7e6d5e898b7fc6ca319fd959492edacb4550e71fea4376a5",
+        "actualSha256": "acd9ca12463cceee7e6d5e898b7fc6ca319fd959492edacb4550e71fea4376a5",
+        "expectedBytes": 11500,
+        "actualBytes": 11500,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/source-handoff.json",
+        "expectedSha256": "4316d972276ddbb1783e493fc6650b8fd876b2333696a32bd5819b260f841a74",
+        "actualSha256": "4316d972276ddbb1783e493fc6650b8fd876b2333696a32bd5819b260f841a74",
+        "expectedBytes": 14759,
+        "actualBytes": 14759,
+        "sha256Match": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "inherited",
+        "path": "/Users/shopme/Documents/workspace/todo-user-vue/LICENSE",
+        "expectedSha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+        "actualSha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+        "expectedBytes": 1096,
+        "actualBytes": 1096,
+        "sha256Match": true,
+        "bytesMatch": true
+      }
+    ]
+  },
+  "delta": {
+    "previousCandidateManifestSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+    "unchangedFiles": [
+      "compatibility-delta-v5.md",
+      "execution-tasks.json",
+      "goal-constraints.md",
+      "goal-prompt.md",
+      "migration-map-v5.md",
+      "source-compatibility-ledger.json",
+      "stage0/api-member-draft.json",
+      "stage0/api-member-read-note.md",
+      "stage0/baseline-foundation.json",
+      "stage0/baseline-ledger-v1.json",
+      "stage0/environment-source-baseline.json",
+      "stage0/historical-test-bindings.json",
+      "stage0/inherited-contracts.json",
+      "stage0/initial-state.json",
+      "stage0/legacy-project-license.txt",
+      "stage0/license-evidence.json",
+      "stage0/main-capability-draft.json",
+      "stage0/sdk-service-resource-draft.json",
+      "stage0/sdk-service-resource-read-note.md",
+      "stage0/version-discovery.json"
+    ],
+    "modifiedExistingFiles": [
+      "execution-plan.md",
+      "stage0/f1-cases.json",
+      "test-spec-v5.json"
+    ],
+    "addedFiles": [
+      "stage0/native-worker-termination-amendment.json"
+    ],
+    "removedFiles": [],
+    "executionPlan": "Existing 93 lines/16001 bytes preserved as exact prefix; appended lines 94-102 (substantive amendment lines 96-102).",
+    "jsonLeafDiffs": {
+      "test-spec-v5.json": [
+        {
+          "pointer": "/cases/471/expected",
+          "old": "loop entered; admission closed; browser independently observes Worker gone/CPU execution stopped within test 2s; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved",
+          "new": "loop entered; admission closed; browser independently proves the exact run Worker stops executing and its target is destroyed within 3s of the actual host cancellation/deadline trigger (native Chromium two-second force-termination grace plus one-second observation/scheduling allowance); admission closes immediately, no debugger is attached to the loop Worker; initial loop CPU growth and post-stop quiescence are independently observed; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved"
+        }
+      ],
+      "stage0/f1-cases.json": [
+        {
+          "pointer": "/3/expected",
+          "old": "loop entered; admission closed; browser independently observes Worker gone/CPU execution stopped within test 2s; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved",
+          "new": "loop entered; admission closed; browser independently proves the exact run Worker stops executing and its target is destroyed within 3s of the actual host cancellation/deadline trigger (native Chromium two-second force-termination grace plus one-second observation/scheduling allowance); admission closes immediately, no debugger is attached to the loop Worker; initial loop CPU growth and post-stop quiescence are independently observed; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved"
+        }
+      ]
+    },
+    "otherSemanticChanges": []
+  },
+  "unchangedScope": {
+    "sourceCount": 72,
+    "apiCount": 48,
+    "sourceOriginalHashesPreserved": true,
+    "apiOriginalNamesSymbolsKindsLinesSignaturesPreserved": true,
+    "requiredDispositionContracts": 191,
+    "restrictedContracts": 7,
+    "positiveCapabilities": 184,
+    "mandatoryProductCases": 603,
+    "allProductCasesRequired": true,
+    "f1Contracts": 12,
+    "independentSdkAcceptancePreserved": true,
+    "permissionsBackendVersionsPreserved": true,
+    "originalSdkAndApiSemanticsPreserved": "Byte-identical ledger/drafts/maps/delta and unchanged cases except the one F1 expected field; no re-audit of unchanged repository implementation."
+  },
+  "contractDecision": {
+    "id": "F1-CTRL-TRUE-TERMINATE",
+    "previousMilliseconds": 2000,
+    "approvedMilliseconds": 3000,
+    "nativeGraceMilliseconds": 2000,
+    "additionalSchedulingObservationBudgetMilliseconds": 1000,
+    "triggers": [
+      "stop",
+      "deadline",
+      "host close"
+    ],
+    "timerOrigin": "Actual host cancellation/deadline/host-close trigger; observer retrieval and realm recreation cannot restart the clock.",
+    "requirements": [
+      "Causally identify exact run/Blob Worker and bound execution domain.",
+      "Observe genuine initial loop CPU growth and sustained execution cessation by trigger+3000ms.",
+      "Observe the same target destroyed or absent by trigger+3000ms; CPU and target lifecycle are both required.",
+      "No attached loop Worker debugger; host remains responsive where it survives.",
+      "Admission closes immediately; no late operation; once-only settlement and resource baseline retained.",
+      "Absent CPU sample is unknown without independent lifecycle exit; unrelated idle process, heartbeat, terminate call or counters cannot prove stop.",
+      "An interval straddling 3s or a later absence cannot backdate success; exceeding 3s remains FAIL."
+    ],
+    "contractRefs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/execution-plan.md:100",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/f1-cases.json:103",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/test-spec-v5.json:18185"
+    ],
+    "historicalTwoSecondClause": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/test-spec-v5.json:372",
+    "priorityReason": "v5 requires real termination but has no numeric 2s SLO; inherited EX03 does contain 2s. This explicitly authorized, same-candidate reviewed amendment supersedes only that F1 physical-termination time bound, preserving historical quotations/results."
+  },
+  "nativeEvidence": {
+    "sources": [
+      {
+        "version": "138.0.7204.183",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/third_party/blink/renderer/core/workers/worker_thread.cc",
+        "localPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/chromium-source-evidence/138.0.7204.183-worker_thread.cc",
+        "sha256": "7c989d222ed648eaf8650b7ce2f3d9ec4ab5b83e739ccb6788d7d667c5d0961e",
+        "physicalLines": {
+          "constant": 82,
+          "terminate": 262,
+          "schedule": 532,
+          "force": 568,
+          "testOnly": 314
+        },
+        "nativeGraceMilliseconds": 2000
+      },
+      {
+        "version": "154.0.8037.92",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/third_party/blink/renderer/core/workers/worker_thread.cc",
+        "localPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/chromium-source-evidence/154.0.8037.92-worker_thread.cc",
+        "sha256": "f5e2a985450beea9dde7c0045654f789e22c38c43339c83292c364b1431e3a84",
+        "physicalLines": {
+          "constant": 84,
+          "terminate": 265,
+          "schedule": 514,
+          "force": 551,
+          "testOnly": 308
+        },
+        "nativeGraceMilliseconds": 2000
+      }
+    ],
+    "primarySourceReadViaWeb": true,
+    "localSourceHashesIndependentlyChecked": true,
+    "mechanism": "Ordinary Terminate schedules delayed EnsureScriptExecutionTerminates; the initialized delay is 2s and force reaches V8 TerminateExecution. TerminateForTesting is an internal synchronous test path, not an approved JS capability.",
+    "inference": "Strict end-to-end physical stop at exactly the start of the native 2s force grace has no scheduling/observation headroom; a fixed 3s qualification window is technically coherent. This is not a general termination guarantee or proof that the current prototype passes."
+  },
+  "diagnosticAssessment": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-worker-stop-diagnostic/report-mock-keychain.json",
+    "sha256": "3d88d523b1d9cff33bf13ca05746e5f588d1d6d13da63ed67540be6fbda5c8e3",
+    "driverPath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-worker-stop-diagnostic/diagnose.py",
+    "driverSha256": "3d9489923231af46d6188da3dda12f4d133ff386a509ec678375162c73d49262",
+    "sameHistoricalHarnessSha256": "acef8dd9b9b1e7c5b7fc88eebf42213e150110b71a945d85655d5ca06958ac84",
+    "historicalSourceManifestPath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T20-06-30.807Z/candidate-manifest.json",
+    "historicalSourceManifestSha256": "bddbd1e2c9dd958881aaba40ca1a6e66208f5fd552a58512a467ce3def8b8f57",
+    "opaqueOrigin": "null",
+    "driverHasNoCdpOrDebuggerClient": true,
+    "remoteDebuggingEndpointFlagPresentButNoClientAttached": true,
+    "httpObservedTriggerEpochSeconds": 1790971965.311847,
+    "httpObservedTerminateReturnedEpochSeconds": 1790971965.312184,
+    "cpuObservations": [
+      {
+        "secondsAfterHttpObservedTrigger": 1.923315,
+        "processId": 70456,
+        "cumulativeCpu": "0:02.95"
+      },
+      {
+        "secondsAfterHttpObservedTrigger": 2.07403,
+        "processId": 70456,
+        "cumulativeCpu": "0:03.06"
+      },
+      {
+        "secondsAfterHttpObservedTrigger": 2.230057,
+        "processId": 70456,
+        "cumulativeCpu": "0:03.06"
+      },
+      {
+        "secondsAfterHttpObservedTrigger": 2.384885,
+        "processId": 70456,
+        "cumulativeCpu": "0:03.06"
+      },
+      {
+        "secondsAfterHttpObservedTrigger": 2.548809,
+        "processId": 70456,
+        "cumulativeCpu": "0:03.06"
+      },
+      {
+        "secondsAfterHttpObservedTrigger": 2.71161,
+        "processId": 70456,
+        "cumulativeCpu": "0:03.06"
+      },
+      {
+        "secondsAfterHttpObservedTrigger": 2.858116,
+        "processId": 70456,
+        "cumulativeCpu": "0:03.06"
+      },
+      {
+        "secondsAfterHttpObservedTrigger": 3.007022,
+        "processId": 70456,
+        "cumulativeCpu": "0:03.06"
+      }
+    ],
+    "qualifiesF1": false,
+    "limits": [
+      "This reviewer read/hash-checked/recomputed existing evidence; did not launch a new browser run.",
+      "HTTP event receipt/wall-clock ps completion timestamps are approximate, not a calibrated native-stop instant.",
+      "Multiple renderers exist; diagnostic does not prove exact Worker-to-PID causal binding or target destruction.",
+      "The ~2.07s plateau supports a delayed native-force explanation; it cannot turn any historical FAIL into PASS.",
+      "Shell urllib byte re-fetch failed; official exact-tag primary contents were read through web and existing raw evidence was independently hashed."
+    ],
+    "cleanup": {
+      "browserExit": 0,
+      "ownedPids": [
+        70423,
+        70429,
+        70433,
+        70434,
+        70437,
+        70438,
+        70456,
+        70457,
+        70459,
+        70506
+      ],
+      "serverClosed": true
+    }
+  },
+  "preservedHistoricalFailures": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-57-31.381Z/report.json",
+      "sha256": "99861cf2a654bcf0f9d3f71645a8c94b2e3e64d4770183b92dc8891780011730",
+      "failedCaseIds": [
+        "F1-INFINITE-LOOP-STOP",
+        "F1-INFINITE-LOOP-DEADLINE"
+      ],
+      "backendPrototypePassed": false
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T20-06-30.807Z/report.json",
+      "sha256": "572b5602247a05b10f97af83b1f35688423451d0988eb5878a355e8b4daacb36",
+      "failedCaseIds": [
+        "F1-INFINITE-LOOP-STOP",
+        "F1-INFINITE-LOOP-DEADLINE",
+        "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+      ],
+      "backendPrototypePassed": false
+    }
+  ],
+  "separateF1Blockers": {
+    "reviewEvidence": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/page-provisional-review.json",
+        "sha256": "2a679e62128a53674a0f896af6d0f25e1ddc2a3651a51a1a223a0189c907bb4e",
+        "findingId": "ARCH-PAGE-01",
+        "laneVerdict": "BLOCK",
+        "pagePrototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "independentEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/report.json",
+        "independentEvidenceSha256": "a3688fe2138ee62225f589203576339d5719bf3436a2cd67a789a5e54e51b53b",
+        "findingSummary": "Both exact Chrome versions and both worlds accepted old native-completed results after real OFF→ON when the runner did not write a fence."
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/provisional-page-review.json",
+        "sha256": "9678cba9fe4365aebd98f0daa41d7b57ae37a1add91f0b137a9092cbbaea9655",
+        "findingId": "CR-F1-PAGE-001",
+        "laneVerdict": "REQUEST CHANGES",
+        "pagePrototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "independentEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/fresh-page-fence-2026-10-02T20-08-38-871Z/report.json",
+        "independentEvidenceSha256": "229c09c1bf381012d17c24771ec1dd0e38493a3dbaadccee32e99470035e46e6",
+        "findingSummary": "Both exact Chrome versions and both worlds accepted old native-completed results after real OFF→ON when the runner did not write a fence."
+      }
+    ],
+    "finding": "Real Allow User Scripts OFF→ON reaccepts old native-completed results unless runner recheck manufactures a fence; both versions and worlds.",
+    "disposition": "Remains a functional F1 blocker. No stage0 approval cures it; after repair, freeze source/evidence and independently review the complete two-lane union.",
+    "planContradictionAssessment": "The reports demonstrate a failed current mechanism and an unobservable-history risk, not proof that this Worker timing amendment is contradictory. The candidate preserves the revocation contract, never exempts it, and does not claim a new reliable history mechanism already exists. If a reliable operation-owned fence cannot be proved, F1 remains BLOCK and any proposed scope change needs its own explicit review.",
+    "noCircularGate": "All-F1-PASS is required before F2, not before approving a plan to repair/qualify F1."
+  },
+  "representativeSimulations": [
+    {
+      "scenario": "Valid stop/deadline qualification",
+      "assumption": "Exact run Worker has genuine CPU growth; immediate admission fence; bounded observations prove stopped execution at 2.20s and same target destruction at 2.35s; no late effect, responsive host and resource baseline.",
+      "decision": "The physical-stop assertion can PASS under 3s. Other F1 cases/matrix and union review remain mandatory."
+    },
+    {
+      "scenario": "False oracle or deadline overrun",
+      "assumption": "Highest-CPU unrelated renderer plateaus, exact loop ownership is unknown, or exact target disappears at 3.01s even if CPU plateau was earlier.",
+      "decision": "FAIL/unknown; exact causality and both within-3s observations are mandatory. Late observer return cannot reset/retrodate the trigger."
+    },
+    {
+      "scenario": "PAGE OFF→ON with runner-supplied fence removed",
+      "assumption": "Current independent probes accept an old native-completed result after real toggle restoration.",
+      "decision": "F1 BLOCK under the unchanged PAGE contract; no F2 release. Does not prevent stage0 approval of the separate bounded Worker timing repair."
+    }
+  ],
+  "gatesObserved": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-gates.json",
+    "sha256AtReview": "ae52944aafc47f030267ae2d49eae14208cbbf42ca3319fc5ffbfa35f4db1e2b",
+    "backendPrototypePassed": false,
+    "fullImplementationReleased": false,
+    "frameworkFunctionalMigrationComplete": false,
+    "allF1PASS": false,
+    "F2Approved": false,
+    "F3Approved": false,
+    "changedByReviewer": false
+  },
+  "verification": "Read-only SHA256/byte checks for all24/18; exact round4 diff; original72/48 identity/signature checks;603 required unique cases;12 F1 contracts; primary exact-tag source and diagnostic evidence read; old FAIL and independent PAGE evidence hashes checked. No product tests/builds or new prototype run performed.",
+  "writeScope": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/critic.json",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/critic.md"
+  ],
+  "stopCondition": "This independent bounded decision and two reports complete the assigned Critic task; implementation and F1 acceptance remain with their owners."
+}

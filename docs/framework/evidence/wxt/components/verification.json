@@ -1,0 +1,30 @@
+{
+  "at": "2026-10-03T20:13:45.067476+00:00",
+  "layer": "component",
+  "tests": 400,
+  "passed": 400,
+  "failed": 0,
+  "finalProductPassed": false,
+  "nativeAcceptance": false,
+  "logs": [
+    {
+      "path": "docs/framework/evidence/wxt/components/opendesk-wxt-components5.log",
+      "bytes": 40467,
+      "sha256": "d3c33eaea0a92dda098b9174a3d7dc48cdd909a85276ad920b43c9c73665d147"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/components/opendesk-wxt-k2-sdk-broker-targeted.log",
+      "bytes": 1941,
+      "sha256": "c81d92e3ff73cf8cbd7c3fd76741126bf4e209a6bb0888e31a5d40c1979f6527"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/components/opendesk-wxt-pageport-focused.log",
+      "bytes": 2402,
+      "sha256": "50e062da323a73635917d32f89a09ec50323774efd0510a76fd34cbebff6fa12"
+    }
+  ],
+  "asynchronousWaitFixes": [
+    "tests/foundation/page-port-service.test.mjs",
+    "tests/framework/k2-sdk-broker.test.mjs"
+  ]
+}

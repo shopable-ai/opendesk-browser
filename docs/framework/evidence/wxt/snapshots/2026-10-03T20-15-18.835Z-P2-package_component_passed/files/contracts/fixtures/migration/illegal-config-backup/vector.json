@@ -1,0 +1,180 @@
+{
+  "fixtureVersion": "1.0.0",
+  "id": "unsupported-config",
+  "category": "illegal-config-backup",
+  "status": "planned",
+  "productResult": "not-run",
+  "input": {
+    "legacyBackup": {
+      "path": "illegal-config-backup/legacy-config.json",
+      "encoding": "utf-8",
+      "byteLength": 105,
+      "sha256": "09ea23cf2f199c9efa3c0ea5a4431837ca217f4b1df7b8aa8279a2855c7318d6",
+      "bytesBase64": "ew0KICAiX2xpc3RDb250YWluZXIiOiAiLnJvd3MiLA0KICAibmFtZSI6ICJqYXZhc2NyaXB0OmV4YW1wbGUoKSIsDQogICJleHRyYSI6IHsiY29kZSI6ICJleGFtcGxlKCkifQ0KfQ0K",
+      "text": "{\r\n  \"_listContainer\": \".rows\",\r\n  \"name\": \"javascript:example()\",\r\n  \"extra\": {\"code\": \"example()\"}\r\n}\r\n"
+    },
+    "legacyParsed": {
+      "_listContainer": ".rows",
+      "name": "javascript:example()",
+      "extra": {
+        "code": "example()"
+      }
+    },
+    "dom": {
+      "path": "illegal-config-backup/dom.html",
+      "encoding": "utf-8",
+      "byteLength": 1352,
+      "sha256": "f348461344c1f12de9c808f0b41d61941b972dba3324dc405e6295d8adb354af",
+      "bytesBase64": "PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9InpoIj48aGVhZD48bWV0YSBjaGFyc2V0PSJ1dGYtOCI+PGJhc2UgaHJlZj0iaHR0cHM6Ly9maXh0dXJlLmV4YW1wbGUvY2F0YWxvZy8iPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyIgZGF0YS1maXh0dXJlLXJvdz0iMCI+PGEgY2xhc3M9Im5hbWUiIGhyZWY9IiAuLi9pdGVtLzE/dGFnPeS4reaWhyZhbXA7bj0wICI+IAnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYnmsYkKIDwvYT48c3BhbiBjbGFzcz0iY291bnQiPiAwIDwvc3Bhbj48c3BhbiBjbGFzcz0iZW5hYmxlZCI+IGZhbHNlIDwvc3Bhbj48c3BhbiBjbGFzcz0iZW1wdHkiPjwvc3Bhbj48c3BhbiBjbGFzcz0ibm90ZSI+5Lit5paHLCZxdW90O+W8leWPtyZxdW90OwrnrKzkuozooYw8L3NwYW4+PC9hcnRpY2xlPjxhcnRpY2xlIGNsYXNzPSJyb3ciIGRhdGEtZml4dHVyZS1yb3c9IjEiPjxhIGNsYXNzPSJuYW1lIj48L2E+PHNwYW4gY2xhc3M9ImNvdW50Ij4xMi41PC9zcGFuPjxzcGFuIGNsYXNzPSJlbmFibGVkIj50cnVlPC9zcGFuPjxzcGFuIGNsYXNzPSJlbXB0eSI+PC9zcGFuPjxzcGFuIGNsYXNzPSJub3RlIj49U1VNKEExOkEyKTwvc3Bhbj48L2FydGljbGU+PGFydGljbGUgY2xhc3M9InJvdyIgZGF0YS1maXh0dXJlLXJvdz0iMiI+PGEgY2xhc3M9Im5hbWUiIGhyZWY9Ii4vaXRlbS8zP3g9MSZhbXA7eT0yIj49MSsxPC9hPjxzcGFuIGNsYXNzPSJjb3VudCI+LTI8L3NwYW4+PHNwYW4gY2xhc3M9ImVuYWJsZWQiPmZhbHNlPC9zcGFuPjxzcGFuIGNsYXNzPSJlbXB0eSI+PC9zcGFuPjxzcGFuIGNsYXNzPSJub3RlIj4rdGV4dDwvc3Bhbj48L2FydGljbGU+PC9tYWluPjxhIGNsYXNzPSJuZXh0IiBocmVmPSIvbGlzdD9wYWdlPTIiPuS4i+S4gOmhtTwvYT48L2JvZHk+PC9odG1sPgo=",
+      "text": "<!doctype html>\n<html lang=\"zh\"><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\" data-fixture-row=\"0\"><a class=\"name\" href=\" ../item/1?tag=中文&amp;n=0 \"> \t汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉\n </a><span class=\"count\"> 0 </span><span class=\"enabled\"> false </span><span class=\"empty\"></span><span class=\"note\">中文,&quot;引号&quot;\n第二行</span></article><article class=\"row\" data-fixture-row=\"1\"><a class=\"name\"></a><span class=\"count\">12.5</span><span class=\"enabled\">true</span><span class=\"empty\"></span><span class=\"note\">=SUM(A1:A2)</span></article><article class=\"row\" data-fixture-row=\"2\"><a class=\"name\" href=\"./item/3?x=1&amp;y=2\">=1+1</a><span class=\"count\">-2</span><span class=\"enabled\">false</span><span class=\"empty\"></span><span class=\"note\">+text</span></article></main><a class=\"next\" href=\"/list?page=2\">下一页</a></body></html>\n"
+    },
+    "context": {
+      "startUrl": "https://fixture.example/list?page=1",
+      "allowedOrigin": "https://fixture.example",
+      "documentUrl": "https://fixture.example/list?page=1",
+      "documentBaseUrl": "https://fixture.example/catalog/",
+      "frame": "top",
+      "listMeaningConfirmed": "container-selector",
+      "containerSelector": ".rows",
+      "rowSelector": ":scope > .row",
+      "emptyMarkerSelector": null,
+      "allowEmpty": false,
+      "paginationConfirmed": "none",
+      "nextSelector": null,
+      "columnOrder": [
+        "name",
+        "extra"
+      ],
+      "fieldDefinitions": [
+        {
+          "id": "name",
+          "label": "名称",
+          "selector": ".name",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      ],
+      "previewConfirmation": {
+        "confirmed": false,
+        "snapshotId": null,
+        "rowCount": null
+      },
+      "templateId": "migration-illegal-config-backup",
+      "limits": {
+        "maxPages": 50,
+        "maxRecords": 10000,
+        "maxDurationMs": 600000,
+        "maxStoredBytes": 20971520
+      }
+    }
+  },
+  "expected": {
+    "state": "rejected-needs-reconfigure",
+    "backupPreserved": true,
+    "templateRevision": null,
+    "draft": {
+      "formatVersion": "1.0.0",
+      "templateId": "migration-illegal-config-backup",
+      "revision": 1,
+      "parentRevision": null,
+      "selectorDialect": "css",
+      "requiredCapabilities": [
+        "dom.top.v1",
+        "read.text.v1",
+        "read.attribute.v1",
+        "transform.safe.v1",
+        "pagination.none.v1"
+      ],
+      "allowedOrigin": "https://fixture.example",
+      "startUrl": "https://fixture.example/list?page=1",
+      "list": {
+        "containerSelector": ".rows",
+        "rowSelector": ":scope > .row",
+        "emptyMarkerSelector": null,
+        "allowEmpty": false
+      },
+      "fields": [],
+      "pagination": {
+        "mode": "none"
+      },
+      "columns": [],
+      "limits": {
+        "maxPages": 50,
+        "maxRecords": 10000,
+        "maxDurationMs": 600000,
+        "maxStoredBytes": 20971520
+      },
+      "detail": null,
+      "contentHash": null
+    },
+    "errors": [
+      {
+        "code": "E_MIGRATION_SELECTOR_FORBIDDEN",
+        "path": "/legacyParsed/name",
+        "value": "javascript:example()",
+        "remediation": "replace-with-explicit-css-selector"
+      },
+      {
+        "code": "E_MIGRATION_FIELD_VALUE_TYPE",
+        "path": "/legacyParsed/extra",
+        "value": {
+          "code": "example()"
+        },
+        "remediation": "replace-nested-config-with-explicit-flat-field"
+      }
+    ],
+    "columns": [],
+    "rawRecords": [],
+    "typedRecords": [],
+    "recordErrors": [],
+    "previewRecords": [],
+    "runRecords": [],
+    "recordCount": 0,
+    "operations": {
+      "saveAllowed": false,
+      "runAllowed": false,
+      "exportAllowed": false,
+      "followNextAllowed": false
+    },
+    "exports": {
+      "json": {
+        "allowed": false,
+        "errorCode": "E_MIGRATION_NOT_EXECUTABLE",
+        "artifact": null,
+        "byteLength": 0,
+        "bytesBase64": "",
+        "emittedBytes": {
+          "path": "illegal-config-backup/expected-json-emitted.bin",
+          "encoding": "utf-8",
+          "byteLength": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytesBase64": "",
+          "text": ""
+        }
+      },
+      "csv": {
+        "allowed": false,
+        "errorCode": "E_MIGRATION_NOT_EXECUTABLE",
+        "artifact": null,
+        "byteLength": 0,
+        "bytesBase64": "",
+        "emittedBytes": {
+          "path": "illegal-config-backup/expected-csv-emitted.bin",
+          "encoding": "utf-8",
+          "byteLength": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytesBase64": "",
+          "text": ""
+        }
+      }
+    },
+    "neverEvaluate": true,
+    "sourceConfigUnmodified": true,
+    "blockedReason": "Invalid fields remain in the exact backup and errors, never become executable draft fields."
+  }
+}

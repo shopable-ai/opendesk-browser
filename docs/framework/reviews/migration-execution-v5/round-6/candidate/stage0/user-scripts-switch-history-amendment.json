@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "revision": "M5-C1-round6-switch-history",
+  "status": "pending formal same-candidate independent review; original counterexamples remain FAIL",
+  "authorityClause": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt:240",
+  "previousManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "oldExpected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+  "newExpected": "Real UI OFF rejects new userScripts calls with native negative controls and no privileged fallback/replay. Actual origin permission, explicit framework grant, cancel/deadline, document/host/session/target invalidation monotonically fence old results; renewal permits only new generations. Operation-owned observation of native OFF/API refusal sticks across ON and rejects the old result once; the final native availability check must succeed, without claiming an atomic uninterrupted authorization history. Only an OFF-to-ON cycle unobserved by the operation mechanism, with no other authority/document invalidation, lacks a retrospective old-result cancellation guarantee: issued effects/results may complete. Preserve all prior expected values, counterexample FAIL objects and raw-native diagnostics; limitation confirmation does not prove the old fencing capability. CSP/code/file/world/current authorization and actual site revoke/restore remain required; no permissions.remove required workaround false proof.",
+  "affectedContract": "F1-PAGE-AUTH-CSP",
+  "families": [
+    "EX01",
+    "EX04",
+    "AUTH01"
+  ],
+  "affectedAPIRows": [
+    {
+      "id": "API:ChromePage.$eval",
+      "symbol": "ChromePage.$eval",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP03-API14-OK",
+        "CMP03-API14-ERR",
+        "CMP03-API14-LIMIT",
+        "AUTH-API14-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.$$eval",
+      "symbol": "ChromePage.$$eval",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP03-API15-OK",
+        "CMP03-API15-ERR",
+        "CMP03-API15-LIMIT",
+        "AUTH-API15-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.addScriptTag",
+      "symbol": "ChromePage.addScriptTag",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/platform/page-port/sdk-injection.js",
+        "src/scripting/user-scripts/page-evaluator.js"
+      ],
+      "caseIds": [
+        "RESOURCE01-API16-OK",
+        "RESOURCE01-API16-ERR",
+        "RESOURCE01-API16-LIMIT",
+        "AUTH-API16-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.waitForFunction",
+      "symbol": "ChromePage.waitForFunction",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP03-API26-OK",
+        "CMP03-API26-ERR",
+        "CMP03-API26-LIMIT",
+        "AUTH-API26-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.eval",
+      "symbol": "ChromePage.eval",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP03-API34-OK",
+        "CMP03-API34-ERR",
+        "CMP03-API34-LIMIT",
+        "AUTH-API34-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    },
+    {
+      "id": "API:ChromePage.evaluate",
+      "symbol": "ChromePage.evaluate",
+      "newModules": [
+        "src/framework/ChromePage.js",
+        "src/scripting/sandbox/page-proxy.js",
+        "src/platform/host/client.js",
+        "src/scripting/user-scripts/page-evaluator.js",
+        "src/scripting/packaged/registry.js"
+      ],
+      "caseIds": [
+        "CMP10-API35-OK",
+        "CMP10-API35-ERR",
+        "CMP10-API35-LIMIT",
+        "AUTH-API35-FENCE"
+      ],
+      "branches": "user-provided function/predicate or classic content only; fixed registry/package branches unchanged"
+    }
+  ],
+  "unchangedCapabilities": [
+    "all48 API public behavior under explicit prerequisites",
+    "standalone SDK, fixed relay and packaged registry",
+    "actual origin/explicit grant/cancel/deadline/document/host/session/target fences",
+    "source72, SDK183 and resource63 entries",
+    "original191 required dispositions /184 positive contracts /603 mandatory cases"
+  ],
+  "requiredSubcases": [
+    {
+      "id": "F1-PAGE-AUTH-CSP/OFF-NEW-CALL",
+      "required": true,
+      "input": "real UI OFF; new USER_SCRIPT/MAIN native and typed calls; restore; new call",
+      "expected": "OFF API refuses with no page mutation; no fallback/replay; actual ON newly issued operation succeeds"
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP/OBSERVED-OFF-STICKY",
+      "required": true,
+      "input": "pending and native-completed held operations; real UI OFF long enough for operation-owned native probe to observe; ON before acceptance; runner never rechecks or writes fences",
+      "expected": "host-owned observation invalidates old op monotonically; old result rejects exactly once after ON; genuinely new valid operation works"
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP/UNOBSERVED-CYCLE-LIMIT",
+      "required": true,
+      "input": "same host/document; pending and native-completed held results; real UI OFF-ON without operation observing OFF; no other invalidation",
+      "expected": "Record actual old effect/delivery/acceptance and explicit unsupported retrospective cancellation; historical eight FAIL unchanged. This diagnostic proves the limit only, never old fencing success"
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP/REAL-AUTHORITY-FENCE",
+      "required": true,
+      "input": "origin permission UI and framework own explicit grant each revoke/renew; both pending/native-completed; document invalidation independently",
+      "expected": "old results reject once without runner fence injection; sticky trusted epoch survives renewal; fresh valid new operation works; no forged authority fields"
+    }
+  ],
+  "diagnosticEvidence": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-bounded-diagnostic-k1-2026-10-02.json",
+      "sha256": "837ad842e98e57d63279259698e602d5f4b9060e06d1dc2e299a2ca8d2741b0d",
+      "bytes": 99618
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-bounded-diagnostic-k1-2026-10-02.md",
+      "sha256": "b93ebbedeaaf72bc9a22e2b32a9851149b4ff607309dfd8ebc5ee7ceb59b0b92",
+      "bytes": 8165
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/switch-contract-opinion.json",
+      "sha256": "5604baaef45d9db17799f366fd5bd1839e0eacd2cf0b4b8abb1f6daaadd59f68",
+      "bytes": 11625
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/page-provisional-review.json",
+      "sha256": "2a679e62128a53674a0f896af6d0f25e1ddc2a3651a51a1a223a0189c907bb4e",
+      "bytes": 110453
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/provisional-page-review.json",
+      "sha256": "9678cba9fe4365aebd98f0daa41d7b57ae37a1add91f0b137a9092cbbaea9655",
+      "bytes": 116420
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3/report.json",
+      "sha256": "5a39c45d8db035ad13bb1106689699274d695b4dccc5b481193e722d4f5a1e4c",
+      "bytes": 285535
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-switch-history-2026-10-02T20-42-10-638Z-4f8e3ea3/evidence-manifest.json",
+      "sha256": "50906af99dfd647cd8bec89d76ec1a45f00ad0e806d424f8eb9837da6015fe2c",
+      "bytes": 4075
+    }
+  ],
+  "oldEvidenceAccounting": "Old expected, eight contractMet=false counters and independent failures plus native raw/required permission FAIL remain immutable. New explicit limit diagnostic is not original old-result fencing proof. Compare old/current/additional subcases separately.",
+  "implementationConstraints": [
+    "operation-owned native availability monitor only while pending; stop/release timer on all terminal paths",
+    "sticky invalidation once actually unavailable; never clear old-operation invalidation on ON",
+    "native current availability check at dispatch and acceptance; no continuous/atomic-history claim",
+    "genuine authority/document/lease/cancellation revocation retains trusted epoch and all old-result fences",
+    "no runner recheck or mutation; no debugger/offscreen or alternate privileged backend",
+    "same-code both actual versions/worlds/stages and independent frozen-union F1 review before F2"
+  ],
+  "limitationsTruthScope": "Measured signal paths cannot witness the unobserved transient history. No exhaustive API impossibility claim; operation effect may already have occurred."
+}

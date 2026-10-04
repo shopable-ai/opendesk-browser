@@ -1,0 +1,685 @@
+{
+  "id": "B05.SDK.conflict",
+  "label": "138",
+  "startedAt": "2026-10-04T09:38:11.527Z",
+  "status": "PASS",
+  "evidence": {
+    "payload": {
+      "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+      "method": "AXIOS_POST",
+      "argsWire": {
+        "type": "object",
+        "value": [
+          [
+            "data",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "effect",
+                  {
+                    "type": "string",
+                    "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                  }
+                ],
+                [
+                  "f",
+                  {
+                    "type": "boolean",
+                    "value": false
+                  }
+                ],
+                [
+                  "z",
+                  {
+                    "type": "number",
+                    "value": 0
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "url",
+            {
+              "type": "string",
+              "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+            }
+          ]
+        ]
+      },
+      "deadlineAt": 1791106721332
+    },
+    "pendingConflicts": [
+      {
+        "payload": {
+          "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+          "method": "AXIOS_PUT",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "effect",
+                      {
+                        "type": "string",
+                        "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                      }
+                    ],
+                    [
+                      "f",
+                      {
+                        "type": "boolean",
+                        "value": false
+                      }
+                    ],
+                    [
+                      "z",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791106721332
+        },
+        "response": {
+          "ok": false,
+          "error": {
+            "code": "E_REQUEST_CONFLICT",
+            "message": "SDK request ID has conflicting arguments"
+          }
+        }
+      },
+      {
+        "payload": {
+          "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+          "method": "AXIOS_POST",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "different",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791106721332
+        },
+        "response": {
+          "ok": false,
+          "error": {
+            "code": "E_REQUEST_CONFLICT",
+            "message": "SDK request ID has conflicting arguments"
+          }
+        }
+      },
+      {
+        "payload": {
+          "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+          "method": "AXIOS_POST",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "effect",
+                      {
+                        "type": "string",
+                        "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                      }
+                    ],
+                    [
+                      "f",
+                      {
+                        "type": "boolean",
+                        "value": false
+                      }
+                    ],
+                    [
+                      "z",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791106721333
+        },
+        "response": {
+          "ok": false,
+          "error": {
+            "code": "E_REQUEST_CONFLICT",
+            "message": "SDK request ID has conflicting arguments"
+          }
+        }
+      }
+    ],
+    "conflicts": [
+      {
+        "payload": {
+          "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+          "method": "AXIOS_PUT",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "effect",
+                      {
+                        "type": "string",
+                        "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                      }
+                    ],
+                    [
+                      "f",
+                      {
+                        "type": "boolean",
+                        "value": false
+                      }
+                    ],
+                    [
+                      "z",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791106721332
+        },
+        "response": {
+          "ok": false,
+          "error": {
+            "code": "E_REQUEST_CONFLICT",
+            "message": "SDK request ID has conflicting arguments"
+          }
+        }
+      },
+      {
+        "payload": {
+          "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+          "method": "AXIOS_POST",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "different",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791106721332
+        },
+        "response": {
+          "ok": false,
+          "error": {
+            "code": "E_REQUEST_CONFLICT",
+            "message": "SDK request ID has conflicting arguments"
+          }
+        }
+      },
+      {
+        "payload": {
+          "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+          "method": "AXIOS_POST",
+          "argsWire": {
+            "type": "object",
+            "value": [
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "effect",
+                      {
+                        "type": "string",
+                        "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                      }
+                    ],
+                    [
+                      "f",
+                      {
+                        "type": "boolean",
+                        "value": false
+                      }
+                    ],
+                    [
+                      "z",
+                      {
+                        "type": "number",
+                        "value": 0
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                }
+              ]
+            ]
+          },
+          "deadlineAt": 1791106721333
+        },
+        "response": {
+          "ok": false,
+          "error": {
+            "code": "E_REQUEST_CONFLICT",
+            "message": "SDK request ID has conflicting arguments"
+          }
+        }
+      }
+    ],
+    "snapshots": [
+      "138/snapshot-4-conflict.json"
+    ],
+    "rows": {
+      "operation": {
+        "tag": "sdk-operation",
+        "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4\"]",
+        "tabId": 1669973067,
+        "frameId": 0,
+        "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+        "origin": "http://127.0.0.1:61120",
+        "principal": "sdk:http://127.0.0.1:61120",
+        "namespace": "page:http://127.0.0.1:61120",
+        "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+        "runId": "d1e073f2-2951-4919-b672-9349d4ad323f",
+        "opId": "b372c760-22b3-4e65-9ee1-c48bca6e1c18",
+        "resultId": "49af626b-52d3-4f53-8135-1d782e324c69",
+        "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+        "requestDigest": "2ae7912478dcad5c22b516aded3429fbacb33604296f8a6487eba9fe31f5a3fc",
+        "method": "AXIOS_POST",
+        "capability": "network",
+        "effect": "write",
+        "deadlineAt": 1791106706352,
+        "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+        "state": "durable",
+        "cancelSeq": 0,
+        "submissionCount": 1,
+        "admittedAt": "2026-10-04T09:38:11.352Z",
+        "dispatchAt": "2026-10-04T09:38:11.388Z",
+        "nativeReceiptWire": {
+          "type": "object",
+          "value": [
+            [
+              "config",
+              {
+                "type": "object",
+                "value": [
+                  [
+                    "method",
+                    {
+                      "type": "string",
+                      "value": "post"
+                    }
+                  ],
+                  [
+                    "url",
+                    {
+                      "type": "string",
+                      "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              "data",
+              {
+                "type": "object",
+                "value": [
+                  [
+                    "effect",
+                    {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  ],
+                  [
+                    "token",
+                    {
+                      "type": "string",
+                      "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              "headers",
+              {
+                "type": "object",
+                "value": [
+                  [
+                    "connection",
+                    {
+                      "type": "string",
+                      "value": "keep-alive"
+                    }
+                  ],
+                  [
+                    "content-type",
+                    {
+                      "type": "string",
+                      "value": "application/json"
+                    }
+                  ],
+                  [
+                    "date",
+                    {
+                      "type": "string",
+                      "value": "Sun, 04 Oct 2026 09:38:11 GMT"
+                    }
+                  ],
+                  [
+                    "keep-alive",
+                    {
+                      "type": "string",
+                      "value": "timeout=5"
+                    }
+                  ],
+                  [
+                    "transfer-encoding",
+                    {
+                      "type": "string",
+                      "value": "chunked"
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              "status",
+              {
+                "type": "number",
+                "value": 200
+              }
+            ],
+            [
+              "statusText",
+              {
+                "type": "string",
+                "value": "OK"
+              }
+            ]
+          ]
+        },
+        "nativeReceiptAt": "2026-10-04T09:38:11.438Z",
+        "receiptAt": "2026-10-04T09:38:11.439Z",
+        "deliveryState": "response_ready",
+        "responseReadyAt": "2026-10-04T09:38:11.522Z"
+      },
+      "runs": [
+        {
+          "key": "d1e073f2-2951-4919-b672-9349d4ad323f",
+          "value": {
+            "tag": "sdk-service",
+            "driver": "framework.sdk-service.v1",
+            "runId": "d1e073f2-2951-4919-b672-9349d4ad323f",
+            "opId": "b372c760-22b3-4e65-9ee1-c48bca6e1c18",
+            "namespace": "page:http://127.0.0.1:61120",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "completed",
+            "createdAt": "2026-10-04T09:38:11.352Z",
+            "resultId": "49af626b-52d3-4f53-8135-1d782e324c69",
+            "completedAt": "2026-10-04T09:38:11.439Z"
+          }
+        }
+      ],
+      "results": [
+        {
+          "key": "49af626b-52d3-4f53-8135-1d782e324c69",
+          "value": {
+            "tag": "sdk-result",
+            "state": "durable",
+            "resultId": "49af626b-52d3-4f53-8135-1d782e324c69",
+            "opId": "b372c760-22b3-4e65-9ee1-c48bca6e1c18",
+            "runId": "d1e073f2-2951-4919-b672-9349d4ad323f",
+            "namespace": "page:http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "requestId": "b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-6a0a3e76-2e55-416a-9c94-85c990bdfdc4\"]",
+            "requestDigest": "2ae7912478dcad5c22b516aded3429fbacb33604296f8a6487eba9fe31f5a3fc",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "config",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "method",
+                        {
+                          "type": "string",
+                          "value": "post"
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "type": "string",
+                          "value": "http://127.0.0.1:61120/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "data",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "effect",
+                        {
+                          "type": "boolean",
+                          "value": true
+                        }
+                      ],
+                      [
+                        "token",
+                        {
+                          "type": "string",
+                          "value": "duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "headers",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "connection",
+                        {
+                          "type": "string",
+                          "value": "keep-alive"
+                        }
+                      ],
+                      [
+                        "content-type",
+                        {
+                          "type": "string",
+                          "value": "application/json"
+                        }
+                      ],
+                      [
+                        "date",
+                        {
+                          "type": "string",
+                          "value": "Sun, 04 Oct 2026 09:38:11 GMT"
+                        }
+                      ],
+                      [
+                        "keep-alive",
+                        {
+                          "type": "string",
+                          "value": "timeout=5"
+                        }
+                      ],
+                      [
+                        "transfer-encoding",
+                        {
+                          "type": "string",
+                          "value": "chunked"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "status",
+                  {
+                    "type": "number",
+                    "value": 200
+                  }
+                ],
+                [
+                  "statusText",
+                  {
+                    "type": "string",
+                    "value": "OK"
+                  }
+                ]
+              ]
+            },
+            "receiptAt": "2026-10-04T09:38:11.439Z",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d"
+          }
+        }
+      ]
+    },
+    "http": [
+      {
+        "sequence": 5,
+        "at": "2026-10-04T09:38:11.390Z",
+        "monoMs": 158568.269709,
+        "method": "POST",
+        "url": "/hold?token=duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99",
+        "headers": {
+          "host": "127.0.0.1:61120",
+          "connection": "keep-alive",
+          "content-length": "75",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "content-type": "application/json",
+          "accept": "*/*",
+          "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "sec-fetch-site": "none",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-dest": "empty",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "accept-language": "zh-CN,zh;q=0.9"
+        },
+        "body": "{\"effect\":\"duplicate-fc7ac367-0cf8-4830-b458-8c8163c7fd99\",\"f\":false,\"z\":0}",
+        "bodySha256": "51d4df82c82370cd7f839e9ac73a6dd4730b3c5d2c294930980d9e91d6d639b0",
+        "finishedAt": "2026-10-04T09:38:11.437Z",
+        "statusCode": 200,
+        "closedAt": "2026-10-04T09:38:11.438Z"
+      }
+    ],
+    "durableConflictCodes": [
+      "E_REQUEST_CONFLICT",
+      "E_REQUEST_CONFLICT",
+      "E_REQUEST_CONFLICT"
+    ]
+  },
+  "measurements": {
+    "elapsedMs": 6.820625000022119,
+    "rawCdpSequenceStart": 7423,
+    "rawCdpSequenceEnd": 7431,
+    "httpRecordCountStart": 5,
+    "httpRecordCountEnd": 5
+  },
+  "endedAt": "2026-10-04T09:38:11.533Z"
+}

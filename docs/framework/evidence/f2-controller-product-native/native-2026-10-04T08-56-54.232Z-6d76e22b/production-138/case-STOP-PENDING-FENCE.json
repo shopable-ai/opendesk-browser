@@ -1,0 +1,12 @@
+{
+  "id": "STOP-PENDING-FENCE",
+  "families": "CTRL01/LEAK01",
+  "expected": "Real UI stop during native page wait; durable cancel; no late page operation; borrowed target survives",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791104337413,
+  "elapsedMs": 0.0012500000011641532
+}

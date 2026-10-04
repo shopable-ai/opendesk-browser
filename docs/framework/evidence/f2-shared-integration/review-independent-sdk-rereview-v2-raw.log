@@ -1,0 +1,319 @@
+F2 targeted read-only SDK rereview. No native B05/F3 qualification.
+
+=== exact original counterexamples ===
+cwd: /Users/shopme/Documents/workspace/opendesk-browser
+reproducer: exact code in unchanged independent-sdk-review.json; SDK-REVIEW-04 uses preserved original-red-reproductions.mjs
+exitCode: 0
+{"id": "SDK-REVIEW-01", "exitCode": 0, "stdout": "before {\n  sdkVersion: '1.0.0',\n  ready: true,\n  methods: [\n    'AXIOS_GET',\n    'AXIOS_POST',\n    'AXIOS_PUT',\n    'AXIOS_DELETE',\n    'APPSTORAGE_GETITEM',\n    'APPSTORAGE_SETITEM',\n    'APPSTORAGE_REMOVEITEM',\n    'APPSTORAGE_CLEAR',\n    'APPLOCAL_GETITEM',\n    'APPLOCAL_SETITEM',\n    'APPLOCAL_REMOVEITEM',\n    'CHROME_LOCAL_GET',\n    'CHROME_LOCAL_SET',\n    'CHROME_LOCAL_REMOVE',\n    'CREATE_NOTIFY',\n    'SERVER_CHECK',\n    'DEVICE_GET_APP_ID'\n  ]\n}\nafter {\n  sdkVersion: '1.0.0',\n  ready: true,\n  methods: [\n    'AXIOS_GET',\n    'AXIOS_POST',\n    'AXIOS_PUT',\n    'AXIOS_DELETE',\n    'APPSTORAGE_GETITEM',\n    'APPSTORAGE_SETITEM',\n    'APPSTORAGE_REMOVEITEM',\n    'APPSTORAGE_CLEAR',\n    'APPLOCAL_GETITEM',\n    'APPLOCAL_SETITEM',\n    'APPLOCAL_REMOVEITEM',\n    'CHROME_LOCAL_GET',\n    'CHROME_LOCAL_SET',\n    'CHROME_LOCAL_REMOVE',\n    'CREATE_NOTIFY',\n    'SERVER_CHECK',\n    'DEVICE_GET_APP_ID'\n  ]\n}\nbefore {\n  sdkVersion: '1.0.0',\n  ready: true,\n  methods: [\n    'AXIOS_GET',\n    'AXIOS_POST',\n    'AXIOS_PUT',\n    'AXIOS_DELETE',\n    'APPSTORAGE_GETITEM',\n    'APPSTORAGE_SETITEM',\n    'APPSTORAGE_REMOVEITEM',\n    'APPSTORAGE_CLEAR',\n    'APPLOCAL_GETITEM',\n    'APPLOCAL_SETITEM',\n    'APPLOCAL_REMOVEITEM',\n    'CHROME_LOCAL_GET',\n    'CHROME_LOCAL_SET',\n    'CHROME_LOCAL_REMOVE',\n    'CREATE_NOTIFY',\n    'SERVER_CHECK',\n    'DEVICE_GET_APP_ID'\n  ]\n}\nafter {\n  sdkVersion: '1.0.0',\n  ready: true,\n  methods: [\n    'AXIOS_GET',\n    'AXIOS_POST',\n    'AXIOS_PUT',\n    'AXIOS_DELETE',\n    'APPSTORAGE_GETITEM',\n    'APPSTORAGE_SETITEM',\n    'APPSTORAGE_REMOVEITEM',\n    'APPSTORAGE_CLEAR',\n    'APPLOCAL_GETITEM',\n    'APPLOCAL_SETITEM',\n    'APPLOCAL_REMOVEITEM',\n    'CHROME_LOCAL_GET',\n    'CHROME_LOCAL_SET',\n    'CHROME_LOCAL_REMOVE',\n    'CREATE_NOTIFY',\n    'SERVER_CHECK',\n    'DEVICE_GET_APP_ID'\n  ]\n}\nbefore {\n  sdkVersion: '1.0.0',\n  ready: true,\n  methods: [\n    'AXIOS_GET',\n    'AXIOS_POST',\n    'AXIOS_PUT',\n    'AXIOS_DELETE',\n    'APPSTORAGE_GETITEM',\n    'APPSTORAGE_SETITEM',\n    'APPSTORAGE_REMOVEITEM',\n    'APPSTORAGE_CLEAR',\n    'APPLOCAL_GETITEM',\n    'APPLOCAL_SETITEM',\n    'APPLOCAL_REMOVEITEM',\n    'CHROME_LOCAL_GET',\n    'CHROME_LOCAL_SET',\n    'CHROME_LOCAL_REMOVE',\n    'CREATE_NOTIFY',\n    'SERVER_CHECK',\n    'DEVICE_GET_APP_ID'\n  ]\n}\nafter {\n  sdkVersion: '1.0.0',\n  ready: true,\n  methods: [\n    'AXIOS_GET',\n    'AXIOS_POST',\n    'AXIOS_PUT',\n    'AXIOS_DELETE',\n    'APPSTORAGE_GETITEM',\n    'APPSTORAGE_SETITEM',\n    'APPSTORAGE_REMOVEITEM',\n    'APPSTORAGE_CLEAR',\n    'APPLOCAL_GETITEM',\n    'APPLOCAL_SETITEM',\n    'APPLOCAL_REMOVEITEM',\n    'CHROME_LOCAL_GET',\n    'CHROME_LOCAL_SET',\n    'CHROME_LOCAL_REMOVE',\n    'CREATE_NOTIFY',\n    'SERVER_CHECK',\n    'DEVICE_GET_APP_ID'\n  ]\n}\n", "stderr": ""}
+{"id": "SDK-REVIEW-02", "exitCode": 0, "stdout": "{ PageBrigeCode: 0, data: undefined, message: '' }\n[\n  {\n    tag: 'sdk-service',\n    driver: 'framework.sdk-service.v1',\n    runId: 'e92b8431-a8f4-4297-98be-6447aa473e41',\n    opId: 'baf8bc4d-29a4-4f20-b446-e0843a8311e3',\n    namespace: 'page:https://fixture.example',\n    browserSessionIncarnation: 'browser-session',\n    state: 'completed',\n    createdAt: '2026-10-03T06:41:40.000Z',\n    resultId: '94b9c549-3b67-40d2-88e3-facac677fa41'\n  }\n]\n{\n  tag: 'sdk-operation',\n  opKey: 'sdk-operation:[\"sdk:https://fixture.example\",2,0,\"page-document\",\"0e965df5-da2e-4853-9f4a-8df13a3c03b1\",\"durable-gap\"]',\n  tabId: 2,\n  frameId: 0,\n  documentId: 'page-document',\n  origin: 'https://fixture.example',\n  principal: 'sdk:https://fixture.example',\n  namespace: 'page:https://fixture.example',\n  grantIncarnation: '0e965df5-da2e-4853-9f4a-8df13a3c03b1',\n  runId: 'e92b8431-a8f4-4297-98be-6447aa473e41',\n  opId: 'baf8bc4d-29a4-4f20-b446-e0843a8311e3',\n  resultId: '94b9c549-3b67-40d2-88e3-facac677fa41',\n  requestId: 'durable-gap',\n  requestDigest: '467b6bc4329428bd471c6b30dce8abb51238361e1bf27c7125324917c0264942',\n  method: 'APPSTORAGE_SETITEM',\n  capability: 'storage.persistent',\n  effect: 'write',\n  deadlineAt: 1791009715000,\n  browserSessionIncarnation: 'browser-session',\n  state: 'durable',\n  cancelSeq: 0,\n  submissionCount: 0,\n  admittedAt: '2026-10-03T06:41:40.000Z',\n  storageRequestDigest: 'c478b2d1fc07ba790155f2266db94b87907bf4246067cb643443308617be6cc6',\n  durableAt: 1791009700000,\n  receiptAt: '2026-10-03T06:41:40.000Z',\n  receipt: {\n    resultId: '94b9c549-3b67-40d2-88e3-facac677fa41',\n    state: 'durable'\n  },\n  deliveryState: 'response_ready',\n  responseReadyAt: '2026-10-03T06:41:40.000Z'\n}\n", "stderr": ""}
+{"id": "SDK-REVIEW-03", "exitCode": 0, "stdout": "true\n", "stderr": ""}
+{"id": "SDK-REVIEW-04 plus fresh MAIN assertions", "exitCode": 0, "stdout": "{\n  \"baseline\": false,\n  \"observations\": [\n    {\n      \"case\": \"fresh-MAIN\",\n      \"sameModuleIdempotent\": true,\n      \"reused\": true\n    },\n    {\n      \"case\": \"same-ID-changed-digest\",\n      \"nativeDispatches\": 2,\n      \"conflictReplies\": 1\n    },\n    {\n      \"case\": \"timeout-reused-ID-old-callback-first\",\n      \"pendingAfterOld\": 1,\n      \"replies\": [\n        \"E_TIMEOUT\",\n        \"E_REQUEST_CONFLICT\"\n      ]\n    }\n  ]\n}\n", "stderr": ""}
+
+
+=== independent recovery combinations ===
+cwd: /Users/shopme/Documents/workspace/opendesk-browser
+command:
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+import {validateSdkRequest} from './src/framework/sdk/registry.js';
+import {decodeValue} from './src/platform/page-port/codec.js';
+let source=await readFile('tests/framework/k2-sdk-broker.test.mjs','utf8');
+source=source.slice(0,source.indexOf('const code = expected')).replace(/from '(\.\.[^']+)'/g,(_,p)=>`from '${new URL(p,pathToFileURL(process.cwd()+'/tests/framework/k2-sdk-broker.test.mjs')).href}'`);
+const {fixture}=await import('data:text/javascript;base64,'+Buffer.from(source+'\nexport {fixture};').toString('base64'));
+const operation=f=>f.rows('commandJournal').then(rows=>rows.filter(x=>x.tag==='sdk-operation'));
+const snapshot=async f=>({operations:await operation(f),runs:await f.rows('runs'),results:await f.rows('results')});
+const request=p=>validateSdkRequest({requestId:p.requestId,method:p.method,args:decodeValue(p.argsWire),deadlineAt:p.deadlineAt});
+for(const [kind,selector] of [['same-document-frame',{tabId:2,frameId:0,reason:'navigation'}],['new-document-tab',{tabId:2,reason:'navigation'}],['origin',{origins:['https://*.example/*'],permissions:[],reason:'permission-removed'}],['notifications',{origins:[],permissions:['notifications'],reason:'permission-removed'}]]){
+ const f=await fixture();const originalGrant=await f.grant();const oldSender=structuredClone(f.sender);
+ const p=f.payload('APPLOCAL_SETITEM',{key:'regrant',value:0},'old-regrant-id');await f.broker.request(p,f.sender);
+ const oldAdmission=await f.authority.admitSdk(request(p),f.sender);
+ await f.authority.revokeSdkGrants(selector);
+ if(kind==='new-document-tab'){f.navigate('new-document');f.sender.documentId='new-document';}
+ const newGrant=await f.grant();assert.notEqual(newGrant.grantIncarnation,originalGrant.grantIncarnation);
+ const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);
+ const broker=f.makeBroker(fresh);assert.equal((await broker.hello({sdkVersion:'1.0.0'},f.sender)).ready,true);
+ await assert.rejects(broker.request(p,oldSender),e=>e.code===(kind==='new-document-tab'?'E_DOCUMENT_STALE':'E_GRANT_REVOKED'));
+ await assert.rejects(oldAdmission.context.authorize(),e=>['E_DOCUMENT_STALE','E_GRANT_REVOKED'].includes(e.code));
+ const result=decodeValue((await broker.request(f.payload('APPLOCAL_GETITEM',{key:'regrant'},'new-regrant-id'),f.sender)).valueWire);assert.equal(result.data,0);
+ assert.equal(f.nativeCalls.filter(x=>x.method==='set').length,1);
+ console.log(JSON.stringify({case:'regrant-double-recover',kind,status:'PASS',oldIncarnationAndRequestFenced:true,nativeSetCount:1,result:result.data}));broker.dispose();f.broker.dispose();
+}
+{
+ const f=await fixture();await f.grant();const p=f.payload('APPSTORAGE_SETITEM',{key:'atomic-cut',value:false},'atomic-cut-id');
+ const a=await f.authority.admitSdk(request(p),f.sender);await f.storage.executeSdk(p.method,request(p).args,a.context);
+ assert.equal((await f.rows('runs'))[0].state,'preparing');assert.equal(f.storage.writes.filter(x=>x.store==='frameworkKV').length,1);
+ const result=(await f.rows('results'))[0];assert.equal(result.state,'durable');
+ for(const field of ['opKey','requestDigest','opId','runId','namespace','grantIncarnation','browserSessionIncarnation'])assert.equal(result[field],a.operation[field]);
+ const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);
+ const broker=f.makeBroker(fresh);const run=(await f.rows('runs'))[0];assert.equal(run.state,'completed');assert.equal(run.resultId,result.resultId);
+ const reply=decodeValue((await broker.request(p,f.sender)).valueWire);assert.equal(reply.PageBrigeCode,0);assert(Object.hasOwn(reply,'data'));assert.equal(reply.data,undefined);
+ assert.equal(f.storage.writes.filter(x=>x.store==='frameworkKV').length,1);assert.equal((await f.rows('frameworkKV')).length,1);assert.equal(decodeValue((await f.rows('frameworkKV'))[0].valueWire),'false');
+ assert.equal((await f.rows('results')).length,1);assert.equal((await operation(f))[0].deliveryState,'response_ready');assert.notEqual((await operation(f))[0].deliveryState,'delivered');
+ const operationAfter=(await operation(f))[0];for(const field of ['opId','opKey','requestDigest','deadlineAt','grantIncarnation','runId','resultId'])assert.equal(operationAfter[field],a.operation[field]);
+ console.log(JSON.stringify({case:'atomic-result-before-broker-receipt-double-recover',status:'PASS',frameworkKVWrites:1,resultCount:1,runState:run.state,deliveryState:operationAfter.deliveryState,originalBindings:true}));broker.dispose();f.broker.dispose();
+}
+for(const [method,args,capability] of [['AXIOS_POST',{url:'https://fixture.example/write',data:0},'network'],['APPLOCAL_SETITEM',{key:'unknown',value:0},'storage.session'],['CREATE_NOTIFY',{title:'unknown',content:'unknown'},'notifications']]){
+ let fetchCount=0;const f=await fixture({fetchImpl:async()=>{fetchCount++;throw Error('should not dispatch');}});await f.grant();const p=f.payload(method,args,'unknown-cut-id');const a=await f.authority.admitSdk(request(p),f.sender);
+ await a.context.authorize({capability,phase:'pre',...(capability==='network'?{url:args.url}:{})});
+ const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);
+ const broker=f.makeBroker(fresh);await assert.rejects(broker.request(p,f.sender),e=>e.code==='E_EFFECT_UNKNOWN');const op=(await operation(f))[0],run=(await f.rows('runs'))[0];
+ assert.equal(op.state,'effect_unknown');assert.equal(run.state,'paused_unknown');assert.equal(op.submissionCount,1);assert.equal(op.deliveryState,'denied');
+ for(const field of ['opId','opKey','requestDigest','deadlineAt','grantIncarnation','runId','resultId'])assert.equal(op[field],a.operation[field]);
+ assert.equal((await operation(f)).length,1);assert.equal((await f.rows('runs')).length,1);assert.equal((await f.rows('results')).length,0);assert.equal(fetchCount,0);assert.equal(f.nativeCalls.length,0);
+ console.log(JSON.stringify({case:'dispatched-double-recover-no-replay',method,status:'PASS',operationState:op.state,runState:run.state,dispatchesAfterRecovery:0,originalBindings:true}));broker.dispose();f.broker.dispose();
+}
+console.log('INDEPENDENT_COMBINATIONS 8/8 PASS; serial transaction/Chrome callback oracle only');
+JS
+exitCode: 0
+{"case":"regrant-double-recover","kind":"same-document-frame","status":"PASS","oldIncarnationAndRequestFenced":true,"nativeSetCount":1,"result":0}
+{"case":"regrant-double-recover","kind":"new-document-tab","status":"PASS","oldIncarnationAndRequestFenced":true,"nativeSetCount":1,"result":0}
+{"case":"regrant-double-recover","kind":"origin","status":"PASS","oldIncarnationAndRequestFenced":true,"nativeSetCount":1,"result":0}
+{"case":"regrant-double-recover","kind":"notifications","status":"PASS","oldIncarnationAndRequestFenced":true,"nativeSetCount":1,"result":0}
+{"case":"atomic-result-before-broker-receipt-double-recover","status":"PASS","frameworkKVWrites":1,"resultCount":1,"runState":"completed","deliveryState":"response_ready","originalBindings":true}
+{"case":"dispatched-double-recover-no-replay","method":"AXIOS_POST","status":"PASS","operationState":"effect_unknown","runState":"paused_unknown","dispatchesAfterRecovery":0,"originalBindings":true}
+{"case":"dispatched-double-recover-no-replay","method":"APPLOCAL_SETITEM","status":"PASS","operationState":"effect_unknown","runState":"paused_unknown","dispatchesAfterRecovery":0,"originalBindings":true}
+{"case":"dispatched-double-recover-no-replay","method":"CREATE_NOTIFY","status":"PASS","operationState":"effect_unknown","runState":"paused_unknown","dispatchesAfterRecovery":0,"originalBindings":true}
+INDEPENDENT_COMBINATIONS 8/8 PASS; serial transaction/Chrome callback oracle only
+
+
+=== 49 scoped SDK relay tests ===
+cwd: /Users/shopme/Documents/workspace/opendesk-browser
+command:
+node --test --test-reporter=spec tests/framework/k2-sdk-relay-races.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs
+exitCode: 0
+✔ same-ID changed args/method/original deadline reaches broker and explicitly delivers conflict (3.358625ms)
+✔ timeout plus reused ID: old success or rejection cannot finish/delete replacement (1.42225ms)
+✔ 100 same-ID same-digest real relay dispatches all reach product broker admission: serial oracle, not native B05 (41.754166ms)
+✔ deadline, canonical codec and legitimate request ID hello remain exact at native boundary (0.245875ms)
+✔ bad page fields/ACK errors never consume another entry; dispose clears timers and late callbacks (0.250791ms)
+✔ exact review reproducer: two fresh evaluations reuse frozen globals and perform new Hello (8.9105ms)
+✔ fresh native Hello updates expanded/shrunken grant subset and refuses failed regrant (8.34575ms)
+✔ reinjection preserves old pending legacy callback and stable ChromeBridgeEvents (2.402708ms)
+✔ overlapping reinjections serialize fixed Hello so late old callback cannot supply fresh grant (1.84825ms)
+✔ hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed (0.245041ms)
+✔ dispose and pagehide are terminal: fresh evaluation cannot resurrect immutable installation (1.733042ms)
+✔ borrowed lifecycle and forged function toString cannot impersonate ownership of a different global (0.235791ms)
+✔ CMP15 callback preserves false (5.132625ms)
+✔ CMP15 callback preserves 0 (0.373792ms)
+✔ CMP15 callback preserves undefined (0.310083ms)
+✔ CMP15 callback preserves null (0.245125ms)
+✔ CMP15 callback preserves  (0.275083ms)
+✔ CMP15 callback preserves 0 (0.281583ms)
+✔ CMP15 callback preserves  (0.268708ms)
+✔ CMP15 callback preserves [object Object] (0.43025ms)
+✔ CMP15 inner business error business denied remains original rejection (0.731167ms)
+✔ CMP15 inner business error [object Object] remains original rejection (0.423208ms)
+✔ CMP15 inner business error null remains original rejection (0.240625ms)
+✔ CMP15 inner business error undefined remains original rejection (0.312416ms)
+✔ CMP15 inner business error false remains original rejection (0.247958ms)
+✔ CMP15 inner business error 0 remains original rejection (0.370125ms)
+✔ CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending (1.05125ms)
+✔ CMP15 unicode legacy Base64 callback and ACK never settle early (0.507125ms)
+✔ CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement (0.188416ms)
+✔ B03 client deadline and document dispose clean original pending once (10.721208ms)
+✔ CMP07 AppStorage String semantics and AppLocal typed presence cross codec (0.63775ms)
+✔ CMP13 four HTTP facades preserve call shape (0.146917ms)
+✔ schema/config/business refusal dispatches nothing (0.38375ms)
+✔ CMP14 notifications preserve desc rules with typed null/body errors (0.113625ms)
+✔ CMP14 server results use latency order, input ties and all-failed null (0.173917ms)
+✔ CMP08 strict compact JSON never runs code; wrapAsync is only source transformation (0.099459ms)
+✔ CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID (0.429ms)
+✔ CMP08 UtilInfo stays idle until explicit call and keeps original URL (0.066125ms)
+✔ events retain old strings and route lifecycle solely to injected RunHost (0.080709ms)
+✔ sleep resolves undefined and abort removes timer (1.207209ms)
+✔ SDK install conflicts never overwrite page functions; same installation is idempotent (0.601458ms)
+✔ Hello cannot be ready from partial or wrong-version allowlist (3.771125ms)
+✔ fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority (1.623042ms)
+✔ CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data (0.4565ms)
+✔ Hello grant subset permits its methods and rejects other calls before native request (0.129167ms)
+✔ fixture 100 concurrent original promises once settle; not native B05 evidence (7.288167ms)
+✔ relay rejects page claims and raw script without native dispatch (1.184417ms)
+✔ native typed authority/transport failure is outer error; business remains inner (0.57225ms)
+✔ service dispatcher delegates storage and atomic device context without namespace from page (0.169959ms)
+ℹ tests 49
+ℹ suites 0
+ℹ pass 49
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.436625
+
+
+=== 40 scoped service tests (includes 19 SDK broker tests) ===
+cwd: /Users/shopme/Documents/workspace/opendesk-browser
+command:
+node --test --test-reporter=spec tests/framework/k2-sdk-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k4-chrome-services.test.mjs
+exitCode: 0
+✔ SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs (18.183167ms)
+✔ SDK recovery reconciles atomic storage durable result before broker receipt and never replays it (2.158084ms)
+✔ SDK restart at dispatched cut pauses its run with original unknown effect and no replacement (1.658542ms)
+✔ SDK Hello needs native document/grant and never claims a controller slot (0.555041ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (0.630375ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (0.427708ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (19.344ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (3.806041ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (4.880791ms)
+✔ durable session duplicate after authority restart does not resubmit native set (1.789542ms)
+✔ native session failure records unknown dispatch and will not retry same write (1.691ms)
+✔ SW recovery fences dispatched write gap and retains original identity/deadline (0.7845ms)
+✔ durable duplicate cannot extend original 15s service deadline (1.270542ms)
+✔ native permission remove then regrant cannot revive old request/grant (1.982708ms)
+✔ observed navigation invalidates current page Hello and pending admission (0.549583ms)
+✔ notification permission removal with empty origins revokes the affected grant (0.379ms)
+✔ notification native receipt and durable undefined survive delivery revocation (1.712291ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (27.481541ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (1.168792ms)
+✔ SVC cookie reads use exact URL; no public-suffix or neighboring-domain expansion (1.91625ms)
+✔ SVC cookie batch preserves explicit expiry/default session and Host-prefix rules (2.402708ms)
+✔ SVC cookie removal awaits all callbacks and checks each permission (4.787458ms)
+✔ SVC Chrome lastError and missing cookie callbacks are typed failures (0.33275ms)
+✔ SVC fixed injection requires exact doc and correct resource/world before Chrome call (0.299208ms)
+✔ SVC notification click has no page URL, clears once, close/late events do not resettle (0.376083ms)
+✔ CMP13 real loopback four HTTP methods, body and serializable projection (30.409708ms)
+✔ CMP13 real response false retained (2.43475ms)
+✔ CMP13 real response zero retained (2.224042ms)
+✔ CMP13 real response null retained (0.886083ms)
+✔ HTTP vs network vs bad JSON/UTF8 typed errors and restricted error response (5.494125ms)
+✔ denied URL and config have zero real HTTP; native grant rechecked post response (1.32575ms)
+✔ private native receipt hook persists HTTP fact before post revocation, not normalized checkServer result (3.690417ms)
+✔ manual redirect never follows unauthorized destination (1.932584ms)
+✔ actual abort during stalled body/HTTP, size budget and caller cancellation (76.035792ms)
+✔ backend 15s budget independent from client timeout and earlier native deadline (1.949667ms)
+✔ stalled pre/post native permission validation still obeys driver deadline without replay (42.141125ms)
+✔ server checks real observable success/failure and never reports opaque available (21.808875ms)
+✔ external IP info disabled default and never calls original external endpoint in tests (0.200333ms)
+✔ notification true callback wait, lastError refusal and pre/post authorization (1.03075ms)
+✔ service HTTP result preserves business object inside response.data rather than outer authority (2.45625ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 320.775209
+
+
+=== new Hello timeout counterexample ===
+cwd: /Users/shopme/Documents/workspace/opendesk-browser
+command:
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import {installPageSdk} from './src/framework/sdk/entry.js';
+import {createWindowTransport} from './src/framework/sdk/transport.js';
+import {installPageRelay} from './src/agents/page-relay.js';
+import {SDK_READY_EVENT} from './src/framework/sdk/registry.js';
+class DetailEvent extends Event { constructor(type,{detail}) {super(type); this.detail=detail;} }
+const window=new EventTarget(), timers=new Map(), callbacks=[], results=[]; let next=0;
+const setTimer=(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;}, clearTimer=id=>timers.delete(id);
+const options={window,CustomEvent:DetailEvent,setTimer,clearTimer};
+const relay=installPageRelay({...options,api:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}});
+window.addEventListener(SDK_READY_EVENT,e=>results.push(JSON.parse(e.detail)));
+const page={window,CustomEvent:DetailEvent};
+const sdk=installPageSdk({global:page,transport:createWindowTransport(options)});
+const first=sdk.ready().then(x=>({ready:x}),e=>({error:e.code}));
+const turn=()=>new Promise(resolve=>setImmediate(resolve));await turn();
+const originalTimers=[...timers.keys()]; assert.equal(callbacks.length,1);
+installPageSdk({global:page,transport:createWindowTransport(options)});
+let freshOutcome='pending'; const fresh=sdk.ready().then(x=>{freshOutcome={ready:x};return freshOutcome;},e=>{freshOutcome={error:e.code};return freshOutcome;});
+await turn(); assert.equal(callbacks.length,1);
+const oldMainTimer=timers.get(originalTimers[0]), oldRelayTimer=timers.get(originalTimers[1]);
+oldMainTimer.fn(); await turn(); assert.equal(callbacks.length,2);
+oldRelayTimer.fn(); await turn();
+callbacks[1].cb({ok:true,data:{sdkVersion:'1.0.0',ready:true,methods:['APPSTORAGE_CLEAR']}});await turn();
+console.log(JSON.stringify({case:'reinjection-previous-Hello-MAIN-timeout-before-relay-timeout',sameTimeoutMs:[oldMainTimer.ms,oldRelayTimer.ms],first:await first,fresh:await fresh,nativeHelloDispatches:callbacks.length,readyEvents:results}));
+sdk.dispose();relay.removeEventListeners();
+JS
+exitCode: 0
+{"case":"reinjection-previous-Hello-MAIN-timeout-before-relay-timeout","sameTimeoutMs":[30000,30000],"first":{"error":"E_TIMEOUT"},"fresh":{"error":"E_TIMEOUT"},"nativeHelloDispatches":2,"readyEvents":[{"protocol":"opendesk.foundation.v1","response":{"ok":false,"error":{"code":"E_TIMEOUT","message":"Relay deadline exceeded"}}},{"protocol":"opendesk.foundation.v1","response":{"ok":true,"data":{"sdkVersion":"1.0.0","ready":true,"methods":["APPSTORAGE_CLEAR"]}}}]}
+
+
+=== new stale Hello success counterexample ===
+cwd: /Users/shopme/Documents/workspace/opendesk-browser
+command:
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import {installPageSdk} from './src/framework/sdk/entry.js';
+import {createWindowTransport} from './src/framework/sdk/transport.js';
+import {installPageRelay} from './src/agents/page-relay.js';
+import {SDK_READY_EVENT} from './src/framework/sdk/registry.js';
+class DetailEvent extends Event { constructor(type,{detail}) {super(type); this.detail=detail;} }
+const window=new EventTarget(), timers=new Map(), callbacks=[], results=[]; let next=0;
+const setTimer=(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;}, clearTimer=id=>timers.delete(id);
+const options={window,CustomEvent:DetailEvent,setTimer,clearTimer};
+const relay=installPageRelay({...options,api:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}});
+window.addEventListener(SDK_READY_EVENT,e=>results.push(JSON.parse(e.detail)));
+const page={window,CustomEvent:DetailEvent};
+const sdk=installPageSdk({global:page,transport:createWindowTransport(options)});
+const first=sdk.ready().then(x=>({ready:x}),e=>({error:e.code}));
+const turn=()=>new Promise(resolve=>setImmediate(resolve));await turn();
+const originalTimers=[...timers.keys()]; assert.equal(callbacks.length,1);
+installPageSdk({global:page,transport:createWindowTransport(options)});
+let freshOutcome='pending'; const fresh=sdk.ready().then(x=>{freshOutcome={ready:x};return freshOutcome;},e=>{freshOutcome={error:e.code};return freshOutcome;});
+await turn(); assert.equal(callbacks.length,1);
+const oldMainTimer=timers.get(originalTimers[0]), oldRelayTimer=timers.get(originalTimers[1]);
+oldMainTimer.fn(); await turn(); assert.equal(callbacks.length,2);
+callbacks[0].cb({ok:true,data:{sdkVersion:'1.0.0',ready:true,methods:['APPLOCAL_GETITEM']}}); await turn();
+callbacks[1].cb({ok:false,error:{code:'E_GRANT_REVOKED',message:'new actual Hello denied'}});await turn();
+console.log(JSON.stringify({case:'reinjection-old-native-Hello-success-after-MAIN-timeout-poisons-fresh-denied-Hello',sameTimeoutMs:[oldMainTimer.ms,oldRelayTimer.ms],first:await first,fresh:await fresh,nativeHelloDispatches:callbacks.length,readyEvents:results}));
+sdk.dispose();relay.removeEventListeners();
+JS
+exitCode: 0
+{"case":"reinjection-old-native-Hello-success-after-MAIN-timeout-poisons-fresh-denied-Hello","sameTimeoutMs":[30000,30000],"first":{"error":"E_TIMEOUT"},"fresh":{"ready":{"sdkVersion":"1.0.0","ready":true,"methods":["APPLOCAL_GETITEM"]}},"nativeHelloDispatches":2,"readyEvents":[{"protocol":"opendesk.foundation.v1","response":{"ok":true,"data":{"sdkVersion":"1.0.0","ready":true,"methods":["APPLOCAL_GETITEM"]}}},{"protocol":"opendesk.foundation.v1","response":{"ok":false,"error":{"code":"E_GRANT_REVOKED","message":"new actual Hello denied"}}}]}
+
+
+=== two-mode exact bundle in-memory verification; no emitted files ===
+cwd: /Users/shopme/Documents/workspace/opendesk-browser
+command:
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import vm from 'node:vm';
+const require=createRequire(import.meta.url), webpack=require('webpack'), makeConfig=require('./webpack.config.cjs');
+const turn=()=>new Promise(resolve=>setImmediate(resolve));
+class DetailEvent extends Event {constructor(type,{detail}={}){super(type);this.detail=detail;}}
+for(const mode of ['production','development']){
+ const base=makeConfig(mode),compiler=webpack({...base,entry:{'framework/sdk-main':'./src/framework/sdk/entry.js','agents/page-relay':'./src/agents/page-relay.js'},output:{...base.output,clean:false},cache:false});
+ compiler.hooks.shouldEmit.tap('ReadOnlySdkReview',()=>false);
+ let stats;try{stats=await new Promise((resolve,reject)=>compiler.run((e,s)=>e||s.hasErrors()?reject(e||Error(s.toString({all:false,errors:true}))):resolve(s)));}finally{await new Promise(resolve=>compiler.close(resolve));}
+ const main=stats.compilation.getAsset('framework/sdk-main.js').source.source(),relay=stats.compilation.getAsset('agents/page-relay.js').source.source();
+ {
+  const window=new EventTarget(),callbacks=[];let methods=['APPLOCAL_GETITEM'];
+  const api={runtime:{sendMessage:(m,cb)=>{callbacks.push(m);queueMicrotask(()=>cb({ok:true,data:{sdkVersion:'1.0.0',ready:true,methods}}));}}};
+  const globals={window,document:{},CustomEvent:DetailEvent,navigator:{userAgent:''},TextEncoder,TextDecoder,URL,crypto,setTimeout,clearTimeout,btoa,atob};
+  const isolated=vm.createContext({...globals,chrome:api}),page=vm.createContext(globals);vm.runInContext(relay,isolated);vm.runInContext(main,page);const sdk=page.OpenDeskSDK;await sdk.ready();
+  methods=['APPSTORAGE_CLEAR'];vm.runInContext(relay,isolated);vm.runInContext(main,page);assert.equal(page.OpenDeskSDK,sdk);assert.deepEqual(Array.from((await sdk.ready()).methods),methods);
+  assert.equal(callbacks.length,2);await assert.rejects(sdk.AppLocal.getItem('x'),e=>e.code==='E_CAPABILITY');sdk.dispose();isolated.__openDeskSdkRelayV1.removeEventListeners();
+  console.log(JSON.stringify({mode,case:'in-memory-exact-fixed-MAIN-and-relay-bundle-reevaluation',status:'PASS',nativeHelloCount:2,filesEmitted:false}));
+ }
+ {
+  const window=new EventTarget(),timers=new Map(),callbacks=[];let next=0;
+  const setTimer=(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;},clearTimer=id=>timers.delete(id);
+  const globals={window,document:{},CustomEvent:DetailEvent,navigator:{userAgent:''},TextEncoder,TextDecoder,URL,crypto,setTimeout:setTimer,clearTimeout:clearTimer,btoa,atob};
+  const isolated=vm.createContext({...globals,chrome:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}}),page=vm.createContext(globals);
+  vm.runInContext(relay,isolated);vm.runInContext(main,page);const sdk=page.OpenDeskSDK;const first=sdk.ready().then(v=>({ready:v}),e=>({error:e.code}));await turn();const originals=[...timers.values()];
+  vm.runInContext(main,page);const fresh=sdk.ready().then(v=>({ready:Array.from(v.methods)}),e=>({error:e.code}));await turn();assert.equal(callbacks.length,1);
+  originals[0].fn();await turn();assert.equal(callbacks.length,2);originals[1].fn();await turn();callbacks[1].cb({ok:true,data:{sdkVersion:'1.0.0',ready:true,methods:['APPSTORAGE_CLEAR']}});await turn();
+  assert.deepEqual(await first,{error:'E_TIMEOUT'});assert.deepEqual(await fresh,{error:'E_TIMEOUT'});
+  console.log(JSON.stringify({mode,case:'old-Hello-timeout-poisons-fresh-Hello',status:'COUNTEREXAMPLE_REPRODUCED',freshNativeHelloSuccess:true,freshReadyError:'E_TIMEOUT',filesEmitted:false}));
+  sdk.dispose();isolated.__openDeskSdkRelayV1.removeEventListeners();
+ }
+}
+JS
+exitCode: 0
+{"mode":"production","case":"in-memory-exact-fixed-MAIN-and-relay-bundle-reevaluation","status":"PASS","nativeHelloCount":2,"filesEmitted":false}
+{"mode":"production","case":"old-Hello-timeout-poisons-fresh-Hello","status":"COUNTEREXAMPLE_REPRODUCED","freshNativeHelloSuccess":true,"freshReadyError":"E_TIMEOUT","filesEmitted":false}
+{"mode":"development","case":"in-memory-exact-fixed-MAIN-and-relay-bundle-reevaluation","status":"PASS","nativeHelloCount":2,"filesEmitted":false}
+{"mode":"development","case":"old-Hello-timeout-poisons-fresh-Hello","status":"COUNTEREXAMPLE_REPRODUCED","freshNativeHelloSuccess":true,"freshReadyError":"E_TIMEOUT","filesEmitted":false}
+
+
+=== syntax checks ===
+cwd: /Users/shopme/Documents/workspace/opendesk-browser
+reproducer: exact code in unchanged independent-sdk-review.json; SDK-REVIEW-04 uses preserved original-red-reproductions.mjs
+exitCode: 0
+
+=== Same-thread scope completion update ===
+{"at": "2026-10-03T08:33:26.391264+00:00", "targetedFourReviewComplete": true, "driftSincePriorReport": [{"path": "src/platform/page-port/codec.js", "before": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124", "after": "9bbc78e7adb9f171cdf06d93fb5850f7caf6f1c74583e093a412b31878955e76"}], "affectedFreshVerificationDeferredUntilParentFreeze": true, "browserLaunchPerformed": false, "testsRerunInThisScopeUpdate": false}

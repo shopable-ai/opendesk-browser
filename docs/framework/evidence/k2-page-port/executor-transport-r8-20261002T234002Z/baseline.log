@@ -1,0 +1,28 @@
+✖ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (6.955167ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30062.859792
+
+✖ failing tests:
+
+test at tests/foundation/page-port-service.test.mjs:121:1
+✖ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (6.955167ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(frame)
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs:132:77)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1,0 +1,992 @@
+{
+  "events": [
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "C3098ED6DDA16C63AFDF02460DAE9DFB",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972664920
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "A66FE90155D29A30CB823AFD2E460B95",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972664993
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "A66FE90155D29A30CB823AFD2E460B95",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665028
+    },
+    {
+      "method": "Target.attachedToTarget",
+      "params": {
+        "sessionId": "E023544EACCD1E19F4369B33E99F3D95",
+        "targetInfo": {
+          "targetId": "A66FE90155D29A30CB823AFD2E460B95",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        },
+        "waitingForDebugger": false
+      },
+      "observedAt": 1790972665029
+    },
+    {
+      "method": "Target.detachedFromTarget",
+      "params": {
+        "sessionId": "E023544EACCD1E19F4369B33E99F3D95",
+        "targetId": "A66FE90155D29A30CB823AFD2E460B95"
+      },
+      "observedAt": 1790972665090
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "A66FE90155D29A30CB823AFD2E460B95",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665090
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "A66FE90155D29A30CB823AFD2E460B95",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665193
+    },
+    {
+      "method": "Target.attachedToTarget",
+      "params": {
+        "sessionId": "F6335B32984C53C2D07CFC4F864626F5",
+        "targetInfo": {
+          "targetId": "A66FE90155D29A30CB823AFD2E460B95",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        },
+        "waitingForDebugger": false
+      },
+      "observedAt": 1790972665193
+    },
+    {
+      "method": "Target.detachedFromTarget",
+      "params": {
+        "sessionId": "F6335B32984C53C2D07CFC4F864626F5",
+        "targetId": "A66FE90155D29A30CB823AFD2E460B95"
+      },
+      "observedAt": 1790972665201
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "A66FE90155D29A30CB823AFD2E460B95",
+          "type": "service_worker",
+          "title": "Service Worker chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665202
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "94D2ECCC2F231552ED618EFCE48B238B",
+          "type": "page",
+          "title": "",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665258
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "94D2ECCC2F231552ED618EFCE48B238B",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665267
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "94D2ECCC2F231552ED618EFCE48B238B",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665267
+    },
+    {
+      "method": "Target.attachedToTarget",
+      "params": {
+        "sessionId": "67BDA10F33ED8247CB31015A634728B0",
+        "targetInfo": {
+          "targetId": "94D2ECCC2F231552ED618EFCE48B238B",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        },
+        "waitingForDebugger": false
+      },
+      "observedAt": 1790972665267
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "94D2ECCC2F231552ED618EFCE48B238B",
+          "type": "page",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665352
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "28101067E4AD6F7EEA2B21CF8B2924BF",
+          "type": "iframe",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665452
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "28101067E4AD6F7EEA2B21CF8B2924BF",
+          "type": "iframe",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665526
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "C51425BD899855496FEE6026143185BE",
+          "type": "page",
+          "title": "",
+          "url": "http://127.0.0.1:49466/form",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665585
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "C51425BD899855496FEE6026143185BE",
+          "type": "page",
+          "title": "127.0.0.1:49466/form",
+          "url": "http://127.0.0.1:49466/form",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665592
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "8B7B6EE2C133EC240A83225B62A49DBA",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972665658
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "28101067E4AD6F7EEA2B21CF8B2924BF"
+      },
+      "observedAt": 1790972666039
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "F671BAD2E30ADC115A580FB2C2DB1A65",
+          "type": "iframe",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972666094
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "F671BAD2E30ADC115A580FB2C2DB1A65",
+          "type": "iframe",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972666143
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "8B7B6EE2C133EC240A83225B62A49DBA"
+      },
+      "observedAt": 1790972668039
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "C51425BD899855496FEE6026143185BE"
+      },
+      "observedAt": 1790972668297
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "F671BAD2E30ADC115A580FB2C2DB1A65"
+      },
+      "observedAt": 1790972668299
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "94D2ECCC2F231552ED618EFCE48B238B",
+          "type": "other",
+          "title": "OpenDesk F1 user script evidence",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668315
+    },
+    {
+      "method": "Target.detachedFromTarget",
+      "params": {
+        "sessionId": "67BDA10F33ED8247CB31015A634728B0",
+        "targetId": "94D2ECCC2F231552ED618EFCE48B238B"
+      },
+      "observedAt": 1790972668315
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "94D2ECCC2F231552ED618EFCE48B238B"
+      },
+      "observedAt": 1790972668315
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "2B3238F650BB64A7BC282B3DE81521B2",
+          "type": "page",
+          "title": "",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668362
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "2B3238F650BB64A7BC282B3DE81521B2",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668371
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "2B3238F650BB64A7BC282B3DE81521B2",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668373
+    },
+    {
+      "method": "Target.attachedToTarget",
+      "params": {
+        "sessionId": "617041524BDB439998F39D45EAEE5AE5",
+        "targetInfo": {
+          "targetId": "2B3238F650BB64A7BC282B3DE81521B2",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        },
+        "waitingForDebugger": false
+      },
+      "observedAt": 1790972668373
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "2B3238F650BB64A7BC282B3DE81521B2",
+          "type": "page",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668432
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "2D318E1883CF651710DB802F3570A1E9",
+          "type": "iframe",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668483
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "2D318E1883CF651710DB802F3570A1E9",
+          "type": "iframe",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668523
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "0B6666B0DC41928E41E1E38131F6BB7D",
+          "type": "page",
+          "title": "",
+          "url": "http://127.0.0.1:49466/form",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668573
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "0B6666B0DC41928E41E1E38131F6BB7D",
+          "type": "page",
+          "title": "127.0.0.1:49466/form",
+          "url": "http://127.0.0.1:49466/form",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668581
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "4347A73BA6DA62508579091CFC7E3BD6",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972668605
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "2D318E1883CF651710DB802F3570A1E9"
+      },
+      "observedAt": 1790972669607
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "F28B0D4BD7532C732F16AB5608CC729A",
+          "type": "iframe",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972669649
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "F28B0D4BD7532C732F16AB5608CC729A",
+          "type": "iframe",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972669688
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "4347A73BA6DA62508579091CFC7E3BD6"
+      },
+      "observedAt": 1790972671608
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "0B6666B0DC41928E41E1E38131F6BB7D"
+      },
+      "observedAt": 1790972671823
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "F28B0D4BD7532C732F16AB5608CC729A"
+      },
+      "observedAt": 1790972671827
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "2B3238F650BB64A7BC282B3DE81521B2",
+          "type": "other",
+          "title": "OpenDesk F1 user script evidence",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972671842
+    },
+    {
+      "method": "Target.detachedFromTarget",
+      "params": {
+        "sessionId": "617041524BDB439998F39D45EAEE5AE5",
+        "targetId": "2B3238F650BB64A7BC282B3DE81521B2"
+      },
+      "observedAt": 1790972671842
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "2B3238F650BB64A7BC282B3DE81521B2"
+      },
+      "observedAt": 1790972671842
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "AB214C23F40CFE262F2DCB0835497E43",
+          "type": "page",
+          "title": "",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972671897
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "AB214C23F40CFE262F2DCB0835497E43",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972671907
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "AB214C23F40CFE262F2DCB0835497E43",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972671908
+    },
+    {
+      "method": "Target.attachedToTarget",
+      "params": {
+        "sessionId": "F78CA0270BC9CF0F1EE97C7740788432",
+        "targetInfo": {
+          "targetId": "AB214C23F40CFE262F2DCB0835497E43",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        },
+        "waitingForDebugger": false
+      },
+      "observedAt": 1790972671908
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "AB214C23F40CFE262F2DCB0835497E43",
+          "type": "page",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972671967
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "18D6181B89BE2A6767B376D796EA9ECC",
+          "type": "iframe",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672017
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "18D6181B89BE2A6767B376D796EA9ECC",
+          "type": "iframe",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672055
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "4702B2A93CDB53B1F26915436FF3D621",
+          "type": "page",
+          "title": "",
+          "url": "http://127.0.0.1:49466/form",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672104
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "4702B2A93CDB53B1F26915436FF3D621",
+          "type": "page",
+          "title": "127.0.0.1:49466/form",
+          "url": "http://127.0.0.1:49466/form",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672109
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "CC4B646986F8CBC5C7FA84171D0F3241",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672134
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "4702B2A93CDB53B1F26915436FF3D621"
+      },
+      "observedAt": 1790972672536
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "18D6181B89BE2A6767B376D796EA9ECC"
+      },
+      "observedAt": 1790972672544
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "CC4B646986F8CBC5C7FA84171D0F3241"
+      },
+      "observedAt": 1790972672544
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "AB214C23F40CFE262F2DCB0835497E43",
+          "type": "other",
+          "title": "OpenDesk F1 user script evidence",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672545
+    },
+    {
+      "method": "Target.detachedFromTarget",
+      "params": {
+        "sessionId": "F78CA0270BC9CF0F1EE97C7740788432",
+        "targetId": "AB214C23F40CFE262F2DCB0835497E43"
+      },
+      "observedAt": 1790972672545
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "AB214C23F40CFE262F2DCB0835497E43"
+      },
+      "observedAt": 1790972672545
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "25199A3A3B4F79288A77D4171920EB27",
+          "type": "page",
+          "title": "",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672895
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "25199A3A3B4F79288A77D4171920EB27",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672903
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "25199A3A3B4F79288A77D4171920EB27",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672904
+    },
+    {
+      "method": "Target.attachedToTarget",
+      "params": {
+        "sessionId": "5E1FD9EDFEF070724AB59878D6A3EBA6",
+        "targetInfo": {
+          "targetId": "25199A3A3B4F79288A77D4171920EB27",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        },
+        "waitingForDebugger": false
+      },
+      "observedAt": 1790972672905
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "25199A3A3B4F79288A77D4171920EB27",
+          "type": "page",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/host.html?network=http%3A%2F%2F127.0.0.1%3A49466%2Fprobe&retire=remove",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972672958
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "A6F8C5258E77D0E7FED1C030037AB589",
+          "type": "iframe",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972673004
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "A6F8C5258E77D0E7FED1C030037AB589",
+          "type": "iframe",
+          "title": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "url": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sandbox.html",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972673042
+    },
+    {
+      "method": "Target.targetCreated",
+      "params": {
+        "targetInfo": {
+          "targetId": "8374A45FFC7CDC04739C27FA30E97AFD",
+          "type": "page",
+          "title": "",
+          "url": "http://127.0.0.1:49466/form",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972673095
+    },
+    {
+      "method": "Target.targetInfoChanged",
+      "params": {
+        "targetInfo": {
+          "targetId": "8374A45FFC7CDC04739C27FA30E97AFD",
+          "type": "page",
+          "title": "127.0.0.1:49466/form",
+          "url": "http://127.0.0.1:49466/form",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "0215749BFB93DD15CB659DDC1E2DF439"
+        }
+      },
+      "observedAt": 1790972673107
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "8374A45FFC7CDC04739C27FA30E97AFD"
+      },
+      "observedAt": 1790972673157
+    },
+    {
+      "method": "Target.targetDestroyed",
+      "params": {
+        "targetId": "A6F8C5258E77D0E7FED1C030037AB589"
+      },
+      "observedAt": 1790972673158
+    }
+  ],
+  "logs": [
+    {
+      "source": "browser-stderr",
+      "text": "\nDevTools listening on ws://127.0.0.1:49469/devtools/browser/e1b1e0a8-4586-4cc4-ad51-42f7c07e161d\n"
+    },
+    {
+      "source": "browser-stderr",
+      "text": "[74600:37631583:1002/132428.211545:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED\n"
+    },
+    {
+      "source": "browser-stderr",
+      "text": "[74629:37631562:1002/132433.168716:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:472] SharedImageManager::ProduceOverlay: Trying to Produce a Overlay representation from a non-existent mailbox.\n[74629:37631562:1002/132433.168922:ERROR:components/viz/service/display_embedder/skia_output_device_buffer_queue.cc:263] Invalid mailbox.\n"
+    }
+  ]
+}

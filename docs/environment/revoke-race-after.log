@@ -1,0 +1,32 @@
+
+> opendesk-browser@0.1.0 test
+> node --test tests/environment/*.test.mjs
+
+✔ concurrent window requests create once; new worker discovers existing window (12.436875ms)
+✔ tool sender rejects foreign id, URL, frame, inactive document and missing document (0.2265ms)
+✔ URL policy rejects restricted/file/credentials and preserves exact origin including port (0.275667ms)
+✔ health waits for sender readiness and binds Chrome document metadata, not file result (5.35575ms)
+✔ revoked permission blocks even previously installed agent (2.3525ms)
+✔ reload, cross-origin and closed tab reject bound target without automatic reinjection (4.597375ms)
+✔ forged health nonce and fake sender cannot satisfy exact target (1.603875ms)
+✔ missing module has no capabilities or runner and can be mounted/disposed (0.235167ms)
+✔ focus failure while original exists must not create another tool window (0.132625ms)
+✔ window API query failure is not evidence that the existing window disappeared (0.147083ms)
+✔ unknown authorization mode is rejected before another injection (1.713083ms)
+✔ permission revoke reports permission failure even when Chrome hides tab URL (1.564041ms)
+✔ permission revoked during tabs.get is diagnosed before inspecting its hidden URL (1.548625ms)
+✔ repeated agent ready preserves optional authorization and cannot bypass revoke (1.549125ms)
+✔ same-document concurrent binding resolves all readiness waiters (0.375458ms)
+✔ document invalidation and revoke while awaiting reply reject late health success (0.369875ms)
+✔ final classic scanner rejects eval alias and function-constructor references (23.258208ms)
+✔ final package cannot omit a referenced local asset (4.943292ms)
+✔ remote script and unexpected lazy chunk fail final package verification (17.1005ms)
+✔ final package requires tool HTML/CSS and manifest worker references (8.563417ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 157.541792

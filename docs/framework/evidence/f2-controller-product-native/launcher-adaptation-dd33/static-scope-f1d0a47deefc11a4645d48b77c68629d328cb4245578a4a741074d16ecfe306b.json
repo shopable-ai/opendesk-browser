@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-03T08:41:44.713Z",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "pid": 11894,
+  "file": "tests/framework/k5-controller-product-native.mjs",
+  "runnerSha256": "f1d0a47deefc11a4645d48b77c68629d328cb4245578a4a741074d16ecfe306b",
+  "unresolved": [],
+  "children": [
+    {
+      "method": "spawn",
+      "line": 95,
+      "firstArgument": "launcherPython"
+    },
+    {
+      "method": "spawn",
+      "line": 202,
+      "firstArgument": "launcherPython"
+    },
+    {
+      "method": "execFileSync",
+      "line": 256,
+      "firstArgument": "'/bin/ps'"
+    }
+  ],
+  "nativeExecuted": false
+}

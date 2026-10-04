@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "at": "2026-10-03T07:15:27.355579+00:00",
+  "stage": "F2",
+  "scope": "shared SDK authority, typed browser-session storage, native lifecycle fencing; callback/transaction oracle only",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/foundation/storage.test.mjs",
+    "tests/framework/k2-sdk-broker.test.mjs",
+    "tests/framework/k2-protocol-regressions.test.mjs"
+  ],
+  "exitCode": 0,
+  "counts": {
+    "tests": 43,
+    "pass": 43,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "sourceBefore": [
+    {
+      "path": "src/platform/storage/session.js",
+      "bytes": 2123,
+      "sha256": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1"
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "bytes": 10231,
+      "sha256": "16c82b9a9241fe6bd893f1f8fa93503bd1decb1d3de9cdb63fdd2f3b550f353a"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "bytes": 21401,
+      "sha256": "bae7f41267fc9f44a8f944014294ced0aecbf88515ad2906af56fa6b4356da24"
+    },
+    {
+      "path": "src/platform/host/sdk-methods.js",
+      "bytes": 20505,
+      "sha256": "69d200705d8169ae2859f82af713cf05bc8f80d6cb2821178e39cf37b99980b5"
+    },
+    {
+      "path": "src/platform/host/sdk-broker.js",
+      "bytes": 4564,
+      "sha256": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9"
+    },
+    {
+      "path": "src/platform/chrome/network.js",
+      "bytes": 6892,
+      "sha256": "6e978085991301421c7f1e9ac2d9a42183ee84833ff5e051ac4083217f3da274"
+    },
+    {
+      "path": "src/platform/chrome/notifications.js",
+      "bytes": 2935,
+      "sha256": "891f6f66c06bcc6ee0a32f3c10cf50e1371f9cb0eb02fc3eb8646b40898f1e61"
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "bytes": 10019,
+      "sha256": "a862d2146a46cee42ed6fdc4fb34b4b750c3a78a470497301716bb9ae50240d3"
+    },
+    {
+      "path": "src/sw.js",
+      "bytes": 5055,
+      "sha256": "955d8fae1a037f65f3e8523e56d71961d787e6d3409177fc0681f3ff9f168fdc"
+    },
+    {
+      "path": "tests/framework/k2-sdk-broker.test.mjs",
+      "bytes": 14764,
+      "sha256": "13bcb8e7742136b28e70fc36891c48db0280762d2371ae2950f9f28a62b79c56"
+    },
+    {
+      "path": "tests/framework/k2-protocol-regressions.test.mjs",
+      "bytes": 3197,
+      "sha256": "33b7f35db0d8cb2aeead630b7282f07f8db74313b914f0df389d50b14973d602"
+    },
+    {
+      "path": "tests/foundation/storage.test.mjs",
+      "bytes": 27079,
+      "sha256": "6ab9765f0264a13966f85204f87892aabd089b291fdf27b25054f63028188522"
+    }
+  ],
+  "sourceAfter": [
+    {
+      "path": "src/platform/storage/session.js",
+      "bytes": 2123,
+      "sha256": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1"
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "bytes": 10231,
+      "sha256": "16c82b9a9241fe6bd893f1f8fa93503bd1decb1d3de9cdb63fdd2f3b550f353a"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "bytes": 21401,
+      "sha256": "bae7f41267fc9f44a8f944014294ced0aecbf88515ad2906af56fa6b4356da24"
+    },
+    {
+      "path": "src/platform/host/sdk-methods.js",
+      "bytes": 20505,
+      "sha256": "69d200705d8169ae2859f82af713cf05bc8f80d6cb2821178e39cf37b99980b5"
+    },
+    {
+      "path": "src/platform/host/sdk-broker.js",
+      "bytes": 4564,
+      "sha256": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9"
+    },
+    {
+      "path": "src/platform/chrome/network.js",
+      "bytes": 6892,
+      "sha256": "6e978085991301421c7f1e9ac2d9a42183ee84833ff5e051ac4083217f3da274"
+    },
+    {
+      "path": "src/platform/chrome/notifications.js",
+      "bytes": 2935,
+      "sha256": "891f6f66c06bcc6ee0a32f3c10cf50e1371f9cb0eb02fc3eb8646b40898f1e61"
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "bytes": 10019,
+      "sha256": "a862d2146a46cee42ed6fdc4fb34b4b750c3a78a470497301716bb9ae50240d3"
+    },
+    {
+      "path": "src/sw.js",
+      "bytes": 5055,
+      "sha256": "955d8fae1a037f65f3e8523e56d71961d787e6d3409177fc0681f3ff9f168fdc"
+    },
+    {
+      "path": "tests/framework/k2-sdk-broker.test.mjs",
+      "bytes": 14764,
+      "sha256": "13bcb8e7742136b28e70fc36891c48db0280762d2371ae2950f9f28a62b79c56"
+    },
+    {
+      "path": "tests/framework/k2-protocol-regressions.test.mjs",
+      "bytes": 3197,
+      "sha256": "33b7f35db0d8cb2aeead630b7282f07f8db74313b914f0df389d50b14973d602"
+    },
+    {
+      "path": "tests/foundation/storage.test.mjs",
+      "bytes": 27079,
+      "sha256": "6ab9765f0264a13966f85204f87892aabd089b291fdf27b25054f63028188522"
+    }
+  ],
+  "sourceStable": true,
+  "f1QualificationRechecked": true,
+  "redEvidencePreserved": true,
+  "original603Closed": false,
+  "f3Accepted": false,
+  "frameworkFunctionalMigrationComplete": false,
+  "actualPageDeliveryNotClaimed": "response_ready is only the broker response readiness; native page delivery has no protocol acknowledgement",
+  "notProven": [
+    "native B05 four crash barriers",
+    "four browser/package combinations",
+    "controller product main chain",
+    "same-final-package F3 and original603"
+  ]
+}

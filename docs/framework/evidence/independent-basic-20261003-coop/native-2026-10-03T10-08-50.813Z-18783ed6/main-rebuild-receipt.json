@@ -1,0 +1,21 @@
+{
+  "readyForControllerNative": true,
+  "runnerSha256": "547861effc140a8ed1bf8bfe97b51a4b084d95e2268520db4e41def2ddc95f19",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "sourceHash": "798f0f6ae8aa86a526e4556d67962aa40553b40f8b41ef66014eb766c523df41",
+  "packages": {
+    "production": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89"
+  },
+  "executionWindow": {
+    "lane": "controller-product-native",
+    "sdkRunnerIdle": true,
+    "basis": "User authorization and live writer coordination message 2026-10-03; writer stays paused"
+  },
+  "readyPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-basic-20261003-coop/ready-2026-10-03T10-08-50.634Z-4cdf4ed6/ready.json",
+  "productionBuildBasis": "docs/framework/evidence/f2-shared-integration/stable-rebuild-2026-10-03T08-50-41.030Z/stable-rebuild-receipt.json",
+  "launcherReadaptation": {
+    "shimSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "actualLauncherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+    "sourceOfPreviousQualification": "forwarding shim points to original byte-identical qualified launch.py"
+  }
+}

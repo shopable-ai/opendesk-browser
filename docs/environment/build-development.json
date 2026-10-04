@@ -1,0 +1,74 @@
+{
+  "mode": "development",
+  "status": "passed",
+  "report": {
+    "status": "passed",
+    "manifestVersion": 3,
+    "classicEntries": [
+      "agents/health.js",
+      "agents/selection-entry.js",
+      "sw.js",
+      "ui/tool-shell.js"
+    ],
+    "dynamicExecutionFound": false,
+    "packageHash": "2867a88ab02272f1b21a368944508629d9654d49940ddb8cacaa319dafcd4fd3",
+    "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+    "files": [
+      {
+        "path": "agents/health.js",
+        "bytes": 16201,
+        "sha256": "6bbc50ee1c169c437c3f1e2944b353eecfbeac0d42a2744977cba36dca8717ce"
+      },
+      {
+        "path": "agents/health.js.map",
+        "bytes": 16050,
+        "sha256": "e800aaf5b6d3ea8447c40d3c15124e49cb79c073d05b94cc8ffa05849202de7e"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 1291,
+        "sha256": "e573e0320f6a68d3671eb0004ee2758669c52b413d7f26df0259549bc47f68a1"
+      },
+      {
+        "path": "agents/selection-entry.js.map",
+        "bytes": 1051,
+        "sha256": "0371f0c5c787583e651c55c250efaaaee2df306e87d567050a80bbdc5ae80cc6"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 556,
+        "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 17140,
+        "sha256": "cec9f33612c296cd9befb2c2ee70f6be222cca4c8137185f25c769f3500f17b2"
+      },
+      {
+        "path": "sw.js.map",
+        "bytes": 17034,
+        "sha256": "a61904549ca1e214b30f74568f6086d8779ace24416dfe4d8e02920704fdd34e"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 885,
+        "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 20093,
+        "sha256": "b2d1c4c98c6e87ae631397af034dc89460dd5d655c6a5f89fe4c72230d856d51"
+      },
+      {
+        "path": "ui/tool-shell.js.map",
+        "bytes": 19283,
+        "sha256": "78fc2c1462c0bba982e594aefc6d79489d13ca967de2be92f92c71529f47850c"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 1256,
+        "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+      }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "argv": [
+    "npm",
+    "run",
+    "check"
+  ],
+  "exitCode": 0
+}

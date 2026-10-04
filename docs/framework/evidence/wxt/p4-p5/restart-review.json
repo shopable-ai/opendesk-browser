@@ -1,0 +1,485 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "independent-architect-same-profile-restart",
+  "role": "architect",
+  "reviewedAtUtc": "2026-10-04T06:38:20Z",
+  "userTimezone": "America/Los_Angeles",
+  "verdict": "FAIL",
+  "architecturalStatus": "BLOCK",
+  "confidence": "high",
+  "summary": "同 run 重启的正常路径与原全局/技能 launcher 一致，保留 fresh 0700 profile、原始 argv 与 dev/inode，并检查两代原生 PID/PPID；但子进程构造失败、profile/进程归属检查失败及清理报告路径尚不满足安全失败清理，当前候选不能通过该审查。",
+  "scope": {
+    "implementationFiles": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs"
+    ],
+    "onlyWritableFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/wxt/p4-p5/restart-review.json",
+    "implementationModified": false,
+    "globalLauncherModified": false,
+    "skillLauncherModified": false,
+    "browserStarted": false,
+    "existingBrowserInspected": false,
+    "processSignalsSent": false,
+    "mode": "源码审查及全内存故障路径复核；未运行 runner、launcher、自测或真实浏览器。",
+    "boundary": "仅审查 restart 机制，不宣告 P4/P5、B05 或 WXT 全迁移完成。"
+  },
+  "inputBinding": {
+    "algorithm": "SHA256(file bytes)",
+    "sources": [
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+        "sha256": "eed374c2f37c941f2a11822566ac11e416a7d7ab7a6caf441500c957e494a4c4"
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+        "sha256": "e1a8ade13daec13f449b8934015354ea63c5351e654ba0d7ad1fa8eaa4bdfbdb"
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+        "sha256": "e39de6fa293d7eaab1759a9bdefc07096570d3b9499ac4c984ba0247a69907dd"
+      },
+      {
+        "file": "/Users/shopme/.codex/browser-testing/launch.py",
+        "sha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74"
+      },
+      {
+        "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+        "sha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+      },
+      {
+        "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/check_instance.py",
+        "sha256": "e863b7f875acf5189a6149f0436e5d88c3e556da28c45fd8f0c032c9489d562c"
+      },
+      {
+        "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/SKILL.md",
+        "sha256": "fc03f5471eb6b22c6122af2d341ffbc35e96deffa32095c797ff701ca49003d0"
+      },
+      {
+        "file": "/Users/shopme/.codex/prompts/architect.md",
+        "sha256": "1d1f53da3cd02bcd914dcc21804ffc81402ca7df08676f832a40999bd72a15bc"
+      }
+    ],
+    "observedConcurrentDrift": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+      "firstObservedSha256": "cadb85c563d169dd1208fba51ba1a883e7ec91a6dc21dda55142c9b85ceee83f",
+      "rereadSha256": "e39de6fa293d7eaab1759a9bdefc07096570d3b9499ac4c984ba0247a69907dd",
+      "action": "检测到外部并发修改后重新阅读当前 459 行 runner，采用新 SHA 与新行号；adapter/helper 及两个 launcher 未漂移。"
+    },
+    "limitation": "哈希绑定本次阅读的文件字节；未提供历史全局 launcher 基线，故不作历史未修改证明。实际 product/verification/package/ZIP 验收绑定属于后续原生 runner，本评审不替代 checkpoint。"
+  },
+  "criteria": [
+    {
+      "id": "GLOBAL-LAUNCHER-UNCHANGED-AND-SKILL-CONSISTENT",
+      "status": "PASS",
+      "basis": "static",
+      "evidence": [
+        {
+          "file": "/Users/shopme/.codex/browser-testing/launch.py",
+          "start": 5,
+          "end": 5
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 140,
+          "end": 160
+        },
+        {
+          "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "start": 50,
+          "end": 92
+        }
+      ],
+      "result": "磁盘文件未由本审查修改；adapter 严格匹配全局入口的 /usr/bin/python3 + skill 路径及 argv，以同 Python 进程 runpy 执行。global 的 executable 筛选、mkdtemp、umask、安全 flags 与 finally 仍被调用；但异常安全性存在 R1/R2。"
+    },
+    {
+      "id": "FRESH-0700-OWNED-PROFILE",
+      "status": "PASS",
+      "basis": "static",
+      "evidence": [
+        {
+          "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "start": 62,
+          "end": 66
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 29,
+          "end": 40
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 18,
+          "end": 21
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 81,
+          "end": 84
+        }
+      ],
+      "result": "首次 profile 由技能 mkdtemp 创建，不接受 caller profile；helper 检查临时根、之前不存在、创建时间、directory 与 0700。"
+    },
+    {
+      "id": "EXACT-SAME-RUN-ARGV-AND-INODE",
+      "status": "PASS",
+      "basis": "static",
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 27,
+          "end": 28
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 93,
+          "end": 116
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 103,
+          "end": 120
+        }
+      ],
+      "result": "第二代重用 self.arguments/self.options，旧进程 wait 必须返回 0；清理旧 DevToolsActivePort 后重开。helper 比较两代完整 metadata args、executable/profile、realpath、dev/ino 与 0700。原生 ps 仅检查关键参数子串，完整实际 argv 未由 OS 独立逐项比对，见 I1。"
+    },
+    {
+      "id": "TWO-GENERATION-NATIVE-PID-PPID",
+      "status": "PASS",
+      "basis": "assertions-present-only",
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 85,
+          "end": 89
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 115,
+          "end": 140
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+          "start": 178,
+          "end": 183
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+          "start": 270,
+          "end": 279
+        }
+      ],
+      "result": "两代 ps PPID 必须等于仍运行的 launcher PID；新旧 PID 不同，旧 PID 不存在，Browser.close 后子进程 exit 0，CDP SystemInfo 的 browser PID 匹配。源码具备检查，但本次没有真实观测。",
+      "nativeExecutionStatus": "NOT_TESTED"
+    },
+    {
+      "id": "ONLY-OWNED-RESOURCES-AND-SAFE-FAILURE-CLEANUP",
+      "status": "FAIL",
+      "basis": "static-and-in-memory-fault-paths",
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 46,
+          "end": 48
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 64,
+          "end": 91
+        },
+        {
+          "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "start": 68,
+          "end": 92
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 36,
+          "end": 65
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+          "start": 424,
+          "end": 432
+        }
+      ],
+      "result": "R1/R2/R3 使失败后可能遗留进程、删除仍在使用或已失去 inode 归属的路径，或丢失清理与失败报告。"
+    },
+    {
+      "id": "NO-PERSONAL-CHROME-OR-BROAD-KILL",
+      "status": "PASS",
+      "basis": "static",
+      "evidence": [
+        {
+          "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "start": 17,
+          "end": 39
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 79,
+          "end": 91
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 41,
+          "end": 51
+        }
+      ],
+      "result": "原技能只接受 Google Chrome for Testing；未发现个人 Chrome 路径、pkill/killall、全局进程扫描杀除或个人 profile 复制。helper SIGKILL 仅指向报告 PID 且先检查 PPID、binary/profile；仍建议 I1 强化身份检查。"
+    },
+    {
+      "id": "BROWSER-SESSION-ASSERTIONS",
+      "status": "PASS",
+      "basis": "static",
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+          "start": 387,
+          "end": 421
+        }
+      ],
+      "result": "重启前在当前 grant 写入并读回 persistent/AppLocal sentinel；重启后在新 grant 前检查 storage.session 无旧命名空间且 incarnation 变化，再重新授权并断言 persistent 保留与 AppLocal 为 undefined。",
+      "nativeExecutionStatus": "NOT_TESTED"
+    }
+  ],
+  "findings": [
+    {
+      "id": "R1",
+      "severity": "P1",
+      "status": "FAIL",
+      "confidence": "high",
+      "title": "Popen 成功后构造器日志失败，子进程未交给全局 launcher",
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 46,
+          "end": 48
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 57,
+          "end": 62
+        },
+        {
+          "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "start": 68,
+          "end": 74
+        },
+        {
+          "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "start": 84,
+          "end": 92
+        }
+      ],
+      "trigger": "生命周期日志 open/write 失败，或实现文件 read/hash 失败，发生在 NATIVE_POPEN 成功之后。",
+      "rootCause": "RestartableChild.__init__ 在创建真实 child 后仍做可抛异常的 I/O；外层 child = subprocess.Popen(...) 尚未完成赋值，skill finally 看到 child is None。",
+      "impact": "child 无人 terminate/wait，skill finally 仍 rmtree(profile)；可能遗留浏览器并删除正在使用的自有 profile。",
+      "verification": "MEMORY-FAULT-1 复核真实已读代码的异常路径，使用全内存 Path/Popen/I/O；未启动进程或操作真实目录。",
+      "recommendation": "在 spawn 前完成可预检的路径/hash/I/O；spawn 后为构造过程设局部异常保护，任何失败都对刚创建且已验证归属的子进程执行有界 terminate→wait→必要时 kill→wait，然后重新抛出。日志失败不能阻断资源交接或本地清理。",
+      "repairAcceptance": [
+        "注入 started 日志 open/write 与实现 read/hash 失败，断言 child 无遗留且清理顺序在确认退出之后。",
+        "保持两个全局 launcher 文件字节不变。"
+      ]
+    },
+    {
+      "id": "R2",
+      "severity": "P1",
+      "status": "FAIL",
+      "confidence": "high",
+      "title": "profile 校验与进程清理耦合，异常路径无法保证只清理自有资源",
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 64,
+          "end": 77
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 79,
+          "end": 91
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 93,
+          "end": 109
+        },
+        {
+          "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "start": 84,
+          "end": 92
+        }
+      ],
+      "trigger": "运行中 profile 被移动/缺失、mode 或 dev/inode 改变；或真实进程检查发生异常。若旧 child 已退出，restart 的 profile 检查同样可能失败。",
+      "rootCause": "terminate/kill 必须先通过包含 profile.stat 的 assert_owned。该调用抛出后，skill finally 被中断且没有替代的已归属 child 清理；反之 child 已退出时 skill finally 跳过这些校验，直接对旧路径 rmtree。",
+      "impact": "进程仍活时可能 orphan 且无法生成完整清理证据；child 已退出且路径已被另一目录替换时，rmtree 未核实原 dev/inode，存在删除非本 run 目录的风险。无法观察进程归属时应保留明确阻断，不盲目 signal。",
+      "verification": "MEMORY-FAULT-2 确认归属检查异常会使 cleanup 中断、模拟 child 保持存活。已退出 child + 路径替换的删除风险由 skill finally 静态控制流证明，本次未进行磁盘替换实验。",
+      "recommendation": "分离进程身份与目录身份检查。profile 异常时，只在可独立证明当前 native child 的 PID/PPID/executable/启动身份属于本 run 后清理该 child；无法证明则记录 BLOCKED 并停止信号。删除目录前复核原始 dev/inode、类型与路径归属，拒删替换路径；在项目 adapter 局部保卫清理流程，保持两个全局文件不变，避免 process wait/日志异常跳过后续证据。",
+      "repairAcceptance": [
+        "覆盖 profile 缺失、权限改变、inode 替换与 process-inspection-unavailable；断言不触及非本 run 资源。",
+        "已退出 child 的替换目录必须保持不变；活 child 只有独立归属检查通过才可停止。",
+        "失败与残留资源写出明确记录，禁止将检查不可用推断为 child 已退出。"
+      ]
+    },
+    {
+      "id": "R3",
+      "severity": "P2",
+      "status": "FAIL",
+      "confidence": "high",
+      "title": "清理失败提前封锁重试，并阻止报告保存",
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 36,
+          "end": 65
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 115,
+          "end": 123
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 145,
+          "end": 145
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+          "start": 170,
+          "end": 175
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+          "start": 424,
+          "end": 432
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+          "start": 442,
+          "end": 456
+        }
+      ],
+      "trigger": "stop 的 fallback/归属校验、生命周期读取或退出断言失败；第二代 metadata 已出现但 validation 在更新 cleanup metadata 前失败。",
+      "rootCause": "stop 入口即 stopped=true，后续抛错时再调 stop 直接返回；启动 catch 吞掉 stop 错误。runner finally 在保存 report/raw CDP 前直接 await current.stop，清理异常使保存语句及最终 source/summary 不再执行。restart 的 cleanup metadata 也在多项断言后才更新。",
+      "impact": "有界恢复无法重试；原始失败、清理失败与当前代进程身份可能不完整，无法作为可续接验收证据。",
+      "recommendation": "使用显式 stopping/stopped/cleanupFailure 或保存 cleanupPromise，成功清理后才标记完成；保留失败及允许经归属复验后的有界恢复。当前代可信 child 身份单独跟踪，不依赖全部验收断言通过。runner 将 cleanupError 捕获到 report，独立 finally 保存 raw/result/summary，即使清理失败也给出失败退出码；不要吞掉清理异常。",
+      "repairAcceptance": [
+        "注入退出超时、第二代 metadata 校验失败、lifecycle 缺失/损坏，断言原始错误与 cleanupError 均保留。",
+        "清理失败仍生成 report/raw/summary；明确残留状态，不将失败清理标记 PASS。"
+      ]
+    }
+  ],
+  "improvements": [
+    {
+      "id": "I1",
+      "priority": "P2",
+      "blocking": false,
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 69,
+          "end": 77
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 85,
+          "end": 88
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 123,
+          "end": 125
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 43,
+          "end": 51
+        },
+        {
+          "file": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/check_instance.py",
+          "start": 15,
+          "end": 32
+        }
+      ],
+      "recommendation": "沿用 skill checker 的独立 ps comm= 精确 executable 比较，并检查主进程无 --type=；两代及 fallback 都检查 mock-keychain 与 profile 参数边界，保存原生 PID/PPID/comm/raw args。若合同要求完整实际 argv，使用可靠 argv 读取而非空格拆分 ps command。当前 launch 调用重用完整 argv 的静态证明成立，但原生独立证明仍待执行。"
+    },
+    {
+      "id": "I2",
+      "priority": "P3",
+      "blocking": false,
+      "evidence": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 98,
+          "end": 102
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs",
+          "start": 139,
+          "end": 141
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+          "start": 47,
+          "end": 48
+        }
+      ],
+      "recommendation": "第一代和第二代回执都显式保存 profile dev/inode、generation、run/label、global/skill/helper SHA，并在结束时复核 launcher 输入无漂移。不要仅保存第二代 inode 与程序已执行过断言的推定。"
+    }
+  ],
+  "verification": {
+    "nativeBrowserAcceptance": "NOT_TESTED",
+    "realPidPpidObservations": "NOT_TESTED",
+    "actualProfileCleanup": "NOT_TESTED",
+    "memoryFaultPaths": [
+      {
+        "id": "MEMORY-FAULT-1",
+        "method": "已读 adapter/skill source 通过 compile/exec 载入；Path、Popen、log、signal、umask、mkdtemp、rmtree 均使用内存替身，真实 main 不启动浏览器。",
+        "injected": "RestartableChild.event 在 spawn 后抛 OSError",
+        "actual": {
+          "processesCreated": 1,
+          "childStillAlive": true,
+          "profileRemovalCalls": [
+            "/tmp/codex-cft-memory"
+          ],
+          "error": {
+            "type": "OSError",
+            "message": "injected lifecycle write failure"
+          },
+          "realBrowserStarted": false,
+          "diskWrites": 0
+        },
+        "conclusion": "确认 R1 控制流；不是原生清理证据。"
+      },
+      {
+        "id": "MEMORY-FAULT-2",
+        "method": "相同全内存 harness；主 wait 注入错误进入原 skill finally，assert_owned 注入异常。",
+        "injected": "primary wait 失败后 terminate 的归属检查失败",
+        "actual": {
+          "processesCreated": 1,
+          "childStillAlive": true,
+          "profileRemovalCalls": [],
+          "error": {
+            "type": "ValueError",
+            "message": "injected ownership/profile check failure"
+          },
+          "realBrowserStarted": false,
+          "diskWrites": 0
+        },
+        "conclusion": "确认 R2 活 child 的清理中断；不是原生归属或清理证明。"
+      }
+    ],
+    "notExecuted": [
+      "任何真实浏览器启动/重启/关闭或 UI 操作",
+      "任何 runner、launcher selftest 或原生 PID 诊断",
+      "构建、产品测试、checkpoint、P4/P5 最终验收"
+    ],
+    "requiredAfterRepair": "先运行局部故障路径检查，再由 leader 串行运行真实同-profile 两代验收并保留两代 PID/PPID/args/inode、原始退出/清理证据；按冻结合同需要的 production/development 候选重新绑定当前源码、验证输入、实际包与 ZIP SHA，不能复用旧回执。"
+  },
+  "tradeoffs": {
+    "accepted": "项目局部 adapter 复用技能 launcher，可以在不修改全局文件的前提下保留 fresh profile 与相同配置重启。",
+    "cost": "通过 runpy 和 Popen/execv 拦截改变生命周期，必须承担构造器与失败清理安全；不能仅因磁盘上的全局文件未修改就推定所有异常路径保持原语义。",
+    "rejected": "通过个人 Chrome、caller profile、全局进程强杀或修改全局 launcher 来绕过失败。"
+  },
+  "stopCondition": "当前源码阅读与失败路径证据已足以形成结论；按授权只写本 JSON，不修复实现、不启动浏览器。"
+}

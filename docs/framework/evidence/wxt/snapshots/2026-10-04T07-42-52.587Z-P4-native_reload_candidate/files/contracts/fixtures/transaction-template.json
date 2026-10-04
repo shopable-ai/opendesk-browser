@@ -1,0 +1,63 @@
+{
+  "formatVersion": "1.0.0",
+  "templateId": "transaction-fixture",
+  "revision": 1,
+  "parentRevision": null,
+  "selectorDialect": "css",
+  "requiredCapabilities": [
+    "dom.top.v1",
+    "read.text.v1",
+    "transform.safe.v1",
+    "pagination.next-link.v1"
+  ],
+  "allowedOrigin": "https://fixture.example",
+  "startUrl": "https://fixture.example/list?page=1",
+  "list": {
+    "containerSelector": ".rows",
+    "rowSelector": ":scope > .row",
+    "emptyMarkerSelector": null,
+    "allowEmpty": false
+  },
+  "fields": [
+    {
+      "id": "name",
+      "label": "名称",
+      "selector": ".name",
+      "read": "text",
+      "attribute": null,
+      "type": "string",
+      "required": true,
+      "transforms": []
+    },
+    {
+      "id": "count",
+      "label": "数量",
+      "selector": ".count",
+      "read": "text",
+      "attribute": null,
+      "type": "number",
+      "required": true,
+      "transforms": [
+        "trim"
+      ]
+    }
+  ],
+  "pagination": {
+    "mode": "next-link",
+    "selector": "a.next",
+    "endMarkerSelector": ".end",
+    "waitMs": 2000
+  },
+  "columns": [
+    "name",
+    "count"
+  ],
+  "limits": {
+    "maxPages": 50,
+    "maxRecords": 10000,
+    "maxDurationMs": 600000,
+    "maxStoredBytes": 20971520
+  },
+  "detail": null,
+  "contentHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f"
+}

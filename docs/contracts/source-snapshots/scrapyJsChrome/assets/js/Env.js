@@ -1,0 +1,5 @@
+
+// 'BROWSER' 'ANDROID_APP';
+globalThis.CHROME_PAGE_TYPE = 'CHROME_EXTENSION';
+
+

@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "kind": "bounded-independent-public-sdk-code-function-review",
+  "stage": "F2",
+  "verdict": "REQUEST_CHANGES",
+  "severityCounts": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 3
+  },
+  "scope": "Read-only code/spec/security/lifecycle review of current public SDK, unique broker/authority/storage binding, native service drivers and fixed MAIN/ISOLATED transport. Not F3 acceptance, not a Stage0/F1 plan gate.",
+  "projectRoot": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "authorization": {
+    "stage0F1Approved": true,
+    "f2ImplementationAuthorized": true,
+    "parentContinuesUiControlIntegration": true,
+    "sidecarReadOnly": true,
+    "sourceEdits": false,
+    "gitCommands": false,
+    "dependencyChanges": false,
+    "ledgerOrGateEdits": false,
+    "onlyWritePaths": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/independent-sdk-review.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/review-independent-sdk-raw.log"
+    ]
+  },
+  "runtime": {
+    "requestedModel": "gpt-6.1-sol",
+    "requestedReasoningEffort": "xhigh",
+    "actualResolvedModel": "unknown",
+    "actualResolvedReasoningEffort": "unknown",
+    "reason": "Resolved serving model/effort is not exposed by the available runtime metadata. No global model configuration was changed.",
+    "nativeSubagent": {
+      "attempted": true,
+      "requestedModel": "openai/gpt-6.1-sol",
+      "requestedReasoningEffort": "xhigh",
+      "result": "collab spawn failed: agent thread limit reached",
+      "spawned": false,
+      "continuedDirectly": true
+    }
+  },
+  "reviewerInstructions": {
+    "path": "/Users/shopme/.codex/prompts/code-reviewer.md",
+    "readCompletely": true,
+    "userScopeOverrides": [
+      "No git despite role prompt suggesting git diff.",
+      "Read-only with sole explicit evidence artifact/raw log exception.",
+      "No F3/design scoring/plan gate and no implementation."
+    ]
+  },
+  "requiredDocumentsReadCompletely": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+      "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+      "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/product-continuation-checkpoint.json",
+      "sha256": "01944efc4d067aa7b48a400b7e856f6d8390c0a5c319e06df8ea9311b45fda96"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/k4/router-contract.json",
+      "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f"
+    }
+  ],
+  "contract": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/k4/router-contract.json",
+    "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+    "matchesCheckpointDeclaredHash": true,
+    "contractUnchangedInObservedWindow": true,
+    "contractIsNotSourceFreeze": true
+  },
+  "fullyReadPrimaryFiles": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-broker.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/session.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/sw.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/chrome/network.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/chrome/notifications.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/chrome/tabs.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/bridge.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/entry.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/http.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/notifications.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/registry.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/servers.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/service.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/storage.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/transport.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/utils.js"
+  ],
+  "supportingCodeInspected": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/authority.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/index.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/codec.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/entitlement/index.js",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-sdk-broker.test.mjs",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k4-sdk.test.mjs"
+  ],
+  "findings": [
+    {
+      "id": "SDK-REVIEW-01",
+      "priority": "P1",
+      "severity": "HIGH",
+      "title": "Persisted grant epochs reset in memory on SW restart, rejecting current valid grants",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js",
+          "line": 10,
+          "endLine": 24
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js",
+          "line": 41,
+          "endLine": 45
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js",
+          "line": 73,
+          "endLine": 75
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js",
+          "line": 228,
+          "endLine": 235
+        }
+      ],
+      "contract": "An actual document grant in the same browser session must remain usable across SW restart; invalidation and regrant must remain sticky without reviving the old grant.",
+      "cause": "tabEpochs/frameEpochs/permissionRemovals/notificationEpoch are new zero-valued worker-local state on each authority construction. The active persisted grant contains the nonzero epochs of a later valid regrant. activeGrant compares those persisted values to the reset counters.",
+      "reproducer": {
+        "boundary": "In-memory serial transaction and Chrome callback oracle; a fresh authority represents SW restart. No actual Chrome SW was killed by this review.",
+        "steps": [
+          "Grant the current exact document.",
+          "Observe navigation or host/notification permission removal; revoke its grant.",
+          "Explicitly regrant the still-current document with current native permission.",
+          "Confirm SDK_HELLO succeeds.",
+          "Construct a new authority with the SAME storage and browser session, recoverSdk(), and call helloSdk for the SAME current document."
+        ],
+        "expected": "Hello remains ready for the new valid grant; old request/grant still stays fenced.",
+        "actual": "Navigation path: E_DOCUMENT_STALE. Origin-removal and notifications-removal paths: E_GRANT_REVOKED, although the persisted grant is active and native frame and permissions are unchanged.",
+        "code": "import {readFile} from 'node:fs/promises';\nimport {pathToFileURL} from 'node:url';\nimport {validateSdkRequest} from './src/framework/sdk/registry.js';\nimport {decodeValue} from './src/platform/page-port/codec.js';\nlet source=await readFile('tests/framework/k2-sdk-broker.test.mjs','utf8');\nsource=source.slice(0,source.indexOf('const code = expected')).replace(/from '(\\.\\.[^']+)'/g,(_,p)=>`from '${new URL(p,pathToFileURL(process.cwd()+'/tests/framework/k2-sdk-broker.test.mjs')).href}'`);\nconst {fixture}=await import('data:text/javascript;base64,'+Buffer.from(source+'\\nexport {fixture};').toString('base64'));\nfor (const selector of [{tabId:2,frameId:0,reason:'navigation'},{origins:['https://*.example/*'],reason:'permission-removed'},{permissions:['notifications'],reason:'permission-removed'}]) {\n const f=await fixture(); await f.grant(); await f.authority.revokeSdkGrants(selector); await f.grant();\n console.log('before',await f.broker.hello({sdkVersion:'1.0.0'},f.sender));\n const restarted=f.makeAuthority(); await restarted.recoverSdk();\n try {console.log('after',await restarted.helloSdk({sdkVersion:'1.0.0'},f.sender));} catch(e) {console.log(e.code,e.message);}\n f.broker.dispose();\n}\n"
+      },
+      "requiredFix": "Persist and restore a coherent browser-session epoch baseline using the existing trusted storage before Hello/admission, or use a consistent restart-safe durable fence representation. Preserve old grant/request locks and synchronous in-flight invalidation; do not bypass checks or simply zero persisted grant epochs.",
+      "missingRegression": "Compose invalidation -> explicit regrant -> real SW restart -> Hello/new request, with an old-ID negative control. Current revoke/regrant and zero-epoch restart tests cover these separately.",
+      "confidence": "high",
+      "sourceStableDuringObservedWindow": true
+    },
+    {
+      "id": "SDK-REVIEW-02",
+      "priority": "P2",
+      "severity": "MEDIUM",
+      "title": "SDK crash recovery leaves preparing run projections behind durable or unknown journal facts",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js",
+          "line": 280,
+          "endLine": 287
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js",
+          "line": 214,
+          "endLine": 215
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-broker.js",
+          "line": 43,
+          "endLine": 44
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-broker.js",
+          "line": 61,
+          "endLine": 69
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js",
+          "line": 24
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js",
+          "line": 264,
+          "endLine": 271
+        }
+      ],
+      "contract": "SDK recovery must preserve the actual effect/durable/delivery distinction and reconstruct persistent lifecycle state at the required crash cuts.",
+      "cause": "Persistent storage commits the KV effect/result/journal in one transaction excluding runs. Updating sdk-service run to completed is a later recordSdkEffect transaction. recoverSdk only rewrites dispatched journal rows. Durable duplicate handling skips execute/recordEffect, leaving the run preparing permanently; recovered dispatched rows likewise leave preparing runs rather than paused_unknown.",
+      "reproducer": {
+        "boundary": "Serial transaction state-cut simulation with original product functions; no actual process crash or native IDB acceptance.",
+        "steps": [
+          "Admit APPSTORAGE_SETITEM with a fixed request ID.",
+          "Call the actual shared storage.executeSdk through the original authority context, allowing KV plus durable result/journal commit.",
+          "At the cut before SDK broker recordEffect, discard the authority and construct a fresh one on the same storage/session.",
+          "recoverSdk(), then request the same ID through a new SDK broker.",
+          "Separately admit AXIOS_POST, perform only pre dispatch authorization, and recover a fresh authority."
+        ],
+        "expected": "Durable result remains completed with its resultId and response_ready does not mean page-delivered; dispatched-without-receipt remains paused_unknown and is never replayed.",
+        "actual": "The durable duplicate returns success and journal deliveryState=response_ready, but sdk-service run remains preparing with no resultId. At the dispatch cut journal=effect_unknown while run=preparing.",
+        "code": "import {readFile} from 'node:fs/promises';\nimport {pathToFileURL} from 'node:url';\nimport {validateSdkRequest} from './src/framework/sdk/registry.js';\nimport {decodeValue} from './src/platform/page-port/codec.js';\nlet source=await readFile('tests/framework/k2-sdk-broker.test.mjs','utf8');\nsource=source.slice(0,source.indexOf('const code = expected')).replace(/from '(\\.\\.[^']+)'/g,(_,p)=>`from '${new URL(p,pathToFileURL(process.cwd()+'/tests/framework/k2-sdk-broker.test.mjs')).href}'`);\nconst {fixture}=await import('data:text/javascript;base64,'+Buffer.from(source+'\\nexport {fixture};').toString('base64'));\nconst f=await fixture(); await f.grant();\nconst p=f.payload('APPSTORAGE_SETITEM',{key:'crash',value:'committed'},'durable-gap');\nconst request=validateSdkRequest({requestId:p.requestId,method:p.method,args:decodeValue(p.argsWire),deadlineAt:p.deadlineAt});\nconst admission=await f.authority.admitSdk(request,f.sender);\nawait f.storage.executeSdk(request.method,request.args,admission.context);\nconst restarted=f.makeAuthority(); await restarted.recoverSdk();\nconst broker=f.makeBroker(restarted); console.log(decodeValue((await broker.request(p,f.sender)).valueWire));\nconsole.log(await f.rows('runs')); console.log((await f.rows('commandJournal')).find(x=>x.tag==='sdk-operation'));\nbroker.dispose(); f.broker.dispose();\n"
+      },
+      "requiredFix": "Reconcile SDK operation and matching run/result projections atomically during recovery and when observing a stored receipt; or include terminal run state in the same shared persistent result transaction. Mark dispatched gaps paused_unknown without replay. Keep response_ready distinct from delivered.",
+      "missingRegression": "Crash after atomic persistent effect/result commit but before recordEffect, plus crash after dispatch: assert matching durable/unknown run projections, not only journal state and no duplicate write.",
+      "confidence": "high",
+      "sourceStableDuringObservedWindow": true
+    },
+    {
+      "id": "SDK-REVIEW-03",
+      "priority": "P2",
+      "severity": "MEDIUM",
+      "title": "Actual fixed MAIN reinjection cannot use the module-local idempotence cache",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/entry.js",
+          "line": 14,
+          "endLine": 21
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/entry.js",
+          "line": 37,
+          "endLine": 45
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+          "line": 58,
+          "endLine": 67
+        }
+      ],
+      "contract": "Trusted reauthorization/reinstallation of the same exact document must work with fixed packaged entries and real Hello. Own SDK globals must remain distinguishable from page conflicts.",
+      "cause": "installations is a module-local WeakMap. Re-evaluating the packaged MAIN entry creates a fresh map; the previous immutable globals remain. The new entry throws E_SDK_GLOBAL_CONFLICT at OpenDeskSDK instead of reusing/revalidating its own prior installation. Broker installSdk injects both files on each invocation, even when grantSdk returns an existing grant.",
+      "reproducer": {
+        "boundary": "Two fresh evaluations of exact entry.js source with identical absolute dependency imports; demonstrates JavaScript module-state lifetime. Actual repeated Chrome fixed-file injection was not run by this review.",
+        "steps": [
+          "Install SDK once into an otherwise clean page global.",
+          "Call installPageSdk again from the same evaluated module: succeeds.",
+          "Evaluate the same entry source in a second module instance, representing a repeated fixed script injection.",
+          "Call its installPageSdk on the same global."
+        ],
+        "expected": "Recognize an intact own installation and refresh actual Hello/grant subset as necessary, or provide an explicit controlled lifecycle for reinstall; continue to reject unrelated page globals.",
+        "actual": "Same-module call is idempotent; fresh entry evaluation throws E_SDK_GLOBAL_CONFLICT: SDK global already exists: OpenDeskSDK.",
+        "code": "import {readFile} from 'node:fs/promises'; import {pathToFileURL} from 'node:url';\nconst path=pathToFileURL(process.cwd()+'/src/framework/sdk/entry.js');\nlet source=await readFile(path,'utf8'); source=source.replace(/from '(\\.\\.?\\/[^']+)'/g,(_,p)=>`from '${new URL(p,path).href}'`);\nconst one=await import('data:text/javascript;base64,'+Buffer.from(source+'\\n// first entry evaluation').toString('base64'));\nconst two=await import('data:text/javascript;base64,'+Buffer.from(source+'\\n// second entry evaluation').toString('base64'));\nconst transport={hello:async()=>({sdkVersion:'1.0.0',ready:true,methods:[]}),request:async()=>{throw Error('no calls expected')}};\nconst page={navigator:{userAgent:''}};\nconst sdk=one.installPageSdk({global:page,transport}); console.log(one.installPageSdk({global:page,transport})===sdk);\ntry {two.installPageSdk({global:page,transport});} catch(e) {console.log(e.code,e.message);} sdk.dispose();\n"
+      },
+      "requiredFix": "Make own installation recognition survive fixed-file re-evaluation without trusting arbitrary page-supplied readiness, and revalidate Hello/grant subsets after regrant. Retain immutable public globals and typed rejection of genuine page conflicts. Verify disposed/pagehide cases explicitly.",
+      "missingRegression": "Two actual MAIN file injections into one native document, then revoke/regrant with a changed capability subset; existing test uses the same imported function twice.",
+      "confidence": "high for fresh-evaluation exception; native driver failure propagation unverified",
+      "sourceStableDuringObservedWindow": true,
+      "relatedBrokerSourceMoving": true
+    },
+    {
+      "id": "SDK-REVIEW-04",
+      "priority": "P2",
+      "severity": "MEDIUM",
+      "title": "Relay dedup suppresses digest conflicts and lets an old callback consume a later same-ID entry",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+          "line": 14,
+          "endLine": 17
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+          "line": 54,
+          "endLine": 68
+        }
+      ],
+      "contract": "Same ID and same normalized digest associates with the original operation; changed arguments/deadline must conflict. A late result must not settle another admission or mask its error.",
+      "cause": "Relay pending entries contain only timer and are keyed only by caller ID. It drops every in-flight duplicate before the broker can compare digests. Timers and native callback continuations call finish(id) without checking entry identity, so after an entry times out, an old callback can delete and fulfill a replacement entry with the same ID.",
+      "reproducer": {
+        "boundary": "Actual installPageRelay with controlled Chrome sendMessage callbacks and timers; does not claim native broker replay.",
+        "steps": [
+          "Dispatch APPLOCAL_SETITEM ID=same-id,value=1 and keep its native callback pending.",
+          "Dispatch same ID,value=2: no native request or conflict response is emitted; completion reports the first success.",
+          "For the late-callback case: time out ID=reused,value=1; dispatch ID=reused,value=2; resolve the OLD native callback first; then resolve the new callback with E_REQUEST_CONFLICT."
+        ],
+        "expected": "Changed digest is rejected distinctly without damaging the original pending operation. An old callback cannot finish the new entry; the new conflict is delivered.",
+        "actual": "First case: 1 native dispatch, 0 conflict replies, first success only. Late case: timeout then old-result success for reused; the actual new E_REQUEST_CONFLICT reply is dropped, pending=0."
+      },
+      "requiredFix": "Bind callback/timer settlement to a captured relay entry incarnation. Compare normalized digests for same-ID in-flight association or delegate conflict checking to the unique broker; never silently merge changed arguments/deadlines or let an old callback settle a new entry.",
+      "missingRegression": "In-flight same ID with changed arguments/deadline through the fixed relay, and timeout + ID reuse + reversed native response order. Existing direct broker conflict tests bypass this relay behavior.",
+      "confidence": "high",
+      "sourceStableDuringObservedWindow": true,
+      "noProvenWriteReplay": "The shared broker still fences unknown effects and rejects differing digests. This finding is incorrect relay settlement/conflict handling, not a demonstrated second native write."
+    }
+  ],
+  "strongestCounterexample": "SDK-REVIEW-01: native invalidation -> explicit new grant -> same browser session SW restart turns a previously ready, active and currently authorized document into E_DOCUMENT_STALE/E_GRANT_REVOKED because persisted epochs disagree with reset worker-local counters.",
+  "factoryBoundaryReview": {
+    "status": "Source-level boundary satisfies SDK/ordinary startup separation; fresh native confirmation of this exact source is not supplied by this review.",
+    "locations": [
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "line": 14,
+        "endLine": 28
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/sw.js",
+        "line": 8
+      }
+    ],
+    "observed": "SW passes api/ports only. Factory constructs the shared storage/authority/router, but no entitlement service at startup. Six legacy entitlement delegates check factory-captured entitlementSubject and lazily create the licensing service. SDK routes dispatch before packaged-tool-only routes; SDK cannot supply subject, namespace, grant or host authority in its payload.",
+    "legacyDelegates": [
+      "getSnapshot",
+      "status",
+      "install",
+      "revoke",
+      "admitRun",
+      "admitTemplate"
+    ],
+    "missingSubjectError": "E_MODULE_NOT_INSTALLED",
+    "subjectSource": "Trusted factory argument only; no runtime message route binds entitlementSubject.",
+    "sourceMoving": true,
+    "requiredConstraint": "Retain startup without paid claim/TemplateRevision and keep legacy licensing explicitly registered. Do not broadly catch E_ENTITLEMENT or synthesize a business subject.",
+    "latestSwSourceHash": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796"
+  },
+  "coverageAssessment": [
+    {
+      "area": "Single broker/authority/store",
+      "assessment": "SW constructs one foundation broker, which injects the same storage and authority into the SDK delegate. Shared IDB factory enforces one database owner. SDK uses no controller slot. Session storage is a value-area adapter, not a second IDB/journal. No duplicate public SDK authority/store or page-controlled identity was found in this slice.",
+      "boundary": "Not a controller implementation/UI acceptance review."
+    },
+    {
+      "area": "Native sender/document/grants",
+      "assessment": "SDK admission checks actual extension id/tab/incognito/frame/document/lifecycle sender, native exact frame/document and permissions, current grant/incarnation/capability and authority-issued context closures. Grant/injection comes from actual packaged registered tool sender. Namespaces derive from the granted page origin. Page fields cannot grant privilege.",
+      "limitations": "No native sender forgery campaign was run here. Native getAllFrames and permission races require actual Chrome evidence."
+    },
+    {
+      "area": "In-flight revoke/navigation/deadline",
+      "assessment": "Epoch fences and original hard <=15s deadline are checked before driver dispatch and final delivery. Native effect receipts survive delivery denial. The coherent epoch baseline across SW restart is broken (SDK-REVIEW-01).",
+      "limitations": "Promise timers do not prove actual callback/native-work cancellation; actual grant/nav races remain native requirements."
+    },
+    {
+      "area": "Same-ID digest dedup and100 concurrency",
+      "assessment": "Direct broker ties request digest to method, normalized typed args and original deadline, checks grant incarnation and associates existing pending/durable/unknown. Scoped tests pass for100 same-ID persistent requests and100 original page promises. Relay entry identity/conflicts are broken (SDK-REVIEW-04).",
+      "limitations": "Serial transaction and callback/window oracles are not true100-native-write concurrent SDK evidence."
+    },
+    {
+      "area": "AppLocal lifetimes",
+      "assessment": "Native chrome.storage.session values key browserSessionIncarnation + authority namespace + key, use shared codec, and do not enter persistent KV. browserSessionIncarnation lives in chrome.storage.session so worker restart reuses it while browser session end clears it.",
+      "limitations": "Actual SW restart/browser session end were not exercised by this review. Valid post-invalidation grants currently fail after worker restart independently of value persistence."
+    },
+    {
+      "area": "Effect/durable/response_ready",
+      "assessment": "Network/notification/session drivers record native observations and preserve actual completed effects before post authorization; broker delivery uses response_ready and does not claim delivered/page receipt. Crash reconstruction leaves run projections inconsistent (SDK-REVIEW-02).",
+      "limitations": "No page-receipt ACK or download completion claim made."
+    },
+    {
+      "area": "Unknown never replay",
+      "assessment": "External pre-dispatch authorization persists dispatched. Recovery converts dispatched without durable result to effect_unknown; broker refuses automatic resubmission without existing pending work/result. No demonstrated repeated unknown write found. The relay late-result bug must not be mistaken for a demonstrated second native write.",
+      "limitations": "Four native SW crash cuts remain unclosed."
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "argv": [
+          "node",
+          "--test",
+          "--test-reporter=spec",
+          "tests/framework/k2-sdk-broker.test.mjs",
+          "tests/framework/k4-sdk.test.mjs",
+          "tests/framework/k4-network.test.mjs",
+          "tests/framework/k4-chrome-services.test.mjs"
+        ],
+        "exitCode": 0,
+        "summary": {
+          "tests": 74,
+          "pass": 74,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "boundary": "Current serial transaction/Chrome callback/window fixtures and Node HTTP tests; not native SDK B05 or F3."
+      },
+      {
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "tool": "node --check",
+        "paths": [
+          "src/platform/host/broker.js",
+          "src/platform/host/sdk-methods.js",
+          "src/platform/host/sdk-broker.js",
+          "src/platform/storage/session.js",
+          "src/sw.js",
+          "src/platform/chrome/network.js",
+          "src/platform/chrome/notifications.js",
+          "src/agents/page-relay.js",
+          "src/framework/sdk/entry.js"
+        ],
+        "exitCode": 0,
+        "boundary": "Syntax only."
+      },
+      {
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "argv": [
+          "node",
+          "--check",
+          "src/sw.js"
+        ],
+        "exitCode": 0,
+        "reason": "New concurrent SW lifecycle edit after the suite/syntax observation; exact latest read hash recorded."
+      }
+    ],
+    "reproductions": [
+      {
+        "name": "epochRepro",
+        "exitCode": 0,
+        "stdout": "{\"case\":\"grant-after-invalidation-then-SW-restart\",\"selector\":{\"tabId\":2,\"frameId\":0,\"reason\":\"navigation\"},\"before\":{\"sdkVersion\":\"1.0.0\",\"ready\":true,\"methods\":[\"AXIOS_GET\",\"AXIOS_POST\",\"AXIOS_PUT\",\"AXIOS_DELETE\",\"APPSTORAGE_GETITEM\",\"APPSTORAGE_SETITEM\",\"APPSTORAGE_REMOVEITEM\",\"APPSTORAGE_CLEAR\",\"APPLOCAL_GETITEM\",\"APPLOCAL_SETITEM\",\"APPLOCAL_REMOVEITEM\",\"CHROME_LOCAL_GET\",\"CHROME_LOCAL_SET\",\"CHROME_LOCAL_REMOVE\",\"CREATE_NOTIFY\",\"SERVER_CHECK\",\"DEVICE_GET_APP_ID\"]},\"after\":{\"code\":\"E_DOCUMENT_STALE\",\"message\":\"Observed document invalidation fences this SDK operation\"},\"grant\":{\"tag\":\"sdk-grant\",\"tabId\":2,\"frameId\":0,\"documentId\":\"page-document\",\"origin\":\"https://fixture.example\",\"principal\":\"sdk:https://fixture.example\",\"tabEpoch\":0,\"frameEpoch\":1,\"permissionEpoch\":0,\"notificationEpoch\":0,\"key\":\"sdk-grant:[2,0,\\\"page-document\\\"]\",\"namespace\":\"page:https://fixture.example\",\"capabilities\":[\"device.id\",\"network\",\"notifications\",\"storage.persistent\",\"storage.session\"],\"allowedOrigins\":[\"https://fixture.example\"],\"grantIncarnation\":\"d41433fd-e39b-4c94-9bcd-487875acb0c0\",\"browserSessionIncarnation\":\"browser-session\",\"active\":true,\"grantedAt\":\"2026-10-03T06:41:40.000Z\",\"registrationId\":\"c68186e5-ea61-4a9d-944d-1356c2b18edb\"}}\n{\"case\":\"grant-after-invalidation-then-SW-restart\",\"selector\":{\"origins\":[\"https://*.example/*\"],\"reason\":\"permission-removed\"},\"before\":{\"sdkVersion\":\"1.0.0\",\"ready\":true,\"methods\":[\"AXIOS_GET\",\"AXIOS_POST\",\"AXIOS_PUT\",\"AXIOS_DELETE\",\"APPSTORAGE_GETITEM\",\"APPSTORAGE_SETITEM\",\"APPSTORAGE_REMOVEITEM\",\"APPSTORAGE_CLEAR\",\"APPLOCAL_GETITEM\",\"APPLOCAL_SETITEM\",\"APPLOCAL_REMOVEITEM\",\"CHROME_LOCAL_GET\",\"CHROME_LOCAL_SET\",\"CHROME_LOCAL_REMOVE\",\"CREATE_NOTIFY\",\"SERVER_CHECK\",\"DEVICE_GET_APP_ID\"]},\"after\":{\"code\":\"E_GRANT_REVOKED\",\"message\":\"Observed permission removal fences this SDK operation\"},\"grant\":{\"tag\":\"sdk-grant\",\"tabId\":2,\"frameId\":0,\"documentId\":\"page-document\",\"origin\":\"https://fixture.example\",\"principal\":\"sdk:https://fixture.example\",\"tabEpoch\":0,\"frameEpoch\":0,\"permissionEpoch\":1,\"notificationEpoch\":0,\"key\":\"sdk-grant:[2,0,\\\"page-document\\\"]\",\"namespace\":\"page:https://fixture.example\",\"capabilities\":[\"device.id\",\"network\",\"notifications\",\"storage.persistent\",\"storage.session\"],\"allowedOrigins\":[\"https://fixture.example\"],\"grantIncarnation\":\"6fe4e228-a640-4f67-b25d-350b26cdc804\",\"browserSessionIncarnation\":\"browser-session\",\"active\":true,\"grantedAt\":\"2026-10-03T06:41:40.000Z\",\"registrationId\":\"81df71e3-a54c-431c-8631-f822c200c544\"}}\n{\"case\":\"grant-after-invalidation-then-SW-restart\",\"selector\":{\"permissions\":[\"notifications\"],\"reason\":\"permission-removed\"},\"before\":{\"sdkVersion\":\"1.0.0\",\"ready\":true,\"methods\":[\"AXIOS_GET\",\"AXIOS_POST\",\"AXIOS_PUT\",\"AXIOS_DELETE\",\"APPSTORAGE_GETITEM\",\"APPSTORAGE_SETITEM\",\"APPSTORAGE_REMOVEITEM\",\"APPSTORAGE_CLEAR\",\"APPLOCAL_GETITEM\",\"APPLOCAL_SETITEM\",\"APPLOCAL_REMOVEITEM\",\"CHROME_LOCAL_GET\",\"CHROME_LOCAL_SET\",\"CHROME_LOCAL_REMOVE\",\"CREATE_NOTIFY\",\"SERVER_CHECK\",\"DEVICE_GET_APP_ID\"]},\"after\":{\"code\":\"E_GRANT_REVOKED\",\"message\":\"Observed permission removal fences this SDK operation\"},\"grant\":{\"tag\":\"sdk-grant\",\"tabId\":2,\"frameId\":0,\"documentId\":\"page-document\",\"origin\":\"https://fixture.example\",\"principal\":\"sdk:https://fixture.example\",\"tabEpoch\":0,\"frameEpoch\":0,\"permissionEpoch\":0,\"notificationEpoch\":1,\"key\":\"sdk-grant:[2,0,\\\"page-document\\\"]\",\"namespace\":\"page:https://fixture.example\",\"capabilities\":[\"device.id\",\"network\",\"notifications\",\"storage.persistent\",\"storage.session\"],\"allowedOrigins\":[\"https://fixture.example\"],\"grantIncarnation\":\"b4805e6c-3878-46c1-96aa-904c8635b295\",\"browserSessionIncarnation\":\"browser-session\",\"active\":true,\"grantedAt\":\"2026-10-03T06:41:40.000Z\",\"registrationId\":\"8973fc0d-6ba4-43d2-aeae-1ae9c228ae6b\"}}\n"
+      },
+      {
+        "name": "recoveryRepro",
+        "exitCode": 0,
+        "stdout": "{\"case\":\"crash-after-atomic-KV-and-result-before-broker-recordEffect\",\"response\":{\"PageBrigeCode\":0,\"message\":\"\"},\"runs\":[{\"tag\":\"sdk-service\",\"driver\":\"framework.sdk-service.v1\",\"runId\":\"8354fcd9-2938-4f12-ae9c-eeae7f4fcba9\",\"opId\":\"aa6541a6-ca42-4856-aad3-c94fa87487f0\",\"namespace\":\"page:https://fixture.example\",\"browserSessionIncarnation\":\"browser-session\",\"state\":\"preparing\",\"createdAt\":\"2026-10-03T06:41:40.000Z\"}],\"operation\":{\"tag\":\"sdk-operation\",\"opKey\":\"sdk-operation:[\\\"sdk:https://fixture.example\\\",2,0,\\\"page-document\\\",\\\"c353c36d-8402-4dc4-9571-88390a04124e\\\",\\\"durable-gap\\\"]\",\"tabId\":2,\"frameId\":0,\"documentId\":\"page-document\",\"origin\":\"https://fixture.example\",\"principal\":\"sdk:https://fixture.example\",\"namespace\":\"page:https://fixture.example\",\"grantIncarnation\":\"c353c36d-8402-4dc4-9571-88390a04124e\",\"runId\":\"8354fcd9-2938-4f12-ae9c-eeae7f4fcba9\",\"opId\":\"aa6541a6-ca42-4856-aad3-c94fa87487f0\",\"resultId\":\"6706bb08-3bba-4734-a347-a80b198235f3\",\"requestId\":\"durable-gap\",\"requestDigest\":\"467b6bc4329428bd471c6b30dce8abb51238361e1bf27c7125324917c0264942\",\"method\":\"APPSTORAGE_SETITEM\",\"capability\":\"storage.persistent\",\"effect\":\"write\",\"deadlineAt\":1791009715000,\"browserSessionIncarnation\":\"browser-session\",\"state\":\"durable\",\"cancelSeq\":0,\"submissionCount\":0,\"admittedAt\":\"2026-10-03T06:41:40.000Z\",\"storageRequestDigest\":\"c478b2d1fc07ba790155f2266db94b87907bf4246067cb643443308617be6cc6\",\"durableAt\":1791009700000,\"receiptAt\":\"2026-10-03T06:41:40.000Z\",\"receipt\":{\"resultId\":\"6706bb08-3bba-4734-a347-a80b198235f3\",\"state\":\"durable\"},\"deliveryState\":\"response_ready\",\"responseReadyAt\":\"2026-10-03T06:41:40.000Z\"}}\n{\"case\":\"crash-after-dispatch\",\"runs\":[{\"tag\":\"sdk-service\",\"driver\":\"framework.sdk-service.v1\",\"runId\":\"78b9b384-f7da-4157-ac84-7bdbba3ca7a6\",\"opId\":\"703c9fe7-f412-42d5-bc48-464d51affce2\",\"namespace\":\"page:https://fixture.example\",\"browserSessionIncarnation\":\"browser-session\",\"state\":\"preparing\",\"createdAt\":\"2026-10-03T06:41:40.000Z\"}],\"operation\":{\"tag\":\"sdk-operation\",\"opKey\":\"sdk-operation:[\\\"sdk:https://fixture.example\\\",2,0,\\\"page-document\\\",\\\"964253b4-9c7b-461e-b33d-b1caf4fa4cec\\\",\\\"dispatch-gap\\\"]\",\"tabId\":2,\"frameId\":0,\"documentId\":\"page-document\",\"origin\":\"https://fixture.example\",\"principal\":\"sdk:https://fixture.example\",\"namespace\":\"page:https://fixture.example\",\"grantIncarnation\":\"964253b4-9c7b-461e-b33d-b1caf4fa4cec\",\"runId\":\"78b9b384-f7da-4157-ac84-7bdbba3ca7a6\",\"opId\":\"703c9fe7-f412-42d5-bc48-464d51affce2\",\"resultId\":\"88790521-c9d6-47df-aa7f-51a3c8732aa9\",\"requestId\":\"dispatch-gap\",\"requestDigest\":\"6656b77c9e77444786b5729bdc579e758c036ad459ae30e4dac99153d73d6f15\",\"method\":\"AXIOS_POST\",\"capability\":\"network\",\"effect\":\"write\",\"deadlineAt\":1791009715000,\"browserSessionIncarnation\":\"browser-session\",\"state\":\"effect_unknown\",\"cancelSeq\":0,\"submissionCount\":1,\"admittedAt\":\"2026-10-03T06:41:40.000Z\",\"dispatchAt\":\"2026-10-03T06:41:40.000Z\",\"recoveredAt\":\"2026-10-03T06:41:40.000Z\",\"deliveryError\":{\"code\":\"E_EFFECT_UNKNOWN\",\"message\":\"Worker restarted after SDK dispatch; no effect replay\"}}}\n"
+      },
+      {
+        "name": "entryRepro",
+        "exitCode": 0,
+        "stdout": "{\"case\":\"re-evaluate-fixed-MAIN-entry-same-document\",\"sameModuleIdempotent\":true,\"repeatedEntry\":{\"code\":\"E_SDK_GLOBAL_CONFLICT\",\"message\":\"SDK global already exists: OpenDeskSDK\"}}\n"
+      },
+      {
+        "name": "relayRepro",
+        "exitCode": 0,
+        "stdout": "{\"case\":\"relay-same-ID-changed-digest\",\"nativeDispatches\":1,\"conflictReplies\":[],\"stillPending\":1}\n{\"case\":\"relay-same-ID-changed-digest-final\",\"replies\":[{\"protocol\":\"opendesk.foundation.v1\",\"requestId\":\"same-id\",\"response\":{\"ok\":true,\"data\":{\"PageBrigeCode\":0,\"data\":1,\"message\":\"\"}}}]}\n{\"case\":\"late-native-callback-consumes-reused-relay-entry\",\"nativeDispatches\":2,\"replies\":[{\"protocol\":\"opendesk.foundation.v1\",\"requestId\":\"reused\",\"response\":{\"ok\":false,\"error\":{\"code\":\"E_TIMEOUT\",\"message\":\"Relay deadline exceeded\"}}},{\"requestId\":\"reused\",\"data\":{\"PageBrigeCode\":0,\"data\":\"old-result\",\"message\":\"\"}}],\"pending\":0}\n"
+      }
+    ],
+    "lspDiagnostics": {
+      "status": "unavailable",
+      "reason": "No LSP diagnostic tool is exposed in this runtime. node --check is syntax evidence only, not type-safety approval."
+    },
+    "original43TestClaim": "The user's43-targeted-test context is not treated as acceptance. This review ran the explicit74-test command above and reproduced counterexamples outside that coverage.",
+    "sourceEditedByReview": false,
+    "newTestsWritten": false
+  },
+  "historicalNativeRed": {
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-03T07-17-21.428Z-0b89c413/production-138/report.json",
+    "reportSha256": "7e60adcee96e006d8656a7fef9481398101f53867ea7a056f172d156b9b71202",
+    "summary": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-03T07-17-21.428Z-0b89c413/summary.json",
+    "summarySha256": "13aa78be6b9ee991dbd86dddd9c2d5d210fd999eea3ed888621ba5635c605efe",
+    "packageSha256": "4fc301a556ea4311e2a36c91c0aaf4bf260c280771a604c0cde34c10efb06152",
+    "nativeChrome": "138.0.7204.183",
+    "observed": "UI explicit target negative case PASS; trusted gesture exact-document installation FAIL: E_ENTITLEMENT Storage and a bound subject are required. User reports permissions.request passed. Native trace is preserved, not relabelled green because source factory changed.",
+    "historicalReportModified": false
+  },
+  "hashes": {
+    "before": {
+      "at": "2026-10-03T07:21:52.788736+00:00",
+      "files": {
+        "docs/framework/continue-in-new-chat.md": {
+          "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+          "bytes": 26219
+        },
+        "docs/framework/evidence/k4/router-contract.json": {
+          "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+          "bytes": 9256
+        },
+        "docs/framework/product-continuation-checkpoint.json": {
+          "sha256": "01944efc4d067aa7b48a400b7e856f6d8390c0a5c319e06df8ea9311b45fda96",
+          "bytes": 16779
+        },
+        "docs/framework/prompts/continue-product-migration-20261002.txt": {
+          "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933",
+          "bytes": 10649
+        },
+        "docs/framework/prompts/goal-migration-v5.txt": {
+          "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+          "bytes": 33202
+        },
+        "src/agents/page-relay.js": {
+          "sha256": "ca20e6ddf2881e14c6f5e54905c948d8ea8bcd7a2144ba3fe551d231a766d3fc",
+          "bytes": 6106
+        },
+        "src/framework/sdk/bridge.js": {
+          "sha256": "1e29c660de8ae3c85e6111875418721325192af41082d8f9cd40aa5433240462",
+          "bytes": 5632
+        },
+        "src/framework/sdk/entry.js": {
+          "sha256": "88b1d6dd2f00e271fdb30bb853c56d6d17f972db9529b04e78a5b7a3852f9fa8",
+          "bytes": 3446
+        },
+        "src/framework/sdk/http.js": {
+          "sha256": "1be88c4ae271ab751a1a848e02a78a08adad76140e850e385d4d6555c46c0e62",
+          "bytes": 339
+        },
+        "src/framework/sdk/notifications.js": {
+          "sha256": "a139446cb979971db9487c1e9ae905f19588909acd2f4cf56ab57d9ae29dff41",
+          "bytes": 503
+        },
+        "src/framework/sdk/registry.js": {
+          "sha256": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+          "bytes": 8276
+        },
+        "src/framework/sdk/servers.js": {
+          "sha256": "1bf8e33ba8079914b4c3b11e700af948e594f73872b491c1126f4fe69e333089",
+          "bytes": 983
+        },
+        "src/framework/sdk/service.js": {
+          "sha256": "df46b84eaef58a374f195762dbce67783cdfeee65b94a6b86e96ea196aef51ca",
+          "bytes": 1786
+        },
+        "src/framework/sdk/storage.js": {
+          "sha256": "77e7545c01752ebc3074b182012638cd7981f3cafce82e19e9a782f907bfc7eb",
+          "bytes": 1040
+        },
+        "src/framework/sdk/transport.js": {
+          "sha256": "215cf7975fbf6fb6ac1284a784475251875905e514b0c800edaff367843371f0",
+          "bytes": 4037
+        },
+        "src/framework/sdk/utils.js": {
+          "sha256": "21f0d3e6efd9f690f375e45f6ab6274a9254675e89e4b01cf08b43f1c4284a97",
+          "bytes": 970
+        },
+        "src/platform/chrome/cookies.js": {
+          "sha256": "644053a629b6511ffdaeabc682c2b4f3ba2efc537653e520e8d2b05b3c242a80",
+          "bytes": 3609
+        },
+        "src/platform/chrome/network.js": {
+          "sha256": "6e978085991301421c7f1e9ac2d9a42183ee84833ff5e051ac4083217f3da274",
+          "bytes": 6892
+        },
+        "src/platform/chrome/notifications.js": {
+          "sha256": "891f6f66c06bcc6ee0a32f3c10cf50e1371f9cb0eb02fc3eb8646b40898f1e61",
+          "bytes": 2935
+        },
+        "src/platform/chrome/tabs.js": {
+          "sha256": "cf077eaa8922e5e6fb8e280a44ff71a41cb551665d488acde2205bb66f5297e6",
+          "bytes": 1747
+        },
+        "src/platform/host/authority.js": {
+          "sha256": "f3c0ce751623e9308ed6be8683035be96655c0eb0aa2667c6bec6c55c468133b",
+          "bytes": 21779
+        },
+        "src/platform/host/broker.js": {
+          "sha256": "80e56182748059b5c7c4db9e76eb22e8bb589a68d3d6b18b60616a2abf8533be",
+          "bytes": 10777
+        },
+        "src/platform/host/client.js": {
+          "sha256": "0f02825734c47182443dab7dbf7e0f88b0cea7d4d7a64e3e478a9bb0ea0ec8f6",
+          "bytes": 4085
+        },
+        "src/platform/host/controller-methods.js": {
+          "sha256": "65ee07cc36c577e0c6d2c17f262bbd4258867642b3eb4c7dc669669837e78022",
+          "bytes": 41098
+        },
+        "src/platform/host/sdk-broker.js": {
+          "sha256": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+          "bytes": 4564
+        },
+        "src/platform/host/sdk-methods.js": {
+          "sha256": "69d200705d8169ae2859f82af713cf05bc8f80d6cb2821178e39cf37b99980b5",
+          "bytes": 20505
+        },
+        "src/platform/page-port/codec.js": {
+          "sha256": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124",
+          "bytes": 7854
+        },
+        "src/platform/page-port/index.js": {
+          "sha256": "493118e8fc2a2bfc39fc8328de859fde11936639f1393073348096896ac6e0ca",
+          "bytes": 17775
+        },
+        "src/platform/page-port/source.js": {
+          "sha256": "ef55098b6f515a12187ffa7c3874942849b9231bd95fc9f0a7ce9781c71bbab8",
+          "bytes": 24766
+        },
+        "src/platform/storage/idb.js": {
+          "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672",
+          "bytes": 17016
+        },
+        "src/platform/storage/index.js": {
+          "sha256": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+          "bytes": 3168
+        },
+        "src/platform/storage/regression.js": {
+          "sha256": "7ab921130e6064310916dc45649e05b343eabf34d27203cb39e71e7142f231ed",
+          "bytes": 15317
+        },
+        "src/platform/storage/repository.js": {
+          "sha256": "4f67bee828ae3d758da5fac4d8e4beca2bf0584aaf7839cb676140d4e19e4a68",
+          "bytes": 61404
+        },
+        "src/platform/storage/session.js": {
+          "sha256": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+          "bytes": 2123
+        },
+        "src/sw.js": {
+          "sha256": "955d8fae1a037f65f3e8523e56d71961d787e6d3409177fc0681f3ff9f168fdc",
+          "bytes": 5055
+        },
+        "tests/framework/k2-sdk-broker.test.mjs": {
+          "sha256": "13bcb8e7742136b28e70fc36891c48db0280762d2371ae2950f9f28a62b79c56",
+          "bytes": 14764
+        },
+        "tests/framework/k4-chrome-services.test.mjs": {
+          "sha256": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b",
+          "bytes": 6094
+        },
+        "tests/framework/k4-network.test.mjs": {
+          "sha256": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306",
+          "bytes": 11407
+        },
+        "tests/framework/k4-sdk.test.mjs": {
+          "sha256": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+          "bytes": 19833
+        },
+        "tests/framework/k5-sdk-native.mjs": {
+          "sha256": "260f814e5a3f39df2671d7934f8055962e277b22b07bf9894bf89570233c0c63",
+          "bytes": 35409
+        }
+      }
+    },
+    "after": {
+      "at": "2026-10-03T07:33:17.044879+00:00",
+      "files": {
+        "docs/framework/continue-in-new-chat.md": {
+          "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+          "bytes": 26219
+        },
+        "docs/framework/evidence/k4/router-contract.json": {
+          "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+          "bytes": 9256
+        },
+        "docs/framework/product-continuation-checkpoint.json": {
+          "sha256": "01944efc4d067aa7b48a400b7e856f6d8390c0a5c319e06df8ea9311b45fda96",
+          "bytes": 16779
+        },
+        "docs/framework/prompts/continue-product-migration-20261002.txt": {
+          "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933",
+          "bytes": 10649
+        },
+        "docs/framework/prompts/goal-migration-v5.txt": {
+          "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+          "bytes": 33202
+        },
+        "src/agents/page-relay.js": {
+          "sha256": "ca20e6ddf2881e14c6f5e54905c948d8ea8bcd7a2144ba3fe551d231a766d3fc",
+          "bytes": 6106
+        },
+        "src/framework/sdk/bridge.js": {
+          "sha256": "1e29c660de8ae3c85e6111875418721325192af41082d8f9cd40aa5433240462",
+          "bytes": 5632
+        },
+        "src/framework/sdk/entry.js": {
+          "sha256": "88b1d6dd2f00e271fdb30bb853c56d6d17f972db9529b04e78a5b7a3852f9fa8",
+          "bytes": 3446
+        },
+        "src/framework/sdk/http.js": {
+          "sha256": "1be88c4ae271ab751a1a848e02a78a08adad76140e850e385d4d6555c46c0e62",
+          "bytes": 339
+        },
+        "src/framework/sdk/notifications.js": {
+          "sha256": "a139446cb979971db9487c1e9ae905f19588909acd2f4cf56ab57d9ae29dff41",
+          "bytes": 503
+        },
+        "src/framework/sdk/registry.js": {
+          "sha256": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+          "bytes": 8276
+        },
+        "src/framework/sdk/servers.js": {
+          "sha256": "1bf8e33ba8079914b4c3b11e700af948e594f73872b491c1126f4fe69e333089",
+          "bytes": 983
+        },
+        "src/framework/sdk/service.js": {
+          "sha256": "df46b84eaef58a374f195762dbce67783cdfeee65b94a6b86e96ea196aef51ca",
+          "bytes": 1786
+        },
+        "src/framework/sdk/storage.js": {
+          "sha256": "77e7545c01752ebc3074b182012638cd7981f3cafce82e19e9a782f907bfc7eb",
+          "bytes": 1040
+        },
+        "src/framework/sdk/transport.js": {
+          "sha256": "215cf7975fbf6fb6ac1284a784475251875905e514b0c800edaff367843371f0",
+          "bytes": 4037
+        },
+        "src/framework/sdk/utils.js": {
+          "sha256": "21f0d3e6efd9f690f375e45f6ab6274a9254675e89e4b01cf08b43f1c4284a97",
+          "bytes": 970
+        },
+        "src/platform/chrome/cookies.js": {
+          "sha256": "644053a629b6511ffdaeabc682c2b4f3ba2efc537653e520e8d2b05b3c242a80",
+          "bytes": 3609
+        },
+        "src/platform/chrome/network.js": {
+          "sha256": "6e978085991301421c7f1e9ac2d9a42183ee84833ff5e051ac4083217f3da274",
+          "bytes": 6892
+        },
+        "src/platform/chrome/notifications.js": {
+          "sha256": "891f6f66c06bcc6ee0a32f3c10cf50e1371f9cb0eb02fc3eb8646b40898f1e61",
+          "bytes": 2935
+        },
+        "src/platform/chrome/tabs.js": {
+          "sha256": "cf077eaa8922e5e6fb8e280a44ff71a41cb551665d488acde2205bb66f5297e6",
+          "bytes": 1747
+        },
+        "src/platform/host/authority.js": {
+          "sha256": "f3c0ce751623e9308ed6be8683035be96655c0eb0aa2667c6bec6c55c468133b",
+          "bytes": 21779
+        },
+        "src/platform/host/broker.js": {
+          "sha256": "d7eb68d33342fffb4962be57a3c6be99d28354fc8242e4d49da918cb1d24b7af",
+          "bytes": 11417
+        },
+        "src/platform/host/client.js": {
+          "sha256": "0f02825734c47182443dab7dbf7e0f88b0cea7d4d7a64e3e478a9bb0ea0ec8f6",
+          "bytes": 4085
+        },
+        "src/platform/host/controller-methods.js": {
+          "sha256": "442ede7e55d12d9001e7aadd4b30f74abba4d894e1e339746cdeec04a2068c3c",
+          "bytes": 43364
+        },
+        "src/platform/host/sdk-broker.js": {
+          "sha256": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+          "bytes": 4564
+        },
+        "src/platform/host/sdk-methods.js": {
+          "sha256": "69d200705d8169ae2859f82af713cf05bc8f80d6cb2821178e39cf37b99980b5",
+          "bytes": 20505
+        },
+        "src/platform/page-port/codec.js": {
+          "sha256": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124",
+          "bytes": 7854
+        },
+        "src/platform/page-port/index.js": {
+          "sha256": "493118e8fc2a2bfc39fc8328de859fde11936639f1393073348096896ac6e0ca",
+          "bytes": 17775
+        },
+        "src/platform/page-port/source.js": {
+          "sha256": "ef55098b6f515a12187ffa7c3874942849b9231bd95fc9f0a7ce9781c71bbab8",
+          "bytes": 24766
+        },
+        "src/platform/storage/idb.js": {
+          "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672",
+          "bytes": 17016
+        },
+        "src/platform/storage/index.js": {
+          "sha256": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+          "bytes": 3168
+        },
+        "src/platform/storage/regression.js": {
+          "sha256": "7ab921130e6064310916dc45649e05b343eabf34d27203cb39e71e7142f231ed",
+          "bytes": 15317
+        },
+        "src/platform/storage/repository.js": {
+          "sha256": "4f67bee828ae3d758da5fac4d8e4beca2bf0584aaf7839cb676140d4e19e4a68",
+          "bytes": 61404
+        },
+        "src/platform/storage/session.js": {
+          "sha256": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+          "bytes": 2123
+        },
+        "src/sw.js": {
+          "sha256": "955d8fae1a037f65f3e8523e56d71961d787e6d3409177fc0681f3ff9f168fdc",
+          "bytes": 5055
+        },
+        "tests/framework/k2-sdk-broker.test.mjs": {
+          "sha256": "13bcb8e7742136b28e70fc36891c48db0280762d2371ae2950f9f28a62b79c56",
+          "bytes": 14764
+        },
+        "tests/framework/k4-chrome-services.test.mjs": {
+          "sha256": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b",
+          "bytes": 6094
+        },
+        "tests/framework/k4-network.test.mjs": {
+          "sha256": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306",
+          "bytes": 11407
+        },
+        "tests/framework/k4-sdk.test.mjs": {
+          "sha256": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+          "bytes": 19833
+        },
+        "tests/framework/k5-sdk-native.mjs": {
+          "sha256": "cc59457b8833ceac8de73f8cb4375d31f09f32e705bd21bea9d13ccf62ef2a1a",
+          "bytes": 37344
+        }
+      }
+    },
+    "sourceFrozen": false,
+    "statement": "These are time-bounded observations of a moving worktree, not a frozen product/package. Primary SDK finding files were unchanged over the before/after observations; broker, controller-methods and native runner moved. Controller-methods/native-runner hashes are drift context only, not their review approval. SW also moved after the second snapshot and was fully reread plus syntax-checked; its newest hash is recorded in lastSwRead. No claim of source freeze is made.",
+    "drift": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "before": {
+          "sha256": "80e56182748059b5c7c4db9e76eb22e8bb589a68d3d6b18b60616a2abf8533be",
+          "bytes": 10777
+        },
+        "after": {
+          "sha256": "d7eb68d33342fffb4962be57a3c6be99d28354fc8242e4d49da918cb1d24b7af",
+          "bytes": 11417
+        }
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/controller-methods.js",
+        "before": {
+          "sha256": "65ee07cc36c577e0c6d2c17f262bbd4258867642b3eb4c7dc669669837e78022",
+          "bytes": 41098
+        },
+        "after": {
+          "sha256": "442ede7e55d12d9001e7aadd4b30f74abba4d894e1e339746cdeec04a2068c3c",
+          "bytes": 43364
+        }
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+        "before": {
+          "sha256": "260f814e5a3f39df2671d7934f8055962e277b22b07bf9894bf89570233c0c63",
+          "bytes": 35409
+        },
+        "after": {
+          "sha256": "cc59457b8833ceac8de73f8cb4375d31f09f32e705bd21bea9d13ccf62ef2a1a",
+          "bytes": 37344
+        }
+      }
+    ],
+    "finalAtWrite": {
+      "at": "2026-10-03T07:38:37.866121+00:00",
+      "files": {
+        "docs/framework/continue-in-new-chat.md": {
+          "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055",
+          "bytes": 26219
+        },
+        "docs/framework/evidence/k4/router-contract.json": {
+          "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+          "bytes": 9256
+        },
+        "docs/framework/product-continuation-checkpoint.json": {
+          "sha256": "01944efc4d067aa7b48a400b7e856f6d8390c0a5c319e06df8ea9311b45fda96",
+          "bytes": 16779
+        },
+        "docs/framework/prompts/continue-product-migration-20261002.txt": {
+          "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933",
+          "bytes": 10649
+        },
+        "docs/framework/prompts/goal-migration-v5.txt": {
+          "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d",
+          "bytes": 33202
+        },
+        "src/agents/page-relay.js": {
+          "sha256": "ca20e6ddf2881e14c6f5e54905c948d8ea8bcd7a2144ba3fe551d231a766d3fc",
+          "bytes": 6106
+        },
+        "src/framework/sdk/bridge.js": {
+          "sha256": "1e29c660de8ae3c85e6111875418721325192af41082d8f9cd40aa5433240462",
+          "bytes": 5632
+        },
+        "src/framework/sdk/entry.js": {
+          "sha256": "88b1d6dd2f00e271fdb30bb853c56d6d17f972db9529b04e78a5b7a3852f9fa8",
+          "bytes": 3446
+        },
+        "src/framework/sdk/http.js": {
+          "sha256": "1be88c4ae271ab751a1a848e02a78a08adad76140e850e385d4d6555c46c0e62",
+          "bytes": 339
+        },
+        "src/framework/sdk/notifications.js": {
+          "sha256": "a139446cb979971db9487c1e9ae905f19588909acd2f4cf56ab57d9ae29dff41",
+          "bytes": 503
+        },
+        "src/framework/sdk/registry.js": {
+          "sha256": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+          "bytes": 8276
+        },
+        "src/framework/sdk/servers.js": {
+          "sha256": "1bf8e33ba8079914b4c3b11e700af948e594f73872b491c1126f4fe69e333089",
+          "bytes": 983
+        },
+        "src/framework/sdk/service.js": {
+          "sha256": "df46b84eaef58a374f195762dbce67783cdfeee65b94a6b86e96ea196aef51ca",
+          "bytes": 1786
+        },
+        "src/framework/sdk/storage.js": {
+          "sha256": "77e7545c01752ebc3074b182012638cd7981f3cafce82e19e9a782f907bfc7eb",
+          "bytes": 1040
+        },
+        "src/framework/sdk/transport.js": {
+          "sha256": "215cf7975fbf6fb6ac1284a784475251875905e514b0c800edaff367843371f0",
+          "bytes": 4037
+        },
+        "src/framework/sdk/utils.js": {
+          "sha256": "21f0d3e6efd9f690f375e45f6ab6274a9254675e89e4b01cf08b43f1c4284a97",
+          "bytes": 970
+        },
+        "src/platform/chrome/cookies.js": {
+          "sha256": "644053a629b6511ffdaeabc682c2b4f3ba2efc537653e520e8d2b05b3c242a80",
+          "bytes": 3609
+        },
+        "src/platform/chrome/network.js": {
+          "sha256": "6e978085991301421c7f1e9ac2d9a42183ee84833ff5e051ac4083217f3da274",
+          "bytes": 6892
+        },
+        "src/platform/chrome/notifications.js": {
+          "sha256": "891f6f66c06bcc6ee0a32f3c10cf50e1371f9cb0eb02fc3eb8646b40898f1e61",
+          "bytes": 2935
+        },
+        "src/platform/chrome/tabs.js": {
+          "sha256": "cf077eaa8922e5e6fb8e280a44ff71a41cb551665d488acde2205bb66f5297e6",
+          "bytes": 1747
+        },
+        "src/platform/host/authority.js": {
+          "sha256": "f3c0ce751623e9308ed6be8683035be96655c0eb0aa2667c6bec6c55c468133b",
+          "bytes": 21779
+        },
+        "src/platform/host/broker.js": {
+          "sha256": "d7eb68d33342fffb4962be57a3c6be99d28354fc8242e4d49da918cb1d24b7af",
+          "bytes": 11417
+        },
+        "src/platform/host/client.js": {
+          "sha256": "0f02825734c47182443dab7dbf7e0f88b0cea7d4d7a64e3e478a9bb0ea0ec8f6",
+          "bytes": 4085
+        },
+        "src/platform/host/controller-methods.js": {
+          "sha256": "442ede7e55d12d9001e7aadd4b30f74abba4d894e1e339746cdeec04a2068c3c",
+          "bytes": 43364
+        },
+        "src/platform/host/sdk-broker.js": {
+          "sha256": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+          "bytes": 4564
+        },
+        "src/platform/host/sdk-methods.js": {
+          "sha256": "69d200705d8169ae2859f82af713cf05bc8f80d6cb2821178e39cf37b99980b5",
+          "bytes": 20505
+        },
+        "src/platform/page-port/codec.js": {
+          "sha256": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124",
+          "bytes": 7854
+        },
+        "src/platform/page-port/index.js": {
+          "sha256": "493118e8fc2a2bfc39fc8328de859fde11936639f1393073348096896ac6e0ca",
+          "bytes": 17775
+        },
+        "src/platform/page-port/source.js": {
+          "sha256": "ef55098b6f515a12187ffa7c3874942849b9231bd95fc9f0a7ce9781c71bbab8",
+          "bytes": 24766
+        },
+        "src/platform/storage/idb.js": {
+          "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672",
+          "bytes": 17016
+        },
+        "src/platform/storage/index.js": {
+          "sha256": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+          "bytes": 3168
+        },
+        "src/platform/storage/regression.js": {
+          "sha256": "7ab921130e6064310916dc45649e05b343eabf34d27203cb39e71e7142f231ed",
+          "bytes": 15317
+        },
+        "src/platform/storage/repository.js": {
+          "sha256": "4f67bee828ae3d758da5fac4d8e4beca2bf0584aaf7839cb676140d4e19e4a68",
+          "bytes": 61404
+        },
+        "src/platform/storage/session.js": {
+          "sha256": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+          "bytes": 2123
+        },
+        "src/sw.js": {
+          "sha256": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+          "bytes": 5693
+        },
+        "tests/framework/k2-sdk-broker.test.mjs": {
+          "sha256": "13bcb8e7742136b28e70fc36891c48db0280762d2371ae2950f9f28a62b79c56",
+          "bytes": 14764
+        },
+        "tests/framework/k4-chrome-services.test.mjs": {
+          "sha256": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b",
+          "bytes": 6094
+        },
+        "tests/framework/k4-network.test.mjs": {
+          "sha256": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306",
+          "bytes": 11407
+        },
+        "tests/framework/k4-sdk.test.mjs": {
+          "sha256": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+          "bytes": 19833
+        },
+        "tests/framework/k5-sdk-native.mjs": {
+          "sha256": "cc59457b8833ceac8de73f8cb4375d31f09f32e705bd21bea9d13ccf62ef2a1a",
+          "bytes": 37344
+        }
+      }
+    },
+    "additionalDriftAfterReview": [
+      "src/sw.js"
+    ],
+    "lastSwRead": {
+      "at": "2026-10-03T07:39:25.904070+00:00",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/sw.js",
+      "sha256": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+      "bytes": 5693,
+      "readCompletely": true,
+      "syntaxCheckExitCode": 0,
+      "reviewScope": "SDK lifecycle callback only; no controller approval",
+      "observedDelta": "Native invalidation now also calls controller target invalidation. SDK top-frame invalidation still revokes all document grants in the tab; child-frame invalidation still fences its frame. Factory startup remains subject-free at line8."
+    }
+  },
+  "acceptanceBoundary": {
+    "nativeB05Closed": false,
+    "f3Accepted": false,
+    "ledgerCasesClosed": [],
+    "sameFinalPackageAccepted": false,
+    "stage0F1Reopened": false,
+    "newPlanGate": false,
+    "implementationAuthorizedAndContinues": true
+  },
+  "writtenAt": "2026-10-03T07:38:37.866121+00:00",
+  "rawLog": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-shared-integration/review-independent-sdk-raw.log",
+    "sha256": "fea5e5d08263ed7b7cf06ee072f8e303717b0bb3d5644cff07819ef6eaecf82f"
+  }
+}

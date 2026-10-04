@@ -1,0 +1,16 @@
+{
+  "state": "native-user-scripts-assist",
+  "mode": "production",
+  "label": "138",
+  "pid": 90259,
+  "launcherPid": 90258,
+  "endpoint": "ws://127.0.0.1:62389/devtools/browser/dc7b3cfb-2ae7-425d-8f39-51b9019d3169",
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "settingsId": "8966664FEC21ACAE7BDAAADFC919572E",
+  "initialWorkerId": "21C51C2010C08651106F92B3FE060046",
+  "scriptAvailability": {
+    "available": false,
+    "reason": "undefined API"
+  },
+  "instruction": "Enable Allow User Scripts for this exact test extension, then use its native Reload control so extension contexts refresh. No flags, manifest edits or private APIs."
+}

@@ -1,0 +1,1954 @@
+{
+  "createdAt": "2026-10-02T22:05:35.516528+00:00",
+  "ownership": "only two final-r1 fresh profiles created by this runner",
+  "profiles": [
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721",
+      "existedBeforeCleanup": true,
+      "removed": true,
+      "absentAfterCleanup": true,
+      "matchingProcessIdsBeforeCleanup": [],
+      "browserContextClosed": true,
+      "loopbackServerClosed": true,
+      "fixtureResources": {
+        "pending": 0,
+        "activeOperations": 0,
+        "acceptanceBarriers": 0,
+        "observationTimers": 0,
+        "authorizationMonitors": 0,
+        "authorizationProbes": 0,
+        "deadlineTimers": 0,
+        "rawPending": 0
+      },
+      "outstandingHolds": 0
+    },
+    {
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe",
+      "existedBeforeCleanup": true,
+      "removed": true,
+      "absentAfterCleanup": true,
+      "matchingProcessIdsBeforeCleanup": [],
+      "browserContextClosed": true,
+      "loopbackServerClosed": true,
+      "fixtureResources": {
+        "pending": 0,
+        "activeOperations": 0,
+        "acceptanceBarriers": 0,
+        "observationTimers": 0,
+        "authorizationMonitors": 0,
+        "authorizationProbes": 0,
+        "deadlineTimers": 0,
+        "rawPending": 0
+      },
+      "outstandingHolds": 0
+    }
+  ],
+  "nativeTransientLedger": [
+    {
+      "version": "138.0.7204.183",
+      "caseTimePendingRecords": [
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 0
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 1
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 1
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 2
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 2
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-OBSERVED-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-OWN-GRANT-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-CANCEL-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-DEADLINE-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-OBSERVED-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-OWN-GRANT-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-CANCEL-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-DEADLINE-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-HOST-UI-REVOKE-RESTORE",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 0
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 1
+          }
+        },
+        {
+          "caseId": "MAIN-HOST-UI-RACE-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 1
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 2
+          }
+        },
+        {
+          "caseId": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 2
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-OBSERVED-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-OWN-GRANT-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-CANCEL-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-DEADLINE-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-OBSERVED-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-OWN-GRANT-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-CANCEL-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-DEADLINE-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        }
+      ],
+      "lateNativeObservations": [
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+          "caseNativeInputIndex": 0,
+          "world": "USER_SCRIPT",
+          "rawInput": {
+            "target": {
+              "tabId": 1500015875,
+              "documentIds": [
+                "2E9164F991E356B9C345AFCE496E60FE"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "document.body.dataset.hostDenied=\"host-denied-USER_SCRIPT\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 11162,
+            "results": [
+              {
+                "documentId": "2E9164F991E356B9C345AFCE496E60FE",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/queued-native-observations.json",
+          "lateObservationIndex": 67,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+          "caseNativeInputIndex": 1,
+          "world": "USER_SCRIPT",
+          "rawInput": {
+            "target": {
+              "tabId": 1500015875,
+              "documentIds": [
+                "2E9164F991E356B9C345AFCE496E60FE"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "document.body.dataset.postHostRevoke=\"host-pending-USER_SCRIPT\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 9735,
+            "results": [
+              {
+                "documentId": "2E9164F991E356B9C345AFCE496E60FE",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/queued-native-observations.json",
+          "lateObservationIndex": 70,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+          "caseNativeInputIndex": 1,
+          "world": "USER_SCRIPT",
+          "rawInput": {
+            "target": {
+              "tabId": 1500015875,
+              "documentIds": [
+                "2E9164F991E356B9C345AFCE496E60FE"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "document.body.dataset.postHostRevoke=\"host-native-completed-USER_SCRIPT\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 8293,
+            "results": [
+              {
+                "documentId": "2E9164F991E356B9C345AFCE496E60FE",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/queued-native-observations.json",
+          "lateObservationIndex": 73,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "MAIN-HOST-UI-REVOKE-RESTORE",
+          "caseNativeInputIndex": 0,
+          "world": "MAIN",
+          "rawInput": {
+            "target": {
+              "tabId": 1500015875,
+              "documentIds": [
+                "C9311ECC5DEB395F47408EE4A5BDFA3D"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "document.body.dataset.hostDenied=\"host-denied-MAIN\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 11590,
+            "results": [
+              {
+                "documentId": "C9311ECC5DEB395F47408EE4A5BDFA3D",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/queued-native-observations.json",
+          "lateObservationIndex": 101,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "MAIN-HOST-UI-RACE-PENDING",
+          "caseNativeInputIndex": 1,
+          "world": "MAIN",
+          "rawInput": {
+            "target": {
+              "tabId": 1500015875,
+              "documentIds": [
+                "C9311ECC5DEB395F47408EE4A5BDFA3D"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "document.body.dataset.postHostRevoke=\"host-pending-MAIN\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 10140,
+            "results": [
+              {
+                "documentId": "C9311ECC5DEB395F47408EE4A5BDFA3D",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/queued-native-observations.json",
+          "lateObservationIndex": 104,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+          "caseNativeInputIndex": 1,
+          "world": "MAIN",
+          "rawInput": {
+            "target": {
+              "tabId": 1500015875,
+              "documentIds": [
+                "C9311ECC5DEB395F47408EE4A5BDFA3D"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "document.body.dataset.postHostRevoke=\"host-native-completed-MAIN\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 8673,
+            "results": [
+              {
+                "documentId": "C9311ECC5DEB395F47408EE4A5BDFA3D",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/queued-native-observations.json",
+          "lateObservationIndex": 107,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        }
+      ],
+      "maximumCaseTimeRawPending": 3,
+      "finalAllResourcesZero": true,
+      "note": "Direct native calls issued while site access withheld may remain pending then resolve result:null on old document disposal; these are not adapter dispatches or proven native rejection."
+    },
+    {
+      "version": "154.0.8037.92",
+      "caseTimePendingRecords": [
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 0
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 1
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 1
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 2
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 2
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-OBSERVED-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-OWN-GRANT-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-CANCEL-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-DEADLINE-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-OBSERVED-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-OWN-GRANT-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-CANCEL-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-DEADLINE-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-HOST-UI-REVOKE-RESTORE",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 0
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 1
+          }
+        },
+        {
+          "caseId": "MAIN-HOST-UI-RACE-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 1
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 2
+          }
+        },
+        {
+          "caseId": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 2
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-OBSERVED-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-OWN-GRANT-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-CANCEL-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-DEADLINE-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-OBSERVED-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-OWN-GRANT-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-CANCEL-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-DEADLINE-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        },
+        {
+          "caseId": "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "before": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          },
+          "after": {
+            "pending": 0,
+            "activeOperations": 0,
+            "acceptanceBarriers": 0,
+            "observationTimers": 0,
+            "authorizationMonitors": 0,
+            "authorizationProbes": 0,
+            "deadlineTimers": 0,
+            "rawPending": 3
+          }
+        }
+      ],
+      "lateNativeObservations": [
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+          "caseNativeInputIndex": 0,
+          "world": "USER_SCRIPT",
+          "rawInput": {
+            "target": {
+              "tabId": 1847278216,
+              "documentIds": [
+                "431A77751D95C4A2AE389910C06A9FA0"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "document.body.dataset.hostDenied=\"host-denied-USER_SCRIPT\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 10843,
+            "results": [
+              {
+                "documentId": "431A77751D95C4A2AE389910C06A9FA0",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/queued-native-observations.json",
+          "lateObservationIndex": 67,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-RACE-PENDING",
+          "caseNativeInputIndex": 1,
+          "world": "USER_SCRIPT",
+          "rawInput": {
+            "target": {
+              "tabId": 1847278216,
+              "documentIds": [
+                "431A77751D95C4A2AE389910C06A9FA0"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "document.body.dataset.postHostRevoke=\"host-pending-USER_SCRIPT\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 9492,
+            "results": [
+              {
+                "documentId": "431A77751D95C4A2AE389910C06A9FA0",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/queued-native-observations.json",
+          "lateObservationIndex": 70,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+          "caseNativeInputIndex": 1,
+          "world": "USER_SCRIPT",
+          "rawInput": {
+            "target": {
+              "tabId": 1847278216,
+              "documentIds": [
+                "431A77751D95C4A2AE389910C06A9FA0"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "document.body.dataset.postHostRevoke=\"host-native-completed-USER_SCRIPT\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 8109,
+            "results": [
+              {
+                "documentId": "431A77751D95C4A2AE389910C06A9FA0",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/queued-native-observations.json",
+          "lateObservationIndex": 73,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "MAIN-HOST-UI-REVOKE-RESTORE",
+          "caseNativeInputIndex": 0,
+          "world": "MAIN",
+          "rawInput": {
+            "target": {
+              "tabId": 1847278216,
+              "documentIds": [
+                "C86D7A524E599B78BA9168E219EFA09C"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "document.body.dataset.hostDenied=\"host-denied-MAIN\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 11432,
+            "results": [
+              {
+                "documentId": "C86D7A524E599B78BA9168E219EFA09C",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/queued-native-observations.json",
+          "lateObservationIndex": 101,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "MAIN-HOST-UI-RACE-PENDING",
+          "caseNativeInputIndex": 1,
+          "world": "MAIN",
+          "rawInput": {
+            "target": {
+              "tabId": 1847278216,
+              "documentIds": [
+                "C86D7A524E599B78BA9168E219EFA09C"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "document.body.dataset.postHostRevoke=\"host-pending-MAIN\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 10016,
+            "results": [
+              {
+                "documentId": "C86D7A524E599B78BA9168E219EFA09C",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/queued-native-observations.json",
+          "lateObservationIndex": 104,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        },
+        {
+          "caseId": "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+          "caseNativeInputIndex": 1,
+          "world": "MAIN",
+          "rawInput": {
+            "target": {
+              "tabId": 1847278216,
+              "documentIds": [
+                "C86D7A524E599B78BA9168E219EFA09C"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "document.body.dataset.postHostRevoke=\"host-native-completed-MAIN\";1"
+              }
+            ]
+          },
+          "caseTimeNativeOutcome": null,
+          "finalOutcome": {
+            "kind": "resolved",
+            "elapsedMs": 8591,
+            "results": [
+              {
+                "documentId": "C86D7A524E599B78BA9168E219EFA09C",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "lateObservationFile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/queued-native-observations.json",
+          "lateObservationIndex": 107,
+          "meaning": "pending under site withholding; null on old-document disposal; not native rejection or cancellation"
+        }
+      ],
+      "maximumCaseTimeRawPending": 3,
+      "finalAllResourcesZero": true,
+      "note": "Direct native calls issued while site access withheld may remain pending then resolve result:null on old document disposal; these are not adapter dispatches or proven native rejection."
+    }
+  ],
+  "sharedBrowserDirectoryModified": false,
+  "otherAgentProcessesClosed": false
+}

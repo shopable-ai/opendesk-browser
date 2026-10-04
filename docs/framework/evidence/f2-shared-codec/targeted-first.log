@@ -1,0 +1,326 @@
+TAP version 13
+# Subtest: Chrome JSON hop retains undefined, falsy values, nested presence and business PageBrigeCode
+ok 1 - Chrome JSON hop retains undefined, falsy values, nested presence and business PageBrigeCode
+  ---
+  duration_ms: 5.288375
+  type: 'test'
+  ...
+# Subtest: outcome protocol separates actual errors from all user business objects
+ok 2 - outcome protocol separates actual errors from all user business objects
+  ---
+  duration_ms: 0.870084
+  type: 'test'
+  ...
+# Subtest: encoder rejects unsupported values, cycles and getters without evaluating a getter
+ok 3 - encoder rejects unsupported values, cycles and getters without evaluating a getter
+  ---
+  duration_ms: 4.245208
+  type: 'test'
+  ...
+# Subtest: decoder rejects forged tags, duplicate fields and byte limits; prototype names remain inert data
+ok 4 - decoder rejects forged tags, duplicate fields and byte limits; prototype names remain inert data
+  ---
+  duration_ms: 0.500667
+  type: 'test'
+  ...
+# Subtest: typed canonical input is stable across key order and distinguishes missing from undefined
+ok 5 - typed canonical input is stable across key order and distinguishes missing from undefined
+  ---
+  duration_ms: 0.265625
+  type: 'test'
+  ...
+# Subtest: Base64 string API preserves UTF-8 and rejects malformed Base64 and UTF-8
+ok 6 - Base64 string API preserves UTF-8 and rejects malformed Base64 and UTF-8
+  ---
+  duration_ms: 0.852958
+  type: 'test'
+  ...
+# Subtest: one self-contained factory exposes explicit frozen wire profiles in a fresh realm
+ok 7 - one self-contained factory exposes explicit frozen wire profiles in a fresh realm
+  ---
+  duration_ms: 60.551708
+  type: 'test'
+  ...
+# Subtest: host, fixed Worker runtime and generated harness preserve the same literal values
+ok 8 - host, fixed Worker runtime and generated harness preserve the same literal values
+  ---
+  duration_ms: 195.946334
+  type: 'test'
+  ...
+# Subtest: semantic violations are refused in every entry, without executing accessors
+ok 9 - semantic violations are refused in every entry, without executing accessors
+  ---
+  duration_ms: 24.041583
+  type: 'test'
+  ...
+# Subtest: profile decoder errors retain their codes and reject getters, Symbols and invalid strings
+ok 10 - profile decoder errors retain their codes and reject getters, Symbols and invalid strings
+  ---
+  duration_ms: 1.000791
+  type: 'test'
+  ...
+# Subtest: UTF-8 byte boundaries and inclusive depth 12 remain identical across generated and Worker paths
+ok 11 - UTF-8 byte boundaries and inclusive depth 12 remain identical across generated and Worker paths
+  ---
+  duration_ms: 104.725583
+  type: 'test'
+  ...
+# Subtest: generated harness embeds the shared factory, with no imports or host constructors
+not ok 12 - generated harness embeds the shared factory, with no imports or host constructors
+  ---
+  duration_ms: 14.087084
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-shared-codec.test.mjs:149:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(!descriptor.code.includes(encodeValue.toString()))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-shared-codec.test.mjs:153:10)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: a factory captures serialization intrinsics before user global patches
+ok 13 - a factory captures serialization intrinsics before user global patches
+  ---
+  duration_ms: 1.27525
+  type: 'test'
+  ...
+# Subtest: CMP11-API01/02/03/04: bound constructors, immutable pins and independent owners
+ok 14 - CMP11-API01/02/03/04: bound constructors, immutable pins and independent owners
+  ---
+  duration_ms: 6.31975
+  type: 'test'
+  ...
+# Subtest: CMP10-API05/06 and CMP01-API36: raw callbacks and raw execute never dispatch
+ok 15 - CMP10-API05/06 and CMP01-API36: raw callbacks and raw execute never dispatch
+  ---
+  duration_ms: 0.186208
+  type: 'test'
+  ...
+# Subtest: CMP10-API35: typed values and statement ignored args before registration
+ok 16 - CMP10-API35: typed values and statement ignored args before registration
+  ---
+  duration_ms: 3.6515
+  type: 'test'
+  ...
+# Subtest: CMP03-API34 and CORE-EVALUATE-EXPRESSION: explicit modes and no extra parameters
+ok 17 - CMP03-API34 and CORE-EVALUATE-EXPRESSION: explicit modes and no extra parameters
+  ---
+  duration_ms: 0.490875
+  type: 'test'
+  ...
+# Subtest: CMP02-API12/13-LIMIT: Worker DOM snapshots reject; serialized alternatives preserve null/[]
+ok 18 - CMP02-API12/13-LIMIT: Worker DOM snapshots reject; serialized alternatives preserve null/[]
+  ---
+  duration_ms: 1.482958
+  type: 'test'
+  ...
+# Subtest: NAV01 + ChromeElement: only attested navigation advances root; old element/keyboard sequence stay bound
+ok 19 - NAV01 + ChromeElement: only attested navigation advances root; old element/keyboard sequence stay bound
+  ---
+  duration_ms: 1.020708
+  type: 'test'
+  ...
+# Subtest: CTRL owner fencing: stop/deadline/host-close settle pending once; stale request never rebinds new ctx
+ok 20 - CTRL owner fencing: stop/deadline/host-close settle pending once; stale request never rebinds new ctx
+  ---
+  duration_ms: 2.102458
+  type: 'test'
+  ...
+# Subtest: Private Worker port: global fake peer, wrong owner, wrong correlation and reply replay cannot settle
+ok 21 - Private Worker port: global fake peer, wrong owner, wrong correlation and reply replay cannot settle
+  ---
+  duration_ms: 143.522834
+  type: 'test'
+  ...
+# Subtest: Host relay rejects cross-owner/old revision/old target before the shared transport
+ok 22 - Host relay rejects cross-owner/old revision/old target before the shared transport
+  ---
+  duration_ms: 0.455792
+  type: 'test'
+  ...
+# Subtest: dispatch allowlists reject malformed kind/method before any authority or native call
+ok 23 - dispatch allowlists reject malformed kind/method before any authority or native call
+  ---
+  duration_ms: 114.894042
+  type: 'test'
+  ...
+# Subtest: packaged exact document injection, correlation and undefined use real registry; no reinjection/global mutation
+ok 24 - packaged exact document injection, correlation and undefined use real registry; no reinjection/global mutation
+  ---
+  duration_ms: 24.026167
+  type: 'test'
+  ...
+# Subtest: page session accepts trusted extension sender only, rejects spoof/changed replay and settles each execution once
+ok 25 - page session accepts trusted extension sender only, rejects spoof/changed replay and settles each execution once
+  ---
+  duration_ms: 8.852667
+  type: 'test'
+  ...
+# Subtest: each dispatch is preceded by authority; revocation during suspension produces zero subsequent dispatches
+ok 26 - each dispatch is preceded by authority; revocation during suspension produces zero subsequent dispatches
+  ---
+  duration_ms: 1.415
+  type: 'test'
+  ...
+# Subtest: real current getScripts at dispatch and accept; false/undefined/business values strictly encoded with generator worlds
+ok 27 - real current getScripts at dispatch and accept; false/undefined/business values strictly encoded with generator worlds
+  ---
+  duration_ms: 6.076416
+  type: 'test'
+  ...
+# Subtest: switch observed unavailable is sticky across driver instances and results are retained before failing post permission
+ok 28 - switch observed unavailable is sticky across driver instances and results are retained before failing post permission
+  ---
+  duration_ms: 1.606791
+  type: 'test'
+  ...
+# Subtest: user-script receipt must attest exact document/frame; malformed and user errors propagate
+ok 29 - user-script receipt must attest exact document/frame; malformed and user errors propagate
+  ---
+  duration_ms: 6.286875
+  type: 'test'
+  ...
+# Subtest: navigation uses admitted pending phase, waits independently of old agent and preserves complete handoff binding
+ok 30 - navigation uses admitted pending phase, waits independently of old agent and preserves complete handoff binding
+  ---
+  duration_ms: 54.234333
+  type: 'test'
+  ...
+# Subtest: navigation ignores another tab and wrong readiness document; timeout cleans every subscription
+ok 31 - navigation ignores another tab and wrong readiness document; timeout cleans every subscription
+  ---
+  duration_ms: 91.30175
+  type: 'test'
+  ...
+# Subtest: navigation rejects unsupported options before dispatch and unauthorized redirect without handing off
+ok 32 - navigation rejects unsupported options before dispatch and unauthorized redirect without handing off
+  ---
+  duration_ms: 1.3515
+  type: 'test'
+  ...
+# Subtest: screenshot rejects fullPage/invisible exact tab and detects active-tab ABA during capture
+ok 33 - screenshot rejects fullPage/invisible exact tab and detects active-tab ABA during capture
+  ---
+  duration_ms: 1.554875
+  type: 'test'
+  ...
+# Subtest: screenshot exact window success and raw receipt survive post-revocation
+ok 34 - screenshot exact window success and raw receipt survive post-revocation
+  ---
+  duration_ms: 1.597333
+  type: 'test'
+  ...
+# Subtest: cookie service uses observed store, correct projection/dedup, expires=0 and exact name/path deletion
+ok 35 - cookie service uses observed store, correct projection/dedup, expires=0 and exact name/path deletion
+  ---
+  duration_ms: 6.819459
+  type: 'test'
+  ...
+# Subtest: cookie batch preflight denies unauthorized URL and malformed/domain/partition input with no cookie write/read
+ok 36 - cookie batch preflight denies unauthorized URL and malformed/domain/partition input with no cookie write/read
+  ---
+  duration_ms: 2.078667
+  type: 'test'
+  ...
+# Subtest: cookie remove native lastError is typed; ambiguous domain or partition observations never remove
+ok 37 - cookie remove native lastError is typed; ambiguous domain or partition observations never remove
+  ---
+  duration_ms: 1.631666
+  type: 'test'
+  ...
+# Subtest: upload URL omits credentials, manually authorizes redirect and commits real chunks/file bytes
+ok 38 - upload URL omits credentials, manually authorizes redirect and commits real chunks/file bytes
+  ---
+  duration_ms: 140.678459
+  type: 'test'
+  ...
+# Subtest: upload denies cross-origin/downgrade/too many redirects/oversize/HTTP errors before DOM commit
+ok 39 - upload denies cross-origin/downgrade/too many redirects/oversize/HTTP errors before DOM commit
+  ---
+  duration_ms: 3.59825
+  type: 'test'
+  ...
+# Subtest: stop cancels real packaged waits/staging, late reply cannot deliver; fresh driver cleans original identity epoch
+ok 40 - stop cancels real packaged waits/staging, late reply cannot deliver; fresh driver cleans original identity epoch
+  ---
+  duration_ms: 33.635916
+  type: 'test'
+  ...
+# Subtest: result receipt survives forced stop; new-instance retirement removes borrowed registry resources without closing tab
+ok 41 - result receipt survives forced stop; new-instance retirement removes borrowed registry resources without closing tab
+  ---
+  duration_ms: 6.20425
+  type: 'test'
+  ...
+# Subtest: fixed packaged resources allow only current SDK entry; unlisted extension or remote code never creates nodes
+ok 42 - fixed packaged resources allow only current SDK entry; unlisted extension or remote code never creates nodes
+  ---
+  duration_ms: 1.426958
+  type: 'test'
+  ...
+# Subtest: user wait cancellation uses only framework harness; deadline and pending authority failure fence late callbacks
+ok 43 - user wait cancellation uses only framework harness; deadline and pending authority failure fence late callbacks
+  ---
+  duration_ms: 60.36375
+  type: 'test'
+  ...
+# Subtest: pagehide disposes listener, real wait and upload state; unknown operations create no session
+ok 44 - pagehide disposes listener, real wait and upload state; unknown operations create no session
+  ---
+  duration_ms: 12.998833
+  type: 'test'
+  ...
+# Subtest: borrowed child frame keeps exact frame/document for registry, evaluation and fresh-instance cancellation
+ok 45 - borrowed child frame keeps exact frame/document for registry, evaluation and fresh-instance cancellation
+  ---
+  duration_ms: 15.974333
+  type: 'test'
+  ...
+# Subtest: borrowed child navigation/capture reject explicitly with zero native effects; wrong-frame result and replaced child are fenced
+ok 46 - borrowed child navigation/capture reject explicitly with zero native effects; wrong-frame result and replaced child are fenced
+  ---
+  duration_ms: 3.242833
+  type: 'test'
+  ...
+# Subtest: CMP10-API35: generated function harness awaits and preserves falsy/undefined/business values
+ok 47 - CMP10-API35: generated function harness awaits and preserves falsy/undefined/business values
+  ---
+  duration_ms: 89.119333
+  type: 'test'
+  ...
+# Subtest: CMP10-API35-ERR/LIMIT: generated user failures are typed; no lexical closure/native result fallback
+ok 48 - CMP10-API35-ERR/LIMIT: generated user failures are typed; no lexical closure/native result fallback
+  ---
+  duration_ms: 9.667458
+  type: 'test'
+  ...
+# Subtest: CMP03-API34 and CORE-EVALUATE-EXPRESSION: correct worlds, async statement, exact values and syntax error
+ok 49 - CMP03-API34 and CORE-EVALUATE-EXPRESSION: correct worlds, async statement, exact values and syntax error
+  ---
+  duration_ms: 6.705917
+  type: 'test'
+  ...
+# Subtest: CMP03-API26: pending predicates time out and canceled waits clear the real timer/map
+ok 50 - CMP03-API26: pending predicates time out and canceled waits clear the real timer/map
+  ---
+  duration_ms: 26.821833
+  type: 'test'
+  ...
+1..50
+# tests 50
+# suites 0
+# pass 49
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 844.632791

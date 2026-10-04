@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-03T08:05:27.726417+00:00",
+  "stage": "F2",
+  "claims": {
+    "componentTests": 19,
+    "passed": 19,
+    "nativeB05": false,
+    "F3": false,
+    "original603Closed": false
+  },
+  "originalSectionsUnchanged": {
+    "caseResults": "aadbdc926301ee2f0e3f2fcfe9b8c6140ede317a75670c5fc73eab9cac9eef56",
+    "denominatorHistory": "cba0834e87f9a6055e58067e8b9dec69a4acc33c3b2ad618b367b7297b080c10"
+  },
+  "evidence": [
+    {
+      "path": "docs/framework/evidence/f2-shared-integration/sdk-recovery-combinations-fixed.tap",
+      "sha256": "d201634f5ad9c66e2736e7bd0ef4e514395723d73a7fdb1ba00d24fd35ed9475"
+    }
+  ],
+  "sourceAtTestNotFrozen": true
+}

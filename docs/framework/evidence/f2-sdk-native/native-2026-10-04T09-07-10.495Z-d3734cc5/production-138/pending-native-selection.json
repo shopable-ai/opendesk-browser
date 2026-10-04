@@ -1,0 +1,33 @@
+{
+  "state": "native-selection-assist",
+  "mode": "production",
+  "label": "138",
+  "number": 2,
+  "pid": 95901,
+  "launcherPid": 84883,
+  "endpoint": "ws://127.0.0.1:59448/devtools/browser/c40f6cde-4933-4d65-aa49-54799e190491",
+  "toolId": "DF29514C49148085A5520DFA8C3E88D2",
+  "selector": "#sdk-tab",
+  "desired": "1649397498",
+  "before": {
+    "value": "",
+    "selectedIndex": 0,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择具体网页",
+        "disabled": false
+      },
+      {
+        "value": "1649397498",
+        "text": "[1649397498] SDK target — http://127.0.0.1:57629/target?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&session=2",
+        "disabled": false
+      },
+      {
+        "value": "1649397499",
+        "text": "[1649397499] SDK decoy — http://127.0.0.1:57629/decoy?seed=sdk-native-0adddaf3-fff3-4406-854a-c4b37f4cbe0c&session=2",
+        "disabled": false
+      }
+    ]
+  }
+}

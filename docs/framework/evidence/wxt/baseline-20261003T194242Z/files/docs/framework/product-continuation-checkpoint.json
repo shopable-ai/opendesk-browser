@@ -1,0 +1,606 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-03T06:35:50.900047+00:00",
+  "purpose": "New-chat product implementation continuation, not completion certificate",
+  "projectRoot": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "instruction": "Read full v5 and historical attachment; preserve qualified Stage0/F1 and execute current F2 product gaps. Do not restore old tasks.",
+  "nativeGoalStatus": "active in originating chat; no pause/completion claimed",
+  "stage": "F2-K2-integration; K3/K4 modules in progress",
+  "stage0Approved": true,
+  "backendPrototypePassed": true,
+  "fullImplementationReleased": true,
+  "frameworkFunctionalMigrationComplete": false,
+  "isCompletionCertificate": false,
+  "finalProductPackageSha256": null,
+  "f3Accepted": false,
+  "f1SameCandidateEvidence": [
+    {
+      "path": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+      "sha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+      "unchanged": true
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+      "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6",
+      "unchanged": true
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+      "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f",
+      "unchanged": true
+    }
+  ],
+  "stage0ManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "freshVerification": {
+    "evidence": "docs/framework/evidence/f2-shared-integration/stable-rebuild-2026-10-03T08-50-41.030Z/stable-rebuild-receipt.json",
+    "passed": 392,
+    "failed": 0,
+    "syntaxFiles": 71,
+    "sourceFiles": 77,
+    "sourceDrift": false,
+    "isFinalProductAcceptance": false
+  },
+  "existingEvidence": [
+    {
+      "path": "docs/framework/evidence/k2-storage/k2-idb-2026-10-03T00-03-37-106Z-ed5c6b02/report.json",
+      "sha256": "2cac8ca0f6343c04581a15efb29802059b8a24b7aca357de64d15ac7d7bcb4ee",
+      "scope": "Actual native Chrome HTTP-origin product IDB v1-v2 migration; not extension sender/sessionTyped/SW acceptance",
+      "productV2MigrationPassed": true
+    },
+    {
+      "path": "docs/framework/evidence/k2-page-port/executor-transport-r8-20261002T234002Z/verification.json",
+      "sha256": "08b342bda6c57477ca97b92747ca0c8c7cb973b22484ed330b6b060f463ce0c4",
+      "scope": "Actual historical short-ACK red-to-green and serial/native API fixtures; final independent acceptance false"
+    },
+    {
+      "path": "docs/framework/evidence/k3/native-control-component-2026-10-02T23-56-30.037Z/summary.json",
+      "sha256": "36082e1b9ba2533895ee5bc4c8cc8e6c236967e02d5b3f64c5478246b4d1b16c",
+      "scope": "Component extension, Chrome138/154 each11 PASS, final product false"
+    },
+    {
+      "path": "docs/framework/evidence/k3/native-registry-2026-10-02T23-50-31.030Z/summary.json",
+      "sha256": "0f8127508d8fa88dc2af9bb42438a2244135a3a64333a7240de56b9d083dc2b4",
+      "scope": "Targeted modules, Chrome138/154 each12 PASS, not final product"
+    },
+    {
+      "path": "docs/framework/evidence/k4/verification.json",
+      "sha256": "3b7331e0afc4641642d5f8ca610816575ab2b0f9c5363d1dad9789cd5d6a74ac",
+      "scope": "K4 module/Node HTTP/callback boundary and source freeze; no native B05/F3"
+    },
+    {
+      "path": "docs/framework/evidence/k4/router-contract.json",
+      "sha256": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+      "scope": "SDK/main router contract: full read required"
+    },
+    {
+      "path": "docs/framework/evidence/k4/source-manifest.json",
+      "sha256": "98374b960224900c77d45560a1bd4aa45b985548b3a6d445d3973cc8646e0855",
+      "scope": "Scoped source/resource mapping; full read required"
+    }
+  ],
+  "remainingActionsInDependencyOrder": [
+    {
+      "id": "N1",
+      "task": "K2/K4",
+      "action": "Finish actual independent SDK service matrix, native grant/revoke/navigation/session/SW recovery and durable unknown behavior; preserve all raw failures."
+    },
+    {
+      "id": "N2",
+      "task": "K3/K5",
+      "action": "Verify actual product UI save/load/run/stop/immutable revisions, typed results, tool close/reopen and download complete plus actual file hash, same stable package."
+    },
+    {
+      "id": "N3",
+      "task": "K4",
+      "action": "Execute actual CP1 abort and independent B05 admission/durable-result four crash points; real-browser same-profile reopen remains NOT_TESTED under global launcher contract."
+    },
+    {
+      "id": "N4",
+      "task": "K6",
+      "action": "Freeze one final production package; prove original603 plus19 explicit additions, historical17/R1-R8,1000 mixed rounds/10 reconnects/2 plugin disables/resource baselines; independent Architect then Critic on same candidate."
+    }
+  ],
+  "requiredAcceptance": "Original603 and explicit v5 extras, full mandatory families,1000 mixed rounds/10 host-SW reconnects/2 plugin disables, actual download complete+disk hash, independent SDK B05 and same-final-package independent reviewers",
+  "sourceLedgerCaseClosureByThisCheckpoint": false,
+  "agentAvailability": {
+    "oldActorIds": "Unavailable in current native runtime; send_input returned agent not found for Singer/Confucius/Hume. Do not restore/wait/reuse old ids.",
+    "sdkActor": "Lorentz reported exceeded retry limit /429; its disk files/evidence exist. Read and continue; do not wait on old actor.",
+    "finalProductReviewers": "Not assigned for final product; prior independent approvals cover only F1"
+  },
+  "nextPrompt": "docs/framework/prompts/continue-product-mainline-20261003.txt",
+  "continuationPrompt": "docs/framework/prompts/continue-product-mainline-20261003.txt",
+  "updatedAt": "2026-10-03T09:35:04.427190+00:00",
+  "previousModuleVerification": {
+    "path": "docs/framework/evidence/continuation-20261002/verification.json",
+    "sha256": "334fc65d376f4f5da44c811d78d1b1c4035eedf729f4ceb61034eb8264c46d3e",
+    "syntaxCheckedFiles": 64,
+    "results": [
+      {
+        "name": "syntax",
+        "argv": [
+          "npm",
+          "run",
+          "check"
+        ],
+        "exitCode": 0,
+        "summary": {},
+        "log": "docs/framework/evidence/continuation-20261002/syntax.log",
+        "logSha256": "e62941e4cd32ec335d4417b65b491e6100f37af8ecbd120b6e287af5354be227"
+      },
+      {
+        "name": "foundation",
+        "argv": [
+          "node",
+          "--test",
+          "tests/foundation/download-service.test.mjs",
+          "tests/foundation/page-port-fixtures.test.mjs",
+          "tests/foundation/page-port-service.test.mjs",
+          "tests/foundation/policy-entitlement.test.mjs",
+          "tests/foundation/protocol.test.mjs",
+          "tests/foundation/runtime.test.mjs",
+          "tests/foundation/storage.test.mjs",
+          "tests/foundation/target-service.test.mjs"
+        ],
+        "exitCode": 0,
+        "summary": {
+          "tests": 122,
+          "pass": 122,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "log": "docs/framework/evidence/continuation-20261002/foundation.log",
+        "logSha256": "2e176c688f8de17ba54e16622d3b088ee1b0a4ca75028f21681673b1e57e4350"
+      },
+      {
+        "name": "k2-k4",
+        "argv": [
+          "node",
+          "--test",
+          "tests/framework/k2-codec.test.mjs",
+          "tests/framework/k2-control-state-regressions.test.mjs",
+          "tests/framework/k2-protocol-regressions.test.mjs",
+          "tests/framework/k4-sdk.test.mjs",
+          "tests/framework/k4-network.test.mjs",
+          "tests/framework/k4-chrome-services.test.mjs",
+          "tests/framework/k4-resources.test.mjs"
+        ],
+        "exitCode": 0,
+        "summary": {
+          "tests": 75,
+          "pass": 75,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "log": "docs/framework/evidence/continuation-20261002/k2-k4.log",
+        "logSha256": "37e2e63ecf01a1cb3c3e66323b96ad23eed5cc3e79b710b8fbb1ca52b5d38da2"
+      }
+    ],
+    "productAndBuildInputCount": 63,
+    "sourceDriftDuringTests": [],
+    "boundary": "Unit/serial/callback and Node loopback HTTP, not same-package native SDK acceptance"
+  },
+  "basicTestEntry": "docs/framework/basic-capability-test-entry.md",
+  "observedChangesSincePriorCheck": [
+    "src/platform/storage/session.js exists and broker injects createSessionTyped({api})",
+    "SW SDK navigation, permission removal and tab removal event hooks exist",
+    "SDK hard timer, native receipts, delivery settlement and synchronous fence code updated; native acceptance pending"
+  ],
+  "currentMainPackage": {
+    "directory": "dist/production",
+    "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+    "scope": "stable F2 candidate; native acceptance in progress",
+    "currentProductAcceptance": false,
+    "fixedEntriesAndResourcesPackageVerified": true,
+    "receipt": "docs/framework/evidence/f2-shared-integration/stable-rebuild-2026-10-03T08-50-41.030Z/stable-rebuild-receipt.json"
+  },
+  "currentContinuationExecution": {
+    "at": "2026-10-03T09:00:42.131909+00:00",
+    "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+    "stage": "F2 stable-package native verification",
+    "nativeGoalStatus": "active",
+    "stage0AndF1Retained": true,
+    "f1FrozenBindingsReverified": 176,
+    "original603Unchanged": true,
+    "componentVerification": {
+      "evidence": "docs/framework/evidence/f2-shared-integration/stable-rebuild-2026-10-03T08-50-41.030Z/stable-rebuild-receipt.json",
+      "passed": 392,
+      "failed": 0,
+      "syntaxFiles": 71,
+      "sourceFiles": 77,
+      "sourceDrift": false,
+      "isFinalProductAcceptance": false
+    },
+    "sourceStatus": "frozen through current native execution; stable production/development build-pack-verify passed within unchanged budgets",
+    "fixedEntryAdded": "scripting/packaged/page-session.js",
+    "f2CandidatePackages": {
+      "production": {
+        "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+        "packReceipt": {
+          "status": "passed",
+          "mode": "production",
+          "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+          "zipSha256": "4723dafa7e50b3ea87ec264f757628e214d1346120c292d93e47820c0ef47254",
+          "bytes": 134974
+        },
+        "swBytes": 252486
+      },
+      "development": {
+        "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+        "packReceipt": {
+          "status": "passed",
+          "mode": "development",
+          "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+          "zipSha256": "7c2eec9d6714edb947a8b66c182db18cf929d41fc3ed296c5eee9c6a96c01d58",
+          "bytes": 565480
+        },
+        "swBytes": 513045
+      }
+    },
+    "browserLaunchContract": {
+      "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+      "freshProfileRequired": true,
+      "actualMainProcessArgvProofRequired": true,
+      "sameProfileBrowserReopen": "NOT_TESTED: launcher creates and deletes its own fresh profile; no profile copying"
+    },
+    "nativeSdkExecution": {
+      "evidence": "docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c",
+      "matrix": "production/development x Chrome138/154 headed",
+      "status": "completed-targeted-native-current-package",
+      "production138Install": "actual native permission for127.0.0.1 allowed by Main CUA; exact selected document installed=true; page-service cases pending",
+      "summary": {
+        "PASS": 60,
+        "FAIL": 0,
+        "BLOCKED": 0,
+        "NOT_TESTED": 4
+      },
+      "summaryEvidence": "docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c/summary.json",
+      "notTested": "same-profile real browser reopen; global launcher fresh-only"
+    },
+    "nativeB05Passed": false,
+    "finalProductPackageSha256": null,
+    "f3Accepted": false,
+    "nextAction": "单个production+Chrome138真实UI return 7;，保存→版本→运行→durable→UI重读，首个阻断处停止依赖测试",
+    "nativeExecutionWindow": {
+      "state": "released-for-new-dialogue-handoff",
+      "lane": "none",
+      "controllerLatestOwnedCleanupEvidence": "docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-138/report.json",
+      "sdkRunnerIdle": true
+    },
+    "boundedNativeObservationOwners": {
+      "CP1": "01a10087-8299-7d60-8348-d34cdf1715e4; tests/framework/k5-sdk-admission-abort-native* and evidence/f2-sdk-admission-abort; pure ready awaiting later Main slot",
+      "API48": "01a10104-2070-7040-b91e-a02fbeb717d2; tests/framework/f3-api48-*; pure prep only",
+      "availablePeerGap": "SDK018 actual native storage durable-before-broker-receipt cut plus native KV write submission count; avoid duplicating assigned CP1"
+    },
+    "boundedNativeObservationOwnersDisposition": "旧agents已要求收束；保留文件，不恢复/等待旧agent"
+  },
+  "continuationExecutionHistory": [
+    {
+      "at": "2026-10-03T07:18:58.111146+00:00",
+      "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+      "nativeGoalStatus": "active",
+      "sharedIntegrationEvidence": "docs/framework/evidence/f2-shared-integration/verification.json",
+      "controllerRoutesWired": true,
+      "finalProductPackageSha256": null,
+      "f3Accepted": false
+    },
+    {
+      "at": "2026-10-03T08:34:07.639616+00:00",
+      "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+      "stage": "F2 product implementation",
+      "nativeGoalStatus": "active",
+      "stage0AndF1Retained": true,
+      "f1FrozenBindingsReverified": 176,
+      "original603Unchanged": true,
+      "componentVerification": {
+        "evidence": "docs/framework/evidence/f2-shared-integration/integration-full-tests.json",
+        "passed": 349,
+        "failed": 0,
+        "scope": "prior source component tests; subsequent affected source changes require fresh validation",
+        "isFinalProductAcceptance": false
+      },
+      "sourceStatus": "pending codec/controller/download bounded slice freeze; stable package rebuild next",
+      "fixedEntryAdded": "scripting/packaged/page-session.js",
+      "browserLaunchContract": {
+        "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+        "freshProfileRequired": true,
+        "actualMainProcessArgvProofRequired": true,
+        "sameProfileBrowserReopen": "NOT_TESTED: launcher creates and deletes its own fresh profile; no profile copying"
+      },
+      "nativeB05Passed": false,
+      "finalProductPackageSha256": null,
+      "f3Accepted": false,
+      "nextAction": "freeze bounded source changes; build/pack/verify production+development; SDK native four combinations; actual controller product entry; then same-final-package F3"
+    }
+  ],
+  "priorContinuationFieldSnapshots": [
+    {
+      "at": "2026-10-03T09:00:42.131909+00:00",
+      "currentMainPackage": {
+        "directory": "dist/production",
+        "minimumChromeVersion": "120",
+        "scope": "old environment-stage package",
+        "missing": [
+          "framework/sdk-main.js",
+          "agents/page-relay.js",
+          "icons/notification.png",
+          "licenses/todo-user-vue-MIT.txt",
+          "control sandbox"
+        ],
+        "currentProductAcceptance": false
+      },
+      "remainingActionsInDependencyOrder": [
+        {
+          "id": "P0",
+          "task": "K2",
+          "action": "Close current SDK grant/storage E_SCHEMA contract mismatch and stabilize packaged short ACK event test; preserve behavioral/security assertions",
+          "gap": "Latest full basic suite208/210, isolated1/2; logs and exact fixture mismatch in basic-capability-test-entry.md"
+        },
+        {
+          "id": "P1",
+          "task": "K2",
+          "action": "Verify new SDK broker/authority with meaningful admission, duplicate, conflict, revoke, original-deadline and unknown-effect tests; then native SDK independently",
+          "files": [
+            "src/platform/host/sdk-broker.js",
+            "src/platform/host/sdk-methods.js",
+            "src/platform/host/broker.js"
+          ],
+          "gap": "Routes and delegate are written; fresh syntax and foundation checks do not establish native SDK acceptance"
+        },
+        {
+          "id": "P2",
+          "task": "K2",
+          "action": "Verify and refine existing real chrome.storage.session adapter, broker injection and SW native lifecycle hooks; do not duplicate them",
+          "files": [
+            "src/platform/storage/index.js",
+            "src/platform/storage/repository.js",
+            "src/platform/host/broker.js",
+            "src/sw.js"
+          ],
+          "gap": "Session adapter and navigation/permission/tab invalidation code exist, but real native session lifetime, grant race, SDK delivery and four crash points have not been accepted"
+        },
+        {
+          "id": "P3",
+          "task": "K2",
+          "action": "Close remaining R1-R8 with actual product evidence; specifically bound malformed/cyclic schema refs, generic completion independent of template/seal, authority final transaction fences",
+          "files": [
+            "src/platform/protocol.js",
+            "src/platform/host/authority.js",
+            "src/platform/target/index.js"
+          ],
+          "gap": "Current conform recursion has no explicit cycle/depth guard; existing completed path is legacy template/seal based; unit PASS does not close all required native R cases"
+        },
+        {
+          "id": "P4",
+          "task": "K3/K4",
+          "action": "Package fixed MAIN/ISOLATED SDK, control sandbox/Worker, notification icon and original MIT in existing build/verify; keep privileged CSP strict",
+          "files": [
+            "webpack.config.cjs",
+            "scripts/build.mjs",
+            "scripts/verify-package.mjs",
+            "manifest.json"
+          ],
+          "gap": "SDK entries/license/icon/control sandbox are not in current main package; no updated product package hash"
+        },
+        {
+          "id": "P5",
+          "task": "K3",
+          "action": "Integrate current ChromePage/context/control/page evaluator through unique run-host and authority/target; reuse one cookie driver",
+          "files": [
+            "src/framework/ChromePage.js",
+            "src/framework/context.js",
+            "src/framework/control",
+            "src/scripting",
+            "src/run-host.js",
+            "src/platform/chrome/cookies.js"
+          ],
+          "gap": "48 API/module and dual Chrome components have targeted evidence, not main product lifecycle acceptance"
+        },
+        {
+          "id": "P6",
+          "task": "K5",
+          "action": "Use actual product entry to prove integration; separately admit/grant exact native page document and install fixed SDK without controller",
+          "files": [
+            "src/ui/tool.html",
+            "src/ui/tool-shell.js",
+            "src/platform/chrome/tabs.js",
+            "src/sw.js"
+          ],
+          "gap": "No true independent B05 or finalized product UI/grant/Hello installation acceptance"
+        },
+        {
+          "id": "P7",
+          "task": "K6",
+          "action": "Build and test same candidate; update environment package fixtures without weakening mutation assertions; then freeze final package and complete original603 plus mandatory extras and independent final review",
+          "gap": "Historical npm test16/20 fails at stale dist minimum138 before intended mutation assertions; F3, same final product hash and independent product review remain absent"
+        }
+      ],
+      "freshVerification": {
+        "path": "docs/framework/evidence/basic-capability-readiness-20261002/verification.json",
+        "sha256": "c9eec9c065377b5c51aac276592555ed6b4def50c9823f2d62821e9f0997bfb0",
+        "syntaxCheckedFiles": 65,
+        "results": [
+          {
+            "name": "syntax",
+            "argv": [
+              "npm",
+              "run",
+              "check"
+            ],
+            "exitCode": 0,
+            "summary": {},
+            "highlights": [
+              "Syntax checked 65 source/test/build files"
+            ],
+            "log": "docs/framework/evidence/basic-capability-readiness-20261002/syntax.log",
+            "logSha256": "7fc357ed931d8202b0efd771b48a772e1a1a5bc8ececa670be6cf8e459b419c1"
+          },
+          {
+            "name": "basic-modules",
+            "argv": [
+              "node",
+              "--test",
+              "tests/foundation/download-service.test.mjs",
+              "tests/foundation/page-port-fixtures.test.mjs",
+              "tests/foundation/page-port-service.test.mjs",
+              "tests/foundation/policy-entitlement.test.mjs",
+              "tests/foundation/protocol.test.mjs",
+              "tests/foundation/runtime.test.mjs",
+              "tests/foundation/storage.test.mjs",
+              "tests/foundation/target-service.test.mjs",
+              "tests/framework/k2-codec.test.mjs",
+              "tests/framework/k2-control-state-regressions.test.mjs",
+              "tests/framework/k2-protocol-regressions.test.mjs",
+              "tests/framework/k3-context.test.mjs",
+              "tests/framework/k3-page-evaluator.test.mjs",
+              "tests/framework/k4-chrome-services.test.mjs",
+              "tests/framework/k4-network.test.mjs",
+              "tests/framework/k4-resources.test.mjs",
+              "tests/framework/k4-sdk.test.mjs"
+            ],
+            "exitCode": 1,
+            "summary": {
+              "tests": 210,
+              "pass": 208,
+              "fail": 2,
+              "cancelled": 0,
+              "skipped": 0,
+              "todo": 0
+            },
+            "highlights": [
+              "✖ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (11.362542ms)",
+              "✖ shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS (0.514875ms)",
+              "✖ failing tests:",
+              "✖ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (11.362542ms)",
+              "✖ shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS (0.514875ms)"
+            ],
+            "log": "docs/framework/evidence/basic-capability-readiness-20261002/basic-modules.log",
+            "logSha256": "557bf082a3b9aac2af742d284b29a02904bb82666ebabc3ebfc7407b68a93379"
+          },
+          {
+            "name": "environment",
+            "argv": [
+              "npm",
+              "test"
+            ],
+            "exitCode": 1,
+            "summary": {
+              "tests": 20,
+              "pass": 16,
+              "fail": 4,
+              "cancelled": 0,
+              "skipped": 0,
+              "todo": 0
+            },
+            "highlights": [
+              "✖ final classic scanner rejects eval alias and function-constructor references (13.513417ms)",
+              "✖ final package cannot omit a referenced local asset (4.634292ms)",
+              "✖ remote script and unexpected lazy chunk fail final package verification (5.029792ms)",
+              "✖ final package requires tool HTML/CSS and manifest worker references (3.916917ms)",
+              "✖ failing tests:",
+              "✖ final classic scanner rejects eval alias and function-constructor references (13.513417ms)",
+              "'Error: Expected independently qualified minimum Chrome 138'",
+              "actual: Error: Expected independently qualified minimum Chrome 138"
+            ],
+            "log": "docs/framework/evidence/basic-capability-readiness-20261002/environment.log",
+            "logSha256": "99743d6ec4cc75cb7fbc34d490bc37fa7a9dd3e9c45dde55763607b94f86f0d8"
+          }
+        ],
+        "isolatedRegressionRecheck": {
+          "log": "docs/framework/evidence/basic-capability-readiness-20261002/isolated-failures.log",
+          "logSha256": "698a48f9eafa288796e69e5dd38ee2cc122f50cadacaa50b7da01c9210c0caaa",
+          "summary": {
+            "tests": 2,
+            "pass": 1,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "sourceDriftDuringTests": [],
+        "boundary": "Current basic module readiness; not final product/native B05/F3 acceptance",
+        "allBasicTestsPassed": false
+      }
+    }
+  ],
+  "userSteeringHistory": [
+    {
+      "at": "2026-10-03T09:35:04.427190+00:00",
+      "request": "用户质疑执行方向，要求提供新提示词，在新对话继续",
+      "disposition": "收束当前新增执行；新对话先完成普通JS最小产品闭环",
+      "prompt": "docs/framework/prompts/continue-product-mainline-20261003.txt",
+      "promptSha256": "d1b16e5ead3fbf7c400f388592cf1379b1f53f9346f490177def6e8da410c5f7",
+      "firstAction": "单个production+Chrome138真实UI return 7;，保存→版本→运行→durable→UI重读，首个阻断处停止依赖测试",
+      "basicProductChainPassed": false,
+      "sdkTargetedNative": {
+        "PASS": 60,
+        "FAIL": 0,
+        "BLOCKED": 0,
+        "NOT_TESTED": 4,
+        "isB05OrF3": false
+      },
+      "controllerFirstRun": "首轮输入拼接导致前置级联失败，raw保留",
+      "controllerRepairedRun": {
+        "evidence": "docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-138/report.json",
+        "summary": {
+          "PASS": 0,
+          "FAIL": 0,
+          "BLOCKED": 1,
+          "NOT_TESTED": 22
+        },
+        "observed": "真实UI保存r1；原生权限authorizing；尚无runId/终态",
+        "ownedChromePid": 83222,
+        "launcherPid": 83221,
+        "ownedChromeAlive": false,
+        "launcherAlive": false,
+        "profileRemoved": true
+      },
+      "runnerSha256": "6a67374cb9d121097644afc67873af4e6267032b822540b739d598e33b9f134a",
+      "f3Accepted": false,
+      "original603Closed": false,
+      "finalProductPackageSha256": null,
+      "nativeGoalMarkedComplete": false
+    }
+  ],
+  "latestUserSteering": {
+    "at": "2026-10-03T09:35:04.427190+00:00",
+    "request": "用户质疑执行方向，要求提供新提示词，在新对话继续",
+    "disposition": "收束当前新增执行；新对话先完成普通JS最小产品闭环",
+    "prompt": "docs/framework/prompts/continue-product-mainline-20261003.txt",
+    "promptSha256": "d1b16e5ead3fbf7c400f388592cf1379b1f53f9346f490177def6e8da410c5f7",
+    "firstAction": "单个production+Chrome138真实UI return 7;，保存→版本→运行→durable→UI重读，首个阻断处停止依赖测试",
+    "basicProductChainPassed": false,
+    "sdkTargetedNative": {
+      "PASS": 60,
+      "FAIL": 0,
+      "BLOCKED": 0,
+      "NOT_TESTED": 4,
+      "isB05OrF3": false
+    },
+    "controllerFirstRun": "首轮输入拼接导致前置级联失败，raw保留",
+    "controllerRepairedRun": {
+      "evidence": "docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/production-138/report.json",
+      "summary": {
+        "PASS": 0,
+        "FAIL": 0,
+        "BLOCKED": 1,
+        "NOT_TESTED": 22
+      },
+      "observed": "真实UI保存r1；原生权限authorizing；尚无runId/终态",
+      "ownedChromePid": 83222,
+      "launcherPid": 83221,
+      "ownedChromeAlive": false,
+      "launcherAlive": false,
+      "profileRemoved": true
+    },
+    "runnerSha256": "6a67374cb9d121097644afc67873af4e6267032b822540b739d598e33b9f134a",
+    "f3Accepted": false,
+    "original603Closed": false,
+    "finalProductPackageSha256": null,
+    "nativeGoalMarkedComplete": false
+  }
+}

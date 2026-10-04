@@ -1,0 +1,1819 @@
+{
+  "reviewId": "solution-final",
+  "reviewType": "independent-final-integration-delta",
+  "reviewVersion": 3,
+  "status": "completed-requested-scope",
+  "generatedAt": "2026-10-01T20:47:00.861381+00:00",
+  "snapshotAt": "2026-10-01T20:47:00.861381+00:00",
+  "verdict": "APPROVE",
+  "architecturalStatus": "READY_FOR_STAGE02A_AT_DESIGN_LEVEL",
+  "overall01Ready": true,
+  "summary": {
+    "closedInitialFindings": 2,
+    "closedIntegrationDeltaFindings": 2,
+    "openInitialFindings": 0,
+    "remainingP1": 0,
+    "remainingP2": 0,
+    "blockingDesignGaps": [],
+    "stage05Evidence": "verified-and-reviewed; actual final handoff integrated",
+    "taskDag": "11 work packages/29 edges acyclic; v5 registry order and owners consistent",
+    "protocolFinal": "APPROVE observed; no protocol blocker reopened",
+    "productAcceptance": "not-run"
+  },
+  "scope": {
+    "included": [
+      "Previous two findings/source protocol closure",
+      "Actual final05 handoff/components/source hashes and integrated54reuse/29dynamicedges",
+      "v5 nine categories,11 packages,DAG/directory ownership",
+      "Mapped regression/test evidence boundaries"
+    ],
+    "excluded": [
+      "Product implementation and Chrome execution",
+      "Full protocol rereview beyond initial two closures",
+      "New framework research/tool installation or another audit"
+    ],
+    "permittedWrites": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reviews/solution-final.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reviews/solution-final.md"
+    ],
+    "recursiveSpawnUsed": false,
+    "contractsOrPlansModified": false
+  },
+  "closures": [
+    {
+      "id": "SOL-P1-01",
+      "originalPriority": "P1",
+      "status": "closed-design-contract",
+      "title": "Source selection/cancellation and unsaved draft preview now have an existing PagePort contract",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+          "line": 319,
+          "pointer": "/interfaces",
+          "note": "Five source interface signatures plus request/response types on the existing PagePort."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+          "line": 437,
+          "pointer": "/sourceSelection",
+          "note": "02B authority/transport/lifecycle and 03 SelectorUI/compiler split; existing commandJournal; ticket 30s/context 10min/preview<=10."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+          "line": 1939,
+          "pointer": "/$defs/SourceSelectionContext",
+          "note": "Actual source/frame/document/origin, host document/registration, browser session, revision/expiry/state are required."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+          "line": 3138,
+          "pointer": "/$defs/OpenSourceContextRequest",
+          "note": "Only gestureTicketId/registrationId/requestId; additionalProperties=false. Arbitrary caller sourceTabId rejected by static shape."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+          "line": 3167,
+          "pointer": "/$defs/StartSourceSelectionRequest",
+          "note": "Operation/request/kind/fieldId and bound context, with selected result/short ACK/cancel/release types."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+          "line": 3396,
+          "pointer": "/$defs/PreviewSourceRequest",
+          "note": "Full unsaved TemplateRevision, shared RulePlan and fixed maxPreviewRows=10."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+          "line": 3427,
+          "pointer": "/$defs/SourcePreviewData",
+          "note": "Raw frames plus bound context/request, frameIndex/rowStart/digest; SourcePreviewEnd and persisted=false result schemas."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+          "line": 96,
+          "pointer": null,
+          "note": "Actual action.onClicked one-use ticket, actual sender/registered host/session/source binding; same PagePort and existing journal."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+          "line": 98,
+          "pointer": null,
+          "note": "Durable operation cancellation, never reuse operationId, only-current result, owned cleanup and navigation/host/session invalidation; release CAS/idempotency."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+          "line": 100,
+          "pointer": null,
+          "note": "Same compiler draft/plan admission, origin binding, read-only <=10 complete raw rows, exact frame/end digest rules, <=128KiB frame/one pending frame ACK, <=64KiB record, cancellation drops late result, no paging/stage/seal/records/run-slot."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/source-selection.json",
+          "line": 4,
+          "pointer": null,
+          "note": "Real fixture has complete context/start/selected/cancel/release/previewRequest plus four planned positive/negative cases."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 4652,
+          "pointer": "/supplementalCases",
+          "note": "All four SOURCE case IDs mapped to M02/M03/M09, 02B/03/04, unit/ordinaryChrome, planned/not-run."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.md",
+          "line": 634,
+          "pointer": null,
+          "note": "Markdown acknowledges four SOURCE vectors and their planned/not-run evidence boundary."
+        }
+      ],
+      "closureReason": "The initial missing shared input/output/authority/lifecycle boundary is repaired. 02B and 03 can implement the same approved interface without inventing a separate bridge/store/owner. Fixture schema/hash and test mapping checks passed; this closes the design omission, not execution claims.",
+      "staticVerificationIds": [
+        "context-schema",
+        "startRequest-schema",
+        "selectedResult-schema",
+        "cancelRequest-schema",
+        "releaseRequest-schema",
+        "previewRequest-schema",
+        "preview-draft-plan-hashes",
+        "open-caller-sourceTabId",
+        "open-missing-ticket",
+        "preview-limit-11",
+        "preview-unknown-js",
+        "source-four-cases-owner-and-gate-mapping"
+      ],
+      "runtimeEvidenceStatus": "not-run",
+      "latestDeltaRecheck": {
+        "at": "2026-10-01T20:32:37.509083+00:00",
+        "status": "closed-design-contract",
+        "productTestsExecuted": 0
+      }
+    },
+    {
+      "id": "SOL-P2-01",
+      "mergedProtocolFinding": "PIC06",
+      "originalPriority": "P2",
+      "status": "closed-design-contract",
+      "title": "Page signatures use content-only projection independent of record/snapshot identity",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+          "line": 433,
+          "pointer": "/recordDigests/page",
+          "note": "Canonical envelope is normalized authenticated pageIdentity plus records:[{raw,values}] in rowIndex order; volatile metadata excluded."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+          "line": 79,
+          "pointer": null,
+          "note": "Unique precise envelope and same-content/new-snapshot plus changed-sixth-row requirements."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-signature.json",
+          "line": 5,
+          "pointer": "/baseEnvelope",
+          "note": "Exact six-row content envelope/canonical UTF-8 and expected hashes; no snapshot or recordKey members."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-signature.json",
+          "line": 74,
+          "pointer": "/cases/0",
+          "note": "Same-content-new-snapshot invariance."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-signature.json",
+          "line": 80,
+          "pointer": "/cases/1",
+          "note": "Same-first-five/sixth-changed difference."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-transaction.json",
+          "line": 201,
+          "pointer": "/sealRequest/pageSignature",
+          "note": "Recomputed signature matches 68d21e66fd66dc6db1f20f368fdd008b15953ec839e19e794487bad6c6a56625."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.md",
+          "line": 192,
+          "pointer": null,
+          "note": "Static command now projects each record to raw/values."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": null,
+          "pointer": "/commands/availableStatic/3/command",
+          "note": "Embedded static command uses the same raw/values projection; checked in actual JSON text."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/verify-contracts.py",
+          "line": 134,
+          "pointer": null,
+          "note": "Seal exact-input oracle uses the repaired projection; stage envelopes continue binding snapshotId/batchIndex/full record identity."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/verify-contracts.py",
+          "line": 175,
+          "pointer": null,
+          "note": "Exact signature fixture hash oracle."
+        }
+      ],
+      "closureReason": "Independent synthetic copies preserve full raw/values and order but replace recordKey/snapshotId/run/host metadata: signature remains equal. Changing only the sixth row raw or typed value changes it. Actual fixture canonical bytes/hashes and all stage digest/byte checks match. No unchanged page is represented as new solely because its snapshot identity changed.",
+      "staticVerificationIds": [
+        "stable-signature-invariance-and-last-raw-typed-change",
+        "markdown-json-static-command-projection"
+      ],
+      "runtimeEvidenceStatus": "not-run",
+      "latestDeltaRecheck": {
+        "at": "2026-10-01T20:32:37.509083+00:00",
+        "status": "closed-design-contract",
+        "productTestsExecuted": 0
+      }
+    },
+    {
+      "id": "SOL-FINAL-P1-01",
+      "originalPriority": "P1",
+      "status": "closed-design-contract",
+      "title": "旧源码回归已与产品oracle分开",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 4861,
+          "pointer": "/supplementalCases/58/assertions",
+          "note": "固定计划顺序；持久callback/function/executable hook拒绝，不承诺旧API兼容。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 4943,
+          "pointer": "/supplementalCases/60/assertions",
+          "note": "标准CSS+显式text/attribute，共享compiler；旧XPath/未知执行transform拒绝。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5025,
+          "pointer": "/supplementalCases/62/assertions",
+          "note": "串行单target、无通用frontier；重复完整内容/未知效果不重放。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5067,
+          "pointer": "/supplementalCases/63/assertions",
+          "note": "stop/CAS/整页seal/安全退役；pause/resume/continue unsupported且不dispatch。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5195,
+          "pointer": "/supplementalCases/66/assertions",
+          "note": "包内明确ACK/背压，不要求Node Writable drain；下载需原attempt权威complete。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5320,
+          "pointer": "/supplementalCases/69/assertions",
+          "note": "每个选区点击消耗且零source导航；执行导航只在后续获准专用run target。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5545,
+          "pointer": "/supplementalCases/75/assertions",
+          "note": "实际闭合Run状态和authoritative projection；不造partial/paused成功状态。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 13478,
+          "pointer": "/reuseIntegration/productOracleAdaptation",
+          "note": "28项当前目标assertions与sourceBaselineAssertions/sourceBaselineReproductionSteps/sourceOracleBoundary分离；planned/not-run。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.md",
+          "line": 638,
+          "pointer": null,
+          "note": "Markdown同步28case的oracle、owner/gate边界。"
+        }
+      ],
+      "closureReason": "本次逐项读当前28个case的assertions/gates/ownerStages/sourceOracleBoundary；旧断言只保留作来源证据。产品通过标准由当前test-plan对应ID的assertions和primary contract/schema/semantics决定。reuse-decision.tests保留的旧ledger摘录以此source baseline边界解读，不授权XPath/旧回调/旧状态等能力；不可变⑤证据无需改写。新产品语义不从旧来源API直接继承。",
+      "staticVerificationIds": [
+        "28-source-baseline-vs-product-oracle",
+        "CSS-only-no-persisted-hooks",
+        "source-zero-navigation-vs-dedicated-target",
+        "unsupported-pause-resume",
+        "closed-run-state-projection",
+        "packaged-ack-not-node-drain"
+      ],
+      "runtimeEvidenceStatus": "not-run",
+      "latestDeltaRecheck": {
+        "at": "2026-10-01T20:47:00.861381+00:00",
+        "status": "closed-design-contract",
+        "productTestsExecuted": 0
+      }
+    },
+    {
+      "id": "SOL-FINAL-P2-01",
+      "originalPriority": "P2",
+      "status": "closed-design-contract",
+      "title": "复用测试owner及对应gate已可定位",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5155,
+          "pointer": "/supplementalCases/65/gates",
+          "note": "格式/卷预算入M08。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5195,
+          "pointer": "/supplementalCases/66/ownerStages",
+          "note": "02B公共attempt/receipt/Blob与03formatter、04验收；M06/M07/M08正反映射。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5282,
+          "pointer": "/supplementalCases/68/assertions",
+          "note": "02A窗口壳与02B实际action/source ticket/host authority显式拆分；owner包括02A/02B/04。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5584,
+          "pointer": "/supplementalCases/76/assertions",
+          "note": "02A静态slot/health不证明实际selection；02B公共build/config/auth和03真实选区后验。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reuse-decision.json",
+          "line": 5296,
+          "pointer": "/dynamicEdges/1",
+          "note": "CORE-E02显式同时引用PORT-raw-frame-auth-backpressure和CORE-R03。现有PORT case归02B/03/04并含realIDB层：公共raw reader责任已定位，CORE-R03保留领域compiler断言。"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": null,
+          "pointer": "/gates",
+          "note": "28个复用case共72个gate关系逐一双向验证，M01..M11无重复caseIds或旧反向关系。"
+        }
+      ],
+      "closureReason": "无需以CORE-R03的领域owner单独承载02B底座验证，已有CORE-E02→PORT-raw-frame-auth-backpressure明确提供公共读帧责任。CORE-R09的新增02B/M08，EXT-T01的02A/02B分工及EXT-T09的静态壳/真实选区分工均在当前case可审查；既有公共事务/下载fixture负责真实IDB断言，复用case不重复替代它们。28项owner/gate与反向caseIds当前一致。",
+      "staticVerificationIds": [
+        "28-case-owner-stage-review",
+        "72-case-gate-bidirectional-relations",
+        "CORE-R08-and-CORE-R09-M08",
+        "EXT-T01-02A-shell-vs-02B-authority",
+        "EXT-T09-static-slot-vs-real-selection",
+        "CORE-E02-explicit-public-PORT-link"
+      ],
+      "runtimeEvidenceStatus": "not-run",
+      "latestDeltaRecheck": {
+        "at": "2026-10-01T20:47:00.861381+00:00",
+        "status": "closed-design-contract",
+        "productTestsExecuted": 0
+      }
+    }
+  ],
+  "findings": [],
+  "protocolFinalObserved": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reviews/protocol-final.json",
+    "sha256": "cc1a2248d2348829a61da12b4fff5084f88a7b352a7249e03e1b00eb3a44db53",
+    "bytes": 62342,
+    "verdict": "APPROVE",
+    "blockingDesignGaps": 0,
+    "readyInProtocolScope": true
+  },
+  "stage05Integration": {
+    "handoffPath": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/handoff.json",
+    "handoffSha256": "20618db3c173f3abfe77f4578f4ea233e4424e1598029b8c0c636fc36e3301fb",
+    "handoffAnd17ComponentsVerified": true,
+    "components": [
+      {
+        "name": "audit-validation.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/audit-validation.json",
+        "sha256": "0aa636840cfb7fecd7a7ef5cba27859092fcdaf9149e39cab22020152aca6633",
+        "bytes": 1830,
+        "required": false,
+        "independentVerified": true
+      },
+      {
+        "name": "behavior-regression-ledger.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/behavior-regression-ledger.json",
+        "sha256": "09ccc4edaaed2b466a163a277de82c98e6d4a503a3593e32ab4896cb33e070be",
+        "bytes": 95294,
+        "required": true,
+        "independentVerified": true
+      },
+      {
+        "name": "browser-flow-edges.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/browser-flow-edges.json",
+        "sha256": "9e2d8e555cbd3067db35e5121b345b61fb101410751051e5c60d3f09bf586b91",
+        "bytes": 77603,
+        "required": true,
+        "independentVerified": true
+      },
+      {
+        "name": "codegraph-report.md",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/codegraph-report.md",
+        "sha256": "ee4b5efae8008e6514fa7fb1ec9e63a1d33bb254c931643d87178fbf6e17d6d2",
+        "bytes": 5227,
+        "required": true,
+        "independentVerified": true
+      },
+      {
+        "name": "extension-audit-supplement.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/extension-audit-supplement.json",
+        "sha256": "245dde196da1743d4b033f45e7a7ee3ffa3f0c2fe66504e814483d040f32c7d8",
+        "bytes": 93252,
+        "required": false,
+        "independentVerified": true
+      },
+      {
+        "name": "extension-probe-validation.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/extension-probe-validation.json",
+        "sha256": "282028bbc1b45009bf60519b3feb504510a6c46ae0a0ac399f9b2fdfac68a514",
+        "bytes": 2242,
+        "required": false,
+        "independentVerified": true
+      },
+      {
+        "name": "fixtures/README.md",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/fixtures/README.md",
+        "sha256": "ac48db9ee1fae77a5388f96ca80b6976f00aa43fd47ff430a9a07190e20fcd33",
+        "bytes": 1560,
+        "required": false,
+        "independentVerified": true
+      },
+      {
+        "name": "fixtures/raw-records.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/fixtures/raw-records.json",
+        "sha256": "b5bc0da78f0675533f2b9c2092e8c90882ac8f0012758ccde9af3865738cd81c",
+        "bytes": 1203,
+        "required": false,
+        "independentVerified": true
+      },
+      {
+        "name": "fixtures/selection-fields.html",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/fixtures/selection-fields.html",
+        "sha256": "66ad22214892903c09f7b35f6a65c1a61ad230927bb5c302c3d03a3ca1f211e6",
+        "bytes": 1072,
+        "required": false,
+        "independentVerified": true
+      },
+      {
+        "name": "impact-test-map.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/impact-test-map.json",
+        "sha256": "aa8bd74c4bd12915b51fa73dab32f03faf980f703a7a9c35b778b5c42b7e96b9",
+        "bytes": 974243,
+        "required": true,
+        "independentVerified": true
+      },
+      {
+        "name": "reuse-map.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/reuse-map.json",
+        "sha256": "149b242e4ba299d95f92e7cfb0cad435314e41a28b7188c39de9a64e0a3bcd8f",
+        "bytes": 301622,
+        "required": true,
+        "independentVerified": true
+      },
+      {
+        "name": "reuse-map.md",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/reuse-map.md",
+        "sha256": "fc1d5c1871faf675e485bd78a706b2b5b0ee265fb20510f81f6e7a3c77ce535c",
+        "bytes": 143612,
+        "required": true,
+        "independentVerified": true
+      },
+      {
+        "name": "skill-trial-validation.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/skill-trial-validation.json",
+        "sha256": "6951709ff87f1a73809a3a0a42bd58fa5a029ed6ca95ab633506e2cc170369e2",
+        "bytes": 93660,
+        "required": false,
+        "independentVerified": true
+      },
+      {
+        "name": "source-manifest.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/source-manifest.json",
+        "sha256": "6f88a3a928a1779fff78aa9f093db2ee4d14fdfb86d8b3e784b4ee646b410bb0",
+        "bytes": 385523,
+        "required": true,
+        "independentVerified": true
+      },
+      {
+        "name": "static-graph-summary.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/static-graph-summary.json",
+        "sha256": "f3f3df8792d311cfba14131e039c31d30e9e2be8d000ea3b666ce3a71f397d1e",
+        "bytes": 112821,
+        "required": false,
+        "independentVerified": true
+      },
+      {
+        "name": "tooling-report.json",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/tooling-report.json",
+        "sha256": "3e323cc78e27603bd9734143b81bfba933fc5a290d59c44da386c5f6c4d206d9",
+        "bytes": 232554,
+        "required": true,
+        "independentVerified": true
+      },
+      {
+        "name": "tooling-report.md",
+        "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/tooling-report.md",
+        "sha256": "24f470cf430b4b38f5c5bb73c9885f299fe4c0943465b78f219d1c91777b0386",
+        "bytes": 2281,
+        "required": true,
+        "independentVerified": true
+      }
+    ],
+    "baselineFilesVerified": 442,
+    "deltaFilesVerified": 23,
+    "mappedDecisions": 54,
+    "mappedSourceReferences": 232,
+    "sourceVerificationMeaning": "Each of232 refs matches corresponding immutable audit repo/file/symbol/generation/hash/range, actual main baseline/delta saved bytes and line bounds; not an execution-equivalence claim.",
+    "decisions": {
+      "adapt": 45,
+      "defer": 3,
+      "drop": 4,
+      "keep": 2
+    },
+    "ownerCounts": {
+      "03": 31,
+      "02B": 18,
+      "02A": 5
+    },
+    "intentionalOwnerOverride": "Main EXT-R01 assigns02A singleton/tool shell then02B authenticated host, changing primary counts from audit02A4/02B19 to main02A5/02B18. Source evidence unchanged; choice and current explicit phased tests accepted.",
+    "dynamicEdges": 29,
+    "edgeDecisionCounts": {
+      "replace": 14,
+      "drop": 8,
+      "adapt": 6,
+      "defer": 1
+    },
+    "sourceUnresolvedEdges": [
+      "CORE-E08",
+      "EXT-E10",
+      "EXT-E12",
+      "EXT-E20",
+      "EXT-E21"
+    ],
+    "sourceUnresolvedDisposition": "CORE-E08 missing ConfigExecutor/parseConfig drop; EXT-E10 absent fallback consumer replace by authenticated source context; EXT-E12 missing CrawlProfileCore adapt explicit immutable TemplateRevision/shared compiler; EXT-E20 missing AI defer; EXT-E21 absent download terminal drop old initiation chain and use new durable attempt/receipt. These are chosen new designs, not reconstructed old implementation.",
+    "criticalTransferDesignChoices": "All29 finite replace/adapt/drop/defer choices reviewed; no MAIN/AsyncFunction/TB/HID/remote/page module-loader/anchor delivery enters proposed first release.",
+    "impactMapIdsVerified": 54,
+    "testIdStructuralValidation": "32 audit regression IDs resolve; 54 impact IDs and29edge test refs reviewed previously. Current28reuse cases add product-oracle separation;72case/gate pairs verified bidirectionally with no errors.",
+    "productRuntimeVerified": false,
+    "previousIndependentVerificationRetained": true,
+    "repeatedBaselineOrFullAuditThisDelta": false
+  },
+  "frameworkAndDirectoryAssessment": {
+    "status": "accepted-at-design-level; implementation proof pending",
+    "framework": "Native MV3 + existing locked webpack/Terser, ESM JavaScript and independent classic artifacts. No new framework scores or WXT build/benchmark claim.",
+    "retainedHtmlJsCost": "Keep useful layout/selector behavior inside domain panel; adapt CSP/external scripts, classic resource paths, actual source context, cancellation, immutable templates/shared compiler, pagination and durable projections/download receipts. Whole SDK or old globals not reused as product owner/runtime.",
+    "ownership": "02A builds root/package/manifest/window/tool.html/health slot; serial handoff transfers shared files to02B.02B sole RunHost/SW/PagePort/storage/download/entitlement/public contract author;03 onlyfeatures/scraping and domain tests/docs;04 independent final acceptance with attributed serial fixes.",
+    "acceptedSplits": [
+      "EXT-R01 environment shell→02B host",
+      "EXT-R02 domain panel; EXT-R02-02A public tool.html/shell",
+      "EXT-R11 domain source selection producer versus EXT-R11-02B authenticated transport",
+      "Compiler pure; runner consumes ports; formatter reads sealed cursor and returns bytes, public platform ownsBlob/Chrome downloads"
+    ],
+    "noNewOwnerOrDatabase": true,
+    "aiDesktopCommercialBoundary": "AI/deferred suggestions, native/device/Android/HID/remote execution excluded; desktop adapter remains future independent design; M12 business/signing operations not approved by technical review."
+  },
+  "taskDagAssessment": {
+    "registryPath": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-thread-dispatch.json",
+    "registrySha256": "6c2df246ac6caafd296b3cae503836725ba701d3eb481e39e598a58a62652444",
+    "executionOrder": [
+      "01",
+      "02A",
+      "02B",
+      "03",
+      "04"
+    ],
+    "categories": 9,
+    "workPackages": 11,
+    "dependencyEdges": 29,
+    "acyclic": true,
+    "graphMatchesDependsOn": true,
+    "packageOwners": {
+      "WP01": "01",
+      "WP02": "02A",
+      "WP04": "02B",
+      "WP05": "02B",
+      "WP07A": "02B",
+      "WP08A": "02B",
+      "WP03": "03",
+      "WP06": "03",
+      "WP07B": "03",
+      "WP08B": "03",
+      "WP09": "04"
+    },
+    "inputsOutputsTestsBlockers": "Each11 package has concrete nonempty owner/inputs/writeScope/deliverables/testIds/observableAssertions/readyWhen/blockers; test IDs resolve.03 waits real02B handoff;04 waits02A/02B/03. Environment/static probe is not foundation/product pass.",
+    "executionAuthorization": "Registry initial release/preparation state is not live completion and this review does not start downstream implementation.",
+    "stage06": "Independent isolated developer browser/milestone support, no shared product writes or01ready prerequisite;04 retains acceptance ownership."
+  },
+  "verification": {
+    "artifactOnly": true,
+    "exitCode": 0,
+    "reviewerProductTestsExecuted": 0,
+    "reviewerOrdinaryChromeRuns": 0,
+    "sourceCoreClosureRechecked": true,
+    "signatureCoreClosureRechecked": true,
+    "checks": [
+      "Actual05 handoff SHA",
+      "17 artifact hashes+bytes",
+      "442baseline+23delta actual saved bytes",
+      "54reuse IDs/source correspondence and232hash/line refs",
+      "54 impact IDs",
+      "29source edge correspondence/finite transfer choices",
+      "Mapped32regression IDs/29edge test IDs/gate refs",
+      "v5 registry actual hash/order/IDs",
+      "11package DAG/29edges exact versusdependsOn/9categories",
+      "Current source schema/draft/plan hashes and fourSOURCE mappings",
+      "Signature metadata invariance/sixth raw+typed changes/MD+JSON projection",
+      "Actual protocol-final APPROVE/hash",
+      "Current28reuse target assertions vs sourceBaseline/sourceOracleBoundary",
+      "Current72case-gate pairs in both directions; M01..M11 no duplicate IDs",
+      "Current02A shell/02B source and download/03 real selection responsibilities",
+      "Fresh SHA256+bytes for all38 reviewed inputs; unchanged05/DAG proofs retained"
+    ],
+    "supplementalCasesObserved": 92,
+    "limitation": "Hash/shape/graph/ref passes do not establish desired semantic test oracle agreement; P1/P2 are manual cross-document findings. Schema checks used inspected local stdlib subset in memory; full verifier not invoked because it writes another artifact. No codegraph rerun, product build or Chrome tests.",
+    "concurrentMutationDisclosure": {
+      "previousSnapshotAt": "2026-10-01T20:31:05.607363+00:00",
+      "inputChanges": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "priorSha256": "9f3829efb536aedaf6062f236a1b184fa5da567f8b001dea152c5d855598c9de",
+          "currentSha256": "a42852c35792ae2f89d0f14420efba4ef13f36ee35eaa689ee77086e9276128d"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.md",
+          "priorSha256": "2b84b8041e1225657d7a896d4dffec71715ccb6b4a8d552494bea16ffb6a4eef",
+          "currentSha256": "6ad675740dde2d6819107947db4d6725ec04cf1feb451d9bf737563303f640f8"
+        }
+      ],
+      "handling": "Previous report write stopped before either output because test-plan input changed. This final rereads actual new test-plan.json/md, refreshes hashes, closes old delta findings, retains prior05/DAG checks on unchanged inputs. Prewrite hashes checked again."
+    },
+    "focusedDelta": {
+      "checkedAt": "2026-10-01T20:47:00.861381+00:00",
+      "casesReviewed": 28,
+      "gateCount": 11,
+      "verifiedGatePairs": 72,
+      "reverseMappingErrors": [],
+      "caseOwnersAndProductOraclesReviewed": true,
+      "allCasesPlannedNotRun": true,
+      "rawReaderFoundationLinkedBy": "reuse-decision.json#/dynamicEdges/1 via CORE-E02 to PORT-raw-frame-auth-backpressure",
+      "productTestsRun": 0,
+      "ordinaryChromeRuns": 0
+    }
+  },
+  "nonBlockingImplementationAndReleaseGates": [
+    {
+      "id": "SOURCE-RUNTIME",
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ],
+      "status": "planned-not-run",
+      "scope": "Actual action/one-use ticket/permission/sender/document/session; cancel-late/idempotent cleanup; unsaved draft samecompiler/frame ACK/budgets/no records/run/stage/seal/source navigation."
+    },
+    {
+      "id": "M01-M11",
+      "ownerStages": [
+        "02A",
+        "02B",
+        "03",
+        "04"
+      ],
+      "status": "planned-not-run",
+      "scope": "Real final extension, native IDB/Chrome boundaries, normal Chrome120 and execution-dayStable, full journey and actual attribution; static/VM/CFT/mock do not replace acceptance."
+    },
+    {
+      "id": "SOURCE-FRESHNESS",
+      "ownerStages": [
+        "02B",
+        "03"
+      ],
+      "status": "adoption-gate-pending",
+      "scope": "Audit final recorded25live changes; not a fresh scan by this reviewer. Migration must adopt/reject diff against immutable generation/hash, not silently use current or sync SDK."
+    },
+    {
+      "id": "SDK-PROVENANCE",
+      "ownerStages": [
+        "02B",
+        "03"
+      ],
+      "status": "adoption-gate-pending",
+      "scope": "Audit-captured receipts internally consistent with installedSDK but27input baseline5/overlay7divergences retained. Source maps/receipt hashes are not equivalence, signed authorship or license proof."
+    },
+    {
+      "id": "SOURCE-LICENSE",
+      "ownerStages": [
+        "01",
+        "02B"
+      ],
+      "status": "publication-gate-pending",
+      "blocksDesignReadiness": false,
+      "scope": "Full grants/authored source/embedded vendors/notices need clearance before distribution; captured ISC declaration/MIT notice and unknown extension provenance are retained. Not conflated with design approval."
+    },
+    {
+      "id": "M12",
+      "status": "commercial-gate-pending",
+      "blocksDesignReadiness": false,
+      "scope": "Paid pilot/demand/signer/operations validation separate from technical test pass."
+    },
+    {
+      "id": "ERROR-LOCAL-DIAGNOSTIC-BOUNDARY",
+      "ownerStages": [
+        "02B",
+        "04"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadiness": false,
+      "scope": "EXT-T06 retains local helper diagnostic E_TIMEOUT; test-plan.authority explicitly forbids extending the public Error enum with local fixture diagnostics. Implementation must test normalization to allowed public errors and preserve dispatched-effect uncertainty/no replay. This is not authorization to send E_TIMEOUT as a schema Error.code.",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": 5472,
+          "pointer": "/supplementalCases/73/assertions",
+          "note": "Local promise timeout oracle; public code scope remains governed by primary contract/schema."
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "pointer": "/authority/rule",
+          "line": null,
+          "note": "Structure/public errors follow schema/contract; fixture local diagnostics do not extend public enum."
+        }
+      ]
+    }
+  ],
+  "overallReadinessReason": "初审两项及最新增量两项在实际当前文件上关闭；⑤真实最终证据与v5任务/DAG前次独立核验保留且本次输入hash未变。当前28复用case区分来源参考与产品oracle，72个case/gate关系双向一致，关键02A/02B/03责任可定位。overall01Ready=true只代表阶段01设计/任务/证据边界就绪，可封包交接02A；不代表生产行为、普通Chrome验收或许可证发布门禁已通过。",
+  "inputs": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+      "sha256": "f0e6d74475dcae4148333f9397dd835889a79612027e65cf0004827917efd4bd",
+      "bytes": 29811
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+      "sha256": "eb95f9e9a7e54048377d551acce8c996dcc15f5fa87ed7ada19cb21b24c6d9b9",
+      "bytes": 82822
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+      "sha256": "d3bd09974bc31e7dd88f41e226846f9e2871e95ad50bfdfd36f80739739134eb",
+      "bytes": 26073
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/state-machines.json",
+      "sha256": "0e10025550df39b1fa2b942dd6725a9d18c9388a916817598e103d112a322165",
+      "bytes": 11471
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+      "sha256": "a42852c35792ae2f89d0f14420efba4ef13f36ee35eaa689ee77086e9276128d",
+      "bytes": 552400
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.md",
+      "sha256": "6ad675740dde2d6819107947db4d6725ec04cf1feb451d9bf737563303f640f8",
+      "bytes": 84513
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reuse-decision.json",
+      "sha256": "31ca0716b49e94d1e32ac3b4aae50aa45253ed0ebe4fb60f0d237982a1e4bce1",
+      "bytes": 324069
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reuse-decision.md",
+      "sha256": "028b2d0ed48118b845b9a3fd5403d733391e7ba4b38a1107bf406450b72d5222",
+      "bytes": 8407
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/solution-overview.md",
+      "sha256": "d4da2d597547ff2890ab8529389344921626b178a48124ceeb9cbee638acc65c",
+      "bytes": 11818
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/framework-decision.md",
+      "sha256": "19ea38555fdf9e110ec6c29402bf23076ae423cce5b42ce8f878801f45f6e52f",
+      "bytes": 8224
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/implementation-plan.md",
+      "sha256": "e036df486337a41b265b752127ab0fc8cf0280377214eedbf9ee724e94c2309f",
+      "bytes": 4058
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/task-breakdown.json",
+      "sha256": "05f71c6e3daf277fdb4b8aceb1e49e4d9ea92d40819658882e56f871c5369343",
+      "bytes": 25081
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/verify-contracts.py",
+      "sha256": "d9aad9f55220a3c5f54057d8341f05d035bde8c6d2ab21b7eeb4d405a75bc7f8",
+      "bytes": 18459
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+      "sha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+      "bytes": 90284
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-delta-ledger.json",
+      "sha256": "a395c8d57ca35e5b5e9f114547d58a0f71c94f2aa73c62abd1e35b27341402fb",
+      "bytes": 11969
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/source-selection.json",
+      "sha256": "e862456759385883effab806cf5bba6c7d4f85876addcf39e63eb976f1a3cf08",
+      "bytes": 7407
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-signature.json",
+      "sha256": "6c8e3fa85b846cfd4e86b1a849d7765cc37826fd11a9639314ad5da14a49f118",
+      "bytes": 3768
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-transaction.json",
+      "sha256": "76933e856b419fec9ac5dc6ea83354365d2a4f005fc4e9996f9d9658e5c4f969",
+      "bytes": 10126
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/handoff.json",
+      "sha256": "20618db3c173f3abfe77f4578f4ea233e4424e1598029b8c0c636fc36e3301fb",
+      "bytes": 137543
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-thread-dispatch.json",
+      "sha256": "6c2df246ac6caafd296b3cae503836725ba701d3eb481e39e598a58a62652444",
+      "bytes": 7751
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/audit-validation.json",
+      "sha256": "0aa636840cfb7fecd7a7ef5cba27859092fcdaf9149e39cab22020152aca6633",
+      "bytes": 1830
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/behavior-regression-ledger.json",
+      "sha256": "09ccc4edaaed2b466a163a277de82c98e6d4a503a3593e32ab4896cb33e070be",
+      "bytes": 95294
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/browser-flow-edges.json",
+      "sha256": "9e2d8e555cbd3067db35e5121b345b61fb101410751051e5c60d3f09bf586b91",
+      "bytes": 77603
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/codegraph-report.md",
+      "sha256": "ee4b5efae8008e6514fa7fb1ec9e63a1d33bb254c931643d87178fbf6e17d6d2",
+      "bytes": 5227
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/extension-audit-supplement.json",
+      "sha256": "245dde196da1743d4b033f45e7a7ee3ffa3f0c2fe66504e814483d040f32c7d8",
+      "bytes": 93252
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/extension-probe-validation.json",
+      "sha256": "282028bbc1b45009bf60519b3feb504510a6c46ae0a0ac399f9b2fdfac68a514",
+      "bytes": 2242
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/fixtures/README.md",
+      "sha256": "ac48db9ee1fae77a5388f96ca80b6976f00aa43fd47ff430a9a07190e20fcd33",
+      "bytes": 1560
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/fixtures/raw-records.json",
+      "sha256": "b5bc0da78f0675533f2b9c2092e8c90882ac8f0012758ccde9af3865738cd81c",
+      "bytes": 1203
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/fixtures/selection-fields.html",
+      "sha256": "66ad22214892903c09f7b35f6a65c1a61ad230927bb5c302c3d03a3ca1f211e6",
+      "bytes": 1072
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/impact-test-map.json",
+      "sha256": "aa8bd74c4bd12915b51fa73dab32f03faf980f703a7a9c35b778b5c42b7e96b9",
+      "bytes": 974243
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/reuse-map.json",
+      "sha256": "149b242e4ba299d95f92e7cfb0cad435314e41a28b7188c39de9a64e0a3bcd8f",
+      "bytes": 301622
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/reuse-map.md",
+      "sha256": "fc1d5c1871faf675e485bd78a706b2b5b0ee265fb20510f81f6e7a3c77ce535c",
+      "bytes": 143612
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/skill-trial-validation.json",
+      "sha256": "6951709ff87f1a73809a3a0a42bd58fa5a029ed6ca95ab633506e2cc170369e2",
+      "bytes": 93660
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/source-manifest.json",
+      "sha256": "6f88a3a928a1779fff78aa9f093db2ee4d14fdfb86d8b3e784b4ee646b410bb0",
+      "bytes": 385523
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/static-graph-summary.json",
+      "sha256": "f3f3df8792d311cfba14131e039c31d30e9e2be8d000ea3b666ce3a71f397d1e",
+      "bytes": 112821
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/tooling-report.json",
+      "sha256": "3e323cc78e27603bd9734143b81bfba933fc5a290d59c44da386c5f6c4d206d9",
+      "bytes": 232554
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/tooling-report.md",
+      "sha256": "24f470cf430b4b38f5c5bb73c9885f299fe4c0943465b78f219d1c91777b0386",
+      "bytes": 2281
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reviews/protocol-final.json",
+      "sha256": "cc1a2248d2348829a61da12b4fff5084f88a7b352a7249e03e1b00eb3a44db53",
+      "bytes": 62342
+    }
+  ],
+  "reuseOwnershipAndTestIndex": [
+    {
+      "id": "C01",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/compiler/rule-plan.js",
+      "testIds": [
+        "CORE-R01"
+      ]
+    },
+    {
+      "id": "C02",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/compiler/request-plan.js",
+      "testIds": [
+        "CORE-R02"
+      ]
+    },
+    {
+      "id": "C03",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/compiler/record-schema.js",
+      "testIds": [
+        "CORE-R03",
+        "CORE-R04"
+      ]
+    },
+    {
+      "id": "C04",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/compiler/extraction-plan.js",
+      "testIds": [
+        "CORE-R03"
+      ]
+    },
+    {
+      "id": "C04-02B",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/agents/page-agent.js",
+      "testIds": [
+        "CORE-R03"
+      ]
+    },
+    {
+      "id": "C05",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/runner/pipeline.js",
+      "testIds": [
+        "CORE-R04"
+      ]
+    },
+    {
+      "id": "C06",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/runner/queue.js",
+      "testIds": [
+        "CORE-R05"
+      ]
+    },
+    {
+      "id": "C06-02B",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/page-port/",
+      "testIds": [
+        "CORE-R05"
+      ]
+    },
+    {
+      "id": "C07",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/runner/budgets.js",
+      "testIds": [
+        "CORE-R06"
+      ]
+    },
+    {
+      "id": "C08",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/runner/accounting.js",
+      "testIds": [
+        "CORE-R04",
+        "CORE-R06"
+      ]
+    },
+    {
+      "id": "C08-02B",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/run-host.js",
+      "testIds": [
+        "CORE-R04",
+        "CORE-R06"
+      ]
+    },
+    {
+      "id": "C09",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/runner/pagination.js",
+      "testIds": [
+        "CORE-R07"
+      ]
+    },
+    {
+      "id": "C09-02B",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/agents/page-agent.js",
+      "testIds": [
+        "CORE-R07"
+      ]
+    },
+    {
+      "id": "C10",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/compiler/pagination-plan.js",
+      "testIds": [
+        "CORE-R02",
+        "CORE-R07"
+      ]
+    },
+    {
+      "id": "C11",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/formatter/json.js",
+      "testIds": [
+        "CORE-R08"
+      ]
+    },
+    {
+      "id": "C12",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/formatter/index.js",
+      "testIds": [
+        "CORE-R09"
+      ]
+    },
+    {
+      "id": "C12-02B",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/downloads/",
+      "testIds": [
+        "CORE-R09"
+      ]
+    },
+    {
+      "id": "T01",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/page-port/",
+      "testIds": [
+        "CORE-R10"
+      ]
+    },
+    {
+      "id": "T02",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/agents/page-agent.js",
+      "testIds": [
+        "CORE-R03",
+        "CORE-R10"
+      ]
+    },
+    {
+      "id": "T03",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/target/",
+      "testIds": [
+        "CORE-R10"
+      ]
+    },
+    {
+      "id": "T04",
+      "owner": "02B",
+      "decision": "defer",
+      "target": "src/agents/page-agent.js",
+      "testIds": [
+        "CORE-R07",
+        "CORE-R10"
+      ]
+    },
+    {
+      "id": "T05",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/storage/preferences.js",
+      "testIds": [
+        "CORE-R10"
+      ]
+    },
+    {
+      "id": "T06",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/agents/page-agent.js",
+      "testIds": [
+        "CORE-R10"
+      ]
+    },
+    {
+      "id": "T07",
+      "owner": "02B",
+      "decision": "drop",
+      "target": "src/platform/page-port/",
+      "testIds": [
+        "CORE-R10"
+      ]
+    },
+    {
+      "id": "T08",
+      "owner": "02A",
+      "decision": "drop",
+      "target": "EXCLUDED: no todo account/native/device/build subtree in target package",
+      "testIds": [
+        "CORE-R10"
+      ]
+    },
+    {
+      "id": "EXT-R01",
+      "owner": "02A",
+      "decision": "adapt",
+      "target": "src/ui/tool-shell.js;02B subsequently src/platform/host/",
+      "testIds": [
+        "EXT-T01"
+      ]
+    },
+    {
+      "id": "EXT-R02",
+      "owner": "03",
+      "decision": "keep",
+      "target": "src/features/scraping/ui/",
+      "testIds": [
+        "EXT-S02"
+      ]
+    },
+    {
+      "id": "EXT-R03",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/**; independent classic build entry owned by platform",
+      "testIds": [
+        "EXT-T09"
+      ]
+    },
+    {
+      "id": "EXT-R04",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/list-detector.js",
+      "testIds": [
+        "EXT-S04"
+      ]
+    },
+    {
+      "id": "EXT-R05",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/list-selector.js",
+      "testIds": [
+        "EXT-T10"
+      ]
+    },
+    {
+      "id": "EXT-R06",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/ui-manager.js",
+      "testIds": [
+        "EXT-T02",
+        "EXT-T13"
+      ]
+    },
+    {
+      "id": "EXT-R07",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/ui-manager.js",
+      "testIds": [
+        "EXT-T03",
+        "EXT-T13"
+      ]
+    },
+    {
+      "id": "EXT-R08",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/selector-utils.js",
+      "testIds": [
+        "EXT-T02"
+      ]
+    },
+    {
+      "id": "EXT-R09",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/table-data-extractor.js",
+      "testIds": [
+        "EXT-T03"
+      ]
+    },
+    {
+      "id": "EXT-R10",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/table-data-extractor.js",
+      "testIds": [
+        "EXT-T11"
+      ]
+    },
+    {
+      "id": "EXT-R11",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/selection/** + src/platform/page-port/**",
+      "testIds": [
+        "EXT-T12",
+        "EXT-T13"
+      ]
+    },
+    {
+      "id": "EXT-R12",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/page-port/** + src/ui/tool-shell.js",
+      "testIds": [
+        "EXT-T06"
+      ]
+    },
+    {
+      "id": "EXT-R13",
+      "owner": "03",
+      "decision": "keep",
+      "target": "src/features/scraping/ui/**",
+      "testIds": [
+        "EXT-T04",
+        "EXT-T17"
+      ]
+    },
+    {
+      "id": "EXT-R14",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/templates/** + src/features/scraping/ui/**",
+      "testIds": [
+        "EXT-T07",
+        "EXT-T15"
+      ]
+    },
+    {
+      "id": "EXT-R15",
+      "owner": "03",
+      "decision": "defer",
+      "target": "src/features/scraping/compiler/**",
+      "testIds": [
+        "EXT-T14",
+        "EXT-T15"
+      ]
+    },
+    {
+      "id": "EXT-R16",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/target/** + src/platform/page-port/** + src/agents/page-agent.js",
+      "testIds": [
+        "EXT-T09",
+        "EXT-T12"
+      ]
+    },
+    {
+      "id": "EXT-R17",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/run-host.js + src/platform/journal/**; domain runner adapter",
+      "testIds": [
+        "EXT-T14",
+        "EXT-T16"
+      ]
+    },
+    {
+      "id": "EXT-R18",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/ui/",
+      "testIds": [
+        "EXT-T08",
+        "EXT-T16",
+        "EXT-T17"
+      ]
+    },
+    {
+      "id": "EXT-R19",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/ui/run-state.js",
+      "testIds": [
+        "EXT-T08",
+        "EXT-T17"
+      ]
+    },
+    {
+      "id": "EXT-R20",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/formatter/** + src/features/scraping/ui/**",
+      "testIds": [
+        "EXT-T05",
+        "EXT-T18"
+      ]
+    },
+    {
+      "id": "EXT-R21",
+      "owner": "02B",
+      "decision": "drop",
+      "target": "src/platform/downloads/**",
+      "testIds": [
+        "EXT-T18"
+      ]
+    },
+    {
+      "id": "EXT-R22",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/ui/** + src/features/scraping/selection/**",
+      "testIds": [
+        "EXT-T07",
+        "EXT-T12"
+      ]
+    },
+    {
+      "id": "EXT-R23",
+      "owner": "02A",
+      "decision": "drop",
+      "target": "no migrated helper file; selection build dependency list only",
+      "testIds": [
+        "EXT-T09"
+      ]
+    },
+    {
+      "id": "EXT-R24",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/page-port/** + src/agents/page-agent.js",
+      "testIds": [
+        "EXT-S24"
+      ]
+    },
+    {
+      "id": "EXT-R25",
+      "owner": "03",
+      "decision": "defer",
+      "target": "future src/features/scraping/ui/ suggestions adapter only, not first release",
+      "testIds": [
+        "EXT-S25"
+      ]
+    },
+    {
+      "id": "EXT-R02-02A",
+      "owner": "02A",
+      "decision": "adapt",
+      "target": "src/ui/tool.html + src/ui/tool-shell.js",
+      "testIds": [
+        "EXT-S02"
+      ]
+    },
+    {
+      "id": "EXT-R03-02A",
+      "owner": "02A",
+      "decision": "adapt",
+      "target": "static build manifest/selection-entry slot",
+      "testIds": [
+        "EXT-T09"
+      ]
+    },
+    {
+      "id": "EXT-R11-02B",
+      "owner": "02B",
+      "decision": "adapt",
+      "target": "src/platform/page-port/** + src/agents/page-agent.js",
+      "testIds": [
+        "EXT-T12",
+        "EXT-T13"
+      ]
+    },
+    {
+      "id": "EXT-R17-03",
+      "owner": "03",
+      "decision": "adapt",
+      "target": "src/features/scraping/runner/**",
+      "testIds": [
+        "EXT-T14",
+        "EXT-T16"
+      ]
+    }
+  ],
+  "testOracleAuthorityResolution": {
+    "primary": "contract.json/schema.json/semantics.md/state-machines.json",
+    "targetAssertions": "current test-plan.json corresponding case.assertions",
+    "sourceReferenceOnly": "case.sourceBaselineAssertions/sourceBaselineReproductionSteps, immutable05 ledger and corresponding old reuse-decision.tests ledger excerpts",
+    "localDiagnostics": "Do not extend public Error.code. EXT-T06 local E_TIMEOUT requires boundary normalization in implementation tests.",
+    "reason": "Explicit sourceOracleBoundary on all28 cases plus existing authority rule prevents excluded legacy capabilities or local diagnostic codes becoming first-version public protocol requirements."
+  },
+  "reuseCaseOwnerAndGateIndex": [
+    {
+      "id": "CORE-R01",
+      "pointer": "/supplementalCases/58",
+      "gates": [
+        "M03",
+        "M05",
+        "M07"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R02",
+      "pointer": "/supplementalCases/59",
+      "gates": [
+        "M03",
+        "M05",
+        "M07",
+        "M09"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R03",
+      "pointer": "/supplementalCases/60",
+      "gates": [
+        "M03",
+        "M04"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R04",
+      "pointer": "/supplementalCases/61",
+      "gates": [
+        "M04",
+        "M06",
+        "M07"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R05",
+      "pointer": "/supplementalCases/62",
+      "gates": [
+        "M04",
+        "M05",
+        "M07"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R06",
+      "pointer": "/supplementalCases/63",
+      "gates": [
+        "M04",
+        "M05",
+        "M06",
+        "M07"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R07",
+      "pointer": "/supplementalCases/64",
+      "gates": [
+        "M05",
+        "M07",
+        "M09"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R08",
+      "pointer": "/supplementalCases/65",
+      "gates": [
+        "M03",
+        "M08"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R09",
+      "pointer": "/supplementalCases/66",
+      "gates": [
+        "M06",
+        "M07",
+        "M08"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "CORE-R10",
+      "pointer": "/supplementalCases/67",
+      "gates": [
+        "M07",
+        "M09",
+        "M10"
+      ],
+      "ownerStages": [
+        "02B",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T01",
+      "pointer": "/supplementalCases/68",
+      "gates": [
+        "M02",
+        "M09"
+      ],
+      "ownerStages": [
+        "02A",
+        "02B",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T02",
+      "pointer": "/supplementalCases/69",
+      "gates": [
+        "M02",
+        "M03",
+        "M07",
+        "M09"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T03",
+      "pointer": "/supplementalCases/70",
+      "gates": [
+        "M02",
+        "M03"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T04",
+      "pointer": "/supplementalCases/71",
+      "gates": [
+        "M03",
+        "M08"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T05",
+      "pointer": "/supplementalCases/72",
+      "gates": [
+        "M03",
+        "M08"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T06",
+      "pointer": "/supplementalCases/73",
+      "gates": [
+        "M07",
+        "M09"
+      ],
+      "ownerStages": [
+        "02B",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T07",
+      "pointer": "/supplementalCases/74",
+      "gates": [
+        "M03",
+        "M04"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T08",
+      "pointer": "/supplementalCases/75",
+      "gates": [
+        "M04",
+        "M07",
+        "M08"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T09",
+      "pointer": "/supplementalCases/76",
+      "gates": [
+        "M02",
+        "M09"
+      ],
+      "ownerStages": [
+        "02A",
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T10",
+      "pointer": "/supplementalCases/77",
+      "gates": [
+        "M02",
+        "M03"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T11",
+      "pointer": "/supplementalCases/78",
+      "gates": [
+        "M03",
+        "M04"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T12",
+      "pointer": "/supplementalCases/79",
+      "gates": [
+        "M02",
+        "M07",
+        "M09"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T13",
+      "pointer": "/supplementalCases/80",
+      "gates": [
+        "M02",
+        "M07",
+        "M09"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T14",
+      "pointer": "/supplementalCases/81",
+      "gates": [
+        "M03",
+        "M04",
+        "M08"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T15",
+      "pointer": "/supplementalCases/82",
+      "gates": [
+        "M03",
+        "M05"
+      ],
+      "ownerStages": [
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T16",
+      "pointer": "/supplementalCases/83",
+      "gates": [
+        "M07",
+        "M09"
+      ],
+      "ownerStages": [
+        "02B",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T17",
+      "pointer": "/supplementalCases/84",
+      "gates": [
+        "M04",
+        "M06",
+        "M08"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    },
+    {
+      "id": "EXT-T18",
+      "pointer": "/supplementalCases/85",
+      "gates": [
+        "M08"
+      ],
+      "ownerStages": [
+        "02B",
+        "03",
+        "04"
+      ]
+    }
+  ]
+}

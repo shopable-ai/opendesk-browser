@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+ok 1 - schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+  ---
+  duration_ms: 3.69175
+  type: 'test'
+  ...
+# Subtest: no native IDB in Node is reported as unavailable; storage entry exports factory
+ok 2 - no native IDB in Node is reported as unavailable; storage entry exports factory
+  ---
+  duration_ms: 0.40175
+  type: 'test'
+  ...
+# Subtest: immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+ok 3 - immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+  ---
+  duration_ms: 13.612333
+  type: 'test'
+  ...
+# Subtest: template admission hook uses same transaction and cannot overwrite immutable revision
+ok 4 - template admission hook uses same transaction and cannot overwrite immutable revision
+  ---
+  duration_ms: 3.166666
+  type: 'test'
+  ...
+# Subtest: beginPage permits preparing run, reserves exact command key and idempotently reACKs
+ok 5 - beginPage permits preparing run, reserves exact command key and idempotently reACKs
+  ---
+  duration_ms: 2.099542
+  type: 'test'
+  ...
+# Subtest: stage rejects undispatched reservation and atomically aborts open snapshot
+ok 6 - stage rejects undispatched reservation and atomically aborts open snapshot
+  ---
+  duration_ms: 3.285542
+  type: 'test'
+  ...
+# Subtest: three batches: first two durable ACKs, third exact-byte failure hides whole page
+ok 7 - three batches: first two durable ACKs, third exact-byte failure hides whole page
+  ---
+  duration_ms: 6.735
+  type: 'test'
+  ...
+# Subtest: exact staged duplicate does not add bytes; conflicting valid digest aborts page
+ok 8 - exact staged duplicate does not add bytes; conflicting valid digest aborts page
+  ---
+  duration_ms: 4.097958
+  type: 'test'
+  ...
+# Subtest: host/epoch/target mismatch is rejected without aborting rightful open page
+ok 9 - host/epoch/target mismatch is rejected without aborting rightful open page
+  ---
+  duration_ms: 1.797
+  type: 'test'
+  ...
+# Subtest: admission cannot bypass transaction reread of cancellation
+ok 10 - admission cannot bypass transaction reread of cancellation
+  ---
+  duration_ms: 1.821292
+  type: 'test'
+  ...
+# Subtest: stage may acknowledge authenticated raw frames before end; seal requires complete end
+ok 11 - stage may acknowledge authenticated raw frames before end; seal requires complete end
+  ---
+  duration_ms: 5.138375
+  type: 'test'
+  ...
+# Subtest: seal recomputes all six rows; prefix-only signature fails
+ok 12 - seal recomputes all six rows; prefix-only signature fails
+  ---
+  duration_ms: 5.856292
+  type: 'test'
+  ...
+# Subtest: batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+ok 13 - batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+  ---
+  duration_ms: 8.758542
+  type: 'test'
+  ...
+# Subtest: stop wins before seal; seal wins before stop and preserves historic original ACK
+ok 14 - stop wins before seal; seal wins before stop and preserves historic original ACK
+  ---
+  duration_ms: 13.369834
+  type: 'test'
+  ...
+# Subtest: run revision and authenticated host registration cannot be bypassed
+ok 15 - run revision and authenticated host registration cannot be bypassed
+  ---
+  duration_ms: 3.424
+  type: 'test'
+  ...
+# Subtest: reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+ok 16 - reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+  ---
+  duration_ms: 10.345083
+  type: 'test'
+  ...
+# Subtest: zero-batch empty page requires authenticated allowed-empty proof
+ok 17 - zero-batch empty page requires authenticated allowed-empty proof
+  ---
+  duration_ms: 5.65725
+  type: 'test'
+  ...
+# Subtest: repeated full page signature without end is rejected and left invisible
+ok 18 - repeated full page signature without end is rejected and left invisible
+  ---
+  duration_ms: 9.560917
+  type: 'test'
+  ...
+# Subtest: whole-page run limits, two pending ACKs, profile budget and injected disk quota
+ok 19 - whole-page run limits, two pending ACKs, profile budget and injected disk quota
+  ---
+  duration_ms: 15.041709
+  type: 'test'
+  ...
+# Subtest: delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+ok 20 - delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+  ---
+  duration_ms: 9.32375
+  type: 'test'
+  ...
+# Subtest: retention defaults seven days, preserves active runs and raw migration duplicates
+ok 21 - retention defaults seven days, preserves active runs and raw migration duplicates
+  ---
+  duration_ms: 2.448875
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 214.814417

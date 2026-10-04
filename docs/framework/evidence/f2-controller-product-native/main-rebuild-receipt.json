@@ -1,0 +1,50 @@
+{
+  "state": "exclusive-window-open",
+  "recordedAt": "2026-10-03T09:27:31.945922+00:00",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "readyForControllerNative": true,
+  "runnerSha256": "6a67374cb9d121097644afc67873af4e6267032b822540b739d598e33b9f134a",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "sourceHash": "798f0f6ae8aa86a526e4556d67962aa40553b40f8b41ef66014eb766c523df41",
+  "packages": {
+    "production": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+    "development": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60"
+  },
+  "executionWindow": {
+    "lane": "controller-product-native",
+    "sdkRunnerIdle": true,
+    "state": "exclusive-window-open"
+  },
+  "notification": "Main verified SDK four combinations complete60PASS/4NOT_TESTED, all profiles cleanup. Exclusive actual-product controller slot is open, source/package unchanged.",
+  "readyEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T09-27-31.732Z-880bd58f/ready.json",
+  "stage": "F2",
+  "nativeExecuted": false,
+  "f3Accepted": false,
+  "original603Closed": false,
+  "cases": {
+    "NOT_TESTED": 23
+  },
+  "sourceObservations": [
+    {
+      "caseId": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+      "status": "NOT_TESTED",
+      "attribution": "frozen-product-source-contract-risk",
+      "source": "src/platform/host/controller-methods.js",
+      "observed": "Durable preparing run admission precedes script pin; pin E_TOMBSTONE is settled/retired while the run row is retained",
+      "expected": "Original case requires E_TOMBSTONE and no new controller-run row; expectation is preserved",
+      "nativeVerificationRequired": true
+    }
+  ],
+  "sdkCompletedSummary": "docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c/summary.json",
+  "runnerRepairContinuation": {
+    "authorization": "Human directed continue original exclusive slot/all four; only local runner prerequisite repair",
+    "originalNativeEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-13-12.403Z-31778dfb",
+    "sourceChangedPaths": [
+      "tests/framework/k5-controller-product-native.mjs"
+    ],
+    "productFrozenSourcesUnchanged": true,
+    "globalLauncherUnchanged": true,
+    "previousRunnerSha256": "f0ce8640dcc7ea7e02c96e701ce8f19c214c0a3b50a1bf02ff9f6df0688b4d47",
+    "previousSourceHash": "1e11e9f512bdd2e53d6e6b0b48a868648edeff16fc7b6ba882f076757b9fbdbe"
+  }
+}

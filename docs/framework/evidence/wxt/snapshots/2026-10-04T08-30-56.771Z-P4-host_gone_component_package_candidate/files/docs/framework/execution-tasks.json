@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "goal": "OpenDesk Browser 通用框架迁移 Goal",
+  "candidateId": "M5-C1",
+  "updatedAt": "2026-10-03T09:00:42.131909+00:00",
+  "taskAuthority": "关键执行顺序；source-compatibility-ledger.json仍为唯一逐项完成账本",
+  "scheduling": "K0审批后立即执行K1；K1通过后执行K2；K3与K4底座就绪后可按互斥写范围并行；K5再K6",
+  "tasks": [
+    {
+      "id": "K0",
+      "phase": "stage0",
+      "title": "冻结现有迁移方案并完成同候选独立审批",
+      "dependsOn": [],
+      "status": "completed",
+      "writeScope": [
+        "docs/framework",
+        "tests/framework/stage0-ledger.test.mjs"
+      ],
+      "deliverable": "候选manifest与独立Architect→Critic报告；不再扩充清单",
+      "acceptance": "同一候选hash，双方APPROVE且≥95、零阻断；产品源码无提前修改",
+      "completedAt": "2026-10-02T19:28:50.405125+00:00",
+      "evidence": [
+        "docs/framework/reviews/migration-execution-v5/round-6/architect.json",
+        "docs/framework/reviews/migration-execution-v5/round-6/critic.json"
+      ],
+      "approvedManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+      "pendingNarrowAmendment": {
+        "round": 5,
+        "hash": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+        "Architect": "APPROVE-96",
+        "Critic": "APPROVE-96",
+        "notFunctionalApproval": true,
+        "effectiveAt": "2026-10-02T20:47:13.266103+00:00",
+        "status": "completed"
+      },
+      "lastApprovedAffectedRevision": {
+        "round": 6,
+        "hash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+        "Architect": "APPROVE-98",
+        "Critic": "APPROVE-98",
+        "effectiveAt": "2026-10-02T21:33:56.772669+00:00",
+        "notFunctionalApproval": true
+      }
+    },
+    {
+      "id": "K1",
+      "phase": "F1",
+      "title": "修通两个执行后端的关键基本功能",
+      "dependsOn": [
+        "K0"
+      ],
+      "status": "completed",
+      "writeScope": [
+        "tests/prototypes",
+        "docs/framework/prototypes"
+      ],
+      "deliverable": "现有v2控制Worker与userScripts runner补齐真实终止、资源、CSP、返回/错误、精确document与撤权；版本矩阵",
+      "acceptance": "最低候选138与执行时Stable实际验证；原生失败如实保留；独立复核后backendPrototypePassed",
+      "startedAt": "2026-10-02T19:28:50.405125+00:00",
+      "executors": {
+        "control": "01a0fdf8-9bf1-73c1-bb20-d6a7763fcd75",
+        "pageFunction": "01a0fdf8-9cf2-76f1-959e-b81ef511177a"
+      },
+      "currentBlockers": [],
+      "pageEvidence": "docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.json",
+      "pageFinalQualification": {
+        "candidateSha256": "f29dc4afa233a67457585e6a35cf327252760ead96d9edce6c16975f9a502c0a",
+        "eachVersionActual": 102,
+        "eachVersionRetainedFailures": 9,
+        "eachVersionRequiredSubcaseScenarios": 24,
+        "qualification": "pending same-union independent review"
+      },
+      "controlMainLoopBoundary": "Owned MAIN page retirement / borrowed page survival double-version PASS observations, final full matrix pending",
+      "prototypePhysicalGrace": "3s actual-observation contract approved round5 Architect96/Critic96",
+      "controlPrototypeFinalMatrixReleasedAt": "2026-10-02T20:47:13.266103+00:00",
+      "controlPrototypePlanHash": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+      "controlObservedMatrix": {
+        "candidateSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+        "eachVersionPass": 56,
+        "bothVersionCurrentFailures": 0,
+        "qualification": "pending same-union independent review"
+      },
+      "pageContractProposal": {
+        "round": 6,
+        "manifest": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+        "manifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+        "status": "APPROVED-AND-PROMOTED",
+        "reason": "Eight actual native OFF-ON historical-fence counterexamples; explicit bounded compatibility proposal retains observed OFF sticky and all genuine authority/doc fences",
+        "originalCaseDenominator": 603,
+        "currentCaseDenominator": 603,
+        "requiredSubcasesWithinOriginalCase": 4,
+        "noFunctionalApproval": true,
+        "architectScore": 98,
+        "architectReport": "docs/framework/reviews/migration-execution-v5/round-6/architect.json",
+        "criticAgent": "01a0fe51-55cb-7902-9fd6-d44568a05b62",
+        "criticScore": 98,
+        "criticReport": "docs/framework/reviews/migration-execution-v5/round-6/critic.json",
+        "effectiveAt": "2026-10-02T21:33:56.772669+00:00"
+      },
+      "pageRepairStatus": "Operation-owned monitoring/sticky fence source implementation in progress under existing F1 repair authorization; old unobserved history failures remain FAIL. New expected not effective until Critic approval.",
+      "controlFrozenEvidence": "docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-evidence-manifest.json",
+      "finalMatrixExecutionPlanHash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+      "finalMatricesReleasedAt": "2026-10-02T21:33:56.772669+00:00",
+      "currentFrozenUnion": {
+        "manifest": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+        "sha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+        "status": "Architect functional qualified; sequential Critic/code/function qualification pending",
+        "architect": {
+          "path": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+          "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6",
+          "verdict": "APPROVE/CLEAR",
+          "requiredContracts": 12,
+          "passedContracts": 12,
+          "blockers": 0,
+          "candidateManifestSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66"
+        },
+        "criticCodeFunction": {
+          "status": "APPROVE",
+          "report": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+          "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f",
+          "agentId": "01a0fe35-056b-7561-a230-0ebfe8efc095",
+          "required": 12,
+          "passed": 12,
+          "blockers": 0
+        }
+      },
+      "completedAt": "2026-10-02T23:14:23.717624+00:00",
+      "f1Qualification": {
+        "qualifiedAt": "2026-10-02T23:14:23.717624+00:00",
+        "candidateManifest": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+        "candidateManifestSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+        "approvedPlanManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+        "reviews": {
+          "architect": {
+            "status": "APPROVE",
+            "report": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+            "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6",
+            "agentId": "01a0fe35-0671-7821-83c0-55b45ac42612",
+            "required": 12,
+            "passed": 12,
+            "blockers": 0
+          },
+          "code-reviewer": {
+            "status": "APPROVE",
+            "report": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+            "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f",
+            "agentId": "01a0fe35-056b-7561-a230-0ebfe8efc095",
+            "required": 12,
+            "passed": 12,
+            "blockers": 0
+          }
+        },
+        "independentSequence": "Architect full report verified before Critic dispatch",
+        "artifactAndSourceBindingsVerified": 168,
+        "sourceOrEvidenceDrift": 0,
+        "requiredContracts": 12,
+        "allRequiredContractsPassed": true,
+        "scope": "F1 mechanism qualification under approved round6 contracts only",
+        "productRuntimePassAdded": false,
+        "productPackageSha256": null
+      }
+    },
+    {
+      "id": "K2",
+      "phase": "F2",
+      "title": "把后台公共底座接入现有工程",
+      "dependsOn": [
+        "K1"
+      ],
+      "status": "in-progress",
+      "writeScope": [
+        "src/platform",
+        "src/sw.js",
+        "tests/foundation",
+        "tests/framework"
+      ],
+      "legacyTasks": [
+        "T02",
+        "T04",
+        "T03",
+        "T05",
+        "T06",
+        "T12"
+      ],
+      "deliverable": "实际迁入协议/codec、存储升级、授权与准入、目标导航、通用artifact/download；唯一broker装配",
+      "acceptance": "真实sender/IDB/重启/CAS与撤权验证；修复17失败及R1–R8对应底座问题；不引入第二authority/数据库",
+      "preparationCompleted": true,
+      "preparationArtifact": "docs/framework/k2-storage-ready.md",
+      "productCodeWritten": true,
+      "preparedRegressionTests": {
+        "files": [
+          "tests/framework/k2-protocol-regressions.test.mjs",
+          "tests/framework/k2-control-state-regressions.test.mjs"
+        ],
+        "evidence": "docs/framework/evidence/k2-regression-preparation.json",
+        "freshActualRed": 9,
+        "productWritten": false,
+        "status": "ready for exact product repair after F1 qualification"
+      },
+      "startedAt": "2026-10-02T23:14:23.717624+00:00",
+      "executionOwner": "01a1007d-556c-7783-b5dd-c09312a10236",
+      "continuationCheckpoint": "docs/framework/product-continuation-checkpoint.json",
+      "continuationExecution": {
+        "at": "2026-10-03T09:00:42.131909+00:00",
+        "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+        "status": "in-progress",
+        "evidenceLayer": "392 component tests and stable build-pack-verify; actual product native verification in progress",
+        "f3Accepted": false,
+        "nextAction": "finish SDK native four combinations; actual controller product entry; CP1 and independent B05; then freeze same final package and close original603 plus explicit additions in F3"
+      },
+      "continuationExecutionHistory": [
+        {
+          "at": "2026-10-03T08:34:07.639616+00:00",
+          "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+          "status": "in-progress",
+          "evidenceLayer": "component verification plus pending stable-package native proof",
+          "f3Accepted": false,
+          "nextAction": "freeze bounded source changes; build/pack/verify production+development; SDK native four combinations; actual controller product entry; then same-final-package F3"
+        }
+      ]
+    },
+    {
+      "id": "K3",
+      "phase": "F2",
+      "title": "迁入ChromePage及控制脚本并跑通基本浏览器操作",
+      "dependsOn": [
+        "K2"
+      ],
+      "status": "in-progress",
+      "writeScope": [
+        "src/framework/ChromePage.js",
+        "src/framework/context.js",
+        "src/framework/control",
+        "src/scripting",
+        "src/run-host.js",
+        "tests/framework"
+      ],
+      "legacyTasks": [
+        "T07",
+        "T10",
+        "T01"
+      ],
+      "deliverable": "实际48成员门面/context、隔离控制Worker与page-proxy、脚本版本/参数/运行/停止/持久结果；真实goto→type→click→wait→读取→return链",
+      "acceptance": "逐48成员正例/异常/限制验证；r1/r2固定版本、双run不串页、停止与一次结算；无需采集模块运行",
+      "integrationBlockedBy": [
+        "K2"
+      ],
+      "moduleImplementationExists": true,
+      "finalAcceptancePassed": false,
+      "continuationCheckpoint": "docs/framework/product-continuation-checkpoint.json",
+      "executionOwner": "01a1007d-556c-7783-b5dd-c09312a10236",
+      "continuationExecution": {
+        "at": "2026-10-03T09:00:42.131909+00:00",
+        "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+        "status": "in-progress",
+        "evidenceLayer": "392 component tests and stable build-pack-verify; actual product native verification in progress",
+        "f3Accepted": false,
+        "nextAction": "finish SDK native four combinations; actual controller product entry; CP1 and independent B05; then freeze same final package and close original603 plus explicit additions in F3"
+      },
+      "continuationExecutionHistory": [
+        {
+          "at": "2026-10-03T08:34:07.639616+00:00",
+          "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+          "status": "in-progress",
+          "evidenceLayer": "component verification plus pending stable-package native proof",
+          "f3Accepted": false,
+          "nextAction": "freeze bounded source changes; build/pack/verify production+development; SDK native four combinations; actual controller product entry; then same-final-package F3"
+        }
+      ]
+    },
+    {
+      "id": "K4",
+      "phase": "F2",
+      "title": "迁入独立页面SDK、公共服务与必要资源",
+      "dependsOn": [
+        "K2"
+      ],
+      "status": "in-progress",
+      "writeScope": [
+        "src/framework/sdk",
+        "src/framework/utils",
+        "src/framework/events.js",
+        "src/platform/page-port",
+        "docs/contracts/licenses",
+        "tests/framework",
+        "src/agents/page-relay.js",
+        "src/ui/tool-shell.js",
+        "src/ui/tool.html",
+        "src/platform/chrome",
+        "src/platform/host/broker.js",
+        "src/platform/storage",
+        "src/agents/page-agent.js",
+        "src/sw.js",
+        "src/environment.js",
+        "manifest.json"
+      ],
+      "legacyTasks": [
+        "T08",
+        "T09",
+        "T12"
+      ],
+      "deliverable": "真实MAIN SDK/ISOLATED relay，bridge/http/storage/notifications/servers/utils按职责迁入；固定资源及MIT notice入包；K4同时在现tool-shell提供最小allowPageSdk授权入口和固定relay装配，独立SDK从真实入口获授权；K5仅在其后扩展完整脚本工作台",
+      "acceptance": "不启动controller独立跑通；B05真实HTTP100并发/四崩溃点、两种存储寿命、错误/撤权/导航/资源装载与unknown不重放",
+      "integrationOwner": "主writer负责共用broker/storage/SW/manifest接线；K4实现代理只写SDK、工具、page-relay与Chrome短服务独占模块；K5在K4后扩展UI。",
+      "integrationBlockedBy": [
+        "K2"
+      ],
+      "moduleImplementationExists": true,
+      "finalAcceptancePassed": false,
+      "continuationCheckpoint": "docs/framework/product-continuation-checkpoint.json",
+      "executionOwner": "01a1007d-556c-7783-b5dd-c09312a10236",
+      "continuationExecution": {
+        "at": "2026-10-03T09:00:42.131909+00:00",
+        "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+        "status": "in-progress",
+        "evidenceLayer": "392 component tests and stable build-pack-verify; actual product native verification in progress",
+        "f3Accepted": false,
+        "nextAction": "finish SDK native four combinations; actual controller product entry; CP1 and independent B05; then freeze same final package and close original603 plus explicit additions in F3"
+      },
+      "continuationExecutionHistory": [
+        {
+          "at": "2026-10-03T08:34:07.639616+00:00",
+          "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+          "status": "in-progress",
+          "evidenceLayer": "component verification plus pending stable-package native proof",
+          "f3Accepted": false,
+          "nextAction": "freeze bounded source changes; build/pack/verify production+development; SDK native four combinations; actual controller product entry; then same-final-package F3"
+        }
+      ]
+    },
+    {
+      "id": "K5",
+      "phase": "F2",
+      "title": "将框架接入现有工作台的真实入口",
+      "dependsOn": [
+        "K3",
+        "K4"
+      ],
+      "status": "in-progress",
+      "writeScope": [
+        "src/ui",
+        "src/run-host.js",
+        "src/environment.js",
+        "src/sw.js",
+        "src/plugins/automation-example",
+        "scripts",
+        "tests/framework"
+      ],
+      "legacyTasks": [
+        "T11",
+        "T13"
+      ],
+      "deliverable": "现UI目标授权、脚本/参数/版本保存选择、run/stop、持久结果和真实下载；仅必要采集去耦",
+      "acceptance": "用户从真实入口完成基本操作，关闭重开结果仍在、download complete及文件hash；不替代独立API/SDK验收",
+      "executionOwner": "01a1007d-556c-7783-b5dd-c09312a10236",
+      "continuationExecution": {
+        "at": "2026-10-03T09:00:42.131909+00:00",
+        "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+        "status": "in-progress",
+        "evidenceLayer": "392 component tests and stable build-pack-verify; actual product native verification in progress",
+        "f3Accepted": false,
+        "nextAction": "finish SDK native four combinations; actual controller product entry; CP1 and independent B05; then freeze same final package and close original603 plus explicit additions in F3"
+      },
+      "continuationExecutionHistory": [
+        {
+          "at": "2026-10-03T08:34:07.639616+00:00",
+          "owner": "01a1007d-556c-7783-b5dd-c09312a10236",
+          "status": "in-progress",
+          "evidenceLayer": "component verification plus pending stable-package native proof",
+          "f3Accepted": false,
+          "nextAction": "freeze bounded source changes; build/pack/verify production+development; SDK native four combinations; actual controller product entry; then same-final-package F3"
+        }
+      ]
+    },
+    {
+      "id": "K6",
+      "phase": "F3",
+      "title": "同一最终包逐项验收并独立确认迁移完成",
+      "dependsOn": [
+        "K5"
+      ],
+      "status": "queued",
+      "writeScope": [
+        "docs/framework",
+        "tests/framework",
+        "dist"
+      ],
+      "deliverable": "development/production build-pack-verify；一个最终production包全部必选功能证据与独立复核",
+      "acceptance": "72来源处置、48API与全部必需SDK/服务/资源逐项实证；17失败及R1–R8实关；1000轮/10重连/2禁插件baseline；无失败/缺失/stale后完成Goal"
+    }
+  ],
+  "revision": 4,
+  "correction": "K4 uses exact v5 page-relay.js path and explicitly covers existing public-base service assembly; Backspace correction retained; denominator unchanged.",
+  "stateChangeOnly": "K1 qualified by both exact-union independent reports; F2 actual product implementation starts K2."
+}

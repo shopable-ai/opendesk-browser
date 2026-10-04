@@ -1,0 +1,10 @@
+{
+  "fixtureFailure": {
+    "message": "{\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: harness is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"7242670066667822165.1.2\"}}",
+    "stack": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: harness is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"7242670066667822165.1.2\"}}\n    at evaluate (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs:59:193)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs:61:21"
+  },
+  "cases": [],
+  "prototypeCandidateSha256": "20bf6e4d9e4b21aaef2862b99beda9f1ae0bab018089adc8ec16ed6af4486221",
+  "backendPrototypePassed": false,
+  "requiresIndependentReview": true
+}

@@ -1,0 +1,54 @@
+{
+  "scope": "实施前对应表/定点方案，非产品验收/F3",
+  "candidateHash": "b627dfc35912e0d61530168963cc1e1960faee40a6deb050f8f174ae7b11249f",
+  "code": {
+    "agentId": "01a10265-d4f7-7ef0-ac30-c89ef6574ee2",
+    "score": 97,
+    "blockers": 0
+  },
+  "contract": {
+    "agentId": "01a10277-d0c0-71c0-8c4d-4f95fa7bd244",
+    "score": 96,
+    "blockers": 0
+  },
+  "frozenCandidate": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/reviews/round-2/bounded-review-candidate.json",
+  "productModified": false,
+  "formalAccepted": 0,
+  "f3": false,
+  "nonblockingCorrections": [
+    "MD必须保留RESOURCE01.F021.getResourceByUrl原caseID，实际符号requestResourceByBridge不变",
+    "日志断言核对固定事件名/UTF8字节数/data项数/一次sink/own undefined；安全投影兼容损失持续记录"
+  ],
+  "snapshotBindings": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/actual-code-map.md",
+      "bytes": 54606,
+      "sha256": "dde4550e154dc6cd6130f4f19745d7bc9f64d62ed296e25a760d2b2b7eb40918",
+      "frozenPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/reviews/round-2/actual-code-map.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/actual-code-map.json",
+      "bytes": 106370,
+      "sha256": "bb711eed946b72b918a05152d6f5ded588cf877840af461ba880511a55720fd5",
+      "frozenPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/reviews/round-2/actual-code-map.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/full-read-receipt.json",
+      "bytes": 81773,
+      "sha256": "0e99468cad9852ef93a967a690eb09e6bf6a41b8e0e351387af39994de188c96",
+      "frozenPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/reviews/round-2/full-read-receipt.json"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/four-service-targeted-fix.md",
+      "bytes": 9505,
+      "sha256": "5639b2d5abdf34d0bbd2831f20e5443ece6ea6f25e916df008d15ad94b7e4556",
+      "frozenPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/reviews/round-2/four-service-targeted-fix.md"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/writer-four-service-preparation-raw.txt",
+      "bytes": 7175,
+      "sha256": "2cf5a5a0a624cab2fa425fdc387c59e72daf958d4d665557dd1ae07db1022821",
+      "frozenPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/reviews/round-2/writer-four-service-preparation-raw.txt"
+    }
+  ]
+}

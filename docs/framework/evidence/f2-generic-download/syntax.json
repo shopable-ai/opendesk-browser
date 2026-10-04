@@ -1,0 +1,35 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "checks": [
+    {
+      "argv": [
+        "node",
+        "--check",
+        "src/platform/downloads/index.js"
+      ],
+      "exitCode": 0,
+      "sha256": "ed52978bcc4b12a732770e8fda79e2ef3175b0ce58750e0fea1e7e6c6dc2fbbe",
+      "output": ""
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "src/platform/downloads/blob-lifecycle.js"
+      ],
+      "exitCode": 0,
+      "sha256": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66",
+      "output": ""
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "tests/framework/k2-generic-download.test.mjs"
+      ],
+      "exitCode": 0,
+      "sha256": "fb2b28ad37f22fcc45601b7c7b7d737828e59567ead1dec5c00e22762d1a5006",
+      "output": ""
+    }
+  ]
+}

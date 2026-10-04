@@ -1,0 +1,75 @@
+✔ schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes (6.2115ms)
+✔ no native IDB in Node is reported as unavailable; storage entry exports factory (1.296625ms)
+✔ immutable template save CAS, exact duplicate, hash lookup and name-only CAS (26.534334ms)
+✔ template admission hook uses same transaction and cannot overwrite immutable revision (8.162334ms)
+✔ beginPage permits preparing run, reserves exact command key and idempotently reACKs (30.852875ms)
+✔ stage rejects undispatched reservation and atomically aborts open snapshot (28.191834ms)
+✔ three batches: first two durable ACKs, third exact-byte failure hides whole page (43.139542ms)
+✔ exact staged duplicate does not add bytes; conflicting valid digest aborts page (11.511583ms)
+✔ host/epoch/target mismatch is rejected without aborting rightful open page (13.56575ms)
+✔ admission cannot bypass transaction reread of cancellation (7.234625ms)
+✔ stage may acknowledge authenticated raw frames before end; seal requires complete end (21.014834ms)
+✔ seal recomputes all six rows; prefix-only signature fails (22.59025ms)
+✔ batch gap, record key/field mismatch, and raw-end evidence mismatch reject (35.850833ms)
+✔ stop wins before seal; seal wins before stop and preserves historic original ACK (40.948958ms)
+✔ run revision and authenticated host registration cannot be bypassed (18.582833ms)
+✔ reader pins freeze watermark/count, paginate long typed values, and reject other cursors (38.325833ms)
+✔ zero-batch empty page requires authenticated allowed-empty proof (26.322583ms)
+✔ repeated full page signature without end is rejected and left invisible (44.480834ms)
+✔ whole-page run limits, two pending ACKs, profile budget and injected disk quota (62.725875ms)
+✔ delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data (28.926708ms)
+✔ retention defaults seven days, preserves active runs and raw migration duplicates (8.452ms)
+✖ shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS (17.207459ms)
+✔ R1: cyclic and malformed local schema references produce bounded typed rejection (6.341ms)
+✔ R1: long acyclic reference chains have a schema traversal depth budget (0.930209ms)
+✔ R1: the inherited RulePlan resolves its nested local JSON pointer (21.373333ms)
+✔ R2: closed shapes reject names inherited by the schema properties object (4.878958ms)
+✔ R7: durable timestamps require an actual calendar date and explicit timezone (0.810042ms)
+✔ SDK Hello needs native document/grant and never claims a controller slot (20.896875ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (1.115542ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (1.000541ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (67.079666ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (17.529708ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (9.021583ms)
+✔ durable session duplicate after authority restart does not resubmit native set (2.830333ms)
+✔ native session failure records unknown dispatch and will not retry same write (1.580291ms)
+✔ SW recovery fences dispatched write gap and retains original identity/deadline (2.896ms)
+✔ durable duplicate cannot extend original 15s service deadline (4.544833ms)
+✔ native permission remove then regrant cannot revive old request/grant (9.702666ms)
+✔ observed navigation invalidates current page Hello and pending admission (1.029125ms)
+✔ notification permission removal with empty origins revokes the affected grant (0.566625ms)
+✔ notification native receipt and durable undefined survive delivery revocation (1.308042ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (50.268541ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (1.514542ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 42
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 694.666167
+
+✖ failing tests:
+
+test at tests/foundation/storage.test.mjs:284:1
+✖ shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS (17.207459ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  FoundationError: Observed document invalidation fences this SDK operation
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:319:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: FoundationError: Observed document invalidation fences this SDK operation
+        at invariant (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:14:25)
+        at assertFence (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js:18:5)
+        at authorizeSdkInTransaction (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js:105:5)
+        at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/sdk-methods.js:126:30
+        at execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:30:35),
+    operator: 'rejects',
+    diff: 'simple'
+  }

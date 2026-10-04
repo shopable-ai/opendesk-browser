@@ -1,0 +1,229 @@
+{
+  "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-138-permission-race-final-2026-10-02T21-45-04.511Z/report.json",
+  "cases": [
+    {
+      "id": "F1-INFINITE-LOOP-STOP",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-AFTER-TERMINATION-STOP",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-INFINITE-LOOP-DEADLINE",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-AFTER-TERMINATION-DEADLINE",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-INFINITE-LOOP-HOST-CLOSE",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-AFTER-TERMINATION-HOST-CLOSE",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-STOP-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-STOP-CLICK",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-USER-GOTO-TITLE-URL",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-USER-TYPE-CLICK-WAIT-READ",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-USER-THROW",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-USER-SYNTAX",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-ADAPTER-REJECTION",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RETURN-false",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RETURN-0",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RETURN-null",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RETURN-undefined",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-UNSERIALIZABLE",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-GLOBAL-FORGERY-PATCH",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-DEADLINE",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-PENDING-PAGE-DEADLINE",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-FAKE-PEER",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-CSP-NETWORK-ATTRIBUTION",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-0",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-0",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-0",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-0",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-1",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-1",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-1",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-1",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-2",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-2",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-2",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-2",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-3",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-3",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-3",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-3",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-SUCCESS-4",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-THROW-4",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-TIMEOUT-4",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-CANCEL-4",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-AFTER-CLEANUP-VALID",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-SW-HOST-RECONNECT",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY",
+      "status": "PASS"
+    }
+  ]
+}

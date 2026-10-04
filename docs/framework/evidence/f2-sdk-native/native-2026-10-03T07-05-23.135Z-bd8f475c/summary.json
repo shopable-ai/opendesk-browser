@@ -1,0 +1,41 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "argv": [
+    "/opt/homebrew/Cellar/node/26.3.1/bin/node",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs",
+    "--mode=production",
+    "--chrome=138"
+  ],
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-native/native-2026-10-03T07-05-23.135Z-bd8f475c",
+  "reports": [
+    {
+      "mode": "production",
+      "label": "138",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "packageHash": "4fc301a556ea4311e2a36c91c0aaf4bf260c280771a604c0cde34c10efb06152",
+      "summary": {
+        "PASS": 1,
+        "FAIL": 1
+      },
+      "error": {
+        "message": "Native product installation prerequisite failed",
+        "stack": "AssertionError [ERR_ASSERTION]: Native product installation prerequisite failed\n    at browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:226:98)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native.mjs:338:20"
+      },
+      "packageDrift": false
+    }
+  ],
+  "sourceDrift": [],
+  "serverClosed": true,
+  "finalProductPassed": false,
+  "f3Accepted": false,
+  "original603Closed": false,
+  "notClaimed": [
+    "All original603 families",
+    "four native crash points",
+    "1000 mixed rounds",
+    "10 reconnect rounds",
+    "2 plugin disables",
+    "independent same-final-package F3 review"
+  ],
+  "boundary": "Current production/development package targeted native SDK evidence, original raw server/CDP/result/storage observations preserved"
+}

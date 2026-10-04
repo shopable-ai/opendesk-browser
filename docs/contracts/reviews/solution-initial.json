@@ -1,0 +1,1305 @@
+{
+  "reviewVersion": "1.0.0",
+  "reviewType": "independent-initial-architecture-and-human-reviewability",
+  "reviewedAt": "2026-10-01T19:35:43.636377+00:00",
+  "project": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "contractVersion": "1.0.0",
+  "recommendation": "REQUEST_CHANGES",
+  "architecturalStatus": "BLOCK",
+  "reviewerContext": {
+    "model": "inherited current model; no model override",
+    "reasoningEffort": "xhigh",
+    "independentReadOnlyBranches": [
+      "code-reviewer evidence",
+      "architect devil's advocate"
+    ],
+    "leaderVerifiedFindings": true
+  },
+  "scope": {
+    "writeOnly": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reviews/solution-initial.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/reviews/solution-initial.md"
+    ],
+    "productionFilesWritten": false,
+    "productTestsExecuted": 0,
+    "ordinaryChromeRunsExecuted": 0,
+    "frameworkBenchmarksExecuted": 0,
+    "codegraphReviewed": false,
+    "initialReviewWaitedFor05": false,
+    "reviewFocus": [
+      "framework solution",
+      "task DAG and ownership",
+      "migration reviewability",
+      "test evidence boundaries"
+    ],
+    "protocolCoverage": "Cross-document source-interface dependency and page-signature oracle findings only; not a full rereview of the existing eight protocol blockers.",
+    "protocolFollowup": "Main integrates these two finding IDs with the independent protocol agent's delta review; no claim about closure of its eight blockers."
+  },
+  "authority": {
+    "architectureVersion": "v3",
+    "executionPromptsVersion": "v5",
+    "registryPath": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-thread-dispatch.json",
+    "registrySha256": "a3b6266072ee898ddc5a221d296e4b5123e7cf2f0fc1782458a6d3a0497d5621",
+    "executionOrder": [
+      "01",
+      "02A",
+      "02B",
+      "03",
+      "04"
+    ],
+    "actual02A": "01a0f8b7-c03d-7460-b3dc-c7f2df804b60",
+    "actual02B": "01a0f8dd-77cc-7ec2-97a6-71daf39029d4",
+    "stage05RequiredBefore01Ready": true,
+    "initialStateIsNotLiveCompletion": true
+  },
+  "summary": {
+    "P1": 1,
+    "P2": 1,
+    "designReady": false,
+    "externalDesignPrerequisitesPending": 1,
+    "sourceLicenseReleaseGate": "unresolved",
+    "commercialGate": "M12 pending",
+    "productAcceptance": "not-run",
+    "currentReadinessDecision": "not-issued; subsequent normative revisions require focused delta review"
+  },
+  "findings": [
+    {
+      "id": "SOL-P1-01",
+      "severity": "P1",
+      "status": "open-at-reviewed-snapshot; subsequent revision not adjudicated",
+      "confidence": "high",
+      "title": "原页面source选区、取消及未保存draft预览的公共协议未闭合",
+      "blocks": [
+        "01-design-ready",
+        "02B-to-03-contract-handoff"
+      ],
+      "ownerStage": "01",
+      "implementationOwners": [
+        "02B",
+        "03"
+      ],
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+          "line": 100,
+          "jsonPointer": "/moduleSlot",
+          "note": "领域依赖注入含pagePort等，无需新增独立bridge对象。",
+          "sha256": "b6e7ae447c1a5e1df673095ee2093b060ceed35f8f84a25ee015984ca5fb626f"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+          "line": 379,
+          "jsonPointer": "/sourceSelection",
+          "note": "只有权限上下文、目标绑定和固定异步入口描述。",
+          "sha256": "b6e7ae447c1a5e1df673095ee2093b060ceed35f8f84a25ee015984ca5fb626f"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+          "line": 426,
+          "jsonPointer": "/pagePort/methods",
+          "note": "仅正式运行readPage/nextLink/nextButton；preview是语义描述，未定义source draft调用。",
+          "sha256": "b6e7ae447c1a5e1df673095ee2093b060ceed35f8f84a25ee015984ca5fb626f"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+          "line": 1836,
+          "jsonPointer": "/$defs/SourceSelectionContext",
+          "note": "权限上下文不是开始/取消/结果/释放协议。",
+          "sha256": "a70eef15898f3cf3a6a36b821fa858def2e9e74d6c214b2a6da683b8759d2f5a"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+          "line": 64,
+          "jsonPointer": null,
+          "note": "正式读取核stored模板；source preview用另一上下文；第68行桥归02B、SelectorUI归03。",
+          "sha256": "911e187551d1ba971c1d4c8e886555223118f4236996c232ba2479b647e79274"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/framework-decision.md",
+          "line": 53,
+          "jsonPointer": null,
+          "note": "领域须经获批source-target adapter。",
+          "sha256": "7a4b7f93a10f4d2d07f5ad8ca5328fe5c8537d8a803e8c7ddbcaceb0dccfbe67"
+        }
+      ],
+      "facts": [
+        "职责已定为02B公共桥、03选区UI；调用签名、结果/事件与生命周期约定缺失。",
+        "当前sourceSelection/SourceSelectionContext是权限边界说明，不等于公共协议已闭合。"
+      ],
+      "inference": "02B和03无法只据冻结合同独立实现一致source交互；03自行补特权桥或借正式Identity将突破公共作者/权限/目标边界。",
+      "minimalFix": [
+        "在现有PagePort/公共接口和schema补source context创建/真实绑定、开始选区、取消/释放及draft预览输入输出、错误。无需新增owner、DB、独立bridge或UI框架。",
+        "明确requestId/selectionId、实际host/tab/frame/document认证、取消后迟到结果、导航失效、重复清理和仅清自有overlay/listener。",
+        "未保存有效draft使用同领域compiler与只读raw reader；展示≤10行不截原值；不能借正式stored-template准入、翻页或stage/seal。",
+        "同步合同/hash/fixtures/test/handoff；01定版，02B公共实现，03交互。"
+      ],
+      "existingTests": [
+        "M02-classic-selection",
+        "M02-two-windows-race",
+        "M03-css-missing-empty",
+        "M09"
+      ],
+      "proposedTests": [
+        {
+          "id": "PROPOSED-source-cancel-late",
+          "assertion": "取消后旧selectionId迟到结果不能覆盖新选择；重复清理只移除自有资源。"
+        },
+        {
+          "id": "PROPOSED-source-navigation-invalidates",
+          "assertion": "source document变化令上下文失效；错误窗口/旧文档回复拒绝；正式run target不随source activeTab变化。"
+        },
+        {
+          "id": "PROPOSED-source-unsaved-draft-preview",
+          "assertion": "有效未保存draft可只读预览，非法draft拒绝；同compiler原值一致；不生成run或sealed写入。"
+        }
+      ],
+      "closeWhen": "公开签名、schema及具体正反例足以使02B/03独立实现一致行为，复审闭合；本处不要求产品测试提前通过。",
+      "integrationNote": "Cross-document architectural/oracle finding; merge with protocol delta review if already tracked, do not double-count."
+    },
+    {
+      "id": "SOL-P2-01",
+      "severity": "P2",
+      "status": "open-at-reviewed-snapshot; subsequent revision not adjudicated",
+      "confidence": "high",
+      "title": "pageSignature精确oracle混入snapshot派生recordKey，无法稳定判断重复页",
+      "blocks": [
+        "01-design-ready"
+      ],
+      "affectedGates": [
+        "M05",
+        "M06"
+      ],
+      "ownerStage": "01",
+      "implementationOwners": [
+        "02B",
+        "03"
+      ],
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+          "line": 15,
+          "jsonPointer": null,
+          "note": "recordKey=snapshotId:rowIndex；pageSignature要求整页raw/values内容并检测同URL按钮换页。",
+          "sha256": "911e187551d1ba971c1d4c8e886555223118f4236996c232ba2479b647e79274"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-transaction.json",
+          "line": 43,
+          "jsonPointer": "/stageRequests/0/records/0/recordKey",
+          "note": "recordKey含P1:等snapshot身份。",
+          "sha256": "77142e9a00efa1be0c82f5a4f6c5daafef147f5efa29a25d22ba8337614cc2f6"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-transaction.json",
+          "line": null,
+          "jsonPointer": "/sealRequest/pageSignature",
+          "note": "精确签名等于完整records的canonical hash。",
+          "sha256": "77142e9a00efa1be0c82f5a4f6c5daafef147f5efa29a25d22ba8337614cc2f6"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.md",
+          "line": 192,
+          "jsonPointer": null,
+          "note": "直接hash完整records，未做内容投影。",
+          "sha256": "84238286b898ee63e8c703c323cf0d50a576bed3989783f3bf2f95f1a4c99ecd"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/verify-contracts.py",
+          "line": 134,
+          "jsonPointer": null,
+          "note": "静态oracle同样hash完整records。",
+          "sha256": "6d7ff25110b5962df63c5a471d7545beeb7e0b3d7bcb1ed1d5cbe19781b136cd"
+        }
+      ],
+      "facts": [
+        "主审独立复算六行fixture得到原seal.pageSignature。",
+        "仅将recordKey的P1:*改为P2:*；URL、raw、values和行序均不变，签名变化。"
+      ],
+      "reproduction": {
+        "scope": "read-only synthetic counterexample, not product test",
+        "rows": 6,
+        "original": "87a410292821abdb761ecce2187c0e7a43ac8840078c4f03774f43addad202f1",
+        "changedOnlyRecordKey": "3565eb822ca156c363e5d47678a92074f7a06e4c74442d3dbf35735de6c658a7",
+        "samePageIdentity": true,
+        "sameRawAndValues": true,
+        "productExecuted": false
+      },
+      "inference": "若按当前oracle实现同URL按钮分页，新snapshot的同内容会被判为新页，可能重复采集到预算上限，与pagination-signature冲突。",
+      "minimalFix": [
+        "定版稳定内容投影，例如按行序{rowIndex,raw,values}，排除recordKey/snapshotId/运行身份。",
+        "stage digest仍绑定snapshot及完整records；seal请求digest仍绑定请求身份，不与内容签名混用。",
+        "统一contract/semantics、精确page fixture/hash、test-plan与静态oracle，更新输入hash/影响ledger。"
+      ],
+      "existingTests": [
+        "pagination-signature",
+        "M06-seal-validation-watermark",
+        "FX-PAGE-allSealed"
+      ],
+      "proposedTests": [
+        {
+          "id": "PROPOSED-page-signature-snapshot-invariance",
+          "assertion": "同URL同raw/values/行序跨snapshot签名相同；仅第六行raw或typed值改变签名不同；URL/行序变化按合同检查。"
+        }
+      ],
+      "closeWhen": "规范/fixture一致，独立复算跨snapshot不变性和第六行变化向量；不把静态复算写成真实分页通过。",
+      "integrationNote": "Cross-document architectural/oracle finding; merge with protocol delta review if already tracked, do not double-count."
+    }
+  ],
+  "externalAndReleaseGates": [
+    {
+      "id": "DEP05-CODEGRAPH",
+      "kind": "external-design-prerequisite",
+      "status": "pending-not-reviewed",
+      "blocks": [
+        "01-ready",
+        "02A-release"
+      ],
+      "owner": "05 evidence / 01 integration",
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-thread-dispatch.json",
+          "line": null,
+          "jsonPointer": "/stage01RequiredAudit",
+          "note": "⑤必须先审真实来源hash/关系/复用/回归与影响测试。",
+          "sha256": "a3b6266072ee898ddc5a221d296e4b5123e7cf2f0fc1782458a6d3a0497d5621"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/task-breakdown.json",
+          "line": null,
+          "jsonPointer": "/externalDesignDependency",
+          "note": "待审合并。",
+          "sha256": "027c042fd7fb43b3fbc467212f5d19eb459aac6f2119df50d7948a50a25b158a"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+          "line": null,
+          "jsonPointer": "/phase01ReadyDependency",
+          "note": "artifactPath/hash仍null，status=pending。",
+          "sha256": "02bd9244871eab626d923ab0daac08c7f5fbb27c1b74019bce75a1e33099e4d1"
+        }
+      ],
+      "action": "主代理接真实⑤路径/hash和来源代，逐finding映射keep/adapt/drop→02A/02B/03→fixture/test，解决冲突后增量复审。初审不等待⑤，不认为审计已交付。"
+    },
+    {
+      "id": "SOURCE-LICENSE-RELEASE",
+      "kind": "release-gate",
+      "status": "unresolved-blocks-distribution",
+      "blocks": [
+        "source-code-distribution",
+        "commercial-release"
+      ],
+      "blocksDesignReadyByItself": false,
+      "evidence": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+          "line": 403,
+          "jsonPointer": null,
+          "note": "todo有许可正文，不自动覆盖所有vendor/素材/修改。",
+          "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+          "line": 411,
+          "jsonPointer": null,
+          "note": "core只见ISC声明，快照scope未含LICENSE/NOTICE，不推断原仓无许可。",
+          "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+          "line": 419,
+          "jsonPointer": null,
+          "note": "扩展本体、手改/编译衍生和实际分发vendor/素材授权未闭合。",
+          "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+        }
+      ],
+      "action": "逐实际带入项source hash/权利人/完整许可或授权/修改编译链/NOTICE/发布核准补证；未核准项替换或不分发。未知不是已判侵权。只读设计可继续，不能声称分发或商业ready。"
+    },
+    {
+      "id": "M12-COMMERCIAL",
+      "kind": "commercial-gate",
+      "status": "pending",
+      "blocks": [
+        "claim-paid-launch-ready"
+      ],
+      "blocksDesignReadyByItself": false,
+      "action": "需求/付费试点、签发/撤销运营与收费服务分别取证；M01–M11技术通过不代替M12或来源分发授权。"
+    }
+  ],
+  "frameworkAndMigrationAssessment": {
+    "conclusion": "原生MV3+JavaScript ESM+现有锁定webpack/Terser在单Chrome/保留有效HTML-JS/限制新增依赖的约束下合理且可撤换；不是跑分或Chrome等价认证。旧high稿和xhigh标签不作为结论依据。",
+    "evidence": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/framework-decision.md",
+        "line": 3,
+        "jsonPointer": null,
+        "note": "现有工具锁、保留JS/布局、精简新lock，不复制整依赖树。",
+        "sha256": "7a4b7f93a10f4d2d07f5ad8ca5328fe5c8537d8a803e8c7ddbcaceb0dccfbe67"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/framework-decision.md",
+        "line": 5,
+        "jsonPointer": null,
+        "note": "已说明WXT不强制TS或UI框架，无性能更差的宣称。",
+        "sha256": "7a4b7f93a10f4d2d07f5ad8ca5328fe5c8537d8a803e8c7ddbcaceb0dccfbe67"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/framework-decision.md",
+        "line": 28,
+        "jsonPointer": null,
+        "note": "探针未验证真实DOM/CSP/取消/压缩等价，未构建WXT。",
+        "sha256": "7a4b7f93a10f4d2d07f5ad8ca5328fe5c8537d8a803e8c7ddbcaceb0dccfbe67"
+      }
+    ],
+    "primaryReferences": [
+      {
+        "url": "https://wxt.dev/guide/essentials/es-modules.html",
+        "supports": "官方content/unlisted IIFE能力说明，不证明本次WXT构建。"
+      },
+      {
+        "url": "https://webpack.js.org/configuration/output/#outputiife",
+        "supports": "output.iife配置说明，不单独保证chunks/行为。"
+      }
+    ],
+    "classicProbe": {
+      "sourceSha256": "12e0104aab884e58fc4784dffd34300c06ffb9106c42ed190b84699d83195b5a",
+      "sourceMatchedCapturedListSelector": true,
+      "toolsReported": {
+        "webpack": "5.95.0",
+        "terserPlugin": "5.3.10",
+        "terser": "5.34.1",
+        "acorn": "8.12.1"
+      },
+      "artifactBytesAndHashesMatched": true,
+      "scriptASTIndependentlyParsed": true,
+      "topLevelModuleSyntax": 0,
+      "dynamicImports": 0,
+      "artifacts": [
+        {
+          "mode": "unminified",
+          "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-contracts/work/classic-probe/plain/selector.classic.js",
+          "bytes": 124873,
+          "sha256": "c988a0ac34ff9eaac0c98cdc18dec0d5cecb2937ce2c674ada8cad2bc4cc2b2e"
+        },
+        {
+          "mode": "minified",
+          "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-contracts/work/classic-probe/min/selector.classic.js",
+          "bytes": 45146,
+          "sha256": "6e7b41348a4c4f5338bb2b42a3d39dde3ef2f7a1ed77dadfcbdad6e05d76bf66"
+        }
+      ],
+      "vmInitialization": "author metadata, not rerun by reviewer",
+      "browserSelectionEquivalence": "not-run",
+      "strictCSPChromeInjection": "not-run",
+      "rebuildRecipe": "02A still owes durable config/command and final package checks; probe files/report exist but metadata is not a reproduction recipe"
+    },
+    "sourceBehaviorCounts": {
+      "count": 33,
+      "classifications": {
+        "preserve": 8,
+        "adapt": 20,
+        "unsupported": 5
+      },
+      "runtimeVerifiedTrue": 0
+    },
+    "retentionCost": "保留HTML/CSS/DOM布局与有效交互不等于原JS原样搬入；旧activeTab/sender/事件桥、取消、模板/revision/同compiler、字段导出列一致、stage/seal、stop/unknown和回执均需适配。",
+    "behaviorEvidence": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+        "line": 101,
+        "jsonPointer": null,
+        "note": "SEL-03取消未闭环。",
+        "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+        "line": 151,
+        "jsonPointer": null,
+        "note": "FLD-03共享URL去重及无表头首行。",
+        "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+        "line": 171,
+        "jsonPointer": null,
+        "note": "PRE-01改JSON未重提取。",
+        "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+        "line": 181,
+        "jsonPointer": null,
+        "note": "PRE-02显示列和导出不一致。",
+        "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+        "line": 221,
+        "jsonPointer": null,
+        "note": "CFG-03旧selector覆盖容器。",
+        "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+        "line": 231,
+        "jsonPointer": null,
+        "note": "CFG-04结果反推配置丢映射。",
+        "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8"
+      }
+    ],
+    "costBoundary": "无工时/性能/成功率数据；最终关系与keep/adapt/drop、公共/领域归属接⑤和02B migration-ledger。不是复制历史Vue/Quasar页或整bundle的许可。"
+  },
+  "directoryAndDependencyAssessment": {
+    "status": "consistent-with-v5-with-crosscutting-blockers",
+    "categories": 9,
+    "packages": 11,
+    "dependencyEdges": 29,
+    "dag": "acyclic",
+    "categoryMapping": {
+      "source-behavior": [
+        "WP01"
+      ],
+      "engineering-injection-window": [
+        "WP02"
+      ],
+      "template-compiler-preview-migration": [
+        "WP03"
+      ],
+      "run-permission-stop-recovery": [
+        "WP04"
+      ],
+      "idb-stage-seal-quota": [
+        "WP05"
+      ],
+      "bounded-pagination-data": [
+        "WP06"
+      ],
+      "artifact-format-download-receipts": [
+        "WP07A",
+        "WP07B"
+      ],
+      "entitlement-retention": [
+        "WP08A",
+        "WP08B"
+      ],
+      "final-package-integration": [
+        "WP09"
+      ]
+    },
+    "ownership": "02A创建root/build/manifest/window/static-slot后结束共享写；02B接管root/公共合同/RunHost/SW/platform/agent；03仅scraping领域/UI/测试/文档并按handoff接管固定入口；04归因后串行修复。",
+    "direction": "UI→公开RunHost/模块；独立RunHost loop→领域runner→PagePort/storage/runCommands；PagePort→SW→固定agent；唯一storage服务拥有持久事实。",
+    "crosscuttingIssues": [
+      "SOL-P1-01",
+      "SOL-P2-01",
+      "DEP05-CODEGRAPH"
+    ],
+    "workPackages": [
+      {
+        "id": "WP01",
+        "title": "来源与行为证据",
+        "ownerStage": "01",
+        "dependsOn": [],
+        "inputs": [
+          "三个当前来源、v3/v4、dirty/hash"
+        ],
+        "writeScope": [
+          "docs/contracts/source-*",
+          "docs/contracts/source-snapshots/**"
+        ],
+        "outputs": [
+          "只读快照、来源ledger、license/手改/行为保留表"
+        ],
+        "testIds": [
+          "M01",
+          "template-falsy-long-notitle"
+        ],
+        "observableAssertions": "快照逐文件hash一致，保留/改造/不支持有来源行号；许可缺口作为发布门禁，不默认整库迁入",
+        "readyWhen": "快照逐文件hash一致，保留/改造/不支持有来源行号；许可缺口作为发布门禁，不默认整库迁入",
+        "blockers": [
+          "捕获期间文件变化需重捕获该文件",
+          "源码来源链不清时不覆盖bundle",
+          "stage05 CodeGraph/reuse evidence must be reconciled by actual source hash before stage01 design ready"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP02",
+        "title": "基础环境/打包/窗口/健康探针/静态注入槽",
+        "ownerStage": "02A",
+        "dependsOn": [
+          "WP01"
+        ],
+        "inputs": [
+          "01实际合同hash、框架决策、固定选区快照",
+          "stage05 reviewed reuse/dynamic-edge/impact-test map merged by01",
+          "更新后的02A提示词与调度registry"
+        ],
+        "writeScope": [
+          "manifest.json",
+          "package*.json",
+          "webpack.config.cjs",
+          "scripts/build*",
+          "scripts/pack*",
+          "src/ui/tool*",
+          "src/sw.js环境入口占位",
+          "src/run-host.js静态槽接口占位",
+          "src/agents/**静态注入槽",
+          "src/features/scraping/index.js固定槽占位",
+          "tests/environment/**",
+          "docs/environment/**"
+        ],
+        "outputs": [
+          "可加载空业务单扩展工程、classic静态注入槽、窗口入口、真实构建/资源/CSP报告与独立environment handoff"
+        ],
+        "testIds": [
+          "M02",
+          "M09",
+          "ENV-build-package",
+          "ENV-window-singleton",
+          "ENV-health-static-slot"
+        ],
+        "observableAssertions": "普通Chrome真实载入无CSP/资源错误；两次入口打开只复用一个工具窗口；固定静态模块槽与classic健康探针可装载并报告真实target/document/origin；MODULE_NOT_INSTALLED明确；window壳/探针不实现run/IDB/download/entitlement",
+        "readyWhen": "普通Chrome真实载入无CSP/资源错误；两次入口打开只复用一个工具窗口；固定静态模块槽与classic健康探针可装载并报告真实target/document/origin；MODULE_NOT_INSTALLED明确；window壳/探针不实现run/IDB/download/entitlement",
+        "blockers": [
+          "01设计ready和实际合同hash核验",
+          "经典产物有分块/动态fallback则阻断",
+          "环境handoff明确根文件移交02B，环境passed不启动03或替代02B验收"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP05",
+        "title": "唯一IDB/整页暂存/seal/配额",
+        "ownerStage": "02B",
+        "dependsOn": [
+          "WP02"
+        ],
+        "inputs": [
+          "schema与stage/seal规范、3批页面向量",
+          "02A真实environment handoff与⑤认可迁移映射"
+        ],
+        "writeScope": [
+          "src/platform/storage/**",
+          "tests/foundation/storage*",
+          "docs/foundation/**"
+        ],
+        "outputs": [
+          "单连接DB1、不可变模板仓库、读游标pin、整页事务、配额/迁移保护"
+        ],
+        "testIds": [
+          "M03",
+          "M06",
+          "M10",
+          "three-batch-last-fails",
+          "stop-before-seal",
+          "seal-before-stop",
+          "stage-duplicate",
+          "stage-digest-conflict",
+          "seal-missing-batch",
+          "seal-duplicate"
+        ],
+        "observableAssertions": "真实IDB事务下只有sealed可见，counts/checkpoint/集合一致；迁移失败不清库",
+        "readyWhen": "真实IDB事务下只有sealed可见，counts/checkpoint/集合一致；迁移失败不清库",
+        "blockers": [
+          "没有真实IDB故障与竞态证据只partial",
+          "不得另建领域DB"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP04",
+        "title": "RunHost/权限/stop/恢复与退役",
+        "ownerStage": "02B",
+        "dependsOn": [
+          "WP02",
+          "WP05"
+        ],
+        "inputs": [
+          "owner/command/target规范、stop/gap/retirement向量",
+          "02A真实environment handoff与⑤认可迁移映射"
+        ],
+        "writeScope": [
+          "src/run-host.js",
+          "src/platform/{host,target,page-port,journal}/**",
+          "src/sw.js",
+          "tests/foundation/runtime*"
+        ],
+        "outputs": [
+          "单slot CAS、真实sender+document绑定、短ACK、stop与effect_unknown、旧epoch/目标退役证据"
+        ],
+        "testIds": [
+          "M07",
+          "M09",
+          "stop-first",
+          "dispatch-first",
+          "dispatch-call-gap",
+          "epoch-late-reply",
+          "lease-no-takeover",
+          "retire-unverified",
+          "retire-release",
+          "permissions-senders"
+        ],
+        "observableAssertions": "stop先提交0新调用；gap0重放；旧tab证实关闭且旧epoch封禁才新run；SW重启同run不双loop",
+        "readyWhen": "stop先提交0新调用；gap0重放；旧tab证实关闭且旧epoch封禁才新run；SW重启同run不双loop",
+        "blockers": [
+          "target关闭未证实保持retiring/slot",
+          "natural SW行为和host loss须新Chrome证据"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP07A",
+        "title": "Artifact与下载attempt底座",
+        "ownerStage": "02B",
+        "dependsOn": [
+          "WP04",
+          "WP05"
+        ],
+        "inputs": [
+          "导出/下载合同、固定测试formatter输入",
+          "02A真实environment handoff与⑤认可迁移映射"
+        ],
+        "writeScope": [
+          "src/platform/downloads/**",
+          "tests/foundation/download*",
+          "docs/foundation/**"
+        ],
+        "outputs": [
+          "Artifact仓库与pin、Blob生命周期、一次提交、逐attempt映射/回执/重导"
+        ],
+        "testIds": [
+          "M08",
+          "download-id-start",
+          "download-zero",
+          "download-one",
+          "download-many",
+          "download-deadline-late-complete",
+          "download-reexport-isolation",
+          "download-abandon-tombstone"
+        ],
+        "observableAssertions": "ID仅启动，唯一URL/extension/time绑定；late仅更新原job；不能自动重下，释放历史保留",
+        "readyWhen": "ID仅启动，唯一URL/extension/time绑定；late仅更新原job；不能自动重下，释放历史保留",
+        "blockers": [
+          "真实Blob/SW gap与host关闭未测pending",
+          "多候选不绑定"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP08A",
+        "title": "Entitlement与数据保留底座",
+        "ownerStage": "02B",
+        "dependsOn": [
+          "WP04",
+          "WP05"
+        ],
+        "inputs": [
+          "v3免费/Pro/离线72h/授权快照、删除协议",
+          "02A真实environment handoff与⑤认可迁移映射"
+        ],
+        "writeScope": [
+          "src/platform/entitlement/**",
+          "src/platform/storage/**",
+          "tests/foundation/policy*",
+          "docs/foundation/**"
+        ],
+        "outputs": [
+          "签名验证接口、免费1模板100行/Pro50模板、effective预算、已批run快照、保留/删除tombstone"
+        ],
+        "testIds": [
+          "M10",
+          "entitlement-exports",
+          "storage-delete-retention"
+        ],
+        "observableAssertions": "无缓存不Pro，超离线宽限降级新任务；本轮已批任务到期不破坏，既有结果可导出",
+        "readyWhen": "无缓存不Pro，超离线宽限降级新任务；本轮已批任务到期不破坏，既有结果可导出",
+        "blockers": [
+          "真实私钥不入包",
+          "运营签发/商业试点单列未就绪"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP03",
+        "title": "模板/统一编译/预览/迁移UI",
+        "ownerStage": "03",
+        "dependsOn": [
+          "WP04",
+          "WP05",
+          "WP07A",
+          "WP08A"
+        ],
+        "inputs": [
+          "02B真实foundation handoff/version/hash、02A真实environment handoff、三完整迁移向量和来源UI"
+        ],
+        "writeScope": [
+          "src/features/scraping/{compiler,templates,selection,ui}/**",
+          "tests/scraping/**",
+          "docs/scraping/**"
+        ],
+        "outputs": [
+          "保留布局与选区、完整不可变模板、命名/列表/编辑、同compiler preview/run、备份补全向量"
+        ],
+        "testIds": [
+          "M02",
+          "M03",
+          "confirmed-single-page",
+          "next-selector-was-memory-only",
+          "unsupported-config",
+          "template-reject",
+          "template-falsy-long-notitle"
+        ],
+        "observableAssertions": "关窗重开hash/列序/分页不变；raw/0/false/空串/null/150字/无title一致；缺信息拒绝不猜",
+        "readyWhen": "关窗重开hash/列序/分页不变；raw/0/false/空串/null/150字/无title一致；缺信息拒绝不猜",
+        "blockers": [
+          "02B正式底座handoff必须真实可集成",
+          "来源新dirty/hash变化先diff快照"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP06",
+        "title": "受限分页/pipeline/数据正确性",
+        "ownerStage": "03",
+        "dependsOn": [
+          "WP03",
+          "WP04",
+          "WP05"
+        ],
+        "inputs": [
+          "同RulePlan、专用PagePort、分页控制DOM"
+        ],
+        "writeScope": [
+          "src/features/scraping/runner/**",
+          "tests/scraping/pagination*",
+          "docs/scraping/**"
+        ],
+        "outputs": [
+          "同origin分页、完整signature、预算/错误/背压、两run隔离、整页stage/seal"
+        ],
+        "testIds": [
+          "M04",
+          "M05",
+          "M06",
+          "M07",
+          "run-isolation-pagination",
+          "pagination-signature",
+          "budget-plus-one"
+        ],
+        "observableAssertions": "2页×3行两次run分别6条；maxPages1=3/2=6按自然结束依据；10页×100=1000；半页/重复/新派生错误为0",
+        "readyWhen": "2页×3行两次run分别6条；maxPages1=3/2=6按自然结束依据；10页×100=1000；半页/重复/新派生错误为0",
+        "blockers": [
+          "未知效果不自动翻页重试",
+          "真实站点trusted interaction不支持需说明"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP07B",
+        "title": "CSV/JSON格式化与下载UI",
+        "ownerStage": "03",
+        "dependsOn": [
+          "WP06",
+          "WP07A"
+        ],
+        "inputs": [
+          "sealed读取游标、columns与精确JSON/CSV向量、attempt投影"
+        ],
+        "writeScope": [
+          "src/features/scraping/formatter/**",
+          "src/features/scraping/ui/**",
+          "tests/scraping/export*"
+        ],
+        "outputs": [
+          "每卷8MiB内完整格式/manifest/hash、部分导出确认、按job/卷下载反馈"
+        ],
+        "testIds": [
+          "M08",
+          "download-complete",
+          "download-interrupted",
+          "download-multivolume",
+          "download-host-close-after-complete",
+          "download-host-close-before-terminal"
+        ],
+        "observableAssertions": "精确中文/引号/类型/列序/公式安全；所有卷complete才交付成功；JSON/CSV记录集合一致",
+        "readyWhen": "精确中文/引号/类型/列序/公式安全；所有卷complete才交付成功；JSON/CSV记录集合一致",
+        "blockers": [
+          "磁盘hash只独立测试读文件证据",
+          "未知/取消不称成功"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP08B",
+        "title": "免费/Pro与保留策略产品反馈",
+        "ownerStage": "03",
+        "dependsOn": [
+          "WP03",
+          "WP08A",
+          "WP07B"
+        ],
+        "inputs": [
+          "底座授权/配额/保留/删除投影"
+        ],
+        "writeScope": [
+          "src/features/scraping/ui/**",
+          "tests/scraping/policy*",
+          "docs/scraping/**"
+        ],
+        "outputs": [
+          "超限前预算说明、过期/失败提示、旧结果取回与保留策略说明"
+        ],
+        "testIds": [
+          "M10",
+          "entitlement-exports",
+          "storage-delete-retention"
+        ],
+        "observableAssertions": "开始新Pro任务前判定、已有记录不扣留、禁导出追收、人工测试凭据明确标记",
+        "readyWhen": "开始新Pro任务前判定、已有记录不扣留、禁导出追收、人工测试凭据明确标记",
+        "blockers": [
+          "不接真实收费或虚构商业通过"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      },
+      {
+        "id": "WP09",
+        "title": "最终单产品独立集成验收",
+        "ownerStage": "04",
+        "dependsOn": [
+          "WP02",
+          "WP05",
+          "WP04",
+          "WP07A",
+          "WP08A",
+          "WP03",
+          "WP06",
+          "WP07B",
+          "WP08B"
+        ],
+        "inputs": [
+          "02A/02B/03真实handoff、最终单扩展包、完整测试计划"
+        ],
+        "writeScope": [
+          "tests/acceptance/**",
+          "docs/acceptance/**",
+          "按归因串行修复前序责任文件"
+        ],
+        "outputs": [
+          "普通Chrome最低/当前矩阵、控制页+授权真实站点烟测、资源/安全/完整旅程、最终report"
+        ],
+        "testIds": [
+          "M01",
+          "M02",
+          "M03",
+          "M04",
+          "M05",
+          "M06",
+          "M07",
+          "M08",
+          "M09",
+          "M10",
+          "M11"
+        ],
+        "observableAssertions": "最终单manifest/单DB/单owner全旅程可核对；每门禁有版本/命令/观测/结果/范围",
+        "readyWhen": "最终单manifest/单DB/单owner全旅程可核对；每门禁有版本/命令/观测/结果/范围",
+        "blockers": [
+          "缺真实Chrome或前序partial不可假passed",
+          "M12商业独立pending不伪称可收费上线"
+        ],
+        "reviewStatus": "structurally complete; implementation planned; crosscutting blockers apply"
+      }
+    ]
+  },
+  "evidenceBoundary": {
+    "independentStaticChecks": [
+      {
+        "check": "snapshot bytes+SHA256",
+        "files": 442,
+        "result": "match fixed ledger; not live source currentness"
+      },
+      {
+        "check": "task DAG",
+        "tasks": 11,
+        "categories": 9,
+        "result": "acyclic"
+      },
+      {
+        "check": "classic bytes/hash/Script AST",
+        "artifacts": 2,
+        "result": "match and no module/dynamic import nodes; no VM/Chrome behavior execution"
+      },
+      {
+        "check": "pageSignature counterexample",
+        "result": "same content different recordKey changes hash; reproduced"
+      },
+      {
+        "check": "latest ENV case IDs",
+        "ids": [
+          "ENV-build-package",
+          "ENV-window-singleton",
+          "ENV-health-static-slot"
+        ],
+        "result": "present in current restored test-plan"
+      }
+    ],
+    "verifierNotRun": "verify-contracts.py writes artifact-validation.json and was not executed; minimum claims checked by independent read-only code.",
+    "ordinaryChrome": "普通120与执行当日Stable需各自最终包、完整版本/频道/binary/profile证据；plist/mock/CFT/静态不代替。",
+    "download": "Artifact hash为下载前字节；Chrome complete为浏览器终态；不证明后续磁盘存在或扩展读取磁盘hash。",
+    "sourceCurrentness": "442快照只证明固定18:29代完整性；后续dirty/源变化须按⑤与迁移时hash重核。"
+  },
+  "aiDesktopCommercialBoundary": {
+    "AI": "首版不在执行路径、不上传页面/token、不生成执行脚本、不替代校验/支付/许可/验收；未来建议只作用户确认数据草稿。",
+    "desktop": "未来PagePort/Artifact适配另审权限/生命周期/部署；首版无nativeMessaging、本机host、Android/HID、后台续跑或第二owner/DB。",
+    "entitlement": "签名/72h/到期/撤销/预算/运行快照为技术合同；私钥不入包、历史结果不扣留，未有产品通过。",
+    "commercial": "来源分发授权与M12需求/付费/签发运营分别pending，技术通过不等于收费ready。"
+  },
+  "nonBlockingImplementationTests": [
+    {
+      "owner": "02A",
+      "testIds": [
+        "ENV-build-package",
+        "ENV-window-singleton",
+        "ENV-health-static-slot"
+      ],
+      "assertions": [
+        "真实lock/build/pack/资源/CSP、单窗口、健康槽和MODULE_NOT_INSTALLED。",
+        "可复建classic配置/命令/入口hash/工具lock与最终产物；工程通过不证明可靠底座。"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadyByItself": false
+    },
+    {
+      "owner": "02B+03 / 04",
+      "testIds": [
+        "M02-classic-selection",
+        "M02-two-windows-race",
+        "M03-css-missing-empty"
+      ],
+      "assertions": [
+        "普通Chrome双版本选区、another-table、取消/清理、导航/窗口/target隔离、严格CSP注入与异步消息结果。",
+        "压缩前后同fixture完整行为等价；P1闭合后的draft/取消迟到/失效向量。"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadyByItself": false
+    },
+    {
+      "owner": "03",
+      "testIds": [
+        "confirmed-single-page",
+        "next-selector-was-memory-only",
+        "unsupported-config",
+        "template-falsy-long-notitle",
+        "M03-revision-cas",
+        "suite:strict-conversion",
+        "suite:strict-url"
+      ],
+      "proposedTestIds": [
+        "PROPOSED-REG-PRE-CFG-edit-rerun",
+        "PROPOSED-REG-FLD-shared-url-headerless"
+      ],
+      "assertions": [
+        "三类迁移先备份原字节；缺URL/row/分页拒绝不猜，非法代码不执行。",
+        "改selector/容器重读DOM；结果不反推覆盖模板；共享href/src及无表头不丢值；0/false/空串/null/150字/无title保持。"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadyByItself": false
+    },
+    {
+      "owner": "02B",
+      "testIds": [
+        "stop-first",
+        "dispatch-first",
+        "dispatch-call-gap",
+        "epoch-late-reply",
+        "retire-unverified",
+        "retire-release",
+        "M07-host-loss-sw-reconnect"
+      ],
+      "assertions": [
+        "真实sender/document/epoch、短SW/natural终止、host关闭冻结；按事务排序stop/dispatch，unknown不重放；旧tab证实消失后释放slot。"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadyByItself": false
+    },
+    {
+      "owner": "02B+03",
+      "testIds": [
+        "three-batch-last-fails",
+        "three-batch-seal",
+        "M06-seal-validation-watermark",
+        "M06-stress-10x100",
+        "pagination-signature",
+        "budget-plus-one"
+      ],
+      "assertions": [
+        "真实IDB：两批ACK末批失败整页0可见；stop/seal、quota、pin、重开和迁移失败不清库。",
+        "P2修复后的跨snapshot内容签名、末页/空页依据、两个run、10×100负载。"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadyByItself": false
+    },
+    {
+      "owner": "02B+03",
+      "testIds": [
+        "M08-format-byte-volume",
+        "download-zero",
+        "download-one",
+        "download-many",
+        "download-deadline-late-complete",
+        "download-reexport-isolation",
+        "download-multivolume"
+      ],
+      "assertions": [
+        "CSV/JSON类型/列序/公式安全/8MiB整行分卷；真实Blob/提交gap/候选/host关闭/deadline/late/新旧job隔离。",
+        "ID仅启动，complete是浏览器终态；磁盘hash由独立测试读取，不虚构扩展读取。"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadyByItself": false
+    },
+    {
+      "owner": "02B+03",
+      "testIds": [
+        "M10",
+        "entitlement-exports",
+        "storage-delete-retention"
+      ],
+      "assertions": [
+        "固定公钥签名/72h/回拨/到期/撤销/free降级、运行准入快照、已存结果取回、reader/attempt tombstone。",
+        "缺native故障制造证据精确pending；真实收费/运营/M12另门禁。"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadyByItself": false
+    },
+    {
+      "owner": "04",
+      "testIds": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11",
+        "M11-production-pack-journey"
+      ],
+      "assertions": [
+        "02A+02B+03真实handoff后，最终单生产包在普通Chrome120及当日Stable完整旅程/控制站点/明确授权真实列表验收。",
+        "完整版本/频道/binary/profile留证；test-build不冒充生产包，故障开关不得进生产包。"
+      ],
+      "status": "planned-not-run",
+      "blocksDesignReadyByItself": false
+    }
+  ],
+  "concurrentMutationDisclosure": {
+    "snapshotAt": "2026-10-01T19:35:43.636377+00:00",
+    "reviewAppliesToRecordedHashes": true,
+    "laterChangesRequireDeltaReview": true,
+    "testPlanTransientZeroBytes": "observed during concurrent author write; restored and reread; not filed as defect",
+    "finalTestPlanSha256": "02bd9244871eab626d923ab0daac08c7f5fbb27c1b74019bce75a1e33099e4d1",
+    "obsoleteRegistryWordingFiledAsFinding": false
+  },
+  "inputSnapshots": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/solution-overview.md",
+      "sha256": "996d991975d1f38991d985473bd503d4f876f7acad515d00ee7f83b4206620de",
+      "bytes": 9222,
+      "mtimeNs": 1790883189583081500
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/framework-decision.md",
+      "sha256": "7a4b7f93a10f4d2d07f5ad8ca5328fe5c8537d8a803e8c7ddbcaceb0dccfbe67",
+      "bytes": 7875,
+      "mtimeNs": 1790883189583243800
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/task-breakdown.json",
+      "sha256": "027c042fd7fb43b3fbc467212f5d19eb459aac6f2119df50d7948a50a25b158a",
+      "bytes": 19229,
+      "mtimeNs": 1790882824284027400
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/implementation-plan.md",
+      "sha256": "177b9b338666f9982d75f7f8493234a56d007ab605ef8d8752cb9e2ff5c0449e",
+      "bytes": 3584,
+      "mtimeNs": 1790882495689746700
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.md",
+      "sha256": "84238286b898ee63e8c703c323cf0d50a576bed3989783f3bf2f95f1a4c99ecd",
+      "bytes": 83160,
+      "mtimeNs": 1790883189582880300
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+      "sha256": "02bd9244871eab626d923ab0daac08c7f5fbb27c1b74019bce75a1e33099e4d1",
+      "bytes": 460821,
+      "mtimeNs": 1790883189582410500
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+      "sha256": "a82c13677f068d14197420f3441f58a0e84fef2d23303f8564d45f83250ee4e8",
+      "bytes": 60880,
+      "mtimeNs": 1790880862005587200
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-behaviors.json",
+      "sha256": "a150af4ba283117e49c9cafb6266afacd50cf5bc899353191ddfaa0a4c28352f",
+      "bytes": 117793,
+      "mtimeNs": 1790880862004436500
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/classic-probe.json",
+      "sha256": "19cc7183dfb11ef1fe46ed9cb12dff1a537960672a598b1f5c275100827d3795",
+      "bytes": 1743,
+      "mtimeNs": 1790880709355489000
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+      "sha256": "b6e7ae447c1a5e1df673095ee2093b060ceed35f8f84a25ee015984ca5fb626f",
+      "bytes": 20206,
+      "mtimeNs": 1790883189583790000
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+      "sha256": "a70eef15898f3cf3a6a36b821fa858def2e9e74d6c214b2a6da683b8759d2f5a",
+      "bytes": 60717,
+      "mtimeNs": 1790882327977380000
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+      "sha256": "911e187551d1ba971c1d4c8e886555223118f4236996c232ba2479b647e79274",
+      "bytes": 15520,
+      "mtimeNs": 1790882221029441800
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/state-machines.json",
+      "sha256": "3308fe8f0842dbfe39ef0fa100d91aafa3ea08416687cf0129ec05009b1a51e5",
+      "bytes": 9517,
+      "mtimeNs": 1790879779897180000
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/verify-contracts.py",
+      "sha256": "6d7ff25110b5962df63c5a471d7545beeb7e0b3d7bcb1ed1d5cbe19781b136cd",
+      "bytes": 11924,
+      "mtimeNs": 1790882219507182000
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+      "sha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+      "bytes": 90284,
+      "mtimeNs": 1790879353714684700
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/official-evidence.md",
+      "sha256": "9741cb95d918fade56cf4b878bccc5aefb8c8e05290de84c6f6ce267356f1c48",
+      "bytes": 25674,
+      "mtimeNs": 1790881967650126300
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-transaction.json",
+      "sha256": "77142e9a00efa1be0c82f5a4f6c5daafef147f5efa29a25d22ba8337614cc2f6",
+      "bytes": 7014,
+      "mtimeNs": 1790881447597502000
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/scenarios.json",
+      "sha256": "5c986ae95c1c004c2a5948ca4d540b2c5fc7861b692688c0e731b2bbc5146041",
+      "bytes": 15167,
+      "mtimeNs": 1790880105429296000
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/product-extension-architecture-v3.md",
+      "sha256": "079fbd02bba191ba0f5aeeed5beb568bd830e91a99f801153e777481b59a70d7",
+      "bytes": 26956,
+      "mtimeNs": 1790878285840279600
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-common.txt",
+      "sha256": "7ffbde2d7342048c8d2bacdddcdb77d643af8c42f40fcba4754d3114e2407ad2",
+      "bytes": 5112,
+      "mtimeNs": 1790882324096497200
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-01-contracts.txt",
+      "sha256": "d9f52abe19c9cd70fcdc2b61426e097542385106b9916d523d4f02b49c5c5670",
+      "bytes": 7404,
+      "mtimeNs": 1790882324097478100
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-thread-dispatch.json",
+      "sha256": "a3b6266072ee898ddc5a221d296e4b5123e7cf2f0fc1782458a6d3a0497d5621",
+      "bytes": 6288,
+      "mtimeNs": 1790882324093991200
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v5-02a-environment.txt",
+      "sha256": "a2a34449351b262dc623e8105f91b3070f7146ca375456bc92f15d9954e2c13c",
+      "bytes": 3165,
+      "mtimeNs": 1790882025641757400
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v5-02b-critical-migration.txt",
+      "sha256": "3cca9b933a3895ace2d0c617ac1fd7561f2ea50f4fc5f180a673598751603bec",
+      "bytes": 4046,
+      "mtimeNs": 1790882026079079400
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-05-codegraph-reuse-audit.txt",
+      "sha256": "8a44ae697cd2d3f83f71410304d5fd8363fc16edb17a36001b855c8165a36038",
+      "bytes": 8417,
+      "mtimeNs": 1790882324101791200
+    }
+  ],
+  "deltaReviewChecklist": [
+    "重核报告输入hash，后续修订不自动获得认可。",
+    "P1 source公共签名/schema/异步生命周期/draft正反例可让02B/03独立实现。",
+    "P2内容投影/精确向量/hash统一，复算跨snapshot不变性和第六行变化。",
+    "⑤真实来源代、关系图/复用/flow/回归impact逐finding→owner/fixture/test合并。",
+    "02A最终registry/提示/root移交、ENV定义/DAG/writeScope与02B可靠底座验收分开。",
+    "source许可与M12分别保留发布/商业门禁；未执行产品/Chrome仍not-run/pending。"
+  ],
+  "planSnapshotCoverage": {
+    "scenarioIds": 36,
+    "migrationClasses": 3,
+    "existingStrictConversionVectors": 29,
+    "newInlineTypeVectors": 40,
+    "existingStrictUrlVectors": 19,
+    "existingCsvFormulaVectors": 45,
+    "existingTemplateRejectionVectors": 9,
+    "supplementalCases": 32,
+    "technicalGates": 11,
+    "productCasesExecuted": 0,
+    "ordinaryChromeAcceptanceRuns": 0,
+    "commercialGate": "M12 independent pending",
+    "preciseFixtureCases": 14,
+    "phase01ReadyExternalDependency": "DEP05-CODEGRAPH pending",
+    "stressLoad": {
+      "pages": 10,
+      "rowsPerPage": 100,
+      "totalRows": 1000,
+      "testId": "M06-stress-10x100"
+    }
+  },
+  "recommendationScope": "REQUEST_CHANGES applies to the recorded initial-review snapshot, not a verdict on later protocol revisions.",
+  "postSnapshotObservation": {
+    "observedAt": "2026-10-01T19:52:23.689688+00:00",
+    "currentTestPlanSha256": "a60cd338879498939333215cbdae6f425468d53f339163525c17beecb696eb03",
+    "currentSupplementalCases": 54,
+    "coverageSummarySupplementalCases": 54,
+    "changedInputs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/test-plan.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/schema.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/semantics.md",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/state-machines.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/verify-contracts.py",
+      "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures/page-transaction.json",
+      "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-thread-dispatch.json"
+    ],
+    "interpretation": "主代理已在初审快照后继续修订合同/schema/语义/状态机/oracle/fixture/registry，最新补充case计数54已核。此记录仅确认变化和计数，不重复protocol增量审查，不认定本初审两项仍存在于最新版，也不自动宣布闭合。",
+    "followup": "合并主代理protocol增量结论与⑤后做聚焦final，按实际最终hash核初审finding归并/闭合。"
+  }
+}

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>在线网页爬虫</title>
+    <meta charset="utf-8">
+    <meta name="description" content="网页爬虫scrapyjs可视化工具">
+    <script src="popup_crawl.js" defer></script>
+    <!-- popup_crawl.css -->
+
+    <style>
+        body {
+            width: 760px;
+            height: 560px;
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-size: 13px;
+            color: #333;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .top-controls {
+            flex: 0 0 auto;
+        }
+        
+        .action-button {
+            width: 100%;
+            padding: 6px 12px;
+            margin: 2px 0;
+            border: none;
+            border-radius: 3px;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s;
+        }
+        
+        .action-button.primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        
+        .action-button.primary:hover {
+            background-color: #1557b0;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 8px;
+            margin: 8px 0;
+        }
+        
+        .export-button {
+            flex: 1;
+            padding: 6px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .settings-section {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 8px 0;
+        }
+        
+        .settings-row {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            gap: 8px;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            background-color: #e8f0fe;
+            padding: 6px 12px;
+            border-radius: 3px;
+            margin: 8px 0;
+            font-size: 12px;
+            color: #444;
+        }
+        
+        .tabs {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            min-height: 0;
+        }
+        
+        .tab-header {
+            flex: 0 0 auto;
+            display: flex;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            border-right: 1px solid #e0e0e0;
+        }
+        
+        .tab-button.active {
+            background-color: white;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .content-wrapper {
+            flex: 1;
+            height: calc(100% - 16px);
+            overflow: hidden;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .table-wrapper {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .table-container {
+            height: 100%;
+            overflow: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            background: white;
+        }
+        
+        .data-table th {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        .data-table td {
+            border: 1px solid #e0e0e0;
+            padding: 6px 8px;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .code-editor {
+            width: 100%;
+            height: calc(100% - 16px);
+            min-height: 300px;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            resize: none;
+            background: #f8f9fa;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-controls">
+            <button class="action-button primary" id="tryAnotherTable">Try another table</button>
+            <button class="action-button primary" id="locateNextButton">Locate "Next" button</button>
+            <button class="action-button primary" id="startButton">start crawl</button>
+            
+            <div class="export-buttons">
+                <button class="export-button" id="exportCsv">📥 CSV</button>
+                <button class="export-button" id="exportJson">📥 JSON</button>
+                <button class="export-button" id="copyAll">📋 COPY ALL</button>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-row">
+                    <input type="checkbox" id="infiniteScroll">
+                    <label for="infiniteScroll">Infinite scroll</label>
+                </div>
+                <div class="settings-row">
+                    <label>Min delay</label>
+                    <input type="number" class="settings-input" id="minDelay" value="1" min="0"> sec
+                </div>
+                <div class="settings-row">
+                    <label>Max delay</label>
+                    <input type="number" class="settings-input" id="maxDelay" value="20" min="0"> sec
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <span>Pages scraped: 1</span>
+                <span>Rows collected: 3</span>
+                <span>Working time: 0s</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-header">
+                <button class="tab-button active" data-tab="data">Data Preview</button>
+                <button class="tab-button" data-tab="config">Configuration</button>
+                <button class="tab-button" data-tab="code">Code</button>
+            </div>
+
+            <div id="dataTab" class="tab-content active">
+                <div class="content-wrapper">
+                    <div class="table-wrapper">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>标题</th>
+                                        <th>描述</th>
+                                        <th>价格</th>
+                                        <th>下载次数</th>
+                                        <th>作者</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Python数据分析实战教程</td>
+                                        <td>本教程详细介绍了Python数据分析的核心概念和实践应用</td>
+                                        <td>99.00</td>
+                                        <td>1250</td>
+                                        <td>张明</td>
+                                    </tr>
+                                    <tr>
+                                        <td>深度学习入门指南</td>
+                                        <td>从零开始学习深度学习，包含详细的理论讲解和代码实践</td>
+                                        <td>199.00</td>
+                                        <td>856</td>
+                                        <td>李华</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Web开发实战手册</td>
+                                        <td>全栈开发技能提升，前后端开发技术详解</td>
+                                        <td>149.00</td>
+                                        <td>2103</td>
+                                        <td>王强</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="configTab" class="tab-content">
+                <div class="content-wrapper">
+                    <textarea class="code-editor" id="configArea">{
+    "_listContainer": "div.file-content",
+    "title": "a.title",
+    "description": "div.desc",
+    "url": "a.title::href",
+    "price": "span.price",
+    "countInfo": "span.text.ml-24",
+    "author": "span.text.flex-1"
+}</textarea>
+                </div>
+            </div>
+
+            <div id="codeTab" class="tab-content">
+                <div class="content-wrapper">
+                    <textarea class="code-editor" id="codeArea" readonly>const spider = new ListSpider({
+    name: 'data_spider',
+    start_urls: ['current_page_url'],
+    itemConfig: {
+        _listContainer: "div.file-content",
+        title: "a.title",
+        description: "div.desc",
+        url: "a.title::href",
+        price: "span.price",
+        countInfo: "span.text.ml-24",
+        author: "span.text.flex-1"
+    },
+    custom_settings: {
+        CLOSESPIDER_PAGECOUNT: 1
+    },
+    output: 'scraped_data.json'
+});</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

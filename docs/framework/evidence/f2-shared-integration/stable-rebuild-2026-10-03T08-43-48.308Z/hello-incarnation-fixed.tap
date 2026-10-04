@@ -1,0 +1,30 @@
+✔ same-ID changed args/method/original deadline reaches broker and explicitly delivers conflict (3.223917ms)
+✔ timeout plus reused ID: old success or rejection cannot finish/delete replacement (1.429042ms)
+✔ 100 same-ID same-digest real relay dispatches all reach product broker admission: serial oracle, not native B05 (42.854959ms)
+✔ deadline, canonical codec and legitimate request ID hello remain exact at native boundary (0.400584ms)
+✔ bad page fields/ACK errors never consume another entry; dispose clears timers and late callbacks (0.293166ms)
+✔ Hello incarnation: relay-timeout cannot replace fresh success (9.720833ms)
+✔ Hello incarnation: relay-timeout cannot replace fresh denial (0.922291ms)
+✔ Hello incarnation: late-success cannot replace fresh success (0.851458ms)
+✔ Hello incarnation: late-success cannot replace fresh denial (0.574ms)
+✔ Hello incarnation: late-failure cannot replace fresh success (0.666875ms)
+✔ Hello incarnation: late-failure cannot replace fresh denial (0.641959ms)
+✔ a request ID named hello uses the final-result channel, never Hello readiness (1.007292ms)
+✔ uncorrelated Ready events do not settle a current Hello; pagehide is terminal (0.183083ms)
+✔ production exact fixed MAIN/ISOLATED bundles correlate every reinjected Hello (634.007042ms)
+✔ development exact fixed MAIN/ISOLATED bundles correlate every reinjected Hello (67.625958ms)
+✔ exact review reproducer: two fresh evaluations reuse frozen globals and perform new Hello (8.890084ms)
+✔ fresh native Hello updates expanded/shrunken grant subset and refuses failed regrant (8.274334ms)
+✔ reinjection preserves old pending legacy callback and stable ChromeBridgeEvents (2.195083ms)
+✔ overlapping reinjections serialize fixed Hello so late old callback cannot supply fresh grant (2.622792ms)
+✔ hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed (0.283917ms)
+✔ dispose and pagehide are terminal: fresh evaluation cannot resurrect immutable installation (1.837333ms)
+✔ borrowed lifecycle and forged function toString cannot impersonate ownership of a different global (0.218125ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 824.816542

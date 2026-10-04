@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+ok 1 - schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes
+  ---
+  duration_ms: 7.579042
+  type: 'test'
+  ...
+# Subtest: no native IDB in Node is reported as unavailable; storage entry exports factory
+ok 2 - no native IDB in Node is reported as unavailable; storage entry exports factory
+  ---
+  duration_ms: 0.845125
+  type: 'test'
+  ...
+# Subtest: immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+ok 3 - immutable template save CAS, exact duplicate, hash lookup and name-only CAS
+  ---
+  duration_ms: 50.206667
+  type: 'test'
+  ...
+# Subtest: template admission hook uses same transaction and cannot overwrite immutable revision
+ok 4 - template admission hook uses same transaction and cannot overwrite immutable revision
+  ---
+  duration_ms: 15.020541
+  type: 'test'
+  ...
+# Subtest: beginPage permits preparing run, reserves exact command key and idempotently reACKs
+ok 5 - beginPage permits preparing run, reserves exact command key and idempotently reACKs
+  ---
+  duration_ms: 3.160875
+  type: 'test'
+  ...
+# Subtest: stage rejects undispatched reservation and atomically aborts open snapshot
+ok 6 - stage rejects undispatched reservation and atomically aborts open snapshot
+  ---
+  duration_ms: 5.569917
+  type: 'test'
+  ...
+# Subtest: three batches: first two durable ACKs, third exact-byte failure hides whole page
+ok 7 - three batches: first two durable ACKs, third exact-byte failure hides whole page
+  ---
+  duration_ms: 32.74425
+  type: 'test'
+  ...
+# Subtest: exact staged duplicate does not add bytes; conflicting valid digest aborts page
+ok 8 - exact staged duplicate does not add bytes; conflicting valid digest aborts page
+  ---
+  duration_ms: 11.835584
+  type: 'test'
+  ...
+# Subtest: host/epoch/target mismatch is rejected without aborting rightful open page
+ok 9 - host/epoch/target mismatch is rejected without aborting rightful open page
+  ---
+  duration_ms: 4.088792
+  type: 'test'
+  ...
+# Subtest: admission cannot bypass transaction reread of cancellation
+ok 10 - admission cannot bypass transaction reread of cancellation
+  ---
+  duration_ms: 5.776292
+  type: 'test'
+  ...
+# Subtest: stage may acknowledge authenticated raw frames before end; seal requires complete end
+ok 11 - stage may acknowledge authenticated raw frames before end; seal requires complete end
+  ---
+  duration_ms: 16.015875
+  type: 'test'
+  ...
+# Subtest: seal recomputes all six rows; prefix-only signature fails
+ok 12 - seal recomputes all six rows; prefix-only signature fails
+  ---
+  duration_ms: 17.287875
+  type: 'test'
+  ...
+# Subtest: batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+ok 13 - batch gap, record key/field mismatch, and raw-end evidence mismatch reject
+  ---
+  duration_ms: 16.610458
+  type: 'test'
+  ...
+# Subtest: stop wins before seal; seal wins before stop and preserves historic original ACK
+ok 14 - stop wins before seal; seal wins before stop and preserves historic original ACK
+  ---
+  duration_ms: 37.185083
+  type: 'test'
+  ...
+# Subtest: run revision and authenticated host registration cannot be bypassed
+ok 15 - run revision and authenticated host registration cannot be bypassed
+  ---
+  duration_ms: 24.799291
+  type: 'test'
+  ...
+# Subtest: reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+ok 16 - reader pins freeze watermark/count, paginate long typed values, and reject other cursors
+  ---
+  duration_ms: 38.181459
+  type: 'test'
+  ...
+# Subtest: zero-batch empty page requires authenticated allowed-empty proof
+ok 17 - zero-batch empty page requires authenticated allowed-empty proof
+  ---
+  duration_ms: 10.207625
+  type: 'test'
+  ...
+# Subtest: repeated full page signature without end is rejected and left invisible
+ok 18 - repeated full page signature without end is rejected and left invisible
+  ---
+  duration_ms: 37.286667
+  type: 'test'
+  ...
+# Subtest: whole-page run limits, two pending ACKs, profile budget and injected disk quota
+ok 19 - whole-page run limits, two pending ACKs, profile budget and injected disk quota
+  ---
+  duration_ms: 57.706625
+  type: 'test'
+  ...
+# Subtest: delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+ok 20 - delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data
+  ---
+  duration_ms: 27.149791
+  type: 'test'
+  ...
+# Subtest: retention defaults seven days, preserves active runs and raw migration duplicates
+ok 21 - retention defaults seven days, preserves active runs and raw migration duplicates
+  ---
+  duration_ms: 4.846042
+  type: 'test'
+  ...
+# Subtest: shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS
+ok 22 - shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS
+  ---
+  duration_ms: 23.769541
+  type: 'test'
+  ...
+# Subtest: R1: cyclic and malformed local schema references produce bounded typed rejection
+ok 23 - R1: cyclic and malformed local schema references produce bounded typed rejection
+  ---
+  duration_ms: 3.0765
+  type: 'test'
+  ...
+# Subtest: R1: long acyclic reference chains have a schema traversal depth budget
+ok 24 - R1: long acyclic reference chains have a schema traversal depth budget
+  ---
+  duration_ms: 0.692916
+  type: 'test'
+  ...
+# Subtest: R1: the inherited RulePlan resolves its nested local JSON pointer
+ok 25 - R1: the inherited RulePlan resolves its nested local JSON pointer
+  ---
+  duration_ms: 6.452958
+  type: 'test'
+  ...
+# Subtest: R2: closed shapes reject names inherited by the schema properties object
+ok 26 - R2: closed shapes reject names inherited by the schema properties object
+  ---
+  duration_ms: 3.60175
+  type: 'test'
+  ...
+# Subtest: R7: durable timestamps require an actual calendar date and explicit timezone
+ok 27 - R7: durable timestamps require an actual calendar date and explicit timezone
+  ---
+  duration_ms: 0.563625
+  type: 'test'
+  ...
+# Subtest: SDK Hello needs native document/grant and never claims a controller slot
+ok 28 - SDK Hello needs native document/grant and never claims a controller slot
+  ---
+  duration_ms: 12.415625
+  type: 'test'
+  ...
+# Subtest: SDK grant and request payload cannot carry page authority/namespace/bare args
+ok 29 - SDK grant and request payload cannot carry page authority/namespace/bare args
+  ---
+  duration_ms: 1.020792
+  type: 'test'
+  ...
+# Subtest: SDK sender/document/lifecycle fences reject before any storage effect
+ok 30 - SDK sender/document/lifecycle fences reject before any storage effect
+  ---
+  duration_ms: 0.971291
+  type: 'test'
+  ...
+# Subtest: 100 same-ID concurrent persistent calls commit one effect and one result
+ok 31 - 100 same-ID concurrent persistent calls commit one effect and one result
+  ---
+  duration_ms: 40.029959
+  type: 'test'
+  ...
+# Subtest: same ID with changed args or deadline conflicts and does not overwrite effect
+ok 32 - same ID with changed args or deadline conflicts and does not overwrite effect
+  ---
+  duration_ms: 14.873625
+  type: 'test'
+  ...
+# Subtest: native session adapter preserves own undefined/false/0 across Chrome JSON storage
+ok 33 - native session adapter preserves own undefined/false/0 across Chrome JSON storage
+  ---
+  duration_ms: 6.685875
+  type: 'test'
+  ...
+# Subtest: durable session duplicate after authority restart does not resubmit native set
+ok 34 - durable session duplicate after authority restart does not resubmit native set
+  ---
+  duration_ms: 2.383958
+  type: 'test'
+  ...
+# Subtest: native session failure records unknown dispatch and will not retry same write
+ok 35 - native session failure records unknown dispatch and will not retry same write
+  ---
+  duration_ms: 1.835959
+  type: 'test'
+  ...
+# Subtest: SW recovery fences dispatched write gap and retains original identity/deadline
+ok 36 - SW recovery fences dispatched write gap and retains original identity/deadline
+  ---
+  duration_ms: 1.453
+  type: 'test'
+  ...
+# Subtest: durable duplicate cannot extend original 15s service deadline
+ok 37 - durable duplicate cannot extend original 15s service deadline
+  ---
+  duration_ms: 3.761125
+  type: 'test'
+  ...
+# Subtest: native permission remove then regrant cannot revive old request/grant
+ok 38 - native permission remove then regrant cannot revive old request/grant
+  ---
+  duration_ms: 3.705625
+  type: 'test'
+  ...
+# Subtest: observed navigation invalidates current page Hello and pending admission
+ok 39 - observed navigation invalidates current page Hello and pending admission
+  ---
+  duration_ms: 4.458834
+  type: 'test'
+  ...
+# Subtest: notification permission removal with empty origins revokes the affected grant
+ok 40 - notification permission removal with empty origins revokes the affected grant
+  ---
+  duration_ms: 0.499166
+  type: 'test'
+  ...
+# Subtest: notification native receipt and durable undefined survive delivery revocation
+ok 41 - notification native receipt and durable undefined survive delivery revocation
+  ---
+  duration_ms: 1.074
+  type: 'test'
+  ...
+# Subtest: successful HTTP business envelope remains data and stores native result before delivery
+ok 42 - successful HTTP business envelope remains data and stores native result before delivery
+  ---
+  duration_ms: 31.221458
+  type: 'test'
+  ...
+# Subtest: SDK backend timer clamps to earlier caller deadline even for hung native callback
+ok 43 - SDK backend timer clamps to earlier caller deadline even for hung native callback
+  ---
+  duration_ms: 1.8285
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 570.138583

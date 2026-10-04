@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-03T20:20:17.391662+00:00",
+  "change": "Optional native-ui-assist request/actual-value readback; no DOM assignment or synthetic event",
+  "syntaxSourceCheck": "PASS 84 files",
+  "actualDualPackageVerification": "PASS",
+  "nativePreflight": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T20-18-53.925Z-8d108762/ready.json",
+  "runnerSha256": "00b8b155e20df1bc484b6c1f3767ca74c71aa177418e7eab0c8304fe1d5958a9",
+  "snapshotManifestSha256": "968ceadce1f7daccb9e6bb72f25639d5edfe1efddcc869fe3a1364ed55f6bc5e",
+  "snapshotReadback": "PASS",
+  "nativeUiAssistExecuted": false,
+  "actualReturn7Passed": false,
+  "externalBlocker": "E_NATIVE_DESKTOP_LOCKED"
+}

@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-5a89f6cc-2451-451d-a9b1-6bebe22cb645",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "e995e3744b0053db5a4a336d30e1b4383c7855457f4076d083ec83dbed19e699",
+  "sourceUtf8": "await page.click('#submit'); return 'loser';"
+}

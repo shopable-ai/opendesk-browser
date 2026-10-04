@@ -1,0 +1,473 @@
+✔ prepare pins a watermark and persists byte hash; external descriptors satisfy frozen schema (10.835458ms)
+✔ partial export requires confirmation; request IDs bind immutable intent (1.265417ms)
+✔ host registration mismatch and tombstones reject creation/dispatch (1.931542ms)
+✔ double dispatch and reconstructed service invoke Chrome at most once (3.986958ms)
+✔ ACK-gap after durable dispatch does not replay and becomes mapping_unknown (1.369916ms)
+✔ short dispatch ACK does not wait for callback and cannot be resubmitted (3.98ms)
+✔ onCreated/search deduplicates an ID and started is not delivery complete (2.646625ms)
+✔ multiple full-identity candidates conflict and never redownload (1.069417ms)
+✔ known callback ID is authoritative; another candidate conflicts rather than replacing it (2.083166ms)
+✔ wrong URL/extension/time and missing fields never bind by filename (2.099583ms)
+✔ clock rollback cannot bind unique-looking mapping evidence (1.4665ms)
+✔ onChanged complete must be confirmed by ID search; interrupted keeps Chrome reason (2.055875ms)
+✔ 10-minute timeout is unknown; late complete resolves only its original job (3.902875ms)
+✔ retry freezes old prepared submission; duplicate retry returns same new job (2.008166ms)
+✔ multi-volume aggregate waits for every volume and releases pin only when all are releasable (2.408125ms)
+✔ single abandoned volume causes delivery_failed; late evidence cannot revive it (2.856334ms)
+✔ explicit job abandon and run tombstone retain late audit without resurrecting projection (2.395584ms)
+✔ lost callback can recover via unique full URL; finite mapping search throttles repeated observations (2.523834ms)
+✔ URL revoke waits for complete/interrupted/abandon or deadline and respects local reader pins (1.3785ms)
+✔ deadline URL release preserves metadata and completion evidence after host resources disappear (1.658458ms)
+✔ attach is idempotent; restart pending reconciliation never dispatches (1.405208ms)
+✔ top-level broker handlers work without attach and confirm changed state through search (1.161292ms)
+✔ callback-only Chrome API persists authoritative ID and handles runtime.lastError as unknown (2.647333ms)
+✔ conflict retains its Blob through deadline; pending audits stop after the deadline bound (3.354542ms)
+✔ deletion hook requires retirement proof and releases compatible storage reader pins before tombstone (1.172583ms)
+✔ shared repository reads through export pin and deletes descriptor/chunk rows only after fence and abandonment (2.6915ms)
+✔ tests/foundation/page-port-fixtures.test.mjs (88.469666ms)
+✖ frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority (13.308417ms)
+✖ stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed (2.487041ms)
+✖ post-dispatch epoch/target/grant fences prevent stale Chrome use (3.044959ms)
+✖ script or command callback failure records unknown and cannot be blindly retried (1.950917ms)
+✔ raw reception is durable but frame ACK requires matching staged rows, then full end signature is stored (6.440625ms)
+✔ duplicate frame does not emit again; conflicting digest durably blocks whole page (5.389292ms)
+✔ actual sender document defeats payload identity spoof; stop rejects new raw data (1.803542ms)
+✔ raw backpressure refuses a second unacked frame; full signature includes changed sixth row (5.1185ms)
+✔ fixed raw DOM reader retains long text, explicit empty string and optional missing attr without transforms (1.146042ms)
+✖ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (1.387625ms)
+✔ single-use real action ticket binds actual source document, no run/records/slot created (2.832792ms)
+✔ new operation durably cancels old; old source result audited and rejected, new result goes only to original host (2.478958ms)
+✔ cancel/release are durable before cleanup; duplicate release cannot mutate context (2.907125ms)
+✖ preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written (2.144875ms)
+✔ placeholder SelectorUI reports MODULE_NOT_INSTALLED, never fabricates selected status (1.815792ms)
+✔ production allowlist is empty; unsigned self-reports and unknown keys never become Pro (12.808958ms)
+✔ real P256/SHA256 P1363 signature; independent Node crypto oracle and claim hash (4.438916ms)
+✔ signed binding rejects tampered tier (0.604834ms)
+✔ signed binding rejects tampered issuer (0.653584ms)
+✔ signed binding rejects tampered subject (0.499ms)
+✔ signed binding rejects tampered audience (0.644167ms)
+✔ signed binding rejects tampered features (1.389375ms)
+✔ signed binding rejects tampered issuedAt (1.890375ms)
+✔ signed binding rejects tampered expiresAt (0.990708ms)
+✔ signed binding rejects tampered keyId (1.091834ms)
+✔ signed binding rejects tampered revocationVersion (1.886208ms)
+✔ signed binding rejects tampered formatVersion (0.866ms)
+✔ signed but unexpected issuer/subject are rejected; signatures from another key fail (1.525833ms)
+✔ reject altered signature bytes, padded/noncanonical base64url, DER and wrong hash algorithm (2.727041ms)
+✔ no production private JWK and no mutation of injected allowlist after construction (2.0785ms)
+✔ future issuedAt, inverted time interval and expiry at the exact boundary reject new Pro (5.852375ms)
+✔ impossible calendar dates and missing timestamp zones are rejected even when signed (1.279375ms)
+✔ signed metadata cannot establish trusted verification or extend grace (2.598ms)
+✔ offline 72h inclusive boundary, +1ms fallback and no expiry extension (4.3185ms)
+✔ offline reload keeps verification age; explicit trusted refresh reopens new Pro (4.0875ms)
+✔ wall rollback freezes Pro across reload; monotonic elapsed time expires a frozen wall (5.558417ms)
+✔ submillisecond clock observations preserve elapsed monotonic time (7.104709ms)
+✔ monotonic rollback freezes Pro; trusted timestamp must not precede durable high water (2.344708ms)
+✔ revocation is signed, bound, monotonic and durable; newer signed license may restore Pro (6.36475ms)
+✔ cached claims and signed revocation are reverified; a persisted verification label grants nothing (2.79ms)
+✔ free and Pro limits clamp without changing template; signed features gate capabilities (3.8165ms)
+✔ free template admission counts distinct IDs, permits revisions, rejects concurrent second template and allows delete/resave (0.620583ms)
+✔ public admitTemplate accepts SaveTemplateRequest and returns the quota for the storage transaction (1.5455ms)
+✔ repository revision history consumes no additional quota and survives head deletion (1.312291ms)
+✔ Pro admission at 49/50/51 serializes template count and rejects stale or forged snapshots (7.44975ms)
+✔ freshness checked inside template transaction after expiry or offline grace ends (2.570833ms)
+✔ approved run remains frozen after expiry/revocation; sealed records, exports and retention are untouched (3.138458ms)
+✔ frozen byte oracle preserves Chinese, zero, false, empty and null (13.55525ms)
+✔ hostile JSON cannot enter hashes or durable protocol (0.433084ms)
+✔ strict wire shapes reject unknown keys and unsafe integers (2.897167ms)
+✔ ignoring a control revision never ignores epoch/document identity (0.247792ms)
+✔ stop commit before dispatch forbids any new external call (15.921083ms)
+✔ dispatch commit grants exactly one call even if stop subsequently commits (3.464792ms)
+✔ a worker restart freezes a dispatched gap, holds slot and never repeats start (3.926458ms)
+✔ actual sender, optional grant and immutable command ID are enforced (2.3655ms)
+✔ stop repeats historical ACK; fencing cannot free the target slot by itself (4.34425ms)
+✔ schema uses exactly frozen ten stores, explicit-key paths and sparse tagged indexes (6.782375ms)
+✔ no native IDB in Node is reported as unavailable; storage entry exports factory (0.935166ms)
+✔ immutable template save CAS, exact duplicate, hash lookup and name-only CAS (22.965166ms)
+✔ template admission hook uses same transaction and cannot overwrite immutable revision (4.92375ms)
+✔ beginPage permits preparing run, reserves exact command key and idempotently reACKs (3.58925ms)
+✔ stage rejects undispatched reservation and atomically aborts open snapshot (4.264416ms)
+✖ three batches: first two durable ACKs, third exact-byte failure hides whole page (5.060042ms)
+✖ exact staged duplicate does not add bytes; conflicting valid digest aborts page (5.544375ms)
+✔ host/epoch/target mismatch is rejected without aborting rightful open page (3.140958ms)
+✔ admission cannot bypass transaction reread of cancellation (3.497333ms)
+✖ stage may acknowledge authenticated raw frames before end; seal requires complete end (3.25225ms)
+✖ seal recomputes all six rows; prefix-only signature fails (3.451417ms)
+✖ batch gap, record key/field mismatch, and raw-end evidence mismatch reject (3.647292ms)
+✖ stop wins before seal; seal wins before stop and preserves historic original ACK (2.955084ms)
+✔ run revision and authenticated host registration cannot be bypassed (4.381042ms)
+✖ reader pins freeze watermark/count, paginate long typed values, and reject other cursors (2.934667ms)
+✖ zero-batch empty page requires authenticated allowed-empty proof (2.931459ms)
+✖ repeated full page signature without end is rejected and left invisible (3.066125ms)
+✖ whole-page run limits, two pending ACKs, profile budget and injected disk quota (3.013917ms)
+✖ delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data (2.807291ms)
+✔ retention defaults seven days, preserves active runs and raw migration duplicates (3.329209ms)
+✔ creation dispatch commits before one exact bootstrap create; retries do not create again (9.563458ms)
+✔ creation callback gap freezes slot, never infers never-created or blindly retries (3.491083ms)
+✔ bootstrap registers real tab/document before at-most-one navigation dispatch; content spoof rejected (3.575709ms)
+✔ stop before bootstrap navigation prevents location authorization (2.762958ms)
+✔ formal target binds only real same-origin new document after navigation (3.6205ms)
+✔ formal run cannot borrow activeTab instead of optional grant (1.572208ms)
+✔ retirement remove + separate not-found evidence releases only matching slot once; old replay cannot clear new run (2.233708ms)
+✔ cross-session numeric tab id is never queried or removed and slot remains frozen (1.671584ms)
+✔ generic tabs.get failure cannot prove absence (4.110458ms)
+✔ prepared/submissionCount=0 proves never-created; missing intent never releases (3.009125ms)
+✔ bootstrap agent requests registration and navigation before exactly one assign (0.426583ms)
+ℹ tests 115
+ℹ suites 0
+ℹ pass 98
+ℹ fail 17
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 220.330167
+
+✖ failing tests:
+
+test at tests/foundation/page-port-service.test.mjs:24:1
+✖ frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority (13.308417ms)
+  TypeError: Cannot read properties of undefined (reading '$ref')
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+      at validatePlan (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/index.js:7:43)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs:25:34)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests/foundation/page-port-service.test.mjs:32:1
+✖ stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed (2.487041ms)
+  TypeError: Cannot read properties of undefined (reading '$ref')
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+      at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+
+test at tests/foundation/page-port-service.test.mjs:42:1
+✖ post-dispatch epoch/target/grant fences prevent stale Chrome use (3.044959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + Comparison {}
+  - Comparison {
+  -   code: 'E_TARGET'
+  - }
+  
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs:52:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3),
+    expected: { code: 'E_TARGET' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/foundation/page-port-service.test.mjs:57:1
+✖ script or command callback failure records unknown and cannot be blindly retried (1.950917ms)
+  TypeError: Cannot read properties of undefined (reading '$ref')
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+      at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+
+test at tests/foundation/page-port-service.test.mjs:121:1
+✖ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (1.387625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs:130:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/foundation/page-port-service.test.mjs:181:1
+✖ preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written (2.144875ms)
+  TypeError: Cannot read properties of undefined (reading '$ref')
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+      at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+      at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+      at Object.previewSource (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/page-port/source.js:209:5)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/page-port-service.test.mjs:183:36)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/foundation/storage.test.mjs:118:1
+✖ three batches: first two durable ACKs, third exact-byte failure hides whole page (5.060042ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }
+
+test at tests/foundation/storage.test.mjs:130:1
+✖ exact staged duplicate does not add bytes; conflicting valid digest aborts page (5.544375ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }
+
+test at tests/foundation/storage.test.mjs:157:1
+✖ stage may acknowledge authenticated raw frames before end; seal requires complete end (3.25225ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }
+
+test at tests/foundation/storage.test.mjs:165:1
+✖ seal recomputes all six rows; prefix-only signature fails (3.451417ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }
+
+test at tests/foundation/storage.test.mjs:172:1
+✖ batch gap, record key/field mismatch, and raw-end evidence mismatch reject (3.647292ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  FoundationError: IndexedDB operation failed
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:179:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: FoundationError: IndexedDB operation failed
+        at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+        at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+        at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+      [cause]: TypeError: Cannot read properties of undefined (reading '$ref')
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+          at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+    },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/foundation/storage.test.mjs:183:1
+✖ stop wins before seal; seal wins before stop and preserves historic original ACK (2.955084ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }
+
+test at tests/foundation/storage.test.mjs:207:1
+✖ reader pins freeze watermark/count, paginate long typed values, and reject other cursors (2.934667ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }
+
+test at tests/foundation/storage.test.mjs:221:1
+✖ zero-batch empty page requires authenticated allowed-empty proof (2.931459ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }
+
+test at tests/foundation/storage.test.mjs:228:1
+✖ repeated full page signature without end is rejected and left invisible (3.066125ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }
+
+test at tests/foundation/storage.test.mjs:235:1
+✖ whole-page run limits, two pending ACKs, profile budget and injected disk quota (3.013917ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  FoundationError: IndexedDB operation failed
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:237:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: FoundationError: IndexedDB operation failed
+        at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+        at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+        at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+      [cause]: TypeError: Cannot read properties of undefined (reading '$ref')
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+          at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+          at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+    },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/foundation/storage.test.mjs:248:1
+✖ delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data (2.807291ms)
+  Error [FoundationError]: IndexedDB operation failed
+      at storageError (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/idb.js:22:19)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/storage/repository.js:138:27
+      at async execute (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/foundation/storage.test.mjs:28:29) {
+    code: 'E_SCHEMA',
+    cause: TypeError: Cannot read properties of undefined (reading '$ref')
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:12)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:59:25)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:92:35)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:66:53)
+        at conforms (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:65:41)
+        at validate (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:104:3)
+  }

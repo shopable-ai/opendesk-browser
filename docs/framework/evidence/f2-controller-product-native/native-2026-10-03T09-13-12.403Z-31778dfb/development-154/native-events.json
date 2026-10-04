@@ -1,0 +1,143 @@
+[
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "2A41CA84D7E1862ABBFBC371D2FB3953",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "url": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "766FFA9DB1E9712B229CD52AEF1FE12F"
+      }
+    },
+    "observedMonoMs": 37453.30575,
+    "observedAt": 1791018829706
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "3705AFD12F2D7EA552E8A5DFC23862AD",
+        "type": "browser_ui",
+        "title": "chrome://webui-toolbar.top-chrome",
+        "url": "chrome://webui-toolbar.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "766FFA9DB1E9712B229CD52AEF1FE12F"
+      }
+    },
+    "observedMonoMs": 37454.430333,
+    "observedAt": 1791018829707
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "5ECE3EEED53A7AB311F85442A5EE8899",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "url": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "766FFA9DB1E9712B229CD52AEF1FE12F"
+      }
+    },
+    "observedMonoMs": 37456.20675,
+    "observedAt": 1791018829709
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "5FDD0B97668BE8E5242E550B0CB6CE48",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "766FFA9DB1E9712B229CD52AEF1FE12F"
+      }
+    },
+    "observedMonoMs": 37459.046416,
+    "observedAt": 1791018829712
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "7A10BB1681CEB61E0DACBB595D4CCF84",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "766FFA9DB1E9712B229CD52AEF1FE12F"
+      }
+    },
+    "observedMonoMs": 37459.923916,
+    "observedAt": 1791018829713
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "ADD4EE648BF165BB7F5D921F28C4BAC4",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "766FFA9DB1E9712B229CD52AEF1FE12F"
+      }
+    },
+    "observedMonoMs": 37464.225583,
+    "observedAt": 1791018829717
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "F0470500C1B5E76EF5B9E21DC52AD092",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js",
+        "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "766FFA9DB1E9712B229CD52AEF1FE12F"
+      }
+    },
+    "observedMonoMs": 37465.047833,
+    "observedAt": 1791018829718
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "F0470500C1B5E76EF5B9E21DC52AD092",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js",
+        "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "766FFA9DB1E9712B229CD52AEF1FE12F"
+      }
+    },
+    "observedMonoMs": 37477.907958,
+    "observedAt": 1791018829731
+  },
+  {
+    "method": "Runtime.executionContextCreated",
+    "params": {
+      "context": {
+        "id": 1,
+        "origin": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js",
+        "name": "",
+        "uniqueId": "-2146335126762662295.2253630654509378720"
+      }
+    },
+    "observedMonoMs": 37558.994541,
+    "observedAt": 1791018829812
+  }
+]

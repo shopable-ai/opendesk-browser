@@ -1,0 +1,31 @@
+{
+  "id": "DURABLE-UNDEFINED",
+  "families": "USC03/CMP03/CMP10",
+  "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "66b244eff34b6f657ffb57f4cd0f589413f1ce9e2063cea63df87b38fe13d011",
+  "verificationInputsSha256": "7908725113607b9e2bd8f673c64a5e112349c24fe94cfa0cda111ba9134afcd1",
+  "packageSha256": "16f0b527f09beda7b9d284ba6c9fd7e2fea579c975c22f58ab798a52be9feb25",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791097493998,
+  "input": {
+    "source": "return undefined;",
+    "expectedWire": {
+      "type": "undefined"
+    }
+  },
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "name": "Error",
+    "message": "production-138-F2DA10B9CF48375ECB3F0BF42675E160 socket closed",
+    "stack": "Error: production-138-F2DA10B9CF48375ECB3F0BF42675E160 socket closed\n    at socket.onclose (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:217:111)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:776:26)\n    at fireEvent (node:internal/deps/undici/undici:14186:14)\n    at #onSocketClose (node:internal/deps/undici/undici:15502:9)\n    at Socket.onSocketClose (node:internal/deps/undici/undici:15202:72)\n    at Socket.emit (node:events:521:24)\n    at TCP.<anonymous> (node:net:350:12)"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": null,
+  "elapsedMs": 62251.960542000015
+}

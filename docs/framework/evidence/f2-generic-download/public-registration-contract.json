@@ -1,0 +1,24 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "probe": "public createRunAuthority.registerHost/assertHost with a transaction oracle; no host mutation",
+  "namespaceIssued": true,
+  "principalIssued": true,
+  "actualSenderBound": true,
+  "browserSessionBound": true,
+  "hostFields": [
+    "active",
+    "browserSessionIncarnation",
+    "hostDocumentId",
+    "hostInstanceId",
+    "hostTabId",
+    "hostUrl",
+    "namespace",
+    "principal",
+    "registeredAt",
+    "registrationId",
+    "revoked",
+    "tag"
+  ],
+  "integrationOwner": "main",
+  "nativeBrowserProof": false
+}

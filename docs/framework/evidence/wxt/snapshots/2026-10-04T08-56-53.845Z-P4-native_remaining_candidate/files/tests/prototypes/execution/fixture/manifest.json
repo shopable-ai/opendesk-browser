@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "OpenDesk EX08 bounded fixture",
+  "version": "0.0.1",
+  "minimum_chrome_version": "120",
+  "background": {"service_worker": "sw.js"},
+  "sandbox": {"pages": ["sandbox.html"]},
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+    "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'none'; object-src 'none'"
+  },
+  "web_accessible_resources": [{"resources": ["worker-classic.js", "worker-module.js"], "matches": ["<all_urls>"]}]
+}

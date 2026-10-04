@@ -1,0 +1,399 @@
+{
+  "schemaVersion": 1,
+  "goal": "OpenDesk Browser 通用框架迁移 Goal",
+  "ownerThreadId": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+  "updatedAt": "2026-10-03T06:56:52.353921+00:00",
+  "decisionAuthority": "current development Goal owner acting on explicit user conditional authorization",
+  "designManifest": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/reviews/round-3/candidate/candidate-manifest.json",
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+  "reports": [
+    {
+      "role": "architect",
+      "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/round-3/architect.md",
+      "reportSha256": "04ee23ccee00b3c481cd3823a4df4e161079592cbc136008b5b44672b5461557",
+      "json": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/round-3/architect.json",
+      "jsonSha256": "12240483ef670c0727efff1c8ecfcbbd40c73d22b67e07af82f7c1f5b0925ecf",
+      "score": 97,
+      "verdict": "APPROVE",
+      "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+      "validFinal": true,
+      "independent": true
+    },
+    {
+      "role": "critic",
+      "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/round-3/critic.md",
+      "reportSha256": "ba323bd70005e4fb964c2d9f7249df8d88b6ff8bb2942a3f63a7be35aeac047b",
+      "json": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/round-3/critic.json",
+      "jsonSha256": "b9b531d05258a3dce76774abc833e45d3d1ddb01aade1632db7d48d0a696f3f0",
+      "score": 98,
+      "verdict": "APPROVE",
+      "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+      "validFinal": true,
+      "independent": true
+    }
+  ],
+  "designApproved": true,
+  "boundedPrototypeResearchAllowed": true,
+  "backendPrototypePassed": true,
+  "fullImplementationReleased": true,
+  "frameworkFunctionalMigrationComplete": false,
+  "prototypeCandidateSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+  "prototypeReports": [
+    {
+      "role": "independent-prototype-review",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/independent-review.json",
+      "sha256": "d04596a138f71e0eaab8875be046718bc82de91362bc5555070d046d1dca37cb",
+      "validFinal": true,
+      "verdict": "PARTIAL_PROOF",
+      "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+      "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815"
+    }
+  ],
+  "stage": "F2-K2-product-foundation-in-progress",
+  "basis": "Stage0 round6 approved; exact same F1 union independently 12/12 twice; product implementation released, product acceptance still pending",
+  "oldAudit": {
+    "root": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85",
+    "approvalModified": false,
+    "falseFlagsInheritedAsPass": false,
+    "pausedGoalResumed": false,
+    "old2BResumed": false
+  },
+  "models": {
+    "requestedLeader": "openai/gpt-6.1-sol",
+    "requestedChild": "gpt-6.1-sol",
+    "requestedReasoningEffort": "xhigh",
+    "installedRolePromptCompletelyLoaded": true,
+    "nativeAgentType": "default",
+    "localTurnContextMatchesRequest": true,
+    "serverResolvedRuntimeVerified": false,
+    "globalConfigurationModified": false
+  },
+  "stopConditions": [
+    "final design review cannot approve",
+    "key backend prototype fails",
+    "necessary prerequisite missing"
+  ],
+  "stopBehavior": "Preserve repro and stop truly impossible backend/dependent branch; native Goal transitions only through tools; untested work continues",
+  "prototypeCandidate": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+  "prototypeStatus": "F1-qualified-both-independent-same-union",
+  "actualPrototypeReport": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json",
+  "variantResults": {
+    "classic-package": "FAIL-constructor-SecurityError",
+    "module-package": "FAIL-constructor-SecurityError",
+    "classic-blob": "partial-proof-RPC-network-probe-loop-terminate",
+    "module-blob": "FAIL-before-handshake"
+  },
+  "gateInterpretation": "All loader branches were tested. The fixture AND flag is not itself an independent contract judgement; classic Blob partial evidence is not full F1 backend proof. Failed variants stopped. No F2 implementation.",
+  "goalStatus": "active",
+  "pauseAuthorization": "Explicit user conditional stop clause for key backend prototype failure or missing necessary prerequisite",
+  "pauseTrigger": "necessary prerequisite missing; independent F1 terminal review confirms missing safety/semantics/userScripts/version evidence",
+  "failedVariantsStopped": [
+    "classic-package",
+    "module-package",
+    "module-blob"
+  ],
+  "selectedBackendImpossibleClaimed": false,
+  "automaticAlternativeStarted": false,
+  "blockedF2Started": false,
+  "instructionRevision": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/instructions/revision-4.json",
+    "sha256": "a4fca3a6464d8ab13a13a55cbd628e91e2a8ebf69ac169898e1a2d133ddc06ee",
+    "revision": 4,
+    "prompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+    "promptSha256": "6ca6d01c3210721f2b2ed76fa8699491bfe9f031dda6d33d23d2e027ecfb6b56",
+    "constraints": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+    "constraintsSha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+  },
+  "pauseRationaleCorrection": "Old PARTIAL_PROOF evidence remains valid and F1 gate closed. Untested work is pending work; it does not itself prove a missing prerequisite or backend failure. Per-loader failures do not establish backend-wide impossibility.",
+  "resumeDisposition": "New Goal; prior pause records retained as history; stage0 before F1",
+  "currentContinuation": {
+    "threadId": "01a0fda9-8a86-7f72-89be-e292ffc94ed4",
+    "nativeGoalObservedStatus": "active",
+    "oldGoalResumed": false,
+    "oldTasksMessaged": false
+  },
+  "historicalLifecycle": {
+    "ownerThreadId": "01a0fcd7-ddff-7b41-be5c-b42b425b31af",
+    "stage": "F1-PARTIAL_PROOF-paused-on-missing-required-prerequisite",
+    "basis": "Valid same-hash Architect APPROVE 97 and independently scored Critic APPROVE 98; no new design blocker. Only bounded F1 permitted until actual backend evidence plus independent review.",
+    "goalStatus": "paused",
+    "pauseAuthorization": "Explicit user conditional stop clause for key backend prototype failure or missing necessary prerequisite",
+    "pauseTrigger": "necessary prerequisite missing; independent F1 terminal review confirms missing safety/semantics/userScripts/version evidence",
+    "resumeDisposition": "Native Goal still paused; readable objective prepared for user-controlled update/resume. No new runtime or implementation PASS.",
+    "currentContinuation": {
+      "threadId": "01a0fd25-57a0-7e13-8da0-1fe3ee2986c1",
+      "nativeGoalObservedStatus": "paused",
+      "progress": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/progress.md",
+      "promptRevision": 4,
+      "reason": "User requested migration-focused prompt correction; native Goal remains paused",
+      "resumedByAgent": false
+    }
+  },
+  "currentPlanApproved": true,
+  "currentPlan": {
+    "id": "M5-C1",
+    "round": 6,
+    "manifest": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+    "manifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+    "architect": "APPROVE-98",
+    "critic": "APPROVE-98",
+    "approved": true,
+    "reports": {
+      "architect": "docs/framework/reviews/migration-execution-v5/round-6/architect.json",
+      "critic": "docs/framework/reviews/migration-execution-v5/round-6/critic.json"
+    },
+    "approvedAt": "2026-10-02T21:33:56.772669+00:00",
+    "reviewProvenance": {
+      "architectAgentId": "01a0fe35-0671-7821-83c0-55b45ac42612",
+      "criticAgentId": "01a0fe51-55cb-7902-9fd6-d44568a05b62",
+      "reportHashes": {
+        "architect": "201a8ca59a7c1ecf13bfa661910ffb4cab62a102d729048bc25d9179eb3c1ff3",
+        "critic": "e06be11d482bfb944611b7d625ded11519f3b6e1a062fcc5c217d899fef7db7a"
+      }
+    }
+  },
+  "pendingPlanAmendment": {
+    "round": 6,
+    "manifest": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+    "manifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+    "status": "APPROVED-AND-PROMOTED",
+    "reason": "Eight actual native OFF-ON historical-fence counterexamples; explicit bounded compatibility proposal retains observed OFF sticky and all genuine authority/doc fences",
+    "originalCaseDenominator": 603,
+    "currentCaseDenominator": 603,
+    "requiredSubcasesWithinOriginalCase": 4,
+    "noFunctionalApproval": true,
+    "architectScore": 98,
+    "architectReport": "docs/framework/reviews/migration-execution-v5/round-6/architect.json",
+    "criticAgent": "01a0fe51-55cb-7902-9fd6-d44568a05b62",
+    "criticScore": 98,
+    "criticReport": "docs/framework/reviews/migration-execution-v5/round-6/critic.json",
+    "effectiveAt": "2026-10-02T21:33:56.772669+00:00"
+  },
+  "currentFunctionalBlockers": [
+    {
+      "id": "P0",
+      "task": "K2",
+      "reason": "Latest full basic suite208/210, isolated1/2; logs and exact fixture mismatch in basic-capability-test-entry.md"
+    },
+    {
+      "id": "P1",
+      "task": "K2",
+      "reason": "Routes and delegate are written; fresh syntax and foundation checks do not establish native SDK acceptance"
+    },
+    {
+      "id": "P2",
+      "task": "K2",
+      "reason": "Session adapter and navigation/permission/tab invalidation code exist, but real native session lifetime, grant race, SDK delivery and four crash points have not been accepted"
+    },
+    {
+      "id": "P3",
+      "task": "K2",
+      "reason": "Current conform recursion has no explicit cycle/depth guard; existing completed path is legacy template/seal based; unit PASS does not close all required native R cases"
+    },
+    {
+      "id": "P4",
+      "task": "K3/K4",
+      "reason": "SDK entries/license/icon/control sandbox are not in current main package; no updated product package hash"
+    },
+    {
+      "id": "P5",
+      "task": "K3",
+      "reason": "48 API/module and dual Chrome components have targeted evidence, not main product lifecycle acceptance"
+    },
+    {
+      "id": "P6",
+      "task": "K5",
+      "reason": "No true independent B05 or finalized product UI/grant/Hello installation acceptance"
+    },
+    {
+      "id": "P7",
+      "task": "K6",
+      "reason": "Historical npm test16/20 fails at stale dist minimum138 before intended mutation assertions; F3, same final product hash and independent product review remain absent"
+    }
+  ],
+  "currentPlanApprovalHistory": [
+    {
+      "id": "M5-C1",
+      "manifest": "docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+      "manifestSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+      "architect": "APPROVE-96",
+      "critic": "APPROVE-97",
+      "approved": true,
+      "reports": {
+        "architect": "docs/framework/reviews/migration-execution-v5/round-4/architect.json",
+        "critic": "docs/framework/reviews/migration-execution-v5/round-4/critic.json"
+      },
+      "round": 4,
+      "approvedAt": "2026-10-02T19:28:50.405125+00:00",
+      "reviewProvenance": {
+        "architectAgentId": "01a0fde7-1f63-7382-8f33-984b73e3652a",
+        "criticAgentId": "01a0fe02-3c9f-78d2-8ffa-5ed66b607ca3",
+        "sequence": "Architect final received and saved before independent Critic dispatch",
+        "reportsSha256": {
+          "architect": "8e91861a26e4866450de9fa45def525c163de0916d07b96ed7c8ad286438f1f4",
+          "critic": "e77dbe5c6953202ae82634d1ff833892a85228501c32b2788d1e44263c511900"
+        },
+        "serverResolvedModel": "unknown"
+      }
+    },
+    {
+      "id": "M5-C1",
+      "round": 5,
+      "manifest": "docs/framework/reviews/migration-execution-v5/round-5/candidate/candidate-manifest.json",
+      "manifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+      "architect": "APPROVE-96",
+      "critic": "APPROVE-96",
+      "approved": true,
+      "reports": {
+        "architect": "docs/framework/reviews/migration-execution-v5/round-5/architect.json",
+        "critic": "docs/framework/reviews/migration-execution-v5/round-5/critic.json"
+      },
+      "approvedAt": "2026-10-02T20:47:13.266103+00:00",
+      "reviewProvenance": {
+        "architectAgentId": "01a0fe35-0671-7821-83c0-55b45ac42612",
+        "criticAgentId": "01a0fe51-55cb-7902-9fd6-d44568a05b62",
+        "reportHashes": {
+          "architect": "d2c9263779f3e72249bca83a353106c3f325dec8d8f2fd0b6d575f2009e576b2",
+          "critic": "8f4dad9153d106237a3ae106e6283c2e77f0c20193ae22dcd5952f16857033ee"
+        }
+      }
+    }
+  ],
+  "planAmendmentHistory": [
+    {
+      "round": 5,
+      "manifest": "docs/framework/reviews/migration-execution-v5/round-5/candidate/candidate-manifest.json",
+      "manifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+      "status": "APPROVED-AND-PROMOTED",
+      "nativeGraceMs": 2000,
+      "proposedObservationBoundMs": 3000,
+      "reason": "Actual no-CDP CPU evidence and exact Chromium 138/154 source contradict strict under-2s test oracle; old FAIL preserved",
+      "capabilityAndCaseDenominatorsUnchanged": true,
+      "architectReport": "docs/framework/reviews/migration-execution-v5/round-5/architect.json",
+      "architectScore": 96,
+      "criticAgent": "01a0fe51-55cb-7902-9fd6-d44568a05b62",
+      "criticScore": 96,
+      "effectiveAt": "2026-10-02T20:47:13.266103+00:00"
+    }
+  ],
+  "currentMechanismCandidate": {
+    "manifest": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+    "manifestSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+    "architect": {
+      "status": "APPROVE",
+      "report": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+      "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6",
+      "agentId": "01a0fe35-0671-7821-83c0-55b45ac42612",
+      "required": 12,
+      "passed": 12,
+      "blockers": 0
+    },
+    "criticCodeFunction": {
+      "status": "APPROVE",
+      "report": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+      "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f",
+      "agentId": "01a0fe35-056b-7561-a230-0ebfe8efc095",
+      "required": 12,
+      "passed": 12,
+      "blockers": 0
+    },
+    "allRequiredContracts": 12,
+    "productPackageSha256": null,
+    "allRequiredContractsPassed": true
+  },
+  "gateHistory": [
+    {
+      "observedAt": "2026-10-02T23:14:23.717624+00:00",
+      "stage": "F1-final-union-Architect-qualified-Critic-code-function-running",
+      "backendPrototypePassed": false,
+      "fullImplementationReleased": false,
+      "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815",
+      "currentFunctionalBlockers": [
+        {
+          "id": "CR-F1-PAGE-001/ARCH-PAGE-01",
+          "state": "actual-independent-4-of-4-reproduced-BLOCK",
+          "capability": "userScripts USER_SCRIPT/MAIN UI OFF->ON old pending/native-completed result fencing",
+          "evidence": [
+            "docs/framework/reviews/m5-f1/code-reviewer/provisional-page-review.md",
+            "docs/framework/reviews/m5-f1/architect/page-provisional-review.json"
+          ],
+          "repairOwner": "01a0fdf8-9cf2-76f1-959e-b81ef511177a"
+        },
+        {
+          "id": "F1-CTRL-TRUE-TERMINATE",
+          "state": "3s contract approved; final same-source full version matrix and independent qualification pending",
+          "repairOwner": "01a0fdf8-9bf1-73c1-bb20-d6a7763fcd75"
+        },
+        {
+          "id": "CR-F1-CTRL-LATE-DISPATCH",
+          "state": "independent HIGH retained; repaired full dual-version re-freeze and same-union independent closure pending",
+          "capability": "control adapter issues native tabs.update after legal stop during permissions.contains await",
+          "evidence": "docs/framework/reviews/m5-f1/code-reviewer/control-review.json",
+          "repairOwner": "01a0fdf8-9bf1-73c1-bb20-d6a7763fcd75",
+          "oldSourceCandidateSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+          "formalId": "CR-F1-CTRL-001",
+          "evidenceSha256": "2bd05ee46b89d9f2ccac16307955b917b4c77becf03028d2bff34d35e573b558"
+        },
+        {
+          "id": "CR-F1-CTRL-002",
+          "state": "historical independent HIGH retained; exact-source new positive/negative actual Blob evidence and pageWaits resource regression frozen; independent closure pending",
+          "capability": "independent original Blob revocation and actual observer cleanup across terminal rounds",
+          "evidence": [
+            "docs/framework/reviews/m5-f1/code-reviewer/control-review.json",
+            "docs/framework/prototypes/user-control-v2/m5-20261002-k1-permission-race-fix/blocker-closure-evidence.json"
+          ],
+          "currentSourceCandidateSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5"
+        }
+      ]
+    }
+  ],
+  "f1Qualification": {
+    "qualifiedAt": "2026-10-02T23:14:23.717624+00:00",
+    "candidateManifest": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+    "candidateManifestSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+    "approvedPlanManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+    "reviews": {
+      "architect": {
+        "status": "APPROVE",
+        "report": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+        "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6",
+        "agentId": "01a0fe35-0671-7821-83c0-55b45ac42612",
+        "required": 12,
+        "passed": 12,
+        "blockers": 0
+      },
+      "code-reviewer": {
+        "status": "APPROVE",
+        "report": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+        "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f",
+        "agentId": "01a0fe35-056b-7561-a230-0ebfe8efc095",
+        "required": 12,
+        "passed": 12,
+        "blockers": 0
+      }
+    },
+    "independentSequence": "Architect full report verified before Critic dispatch",
+    "artifactAndSourceBindingsVerified": 168,
+    "sourceOrEvidenceDrift": 0,
+    "requiredContracts": 12,
+    "allRequiredContractsPassed": true,
+    "scope": "F1 mechanism qualification under approved round6 contracts only",
+    "productRuntimePassAdded": false,
+    "productPackageSha256": null
+  },
+  "nextAction": "Close current grant/storage contract mismatch and ACK concurrency regression; verify existing session/lifecycle SDK wiring, package fixed entries/resources, integrate generic control run-host; then same-final-package F3.",
+  "productContinuationCheckpoint": {
+    "path": "docs/framework/product-continuation-checkpoint.json",
+    "sha256": "8ca4988e2b9705beaac91b33842c62385a4875f5d889dbfaa0efa05a24682020",
+    "isCompletionCertificate": false
+  },
+  "latestBasicCapabilityVerification": {
+    "path": "docs/framework/evidence/basic-capability-readiness-20261002/verification.json",
+    "basicPass": 208,
+    "basicTotal": 210,
+    "allBasicPassed": false,
+    "environmentPass": 16,
+    "environmentTotal": 20,
+    "f3Accepted": false
+  }
+}

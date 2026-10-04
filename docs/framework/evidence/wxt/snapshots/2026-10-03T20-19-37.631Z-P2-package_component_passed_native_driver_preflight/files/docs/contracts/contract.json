@@ -1,0 +1,566 @@
+{
+  "contractVersion": "1.0.0",
+  "compilerVersion": "1.0.0",
+  "status": "design-contract",
+  "capabilities": [
+    "dom.top.v1",
+    "read.text.v1",
+    "read.attribute.v1",
+    "transform.safe.v1",
+    "pagination.none.v1",
+    "pagination.next-link.v1",
+    "pagination.next-button.v1",
+    "page.stage-seal.v1",
+    "download.receipt.v1"
+  ],
+  "canonicalization": {
+    "version": "od-json-1",
+    "objectKeys": "ASCII keys sorted lexicographically",
+    "arrayOrder": "preserved",
+    "encoding": "UTF-8, no BOM, no whitespace",
+    "strings": "no Unicode normalization; standard JSON escaping, no unnecessary ASCII escapes",
+    "numbers": "protocol/template metadata safe integers only; typed records allow finite IEEE754 numbers; use ECMAScript JSON.stringify number encoding for record digests",
+    "hash": "SHA-256 lowercase hex; TemplateRevision excludes top-level contentHash, RulePlan excludes planHash; other digest envelopes explicitly omit digest",
+    "depthMax": 12,
+    "unknownFields": "error",
+    "dangerousKeys": [
+      "__proto__",
+      "prototype",
+      "constructor"
+    ],
+    "unicode": "reject unpaired UTF-16 surrogates",
+    "referenceVector": "contracts/fixtures/canonical.json"
+  },
+  "db": {
+    "version": 1,
+    "uniqueOwner": "foundation",
+    "stores": [
+      "templates",
+      "runs",
+      "commandJournal",
+      "pageSnapshots",
+      "records",
+      "batches",
+      "exportJobs",
+      "artifacts",
+      "downloadReceipts",
+      "entitlements"
+    ],
+    "indexes": {
+      "templates": [
+        "[templateId,revision] unique",
+        "contentHash"
+      ],
+      "runs": [
+        "runId unique",
+        "slotKey singleton for profile",
+        "retirementId",
+        "state"
+      ],
+      "commandJournal": [
+        "commandId unique",
+        "runId",
+        "[runId,ownerEpoch,state]"
+      ],
+      "pageSnapshots": [
+        "snapshotId unique",
+        "[runId,sealSeq]",
+        "[runId,pageSequence] unique",
+        "readCommandId"
+      ],
+      "records": [
+        "[snapshotId,rowIndex] unique",
+        "runId"
+      ],
+      "batches": [
+        "batchId unique",
+        "[snapshotId,batchIndex] unique"
+      ],
+      "exportJobs": [
+        "exportJobId unique",
+        "runId"
+      ],
+      "artifacts": [
+        "artifactId unique",
+        "exportJobId"
+      ],
+      "downloadReceipts": [
+        "tagged key unique: attempt:{attemptId}/receipt:{attemptId}/candidate:{downloadId}",
+        "downloadId unique across bound attempts",
+        "candidate fullBlobUrl"
+      ],
+      "entitlements": [
+        "subject unique"
+      ]
+    },
+    "note": "no extra broker/connection/store. runs singleton slot row stores slot owner + retired target evidence; commandJournal stores host/target registrations and tombstones as tagged records, downloadReceipts stores tagged attempt/candidate/receipt records. Reject unknown record tag. Design permits indexed subkeys in existing stores. target-create tagged intents are durable in commandJournal; browser-session incarnation in trusted chrome.storage.session is a transient identity fence, not a second data DB.",
+    "migrations": "failed upgrade transaction rolls back; keep prior DB intact/read-only, raw backup copy; never deleteDatabase on failure"
+  },
+  "moduleSlot": {
+    "entryPoint": "src/features/scraping/index.js",
+    "export": "createScrapingModule({contracts, storage, pagePort, runCommands, exportBridge, entitlement, clock})",
+    "returns": [
+      "mountToolPanel(root, context)",
+      "compileTemplate",
+      "preview",
+      "createRunner",
+      "formatExport",
+      "dispose",
+      "contractHandshake"
+    ],
+    "controller": "RunHost independently owns createRunner/run loop; UI observes state only",
+    "fixedRootImport": "src/run-host.js imports package scraping slot exactly once; phase03 fills slot with domain code without root edits",
+    "noDirectAccess": [
+      "chrome.* outside PagePort/selection adapter approved by foundation",
+      "indexedDB.open",
+      "new RunHost",
+      "global activeTab query for run"
+    ],
+    "phase02Slot": "fixed single placeholder with explicit MODULE_NOT_INSTALLED, not a fake completed runner"
+  },
+  "interfaces": [
+    {
+      "name": "registerHost",
+      "owner": "foundation",
+      "input": "{hostInstanceId, claimedContractVersion, claimedContractHash}",
+      "output": "RegisterHostResponse",
+      "semantics": "SW compares actual extension page sender.id/url/documentId; no self-asserted webpage owner; registration alone does not claim run"
+    },
+    {
+      "name": "saveTemplate",
+      "owner": "foundation",
+      "input": "SaveTemplateRequest",
+      "output": "TemplateEntry",
+      "semantics": "IDB templates CAS immutable revision; duplicate exact payload returns same revision; parent mismatch conflicts; template mutable display name is metadata outside contentHash, bounded nonempty 128 chars, CAS nameRevision; saveTemplate supplies name and naming is never inferred from selectors"
+    },
+    {
+      "name": "compileTemplate",
+      "owner": "scraping",
+      "input": "{template:TemplateRevision, capabilities, compilerVersion}",
+      "output": "RulePlan",
+      "semantics": "structural validation + real DOM CSS compile + semantic validation; same implementation for preview and run"
+    },
+    {
+      "name": "claimRun",
+      "owner": "foundation",
+      "input": "{registrationId, templateHash, entitlementSnapshot, originGrantEvidence}",
+      "output": "{runId, ownerEpoch, runRevision, state:preparing}",
+      "semantics": "CAS global slot in runs; no previous slot released until fenced+retired; acquire explicit optional origin permission from user gesture before dedicated tab; on failure retire"
+    },
+    {
+      "name": "bindTarget",
+      "owner": "foundation",
+      "input": "{runId, ownerEpoch, creationId}",
+      "output": "Identity",
+      "semantics": "SW records actual tab frame0 documentId from fixed agent handshake; exact origin; source tab never becomes execution tab; targetVersion increments on authenticated navigation/new document binding; fixed documentId side effects, not tabs.update; caller cannot nominate arbitrary createdTabId; only known registered TargetCreationIntent exact tab/document may bind"
+    },
+    {
+      "name": "prepareCommand",
+      "owner": "foundation",
+      "input": "{identity, commandId, kind, payload}",
+      "output": "{state:prepared, digest}",
+      "semantics": "same commandId+digest idempotent; different digest conflict; allow only package-defined commands"
+    },
+    {
+      "name": "dispatchCommand",
+      "owner": "foundation",
+      "input": "{identity, commandId}",
+      "output": "{accepted:true, state:dispatched}",
+      "semantics": "short ACK after dispatched IDB commit, before Chrome call; no entire-run promise; check cancel/revision/epoch/target/grant each dispatch"
+    },
+    {
+      "name": "confirmCommand",
+      "owner": "foundation",
+      "input": "{identity, commandId, resultDigest, outcome}",
+      "output": "{state:confirmed|effect_unknown}",
+      "semantics": "validate actual sender and target document; late/duplicate ACK never reruns action"
+    },
+    {
+      "name": "stopRun",
+      "owner": "foundation",
+      "input": "{runId, expectedRunRevision, requestId}",
+      "output": "{state:stopping|terminal, cancelSeq, runRevision}",
+      "semantics": "IDB cancel commit orders against dispatch and seal; duplicate requestId idempotent; stop increments runRevision but not ownerEpoch; terminal winner preserved"
+    },
+    {
+      "name": "stagePageBatch",
+      "owner": "foundation",
+      "input": "StageRequest",
+      "output": "{ack:durable-staged, snapshotId, batchIndex, digest, duplicate}",
+      "semantics": "IDB runs+batches+records+pageSnapshots transaction; no committed count/checkpoint movement; max2 unACKed; requires beginPage-open snapshot bound to readCommandId+sourceIdentity; never allocates arbitrary snapshot implicitly"
+    },
+    {
+      "name": "sealPage",
+      "owner": "foundation",
+      "input": "SealRequest",
+      "output": "SealAck",
+      "semantics": "single IDB transaction runs+pageSnapshots+batches; contiguous indexes, exact row/bytes/digests; visibility follows sealed flag; sealSeq assigned monotonically and returned; save sealIdentity and immutableSealAck in same transaction; exact historic repeat returns saved ACK without touching current projection/counters, except duplicate=true"
+    },
+    {
+      "name": "readRecords",
+      "owner": "foundation",
+      "input": "ReadRecordsRequest with readerPinId",
+      "output": "ReadRecordsResponse",
+      "semantics": "only snapshots sealed at <=watermark; preserve raw values; export/cleanup reader pin prevents delete races"
+    },
+    {
+      "name": "abandonUnknown",
+      "owner": "foundation",
+      "input": "{runId, expectedRunRevision, requestId, userExplicit:true}",
+      "output": "{state:retiring, retirementId}",
+      "semantics": "atomic ownerEpoch++, revoke old target capability and commands, abort open snapshots; no slot release yet"
+    },
+    {
+      "name": "retireTarget",
+      "owner": "foundation",
+      "input": "{retirementId}",
+      "output": "{state:abandoned_unknown|otherTerminal, slotReleased, evidence}",
+      "semantics": "Chrome remove exact old tab; verify tabs.get not found/tab-removed event; exact old target registration revoked. Closing window alone or lease timeout is insufficient; current browserSessionIncarnation and durable creation ownership required before any numeric-tab removal; across-session unverified target freezes with no remove; release CAS matches currentRunId/fencedEpoch/retirementId and commits released evidence atomically, duplicates return historical result and never clear a newer slot"
+    },
+    {
+      "name": "snapshotRun",
+      "owner": "foundation",
+      "input": "{runId, sinceRevision}",
+      "output": "SnapshotRunResponse",
+      "semantics": "durable projection, bounded events with seq; UI resync on event gaps; no UI-owned loop; exact nested Projection, run:null is legitimate idle; pendingCommandIds is empty when idle; slotAvailable is actual singleton slot truth, not assumed true"
+    },
+    {
+      "name": "prepareExport",
+      "owner": "foundation+scraping",
+      "input": "{runId, format, csvMode, partialConfirmed, requestId}",
+      "output": "ExportJob + Artifact descriptors",
+      "semantics": "pin seal watermark and counts; scraping formatter reads cursors and returns deterministic volume bytes; foundation owns persistence+Blob lifetime"
+    },
+    {
+      "name": "dispatchDownload",
+      "owner": "foundation",
+      "input": "{attemptId}",
+      "output": "{accepted:true, state:dispatched}",
+      "semantics": "prepare attempt durable before Chrome; dispatch commit then at most1 downloads.download call; gap is unknown, not retry"
+    },
+    {
+      "name": "reconcileDownload",
+      "owner": "foundation",
+      "input": "{attemptId}",
+      "output": "Receipt|null + attempt projection",
+      "semantics": "bind only unique full URL+extension+time match; known ID authoritative; 0 finite mapping search, multiple conflict"
+    },
+    {
+      "name": "retryExport",
+      "owner": "foundation",
+      "input": "{exportJobId, explicitUserAction:true, requestId}",
+      "output": "{newExportJobId, attemptIds}",
+      "semantics": "new job+fresh attempt+never-reused Blob per volume; old artifact/activeAttemptIds/submission authority frozen, but old job delivery aggregate can still resolve from its own late receipt. Explicit abandon/tombstone alone freezes projection. Old receipt cannot complete new job."
+    },
+    {
+      "name": "deleteRun",
+      "owner": "foundation",
+      "input": "{runId, explicitUserAction:true}",
+      "output": "{deleted,tombstoneId}",
+      "semantics": "fence active owner; retire target and pin downloads/readers; mark unresolved attempts abandoned; tombstone prevents late reply resurrecting records"
+    },
+    {
+      "name": "listTemplates",
+      "owner": "foundation",
+      "input": "ListTemplatesRequest",
+      "output": "ListTemplatesResponse",
+      "semantics": "bounded repository metadata+immutable head; no direct IDB in domain UI"
+    },
+    {
+      "name": "getTemplateRevision",
+      "owner": "foundation",
+      "input": "GetTemplateRevisionRequest",
+      "output": "TemplateRevision",
+      "semantics": "exact immutable revision, verify hash; missing fails E_SCHEMA not guessed latest"
+    },
+    {
+      "name": "renameTemplate",
+      "owner": "foundation",
+      "input": "RenameTemplateRequest",
+      "output": "TemplateMetadata",
+      "semantics": "CAS expectedNameRevision; display-name-only change preserves revision contentHash"
+    },
+    {
+      "name": "exportTemplateBackup",
+      "owner": "foundation+scraping",
+      "input": "{templateId,revision,requestId}",
+      "output": "versioned TemplateRevision + metadata envelope through normal Artifact/download bridge",
+      "semantics": "local explicit backup, preserve complete schema/hash; no remote execution or cloud upload"
+    },
+    {
+      "name": "importTemplateBackup",
+      "owner": "foundation+scraping",
+      "input": "{rawUtf8Backup, explicitUserAction, identityChoice, requestId}",
+      "output": "validated draft or TemplateEntry after preview confirmation",
+      "semantics": "raw backup durable before parse; duplicate JSON keys rejected; exact id/revision conflicting digest never overwritten; explicit create-new-id can save new template through quota/CAS"
+    },
+    {
+      "name": "beginPage",
+      "owner": "foundation",
+      "input": "BeginPageRequest",
+      "output": "BeginPageResponse",
+      "semantics": "IDB runs+pageSnapshots+journal transaction reserves readCommandId and allocates/exactly re-ACKs one open snapshot before prepareCommand; next sequence/checkpoint CAS/full source identity. prepareCommand subsequently binds reserved read ID to this snapshot/plan; stage/seal require authenticated dispatched read+end evidence. Allows zero-stage empty pages."
+    },
+    {
+      "name": "createTarget",
+      "owner": "foundation",
+      "input": "CreateTargetRequest",
+      "output": "CreateTargetResponse",
+      "semantics": "durable unique target-create intent before tabs.create; commit dispatched under cancel/revision/grant/session checks; at most1 call to exact package bootstrap URL. Bootstrap authenticated sender binds unique creationId before startUrl navigation. gap never replayed."
+    },
+    {
+      "name": "reconcileTargetCreation",
+      "owner": "foundation",
+      "input": "ReconcileTargetCreationRequest",
+      "output": "CreateTargetResponse",
+      "semantics": "read-only exact extension bootstrap URL/nonce + actual extension sender tab/document; 0/many evidence stays unknown, slot held. Late callback belongs original run/retirement; never binds successor."
+    },
+    {
+      "name": "openSourceContext",
+      "owner": "foundation",
+      "input": "OpenSourceContextRequest",
+      "output": "SourceSelectionContext",
+      "semantics": "SW issues gestureTicket from actual action.onClicked source tab before opening/focusing tool; single-use ticket expires30s. registered actual host consumes ticket; fixed classic source handshake binds tab/frame/document/origin, no caller-asserted activeTab grant. context expires10min or source navigation/host loss/session fence."
+    },
+    {
+      "name": "startSourceSelection",
+      "owner": "foundation",
+      "input": "StartSourceSelectionRequest",
+      "output": "SourceOperationAck",
+      "semantics": "one current operationId per source context; fixed package SelectorUI asset under02B approved injection,03 code. actual sender authenticated. async result never uses executeScript evaluation return; new operation cancels previous and cleans only owned resources."
+    },
+    {
+      "name": "cancelSourceSelection",
+      "owner": "foundation",
+      "input": "CancelSourceSelectionRequest",
+      "output": "SourceOperationAck",
+      "semantics": "idempotent cancellation tombstone precedes cleanup; queued late same operation result audit-only and cannot overwrite new selection/draft. fixed cancel/dispose owns explicit overlay/listener/timer handles."
+    },
+    {
+      "name": "releaseSourceContext",
+      "owner": "foundation",
+      "input": "ReleaseSourceContextRequest",
+      "output": "SourceOperationAck",
+      "semantics": "CAS contextRevision idempotently invalidates all selection/preview operations; removes only owned resources. navigation/host close/expiry/reload same invalidation; no formal run target disposal."
+    },
+    {
+      "name": "previewSource",
+      "owner": "foundation",
+      "input": "PreviewSourceRequest",
+      "output": "SourcePreviewFrame",
+      "semantics": "unpersisted structurally/semantically valid draft TemplateRevision allowed; verify draft hash and RulePlan binding against supplied draft, not stored template. raw-only source reader<=10 full rows, shared compiler transforms atHost;128KiB frames,64KiB record budget, field keys exact,1frame ACK backpressure. no navigation/run slot/stage/seal/export/Pro requirement."
+    }
+  ],
+  "errors": [
+    "E_VERSION",
+    "E_CAPABILITY",
+    "E_SCHEMA",
+    "E_SEMANTIC",
+    "E_HASH",
+    "E_PARENT_CONFLICT",
+    "E_OWNER",
+    "E_REVISION",
+    "E_TARGET",
+    "E_PERMISSION",
+    "E_CANCELLED",
+    "E_EFFECT_UNKNOWN",
+    "E_BATCH_CONFLICT",
+    "E_SEAL_INCOMPLETE",
+    "E_QUOTA",
+    "E_LIMIT",
+    "E_DOWNLOAD_MAPPING",
+    "E_MIGRATION_RECONFIGURE",
+    "E_TOMBSTONE",
+    "MODULE_NOT_INSTALLED",
+    "E_ENTITLEMENT",
+    "E_MIGRATION_NOT_EXECUTABLE"
+  ],
+  "errorEnvelope": {
+    "ok": false,
+    "error": {
+      "code": "enum above",
+      "message": "safe user-readable text",
+      "retryable": "boolean; never true for uncertain external effect",
+      "details": "bounded safe object"
+    }
+  },
+  "budgets": {
+    "activeRuns": 1,
+    "executionTabs": 1,
+    "maxPages": 50,
+    "maxRecords": 10000,
+    "maxDurationMs": 600000,
+    "maxStoredBytes": 20971520,
+    "maxBatchBytes": 262144,
+    "maxPendingACKs": 2,
+    "maxArtifactBytes": 8388608,
+    "profileStoredBytes": 209715200,
+    "retentionDays": 7,
+    "mappingWindowMs": 60000,
+    "downloadDeadlineMs": 600000,
+    "commandReconcileMs": 30000,
+    "maxRecordBytes": 65536,
+    "maxRawFrameBytes": 131072
+  },
+  "semantics": {
+    "stageAckMeaning": "durable staged; invisible until whole page sealed",
+    "sealAtomicity": "visibility+committedCount+committedPages+checkpoint in one transaction",
+    "downloadReceiptMeaning": "Chrome download complete; diskHashVerified=false",
+    "limits": "+1 causes limit_reached, never success; cannot truncate current page into a falsely complete page",
+    "sourcePage": "selection only; formal run requires dedicated new target tab"
+  },
+  "entitlementPolicy": {
+    "free": {
+      "maxSavedTemplates": 1,
+      "maxPages": 1,
+      "maxRecords": 100
+    },
+    "pro": {
+      "maxSavedTemplates": 50,
+      "maxPages": 50,
+      "maxRecords": 10000
+    },
+    "offlineGraceMs": 259200000,
+    "approvedRunUsesSnapshot": true,
+    "exportsAlwaysAllowed": true,
+    "signature": "ECDSA P-256 SHA-256",
+    "billingImplemented": false,
+    "signatureEncoding": "base64url no padding of 64-byte IEEE-P1363 R||S, WebCrypto ECDSA P256/SHA256; package-fixed keyId allowlist",
+    "claimsSchema": "Entitlement, canonical signing payload excludes signature/verification/verifiedAt/lastTrustedTime; issuer/subject/audience/features/issuedAt/expiresAt/keyId/revocationVersion bound"
+  },
+  "recordDigests": {
+    "stage": "sha256 canonical({snapshotId,batchIndex,records}) excluding digest; utf8Bytes exact same envelope bytes",
+    "page": "SHA256(od-json-1({pageIdentity: normalized authenticated document URL, records:[{raw,values}] in rowIndex order})); excludes snapshotId/recordKey/run/host/epoch/document identities; exact oracle contracts/fixtures/page-signature.json",
+    "seal": "sha256 canonical(SealRequest excluding identity.runRevision)"
+  },
+  "semanticRules": "semantics.md",
+  "sourceSelection": {
+    "schema": "SourceSelectionContext",
+    "authority": "actual user-gesture and activeTab grant; SW binds actual source tab/document and allowedOperations",
+    "formalRunUsesNewTarget": true,
+    "entry": "source selection adapter uses fixed package classic selector with async message result; no executeScript evaluation-result business dependency",
+    "protocol": "existing PagePort methods;02B owns authority/transport/lifecycle,03 owns fixed SelectorUI + draft compiler/UI; no separate owner/bridge/DB",
+    "draftPreview": "same compiler as formal run; uses source context and supplied immutable draft hash/plan binding, not a saved-template requirement",
+    "lateResult": "cancel/release/context invalidation wins; operationId never reused; only current context/document/operation selected result can updateUI",
+    "storage": "short-lived source-context/gesture-ticket/cancel tagged records in existing commandJournal; expires/tombstones for late rejection; no records/runs created",
+    "gestureTicketMaxAgeMs": 30000,
+    "contextMaxAgeMs": 600000,
+    "previewMaxRows": 10,
+    "eventDelivery": "02B pagePort subscription maps actual registered host document/selectionId;03 subscribes before start and unsubscribes on context dispose. Invalidated/cancel events follow same route. Listener is local packaged code only."
+  },
+  "schemaBindings": {
+    "TemplateRevision": "schema.json#/$defs/TemplateRevision",
+    "RulePlan": "schema.json#/$defs/RulePlan",
+    "RunHostProjection": "Projection",
+    "PagePortIdentity": "schema.json#/$defs/Identity",
+    "CommandJournal": "schema.json#/$defs/Command",
+    "stagePageBatch": {
+      "request": "StageRequest",
+      "response": "StageAck"
+    },
+    "sealPage": {
+      "request": "SealRequest",
+      "response": "SealAck"
+    },
+    "readRecords": {
+      "request": "ReadRecordsRequest",
+      "response": "ReadRecordsResponse"
+    },
+    "stopRun": "StopRequest",
+    "abandonUnknown": "AbandonRequest",
+    "prepareExport": "ExportRequest",
+    "retryExport": "RetryExportRequest",
+    "Artifact": "Artifact",
+    "ExportJob": "ExportJob",
+    "DownloadAttempt": "DownloadAttempt",
+    "Receipt": "Receipt",
+    "Entitlement": "Entitlement",
+    "EntitlementSnapshot": "EntitlementSnapshot",
+    "PageReadFrame": "PageReadFrame",
+    "saveTemplate": {
+      "request": "SaveTemplateRequest",
+      "response": "TemplateEntry"
+    },
+    "listTemplates": {
+      "request": "ListTemplatesRequest",
+      "response": "ListTemplatesResponse"
+    },
+    "getTemplateRevision": "GetTemplateRevisionRequest",
+    "renameTemplate": "RenameTemplateRequest",
+    "RunHostRegistration": "RegisterHostResponse",
+    "SnapshotRunResponse": "SnapshotRunResponse",
+    "BeginPageRequest": "BeginPageRequest",
+    "BeginPageResponse": "BeginPageResponse",
+    "TargetCreationIntent": "TargetCreationIntent",
+    "CreateTargetRequest": "CreateTargetRequest",
+    "CreateTargetResponse": "CreateTargetResponse",
+    "SourceSelectionContext": "SourceSelectionContext",
+    "OpenSourceContextRequest": "OpenSourceContextRequest",
+    "StartSourceSelectionRequest": "StartSourceSelectionRequest",
+    "SourceSelectionResult": "SourceSelectionResult",
+    "CancelSourceSelectionRequest": "CancelSourceSelectionRequest",
+    "ReleaseSourceContextRequest": "ReleaseSourceContextRequest",
+    "SourceOperationAck": "SourceOperationAck",
+    "PreviewSourceRequest": "PreviewSourceRequest",
+    "SourcePreviewFrame": "SourcePreviewFrame",
+    "SourcePreviewResult": "SourcePreviewResult"
+  },
+  "migrationIssueCodes": "contracts/fixtures/migration/*/vector.json expected.errors[].code are domain issue details under E_MIGRATION_RECONFIGURE; do not replace transport error codes",
+  "pagePort": {
+    "methods": {
+      "readPage": "({identity,commandId,plan,snapshotId,pageSequence,expectedPageIdentity}) -> AsyncIterator<PageReadFrame>",
+      "nextLink": "({identity,commandId,selector,url,endMarkerSelector,priorPageSignature,waitMs}) -> short journal ACK; read-only reconciliation follows",
+      "nextButton": "({identity,commandId,selector,endMarkerSelector,priorPageSignature,userConfirmed,postcondition,timeoutMs}) -> short journal ACK; read-only reconciliation follows",
+      "openSourceContext": "(OpenSourceContextRequest) -> SourceSelectionContext",
+      "startSourceSelection": "(StartSourceSelectionRequest) -> short SourceOperationAck; authenticated SourceSelectionResult event",
+      "cancelSourceSelection": "(CancelSourceSelectionRequest) -> SourceOperationAck",
+      "releaseSourceContext": "(ReleaseSourceContextRequest) -> SourceOperationAck",
+      "previewSource": "(PreviewSourceRequest) -> AsyncIterator<SourcePreviewFrame>; module preview applies shared compiler -> SourcePreviewResult",
+      "subscribeSourceSelection": "({selectionId}, listener) -> unsubscribe(); local packaged callback receives authenticated SourceSelectionResult/SourceOperationAck lifecycle events, never serialized code"
+    },
+    "rawOnlyAgent": "fixed package DOM agent reads raw text/attribute only; shared domain compiler transforms in RunHost for both preview/run, no JS expression accepted",
+    "planBinding": "admission checks templateHash/compilerVersion/planHash and plan fields match stored immutable template; caller cannot supply arbitrary broader plan",
+    "frames": "runtime JSON only, <=128KiB raw data frames with command/snapshot/frame identity, monotonic frameIndex/rowStart; identical digest duplicate ignored, conflicting frame fails whole page; end frame proves expected frame/row counts",
+    "backpressure": "at most2 host stage ACKs pending, explicit page-frame ACK after corresponding durable stage; host may split raw frame into <=256KiB canonical stages without splitting a record; no more data after stop",
+    "preview": "same raw reader and compiler transform, source-target selection context capability; display<=10 rows only; output raw retained untruncated",
+    "sender": "frame payload identity not authority; actual sender extensionId/tabId/frameId/documentId checked against registered exact target"
+  },
+  "templates": {
+    "countPolicy": "nondeleted distinct templateIds, revision update does not consume another saved-template slot",
+    "naming": "mutable TemplateMetadata.name outside revision contentHash, CAS nameRevision",
+    "delete": "explicit template delete preserves runs referenced immutable revision/hash; migration raw backups retained until explicit deletion",
+    "backup": "local versioned JSON import/export; raw backup persisted before any conversion, no CSS/code execution"
+  },
+  "contractHashDefinition": {
+    "algorithm": "SHA-256",
+    "manifestEncoding": "od-json-1 canonical UTF-8",
+    "manifestShape": "{contractVersion, components:[{path,sha256}]}",
+    "componentOrder": "path ASCII lexicographic",
+    "componentScope": [
+      "docs/contracts/contract.json",
+      "docs/contracts/schema.json",
+      "docs/contracts/semantics.md",
+      "docs/contracts/state-machines.json",
+      "docs/contracts/migration.md",
+      "all regular files under contracts/fixtures except executable verifier .py/.cjs and mutable validation-report.json"
+    ],
+    "excluded": [
+      "handoff.json",
+      "bundle-manifest.json",
+      "reviews",
+      "test-plan and human solution/framework/task plans",
+      "source snapshots/ledgers",
+      "artifact-validation reports"
+    ],
+    "note": "component sha256 hashes exact saved bytes; bundle-manifest.json holds computed components and resulting contractHash; no self-referential hash stored inside contract.json. Design deliverables not in contractHash still hashed by separate delivery manifest."
+  },
+  "targetLifecycle": {
+    "sessionFence": "SW serialized coordinator generates random browserSessionIncarnation once in chrome.storage.session (trusted extension contexts only); persists SW restarts, clears with browser-session restart; never trust content supplied incarnation; storage.session also clears on extension disable/reload/update, so these conservatively create a new incarnation and revoke all old numeric-tab authority. Initialization awaits a single coordinator promise before admission; no independently generated incarnation per request.",
+    "create": "unique durable creationId and exact chrome-extension bootstrap URL; bootstrap handshake persisted before navigation; tabs.create at most once after journal dispatched",
+    "unknown": "0/multiple candidates or callback gap freezes slot, no blind new tab",
+    "neverCreated": "only cancelled/prepared intent with submissionCount=0 and no dispatched commit; target:null is insufficient",
+    "crossSession": "numeric old tabId never authorizes remove/get absence in a new session; unique restored package bootstrap nonce may rebind current exact sender; navigated unidentifiable restored targets stay frozen with explicit unsupported automatic recovery. Confirmed results remain exportable; no automatic profile reset or deletion.",
+    "release": "single IDB runs+journal transaction checks slot currentRunId/fencedEpoch/retirementId and old releaseCount=0; stores immutable release result and clears matching slot once only",
+    "initialNavigation": "known bootstrap registration is creation ownership, not formal HTTP(S) target. Same target-create tagged intent holds navigationState/dispatchAt/submissionCount. Initial location.assign in exact bootstrap document is journal-admitted once under cancel/epoch/current session/grant, no tabs.update; dispatch→navigation gap is effect_unknown, no replay. Fixed package agent at start URL authenticates new actual document before business bindTarget/read admission."
+  }
+}

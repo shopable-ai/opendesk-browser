@@ -1,0 +1,150 @@
+[
+  {
+    "event": "serviceworker-console",
+    "level": "log",
+    "text": "F1 userScripts fixture installed",
+    "at": 1790977394704
+  },
+  {
+    "at": 1790977395868,
+    "url": "http://127.0.0.1:60689/top?id=target",
+    "event": "pageerror",
+    "name": "TypeError",
+    "message": "native-sync-error",
+    "stack": "TypeError: native-sync-error\n    at <anonymous>:1:13\n    at <anonymous>:1:50"
+  },
+  {
+    "at": 1790977396748,
+    "url": "http://127.0.0.1:60689/top?id=target",
+    "event": "pageerror",
+    "name": "TypeError",
+    "message": "native-sync-error",
+    "stack": "TypeError: native-sync-error\n    at <anonymous>:1:13\n    at <anonymous>:1:50"
+  },
+  {
+    "at": 1790977423803,
+    "url": "http://127.0.0.1:60689/top?id=csp-baseline",
+    "event": "console",
+    "level": "error",
+    "text": "Refused to connect to 'http://127.0.0.1:60689/probe?token=csp-baseline-USER_SCRIPT-deny' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+    "location": {
+      "url": "",
+      "line": 32,
+      "column": 0,
+      "lineNumber": 32,
+      "columnNumber": 0
+    }
+  },
+  {
+    "at": 1790977423803,
+    "url": "http://127.0.0.1:60689/top?id=csp-baseline",
+    "event": "console",
+    "level": "error",
+    "text": "Fetch API cannot load http://127.0.0.1:60689/probe?token=csp-baseline-USER_SCRIPT-deny. Refused to connect because it violates the document's Content Security Policy.",
+    "location": {
+      "url": "",
+      "line": 32,
+      "column": 0,
+      "lineNumber": 32,
+      "columnNumber": 0
+    }
+  },
+  {
+    "at": 1790977424017,
+    "url": "http://127.0.0.1:60689/csp?id=csp-restrictive",
+    "event": "console",
+    "level": "error",
+    "text": "Refused to connect to 'http://127.0.0.1:60689/probe?token=csp-restrictive-MAIN-page' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+    "location": {
+      "url": "",
+      "line": 32,
+      "column": 0,
+      "lineNumber": 32,
+      "columnNumber": 0
+    }
+  },
+  {
+    "at": 1790977424017,
+    "url": "http://127.0.0.1:60689/csp?id=csp-restrictive",
+    "event": "console",
+    "level": "error",
+    "text": "Fetch API cannot load http://127.0.0.1:60689/probe?token=csp-restrictive-MAIN-page. Refused to connect because it violates the document's Content Security Policy.",
+    "location": {
+      "url": "",
+      "line": 32,
+      "column": 0,
+      "lineNumber": 32,
+      "columnNumber": 0
+    }
+  },
+  {
+    "at": 1790977424019,
+    "url": "http://127.0.0.1:60689/csp?id=csp-restrictive",
+    "event": "console",
+    "level": "error",
+    "text": "Refused to execute inline script because it violates the following Content Security Policy directive: \"script-src 'self'\". Either the 'unsafe-inline' keyword, a hash ('sha256-7M5HvWg7kSy3y1tud8p5VveEJL9wWtPUUlek9tix5Uk='), or a nonce ('nonce-...') is required to enable inline execution.\n",
+    "location": {
+      "url": "",
+      "line": 0,
+      "column": 0,
+      "lineNumber": 0,
+      "columnNumber": 0
+    }
+  },
+  {
+    "at": 1790977424255,
+    "url": "http://127.0.0.1:60689/csp?id=csp-restrictive",
+    "event": "console",
+    "level": "error",
+    "text": "Refused to execute inline script because it violates the following Content Security Policy directive: \"script-src 'self'\". Either the 'unsafe-inline' keyword, a hash ('sha256-7M5HvWg7kSy3y1tud8p5VveEJL9wWtPUUlek9tix5Uk='), or a nonce ('nonce-...') is required to enable inline execution.\n",
+    "location": {
+      "url": "",
+      "line": 0,
+      "column": 0,
+      "lineNumber": 0,
+      "columnNumber": 0
+    }
+  },
+  {
+    "at": 1790977424412,
+    "url": "http://127.0.0.1:60689/csp?id=csp-restrictive",
+    "event": "console",
+    "level": "error",
+    "text": "Refused to connect to 'http://127.0.0.1:60689/probe?token=csp-restrictive-USER_SCRIPT-deny' because it violates the following Content Security Policy directive: \"connect-src 'none'\".\n",
+    "location": {
+      "url": "",
+      "line": 32,
+      "column": 0,
+      "lineNumber": 32,
+      "columnNumber": 0
+    }
+  },
+  {
+    "at": 1790977424412,
+    "url": "http://127.0.0.1:60689/csp?id=csp-restrictive",
+    "event": "console",
+    "level": "error",
+    "text": "Fetch API cannot load http://127.0.0.1:60689/probe?token=csp-restrictive-USER_SCRIPT-deny. Refused to connect because it violates the document's Content Security Policy.",
+    "location": {
+      "url": "",
+      "line": 32,
+      "column": 0,
+      "lineNumber": 32,
+      "columnNumber": 0
+    }
+  },
+  {
+    "at": 1790977424413,
+    "url": "http://127.0.0.1:60689/csp?id=csp-restrictive",
+    "event": "console",
+    "level": "error",
+    "text": "Refused to execute inline script because it violates the following Content Security Policy directive: \"script-src 'self'\". Either the 'unsafe-inline' keyword, a hash ('sha256-7M5HvWg7kSy3y1tud8p5VveEJL9wWtPUUlek9tix5Uk='), or a nonce ('nonce-...') is required to enable inline execution.\n",
+    "location": {
+      "url": "",
+      "line": 0,
+      "column": 0,
+      "lineNumber": 0,
+      "columnNumber": 0
+    }
+  }
+]

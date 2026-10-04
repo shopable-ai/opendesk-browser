@@ -1,0 +1,2331 @@
+{
+  "schemaVersion": 1,
+  "artifactKind": "stage01-source-audit",
+  "auditAt": "2026-10-01T18:51:32.819530+00:00",
+  "snapshotCapturedAt": "2026-10-01T18:29:13.482003+00:00",
+  "scope": {
+    "readRoots": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/todo-src-bex"
+    ],
+    "ledgerPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+    "writePaths": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-audit.md",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-behaviors.json"
+    ],
+    "productionImplementation": false,
+    "externalLookup": false,
+    "originalRepositoriesRead": false,
+    "olderDraftsUsedAsDecisions": false
+  },
+  "method": {
+    "lineNumbers": "1-based physical lines; raw bytes used for SHA256/size",
+    "verification": "fresh SHA-256/bytes/inventory check and static call-chain/targeted source inspection",
+    "browserRuntimeRun": false,
+    "testsRun": [],
+    "limitation": "静态可达不等于浏览器运行通过；未执行来源测试、build或SDK同步。"
+  },
+  "snapshotIntegrity": {
+    "ledgerSha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+    "filesVerified": 442,
+    "allMatch": true,
+    "sources": [
+      {
+        "source": "scrapyJsChrome",
+        "head": "9d55e4b615db3ef044094f3e8c3f1015a795dd83",
+        "scope": [
+          "."
+        ],
+        "capturedRoot": "/Users/shopme/Documents/workspace/scrapyJsChrome",
+        "files": 265,
+        "missing": [],
+        "unlisted": [],
+        "mismatches": [],
+        "statusPorcelain": "M .DS_Store\n M README.md\n M assets/.DS_Store\n M assets/js/plugins/scrapyJs.js\n M www/index.html\n?? .gitignore\n?? assets/js/ai/selector-contract.js\n?? assets/js/plugins/scrapyJs.source.json\n?? scripts/extension-check.cjs\n?? sdk-compatibility.json\n?? test/devflow-contract.cjs"
+      },
+      {
+        "source": "scrapyJs",
+        "head": "5bebc68832fe1bd6b4466de53a824dfae5fdaf5e",
+        "scope": [
+          "src",
+          "test",
+          "scripts",
+          "project",
+          "package.json",
+          "package-lock.json",
+          "README.md",
+          "webpack.config.js",
+          "gulpfile.js",
+          "vitest.config.js"
+        ],
+        "capturedRoot": "/Users/shopme/Documents/workspace/scrapyJs",
+        "files": 105,
+        "missing": [],
+        "unlisted": [],
+        "mismatches": [],
+        "statusPorcelain": "M README.md\n M demo/ItemLoader.js\n M demo/MySpider.js\n M demo/baiduRuleSpider.js\n M demo/baiduSpider.js\n M demo/csdn.itemloader.js\n M demo/csdnArticleSpider.js\n M demo/ruleSpider.js\n M demo/taobaoSpider.js\n M demo/taobaoSpiderPipeline.js\n M demo/test.js\n M demo/zhipinSpider.js\n M gulpfile.js\n M src/core/ChromeSpider.js\n M src/core/ListSpider.js\n M src/core/Pipeline.js\n M src/core/Scheduler.js\n M src/core/Scrapy.js\n M src/core/Spider.js\n M src/exporter/ExportManager.js\n M src/exporter/FeedExport.js\n M src/http/Request.js\n M src/http/Response.js\n M src/index.js\n M src/middleware/IDownloaderMiddleware.js\n M test/ExportManager.js\n M test/ItemLoader.js\n M test/ItemLoader.parse1.js\n M test/Itemloader.parse.js\n M test/addPipline.js\n M test/demo.js\n M test/yield-await.js\n M test/yield.js\n M vitest.config.js\n M webpack.config.js\n?? .agents/skills/scrapyjs-devflow/SKILL.md\n?? .agents/skills/scrapyjs-devflow/agents/openai.yaml\n?? demo/data/taobao_detail.html\n?? demo/zhipin.js\n?? demo/zhipinHttpSpider.js\n?? docs/README.md\n?? docs/ai-scrapy-business-strategy.md\n?? docs/code-optimization-2026-10-01.md\n?? docs/devflow-roadmap.md\n?? docs/devflow.md\n?? docs/execution-backlog.md\n?? docs/mvp-feature-scope.md\n?? docs/optimization-reproductions/artifacts/concurrent.jsonl\n?? docs/optimization-reproductions/artifacts/failed-write.jsonl\n?? docs/optimization-reproductions/artifacts/integrated-concurrent.jsonl\n?? docs/optimization-reproductions/artifacts/late-column.csv\n?? docs/optimization-reproductions/artifacts/lost.jsonl\n?? docs/optimization-reproductions/artifacts/repeat-first.json\n?? docs/optimization-reproductions/artifacts/repeat.csv\n?? docs/optimization-reproductions/artifacts/repeat.json\n?? docs/optimization-reproductions/artifacts/stream-error.stderr.log\n?? docs/optimization-reproductions/reproduce.cjs\n?? docs/optimization-reproductions/results.json\n?? docs/optimization-reproductions/run.log\n?? docs/optimization-reproductions/source-manifest.json\n?? docs/optimization-reproductions/stream-error-child.cjs\n?? docs/optimization-reproductions/syntax-check.log\n?? docs/product-positioning.md\n?? docs/project-assessment-2026-10-01.md\n?? docs/scrapyJs-execution-plan.md\n?? docs/technical-baseline-2026-10-01.md\n?? docs/user-interview-questions.md\n?? docs/verification-2026-10-01.md\n?? docs/verification-2026-10-01/build.log\n?? docs/verification-2026-10-01/lint.log\n?? docs/verification-2026-10-01/npm-ci.log\n?? docs/verification-2026-10-01/pack.log\n?? docs/verification-2026-10-01/results.json\n?? docs/verification-2026-10-01/test-coverage.log\n?? project/app/douban.jpg\n?? project/app/empth.jpg\n?? project/chrome/csdn.js\n?? project/chrome/itemConfig.js\n?? project/chrome/listDetect.js\n?? project/chrome/test_html.md\n?? project/dev.md\n?? project/gpt.md\n?? project/popup_crawl.html\n?? project/popup_crawl.js\n?? project/quasar/popup_crawl.html\n?? project/quasar/popup_crawl.js\n?? project/vip.js\n?? scripts/browser-smoke.cjs\n?? scripts/consumer-smoke.cjs\n?? scripts/sdk-sync.cjs\n?? src/core/RunFailure.js\n?? temp/DomUtils.js\n?? temp/PaginationSpider.js\n?? temp/loader.js\n?? temp/registerNavgationlistener.js\n?? temp/waitForNavigation.js\n?? temp/zhipinSpider.js\n?? test/ai-config/fixtures/heldout/cardinality.html\n?? test/ai-config/fixtures/heldout/detail-h1.html\n?? test/ai-config/fixtures/heldout/detail-h2.html\n?? test/ai-config/fixtures/heldout/detail-h3.html\n?? test/ai-config/fixtures/heldout/detail-h4.html\n?? test/ai-config/fixtures/heldout/detail-h5.html\n?? test/ai-config/fixtures/heldout/detail-mismatch.html\n?? test/ai-config/fixtures/heldout/duplicate.html\n?? test/ai-config/fixtures/heldout/empty.html\n?? test/ai-config/fixtures/heldout/error-region.html\n?? test/ai-config/fixtures/heldout/error.html\n?? test/ai-config/fixtures/heldout/list-page-1.html\n?? test/ai-config/fixtures/heldout/list-page-2.html\n?? test/ai-config/fixtures/heldout/login.html\n?? test/ai-config/fixtures/heldout/missing-required.html\n?? test/ai-config/fixtures/training/cardinality.html\n?? test/ai-config/fixtures/training/detail-mismatch.html\n?? test/ai-config/fixtures/training/detail-t1.html\n?? test/ai-config/fixtures/training/detail-t2.html\n?? test/ai-config/fixtures/training/detail-t3.html\n?? test/ai-config/fixtures/training/detail-t4.html\n?? test/ai-config/fixtures/training/detail-t5.html\n?? test/ai-config/fixtures/training/duplicate.html\n?? test/ai-config/fixtures/training/empty.html\n?? test/ai-config/fixtures/training/error-region.html\n?? test/ai-config/fixtures/training/error.html\n?? test/ai-config/fixtures/training/list-page-1.html\n?? test/ai-config/fixtures/training/list-page-2.html\n?? test/ai-config/fixtures/training/login.html\n?? test/ai-config/fixtures/training/missing-required.html\n?? test/ai-config/gold-manifest.json\n?? test/ai-config/gold-manifest.sha256\n?? test/ai-config/labels/heldout.json\n?? test/ai-config/labels/training.json\n?? test/ai-config/reference-task.json\n?? test/devflow-product.cjs\n?? test/devflow-sync.test.cjs\n?? test/export-contract.spec.js\n?? test/export-manager-extra.spec.js\n?? test/itemloader/crawlTaobao.js\n?? test/itemloader/crawlTemp.js\n?? test/itemloader/taobao-v1.js\n?? test/itemloader/taobao.js\n?? test/itemloader/taobao.md\n?? test/itemloader/taobao_detail_captcha.html\n?? test/itemloader/taobao_detail_captcha_iframe.html\n?? test/reliability.spec.js\n?? test/request-contract.spec.js\n?? test/spider-boundaries.spec.js\n?? todo.md\n?? \"todo/\\344\\274\\230\\345\\214\\226\\346\\203\\263\\346\\263\\225.md\""
+      },
+      {
+        "source": "todo-src-bex",
+        "head": "3f8a10613df4d87cb7a76f6bb71fcac5fcd17d20",
+        "scope": [
+          "src-bex",
+          "LICENSE",
+          "package.json",
+          "AGENTS.md"
+        ],
+        "capturedRoot": "/Users/shopme/Documents/workspace/todo-user-vue",
+        "files": 72,
+        "missing": [],
+        "unlisted": [],
+        "mismatches": [],
+        "statusPorcelain": ""
+      }
+    ]
+  },
+  "sdkProvenance": {
+    "receiptPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.source.json",
+    "bundlePath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+    "bundleSha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+    "receiptSha256": "65627307a024644c291e143d38a67ae8f74c2d63a5be3e90570a173f90686b01",
+    "recordedSdkHash": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+    "sdkHashMatchesInstalledBundle": true,
+    "recordedSourceHash": "05d457c044fa6aa86e7da18628a62bcbc3946426a90fbff80d9474b1c239423a",
+    "receiptMapComputedSourceHash": "05d457c044fa6aa86e7da18628a62bcbc3946426a90fbff80d9474b1c239423a",
+    "receiptMapInternallyConsistent": true,
+    "snapshotInputsComputedSourceHash": "3bacf5875d527c5e1ba4ef8bfb43f307d1dd3d80db0917be4ba11ef89fed9127",
+    "sourceHashMatchesCapturedCore": false,
+    "inputCount": 27,
+    "matchingInputCount": 22,
+    "mismatchingInputs": [
+      {
+        "input": "src/core/ChromeSpider.js",
+        "snapshotPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/src/core/ChromeSpider.js",
+        "receiptSha256": "13c3558db1387fcbc1d40782af92003aec38b237e58ccae336c7844aa67ded7d",
+        "snapshotSha256": "bc5b540c7ec4eb44699506b74ff0f0a247cf7e75121f9ebcbdf8361b0856e615",
+        "receiptLine": 9
+      },
+      {
+        "input": "src/core/ListSpider.js",
+        "snapshotPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/src/core/ListSpider.js",
+        "receiptSha256": "30f6c417148ff3afebeae04387da5ce34c3362e19bfa22edd95991453fd87ca9",
+        "snapshotSha256": "5654be5848b67dcd48792b98336a83293e204176df26a3b1eadfccd89f0694ef",
+        "receiptLine": 12
+      },
+      {
+        "input": "src/core/Pipeline.js",
+        "snapshotPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/src/core/Pipeline.js",
+        "receiptSha256": "904cf044f4fd4199b963c526699d15de4ce718950c2bd3faeecac88572c795d9",
+        "snapshotSha256": "5aafd36a128291bbad74db69d45647c542ff0453fd2cef63b50d4c705f7fe236",
+        "receiptLine": 13
+      },
+      {
+        "input": "src/exporter/ExportManager.js",
+        "snapshotPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/src/exporter/ExportManager.js",
+        "receiptSha256": "faad58975b9ea694b7d590243148fc8ee95f01221dc8dd55644785b9ff9735bf",
+        "snapshotSha256": "65cc467d1832aa892be6af9bb719714cfaf4f61115bb885f9cbd58c511c453e8",
+        "receiptLine": 19
+      },
+      {
+        "input": "webpack.config.js",
+        "snapshotPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/webpack.config.js",
+        "receiptSha256": "3ca3625e481c84641deaa03ee270770142753c0969594a7db24510c7f9493b3f",
+        "snapshotSha256": "9727710f5c45535cc609076bba3c69973b8e88c8750947a1bbdf43c0ccef4eab",
+        "receiptLine": 34
+      }
+    ],
+    "gitHeadMatchesCapturedCore": true,
+    "builtAt": "2026-10-01T18:22:28.460Z",
+    "packageVersion": "1.0.0",
+    "protocolVersion": "1.0",
+    "evidence": [
+      {
+        "source": "scrapyJsChrome",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.source.json",
+        "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.source.json",
+        "startLine": 1,
+        "endLine": 43,
+        "sha256": "65627307a024644c291e143d38a67ae8f74c2d63a5be3e90570a173f90686b01",
+        "basis": "static-source"
+      },
+      {
+        "source": "scrapyJs",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/scripts/sdk-sync.cjs",
+        "snapshotRelativePath": "scrapyJs/scripts/sdk-sync.cjs",
+        "startLine": 58,
+        "endLine": 82,
+        "sha256": "67a0555bf2155c4305fb27df40c37803f78564f5ae0e6a88d9577445ac85c819",
+        "basis": "static-source"
+      },
+      {
+        "source": "scrapyJsChrome",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/scripts/extension-check.cjs",
+        "snapshotRelativePath": "scrapyJsChrome/scripts/extension-check.cjs",
+        "startLine": 118,
+        "endLine": 136,
+        "sha256": "c5ff804d2ee46e4cae56d36f32613c385bce45fd46d47627bbd97a87eecf20e8",
+        "basis": "static-source"
+      },
+      {
+        "source": "scrapyJsChrome",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/.sdk-backups/1790878948812-e882a430-37b0-475e-9ca5-4f8768e44fa9/transaction.json",
+        "snapshotRelativePath": "scrapyJsChrome/.sdk-backups/1790878948812-e882a430-37b0-475e-9ca5-4f8768e44fa9/transaction.json",
+        "startLine": 1,
+        "endLine": 15,
+        "sha256": "28b83eb9347195966a446ab10ba4d6017b0b608ab6aea6874a30ecd6be20338c",
+        "basis": "static-source"
+      }
+    ],
+    "conclusion": "receipt与已安装SDK bundle匹配且内部sourceHash自洽；与固定scrapyJs快照不匹配，五个输入已分叉。相同HEAD不能证明dirty/untracked输入一致。扩展现状以安装bundle为准，禁止用旧TS或当前core源码直接替代现状证据。"
+  },
+  "sourceChains": [
+    {
+      "id": "CHAIN-EXT",
+      "status": "active-installed",
+      "note": "manifest->MV3 worker->ChromePage/SDK/background.js->SCRAPYJS_RUN->已安装SDK。",
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/manifest.json",
+          "snapshotRelativePath": "scrapyJsChrome/manifest.json",
+          "startLine": 11,
+          "endLine": 12,
+          "sha256": "9e1f9a19eaf5925f2b4fb91fe27d69540e6ab01624ae15af14dec8ab1f4b36b3",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background-sw.js",
+          "snapshotRelativePath": "scrapyJsChrome/background-sw.js",
+          "startLine": 3,
+          "endLine": 21,
+          "sha256": "3614284f99cd7766f528c87b3df9549d7a337bc313ae84c753c4057cf20755fd",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15754,
+          "endLine": 15780,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16079,
+          "endLine": 16141,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        }
+      ]
+    },
+    {
+      "id": "CHAIN-TS",
+      "status": "historical-reference",
+      "note": "旧todo background.ts使用eval；编译background.js有新增RUN及ID响应链，不能直接互换。",
+      "evidence": [
+        {
+          "source": "todo-src-bex",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/todo-src-bex/src-bex/background.ts",
+          "snapshotRelativePath": "todo-src-bex/src-bex/background.ts",
+          "startLine": 33,
+          "endLine": 65,
+          "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+          "basis": "historical-source"
+        },
+        {
+          "source": "todo-src-bex",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/todo-src-bex/src-bex/background.ts",
+          "snapshotRelativePath": "todo-src-bex/src-bex/background.ts",
+          "startLine": 403,
+          "endLine": 418,
+          "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+          "basis": "historical-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15616,
+          "endLine": 15623,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15754,
+          "endLine": 15809,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        }
+      ]
+    },
+    {
+      "id": "CHAIN-SDK-MANUAL",
+      "status": "dirty-snapshot-and-transaction",
+      "note": "ledger记录SDK modified/receipt untracked；transaction.before记录旧SDK hash，after对应本次bundle和receipt。记录未签名，不证明操作者身份、完整历史或权属。",
+      "evidence": [
+        {
+          "source": "ledger",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+          "snapshotRelativePath": null,
+          "startLine": 7,
+          "endLine": 14,
+          "sha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/.sdk-backups/1790878948812-e882a430-37b0-475e-9ca5-4f8768e44fa9/transaction.json",
+          "snapshotRelativePath": "scrapyJsChrome/.sdk-backups/1790878948812-e882a430-37b0-475e-9ca5-4f8768e44fa9/transaction.json",
+          "startLine": 1,
+          "endLine": 15,
+          "sha256": "28b83eb9347195966a446ab10ba4d6017b0b608ab6aea6874a30ecd6be20338c",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.source.json",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.source.json",
+          "startLine": 1,
+          "endLine": 43,
+          "sha256": "65627307a024644c291e143d38a67ae8f74c2d63a5be3e90570a173f90686b01",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJs",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/scripts/sdk-sync.cjs",
+          "snapshotRelativePath": "scrapyJs/scripts/sdk-sync.cjs",
+          "startLine": 190,
+          "endLine": 221,
+          "sha256": "67a0555bf2155c4305fb27df40c37803f78564f5ae0e6a88d9577445ac85c819",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "CHAIN-HAND-CONFIG",
+      "status": "reachable-static",
+      "note": "手改JSON->内存/本地单key->结构化RUN->SDK提取->结果反推并覆盖config。input预览仅投影旧数据；codeArea手改不进入Start执行链。",
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1682,
+          "endLine": 1707,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1327,
+          "endLine": 1358,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1737,
+          "endLine": 1740,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16091,
+          "endLine": 16115,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 2504,
+          "endLine": 2586,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1780,
+          "endLine": 1795,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    }
+  ],
+  "behaviors": [
+    {
+      "id": "SRC-01",
+      "domain": "source-chain",
+      "title": "实际加载入口与历史TS",
+      "classification": "preserve",
+      "currentBehavior": "manifest指定background-sw.js；worker加载ChromePage.js、scrapyJs.js、background.js。爬虫窗口是popup_crawl.html，加载popup_crawl.js与tb-bridge.js；background.js中的src-bex/background.ts仅是编译来源标记。",
+      "stage01ContractImplication": "按实际加载文件审计现状。todo TS仅为历史参考；不能用旧TS覆盖编译bundle。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/manifest.json",
+          "snapshotRelativePath": "scrapyJsChrome/manifest.json",
+          "startLine": 11,
+          "endLine": 17,
+          "sha256": "9e1f9a19eaf5925f2b4fb91fe27d69540e6ab01624ae15af14dec8ab1f4b36b3",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background-sw.js",
+          "snapshotRelativePath": "scrapyJsChrome/background-sw.js",
+          "startLine": 3,
+          "endLine": 21,
+          "sha256": "3614284f99cd7766f528c87b3df9549d7a337bc313ae84c753c4057cf20755fd",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background-sw.js",
+          "snapshotRelativePath": "scrapyJsChrome/background-sw.js",
+          "startLine": 75,
+          "endLine": 84,
+          "sha256": "3614284f99cd7766f528c87b3df9549d7a337bc313ae84c753c4057cf20755fd",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15616,
+          "endLine": 15623,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 17221,
+          "endLine": 17234,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.html",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.html",
+          "startLine": 7,
+          "endLine": 8,
+          "sha256": "f169906a494432c771c84bb3f9ecf4e0f49c54953764d98fab61a1e4d371459a",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "SRC-02",
+      "domain": "source-chain",
+      "title": "安装SDK与固定core分叉",
+      "classification": "adapt",
+      "currentBehavior": "receipt与已安装SDK bundle匹配且内部sourceHash自洽；与固定scrapyJs快照不匹配，五个输入已分叉。相同HEAD不能证明dirty/untracked输入一致。扩展现状以安装bundle为准，禁止用旧TS或当前core源码直接替代现状证据。",
+      "stage01ContractImplication": "合同并列installedSdkHash与capturedCoreSourceHash；失配源码只作为后续参考。阶段01不重建、不同步。",
+      "availability": "provenance-verified",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.source.json",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.source.json",
+          "startLine": 1,
+          "endLine": 43,
+          "sha256": "65627307a024644c291e143d38a67ae8f74c2d63a5be3e90570a173f90686b01",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJs",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/scripts/sdk-sync.cjs",
+          "snapshotRelativePath": "scrapyJs/scripts/sdk-sync.cjs",
+          "startLine": 58,
+          "endLine": 82,
+          "sha256": "67a0555bf2155c4305fb27df40c37803f78564f5ae0e6a88d9577445ac85c819",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/scripts/extension-check.cjs",
+          "snapshotRelativePath": "scrapyJsChrome/scripts/extension-check.cjs",
+          "startLine": 118,
+          "endLine": 136,
+          "sha256": "c5ff804d2ee46e4cae56d36f32613c385bce45fd46d47627bbd97a87eecf20e8",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/.sdk-backups/1790878948812-e882a430-37b0-475e-9ca5-4f8768e44fa9/transaction.json",
+          "snapshotRelativePath": "scrapyJsChrome/.sdk-backups/1790878948812-e882a430-37b0-475e-9ca5-4f8768e44fa9/transaction.json",
+          "startLine": 1,
+          "endLine": 15,
+          "sha256": "28b83eb9347195966a446ab10ba4d6017b0b608ab6aea6874a30ecd6be20338c",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "SEL-01",
+      "domain": "selection",
+      "title": "点击选中整个列表容器",
+      "classification": "preserve",
+      "currentBehavior": "startTableSelection取消上一轮同类选择；悬停、点击沿祖先寻找列表，受minChildren、尺寸和相似度启发式限制。成功后lists只含手选列表、currentIndex=0，抽取并发送数据。",
+      "stage01ContractImplication": "保留用户确认列表容器；可视化说明记录范围，点击单个节点不等于选择单个字段。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "startLine": 378,
+          "endLine": 408,
+          "sha256": "3f08caf355f193eeed459065c67a196e711dc4fe1aa31ca13c739317544cdaf1",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "startLine": 433,
+          "endLine": 496,
+          "sha256": "3f08caf355f193eeed459065c67a196e711dc4fe1aa31ca13c739317544cdaf1",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "startLine": 499,
+          "endLine": 565,
+          "sha256": "3f08caf355f193eeed459065c67a196e711dc4fe1aa31ca13c739317544cdaf1",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "SEL-02",
+      "domain": "selection",
+      "title": "有效选区和另一个表格",
+      "classification": "adapt",
+      "currentBehavior": "getTableData优先当前索引，其次手选列表；next优先isManualSelection，再自定义或循环候选。有手选列表时另一个表格可能仍是同一个手选项；无选区返回null。",
+      "stage01ContractImplication": "分开currentSelection、候选和清除手选动作；新选区无数据不得沿用旧预览。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/listSelectorCore.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/listSelectorCore.js",
+          "startLine": 149,
+          "endLine": 208,
+          "sha256": "6c58316b20f58b0ad63bb77c080e3007f5fb7c112371b8c4884719960ee00dc4",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "startLine": 21,
+          "endLine": 82,
+          "sha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1643,
+          "endLine": 1668,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "SEL-03",
+      "domain": "selection",
+      "title": "取消选区未形成消息闭环",
+      "classification": "adapt",
+      "currentBehavior": "UI有cancelTableSelection/cancelNextButtonSelection清理函数；后台selectorAction没有cancel分支，所审计选择UI未找到Escape分支。",
+      "stage01ContractImplication": "明确cancelSelection及监听/高亮清理结果，与stopRun分离。",
+      "availability": "local-method-only",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "startLine": 210,
+          "endLine": 234,
+          "sha256": "3f08caf355f193eeed459065c67a196e711dc4fe1aa31ca13c739317544cdaf1",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "startLine": 554,
+          "endLine": 565,
+          "sha256": "3f08caf355f193eeed459065c67a196e711dc4fe1aa31ca13c739317544cdaf1",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16212,
+          "endLine": 16233,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        }
+      ]
+    },
+    {
+      "id": "SEL-04",
+      "domain": "selection",
+      "title": "模块注入存在静态缺口",
+      "classification": "adapt",
+      "currentBehavior": "内容脚本在bilivip/isClient条件下以module script注入ListSelector；后台fallback却用executeScript(files)加载含import/export的ListSelector.js；scrapyJsHelper.js全部非空行是//注释。",
+      "stage01ContractImplication": "把module/classic加载一致性作为后续验收前置条件；日志NO CSP ERRORS不等于浏览器实测成功。",
+      "availability": "static-integration-gap",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": "仅为静态加载形式不一致，未报告浏览器实测异常。",
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/my-content-script.js",
+          "snapshotRelativePath": "scrapyJsChrome/my-content-script.js",
+          "startLine": 839,
+          "endLine": 862,
+          "sha256": "c7700d7470c0b89caa5d25698574d353de4cd581f18d2692c60284f91b804c77",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/env.json",
+          "snapshotRelativePath": "scrapyJsChrome/assets/env.json",
+          "startLine": 12,
+          "endLine": 15,
+          "sha256": "5ed4dba9860767ef49b44601a67a9033fe6e2a21596d05b8f8201071fc39e725",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/ListSelector.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/ListSelector.js",
+          "startLine": 1,
+          "endLine": 30,
+          "sha256": "12e0104aab884e58fc4784dffd34300c06ffb9106c42ed190b84699d83195b5a",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16627,
+          "endLine": 16659,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJsHelper.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJsHelper.js",
+          "startLine": 1,
+          "endLine": 5,
+          "sha256": "4b40cf66e5317e197f94191449101290eb4f02e3d12c20a3326baf12998b115a",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "SEL-05",
+      "domain": "selection",
+      "title": "活动tab和默认主frame",
+      "classification": "adapt",
+      "currentBehavior": "manifest all_frames=true；选择动作与ChromePage.evaluate实际只指定tabId，未带frameId。调用重查活动非扩展tab，page/selector为全局单例。",
+      "stage01ContractImplication": "合同绑定tabId/frameId/document或snapshot身份；导航/切tab使旧选区失效。all_frames不能证明任意iframe采集已支持。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/manifest.json",
+          "snapshotRelativePath": "scrapyJsChrome/manifest.json",
+          "startLine": 18,
+          "endLine": 24,
+          "sha256": "9e1f9a19eaf5925f2b4fb91fe27d69540e6ab01624ae15af14dec8ab1f4b36b3",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16181,
+          "endLine": 16191,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/ChromePage.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/ChromePage.js",
+          "startLine": 1157,
+          "endLine": 1166,
+          "sha256": "6d745900dacd5ec5b0a5138148733baba4d83d3418a289931c211c0a36b1a47c",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/ChromePage.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/ChromePage.js",
+          "startLine": 1173,
+          "endLine": 1206,
+          "sha256": "6d745900dacd5ec5b0a5138148733baba4d83d3418a289931c211c0a36b1a47c",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/ChromePage.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/ChromePage.js",
+          "startLine": 1269,
+          "endLine": 1288,
+          "sha256": "6d745900dacd5ec5b0a5138148733baba4d83d3418a289931c211c0a36b1a47c",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "FLD-01",
+      "domain": "fields",
+      "title": "列表容器与字段提取ABI",
+      "classification": "preserve",
+      "currentBehavior": "SDK ItemLoader用_listContainer首个CSS命中容器并遍历直接children；无容器从document提取详情。字段支持字符串selector::attribute、嵌套对象；CSS查后代，//前缀走XPath；零/单/多命中分别为空串/标量/数组。",
+      "stage01ContractImplication": "保留CSS及显式属性和_listContainer兼容映射；标注rowMode=directChildren、命中数、记录自身与后代差异。XPath现状存在不代表新合同应自动支持。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 2504,
+          "endLine": 2563,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 2566,
+          "endLine": 2586,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        }
+      ]
+    },
+    {
+      "id": "FLD-02",
+      "domain": "fields",
+      "title": "自动字段依赖首行及选择器字符串",
+      "classification": "adapt",
+      "currentBehavior": "processDataAndConfig只从第一行建立配置；移除key开头点号、忽略_和[href=；text+href拆成文本/-url，复杂对象截断到100字符。选择器key不是明确业务字段命名。",
+      "stage01ContractImplication": "定义key/label/selector/attribute/type/required/order；保留原值和来源，首行不能证明字段覆盖。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 865,
+          "endLine": 940,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "startLine": 423,
+          "endLine": 476,
+          "sha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "FLD-03",
+      "domain": "fields",
+      "title": "跨行链接图片去重及表头假设",
+      "classification": "adapt",
+      "currentBehavior": "一次getTableData共用processedHrefs/processedSrcs，多个记录同href/src后续可能丢该属性；table分支把第一行当header并跳过。",
+      "stage01ContractImplication": "不能因共享链接/图片静默删除不同记录的数据；验收同URL两条记录及无表头table。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "startLine": 62,
+          "endLine": 67,
+          "sha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "startLine": 120,
+          "endLine": 139,
+          "sha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "startLine": 287,
+          "endLine": 315,
+          "sha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "startLine": 336,
+          "endLine": 365,
+          "sha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+          "startLine": 373,
+          "endLine": 414,
+          "sha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "FLD-04",
+      "domain": "fields",
+      "title": "默认title过滤未适配通用字段",
+      "classification": "adapt",
+      "currentBehavior": "popup提交pipelines:[]；后台默认pipeline丢弃!item.title记录。自动生成配置并不保证key名为title。",
+      "stage01ContractImplication": "按明确required/schema处理，回传过滤原因/数量，不能把title默认成所有任务必需字段。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1737,
+          "endLine": 1740,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 882,
+          "endLine": 912,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16095,
+          "endLine": 16109,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1437,
+          "endLine": 1455,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        }
+      ]
+    },
+    {
+      "id": "PRE-01",
+      "domain": "preview",
+      "title": "手改JSON预览没有重新提取",
+      "classification": "adapt",
+      "currentBehavior": "input仅对originalRawData简化后按newConfig key重排/补空，没有执行新selector或容器。改选择器、改容器、增加新key无法读取新DOM。",
+      "stage01ContractImplication": "preview需带configRevision/pageSnapshot，使用同一提取契约执行；旧数据标stale，返回字段命中/空值。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 943,
+          "endLine": 975,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1682,
+          "endLine": 1707,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "PRE-02",
+      "domain": "preview",
+      "title": "显示列与导出数据不同",
+      "classification": "adapt",
+      "currentBehavior": "setTableData按configOrder显示列，却将全量formatTableData存currentData；后者按全部行字段并集补齐。导出直接读currentData，可能包含未显示字段，顺序也未保证与UI一致。",
+      "stage01ContractImplication": "显示、复制、导出共享显式字段投影和顺序及同一configRevision。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 414,
+          "endLine": 444,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 504,
+          "endLine": 559,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 569,
+          "endLine": 570,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1838,
+          "endLine": 1864,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "PRE-03",
+      "domain": "preview",
+      "title": "UI运行统计没有完整SDK终态",
+      "classification": "adapt",
+      "currentBehavior": "popup仅idle/running/success/error，DOM行数用于显示统计；后台只返回data及pageCount/itemCount，没有SDK的runResult、delivery、filtered/discarded/partial。空结果在UI标error。",
+      "stage01ContractImplication": "区分preview/run结果；定义empty/failed/partial/stopping/stopped与导出ack，不能把UI行数当完整进度。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1011,
+          "endLine": 1023,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1070,
+          "endLine": 1108,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1766,
+          "endLine": 1774,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16112,
+          "endLine": 16141,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1334,
+          "endLine": 1357,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        }
+      ]
+    },
+    {
+      "id": "CFG-01",
+      "domain": "configuration",
+      "title": "本地保存恢复已有链路",
+      "classification": "preserve",
+      "currentBehavior": "有数据的选区事件和合法JSON input写chrome.storage.local.scraperConfig；初始化读同key。customHeaders/language独立存储。",
+      "stage01ContractImplication": "保留本地配置及显示名持久化，合同说明写入确认/读取失败。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1474,
+          "endLine": 1498,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1682,
+          "endLine": 1707,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 688,
+          "endLine": 713,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1894,
+          "endLine": 1901,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "CFG-02",
+      "domain": "configuration",
+      "title": "配置不是版本化完整档案",
+      "classification": "adapt",
+      "currentBehavior": "scraperConfig为全局单key，无版本/revision/页面绑定；仅JSON parse校验，写入未等待ack。nextPageSelector、delay、无限开关不随该key保存。另一个表格及完成采集重建内存config而非总同步存储。",
+      "stage01ContractImplication": "完整envelope及来源/迁移/错误合同；明确何时覆盖与保存；结果不能无确认替换用户选择器映射。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 181,
+          "endLine": 186,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1327,
+          "endLine": 1358,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1643,
+          "endLine": 1668,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1682,
+          "endLine": 1707,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1780,
+          "endLine": 1795,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1894,
+          "endLine": 1901,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "CFG-03",
+      "domain": "configuration",
+      "title": "手改容器可能被旧listSelector覆盖",
+      "classification": "adapt",
+      "currentBehavior": "JSON input更新config，却不更新独立全局listSelector。buildSpiderConfig优先listSelector覆盖itemConfig._listContainer；例如先选A，再把JSON容器改成B，Start仍可能提交A。",
+      "stage01ContractImplication": "容器采用唯一配置真源；手改容器使旧选区/预览失效，提交时展示实际容器与revision；不能默默覆盖用户输入。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 181,
+          "endLine": 186,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1470,
+          "endLine": 1485,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1682,
+          "endLine": 1704,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1327,
+          "endLine": 1333,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "CFG-04",
+      "domain": "configuration",
+      "title": "运行结果反推配置会丢原selector映射",
+      "classification": "adapt",
+      "currentBehavior": "采集数组完成后再调processDataAndConfig(crawledData,listSelector)，并以configObj替换config。对已是业务字段的结果，如title:\"产品A\"，会生成title:\"title\"，从而丢原title:\".title\"选择器；后续再运行可能查询错误元素。此覆盖分支未同步保存scraperConfig，内存/恢复配置还会分叉。",
+      "stage01ContractImplication": "结果只更新结果集，不反推替换已确认提取配置；如果要生成新配置，另建proposal/revision供明确审查。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 882,
+          "endLine": 894,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1780,
+          "endLine": 1795,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "MSG-01",
+      "domain": "messages",
+      "title": "ID响应和等待超时",
+      "classification": "preserve",
+      "currentBehavior": "popup生成requestId/meta协议1.0，检查存在的响应ID；execute等30秒，RUN等120秒。后台success/requestId/errorCode/data封装并return true支持异步。",
+      "stage01ContractImplication": "保留相关性与可诊断错误；超时仅结束调用方等待，不代表后台已停止。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 82,
+          "endLine": 172,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 805,
+          "endLine": 861,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15628,
+          "endLine": 15648,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15679,
+          "endLine": 15700,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15789,
+          "endLine": 15809,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        }
+      ]
+    },
+    {
+      "id": "MSG-02",
+      "domain": "messages",
+      "title": "版本、sender和页面授权未闭合",
+      "classification": "adapt",
+      "currentBehavior": "后台兼容detail/data/hid_，缺ID自动生成，所审计dispatcher未强制验protocolVersion/sender业务授权；getRequestId不一致异常在异步try之前。页面CustomEvent可构造消息；BEX window message仅检查source===window和from。",
+      "stage01ContractImplication": "限定版本、必需ID、消息枚举、sender/document身份和payload边界；错误走可响应通道。requestId不是许可凭据。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15631,
+          "endLine": 15648,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15713,
+          "endLine": 15809,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/core/custom_event.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/core/custom_event.js",
+          "startLine": 10,
+          "endLine": 53,
+          "sha256": "07389bfd0681f92a6a4acc135dda5a9bf9e4f22f59276b851b4eab20c1ca8cb4",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/my-content-script.js",
+          "snapshotRelativePath": "scrapyJsChrome/my-content-script.js",
+          "startLine": 613,
+          "endLine": 627,
+          "sha256": "c7700d7470c0b89caa5d25698574d353de4cd581f18d2692c60284f91b804c77",
+          "basis": "compiled-active"
+        }
+      ]
+    },
+    {
+      "id": "MSG-03",
+      "domain": "messages",
+      "title": "选区事件没有业务快照绑定",
+      "classification": "adapt",
+      "currentBehavior": "ListSelector发送ScrapyJs.selected_tableData/selected_nextPageBtn至CHROME_BRIDGE_POPUP；CustomEvent包装新ID；后台拆BridgeEventName送TB.bridge；popup处理res.data，未检查selectionId/runId/configRevision/document。",
+      "stage01ContractImplication": "保留兼容适配层，结果必须绑定选区/配置/页面身份，迟到结果不能覆盖新任务。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/listSelectorCore.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/listSelectorCore.js",
+          "startLine": 253,
+          "endLine": 282,
+          "sha256": "6c58316b20f58b0ad63bb77c080e3007f5fb7c112371b8c4884719960ee00dc4",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/core/custom_event.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/core/custom_event.js",
+          "startLine": 21,
+          "endLine": 45,
+          "sha256": "07389bfd0681f92a6a4acc135dda5a9bf9e4f22f59276b851b4eab20c1ca8cb4",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15738,
+          "endLine": 15752,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/core/tb-bridge.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/core/tb-bridge.js",
+          "startLine": 170,
+          "endLine": 215,
+          "sha256": "0d8d0b19e1a373faaa976e201dc26a0b41d2b66d5c53d77d60e9dd97b8a3781b",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1438,
+          "endLine": 1489,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "MSG-04",
+      "domain": "messages",
+      "title": "手改代码不属于Start执行来源",
+      "classification": "preserve",
+      "currentBehavior": "Start通过SCRAPYJS_RUN传spiderConfig，不读取codeArea编辑；后台忽略字符串pipeline。CHROME_PAGE_EXECUTE先选择结构化action，仍保留script/code分支；旧TS直接eval。",
+      "stage01ContractImplication": "保留声明式运行入口；文案区分可执行手改JSON与生成代码展示。不得采用旧eval或把代码框编辑视为生效。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1327,
+          "endLine": 1358,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1710,
+          "endLine": 1740,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16095,
+          "endLine": 16109,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16144,
+          "endLine": 16168,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "todo-src-bex",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/todo-src-bex/src-bex/background.ts",
+          "snapshotRelativePath": "todo-src-bex/src-bex/background.ts",
+          "startLine": 403,
+          "endLine": 418,
+          "sha256": "8385cba260e2f0757cc39ee97c2486bcbb748798c6bec782da3fccc273be9720",
+          "basis": "historical-source"
+        }
+      ]
+    },
+    {
+      "id": "RUN-01",
+      "domain": "pagination",
+      "title": "单页限制与下一页按钮",
+      "classification": "preserve",
+      "currentBehavior": "下一页首次选中点击阻止导航，第二次允许自然导航。SDK按nextPageSelector找按钮/点击/等待，shouldClose限页；重复检测签名前5条，连续重复阈值3。",
+      "stage01ContractImplication": "保留单页和显式下一页来源；合同列页数与重复终止原因，重复退出不代表完整采集。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js",
+          "startLine": 158,
+          "endLine": 203,
+          "sha256": "3f08caf355f193eeed459065c67a196e711dc4fe1aa31ca13c739317544cdaf1",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1442,
+          "endLine": 1458,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 107,
+          "endLine": 183,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 188,
+          "endLine": 225,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        }
+      ]
+    },
+    {
+      "id": "RUN-02",
+      "domain": "pagination",
+      "title": "无限滚动及未消费设置",
+      "classification": "unsupported",
+      "currentBehavior": "infiniteScroll仅将CLOSESPIDER_PAGECOUNT设0/1，未接滚动采集；popup给maxPages=769、MIN_DELAY/MAX_DELAY，但安装SDK ChromeSpider未消费这些三个键，scheduler使用download_delay/config.delay。",
+      "stage01ContractImplication": "不将checkbox标签/769上限/未消费delay当已有能力。后续各需明确合同与验收。",
+      "availability": "unwired",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1327,
+          "endLine": 1358,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 97,
+          "endLine": 105,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 116,
+          "endLine": 225,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 855,
+          "endLine": 882,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        }
+      ]
+    },
+    {
+      "id": "STOP-01",
+      "domain": "stop",
+      "title": "SDK停止存在但UI与消息未接通",
+      "classification": "adapt",
+      "currentBehavior": "SDK stop标stopped/accepting=false并scheduler.stop清queue，回stopping/stopped；release等待owner或资源关闭。后台只存activeScrapyTask Promise，无STOP/PAUSE/RESUME handler，popup无这些提交入口。",
+      "stage01ContractImplication": "保留停止接纳语义证据，设计runId stop请求/ack/最终状态/部分结果；不宣称立即硬中断全部已发IO。",
+      "availability": "sdk-only",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1228,
+          "endLine": 1235,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1432,
+          "endLine": 1435,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1465,
+          "endLine": 1486,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15754,
+          "endLine": 15761,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16112,
+          "endLine": 16141,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1011,
+          "endLine": 1040,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "STOP-02",
+      "domain": "stop",
+      "title": "worker恢复及并行任务无保证",
+      "classification": "unsupported",
+      "currentBehavior": "内存activeScrapyTask拒绝第二个任务，完成/异常清空；没有此运行入口的持久化任务注册、checkpoint恢复、按runId停止。",
+      "stage01ContractImplication": "不支持worker重启后继续旧任务或并行独立任务的产品保证；设计unknown/orphaned结果或限制范围。",
+      "availability": "no-connected-contract",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15623,
+          "endLine": 15623,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16064,
+          "endLine": 16066,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 16112,
+          "endLine": 16141,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        }
+      ]
+    },
+    {
+      "id": "EXP-01",
+      "domain": "export",
+      "title": "CSV、JSON和复制入口",
+      "classification": "preserve",
+      "currentBehavior": "popup将currentData转CSV/pretty JSON，域名命名；CSV用custom header并转义逗号/引号/换行，JSON保留key；复制为CSV；Blob/objectURL/anchor.click触发下载。",
+      "stage01ContractImplication": "保留这些用户动作；合同列key与label、字段投影/顺序、空数据及下载启动语义。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 189,
+          "endLine": 205,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 717,
+          "endLine": 746,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1838,
+          "endLine": 1864,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "EXP-02",
+      "domain": "export",
+      "title": "发起下载不是确认保存",
+      "classification": "adapt",
+      "currentBehavior": "popup下载没有downloadId、完成/失败回执和revokeObjectURL；SDK browser sink回download-initiated，FeedExport记deliveryUnknown；无DOM运行时需explicit sink。",
+      "stage01ContractImplication": "区分generated/download-initiated/completed/failed/unknown；SDK memory结果不等于文件已落盘。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 189,
+          "endLine": 196,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1854,
+          "endLine": 1866,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1901,
+          "endLine": 1933,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 2052,
+          "endLine": 2065,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        }
+      ]
+    },
+    {
+      "id": "EXP-03",
+      "domain": "export",
+      "title": "额外格式仅SDK能力",
+      "classification": "unsupported",
+      "currentBehavior": "SDK支持json/jsonl/csv/http，依Node fs/DOM/explicit sink；popup仅CSV/JSON，spiderConfig未配置output/exportOptions，没有XLSX/自动云保存/断点导出入口。",
+      "stage01ContractImplication": "JSONL/HTTP/Node文件写入标SDK-only，不写成当前Browser产品支持。",
+      "availability": "sdk-only",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1841,
+          "endLine": 1881,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 2045,
+          "endLine": 2065,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1327,
+          "endLine": 1358,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 1838,
+          "endLine": 1855,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "EXP-04",
+      "domain": "export",
+      "title": "类型和CSV安全策略不统一",
+      "classification": "adapt",
+      "currentBehavior": "popup CSV以String(value)输出，SDK先flatten；两处CSV转义没有公式前缀治理。部分helper将0/false经||变空；popup原生JSON.stringify和SDK校验型stringify不一致。",
+      "stage01ContractImplication": "合同统一空值/类型/数组/对象策略；审核0、false、换行、公式文本导出样例。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 994,
+          "endLine": 1001,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.js",
+          "startLine": 724,
+          "endLine": 746,
+          "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1626,
+          "endLine": 1656,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+          "startLine": 1659,
+          "endLine": 1678,
+          "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+          "basis": "installed-sdk"
+        }
+      ]
+    },
+    {
+      "id": "AI-01",
+      "domain": "ai-config",
+      "title": "AISelectorContract未接入有效链路",
+      "classification": "unsupported",
+      "currentBehavior": "独立UMD有request/snapshot与候选字段校验，compileProposal仅允许pagination.none；固定扩展JS/HTML/CJS/JSON搜索未找到加载或调用引用，只有自身AISelectorContract赋值。",
+      "stage01ContractImplication": "可列设计候选，不可说AI字段、snapshot防过期或候选来源验证已保护popup。",
+      "availability": "unwired",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/ai/selector-contract.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/ai/selector-contract.js",
+          "startLine": 1,
+          "endLine": 12,
+          "sha256": "95e42bf1bec6ede99eeed509600e254dd9c060b78702a53bf7bf8b672b88b773",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/ai/selector-contract.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/ai/selector-contract.js",
+          "startLine": 44,
+          "endLine": 76,
+          "sha256": "95e42bf1bec6ede99eeed509600e254dd9c060b78702a53bf7bf8b672b88b773",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/ai/selector-contract.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/ai/selector-contract.js",
+          "startLine": 78,
+          "endLine": 100,
+          "sha256": "95e42bf1bec6ede99eeed509600e254dd9c060b78702a53bf7bf8b672b88b773",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background-sw.js",
+          "snapshotRelativePath": "scrapyJsChrome/background-sw.js",
+          "startLine": 3,
+          "endLine": 21,
+          "sha256": "3614284f99cd7766f528c87b3df9549d7a337bc313ae84c753c4057cf20755fd",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.html",
+          "snapshotRelativePath": "scrapyJsChrome/www/popup_crawl.html",
+          "startLine": 7,
+          "endLine": 8,
+          "sha256": "f169906a494432c771c84bb3f9ecf4e0f49c54953764d98fab61a1e4d371459a",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "PER-01",
+      "domain": "permissions",
+      "title": "浏览器权限与商业许可分开",
+      "classification": "adapt",
+      "currentBehavior": "manifest声明<all_urls>/all_frames及scripting/storage/cookies/tabs/history/proxy/webRequest等权限。",
+      "stage01ContractImplication": "合同明确任务读取/注入/存储/下载边界与不支持页面；manifest权限不能当版权许可或上线批准。",
+      "availability": "reachable-static",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/manifest.json",
+          "snapshotRelativePath": "scrapyJsChrome/manifest.json",
+          "startLine": 18,
+          "endLine": 24,
+          "sha256": "9e1f9a19eaf5925f2b4fb91fe27d69540e6ab01624ae15af14dec8ab1f4b36b3",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/manifest.json",
+          "snapshotRelativePath": "scrapyJsChrome/manifest.json",
+          "startLine": 47,
+          "endLine": 91,
+          "sha256": "9e1f9a19eaf5925f2b4fb91fe27d69540e6ab01624ae15af14dec8ab1f4b36b3",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "id": "LIC-01",
+      "domain": "license",
+      "title": "收费发布证据尚未成立",
+      "classification": "unsupported",
+      "currentBehavior": "todo有MIT正文，core仅ISC声明且快照scope未包含LICENSE；扩展全范围快照无项目级LICENSE/NOTICE。头注释/lock只提供部分证据。",
+      "stage01ContractImplication": "禁止宣称可收费上线。补本体、编译/手改衍生、依赖/素材授权和通知，负责人独立审查。",
+      "availability": "evidence-incomplete",
+      "confidence": "high",
+      "runtimeVerified": false,
+      "gap": null,
+      "evidence": [
+        {
+          "source": "todo-src-bex",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/todo-src-bex/LICENSE",
+          "snapshotRelativePath": "todo-src-bex/LICENSE",
+          "startLine": 1,
+          "endLine": 21,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+          "basis": "license-text"
+        },
+        {
+          "source": "scrapyJs",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/package.json",
+          "snapshotRelativePath": "scrapyJs/package.json",
+          "startLine": 69,
+          "endLine": 70,
+          "sha256": "a46fc3a71d5a5882923dc818c648432907860d4e056f0ab8e859652f4c771f84",
+          "basis": "static-source"
+        },
+        {
+          "source": "ledger",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+          "snapshotRelativePath": null,
+          "startLine": 1360,
+          "endLine": 1375,
+          "sha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+          "basis": "static-source"
+        },
+        {
+          "source": "ledger",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+          "snapshotRelativePath": null,
+          "startLine": 1922,
+          "endLine": 1943,
+          "sha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/TraceTimeUtil.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/TraceTimeUtil.js",
+          "startLine": 1,
+          "endLine": 2,
+          "sha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+          "basis": "static-source"
+        }
+      ]
+    }
+  ],
+  "dispositionLists": {
+    "preserve": [
+      "SRC-01",
+      "SEL-01",
+      "FLD-01",
+      "CFG-01",
+      "MSG-01",
+      "MSG-04",
+      "RUN-01",
+      "EXP-01"
+    ],
+    "adapt": [
+      "SRC-02",
+      "SEL-02",
+      "SEL-03",
+      "SEL-04",
+      "SEL-05",
+      "FLD-02",
+      "FLD-03",
+      "FLD-04",
+      "PRE-01",
+      "PRE-02",
+      "PRE-03",
+      "CFG-02",
+      "CFG-03",
+      "CFG-04",
+      "MSG-02",
+      "MSG-03",
+      "STOP-01",
+      "EXP-02",
+      "EXP-04",
+      "PER-01"
+    ],
+    "unsupported": [
+      "RUN-02",
+      "STOP-02",
+      "EXP-03",
+      "AI-01",
+      "LIC-01"
+    ]
+  },
+  "licenseEvidence": [
+    {
+      "subject": "todo-src-bex 项目许可",
+      "kind": "full-license-text",
+      "license": "MIT",
+      "observed": "LICENSE包含Copyright(c)2021 cool-team-official及保留版权/许可通知条件。",
+      "gaps": [
+        "正文存在不证明所有vendor、图片、字体、修改和编译衍生均有完整授权链。",
+        "package作者标识不同，不能据此确认所有修改者权属。"
+      ],
+      "evidence": [
+        {
+          "source": "todo-src-bex",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/todo-src-bex/LICENSE",
+          "snapshotRelativePath": "todo-src-bex/LICENSE",
+          "startLine": 1,
+          "endLine": 21,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+          "basis": "license-text"
+        },
+        {
+          "source": "todo-src-bex",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/todo-src-bex/package.json",
+          "snapshotRelativePath": "todo-src-bex/package.json",
+          "startLine": 1,
+          "endLine": 7,
+          "sha256": "aec253e44076df13fed4d4b817c76bf37efbd89cd293747ea150eb63fc5c0eba",
+          "basis": "historical-source"
+        }
+      ]
+    },
+    {
+      "subject": "scrapyJs 项目许可",
+      "kind": "declaration-only",
+      "license": "ISC",
+      "observed": "package及lock根包声明ISC；author为空。",
+      "gaps": [
+        "快照scope未包含LICENSE/NOTICE正文，不能据此断言原仓库不存在许可证。",
+        "缺明确版权归属、正文及分发通知依据。"
+      ],
+      "evidence": [
+        {
+          "source": "scrapyJs",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/package.json",
+          "snapshotRelativePath": "scrapyJs/package.json",
+          "startLine": 69,
+          "endLine": 70,
+          "sha256": "a46fc3a71d5a5882923dc818c648432907860d4e056f0ab8e859652f4c771f84",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJs",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/package-lock.json",
+          "snapshotRelativePath": "scrapyJs/package-lock.json",
+          "startLine": 1,
+          "endLine": 12,
+          "sha256": "0ca66beeb7d8b17ddb4a2d2d96330e632714c8d1713ddafe9ce491eca2a3df84",
+          "basis": "static-source"
+        },
+        {
+          "source": "ledger",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+          "snapshotRelativePath": null,
+          "startLine": 1360,
+          "endLine": 1375,
+          "sha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "subject": "scrapyJsChrome 本体与手改/编译链",
+      "kind": "project-license-gap",
+      "license": null,
+      "observed": "scope=[.]的265个文件无LICENSE/COPYING/NOTICE文件；TraceTimeUtil有Copyright time-review, Inc.注释。",
+      "gaps": [
+        "扩展本体许可正文与归属未证明。",
+        "编译标记不证明bundle属于todo MIT覆盖范围；当前新增/手改代码作者及授权缺证。",
+        "vendor、SDK嵌入依赖、图片、图标、字体完整分发清单未完成。"
+      ],
+      "evidence": [
+        {
+          "source": "ledger",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-ledger.json",
+          "snapshotRelativePath": null,
+          "startLine": 7,
+          "endLine": 14,
+          "sha256": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/background.js",
+          "snapshotRelativePath": "scrapyJsChrome/background.js",
+          "startLine": 15616,
+          "endLine": 15623,
+          "sha256": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+          "basis": "compiled-active"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/TraceTimeUtil.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/plugins/TraceTimeUtil.js",
+          "startLine": 1,
+          "endLine": 2,
+          "sha256": "1d76418b20a9921c7573d6cf87e6dde4d249bbe84ea5e8652b715b5985529a29",
+          "basis": "static-source"
+        }
+      ]
+    },
+    {
+      "subject": "第三方头注释实例",
+      "kind": "vendor-headers",
+      "license": "partial MIT headers",
+      "observed": "Socket.IO/Quasar注明MIT；React指上游LICENSE；Lodash/Moment注明MIT；jQuery链接许可。",
+      "gaps": [
+        "头注释/URL不是本次读取的上游完整正文；未外网取证。",
+        "此处只是实例，不能构成所有vendor/bundle依赖/素材/字体的完整NOTICE。"
+      ],
+      "evidence": [
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/socket.io.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/socket.io.js",
+          "startLine": 1,
+          "endLine": 5,
+          "sha256": "a219b96d0ba8e32441c99acedc91641e7531a1bd04b2e70abf34c0e19510f3b8",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/www/quasar.umd.js",
+          "snapshotRelativePath": "scrapyJsChrome/www/quasar.umd.js",
+          "startLine": 1,
+          "endLine": 5,
+          "sha256": "0a83c0d3daf25d11781afc362a6195512eb31c86d8f09e764c59d84eae2b89aa",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/react.development.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/react.development.js",
+          "startLine": 1,
+          "endLine": 9,
+          "sha256": "857364e2b982318417025fb9b4b8355c09f75fa46ba0be93f520f769f6757a78",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/lodash.min.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/libs/lodash.min.js",
+          "startLine": 1,
+          "endLine": 8,
+          "sha256": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJsChrome",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/moment.min.js",
+          "snapshotRelativePath": "scrapyJsChrome/assets/js/libs/moment.min.js",
+          "startLine": 1,
+          "endLine": 5,
+          "sha256": "d618d4869738e0dc22360f0ec0cbb6433257843f24723fac240dda0906685238",
+          "basis": "static-source"
+        },
+        {
+          "source": "todo-src-bex",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/todo-src-bex/src-bex/assets/js/jquery.min.js",
+          "snapshotRelativePath": "todo-src-bex/src-bex/assets/js/jquery.min.js",
+          "startLine": 1,
+          "endLine": 1,
+          "sha256": "87083882cc6015984eb0411a99d3981817f5dc5c90ba24f0940420c5548d82de",
+          "basis": "historical-source"
+        }
+      ]
+    },
+    {
+      "subject": "core依赖lock元数据",
+      "kind": "lock-declarations",
+      "license": "mixed",
+      "observed": "axios1.15.0、cheerio1.2.0条目声明MIT；webpack5.95.0对应条目未含license字段。",
+      "gaps": [
+        "元数据不是版权通知或许可证全文，不证明实际分发SBOM。",
+        "缺字段不等于无授权；构建依赖不能自动算进运行时分发。"
+      ],
+      "evidence": [
+        {
+          "source": "scrapyJs",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/package-lock.json",
+          "snapshotRelativePath": "scrapyJs/package-lock.json",
+          "startLine": 1077,
+          "endLine": 1082,
+          "sha256": "0ca66beeb7d8b17ddb4a2d2d96330e632714c8d1713ddafe9ce491eca2a3df84",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJs",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/package-lock.json",
+          "snapshotRelativePath": "scrapyJs/package-lock.json",
+          "startLine": 1318,
+          "endLine": 1323,
+          "sha256": "0ca66beeb7d8b17ddb4a2d2d96330e632714c8d1713ddafe9ce491eca2a3df84",
+          "basis": "static-source"
+        },
+        {
+          "source": "scrapyJs",
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/source-snapshots/scrapyJs/package-lock.json",
+          "snapshotRelativePath": "scrapyJs/package-lock.json",
+          "startLine": 4957,
+          "endLine": 4963,
+          "sha256": "0ca66beeb7d8b17ddb4a2d2d96330e632714c8d1713ddafe9ce491eca2a3df84",
+          "basis": "static-source"
+        }
+      ]
+    }
+  ],
+  "dependencyLicenseMetadataSummary": {
+    "entriesIncludingRoot": 414,
+    "declarations": {
+      "0BSD": 1,
+      "<missing>": 279,
+      "Apache-2.0": 2,
+      "BSD-2-Clause": 10,
+      "BSD-3-Clause": 4,
+      "ISC": 5,
+      "MIT": 101,
+      "MPL-2.0": 12
+    },
+    "isLegalClearance": false
+  },
+  "commercialLaunchClaim": "not-established",
+  "review": {
+    "independentXhighReview": "pending-owner-arrangement",
+    "newHumanFacingDocuments": [
+      "solution-overview",
+      "framework-decision",
+      "task-breakdown"
+    ],
+    "mustReview": [
+      "SDK输入分叉与bundle现状",
+      "选区字段预览配置覆盖链",
+      "message身份与停止终态",
+      "导出投影与download确认",
+      "项目第三方手改许可缺口"
+    ],
+    "note": "由主代理安排独立xhigh review；本写集不新增上述文档，不把旧high草稿视为批准结论。"
+  },
+  "validation": {
+    "passed": true,
+    "snapshotFilesReverified": 442,
+    "evidenceReferencesVerified": 171,
+    "behaviorCount": 33,
+    "dispositionCounts": {
+      "preserve": 8,
+      "adapt": 20,
+      "unsupported": 5
+    },
+    "markdownJsonIdsAgree": true,
+    "allEvidenceLineRangesAndHashesValid": true,
+    "receiptInputInventoryComplete": true,
+    "sourceFilesAndLedgerUnchanged": true,
+    "productionTestsRun": false,
+    "independentReviewComplete": false
+  }
+}

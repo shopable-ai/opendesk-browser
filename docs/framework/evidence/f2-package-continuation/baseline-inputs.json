@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-10-03T06:50:20Z",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "files": [
+    {
+      "path": "webpack.config.cjs",
+      "bytes": 1057,
+      "sha256": "edc501f24c6159d6709014a6e8db39f1011b66dbcd176c1691383b37d7a3d323"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "bytes": 1318,
+      "sha256": "600e594a039928d8ff5d5c125b04a054490dbd7d22b1b36053bd3b29be9f1aed"
+    },
+    {
+      "path": "scripts/verify-package.mjs",
+      "bytes": 5757,
+      "sha256": "917918d050fc2c35d39bed6b544644d9fae6e7f0f9ac3baee8f29ca6e02d9b11"
+    },
+    {
+      "path": "scripts/check-source.mjs",
+      "bytes": 488,
+      "sha256": "11bfa068d480dea4a918ceffeff0d53b2e3856fed18be4ed5a5baa96e7541659"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 630,
+      "sha256": "f6f111274e8b5b9424bb2e49c71f08988ea8f0af3efb5424a9c9c34cad3171b8"
+    },
+    {
+      "path": "tests/environment/package.test.mjs",
+      "bytes": 2108,
+      "sha256": "5dc900f82d2e1c5d5dd0842312449be18468280e7b54fd7b6a8a0df721351f8c"
+    },
+    {
+      "path": "tests/environment/boundaries.test.mjs",
+      "bytes": 10436,
+      "sha256": "8f4cdb48c36ce1712f53287993316eb0904223ca5bb108546ba70c9521f3aee8"
+    }
+  ]
+}

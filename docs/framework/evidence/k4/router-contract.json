@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "scope": "F2 SDK executor handoff; implementation and unit evidence, not F3 acceptance",
+  "protocol": "opendesk.foundation.v1",
+  "sdkVersion": "1.0.0",
+  "fixedEntries": {
+    "ISOLATED": {
+      "source": "src/agents/page-relay.js",
+      "webpackEntry": "agents/page-relay",
+      "output": "agents/page-relay.js"
+    },
+    "MAIN": {
+      "source": "src/framework/sdk/entry.js",
+      "webpackEntry": "framework/sdk-main",
+      "output": "framework/sdk-main.js"
+    },
+    "order": [
+      "ISOLATED relay exact document",
+      "MAIN sdk-main same exact document",
+      "actual SDK_HELLO native sender admission"
+    ]
+  },
+  "hello": {
+    "request": {
+      "protocol": "opendesk.foundation.v1",
+      "type": "SDK_HELLO",
+      "payload": {
+        "sdkVersion": "1.0.0"
+      }
+    },
+    "success": {
+      "ok": true,
+      "data": {
+        "sdkVersion": "1.0.0",
+        "ready": true,
+        "methods": "grant-filtered registry name array"
+      }
+    },
+    "failure": {
+      "ok": false,
+      "error": "FoundationError projection"
+    },
+    "requirements": "Only the main broker can make ready true after actual native sender/document/permission/grant validation. Registry metadata and page payloads grant nothing. SDK validates version and registered method subset."
+  },
+  "request": {
+    "requestShape": {
+      "protocol": "opendesk.foundation.v1",
+      "type": "SDK_REQUEST",
+      "payload": {
+        "requestId": "unique request ID",
+        "method": "registry allowlist name",
+        "argsWire": "shared encodeValue(args)",
+        "deadlineAt": "epoch milliseconds"
+      }
+    },
+    "forbidden": [
+      "bare args",
+      "sender",
+      "namespace",
+      "ownGrant",
+      "host",
+      "host registration",
+      "controller creation"
+    ],
+    "brokerNormalization": "decodeValue(payload.argsWire) -> validateSdkRequest({requestId,method,args,deadlineAt}) -> normalizeMethod -> unique authority transaction admission",
+    "responseSuccess": {
+      "ok": true,
+      "data": {
+        "valueWire": "encodeValue({PageBrigeCode:0,message:'',data:driverSuccessfulValue})"
+      }
+    },
+    "responseError": {
+      "ok": false,
+      "error": "Foundation typed transport/authority/driver failure projection"
+    },
+    "businessData": "Driver successful value always resides in data even if it contains PageBrigeCode, ok, error, message or nested undefined. No field guessing. Legacy explicit failure callback bodies are processed only by ChromeBridgeOperationCompleted, not inferred from driver successful values.",
+    "settlement": "ACK never settles original Promise as success. A missing final valueWire is E_EFFECT_UNKNOWN in the fixed native transport. No write retry/replay in SDK or relay. Broker owns request digest, durable/unknown effects, result and delivery journal."
+  },
+  "methodArgs": {
+    "AXIOS_GET": {
+      "url": "absolute HTTP(S)",
+      "config": "optional config allowlist"
+    },
+    "AXIOS_POST": {
+      "url": "absolute HTTP(S)",
+      "data": "JSON plus undefined optional",
+      "config": "optional config allowlist"
+    },
+    "AXIOS_PUT": {
+      "url": "absolute HTTP(S)",
+      "data": "JSON plus undefined optional",
+      "config": "optional config allowlist"
+    },
+    "AXIOS_DELETE": {
+      "url": "absolute HTTP(S)",
+      "config": "optional config allowlist; no body"
+    },
+    "APPSTORAGE_GETITEM": {
+      "key": "safe string"
+    },
+    "APPSTORAGE_SETITEM": {
+      "key": "safe string",
+      "value": "String conversion by normalizeMethod; no caller namespace"
+    },
+    "APPSTORAGE_REMOVEITEM": {
+      "key": "safe string"
+    },
+    "APPSTORAGE_CLEAR": {},
+    "APPLOCAL_GETITEM": {
+      "key": "safe string"
+    },
+    "APPLOCAL_SETITEM": {
+      "key": "safe string",
+      "value": "JSON plus explicit/nested undefined"
+    },
+    "APPLOCAL_REMOVEITEM": {
+      "key": "safe string"
+    },
+    "CHROME_LOCAL_GET": {
+      "key": "safe string or null; null returns authorized namespace value array"
+    },
+    "CHROME_LOCAL_SET": {
+      "values": "safe key/value plain object, typed values"
+    },
+    "CHROME_LOCAL_REMOVE": {
+      "keys": "string or safe string array"
+    },
+    "CREATE_NOTIFY": {
+      "title": "string",
+      "content": "string"
+    },
+    "SERVER_CHECK": {
+      "server": "absolute HTTP(S)",
+      "timeout": "default 5000ms"
+    },
+    "DEVICE_GET_APP_ID": {},
+    "NETWORK_INFO_GET": {
+      "ip": "optional string; disabled unless explicitly enabled and authorized"
+    }
+  },
+  "httpConfig": {
+    "allowlist": [
+      "params",
+      "headers",
+      "timeout",
+      "responseType",
+      "withCredentials"
+    ],
+    "params": "primitive or primitive arrays; null/undefined omitted",
+    "headers": "string values, no credential/host/origin/referer/sec headers",
+    "responseType": [
+      "json",
+      "text"
+    ],
+    "withCredentials": "false only",
+    "unknown": "E_CONFIG_UNSUPPORTED before dispatch",
+    "redirects": "manual; no grant broadening",
+    "successfulProjection": [
+      "data",
+      "status",
+      "statusText",
+      "headers",
+      "config"
+    ]
+  },
+  "publicInterfaces": {
+    "registry": "SDK_METHODS, normalizeMethod(method,args), validateSdkRequest({requestId,method,args,deadlineAt})",
+    "service": "createSdkService({network,notifications,storage,device}).execute(method,args,context) -> legacyResult of successful value; typed driver errors reject",
+    "bridge": "createSdkBridge({transport,...}); transport.hello({sdkVersion}) and transport.request({requestId,method,args,deadlineAt}) are internal typed interfaces. Fixed window transport converts internal args to argsWire.",
+    "page": "installPageSdk({global?,transport?}) -> OpenDeskSDK; OpenDeskSDK.ready() -> Promise<actual native Hello>; OpenDeskSDK.call(method,args); OpenDeskSDK.service.storage.get(null); global old axiosx/AppStorage/AppLocal/createNotify/serverUtils/sleep/ChromeBridgeEvents/ChromeBridgeOperationCompleted/callChromeBridgeInterface names",
+    "relay": "installPageRelay({window?,api?,CustomEvent?,clock?}) -> {messager,removeEventListeners,diagnostics}; nativeSend never synthesizes sender/grant/context",
+    "storage": "storage.executeSdk(method,args,context) provided by shared storage writer; durable AppStorage vs chrome.storage.session AppLocal; main effects/result must commit in same transaction",
+    "device": "device.getAppId(context) atomic shared-storage get-or-create, commit awaited, no separate storage",
+    "context": [
+      "namespace",
+      "principal",
+      "grantIncarnation",
+      "runId",
+      "opId",
+      "requestId",
+      "opKey",
+      "resultId",
+      "browserSessionIncarnation",
+      "deadlineAt",
+      "authorizeInTransaction(tx)",
+      "authorize()",
+      "recordNativeReceipt(projection) optional private main hook"
+    ]
+  },
+  "driverAuthorization": {
+    "networkFactory": "createNetworkService({fetchImpl?,authorize,clock?,networkInfoEnabled:false,...})",
+    "hook": "authorize(request, context): Promise<void>; usually main adapter delegates to context.authorize(request)",
+    "networkRequest": {
+      "capability": "network",
+      "url": "actual normalized URL including params",
+      "method": "GET|POST|PUT|DELETE",
+      "phase": "pre|post"
+    },
+    "infoRequest": {
+      "capability": "network.info",
+      "url": "original frozen IP info URL",
+      "method": "GET",
+      "phase": "pre"
+    },
+    "notificationRequest": {
+      "capability": "notifications",
+      "phase": "pre|post"
+    },
+    "cookiesRequest": {
+      "capability": "cookies",
+      "url": "exact per-operation URL",
+      "method": "get|set|remove",
+      "phase": "pre|post"
+    },
+    "missingHook": "E_PERMISSION; no effect",
+    "transactions": "Drivers do not own admission/journal/database. The main router supplies final authorizeInTransaction and commits effects/result via sole shared storage. Native pre/post validation is separate from final transactional revalidation.",
+    "nativeReceipt": "After actual HTTP projection and before post authorization, await context.recordNativeReceipt(projection). This stores the native observation only; broker recordEffect retains final normalized driver result ownership."
+  },
+  "budgets": {
+    "sdkPending": 100,
+    "requestWireBytes": 65536,
+    "resultWireBytes": 262144,
+    "clientTimeoutMs": 30000,
+    "maximumClientTimeoutMs": 60000,
+    "backendShortServiceMs": 15000,
+    "rule": "network hard-clamps to 15s and any earlier context deadline. Client timeout and config cannot extend backend budget."
+  },
+  "resources": {
+    "licenseSource": "docs/contracts/licenses/todo-user-vue-MIT.txt",
+    "requiredPackageNotice": "licenses/todo-user-vue-MIT.txt",
+    "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+    "bytes": 1096,
+    "vendorCopied": false,
+    "fingerprint": "E_RESOURCE_UNAVAILABLE stage lookup; no fallback or business/native activation"
+  },
+  "notClaimed": [
+    "actual native SDK100 concurrency",
+    "four actual SW crash points",
+    "two native storage lifetimes",
+    "native revocation/navigation",
+    "same final package resource injection",
+    "independent F3 acceptance",
+    "full migration complete"
+  ]
+}

@@ -1,0 +1,510 @@
+[
+  {
+    "version": "Chrome/138.0.7204.183",
+    "report": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+    "sourceSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+    "planHash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+    "PASS": 56,
+    "FAIL": 0,
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/138.0.7204.183",
+      "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.0.0 Safari/537.36",
+      "jsVersion": "13.8.258.30",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/profile",
+      "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+      "headed": false,
+      "os": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64"
+      },
+      "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f"
+    },
+    "siteAccess": {
+      "contains": true,
+      "actual": {
+        "origins": [
+          "http://127.0.0.1/*"
+        ],
+        "permissions": [
+          "tabs",
+          "scripting"
+        ]
+      }
+    },
+    "raceCases": [
+      {
+        "caseId": "F1-PERMISSION-AWAIT-STOP-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "21f54a6c-6193-4d15-9574-e8f061a0e7e2",
+        "originalTarget": {
+          "runId": "21f54a6c-6193-4d15-9574-e8f061a0e7e2",
+          "hostEpoch": "82ea3913-2bf5-4eca-954a-acc780b617e9",
+          "sandboxEpoch": "e29a8aed-3bea-4811-99de-224e599c167c",
+          "tabId": 402983620,
+          "documentId": "411AC43FFA0F4E27320CCD6E3041F4F2",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-STOP-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "8af48aec-01c5-4121-ab66-2a52385af22b",
+        "originalTarget": {
+          "runId": "8af48aec-01c5-4121-ab66-2a52385af22b",
+          "hostEpoch": "b4aae26c-6dbc-4207-b307-c62e97417c08",
+          "sandboxEpoch": "08e8baf4-faa6-4e30-a0f5-76381622e753",
+          "tabId": 402983624,
+          "documentId": "0ABAD0FE3DA655F8FF2A2473F4224CD9",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "82e4a2fb-a603-46c1-b5dc-bbdbcb82361a",
+        "originalTarget": {
+          "runId": "82e4a2fb-a603-46c1-b5dc-bbdbcb82361a",
+          "hostEpoch": "d5827b38-1439-46e4-89d2-4f235685205f",
+          "sandboxEpoch": "624111a2-4ed4-4096-a599-21438031759d",
+          "tabId": 402983628,
+          "documentId": "06B456B822C36C690C60B25B259E9975",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "4728aaf0-514b-43b1-9a16-92f4d9e4360b",
+        "originalTarget": {
+          "runId": "4728aaf0-514b-43b1-9a16-92f4d9e4360b",
+          "hostEpoch": "4a52b917-9214-4080-97a5-5382877d03f9",
+          "sandboxEpoch": "9057c436-ae74-42db-abca-01f11ab2438d",
+          "tabId": 402983632,
+          "documentId": "A2FCA30DED34E019CE45BCCE12D901DB",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "97685469-a600-4462-b5d3-a1eda8773e9f",
+        "originalTarget": {
+          "runId": "97685469-a600-4462-b5d3-a1eda8773e9f",
+          "hostEpoch": "28b02172-aa42-4ced-9150-8d0142428666",
+          "sandboxEpoch": "63d0ff47-3197-4ba8-ac46-d115beaaff8c",
+          "tabId": 402983636,
+          "documentId": "F7D01BB2C9DD5EE49F531D55C56D586F",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "d9b23cb8-2804-4c38-b231-d9e8f3f0f150",
+        "originalTarget": {
+          "runId": "d9b23cb8-2804-4c38-b231-d9e8f3f0f150",
+          "hostEpoch": "558a63fa-6140-4cb9-ad28-ca07d3a82a47",
+          "sandboxEpoch": "901e0f84-7773-49c9-961f-052bdc46c21e",
+          "tabId": 402983644,
+          "documentId": "137B28FC51C68B286B5A14123C4A559C",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "0d893b17-d3b7-4ce9-8697-bd213144311f",
+        "originalTarget": {
+          "runId": "0d893b17-d3b7-4ce9-8697-bd213144311f",
+          "hostEpoch": "eb7e5a0c-3c33-427c-9171-9d8b32337515",
+          "sandboxEpoch": "e3769aa8-e63c-4176-a4e7-b4832792cf96",
+          "tabId": 402983652,
+          "documentId": "72469705952F79603E4E8D089BB6FDB1",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "8fcd4d12-588f-42c6-96a1-1849954b0246",
+        "originalTarget": {
+          "runId": "8fcd4d12-588f-42c6-96a1-1849954b0246",
+          "hostEpoch": "7f02c01b-c5cf-40e9-a059-460e25958bfb",
+          "sandboxEpoch": "d65e1749-6a8d-40ba-a1ae-f85c3e64a448",
+          "tabId": 402983656,
+          "documentId": "6D27431278D3DF8F413DD103E8DC5C76",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "f37a7b39-9add-47aa-b535-c48bb5b72afa",
+        "originalTarget": {
+          "runId": "f37a7b39-9add-47aa-b535-c48bb5b72afa",
+          "hostEpoch": "0679fef6-0e12-4d5e-8bc0-887d0b5b0267",
+          "sandboxEpoch": "b6ccaafc-ff92-4ae0-885a-4b82051bed5b",
+          "tabId": 402983660,
+          "documentId": "6FC6CC0CD7679F21237B060B6E5936EB",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "c5257fda-5d1b-4fb0-bcea-b156cb1b1bd3",
+        "originalTarget": {
+          "runId": "c5257fda-5d1b-4fb0-bcea-b156cb1b1bd3",
+          "hostEpoch": "e1a43d66-32ee-432b-8f57-430f0622ded2",
+          "sandboxEpoch": "a13443ba-1240-4b1f-bfb4-6bd187f30944",
+          "tabId": 402983666,
+          "documentId": "E10334126F85ADD42C7434514B55FBCD",
+          "targetEpoch": 1
+        }
+      }
+    ],
+    "termination": [
+      {
+        "caseId": "F1-INFINITE-LOOP-STOP",
+        "status": "PASS",
+        "old2sContractStatus": "FAIL",
+        "causalPID": 92536,
+        "threadId": 37812528,
+        "actualBlob": "blob:null/e2e00fea-5827-4571-9b45-45d5a8b0d362",
+        "targetId": "CA9F4780BA71A6A6861D4AFEDB06692E",
+        "destroyedMilliseconds": 2005.4133753814695,
+        "absenceMilliseconds": 2059.1892093814695,
+        "physicalStopMilliseconds": 2432.9857503814696,
+        "observerThroughout": []
+      },
+      {
+        "caseId": "F1-INFINITE-LOOP-DEADLINE",
+        "status": "PASS",
+        "old2sContractStatus": "FAIL",
+        "causalPID": 92559,
+        "threadId": 37812713,
+        "actualBlob": "blob:null/5e427abe-6312-4ace-92cd-ce5511bbd4d6",
+        "targetId": "50137705FF7188B4D2969995DFDDC376",
+        "destroyedMilliseconds": 2002.7748746185307,
+        "absenceMilliseconds": 2063.14466661853,
+        "physicalStopMilliseconds": 2436.27691661853,
+        "observerThroughout": []
+      },
+      {
+        "caseId": "F1-INFINITE-LOOP-HOST-CLOSE",
+        "status": "PASS",
+        "old2sContractStatus": "PASS",
+        "causalPID": 92578,
+        "threadId": 37812892,
+        "actualBlob": "blob:null/21612d0a-f3a0-478e-a54f-d11c9072ce4b",
+        "targetId": "64783A01EFCD1D654AF3AAFAA8B1F5F6",
+        "destroyedMilliseconds": 6.233083999999508,
+        "absenceMilliseconds": 160.2435000000005,
+        "physicalStopMilliseconds": 530.2370420000007,
+        "observerThroughout": []
+      }
+    ],
+    "resourceRounds": 20,
+    "liveObserverBeforeCancelOrTimeout": 10,
+    "cleanup": {
+      "ownedBrowserExited": true,
+      "ownedBrowserPid": 92502,
+      "exitCode": 0,
+      "signalCode": null,
+      "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/profile",
+      "ownedTargets": [
+        "6C6862F9FE23C1CA4902ACE92C8F4DB0"
+      ],
+      "serverClosed": true,
+      "cdpWaiters": 0,
+      "abortedCdpRequests": 0
+    },
+    "disposedResources": {
+      "pending": 0,
+      "timer": 0,
+      "port": 0,
+      "frame": 0,
+      "pageWaits": 0,
+      "resourceReplies": 0,
+      "permissionBarriers": 0
+    }
+  },
+  {
+    "version": "Chrome/154.0.8037.92",
+    "report": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+    "sourceSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+    "planHash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+    "PASS": 56,
+    "FAIL": 0,
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/154.0.8037.92",
+      "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "jsVersion": "15.4.80.19",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/profile",
+      "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+      "headed": false,
+      "os": {
+        "platform": "darwin",
+        "release": "25.5.0",
+        "arch": "arm64"
+      },
+      "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349"
+    },
+    "siteAccess": {
+      "contains": true,
+      "actual": {
+        "origins": [
+          "http://127.0.0.1/*"
+        ],
+        "permissions": [
+          "tabs",
+          "scripting"
+        ]
+      }
+    },
+    "raceCases": [
+      {
+        "caseId": "F1-PERMISSION-AWAIT-STOP-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "abe98348-ebe2-4f9b-b819-908a4803653f",
+        "originalTarget": {
+          "runId": "abe98348-ebe2-4f9b-b819-908a4803653f",
+          "hostEpoch": "609883c4-d396-46b8-88e3-dd3389b96694",
+          "sandboxEpoch": "68ce7286-ae46-48e2-a9a3-34e718ceaa44",
+          "tabId": 1582525995,
+          "documentId": "6C1F5F48B3DD87033C24E96AB8B129BD",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-STOP-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "fb4c20cc-30cf-42a2-81a8-e50fc026ee96",
+        "originalTarget": {
+          "runId": "fb4c20cc-30cf-42a2-81a8-e50fc026ee96",
+          "hostEpoch": "e711819b-1807-47ae-a716-58002cfee5ac",
+          "sandboxEpoch": "45a17d3d-02d8-473a-afd2-0dd9b049407a",
+          "tabId": 1582525999,
+          "documentId": "785DB161E73C62553D5AE400DDCD2599",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "723971a4-a82e-453b-942b-62e8b28a2df7",
+        "originalTarget": {
+          "runId": "723971a4-a82e-453b-942b-62e8b28a2df7",
+          "hostEpoch": "ad15476b-8c78-4ae7-b7f9-fc3aabedc3df",
+          "sandboxEpoch": "b5f894da-862c-469f-8677-effda1a8ace4",
+          "tabId": 1582526003,
+          "documentId": "FED7348C5A7C49930A6A709A0BD7C064",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "1368b353-1782-4f99-bbe6-f0d16c633272",
+        "originalTarget": {
+          "runId": "1368b353-1782-4f99-bbe6-f0d16c633272",
+          "hostEpoch": "81fee26a-5c3e-4d79-b1d8-79b46b8cc4c3",
+          "sandboxEpoch": "e38c72e3-ad58-4bdb-a684-02c1cfce4664",
+          "tabId": 1582526007,
+          "documentId": "7F304CFE995D263F91E4FF2CFBE10309",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "a85ba560-cf0d-4ea4-af92-f907e83acc20",
+        "originalTarget": {
+          "runId": "a85ba560-cf0d-4ea4-af92-f907e83acc20",
+          "hostEpoch": "cd452814-cbcf-4eb0-b97b-da45021d05a6",
+          "sandboxEpoch": "22b74e7e-8c25-48cb-8846-3a94be959a94",
+          "tabId": 1582526011,
+          "documentId": "7A9E5B117E9D84A0BB7867AF6948C801",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "1c6ffc89-36e6-437b-ab26-7d4c0395d01a",
+        "originalTarget": {
+          "runId": "1c6ffc89-36e6-437b-ab26-7d4c0395d01a",
+          "hostEpoch": "76622031-fd00-490c-b52f-b4504c99983d",
+          "sandboxEpoch": "e25a0ecd-9689-428b-8d6a-dc2726bfa679",
+          "tabId": 1582526019,
+          "documentId": "32D3FD3C0404986C607632BBA8C4EB73",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "f8744f64-f420-4df3-94a8-c4b6d44d96eb",
+        "originalTarget": {
+          "runId": "f8744f64-f420-4df3-94a8-c4b6d44d96eb",
+          "hostEpoch": "9c00baf8-60b4-4d4a-9292-cb6ce522bcef",
+          "sandboxEpoch": "459d4900-e698-4ee3-9d5b-0408d71f7c3c",
+          "tabId": 1582526027,
+          "documentId": "5201BE6AD1E3C506F0DF0BFED36C38E5",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "6bb815be-64bd-4b24-878a-4ab6080db89e",
+        "originalTarget": {
+          "runId": "6bb815be-64bd-4b24-878a-4ab6080db89e",
+          "hostEpoch": "a193acb8-5649-4440-8cc6-60b4bd0330d6",
+          "sandboxEpoch": "e2e417dc-b0a8-4ab0-a8a6-837f774d481a",
+          "tabId": 1582526031,
+          "documentId": "DE9F2A466674AF5D072FC092F188DEF0",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "GET",
+        "originalRunId": "5ee5e124-ed8e-43d3-81a7-b5fbd7656999",
+        "originalTarget": {
+          "runId": "5ee5e124-ed8e-43d3-81a7-b5fbd7656999",
+          "hostEpoch": "5d589fc7-e15f-4a5b-8ac9-7a62f4afd60b",
+          "sandboxEpoch": "5b0d9e08-4b03-47dd-90e2-f0b37cba42ce",
+          "tabId": 1582526035,
+          "documentId": "B95C0C15B0C6A8C523088E291C3240CC",
+          "targetEpoch": 1
+        }
+      },
+      {
+        "caseId": "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+        "status": "PASS",
+        "rawForbiddenHits": 0,
+        "rawPositiveMethod": "POST",
+        "originalRunId": "de36ec36-5c75-4ec7-977d-691c23a7d690",
+        "originalTarget": {
+          "runId": "de36ec36-5c75-4ec7-977d-691c23a7d690",
+          "hostEpoch": "a094b4a7-aca2-424c-b1a2-d208dd6a68e8",
+          "sandboxEpoch": "63186512-db3e-4e5d-a70e-65ace9a97b43",
+          "tabId": 1582526041,
+          "documentId": "929ADF18FAE196BBABC06B41647CBD49",
+          "targetEpoch": 1
+        }
+      }
+    ],
+    "termination": [
+      {
+        "caseId": "F1-INFINITE-LOOP-STOP",
+        "status": "PASS",
+        "old2sContractStatus": "FAIL",
+        "causalPID": 92534,
+        "threadId": 37812503,
+        "actualBlob": "blob:null/363ee344-3f57-4937-acb2-6fa14ad1c5f8",
+        "targetId": "5AC28B5078FF64586F26F7C3DD6468B8",
+        "destroyedMilliseconds": 2004.1076670953676,
+        "absenceMilliseconds": 2019.5639580953675,
+        "physicalStopMilliseconds": 2327.1447080953676,
+        "observerThroughout": []
+      },
+      {
+        "caseId": "F1-INFINITE-LOOP-DEADLINE",
+        "status": "PASS",
+        "old2sContractStatus": "FAIL",
+        "causalPID": 92551,
+        "threadId": 37812682,
+        "actualBlob": "blob:null/c345f393-cc99-42ac-bd3f-dc3c5ada2e1b",
+        "targetId": "2CD223876CD4D73194DCF5939D88DA54",
+        "destroyedMilliseconds": 2005.0786670953676,
+        "absenceMilliseconds": 2019.094833095367,
+        "physicalStopMilliseconds": 2324.0829170953675,
+        "observerThroughout": []
+      },
+      {
+        "caseId": "F1-INFINITE-LOOP-HOST-CLOSE",
+        "status": "PASS",
+        "old2sContractStatus": "PASS",
+        "causalPID": 92570,
+        "threadId": 37812842,
+        "actualBlob": "blob:null/9be31143-c051-4b65-aa4b-b28a6995e6ce",
+        "targetId": "31E902294DB9BC17E54F215F1DF4BBF0",
+        "destroyedMilliseconds": 9.048083000000588,
+        "absenceMilliseconds": 166.27416699999958,
+        "physicalStopMilliseconds": 515.501083000001,
+        "observerThroughout": []
+      }
+    ],
+    "resourceRounds": 20,
+    "liveObserverBeforeCancelOrTimeout": 10,
+    "cleanup": {
+      "ownedBrowserExited": true,
+      "ownedBrowserPid": 92501,
+      "exitCode": 0,
+      "signalCode": null,
+      "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/profile",
+      "ownedTargets": [
+        "29CA45343141B5F3C6D8C63C86D1849A"
+      ],
+      "serverClosed": true,
+      "cdpWaiters": 0,
+      "abortedCdpRequests": 0
+    },
+    "disposedResources": {
+      "pending": 0,
+      "timer": 0,
+      "port": 0,
+      "frame": 0,
+      "pageWaits": 0,
+      "resourceReplies": 0,
+      "permissionBarriers": 0
+    }
+  }
+]

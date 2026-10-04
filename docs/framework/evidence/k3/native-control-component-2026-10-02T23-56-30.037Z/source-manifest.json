@@ -1,0 +1,42 @@
+[
+  {
+    "path": "src/framework/ChromePage.js",
+    "sha256": "750269e6467ee0b88e59712bc0489bc53f2b1949648080a2e79560efc3daad66"
+  },
+  {
+    "path": "src/framework/context.js",
+    "sha256": "443a378c60f2ebbd77e1c667fe0538eca3c98cf4bc602d50711c89e612dc0c3c"
+  },
+  {
+    "path": "src/framework/control/value.js",
+    "sha256": "0f293f2b31d0198d3e8f03b3bee45e8b9d2b25f284075240c18e4804696b34f8"
+  },
+  {
+    "path": "src/scripting/packaged/registry.js",
+    "sha256": "29cb99fed55cb84e28580ba623a235ce9bea06ce7b2c11edb293f7bc4668853a"
+  },
+  {
+    "path": "src/scripting/sandbox/controller.js",
+    "sha256": "3932cd0b7583f80e6ac10e06f6895d1c17b5b59d3a92ebec306b961e30679e17"
+  },
+  {
+    "path": "src/scripting/sandbox/page-proxy.js",
+    "sha256": "a2e3c5532b790f6c9c9eb58112226db9eabfff03573da832df97a620f72d7375"
+  },
+  {
+    "path": "src/scripting/sandbox/sandbox.html",
+    "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+  },
+  {
+    "path": "src/scripting/sandbox/sandbox.js",
+    "sha256": "a4bdf5d7b29b9215ae72e8f9688f64f7522fa99220c9424be685f2b226a0c602"
+  },
+  {
+    "path": "src/scripting/sandbox/worker-runtime.js",
+    "sha256": "67259344892326cd39f734cddea8d9fffdb119c69e56a8d4fa7998ebc5096de5"
+  },
+  {
+    "path": "src/scripting/user-scripts/page-evaluator.js",
+    "sha256": "d71f12dfb94b06b17f28d05d8f58bda1bd225d5c01d38a885fc00ec7564e5517"
+  }
+]

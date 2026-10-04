@@ -1,0 +1,356 @@
+{
+  "contractVersion": "1.0.0",
+  "status": "planned normative transitions, not executed product evidence",
+  "terminalRunStates": [
+    "completed",
+    "limit_reached",
+    "stopped",
+    "failed",
+    "interrupted",
+    "abandoned_unknown"
+  ],
+  "run": [
+    {
+      "before": "preparing",
+      "event": "target-bound",
+      "after": "running",
+      "rule": "owner/target/grant all valid"
+    },
+    {
+      "before": "preparing|running",
+      "event": "stop-commit",
+      "after": "stopping",
+      "rule": "cancelSeq and runRevision CAS commit"
+    },
+    {
+      "before": "running",
+      "event": "whole-page-seal",
+      "after": "running",
+      "rule": "all continuous batches+digests verified; atomic counts/checkpoint"
+    },
+    {
+      "before": "running",
+      "event": "natural-end-commit",
+      "after": "completed",
+      "rule": "no outstanding unknown command; every page sealed; CAS before stop wins"
+    },
+    {
+      "before": "running",
+      "event": "budget+1",
+      "after": "limit_reached",
+      "rule": "abort unsealed page; retain previously sealed data"
+    },
+    {
+      "before": "running|preparing",
+      "event": "known-failure",
+      "after": "failed",
+      "rule": "abort open pages; explain failure; excludes quota/profile-quota handled by dedicated interrupted transition"
+    },
+    {
+      "before": "preparing|running",
+      "event": "quota|profile-quota",
+      "after": "interrupted",
+      "rule": "E_QUOTA; abort open snapshot, no failed stage ACK; retain sealed pages. If cancel committed first preserve stopping and settle as stopped unless external effect unknown."
+    },
+    {
+      "before": "preparing|running|stopping",
+      "event": "host-loss-no-unknown-effects",
+      "after": "interrupted",
+      "rule": "fence old epoch; no automatic takeover"
+    },
+    {
+      "before": "preparing|running|stopping",
+      "event": "effect-result-unprovable",
+      "after": "paused_unknown",
+      "rule": "freeze command admission; slot remains occupied"
+    },
+    {
+      "before": "stopping",
+      "event": "all-dispatched-effects-reconciled",
+      "after": "stopped",
+      "rule": "discard pages not sealed before cancel; retire target"
+    },
+    {
+      "before": "stopping",
+      "event": "30s-reconcile-expired",
+      "after": "paused_unknown",
+      "rule": "expiry is uncertainty, no takeover"
+    },
+    {
+      "before": "paused_unknown",
+      "event": "old-owner-authenticated-reconcile",
+      "after": "paused_unknown|stopped|interrupted",
+      "rule": "may settle journal, never resume loop automatically"
+    },
+    {
+      "before": "paused_unknown",
+      "event": "explicit-user-abandon-CAS",
+      "after": "retiring",
+      "rule": "epoch increment+capability revoke+abort open pages, retain unknown effect history"
+    },
+    {
+      "before": "retiring",
+      "event": "old-target-absence-proven",
+      "after": "abandoned_unknown",
+      "rule": "IDB retirement evidence commits then global slot release; atomic slot currentRunId/fencedEpoch/retirementId CAS with stored releaseCount0\u21921; duplicate never clears newer slot"
+    },
+    {
+      "before": "retiring",
+      "event": "target-close-unverified",
+      "after": "retiring",
+      "rule": "slot held; retry removal/query only, no new task"
+    },
+    {
+      "before": "terminal",
+      "event": "retire-resources",
+      "after": "same terminal",
+      "rule": "fence old owner; close dedicated tab and persist absence evidence before releasing slot; atomic slot currentRunId/fencedEpoch/retirementId CAS with stored releaseCount0\u21921; duplicate never clears newer slot"
+    }
+  ],
+  "command": [
+    {
+      "before": "absent",
+      "event": "prepare",
+      "after": "prepared",
+      "rule": "digest immutable, duplicate idempotent"
+    },
+    {
+      "before": "prepared",
+      "event": "cancel-first",
+      "after": "cancelled",
+      "rule": "dispatch forbidden; no Chrome call"
+    },
+    {
+      "before": "prepared",
+      "event": "dispatch-first",
+      "after": "dispatched",
+      "rule": "transaction validates all guards then commits, Chrome call follows"
+    },
+    {
+      "before": "dispatched",
+      "event": "authenticated-effect-proof",
+      "after": "confirmed",
+      "rule": "match command/run/epoch/target/document/digest"
+    },
+    {
+      "before": "dispatched",
+      "event": "crash-gap|timeout",
+      "after": "effect_unknown",
+      "rule": "cannot distinguish no call vs applied effect; never replay"
+    },
+    {
+      "before": "effect_unknown",
+      "event": "late-proof",
+      "after": "confirmed",
+      "rule": "audit-only if retired/cancelled; cannot resurrect counters"
+    },
+    {
+      "before": "any",
+      "event": "same-ID-different-digest",
+      "after": "unchanged",
+      "rule": "E_HASH/E_BATCH_CONFLICT; no extra effect"
+    }
+  ],
+  "page": [
+    {
+      "before": "absent",
+      "event": "begin-page-CAS",
+      "after": "open",
+      "rule": "allocate once by run+next sequence+read command+full source identity; no stage required for authenticated empty page"
+    },
+    {
+      "before": "open",
+      "event": "same-batch-ID-same-digest",
+      "after": "open",
+      "rule": "duplicate ACK, no count or bytes added"
+    },
+    {
+      "before": "open",
+      "event": "same-ID-different-digest|index-conflict",
+      "after": "aborted",
+      "rule": "E_BATCH_CONFLICT and freeze run failure"
+    },
+    {
+      "before": "open",
+      "event": "missing-batch|wrong-count|wrong-digest-seal",
+      "after": "open",
+      "rule": "E_SEAL_INCOMPLETE, no commit; caller can stage missing batch if still active"
+    },
+    {
+      "before": "open",
+      "event": "correct-seal-before-stop",
+      "after": "sealed",
+      "rule": "atomic visible rows/count/page/checkpoint"
+    },
+    {
+      "before": "open",
+      "event": "cancel-before-seal|quota|batch-failure|limit",
+      "after": "aborted",
+      "rule": "all page rows excluded from counts/export"
+    },
+    {
+      "before": "sealed",
+      "event": "exact-seal-repeat",
+      "after": "sealed",
+      "rule": "same stored seal digest returns ack without counters"
+    },
+    {
+      "before": "sealed",
+      "event": "different-seal",
+      "after": "sealed",
+      "rule": "conflict; immutable sealed page"
+    },
+    {
+      "before": "sealed",
+      "event": "late-stop",
+      "after": "sealed",
+      "rule": "already committed page retained"
+    },
+    {
+      "before": "aborted",
+      "event": "late-batch-or-seal",
+      "after": "aborted",
+      "rule": "E_CANCELLED/E_OWNER; no resurrection"
+    }
+  ],
+  "downloadAttempt": [
+    {
+      "before": "absent",
+      "event": "prepare",
+      "after": "prepared",
+      "rule": "durable per-attempt identity+fresh URL; no Chrome call"
+    },
+    {
+      "before": "prepared",
+      "event": "dispatch-commit",
+      "after": "dispatched",
+      "rule": "max1 Chrome download invocation after commit"
+    },
+    {
+      "before": "dispatched",
+      "event": "callback-ID-or-one-unique-candidate",
+      "after": "in_progress|complete|interrupted",
+      "rule": "validate returned ID by search; candidate full URL/extension/time, de-duplicate ID"
+    },
+    {
+      "before": "dispatched",
+      "event": "zero-candidates-before-mapping-deadline",
+      "after": "dispatched",
+      "rule": "finite bounded search no resubmit"
+    },
+    {
+      "before": "dispatched",
+      "event": "zero-candidates-at-60s",
+      "after": "mapping_unknown",
+      "rule": "release URL and keep attempt tombstone/evidence; no automatic redownload"
+    },
+    {
+      "before": "dispatched",
+      "event": "more-than-one-candidate-or-ID-conflict",
+      "after": "conflict",
+      "rule": "do not choose latest/name; do not auto retry"
+    },
+    {
+      "before": "in_progress",
+      "event": "search-confirmed-complete",
+      "after": "complete",
+      "rule": "browser complete only; diskHashVerified=false; release URL"
+    },
+    {
+      "before": "in_progress",
+      "event": "search-confirmed-interrupted",
+      "after": "interrupted",
+      "rule": "real interrupt reason, resource release"
+    },
+    {
+      "before": "in_progress",
+      "event": "10min-deadline-search-still-not-terminal",
+      "after": "deadline_unknown",
+      "rule": "time expired is not browser interrupted; release URL; retain known ID"
+    },
+    {
+      "before": "prepared|dispatched|in_progress",
+      "event": "host-closed",
+      "after": "same|interrupted|mapping_unknown|deadline_unknown",
+      "rule": "release URL, reconcile known ID/candidates; never override known complete"
+    },
+    {
+      "before": "deadline_unknown|mapping_unknown",
+      "event": "late-uniquely-bound-search-complete",
+      "after": "complete",
+      "rule": "late=true; timedOutAt/resourceReleasedAt retained; no disk assertion"
+    },
+    {
+      "before": "deadline_unknown|mapping_unknown",
+      "event": "late-uniquely-bound-search-interrupted",
+      "after": "interrupted",
+      "rule": "late=true; real browser reason"
+    },
+    {
+      "before": "any",
+      "event": "explicit-abandon",
+      "after": "abandoned",
+      "rule": "immutable tombstone; late evidence appended audit only, projection never resurrects"
+    },
+    {
+      "before": "conflict",
+      "event": "late-more-evidence",
+      "after": "conflict",
+      "rule": "manual evidence needed; no automatic guess"
+    },
+    {
+      "before": "any-old-attempt",
+      "event": "explicit-reexport",
+      "after": "same-old-state",
+      "rule": "new job and attempt+URL; no inherited candidate/downloadId"
+    }
+  ],
+  "invariants": [
+    "Lease expiry never releases global slot",
+    "IDB dispatched/cancel/seal commit is the ordering authority",
+    "ACKed unsealed rows are invisible",
+    "slot release requires old epoch fenced AND old execution tab proven absent",
+    "DownloadAttempt identity independent from current run owner after terminal retirement; receipts only change their own job",
+    "a late completion can resolve uncertainty, never erase historic timeout or complete a new attempt",
+    "tombstones suppress resurrection",
+    "partial committed data remains exportable without Pro entitlement"
+  ],
+  "targetCreation": [
+    {
+      "before": "absent",
+      "event": "prepare-create-CAS",
+      "after": "prepared",
+      "rule": "unique creationId/bootstrap URL/session saved before call"
+    },
+    {
+      "before": "prepared",
+      "event": "cancel-first",
+      "after": "cancelled",
+      "rule": "submissionCount0, no dispatched commit is never-created evidence"
+    },
+    {
+      "before": "prepared",
+      "event": "dispatch-first",
+      "after": "dispatched",
+      "rule": "IDB committed permission at most1 tabs.create exact package bootstrap"
+    },
+    {
+      "before": "dispatched",
+      "event": "gap|missing-id",
+      "after": "effect_unknown",
+      "rule": "hold slot, no replay or target:null absence"
+    },
+    {
+      "before": "dispatched|effect_unknown",
+      "event": "unique-bootstrap-authenticated|late-callback",
+      "after": "known",
+      "rule": "only original creation/run; if fenced retire exact target, no successor binding"
+    },
+    {
+      "before": "any",
+      "event": "browser-session-changed-unverified-target",
+      "after": "effect_unknown",
+      "rule": "no numeric old-tab deletion; slot held until unique ownership proof; automatic navigated-target recovery unsupported"
+    }
+  ]
+}

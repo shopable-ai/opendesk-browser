@@ -1,0 +1,214 @@
+{
+  "validFinal": true,
+  "role": "independent-prototype-review",
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+  "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815",
+  "verdict": "PARTIAL_PROOF",
+  "backendPrototypePassed": false,
+  "fullImplementationReleased": false,
+  "frameworkFunctionalMigrationComplete": false,
+  "summary": "选定的 opaque manifest sandbox＋每 run Worker 后端获得了局部可行性证据，尚未证明完整 F1 契约。包内 classic/module 有真实构造拒绝；classic Blob 在现有后端内完成固定握手和 RPC，不能把它称为新后端，也不能因另外三种分支失败便断言整个后端不可行。必需安全、语义和 userScripts 证据缺失，F1 放行门保持关闭，用户条件暂停指令已触发。",
+  "integrity": {
+    "designManifestActualHashMatched": true,
+    "designAndTestSpecMatchedFrozenCopies": true,
+    "prototypeManifestActualHashMatched": true,
+    "allEightFilesRead": true,
+    "allEightActualByteCountsAndHashesMatched": true,
+    "files": [
+      "run-ex08.mjs",
+      "fixture/host.html",
+      "fixture/host.js",
+      "fixture/manifest.json",
+      "fixture/sandbox.html",
+      "fixture/sw.js",
+      "fixture/worker-classic.js",
+      "fixture/worker-module.js"
+    ],
+    "evidence": ["R1", "R2"]
+  },
+  "variantAssessment": [
+    {
+      "variant": "classic-package",
+      "classification": "FAILED",
+      "finding": "Worker 构造时真实抛出 SecurityError，错误明确指出 chrome-extension URL 无法从 null origin 访问。此分支后续 RPC、网络和终止均未执行。",
+      "evidence": ["R3", "R4"]
+    },
+    {
+      "variant": "module-package",
+      "classification": "FAILED",
+      "finding": "同样在构造时被浏览器以 opaque origin 访问错误拒绝；尚未进入模块加载或执行，因此不能归因为 module 源码错误。",
+      "evidence": ["R3", "R5"]
+    },
+    {
+      "variant": "classic-blob",
+      "classification": "PARTIAL_PROOF",
+      "finding": "在 CfT 149.0.7827.55 中，Blob Worker 已加载、握手，并经私有 MessagePort 返回 pong。它是现有选定后端内技术可行的加载候选；当前证据不足以声明正式支持。",
+      "evidence": ["R6", "R7"]
+    },
+    {
+      "variant": "module-blob",
+      "classification": "FAILED_BEFORE_HANDSHAKE",
+      "finding": "构造后收到 Worker error，未取得 worker-ready。保留的错误没有具体加载诊断；不能据此确定 CSP、policy container、模块 origin 检查或其他机制为根因。Blob 使用的是 classic 文件的固定源码，不包含 worker-module.js 的相对 import，因此也不能归因为该 import。",
+      "evidence": ["R3", "R8", "R9"]
+    }
+  ],
+  "fixtureAssessment": {
+    "validForBoundedLoaderAndFixedRpcEvidence": true,
+    "sufficientForF1Approval": false,
+    "findings": [
+      {
+        "issue": "总通过条件过强",
+        "finding": "host.js 将四种变体全部 PASS 作为 backendPrototypePassed 的条件。冻结条款要求调查 classic/module、包内/Blob 分支；所审条款未规定四种必须全部成功，并允许明确缩减支持范围。因此该 AND 只能解释 fixture 的总标志，不能独立证明整个后端失败。即使修正此聚合判断，缺失的必需证据仍阻断 F1。",
+        "evidence": ["R10", "R11", "R12"]
+      },
+      {
+        "issue": "网络拒绝缺少 CSP 归因",
+        "finding": "Worker 将任意 fetch 异常都报告为 blocked:true。实际结果是 TypeError、Failed to fetch，以及报告采样时 loopback 收到零请求；这证明本次请求未到达服务器，尚未排除其他网络失败原因。manifest 确实声明 connect-src 'none'，但没有目标可达的正对照，也未取得 Worker 内有效 policy container 或 CSP violation 证据。",
+        "evidence": ["R13", "R14", "R6", "R15"]
+      },
+      {
+        "issue": "CSP 观测覆盖不足",
+        "finding": "securitypolicyviolation 监听只安装在 sandbox document，Worker 源码没有对应监听或错误转发。document 的空 violations 和空 console 不能证明 Worker 没有发生 CSP 拒绝，也不能验证它实际继承的策略。",
+        "evidence": ["R16", "R14", "R15", "R17"]
+      },
+      {
+        "issue": "终止时间不是 CPU 停止时间",
+        "finding": "固定 Worker 在发出 loop-entered 后执行 while(true)，sandbox 随后调用 terminate。terminateMilliseconds 包含显式等待的 50ms；afterTerminateHeartbeat 是 sandbox 定时器恢复后直接设为 true。它们支持终止调用和外层存活，但不是独立测得的 Worker CPU 停止延迟。",
+        "evidence": ["R18", "R19", "R6"]
+      },
+      {
+        "issue": "资源归零属于人工记账",
+        "finding": "workers/ports/blobs/timers 由 fixture 自行加减，清理后归零不是浏览器资源审计。hostPort 未纳入计数，resourcesAfter 还在关闭 hostPort 前发送。host 清理 PASS 也根据执行 close/remove 后写入的布尔值生成，不能扩大解释为全部资源回收已经证明。",
+        "evidence": ["R20", "R21", "R22"]
+      },
+      {
+        "issue": "功能 RPC 不能替代敌对安全证明",
+        "finding": "固定 worker 保留可重复 bind 的全局 onmessage 入口，没有一次性解绑；本次只发送正常 token 和正常请求。未实际运行用户代码、假 peer、global postMessage、重放或全局 patch，所以现有 token 判断和 pong 不能证明这些拒绝要求。sandbox 的 extensionAPI 检查也仅检查 chrome.runtime.id；Worker 内未执行对应断言。",
+        "evidence": ["R14", "R16", "R23", "R24"]
+      }
+    ]
+  },
+  "passedActualAssertions": [
+    {
+      "assertion": "扩展页的固定包内 classic Worker 正对照取得 worker-ready",
+      "evidence": ["R25"]
+    },
+    {
+      "assertion": "sandbox 报告 origin:null、chrome.runtime.id 不存在、读取 parent.document 被拒绝",
+      "evidence": ["R16", "R25"]
+    },
+    {
+      "assertion": "classic Blob Worker 握手、私有端口握手和 ping/pong 成功",
+      "evidence": ["R6", "R23"]
+    },
+    {
+      "assertion": "本次 fetch 失败且 loopback 请求数为零；拒绝机制尚未确定",
+      "evidence": ["R6", "R15"]
+    },
+    {
+      "assertion": "取得 loop-entered，执行 terminate，sandbox 随后的定时器完成；人工资源计数归零",
+      "evidence": ["R6", "R18", "R19", "R21"]
+    }
+  ],
+  "notTestedOrNotProven": [
+    {
+      "scope": "用户 async-body 编译执行、最小平台操作 adapter 的 await 语义、敌对用户代码隔离",
+      "status": "NOT_TESTED",
+      "evidence": ["R9", "R14", "R24"]
+    },
+    {
+      "scope": "假 peer、global postMessage、重放、全局 patch 的实际拒绝",
+      "status": "NOT_TESTED",
+      "evidence": ["R14", "R23", "R24"]
+    },
+    {
+      "scope": "Worker 有效 policy container、网络失败的 CSP 归因、独立 CPU 停止与资源回收观测",
+      "status": "NOT_PROVEN",
+      "evidence": ["R13", "R16", "R19", "R21"]
+    },
+    {
+      "scope": "userScripts 精确 document、USER_SCRIPT/MAIN 异步结果与异常、开关、撤权及 old-document race",
+      "status": "NOT_TESTED",
+      "evidence": ["R24", "R26", "R27"]
+    },
+    {
+      "scope": "最低可支持版本、稳定版及授权开关矩阵",
+      "status": "NOT_TESTED",
+      "evidence": ["R7", "R27", "R28"]
+    },
+    {
+      "scope": "失败加载变体的下游 RPC、网络和 CPU 终止，以及 F2/F3 产品链",
+      "status": "NOT_TESTED",
+      "evidence": ["R4", "R5", "R8", "R27"]
+    }
+  ],
+  "rootCause": {
+    "confirmedBrowserFailure": "两个包内 URL 分支被 opaque origin 访问约束拒绝；module Blob 的失败机制未确定。",
+    "f1Blocker": "原型只覆盖固定 loader/RPC 的部分事实，没有完成冻结 test-spec 要求的安全拒绝、用户控制语义和 userScripts 证明。fixture 的 AND 聚合及观测缺口进一步限制结果解释。",
+    "backendWideImpossibilityEstablished": false,
+    "evidence": ["R4", "R5", "R8", "R24", "R26"]
+  },
+  "tradeoff": {
+    "classicBlobConditionalSupport": "可保留已观察到的现有后端加载能力，但不补足必需安全、语义、userScripts 和版本矩阵证据。",
+    "allFourVariantsRequired": "方便 fixture 聚合，却会把其他加载分支的局部失败错误扩大为整个后端失败；冻结条款不足以支持这种要求。",
+    "decision": "保留局部证明，拒绝 F1 放行；本次不启动缩减支持或替代后端工作。",
+    "evidence": ["R6", "R10", "R11", "R12", "R24"]
+  },
+  "gateDecision": {
+    "f1ReleaseGateOpen": false,
+    "conditionalUserPauseTriggered": true,
+    "decisiveTrigger": "necessary prerequisite missing",
+    "failedVariantsStopped": [
+      "classic-package",
+      "module-package",
+      "module-blob"
+    ],
+    "pauseAppliedByThisReadonlyReview": false,
+    "gateFileModified": false,
+    "finding": "现有 gates 文件仍记录 backendPrototypePassed:false、F2 未放行和独立评审待完成。本终审确认必需前提缺失触发暂停；不将可选加载分支失败单独扩大为后端整体不可行。",
+    "evidence": ["R29", "R30"],
+    "nextAction": "仅交接给当前 Goal owner：关联本独立终审，保留现有复现、错误、已通过及未测范围，执行用户已授权的条件暂停并停止当前分支。不得继续 F2、扩大研究或自动创建替代后端。"
+  },
+  "scopeCompliance": {
+    "filesEdited": false,
+    "productCodeChanged": false,
+    "chromeLaunched": false,
+    "buildOrInstallRun": false,
+    "tasksMessaged": false,
+    "delegated": false,
+    "researchExpanded": false,
+    "reviewStopsAfterThisReport": true
+  },
+  "references": {
+    "R1": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/candidate-manifest.json:6",
+    "R2": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/reviews/round-3/candidate/candidate-manifest.json:279",
+    "R3": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/sandbox.html:50",
+    "R4": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json:18",
+    "R5": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json:41",
+    "R6": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json:64",
+    "R7": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json:131",
+    "R8": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json:87",
+    "R9": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/host.js:32",
+    "R10": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/host.js:54",
+    "R11": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md:186",
+    "R12": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md:182",
+    "R13": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/manifest.json:10",
+    "R14": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/worker-classic.js:3",
+    "R15": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json:127",
+    "R16": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/sandbox.html:9",
+    "R17": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/console.json:1",
+    "R18": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/worker-classic.js:18",
+    "R19": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/sandbox.html:103",
+    "R20": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/sandbox.html:26",
+    "R21": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/sandbox.html:118",
+    "R22": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/host.js:46",
+    "R23": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/fixture/sandbox.html:71",
+    "R24": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md:29",
+    "R25": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json:5",
+    "R26": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md:33",
+    "R27": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/report.json:151",
+    "R28": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md:190",
+    "R29": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-gates.json:35",
+    "R30": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/execution-gates.json:61"
+  }
+}

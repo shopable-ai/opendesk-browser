@@ -1,0 +1,195 @@
+{
+  "id": "B05.SDK.crash.before-admission-commit",
+  "at": "2026-10-03T09:18:16.918Z",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "preparationStatus": "READY_FOR_ASSIGNED_NATIVE_SLOT",
+  "nativeStatus": "NOT_TESTED",
+  "browserLaunched": false,
+  "syntax": "PASS; four node --check commands",
+  "selectors": [
+    {
+      "mode": "production",
+      "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+      "proof": "docs/framework/evidence/f2-sdk-admission-abort/selector-2026-10-03T09-13-23.162Z-015166e3/selector-check.json",
+      "sourceSha256": "554981e7d03222495857810651836c146c719dbbb771994f80ad7129b16cfb3e",
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 210950
+      },
+      "point": {
+        "range": [
+          210950,
+          211133
+        ],
+        "location": {
+          "lineNumber": 0,
+          "columnNumber": 210950
+        },
+        "endLocation": {
+          "lineNumber": 0,
+          "columnNumber": 211133
+        },
+        "text": "e.put(\"runs\",{tag:\"sdk-service\",driver:\"framework.sdk-service.v1\",runId:I.runId,opId:I.opId,namespace:I.namespace,browserSessionIncarnation:r,state:\"preparing\",createdAt:c()},I.runId)"
+      },
+      "bindings": {
+        "tx": "e",
+        "operation": "I",
+        "lockKey": "d",
+        "request": "t",
+        "sender": "n"
+      },
+      "nativeTransactionStateBindings": {
+        "workDone": "p",
+        "ended": "m"
+      },
+      "precedingJournalPuts": [
+        {
+          "range": [
+            210820,
+            210847
+          ],
+          "location": {
+            "lineNumber": 0,
+            "columnNumber": 210820
+          },
+          "text": "e.put(\"commandJournal\",I,m)"
+        },
+        {
+          "range": [
+            210854,
+            210943
+          ],
+          "location": {
+            "lineNumber": 0,
+            "columnNumber": 210854
+          },
+          "text": "e.put(\"commandJournal\",{tag:\"sdk-request\",grantIncarnation:n.grantIncarnation,opKey:m},d)"
+        }
+      ],
+      "parseChecks": "PASS"
+    },
+    {
+      "mode": "development",
+      "packageHash": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60",
+      "proof": "docs/framework/evidence/f2-sdk-admission-abort/selector-2026-10-03T09-13-23.157Z-9b373ab0/selector-check.json",
+      "sourceSha256": "a6122686f3a1d26bea47455af2d41fbfe735577c313bee0109cac322efab2632",
+      "location": {
+        "lineNumber": 3854,
+        "columnNumber": 14
+      },
+      "point": {
+        "range": [
+          283598,
+          283841
+        ],
+        "location": {
+          "lineNumber": 3854,
+          "columnNumber": 14
+        },
+        "endLocation": {
+          "lineNumber": 3855,
+          "columnNumber": 129
+        },
+        "text": "tx.put('runs', {tag:'sdk-service', driver:'framework.sdk-service.v1', runId:operation.runId, opId:operation.opId,\n          namespace:operation.namespace, browserSessionIncarnation:session, state:'preparing', createdAt:now()}, operation.runId)"
+      },
+      "bindings": {
+        "tx": "tx",
+        "operation": "operation",
+        "lockKey": "lockKey",
+        "request": "request",
+        "sender": "sender"
+      },
+      "nativeTransactionStateBindings": {
+        "workDone": "workDone",
+        "ended": "ended"
+      },
+      "precedingJournalPuts": [
+        {
+          "range": [
+            283422,
+            283464
+          ],
+          "location": {
+            "lineNumber": 3852,
+            "columnNumber": 14
+          },
+          "text": "tx.put('commandJournal', operation, opKey)"
+        },
+        {
+          "range": [
+            283480,
+            283582
+          ],
+          "location": {
+            "lineNumber": 3853,
+            "columnNumber": 14
+          },
+          "text": "tx.put('commandJournal', {tag:'sdk-request', grantIncarnation:grant.grantIncarnation, opKey}, lockKey)"
+        }
+      ],
+      "parseChecks": "PASS"
+    }
+  ],
+  "files": [
+    {
+      "path": "tests/framework/k5-sdk-admission-abort-native.mjs",
+      "sha256": "ebe301af367b2d4c36f61e562bc6795598b5c1068e1f2e9e0310f03d0ffff598"
+    },
+    {
+      "path": "tests/framework/k5-sdk-admission-abort-native-selector.mjs",
+      "sha256": "700071bb882a7faf7b3b40e64c378a161c19fe4dd740a1678e1d04fb2a3f6fe8"
+    },
+    {
+      "path": "tests/framework/k5-sdk-admission-abort-native-inspect.mjs",
+      "sha256": "9868b5df31299b9ffabd20d481bbe2c36535a5b4a2e92a398e968da608729984"
+    },
+    {
+      "path": "tests/framework/k5-sdk-native-launcher.mjs",
+      "sha256": "7a35db166295e31a32903ff80d92af3d4e86057a77dae142f3f4ee4bc2bda4f8"
+    }
+  ],
+  "launcher": {
+    "path": "/Users/shopme/.codex/browser-testing/launch.py",
+    "sha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+    "freshOnly": true,
+    "helperSeparator": false,
+    "sourceConsumesLeadingSeparator": true,
+    "sourceMeaning": "Global launcher already removes leading --; its use by a peer helper alone is not an unsafe flag defect"
+  },
+  "exactBreakpointContract": "Runtime loaded source hash must match this frozen package. Accept only unique getPossibleBreakpoints location equal to selected AST call start; no relocated or neighboring fallback.",
+  "pausedObservationContract": [
+    "Original request/method/args/deadline and actual native MessageSender match page input",
+    "Original put/get wrapper closures refer to the same native IDBTransaction",
+    "Native readwrite mode, database and exact commandJournal/runs/results scope",
+    "Minified native completion/termination state bindings are parsed, not guessed",
+    "A real pending IDBRequest points to that same native transaction; no IDB read/write/abort requests are injected",
+    "Final pending fact immediately precedes stopWorker for exact old version/target"
+  ],
+  "rollbackContract": [
+    "Actual targetDestroyed, distinct replacement SW and native relay Hello recovery",
+    "No competing tool IDB observation while the admission transaction is paused",
+    "Post-recovery native readonly IDB shows no SDK operation/request/run/result invocation rows",
+    "Original grant/incarnation and original document survive, HTTP POST count0",
+    "Same page/grant/document/request/deadline payload is first-admitted, without new grant or synthetic identity",
+    "Exactly1 HTTP effect,1 native result and new native op/run/result IDs; old aborted IDs are not patched"
+  ],
+  "missingNativeFacts": [
+    "possible-breakpoint exact availability",
+    "actual readonly paused frame sender/request/operation values",
+    "unique actual native IDBTransaction identity across wrapper get/put scopes",
+    "native transaction mode/store scope and pending completion guards",
+    "actual pending IDBRequest referencing that exact transaction immediately before stopWorker",
+    "actual destroyed old target and distinct recovered SW",
+    "atomic native rollback, zero HTTP effects, original grant/doc unchanged",
+    "same original request first-admitted once with exactly one native result and one HTTP effect"
+  ],
+  "productHooksAdded": false,
+  "distModified": false,
+  "runnerDatabaseWrites": false,
+  "syntheticSender": false,
+  "nativeAdmissionAbortObserved": false,
+  "controllerSlotPreserved": true,
+  "f3Accepted": false,
+  "b05Closed": false,
+  "original603Closed": false
+}

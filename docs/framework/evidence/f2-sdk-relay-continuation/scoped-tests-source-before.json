@@ -1,0 +1,165 @@
+{
+  "at": "2026-10-03T08:05:26.555697+00:00",
+  "files": {
+    "src/agents/page-relay.js": {
+      "sha256": "0bb95b6c920d8d8d8e54f381aef1f1b369cacb2b8a3c15e53bf7bec3469cb39c",
+      "bytes": 6460
+    },
+    "src/framework/events.js": {
+      "sha256": "f2953f29263bb5b5ec0ae5f58f39edc3cffdd133867008e82e602ac486b2fcc2",
+      "bytes": 1206
+    },
+    "src/framework/sdk/bridge.js": {
+      "sha256": "1e29c660de8ae3c85e6111875418721325192af41082d8f9cd40aa5433240462",
+      "bytes": 5632
+    },
+    "src/framework/sdk/entry.js": {
+      "sha256": "eb4885d2f694cdeef7967759a1e2ea25df933525bb287f0bf772baf9b5931700",
+      "bytes": 8014
+    },
+    "src/framework/sdk/http.js": {
+      "sha256": "1be88c4ae271ab751a1a848e02a78a08adad76140e850e385d4d6555c46c0e62",
+      "bytes": 339
+    },
+    "src/framework/sdk/notifications.js": {
+      "sha256": "a139446cb979971db9487c1e9ae905f19588909acd2f4cf56ab57d9ae29dff41",
+      "bytes": 503
+    },
+    "src/framework/sdk/registry.js": {
+      "sha256": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+      "bytes": 8276
+    },
+    "src/framework/sdk/servers.js": {
+      "sha256": "1bf8e33ba8079914b4c3b11e700af948e594f73872b491c1126f4fe69e333089",
+      "bytes": 983
+    },
+    "src/framework/sdk/service.js": {
+      "sha256": "df46b84eaef58a374f195762dbce67783cdfeee65b94a6b86e96ea196aef51ca",
+      "bytes": 1786
+    },
+    "src/framework/sdk/storage.js": {
+      "sha256": "77e7545c01752ebc3074b182012638cd7981f3cafce82e19e9a782f907bfc7eb",
+      "bytes": 1040
+    },
+    "src/framework/sdk/transport.js": {
+      "sha256": "215cf7975fbf6fb6ac1284a784475251875905e514b0c800edaff367843371f0",
+      "bytes": 4037
+    },
+    "src/framework/sdk/utils.js": {
+      "sha256": "21f0d3e6efd9f690f375e45f6ab6274a9254675e89e4b01cf08b43f1c4284a97",
+      "bytes": 970
+    },
+    "src/framework/utils/device.js": {
+      "sha256": "f87e108419d29a2008b0dd360287d666570a374e367dcfa8e2a8e49688762df8",
+      "bytes": 2319
+    },
+    "src/framework/utils/network-info.js": {
+      "sha256": "2af82434ec8529dacc14eb2ba7fe06895909fe07a61a58d6d0cde21e7563c562",
+      "bytes": 223
+    },
+    "src/framework/utils/script.js": {
+      "sha256": "55ab1758fd4bc217db40f195d27a781cad9dd9c97064534fe110ab870d7b45a0",
+      "bytes": 365
+    },
+    "src/platform/chrome/cookies.js": {
+      "sha256": "644053a629b6511ffdaeabc682c2b4f3ba2efc537653e520e8d2b05b3c242a80",
+      "bytes": 3609
+    },
+    "src/platform/chrome/network.js": {
+      "sha256": "6e978085991301421c7f1e9ac2d9a42183ee84833ff5e051ac4083217f3da274",
+      "bytes": 6892
+    },
+    "src/platform/chrome/notifications.js": {
+      "sha256": "891f6f66c06bcc6ee0a32f3c10cf50e1371f9cb0eb02fc3eb8646b40898f1e61",
+      "bytes": 2935
+    },
+    "src/platform/chrome/tabs.js": {
+      "sha256": "cf077eaa8922e5e6fb8e280a44ff71a41cb551665d488acde2205bb66f5297e6",
+      "bytes": 1747
+    },
+    "src/platform/host/authority.js": {
+      "sha256": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+      "bytes": 22092
+    },
+    "src/platform/host/broker.js": {
+      "sha256": "095d44bd695d055faa32b57ce36272f3c2becc52f3fa09339bef38251f8fb948",
+      "bytes": 11982
+    },
+    "src/platform/host/client.js": {
+      "sha256": "0f02825734c47182443dab7dbf7e0f88b0cea7d4d7a64e3e478a9bb0ea0ec8f6",
+      "bytes": 4085
+    },
+    "src/platform/host/controller-methods.js": {
+      "sha256": "93b8acfcf5a69d983bdc4cc491b78e1002a4a2112ccb35bc37069d03aae37402",
+      "bytes": 43834
+    },
+    "src/platform/host/sdk-broker.js": {
+      "sha256": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+      "bytes": 4564
+    },
+    "src/platform/host/sdk-methods.js": {
+      "sha256": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+      "bytes": 23663
+    },
+    "src/platform/page-port/codec.js": {
+      "sha256": "935cfd66f0b06949c10841cedf575c68bcee6b29d2d3fda236f25aaead42b124",
+      "bytes": 7854
+    },
+    "src/platform/page-port/index.js": {
+      "sha256": "493118e8fc2a2bfc39fc8328de859fde11936639f1393073348096896ac6e0ca",
+      "bytes": 17775
+    },
+    "src/platform/page-port/source.js": {
+      "sha256": "ef55098b6f515a12187ffa7c3874942849b9231bd95fc9f0a7ce9781c71bbab8",
+      "bytes": 24766
+    },
+    "src/platform/protocol.js": {
+      "sha256": "a862d2146a46cee42ed6fdc4fb34b4b750c3a78a470497301716bb9ae50240d3",
+      "bytes": 10019
+    },
+    "src/platform/storage/idb.js": {
+      "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672",
+      "bytes": 17016
+    },
+    "src/platform/storage/index.js": {
+      "sha256": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+      "bytes": 3168
+    },
+    "src/platform/storage/regression.js": {
+      "sha256": "7ab921130e6064310916dc45649e05b343eabf34d27203cb39e71e7142f231ed",
+      "bytes": 15317
+    },
+    "src/platform/storage/repository.js": {
+      "sha256": "4f67bee828ae3d758da5fac4d8e4beca2bf0584aaf7839cb676140d4e19e4a68",
+      "bytes": 61404
+    },
+    "src/platform/storage/session.js": {
+      "sha256": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+      "bytes": 2123
+    },
+    "tests/framework/k2-sdk-broker.test.mjs": {
+      "sha256": "d053acce3ea43f73cebcdacd3b67a0227c0253e49257a0df80490603cd2509cd",
+      "bytes": 18455
+    },
+    "tests/framework/k2-sdk-relay-races.test.mjs": {
+      "sha256": "66870457ca64206230755b1fb57bb78514a0c6fd5cb35457cdc3ce60347bdd56",
+      "bytes": 8124
+    },
+    "tests/framework/k4-sdk-bundle-reinjection.test.mjs": {
+      "sha256": "2795cdc3484538a169f151d065f90f55206df9f6cb18907f051bf52e087a95ce",
+      "bytes": 4829
+    },
+    "tests/framework/k4-sdk-reinjection.test.mjs": {
+      "sha256": "cd251209e5d00fa659f175bfdfb4b6706954daa39ed445734c28abecf45a059b",
+      "bytes": 9204
+    },
+    "tests/framework/k4-sdk.test.mjs": {
+      "sha256": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+      "bytes": 19833
+    },
+    "webpack.config.cjs": {
+      "sha256": "db5ab24aed612c905218bb7a4e27b172db69008a8d7d36e16f6c9348e8d27ade",
+      "bytes": 1489
+    }
+  }
+}

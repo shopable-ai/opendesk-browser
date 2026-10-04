@@ -1,0 +1,20 @@
+✔ actual WXT AST exposes exact CP1/CP2/CP4/storage and native KV observation ranges (231.335ms)
+✔ storage cut rejects missing or ambiguous immutable source anchors (130.710375ms)
+✔ native KV submission selector refuses a changed or duplicate native put (202.460459ms)
+✔ unknown must expose only the original public request reference (1.305959ms)
+✔ bounded slices add prerequisites while retaining the full required case list (0.269291ms)
+✔ preparation retains the frozen denominator and binds its actual helper bytes (21.420458ms)
+✔ fresh owned process observation permits fallback cleanup (0.557833ms)
+✔ fallback refuses reusedPid (0.100541ms)
+✔ fallback refuses foreignParent (0.053792ms)
+✔ fallback refuses foreignExecutable (0.049375ms)
+✔ fallback refuses foreignProfile (0.069417ms)
+✔ fallback refuses absent process and missing mock keychain (0.056666ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 673.456834

@@ -1,0 +1,17 @@
+{
+  "phase": "before-fix",
+  "observation": "Instrumented actual crypto.subtle.digest and runtime.sendMessage around the original two turn() calls.",
+  "sequence": [
+    "ACK {\"accepted\":true}",
+    "hash 1 begin",
+    "turn1",
+    "hash 1 end",
+    "hash 2 begin",
+    "turn2",
+    "hash 2 end",
+    "PAGE_DATA"
+  ],
+  "hash1": "digest({pageIdentity, rawRows})",
+  "hash2": "digest({snapshotId, frameIndex, rowStart, rawRows})",
+  "existingOraclePreserved": "Immediate accepted ACK, messages.length === 0, two original turn() waits and assert.ok(frame); added identity only to the explicit FRAME_ACK fixture."
+}

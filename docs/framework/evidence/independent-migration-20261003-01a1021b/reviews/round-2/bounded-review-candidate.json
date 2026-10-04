@@ -1,0 +1,61 @@
+{
+  "kind": "bounded-existing-code-map-and-targeted-actions-review-not-stage0-or-F3",
+  "createdAtUTC": "2026-10-03T16:13:52.940Z",
+  "files": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/actual-code-map.md",
+      "bytes": 54606,
+      "sha256": "dde4550e154dc6cd6130f4f19745d7bc9f64d62ed296e25a760d2b2b7eb40918"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/actual-code-map.json",
+      "bytes": 106370,
+      "sha256": "bb711eed946b72b918a05152d6f5ded588cf877840af461ba880511a55720fd5"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/full-read-receipt.json",
+      "bytes": 81773,
+      "sha256": "0e99468cad9852ef93a967a690eb09e6bf6a41b8e0e351387af39994de188c96"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/four-service-targeted-fix.md",
+      "bytes": 9505,
+      "sha256": "5639b2d5abdf34d0bbd2831f20e5443ece6ea6f25e916df008d15ad94b7e4556"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-migration-20261003-01a1021b/writer-four-service-preparation-raw.txt",
+      "bytes": 7175,
+      "sha256": "2cf5a5a0a624cab2fa425fdc387c59e72daf958d4d665557dd1ae07db1022821"
+    }
+  ],
+  "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+  "reviewScale": [
+    25,
+    20,
+    25,
+    20,
+    10
+  ],
+  "requiredScoreEach": 95,
+  "rawTerminatedReviewers": [
+    {
+      "agentId": "01a10225-476c-7841-884e-5f09219bab78",
+      "error": "429 Too Many Requests; exceeded retry limit",
+      "score": null
+    },
+    {
+      "agentId": "01a10225-494b-7962-9258-f1c34a1363d0",
+      "error": "429 Too Many Requests; exceeded retry limit",
+      "score": null
+    }
+  ],
+  "revision": 2,
+  "assessmentScope": "实施前真实代码对应表及定点实施方案；不是产品实现/F3完成度评分。禁止用新增文字隐藏未修复缺口，具体兼容入口/可信driver/资源清单/逐项断言由真实源码与合同支撑。",
+  "previousRound": {
+    "candidateHash": "a173aec24cc6191546dd0ad1cf2adead04b286414a368b2dc478d939d167249d",
+    "codeReviewer": 88,
+    "contractReviewer": 65,
+    "passed": false
+  },
+  "productModified": false
+}

@@ -1,0 +1,32 @@
+{
+  "reports": [
+    {
+      "label": "138",
+      "summary": {
+        "PASS": 0,
+        "FAIL": 1
+      },
+      "physicalPassed": false,
+      "error": {
+        "code": "E_OWNER",
+        "message": "Only actual packaged tool documents may invoke foundation services",
+        "stack": "FoundationError: Only actual packaged tool documents may invoke foundation services\n    at send (chrome-extension://bjdmhcjglelkoigjhaehkhmphagckopi/ui/tool-shell.js:723:30)\n    at async chrome-extension://bjdmhcjglelkoigjhaehkhmphagckopi/ui/tool-shell.js:1561:3"
+      }
+    },
+    {
+      "label": "154",
+      "summary": {
+        "PASS": 0,
+        "FAIL": 1
+      },
+      "physicalPassed": false,
+      "error": {
+        "code": "E_OWNER",
+        "message": "Only actual packaged tool documents may invoke foundation services",
+        "stack": "FoundationError: Only actual packaged tool documents may invoke foundation services\n    at send (chrome-extension://bjdmhcjglelkoigjhaehkhmphagckopi/ui/tool-shell.js:723:30)\n    at async chrome-extension://bjdmhcjglelkoigjhaehkhmphagckopi/ui/tool-shell.js:1561:3"
+      }
+    }
+  ],
+  "finalProductPassed": false,
+  "serverClosed": true
+}

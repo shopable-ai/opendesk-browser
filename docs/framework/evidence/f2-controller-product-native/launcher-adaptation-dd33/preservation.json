@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-03T08:30:28.953446+00:00",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "previousRunnerSha256": "dd33ded5d8dc90efbb17342a0d03f59cb4acf7fb0894419b67e4605679d11d77",
+  "previousRunnerBytes": 57471,
+  "previousReadyPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T08-23-45.124Z-4c602ae0/ready.json",
+  "previousReadySha256": "c13e260f66c500dc71e5c6fcbab3ddb23584c1869805bfe13fa57c476c289e0c",
+  "launcherPath": "/Users/shopme/.codex/browser-testing/launch.py",
+  "launcherSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+  "nativeExecuted": false,
+  "stage": "F2",
+  "f3Accepted": false,
+  "original603Closed": false
+}

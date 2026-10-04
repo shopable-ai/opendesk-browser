@@ -1,0 +1,48 @@
+{
+  "startedAt": "2026-10-02T18:38:58.824377+00:00",
+  "scope": "new Goal environment preparation only, no backend tests/product edit",
+  "proxy": "TCP refused; direct downloads",
+  "browserRoot": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers",
+  "oldCheckpointUntouched": true,
+  "partialBytesReusedAsCopies": true,
+  "runtimeProof": false,
+  "browserAcquisition": [
+    {
+      "version": "138.0.7204.183",
+      "archive": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183.zip.part",
+      "bytes": 161386556,
+      "sha256": "2e83ec74a87928bdcd3425ba90901bceb2be6c5ffa6d9ebcac77f1dd3d1dd768",
+      "officialHeaderMd5": "ggzR8MABg2hSMfd7qjUa9g==",
+      "actualMd5": "ggzR8MABg2hSMfd7qjUa9g==",
+      "zipIntegrity": "pass",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "executableSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+      "runtimeMatrix": "not-tested",
+      "versionCommand": {
+        "exitCode": 0,
+        "stdout": "Google Chrome for Testing 138.0.7204.183",
+        "stderr": ""
+      },
+      "extraction": "macOS ditto preserves symlinks and executable modes"
+    },
+    {
+      "version": "154.0.8037.92",
+      "archive": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92.zip.part",
+      "bytes": 191153086,
+      "sha256": "b62e904b6571c5ff5108ed7812cf93ac6d1c4027f10ae47ac34d8e229ed88001",
+      "officialHeaderMd5": "vq4oTlQ8RTh5LGjzmgLR7w==",
+      "actualMd5": "vq4oTlQ8RTh5LGjzmgLR7w==",
+      "zipIntegrity": "pass",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "executableSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+      "runtimeMatrix": "not-tested",
+      "versionCommand": {
+        "exitCode": 0,
+        "stdout": "Google Chrome for Testing 154.0.8037.92",
+        "stderr": ""
+      },
+      "extraction": "macOS ditto preserves symlinks and executable modes"
+    }
+  ],
+  "completedAt": "2026-10-02T18:40:29.799693+00:00"
+}

@@ -1,0 +1,1713 @@
+{
+  "schema": "independent F1 code/spec/security lane review, old frozen control candidate",
+  "createdAtUtc": "2026-10-02T21:33:53.366516+00:00",
+  "reviewer": {
+    "role": "independent code/spec/security reviewer",
+    "prototypeAuthor": false,
+    "modelAndEffort": "inherited; no override",
+    "architectureLaneOwnership": false
+  },
+  "repo": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "lane": "control",
+  "verdict": "REQUEST_CHANGES",
+  "laneRecommendation": "REQUEST_CHANGES",
+  "score": null,
+  "prototypeCandidateSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+  "approvedExecutionContractManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "contractCasesSha256": "bf763f22a2182dbaba4b56ba08647fd0cd16e36bdea8694514ba687107ff3173",
+  "sourceManifest": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-source-manifest.json",
+  "finalEvidenceManifest": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-evidence-manifest.json",
+    "sha256": "243f93957edcab80e47a0e4682d0337a47095f4fcc9255513809d98f8a6d6268"
+  },
+  "freezeBoundary": "All findings and probes bind only the old 711f source. Source/binary/artifact checks were captured before the author's newly authorized edits. The report preserves hashed old excerpts; file:line refers to that hash and may no longer describe live files. No new-source acceptance or round6 page acceptance.",
+  "unionCandidateSha256": null,
+  "allF1": false,
+  "backendPrototypePassed": false,
+  "F2": false,
+  "F3": false,
+  "productCasesExecutedByThisReview": 0,
+  "pageLane": {
+    "finding": "CR-F1-PAGE-001",
+    "status": "BLOCK",
+    "oldCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+    "round6ConditionalChangesAccepted": false
+  },
+  "reviewScope": {
+    "fullNativeMatricesRead": 2,
+    "authorCasesRead": 92,
+    "independentCounterProbes": 2,
+    "independentFullMatrixReruns": 0,
+    "sourceFiles": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run.mjs",
+        "bytes": 14271,
+        "sha256": "2ee7bc681b679da1df7782b347da130367cbf29e3b0d36404e22c18dce126397",
+        "matches": true,
+        "readScope": "hash verified; legacy Playwright runner not used for final native termination evidence"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs",
+        "bytes": 47153,
+        "sha256": "a327839d2f3a04ad7b7e4433a9db8092f84a2878bb126fd093f572fc7fa3b243",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/manifest.json",
+        "bytes": 580,
+        "sha256": "1e8b0e56ff73a6b11a69abeafeb92f267fdf626b2112714c5cc5b306bba5637b",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/sw.js",
+        "bytes": 268,
+        "sha256": "01ef704876ed81591589d93da9a7eb6d67a4b477275c254e9594515c6478c595",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.html",
+        "bytes": 191,
+        "sha256": "7d6413e1134abe3b3cb1ba81766272ce4613b53d60e5600d6151aba67dc58900",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+        "bytes": 13509,
+        "sha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/sandbox.html",
+        "bytes": 6215,
+        "sha256": "9c9305423cb7ea0ab5a102a48de184959787c81f15f0901dd8930b4838de9f13",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/worker-harness.js",
+        "bytes": 3185,
+        "sha256": "630ab92f6a629d8027d11c0f47c0b5c21a2c60f86a6d859b8ef0d78cabcd39ee",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/attacker.html",
+        "bytes": 51,
+        "sha256": "bbdedb61777e02b607304c0ee783a515908f7a41435d7eb33f5cc313d72a321a",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/attacker.js",
+        "bytes": 426,
+        "sha256": "7a1df07d40ab780d8a56fbe9e3bd06312ccf46514f70765256d8512364c1ca16",
+        "matches": true,
+        "readScope": "reviewed actual runner/fixture/CSP/private-channel/host source for old candidate"
+      }
+    ],
+    "nativeEvidenceChecks": "Six exact run/Blob/Worker/thread/PID causal mappings cross-checked against raw trace and protocol events; CPU recomputed for exact mapped PID; conservative actual-trigger bounds, post-stop CPU/process exit, target destruction/absence, channel and resource coverage reviewed.",
+    "validations": "Hash/size/schema/event/case/CPU revalidation and two bounded native counterproofs. Existing frozen syntax validation was read; no new syntax or LSP diagnostic pass after the author began editing. No LSP/AST service available in this reviewer toolset.",
+    "writes": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/control-review.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/code-reviewer/control-review.md"
+    ],
+    "fixtureDiskWrites": false,
+    "productOrGateWrites": false,
+    "oldThreadMessages": false,
+    "approvalScope": "Read approved round5 contract, do not reapprove plan. Control-only review; union/backend/product authorization remains absent."
+  },
+  "integrity": {
+    "sourceFilesMatched": 10,
+    "artifactsAndApprovalReportsMatched": 26,
+    "mismatches": [],
+    "artifactHashes": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/candidate-manifest.json",
+        "sha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+        "bytes": 1631,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/console.json",
+        "sha256": "86a6443fade296a17a36371296e378842c497501ea9e2b3ddacec2429423ccf8",
+        "bytes": 216173,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/extension-ui.json",
+        "sha256": "fa35d8e053791dcfd7ed41b02d40559a629623f75f6f907955654a716a8d8b9f",
+        "bytes": 7306,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/extension-ui.png",
+        "sha256": "4935ff964f17524f96d9fbdc4d0dd4515723ae137d9d992e0ebee11e6dc13f6c",
+        "bytes": 29373,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/protocol.json",
+        "sha256": "979b599c2d8ef06c49c2394e1aa615a35e661ee2417a9be5b9b8f74f711bb571",
+        "bytes": 202100,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/report.json",
+        "sha256": "12a48b63a9696ff95bb3c3f7d530ec53eb0c6c6d3e0de2346467d799bfece172",
+        "bytes": 400787,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/trace.json",
+        "sha256": "33efe04f2befeedb4b512a774aa84fc286dc0e66f724cb28b83763297afc312d",
+        "bytes": 4328678,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/workbench.png",
+        "sha256": "fdf1e36f9febb976f26fed1656d762ed90aad0700fb2910142807356895e9c3d",
+        "bytes": 52770,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/candidate-manifest.json",
+        "sha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+        "bytes": 1631,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/console.json",
+        "sha256": "a8ea751b55cad3a22e3843f60c099cac48bcf5b2c8fb84d2e281a43b22db979c",
+        "bytes": 239024,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/extension-ui.json",
+        "sha256": "aceb3652e61df4e9415b6cb05cd5357f0296240ff61df92228e35c6ac62fe63f",
+        "bytes": 7463,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/extension-ui.png",
+        "sha256": "58d583e6f2c2cd95329993e803508c2fa1ddc19204cad5bef66218dd0e941b31",
+        "bytes": 27444,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/protocol.json",
+        "sha256": "c82b7e868ca85d43b38b87930b6ae17c34d62ae4f61344893471b712914a0ee8",
+        "bytes": 222521,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/report.json",
+        "sha256": "80258c89f4316b6c08b12a20079ec8fd26ceb2f438ad317b42137a00ac530ad0",
+        "bytes": 482132,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/trace.json",
+        "sha256": "780c5a2727318ab073c1b30ddeeebddbc8ae272d4df52b7918c5d2a4f5027097",
+        "bytes": 5733632,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/workbench.png",
+        "sha256": "5fae2a1a4b81b145e2695adee67b6f904df6bc4a96954b0ddc890ffa053e3c04",
+        "bytes": 46037,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-source-manifest.json",
+        "sha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+        "bytes": 1631,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-matrix.json",
+        "sha256": "b82a760c196b541ca1951ac46d09274c75bdf1bd6fe362afa675f163c0c03efa",
+        "bytes": 14190,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-cleanup-audit.json",
+        "sha256": "6a75f7ae2eeba7a25eef3c2fba70d2aaf9d7260be11e9d211926ad0aa92580c9",
+        "bytes": 11343,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/round4-artifacts-before-round5.json",
+        "sha256": "fc9e2e123678981bc52aa9cb90b7cb1b89a473d2dfd3b95470a2f7527ffd051f",
+        "bytes": 28047,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/round4-immutability-final.json",
+        "sha256": "084e4488dd27f51f9fa65efd10a12c88ccc5f82d8d34165e0be7583bf1cf8e0e",
+        "bytes": 42872,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-validation.json",
+        "sha256": "e800fa7cf3d5e756ac8e9f8c84a0e4b4a23a582a55c254287a47de7b99d76f69",
+        "bytes": 658,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-handoff.md",
+        "sha256": "ed35fa30575a6167c5444a67f9c67d72fd2fc75e2bf06c3311a98485460d8cb7",
+        "bytes": 5044,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-control-v2/m5-20261002-k1/final-contract-mapping.json",
+        "sha256": "e009608bf8c8d737ead92ca81d6144309eb7664a5b89aa8601621cbc40cf8ebf",
+        "bytes": 21480,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/architect.json",
+        "sha256": "d2c9263779f3e72249bca83a353106c3f325dec8d8f2fd0b6d575f2009e576b2",
+        "bytes": 33943,
+        "matches": true
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/critic.json",
+        "sha256": "8f4dad9153d106237a3ae106e6283c2e77f0c20193ae22dcd5952f16857033ee",
+        "bytes": 42458,
+        "matches": true
+      }
+    ],
+    "oldRound4": {
+      "count": 119,
+      "mismatches": []
+    },
+    "freshOwnedProcessAudit": {
+      "scope": "exact owned profiles and recorded browser pids/process groups from frozen final-cleanup-audit; no process mutation",
+      "profileCount": 25,
+      "liveMatches": []
+    },
+    "preserved": "Old two-second failures and old final matrix PASS labels remain unchanged. These independent findings are separate review judgments."
+  },
+  "blockers": [
+    {
+      "id": "CR-F1-CTRL-001",
+      "severity": "HIGH",
+      "priority": "P1",
+      "type": "confirmed cancellation dispatch fence defect",
+      "blocking": true,
+      "title": "权限 await 完成后，旧 operation 在 stop 结算后仍首次发出原生页面副作用",
+      "candidateSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+          "start": 81,
+          "end": 87,
+          "sourceSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e"
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+          "start": 52,
+          "end": 59,
+          "sourceSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e"
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+          "start": 100,
+          "end": 123,
+          "sourceSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e"
+        }
+      ],
+      "contract": {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/f1-cases.json",
+        "line": 103,
+        "id": "F1-CTRL-TRUE-TERMINATE",
+        "requiredTerms": [
+          "admission closes immediately",
+          "no late action"
+        ],
+        "relatedFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/goal-constraints.md",
+        "relatedLine": 49,
+        "distinction": "stop does not undo already-issued side effects; this browser API is first issued after stop, so that exception does not apply"
+      },
+      "cause": "Message ingress captures owner, but operation() does not receive that identity. It awaits real permission state, then reads mutable active/tabId/documentId. goto calls tabs.update even when active is null; owner is captured after the await. The reply fence at line 59 prevents a reply, not the newly issued effect. Other methods read active.runId and could misattribute a stale continuation to a newly admitted run; only the goto/stop case was dynamically reproduced here.",
+      "evidence": "independentProbe.runs: both actual versions; permissions result true after stop, native tabs.update invoked with active=null, requested destination actually received by HTTP server and committed in the tab. Old run remains stopped exactly once, no old reply, later valid run succeeds. The probe uses explicit in-memory scheduling instrumentation and delegates to native APIs without replacing results.",
+      "reproduction": [
+        "Restore/hash-check the exact 711f source, not the author's now-changing live files.",
+        "Launch the exact native binary with a fresh profile and unchanged extension fixture; initialize the real owned form tab.",
+        "Call the actual chrome.permissions.contains, schedule ordinary harness.stop() in a microtask before its promise resolution, then return that real promise unchanged.",
+        "Run await page.goto(params.url); record order through a thin delegate to actual chrome.tabs.update; observe the actual server destination and tab URL.",
+        "The full executed stdin script and selected raw measured values are preserved in independentProbe."
+      ],
+      "minimalFix": "Pass immutable owner/run/host/sandbox epoch and target identity from admission into operation. After permission and every intervening await, revalidate the captured owner and target immediately before each native Chrome dispatch and before adopting a new navigation document. Use captured runId, never the next run's global active. Once closed, reject the stale continuation without new page effects; do not attempt to undo already-issued effects.",
+      "requiredValidation": "Bounded native stop, deadline, host-close, and old-authorization-completion-after-new-run cases on both versions, with native permission results, real HTTP/page effects and their order, exactly one old terminal state, no effect/identity adoption from old run, and a successful subsequent run. Freeze a new source/evidence candidate for independent review; do not alter old 46 PASS or old counterproof."
+    },
+    {
+      "id": "CR-F1-CTRL-002",
+      "severity": "HIGH",
+      "priority": "P1",
+      "type": "required resource oracle evidence gap (not an observed leak)",
+      "blocking": true,
+      "title": "20 轮资源记录没有各自的独立 Blob 失效观测",
+      "candidateSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+      "locations": [
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/run-native.mjs",
+          "start": 291,
+          "end": 306,
+          "sourceSha256": "a327839d2f3a04ad7b7e4433a9db8092f84a2878bb126fd093f572fc7fa3b243"
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/sandbox.html",
+          "start": 44,
+          "end": 51,
+          "sourceSha256": "9c9305423cb7ea0ab5a102a48de184959787c81f15f0901dd8930b4838de9f13"
+        },
+        {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+          "start": 21,
+          "end": 36,
+          "sourceSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e"
+        }
+      ],
+      "contract": {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/candidate/stage0/f1-cases.json",
+        "line": 134,
+        "id": "F1-CTRL-RESOURCE",
+        "rounds": {
+          "success": 5,
+          "throw": 5,
+          "timeout": 5,
+          "cancel": 5
+        },
+        "expected": "compare actual independent observations before/after and revoked URL load failure; all per-run resources return baseline; later valid run works; preserve old manually counted partial proof"
+      },
+      "evidence": "Each version has 20 resource runIds/retired Blob URLs, real per-case page-wait baseline and final empty browser Worker target set. The sole final resourceProbe has two negative URLs, zero intersecting those 20 URLs: AFTER-CLEANUP-VALID and the probe's own positive control URL. Stop/timeout recreate the opaque realm and discard its local retiredURLs. The final current-realm pointer/Set zeros and revokedURL strings cannot independently cover every previous run.",
+      "notClaimed": "No resource leak is demonstrated. Source calls terminate/close/revoke, the terminal browser target baseline is empty, and fresh owned-process audit is clean. The issue is the required evidence coverage, not a fabricated runtime FAIL.",
+      "minimalFix": "Obtain native per-run retirement observations for the five rounds in each outcome, explicitly bound to runId/epoch/actual Blob/Worker. Where claiming explicit revoke, test the actual URL in the creating opaque realm with a pre-revoke positive load and a post-revoke negative before realm teardown, then dispose probe Workers. If the realm is retired instead, distinguish browser-owned realm destruction from explicit revoke, and independently prove it and target absence. Checking an old opaque Blob from a new opaque origin is not alone a revocation proof.",
+      "requiredValidation": "A bounded resource-only native evidence supplement for the frozen replacement candidate, with all 20 run records linked to independent Worker/Blob before/after observations and pending/page-wait/timer/port baselines, plus later valid run. Keep the old aggregate PASS and old partial observations unchanged."
+    }
+  ],
+  "contractDispositions": [
+    {
+      "id": "F1-CTRL-USER-ASYNC",
+      "verdict": "bounded native method/value/error support; cancellation dispatch fence BLOCK",
+      "evidence": "Actual USER-GOTO-TITLE-URL / USER-TYPE-CLICK-WAIT-READ produces BaseAlice in order, false/0/null/undefined preserved, user throw/syntax/adapter rejection/clone error exercised. AsyncFunction compilation confined to native opaque Blob Worker. CR-F1-CTRL-001 prevents approval of the complete adapter contract."
+    },
+    {
+      "id": "F1-CTRL-PRIVATE-CHANNEL",
+      "verdict": "supported in exercised native adversarial cases",
+      "evidence": "Captured native primitives in Worker; first private binding with actual URL/name/origin, source/origin check for sandbox parent; forged global result/naturalEnd and prototype patch do not win; sibling fake peer not bound, genuine REAL completion; replay and forged run/epoch rejected without extra genuine operation."
+    },
+    {
+      "id": "F1-CTRL-CSP-NETWORK",
+      "verdict": "supported",
+      "evidence": "Opaque sandbox with no allow-same-origin / DOM / extension API; real session-specific browser connect-src and script-src denial, actual HTTP and WS positive controls before/after, no forbidden server hit. Finite network Worker logging attaches after all tight-loop tests. No privileged eval/SW compile/network fallback."
+    },
+    {
+      "id": "F1-CTRL-TRUE-TERMINATE",
+      "verdict": "3s physical termination evidence supported; full contract BLOCK due to late action",
+      "evidence": "Exact native trace token maps 138 blank Worker target to Blob, creator/host, PID/thread. Mapped pre-loop CPU increases; stop/deadline early CPU still grows, then sustained near-zero mapped process growth (154) or independently confirmed exact PID exit (138/host-close), plus exact TargetDestroyed and absent target, all within conservative actual-trigger+3s. No loop Worker or creator Inspector attachment in recorded source/event chain. No unconditional claim of no possible external Inspector; protocol captures events rather than command request transcript. New runs after each termination succeed. CR-F1-CTRL-001 demonstrates no-late-action failure."
+    },
+    {
+      "id": "F1-CTRL-RESOURCE",
+      "verdict": "BLOCK; required independent evidence incomplete",
+      "evidence": "20 native outcome runs/version, real per-case host pending/page-wait/timer baseline and final empty browser Worker set. Both final Blob negative probes cover 0/20 resource Blob URLs; oldrealm local counters do not supply all required independent observations. CR-F1-CTRL-002."
+    },
+    {
+      "id": "F1-SW-AND-PAGE-LOOP",
+      "verdict": "supported for recorded bounded sequence",
+      "evidence": "Exact SW version stopped/woken with changed epoch while controller Worker survives; actual private host disposal followed by new verified host epoch and new run. Actual MAIN document-bound server POST + CPU growth + owned target destruction, borrowed target refusal and survival. This is a fixture lifecycle proof, not F2 product recovery proof."
+    },
+    {
+      "id": "F1-VERSION-MATRIX",
+      "verdict": "control coverage only, no union approval",
+      "evidence": "Actual 138.0.7204.183 and 154.0.8037.92 use identical 711f source, 46 PASS each; two additional finite counterproofs demonstrate the fence defect. All 12 F1 conditions cannot be approved without the final frozen two-lane union and resolution of page/control blockers."
+    }
+  ],
+  "versions": [
+    {
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/138.0.7204.183",
+        "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.0.0 Safari/537.36",
+        "jsVersion": "13.8.258.30",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/profile",
+        "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "headed": false,
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f"
+      },
+      "binaryHashVerified": true,
+      "sourceManifestMatched": true,
+      "sourceUnchangedDuringAuthorRun": true,
+      "authorCaseStatuses": {
+        "PASS": 46,
+        "FAIL": 0,
+        "ERROR": 0,
+        "SKIP": 0
+      },
+      "caseIds": [
+        "F1-INFINITE-LOOP-STOP",
+        "F1-AFTER-TERMINATION-STOP",
+        "F1-INFINITE-LOOP-DEADLINE",
+        "F1-AFTER-TERMINATION-DEADLINE",
+        "F1-INFINITE-LOOP-HOST-CLOSE",
+        "F1-AFTER-TERMINATION-HOST-CLOSE",
+        "F1-USER-GOTO-TITLE-URL",
+        "F1-USER-TYPE-CLICK-WAIT-READ",
+        "F1-USER-THROW",
+        "F1-USER-SYNTAX",
+        "F1-ADAPTER-REJECTION",
+        "F1-RETURN-false",
+        "F1-RETURN-0",
+        "F1-RETURN-null",
+        "F1-RETURN-undefined",
+        "F1-UNSERIALIZABLE",
+        "F1-GLOBAL-FORGERY-PATCH",
+        "F1-DEADLINE",
+        "F1-PENDING-PAGE-DEADLINE",
+        "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+        "F1-FAKE-PEER",
+        "F1-CSP-NETWORK-ATTRIBUTION",
+        "F1-RESOURCE-SUCCESS-0",
+        "F1-RESOURCE-THROW-0",
+        "F1-RESOURCE-TIMEOUT-0",
+        "F1-RESOURCE-CANCEL-0",
+        "F1-RESOURCE-SUCCESS-1",
+        "F1-RESOURCE-THROW-1",
+        "F1-RESOURCE-TIMEOUT-1",
+        "F1-RESOURCE-CANCEL-1",
+        "F1-RESOURCE-SUCCESS-2",
+        "F1-RESOURCE-THROW-2",
+        "F1-RESOURCE-TIMEOUT-2",
+        "F1-RESOURCE-CANCEL-2",
+        "F1-RESOURCE-SUCCESS-3",
+        "F1-RESOURCE-THROW-3",
+        "F1-RESOURCE-TIMEOUT-3",
+        "F1-RESOURCE-CANCEL-3",
+        "F1-RESOURCE-SUCCESS-4",
+        "F1-RESOURCE-THROW-4",
+        "F1-RESOURCE-TIMEOUT-4",
+        "F1-RESOURCE-CANCEL-4",
+        "F1-AFTER-CLEANUP-VALID",
+        "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+        "F1-SW-HOST-RECONNECT",
+        "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+      ],
+      "loopEvidence": [
+        {
+          "id": "F1-INFINITE-LOOP-STOP",
+          "runId": "b7dffd3d-da1c-4462-a94d-4e64aeef0e46",
+          "blobURL": "blob:null/3c96a4f1-0f29-46ff-a649-06af05678ee5",
+          "targetId": "5A6603FEC306ADB618DABFAB27D7536B",
+          "mappedPid": 86290,
+          "mappedThreadId": 37720867,
+          "rawTraceEventExactMatch": true,
+          "uniqueWorkerTraceMatches": 1,
+          "creatorFunctionCallExactMatch": true,
+          "creatorHostFrameAttachExactMatch": true,
+          "targetDestroyedExactMatch": true,
+          "runBlobTargetThreadMapping": true,
+          "reportedCpuRecomputes": true,
+          "heldCPU": 0.053007,
+          "beforeCPU": 0.053055,
+          "loopCPU": 0.374311,
+          "earlyCPU": 0.14906799999999992,
+          "postCPU": [
+            null,
+            null,
+            null
+          ],
+          "postDeltas": [
+            null,
+            null
+          ],
+          "OSexit": {
+            "pid": 86290,
+            "beforeMonoMs": 3988.549042,
+            "afterMonoMs": 3991.322917,
+            "exitStatus": 1,
+            "stderr": "",
+            "confirmedExited": true
+          },
+          "triggerInterval": {
+            "lowerMonoMs": 1562.8037499046325,
+            "upperMonoMs": 1563.3017092861023
+          },
+          "clockUncertaintyMs": 0.49795938146985463,
+          "cessationMs": 2428.5191670953673,
+          "destroyedMs": 2006.6219170953675,
+          "absenceMs": 2054.9336250953675,
+          "allTimingWithin3s": true,
+          "immediateFence": true,
+          "loopTargetOrCreatorAttachments": 0
+        },
+        {
+          "id": "F1-INFINITE-LOOP-DEADLINE",
+          "runId": "294edefc-08e7-4e42-a517-87cd476a483e",
+          "blobURL": "blob:null/937ba863-ceb5-43bd-ae44-9a8d1b67e0d1",
+          "targetId": "C2881E3B2C728A250B8584BF2BA1D079",
+          "mappedPid": 86313,
+          "mappedThreadId": 37721067,
+          "rawTraceEventExactMatch": true,
+          "uniqueWorkerTraceMatches": 1,
+          "creatorFunctionCallExactMatch": true,
+          "creatorHostFrameAttachExactMatch": true,
+          "targetDestroyedExactMatch": true,
+          "runBlobTargetThreadMapping": true,
+          "reportedCpuRecomputes": true,
+          "heldCPU": 0.053835,
+          "beforeCPU": 0.053955,
+          "loopCPU": 0.37514400000000003,
+          "earlyCPU": 0.15033200000000002,
+          "postCPU": [
+            null,
+            null,
+            null
+          ],
+          "postDeltas": [
+            null,
+            null
+          ],
+          "OSexit": {
+            "pid": 86313,
+            "beforeMonoMs": 7700.679459,
+            "afterMonoMs": 7703.219959,
+            "exitStatus": 1,
+            "stderr": "",
+            "confirmedExited": true
+          },
+          "triggerInterval": {
+            "lowerMonoMs": 5276.263500095368,
+            "upperMonoMs": 5276.849917190734
+          },
+          "clockUncertaintyMs": 0.5864170953664143,
+          "cessationMs": 2426.956458904632,
+          "destroyedMs": 2005.4276669046321,
+          "absenceMs": 2055.2572089046325,
+          "allTimingWithin3s": true,
+          "immediateFence": true,
+          "loopTargetOrCreatorAttachments": 0
+        },
+        {
+          "id": "F1-INFINITE-LOOP-HOST-CLOSE",
+          "runId": "f874aa68-9d11-4ef7-8a2b-5a8e8cd2b67b",
+          "blobURL": "blob:null/b3888016-16a4-4b6f-8508-34f0e80e57fd",
+          "targetId": "F6C509550E5B419AF3E28D3DD95BBF63",
+          "mappedPid": 86349,
+          "mappedThreadId": 37721356,
+          "rawTraceEventExactMatch": true,
+          "uniqueWorkerTraceMatches": 1,
+          "creatorFunctionCallExactMatch": true,
+          "creatorHostFrameAttachExactMatch": true,
+          "targetDestroyedExactMatch": true,
+          "runBlobTargetThreadMapping": true,
+          "reportedCpuRecomputes": true,
+          "heldCPU": 0.05302,
+          "beforeCPU": 0.053034,
+          "loopCPU": 0.37302199999999996,
+          "earlyCPU": null,
+          "postCPU": [
+            null,
+            null,
+            null
+          ],
+          "postDeltas": [
+            null,
+            null
+          ],
+          "OSexit": {
+            "pid": 86349,
+            "beforeMonoMs": 9088.295292,
+            "afterMonoMs": 9091.176292,
+            "exitStatus": 1,
+            "stderr": "",
+            "confirmedExited": true
+          },
+          "triggerInterval": {
+            "lowerMonoMs": 8531.565334,
+            "upperMonoMs": 8531.565334
+          },
+          "clockUncertaintyMs": 0.4977913814691419,
+          "cessationMs": 559.6109579999993,
+          "destroyedMs": 6.1880829999990965,
+          "absenceMs": 161.56883299999936,
+          "allTimingWithin3s": true,
+          "immediateFence": true,
+          "loopTargetOrCreatorAttachments": 0
+        }
+      ],
+      "resourceEvidence": {
+        "rounds": 20,
+        "allPerCaseHostBaseline": true,
+        "baseline": {
+          "pending": 0,
+          "timer": 0,
+          "port": 1,
+          "frame": 1,
+          "pageWaits": 0,
+          "resourceReplies": 0
+        },
+        "finalTargets": [],
+        "resourceURLs": [
+          "blob:null/0547054e-112b-41b8-a917-9e50d573af0f",
+          "blob:null/0667597e-697c-49f6-8388-f17d7e7ca4cd",
+          "blob:null/1c9f909f-24c6-4a10-a07f-210eaa0f7da4",
+          "blob:null/1fd81651-8e83-4278-a594-21f63fc4b3a6",
+          "blob:null/292fd843-57f8-4a29-bff6-2b2100dbaf81",
+          "blob:null/293b5c36-430f-4380-a18f-bd947bd26193",
+          "blob:null/2f8434f0-2268-4eb8-a8cc-19163cb63c7e",
+          "blob:null/348fa97d-5b05-4782-9741-8ad74beec878",
+          "blob:null/5464efa5-c458-4795-a6cc-c847409a5103",
+          "blob:null/570c57f2-46f9-4caf-9a90-51f5acf29d95",
+          "blob:null/7e86e876-8a0f-4651-8e48-f2678eb8801e",
+          "blob:null/868b785d-3cf3-497f-8b00-fd5324c400f8",
+          "blob:null/91e000ed-54af-4d1b-9373-e23b4dc4d0d3",
+          "blob:null/9de2a0d9-9520-466f-b21f-94735b94d830",
+          "blob:null/bf120336-3609-4807-b7a4-edd35507e4cd",
+          "blob:null/c662d4f3-0d58-471d-bd5d-2dee34b2da55",
+          "blob:null/c686e1e3-8887-4693-86d7-afe1b7f1e9de",
+          "blob:null/daf007fc-7efd-4004-991c-093d47ac18e5",
+          "blob:null/f20d90ad-9d4a-4d70-8c6d-682ad10c7ada",
+          "blob:null/f5826f73-c171-4420-9a07-3c970cf75d92"
+        ],
+        "retiredRecordCount": 38,
+        "negativeURLs": [
+          "blob:null/64da793b-ae3c-4af9-bf45-bb423fc4f5b7",
+          "blob:null/94631445-cacd-46b6-a892-7b12683a6636"
+        ],
+        "negativeProbeCoveredResourceURLs": [],
+        "positiveLoaded": true,
+        "probeSelfCounters": {
+          "worker": 0,
+          "perRunPorts": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        }
+      },
+      "csp": {
+        "runId": "ede494ff-9e8b-436e-bec5-b9dd75375bbb",
+        "blobURL": "blob:null/5d1fcf6e-d900-4c28-b07b-074df03d8554",
+        "workerTargetId": "0B81EAD43446E55B8E3860DAFBA2D17F",
+        "sessionId": "32BADB423BF8986564C00EAA93640975",
+        "positiveBefore": [
+          {
+            "url": "http://127.0.0.1:57352/probe?positive=extension&kind=fetch&token=network-1790974683680",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "http://127.0.0.1:57352/probe?positive=extension&kind=xhr&token=network-1790974683680",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "ws://127.0.0.1:57352/probe?positive=extension&kind=ws&token=network-1790974683680",
+            "opened": true
+          },
+          {
+            "url": "http://127.0.0.1:57352/probe.js?positive=extension&token=network-1790974683680",
+            "status": 200,
+            "body": "self.__f1NetworkImported=true;"
+          }
+        ],
+        "positiveAfter": [
+          {
+            "url": "http://127.0.0.1:57352/probe?positive=extension&kind=fetch&token=network-1790974683680",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "http://127.0.0.1:57352/probe?positive=extension&kind=xhr&token=network-1790974683680",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "ws://127.0.0.1:57352/probe?positive=extension&kind=ws&token=network-1790974683680",
+            "opened": true
+          },
+          {
+            "url": "http://127.0.0.1:57352/probe.js?positive=extension&token=network-1790974683680",
+            "status": 200,
+            "body": "self.__f1NetworkImported=true;"
+          }
+        ],
+        "nativeLogDenials": 9,
+        "allNativeDenialsSameSession": true,
+        "workerPolicyEvents": 6,
+        "networkResult": {
+          "fetch": {
+            "blocked": true,
+            "name": "TypeError",
+            "message": "Failed to fetch"
+          },
+          "xhr": {
+            "exposed": true,
+            "blocked": true
+          },
+          "ws": {
+            "exposed": true,
+            "blocked": true
+          },
+          "script": {
+            "exposed": true,
+            "blocked": true,
+            "name": "NetworkError",
+            "message": "Failed to execute 'importScripts' on 'WorkerGlobalScope': The script at 'http://127.0.0.1:57352/probe.js?worker=blocked&token=network-1790974683680' failed to load."
+          }
+        },
+        "serverHits": [
+          {
+            "url": "/probe?positive=extension&kind=fetch&token=network-1790974683680",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974683681,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=xhr&token=network-1790974683680",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974683682,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=ws&token=network-1790974683680",
+            "method": "GET",
+            "origin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "at": 1790974683684,
+            "kind": "websocket-upgrade"
+          },
+          {
+            "url": "/probe.js?positive=extension&token=network-1790974683680",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974683685,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=fetch&token=network-1790974683680",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974683820,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=xhr&token=network-1790974683680",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974683821,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=ws&token=network-1790974683680",
+            "method": "GET",
+            "origin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "at": 1790974683822,
+            "kind": "websocket-upgrade"
+          },
+          {
+            "url": "/probe.js?positive=extension&token=network-1790974683680",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974683822,
+            "kind": "http"
+          }
+        ],
+        "forbiddenServerHits": 0
+      },
+      "sw": {
+        "versionId": "0",
+        "scriptURL": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+        "epochBefore": "1d281bc5-8f04-4768-a015-21a821620924",
+        "epochAfter": "51b6823a-4e7c-4196-aaeb-91d73b5c8729",
+        "controllerResult": {
+          "runId": "bc9d58aa-2f8f-4b48-8591-2ea1d38a845a",
+          "body": "await page.title(); await new Promise(r=>setTimeout(r,600)); return \"controller-survived-SW\";",
+          "kind": "result",
+          "value": "controller-survived-SW",
+          "valueType": "string",
+          "valuePresent": true,
+          "terminalTriggeredAt": 1790974686061,
+          "terminalTriggeredMonoMs": 4725.299999713898,
+          "admissionClosedMonoMs": 4725.299999713898,
+          "timerDueMonoMs": 9111.799999713898,
+          "deadlineFiredMonoMs": null,
+          "settledAt": 1790974686061
+        },
+        "oldHostEpoch": "a24b0957-4f0b-4d2c-8287-390820c46547",
+        "newHostEpoch": "d474aa3a-d5d0-43d4-97e5-706e749acbec",
+        "reconnectResult": {
+          "runId": "994953fd-ff89-48de-94d9-8bca272d5819",
+          "body": "return await page.title();",
+          "kind": "result",
+          "value": "OpenDesk real form",
+          "valueType": "string",
+          "valuePresent": true,
+          "terminalTriggeredAt": 1790974686288,
+          "terminalTriggeredMonoMs": 176.19999980926514,
+          "admissionClosedMonoMs": 176.19999980926514,
+          "timerDueMonoMs": 5172.699999809265,
+          "deadlineFiredMonoMs": null,
+          "settledAt": 1790974686288
+        }
+      },
+      "main": {
+        "mainToken": "main-loop-1790974686497",
+        "mainEntered": [
+          {
+            "url": "/probe?mainLoop=main-loop-1790974686497&documentURL=http%3A%2F%2F127.0.0.1%3A57352%2Fform",
+            "method": "POST",
+            "origin": "http://127.0.0.1:57352",
+            "at": 1790974686554,
+            "kind": "http"
+          }
+        ],
+        "mainArm": [
+          {
+            "documentId": "ABE46647292947DB602E1245FE9048E8",
+            "frameId": 0,
+            "result": {
+              "armed": true,
+              "documentURL": "http://127.0.0.1:57352/form",
+              "world": "MAIN"
+            }
+          }
+        ],
+        "mainRetire": {
+          "removed": true,
+          "tabId": 1722804007
+        },
+        "ownedTargetDestroyed": {
+          "method": "Target.targetDestroyed",
+          "params": {
+            "targetId": "65F7EA7B8B9C8B9F3B65448BE26FA909"
+          },
+          "observedAt": 1790974686712,
+          "observedMonoMs": 14557.257959
+        },
+        "borrowedBinding": {
+          "tabId": 1722804008,
+          "documentId": "F45A131F1D484ED6CA9E238C3C0DFA2A",
+          "owned": false,
+          "url": "http://127.0.0.1:57352/form?borrowed-sentinel=1790974686290"
+        },
+        "borrowedRefusal": {
+          "removed": false,
+          "reason": "borrowed"
+        },
+        "borrowedStillPresent": true,
+        "cpuEvidenceLimit": "SystemInfo renderer CPU increase is aggregate diagnostic, not an exact MAIN PID/thread map. Actual document-bound beacon POST immediately precedes the tight loop; exact owned target is destroyed. This is not Worker.terminate evidence."
+      },
+      "cleanup": {
+        "ownedBrowserExited": true,
+        "ownedBrowserPid": 86255,
+        "exitCode": 0,
+        "signalCode": null,
+        "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/profile",
+        "ownedTargets": [
+          "DA842FC148F88F1543A4FF6591D437F9"
+        ],
+        "serverClosed": true,
+        "cdpWaiters": 0,
+        "abortedCdpRequests": 0
+      }
+    },
+    {
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/154.0.8037.92",
+        "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+        "jsVersion": "15.4.80.19",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/profile",
+        "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "headed": false,
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349"
+      },
+      "binaryHashVerified": true,
+      "sourceManifestMatched": true,
+      "sourceUnchangedDuringAuthorRun": true,
+      "authorCaseStatuses": {
+        "PASS": 46,
+        "FAIL": 0,
+        "ERROR": 0,
+        "SKIP": 0
+      },
+      "caseIds": [
+        "F1-INFINITE-LOOP-STOP",
+        "F1-AFTER-TERMINATION-STOP",
+        "F1-INFINITE-LOOP-DEADLINE",
+        "F1-AFTER-TERMINATION-DEADLINE",
+        "F1-INFINITE-LOOP-HOST-CLOSE",
+        "F1-AFTER-TERMINATION-HOST-CLOSE",
+        "F1-USER-GOTO-TITLE-URL",
+        "F1-USER-TYPE-CLICK-WAIT-READ",
+        "F1-USER-THROW",
+        "F1-USER-SYNTAX",
+        "F1-ADAPTER-REJECTION",
+        "F1-RETURN-false",
+        "F1-RETURN-0",
+        "F1-RETURN-null",
+        "F1-RETURN-undefined",
+        "F1-UNSERIALIZABLE",
+        "F1-GLOBAL-FORGERY-PATCH",
+        "F1-DEADLINE",
+        "F1-PENDING-PAGE-DEADLINE",
+        "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+        "F1-FAKE-PEER",
+        "F1-CSP-NETWORK-ATTRIBUTION",
+        "F1-RESOURCE-SUCCESS-0",
+        "F1-RESOURCE-THROW-0",
+        "F1-RESOURCE-TIMEOUT-0",
+        "F1-RESOURCE-CANCEL-0",
+        "F1-RESOURCE-SUCCESS-1",
+        "F1-RESOURCE-THROW-1",
+        "F1-RESOURCE-TIMEOUT-1",
+        "F1-RESOURCE-CANCEL-1",
+        "F1-RESOURCE-SUCCESS-2",
+        "F1-RESOURCE-THROW-2",
+        "F1-RESOURCE-TIMEOUT-2",
+        "F1-RESOURCE-CANCEL-2",
+        "F1-RESOURCE-SUCCESS-3",
+        "F1-RESOURCE-THROW-3",
+        "F1-RESOURCE-TIMEOUT-3",
+        "F1-RESOURCE-CANCEL-3",
+        "F1-RESOURCE-SUCCESS-4",
+        "F1-RESOURCE-THROW-4",
+        "F1-RESOURCE-TIMEOUT-4",
+        "F1-RESOURCE-CANCEL-4",
+        "F1-AFTER-CLEANUP-VALID",
+        "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+        "F1-SW-HOST-RECONNECT",
+        "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+      ],
+      "loopEvidence": [
+        {
+          "id": "F1-INFINITE-LOOP-STOP",
+          "runId": "c3952ea2-6bb4-4b8b-b1b0-7a0ca9c10c84",
+          "blobURL": "blob:null/7b92b2e5-9ad7-4fb7-a3eb-4609e083367f",
+          "targetId": "E8BB6A35A0E6C3ED90D77F65E74BBD60",
+          "mappedPid": 86288,
+          "mappedThreadId": 37720839,
+          "rawTraceEventExactMatch": true,
+          "uniqueWorkerTraceMatches": 1,
+          "creatorFunctionCallExactMatch": true,
+          "creatorHostFrameAttachExactMatch": true,
+          "targetDestroyedExactMatch": true,
+          "runBlobTargetThreadMapping": true,
+          "reportedCpuRecomputes": true,
+          "heldCPU": 0.055406,
+          "beforeCPU": 0.055551,
+          "loopCPU": 0.37521499999999997,
+          "earlyCPU": 0.15126300000000004,
+          "postCPU": [
+            2.33589,
+            2.336024,
+            2.336091
+          ],
+          "postDeltas": [
+            0.0001340000000000785,
+            6.700000000003925e-05
+          ],
+          "OSexit": {
+            "pid": 86288,
+            "beforeMonoMs": 3864.63525,
+            "afterMonoMs": 3867.58925,
+            "exitStatus": 0,
+            "stderr": "",
+            "confirmedExited": false
+          },
+          "triggerInterval": {
+            "lowerMonoMs": 1448.7781250953674,
+            "upperMonoMs": 1449.339208190735
+          },
+          "clockUncertaintyMs": 0.5610830953675077,
+          "cessationMs": 2328.992957904633,
+          "destroyedMs": 2003.0983749046325,
+          "absenceMs": 2024.0899159046328,
+          "allTimingWithin3s": true,
+          "immediateFence": true,
+          "loopTargetOrCreatorAttachments": 0
+        },
+        {
+          "id": "F1-INFINITE-LOOP-DEADLINE",
+          "runId": "ed127650-aef0-4d15-a294-38e0673b8064",
+          "blobURL": "blob:null/15f572cf-c76c-4ec1-9fc0-81014618be91",
+          "targetId": "1769F6AD062F0F3507B33F8B957E1513",
+          "mappedPid": 86305,
+          "mappedThreadId": 37721036,
+          "rawTraceEventExactMatch": true,
+          "uniqueWorkerTraceMatches": 1,
+          "creatorFunctionCallExactMatch": true,
+          "creatorHostFrameAttachExactMatch": true,
+          "targetDestroyedExactMatch": true,
+          "runBlobTargetThreadMapping": true,
+          "reportedCpuRecomputes": true,
+          "heldCPU": 0.055279,
+          "beforeCPU": 0.055358,
+          "loopCPU": 0.350109,
+          "earlyCPU": 0.14521399999999995,
+          "postCPU": [
+            2.804644,
+            2.804644,
+            2.804644
+          ],
+          "postDeltas": [
+            0,
+            0
+          ],
+          "OSexit": {
+            "pid": 86305,
+            "beforeMonoMs": 7426.952166,
+            "afterMonoMs": 7429.967541,
+            "exitStatus": 0,
+            "stderr": "",
+            "confirmedExited": false
+          },
+          "triggerInterval": {
+            "lowerMonoMs": 5020.179333,
+            "upperMonoMs": 5020.917625
+          },
+          "clockUncertaintyMs": 0.7382920000000013,
+          "cessationMs": 2320.674167,
+          "destroyedMs": 2004.464833,
+          "absenceMs": 2014.7202500000003,
+          "allTimingWithin3s": true,
+          "immediateFence": true,
+          "loopTargetOrCreatorAttachments": 0
+        },
+        {
+          "id": "F1-INFINITE-LOOP-HOST-CLOSE",
+          "runId": "3fca4b80-2530-4dee-8c53-bd4756f7fd69",
+          "blobURL": "blob:null/9f7ff85a-28f0-45ba-a2ae-2f01b890c19f",
+          "targetId": "BA28578AD1DB89D0D73A4B34CEE270EF",
+          "mappedPid": 86341,
+          "mappedThreadId": 37721309,
+          "rawTraceEventExactMatch": true,
+          "uniqueWorkerTraceMatches": 1,
+          "creatorFunctionCallExactMatch": true,
+          "creatorHostFrameAttachExactMatch": true,
+          "targetDestroyedExactMatch": true,
+          "runBlobTargetThreadMapping": true,
+          "reportedCpuRecomputes": true,
+          "heldCPU": 0.051697,
+          "beforeCPU": 0.051818,
+          "loopCPU": 0.37145399999999995,
+          "earlyCPU": null,
+          "postCPU": [
+            null,
+            null,
+            null
+          ],
+          "postDeltas": [
+            null,
+            null
+          ],
+          "OSexit": {
+            "pid": 86341,
+            "beforeMonoMs": 8642.535583,
+            "afterMonoMs": 8645.24275,
+            "exitStatus": 1,
+            "stderr": "",
+            "confirmedExited": true
+          },
+          "triggerInterval": {
+            "lowerMonoMs": 8127.922625,
+            "upperMonoMs": 8127.922625
+          },
+          "clockUncertaintyMs": 0.6675828092647862,
+          "cessationMs": 517.3201249999993,
+          "destroyedMs": 9.081999999999425,
+          "absenceMs": 165.4552909999993,
+          "allTimingWithin3s": true,
+          "immediateFence": true,
+          "loopTargetOrCreatorAttachments": 0
+        }
+      ],
+      "resourceEvidence": {
+        "rounds": 20,
+        "allPerCaseHostBaseline": true,
+        "baseline": {
+          "pending": 0,
+          "timer": 0,
+          "port": 1,
+          "frame": 1,
+          "pageWaits": 0,
+          "resourceReplies": 0
+        },
+        "finalTargets": [],
+        "resourceURLs": [
+          "blob:null/0491f666-81f3-44e1-b037-766677dc186e",
+          "blob:null/0cad9db2-f426-41de-b771-cb83570a98bb",
+          "blob:null/0d449a80-2768-40fa-8a95-7d699eed9e88",
+          "blob:null/0e46e2dd-b8ee-479d-bc76-8f5443cf5a40",
+          "blob:null/14d614eb-c688-479b-9ba6-29b1ea328cf9",
+          "blob:null/1ad7b3af-3d1f-496c-8c5b-036dbae81e07",
+          "blob:null/1e178e86-f9f6-4ff1-8740-c512d8993572",
+          "blob:null/265e84e6-6b19-41e5-b324-5e54def43e20",
+          "blob:null/433fe34a-47a6-4573-a097-7ab9ee057b56",
+          "blob:null/5f2369f6-3058-430e-aeeb-4e52d2d5c267",
+          "blob:null/6d2852d9-4aa3-4197-bb04-adc88a2ba527",
+          "blob:null/82509906-1bcc-4917-b6e6-108d1bef2419",
+          "blob:null/8715f75f-6e41-4835-a6b2-03e626168d67",
+          "blob:null/b3a03e61-e707-4546-b3b0-94f38ddc9263",
+          "blob:null/bb15d004-62ce-47d9-8f31-1108f8cb3740",
+          "blob:null/bc998e57-d8ac-48e7-8216-94f2cf7728fa",
+          "blob:null/c164a892-06ea-49be-b040-94b84534b9e8",
+          "blob:null/c4a7ca17-a164-4afd-bea8-723d0e627ed6",
+          "blob:null/e11ca118-52d4-4114-8ca9-19cd9f1d6cb2",
+          "blob:null/f1e4b83c-13b2-4fc8-953a-54fe084079a8"
+        ],
+        "retiredRecordCount": 38,
+        "negativeURLs": [
+          "blob:null/c7156cba-9279-44ff-b112-da219df9059c",
+          "blob:null/fdccd09b-86fa-4866-aa0e-e0409be23f0d"
+        ],
+        "negativeProbeCoveredResourceURLs": [],
+        "positiveLoaded": true,
+        "probeSelfCounters": {
+          "worker": 0,
+          "perRunPorts": 0,
+          "blobURLs": 0,
+          "probeWorkers": 0
+        }
+      },
+      "csp": {
+        "runId": "155fc70b-cc44-4842-bb57-9b31208385cf",
+        "blobURL": "blob:null/a74074d5-212a-43ac-a6ba-afbdcfa09437",
+        "workerTargetId": "D163FBD1D2FDF3484B2A87BB14F3B1F4",
+        "sessionId": "63915F9E96E68E57A78D43D251C97BFE",
+        "positiveBefore": [
+          {
+            "url": "http://127.0.0.1:57353/probe?positive=extension&kind=fetch&token=network-1790974682563",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "http://127.0.0.1:57353/probe?positive=extension&kind=xhr&token=network-1790974682563",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "ws://127.0.0.1:57353/probe?positive=extension&kind=ws&token=network-1790974682563",
+            "opened": true
+          },
+          {
+            "url": "http://127.0.0.1:57353/probe.js?positive=extension&token=network-1790974682563",
+            "status": 200,
+            "body": "self.__f1NetworkImported=true;"
+          }
+        ],
+        "positiveAfter": [
+          {
+            "url": "http://127.0.0.1:57353/probe?positive=extension&kind=fetch&token=network-1790974682563",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "http://127.0.0.1:57353/probe?positive=extension&kind=xhr&token=network-1790974682563",
+            "status": 200,
+            "body": "reachable"
+          },
+          {
+            "url": "ws://127.0.0.1:57353/probe?positive=extension&kind=ws&token=network-1790974682563",
+            "opened": true
+          },
+          {
+            "url": "http://127.0.0.1:57353/probe.js?positive=extension&token=network-1790974682563",
+            "status": 200,
+            "body": "self.__f1NetworkImported=true;"
+          }
+        ],
+        "nativeLogDenials": 9,
+        "allNativeDenialsSameSession": true,
+        "workerPolicyEvents": 6,
+        "networkResult": {
+          "fetch": {
+            "blocked": true,
+            "name": "TypeError",
+            "message": "Failed to fetch"
+          },
+          "xhr": {
+            "exposed": true,
+            "blocked": true
+          },
+          "ws": {
+            "exposed": true,
+            "blocked": true
+          },
+          "script": {
+            "exposed": true,
+            "blocked": true,
+            "name": "NetworkError",
+            "message": "Failed to execute 'importScripts' on 'WorkerGlobalScope': The script at 'http://127.0.0.1:57353/probe.js?worker=blocked&token=network-1790974682563' failed to load."
+          }
+        },
+        "serverHits": [
+          {
+            "url": "/probe?positive=extension&kind=fetch&token=network-1790974682563",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974682565,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=xhr&token=network-1790974682563",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974682566,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=ws&token=network-1790974682563",
+            "method": "GET",
+            "origin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "at": 1790974682571,
+            "kind": "websocket-upgrade"
+          },
+          {
+            "url": "/probe.js?positive=extension&token=network-1790974682563",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974682572,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=fetch&token=network-1790974682563",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974682709,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=xhr&token=network-1790974682563",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974682710,
+            "kind": "http"
+          },
+          {
+            "url": "/probe?positive=extension&kind=ws&token=network-1790974682563",
+            "method": "GET",
+            "origin": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan",
+            "at": 1790974682711,
+            "kind": "websocket-upgrade"
+          },
+          {
+            "url": "/probe.js?positive=extension&token=network-1790974682563",
+            "method": "GET",
+            "origin": null,
+            "at": 1790974682712,
+            "kind": "http"
+          }
+        ],
+        "forbiddenServerHits": 0
+      },
+      "sw": {
+        "versionId": "2",
+        "scriptURL": "chrome-extension://klkhjgdgiamblehcbkepadedldbjklan/sw.js",
+        "epochBefore": "64d4befa-0a10-4c7f-afe9-2fc276013f5a",
+        "epochAfter": "a3d2bf15-71ae-4afd-a17b-65aadbba8eab",
+        "controllerResult": {
+          "runId": "cf788366-4b9a-4fa4-b4d1-a83466e9da94",
+          "body": "await page.title(); await new Promise(r=>setTimeout(r,600)); return \"controller-survived-SW\";",
+          "kind": "result",
+          "value": "controller-survived-SW",
+          "valueType": "string",
+          "valuePresent": true,
+          "terminalTriggeredAt": 1790974684527,
+          "terminalTriggeredMonoMs": 3702.0999999046326,
+          "admissionClosedMonoMs": 3702.0999999046326,
+          "timerDueMonoMs": 8089.699999809265,
+          "deadlineFiredMonoMs": null,
+          "settledAt": 1790974684527
+        },
+        "oldHostEpoch": "170d0dc8-1c02-4da6-8b89-48b2733215e2",
+        "newHostEpoch": "d2635073-7663-4f60-922b-fd2459af5a06",
+        "reconnectResult": {
+          "runId": "1a28bc92-82fb-40f2-bd86-63dfd00f9fac",
+          "body": "return await page.title();",
+          "kind": "result",
+          "value": "OpenDesk real form",
+          "valueType": "string",
+          "valuePresent": true,
+          "terminalTriggeredAt": 1790974684633,
+          "terminalTriggeredMonoMs": 92.2999997138977,
+          "admissionClosedMonoMs": 92.2999997138977,
+          "timerDueMonoMs": 5087.699999809265,
+          "deadlineFiredMonoMs": null,
+          "settledAt": 1790974684633
+        }
+      },
+      "main": {
+        "mainToken": "main-loop-1790974684814",
+        "mainEntered": [
+          {
+            "url": "/probe?mainLoop=main-loop-1790974684814&documentURL=http%3A%2F%2F127.0.0.1%3A57353%2Fform",
+            "method": "POST",
+            "origin": "http://127.0.0.1:57353",
+            "at": 1790974684872,
+            "kind": "http"
+          }
+        ],
+        "mainArm": [
+          {
+            "documentId": "7EB729140223F3119B3081F410F0D6D9",
+            "frameId": 0,
+            "result": {
+              "armed": true,
+              "documentURL": "http://127.0.0.1:57353/form",
+              "world": "MAIN"
+            }
+          }
+        ],
+        "mainRetire": {
+          "removed": true,
+          "tabId": 1342341957
+        },
+        "ownedTargetDestroyed": {
+          "method": "Target.targetDestroyed",
+          "params": {
+            "targetId": "1ED87505AFD404FEC6064A28357FED6C"
+          },
+          "observedAt": 1790974685032,
+          "observedMonoMs": 12877.802875
+        },
+        "borrowedBinding": {
+          "tabId": 1342341958,
+          "documentId": "B24069BF0444BDBA1FEDF0C68EFB7F6F",
+          "owned": false,
+          "url": "http://127.0.0.1:57353/form?borrowed-sentinel=1790974684635"
+        },
+        "borrowedRefusal": {
+          "removed": false,
+          "reason": "borrowed"
+        },
+        "borrowedStillPresent": true,
+        "cpuEvidenceLimit": "SystemInfo renderer CPU increase is aggregate diagnostic, not an exact MAIN PID/thread map. Actual document-bound beacon POST immediately precedes the tight loop; exact owned target is destroyed. This is not Worker.terminate evidence."
+      },
+      "cleanup": {
+        "ownedBrowserExited": true,
+        "ownedBrowserPid": 86256,
+        "exitCode": 0,
+        "signalCode": null,
+        "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/profile",
+        "ownedTargets": [
+          "FCE36725A9940C6BD2B60E645C0BF701"
+        ],
+        "serverClosed": true,
+        "cdpWaiters": 0,
+        "abortedCdpRequests": 0
+      }
+    }
+  ],
+  "frozenSourceExcerpts": [
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+      "sourceSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e",
+      "startLine": 52,
+      "lines": [
+        "const owner = active;",
+        "const operationKey = owner.runId + ':' + data.id;",
+        "pendingOperations.add(operationKey);",
+        "operations.push({runId: owner.runId, id: data.id, method: data.method, args: data.args,",
+        "  targetBefore: {tabId, documentId}});",
+        "try {",
+        "  const value = await operation(data.method, data.args);",
+        "  if (active === owner) { deliveries.push({runId: owner.runId, id: data.id, kind: 'reply', value}); port.postMessage({kind: 'reply', runId: owner.runId, id: data.id, value}); }"
+      ],
+      "format": "Statements copied from the old source; leading indentation normalized. sourceSha256 identifies the full original file, not this excerpt."
+    },
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+      "sourceSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e",
+      "startLine": 69,
+      "lines": [
+        "function finish(kind, payload) {",
+        "  if (!active) return;",
+        "  const terminalTriggeredAt = Date.now(), terminalTriggeredMonoMs = performance.now();",
+        "  const owner = active; active = undefined; const admissionClosedMonoMs = performance.now(); clearTimeout(owner.timer);",
+        "  port.postMessage({kind: 'stop', reason: kind, runId: owner.runId});"
+      ],
+      "format": "Statements copied from the old source; leading indentation normalized. sourceSha256 identifies the full original file, not this excerpt."
+    },
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+      "sourceSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e",
+      "startLine": 81,
+      "lines": [
+        "async function operation(method, args) {",
+        "  if (method === 'mark') return args[0];",
+        "  if (!await chrome.permissions.contains({origins: [permittedOrigin + '/*']})) throw new Error('Site access is not granted');",
+        "  if (method === 'goto') {",
+        "    if (new URL(args[0]).origin !== permittedOrigin) throw new Error('Origin not authorized');",
+        "    const owner = active;",
+        "    await chrome.tabs.update(tabId, {url: args[0]});"
+      ],
+      "format": "Statements copied from the old source; leading indentation normalized. sourceSha256 identifies the full original file, not this excerpt."
+    },
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/fixture/host.js",
+      "sourceSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e",
+      "startLine": 123,
+      "lines": [
+        "    }, args: [method, args, active.runId]});",
+        "  if (response.documentId !== documentId) throw new Error('Old document rejected');",
+        "  if (response.error) throw new Error(response.error.message);",
+        "  return response.result;"
+      ],
+      "format": "Statements copied from the old source; leading indentation normalized. sourceSha256 identifies the full original file, not this excerpt."
+    }
+  ],
+  "independentProbe": {
+    "capture": "Selected measured fields transcribed from this review's raw tool execution output (not from author matrix). Complete executed script is preserved below. Ephemeral profiles were removed after observation.",
+    "candidateSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+    "fixtureHostSha256": "f7ab3da16668ee918a64dffc100ddbf65b1f799c2e6fd320bab54a1eae31fc3e",
+    "method": "Two finite native browser probes; in-memory thin native API delegates schedule ordinary host stop in the permission await interval. Permission and tabs results are unmodified native results. Worker debugger attachment by Playwright may exist here; these probes supply no Worker termination timing evidence.",
+    "executedAtWallMsRange": [
+      1790976205349,
+      1790976206088
+    ],
+    "node": "/Users/shopme/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "invocation": "node --input-type=module < executedSource (stdin); execute only against an exact restored old snapshot, or report the new candidate hash separately",
+    "executedSource": "import {createRequire} from 'node:module';\nimport {createServer} from 'node:http';\nimport {mkdtemp,rm,readFile} from 'node:fs/promises';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nconst require=createRequire(import.meta.url);\nconst {chromium}=require('/Users/shopme/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');\nconst repo='/Users/shopme/Documents/workspace/opendesk-browser', fixture=join(repo,'tests/prototypes/user-control-v2/fixture');\nconst hits=[];\nconst server=createServer((req,res)=>{hits.push({url:req.url,at:Date.now()});res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Content-Type','text/html');res.end('<!doctype html><title>Independent native stop fence</title><input id=\"name\" value=\"Base\">');});\nawait new Promise(r=>server.listen(0,'127.0.0.1',r));\nconst origin='http://127.0.0.1:'+server.address().port;\nconst report={scope:'Independent bounded native page-dispatch race probe; unchanged disk fixture; finite Worker, not a termination timing test',candidateSha256:'711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1',instrumentation:'In-memory thin delegates invoke real chrome.permissions.contains and real chrome.tabs.update. Delegate schedules ordinary harness.stop() in a microtask after real permission request, before native promise resolution. Native results unchanged. This models an allowed stop arrival during authorization; no mocked permission or tabs response.',runs:[]};\ntry {\nfor(const version of ['138.0.7204.183','154.0.8037.92']) {\n const profile=await mkdtemp(join(tmpdir(),'independent-control-fence-')), r={version,profile};report.runs.push(r);let context;\n try {\n const executablePath=join(repo,'tests/.cache/m5-browsers',version,'chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');\n r.executableSha256=createHash('sha256').update(await readFile(executablePath)).digest('hex');\n context=await chromium.launchPersistentContext(profile,{executablePath,headless:true,args:['--use-mock-keychain',`--disable-extensions-except=${fixture}`,`--load-extension=${fixture}`]});\n r.actualVersion=context.browser().version();\n const sw=context.serviceWorkers().find(x=>x.url().endsWith('/sw.js'))??await context.waitForEvent('serviceworker',{predicate:x=>x.url().endsWith('/sw.js'),timeout:15000});\n r.extensionId=new URL(sw.url()).host;\n const host=await context.newPage();await host.goto(`chrome-extension://${r.extensionId}/host.html?network=${encodeURIComponent(origin+'/probe')}`);\n await host.waitForFunction(()=>!!window.harness);\n r.initial=await host.evaluate(()=>harness.initialize());\n const destination=origin+'/after-stop?version='+version;\n r.probe=await host.evaluate(async destination=>{\n const observations=[],contains=chrome.permissions.contains.bind(chrome.permissions),update=chrome.tabs.update.bind(chrome.tabs);let once=true;\n const stamp=kind=>({kind,wallMs:Date.now(),monoMs:performance.now(),active:harness.evidence().active});\n chrome.permissions.contains=function(...args){const p=contains(...args);observations.push(stamp('native-permission-request'));if(once){once=false;queueMicrotask(()=>{harness.stop();observations.push(stamp('host-stop-returned'));});}p.then(v=>observations.push({...stamp('native-permission-resolved'),value:v}));return p;};\n chrome.tabs.update=function(...args){observations.push({...stamp('native-tabs-update-dispatch'),args});return update(...args);};\n const terminal=await harness.run('await page.goto(params.url); return \"unexpected\";', {url:destination},5000);\n for(let i=0;i<100;i++){if((await harness.resources()).pending===0)break;await new Promise(r=>setTimeout(r,20));}\n chrome.permissions.contains=contains;chrome.tabs.update=update;\n const actualTab=await chrome.tabs.get(window.__unusedTabId || (await chrome.tabs.query({})).find(t=>t.url===destination)?.id);\n const evidence=harness.evidence(),resources=await harness.resources();\n const subsequent=await harness.run('return await page.title();');\n return {destination,observations,terminal,actualTab,evidence,resources,subsequent};\n },destination);\n r.nativeServerHits=hits.filter(x=>x.url.includes('version='+version));\n r.cleanup=await host.evaluate(()=>harness.dispose());\n }catch(e){r.error={name:e.name,message:e.message,stack:e.stack};}\n finally{if(context)await context.close();await rm(profile,{recursive:true,force:true});r.browserClosed=true;r.profileRemoved=true;}\n}\n}finally{await new Promise(r=>server.close(r));report.serverClosed=!server.listening;report.fixtureHostSha256=createHash('sha256').update(await readFile(join(fixture,'host.js'))).digest('hex');}\nprocess.stdout.write(JSON.stringify(report)+'\\n');\n",
+    "runs": [
+      {
+        "actualVersion": "138.0.7204.183",
+        "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+        "runId": "faa851e4-5cba-460f-91bd-abf12c76f5ce",
+        "hostEpoch": "72c1283c-7b76-48c3-98fd-03c163fbb3f6",
+        "sandboxEpoch": "6f48e6ff-fd09-48ec-995e-e943e6993084",
+        "workerURL": "blob:null/07961f61-0fe5-401d-820e-0160265bb4eb",
+        "workerName": "OpenDesk-F1-faa851e4-5cba-460f-91bd-abf12c76f5ce",
+        "workerIdentityOrigin": "null",
+        "tabId": 716513528,
+        "oldDocumentId": "29439B3AC29BBF71E3715A2B4B15D4B5",
+        "afterDocumentId": "A1FDA0E32FF197966DEA6B0168A61082",
+        "destination": "http://127.0.0.1:59215/after-stop?version=138.0.7204.183",
+        "observations": [
+          {
+            "kind": "native-permission-request",
+            "wallMs": 1790976205349,
+            "monoMs": 177.39999961853027,
+            "active": {
+              "runId": "faa851e4-5cba-460f-91bd-abf12c76f5ce",
+              "lastId": 1
+            }
+          },
+          {
+            "kind": "host-stop-returned",
+            "wallMs": 1790976205349,
+            "monoMs": 177.59999990463257,
+            "active": null
+          },
+          {
+            "kind": "native-permission-resolved",
+            "wallMs": 1790976205349,
+            "monoMs": 177.59999990463257,
+            "active": null,
+            "value": true
+          },
+          {
+            "kind": "native-tabs-update-dispatch",
+            "wallMs": 1790976205349,
+            "monoMs": 177.59999990463257,
+            "active": null,
+            "args": [
+              716513528,
+              {
+                "url": "http://127.0.0.1:59215/after-stop?version=138.0.7204.183"
+              }
+            ]
+          }
+        ],
+        "terminal": {
+          "kind": "stopped",
+          "error": {
+            "name": "AbortError",
+            "message": "Stopped by host"
+          },
+          "terminalTriggeredAt": 1790976205349,
+          "terminalTriggeredMonoMs": 177.39999961853027,
+          "admissionClosedMonoMs": 177.39999961853027,
+          "settledAt": 1790976205349
+        },
+        "serverHitsRecorded": [
+          {
+            "url": "/after-stop?version=138.0.7204.183",
+            "at": 1790976205385
+          }
+        ],
+        "serverHTTPMethod": "Not logged by this probe; GET is inferred from real chrome.tabs.update navigation. No POST claimed.",
+        "actualTab": {
+          "url": "http://127.0.0.1:59215/after-stop?version=138.0.7204.183",
+          "status": "complete",
+          "title": "Independent native stop fence"
+        },
+        "oldRunSettlementCount": 1,
+        "oldRunReplyDeliveryCount": 0,
+        "newRun": {
+          "runId": "54ba0af6-6fe8-45cc-9395-feb018796f38",
+          "kind": "result",
+          "value": "Independent native stop fence",
+          "terminalTriggeredMonoMs": 302
+        },
+        "resourcesBeforeDispose": {
+          "pending": 0,
+          "timer": 0,
+          "port": 1,
+          "frame": 1,
+          "pageWaits": 0,
+          "resourceReplies": 0
+        },
+        "resourcesAfterDispose": {
+          "pending": 0,
+          "timer": 0,
+          "port": 0,
+          "frame": 0,
+          "pageWaits": 0,
+          "resourceReplies": 0
+        },
+        "browserClosed": true,
+        "profileRemoved": true
+      },
+      {
+        "actualVersion": "154.0.8037.92",
+        "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+        "runId": "7224a446-1538-433c-a659-579df15d2988",
+        "hostEpoch": "ed8ac237-24d3-42a0-ae66-c6ad456ae76e",
+        "sandboxEpoch": "5bcb18b5-9877-40a3-9c12-71f1450e7c38",
+        "workerURL": "blob:null/9bb0255c-16e6-4c2b-b10e-09777dca1a77",
+        "workerName": "OpenDesk-F1-7224a446-1538-433c-a659-579df15d2988",
+        "workerIdentityOrigin": "null",
+        "tabId": 1783877732,
+        "oldDocumentId": "1FE4164C5EA316B4445103BF7FA04691",
+        "afterDocumentId": "AD973A9415C3C713F8F07859BA8C9A30",
+        "destination": "http://127.0.0.1:59215/after-stop?version=154.0.8037.92",
+        "observations": [
+          {
+            "kind": "native-permission-request",
+            "wallMs": 1790976206033,
+            "monoMs": 137.2999997138977,
+            "active": {
+              "runId": "7224a446-1538-433c-a659-579df15d2988",
+              "lastId": 1
+            }
+          },
+          {
+            "kind": "host-stop-returned",
+            "wallMs": 1790976206033,
+            "monoMs": 137.5,
+            "active": null
+          },
+          {
+            "kind": "native-permission-resolved",
+            "wallMs": 1790976206033,
+            "monoMs": 137.59999990463257,
+            "active": null,
+            "value": true
+          },
+          {
+            "kind": "native-tabs-update-dispatch",
+            "wallMs": 1790976206033,
+            "monoMs": 137.59999990463257,
+            "active": null,
+            "args": [
+              1783877732,
+              {
+                "url": "http://127.0.0.1:59215/after-stop?version=154.0.8037.92"
+              }
+            ]
+          }
+        ],
+        "terminal": {
+          "kind": "stopped",
+          "error": {
+            "name": "AbortError",
+            "message": "Stopped by host"
+          },
+          "terminalTriggeredAt": 1790976206033,
+          "terminalTriggeredMonoMs": 137.5,
+          "admissionClosedMonoMs": 137.5,
+          "settledAt": 1790976206033
+        },
+        "serverHitsRecorded": [
+          {
+            "url": "/after-stop?version=154.0.8037.92",
+            "at": 1790976206035
+          }
+        ],
+        "serverHTTPMethod": "Not logged by this probe; GET is inferred from real chrome.tabs.update navigation. No POST claimed.",
+        "actualTab": {
+          "url": "http://127.0.0.1:59215/after-stop?version=154.0.8037.92",
+          "status": "complete",
+          "title": "Independent native stop fence"
+        },
+        "oldRunSettlementCount": 1,
+        "oldRunReplyDeliveryCount": 0,
+        "newRun": {
+          "runId": "5a8f0ec4-570d-4855-8b8e-230bdcf87e2a",
+          "kind": "result",
+          "value": "Independent native stop fence",
+          "terminalTriggeredMonoMs": 191.69999980926514
+        },
+        "resourcesBeforeDispose": {
+          "pending": 0,
+          "timer": 0,
+          "port": 1,
+          "frame": 1,
+          "pageWaits": 0,
+          "resourceReplies": 0
+        },
+        "resourcesAfterDispose": {
+          "pending": 0,
+          "timer": 0,
+          "port": 0,
+          "frame": 0,
+          "pageWaits": 0,
+          "resourceReplies": 0
+        },
+        "browserClosed": true,
+        "profileRemoved": true
+      }
+    ],
+    "serverClosed": true,
+    "fixtureDiskWrites": false,
+    "fullMatrixRerun": false,
+    "executedSourceSha256": "c865fa1e83fe06e97b2dd8615e38424054a8a5315eef7540ba768ad565be55f2",
+    "evidencePayloadSha256": "db4555cbc787cd0cf28c0d10374f8f2b72953deb3dad9193c962f9efffdba41b",
+    "digestFormat": "executedSourceSha256 hashes UTF-8 exact script; evidencePayloadSha256 hashes this probe object excluding these two hashes and digestFormat, JSON ensure_ascii=false, sorted keys, compact separators."
+  },
+  "officialTraceReferences": [
+    {
+      "url": "https://raw.githubusercontent.com/chromium/chromium/138.0.7204.183/third_party/blink/renderer/core/inspector/inspector_trace_events.cc",
+      "lines": "1453-1463",
+      "support": "Native tracing data writes parent frame token, Worker DevTools token, URL and workerThreadId."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/chromium/chromium/154.0.8037.92/third_party/blink/renderer/core/inspector/inspector_trace_events.cc",
+      "lines": "1451-1461",
+      "support": "Same native field semantics in exact 154 tag."
+    }
+  ],
+  "stopCondition": "Old-candidate review concluded after evidence/report delivery. No wider audit or review of in-progress replacement source. Future review requires a newly frozen source/evidence/union hash."
+}

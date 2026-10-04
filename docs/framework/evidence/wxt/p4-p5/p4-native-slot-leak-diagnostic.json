@@ -1,0 +1,42 @@
+{
+  "status": "INTERRUPTED_NATIVE_DIAGNOSTIC",
+  "reason": "Confirmed paused_unknown controller run retains slot after actual rival host-tab close; browser closed by exact owned CDP Browser.close to halt cascades. Own runner stopped after identity ps check.",
+  "caseCounts": {
+    "PASS": 17,
+    "FAIL": 5,
+    "NOT_TESTED": 5
+  },
+  "caseFiles": [
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-BORROWED-CHILD-FRAME-EXACT-DOC.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-BORROWED-EXACT-DOC-ACTIVE-DECOY.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DOWNLOAD-FALSE.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DOWNLOAD-OWN-UNDEFINED.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DOWNLOAD-UNDEFINED.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DOWNLOAD-ZERO.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DURABLE-BUSINESS.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DURABLE-FALSE.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DURABLE-OWN-UNDEFINED.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DURABLE-TRUE.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DURABLE-UNDEFINED.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-DURABLE-ZERO.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-MULTI-HOST-SLOT-COMPETITION.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-NATIVE-NAVIGATION-PENDING-FENCE.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-NATIVE-REVOCATION-PENDING-FENCE.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-P4-API48-WORKER-SEMANTICS.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-R1-PINNED-R2-SAVED-HEAD-DELETED.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-REJECTION.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-STOP-PENDING-FENCE.json",
+    "docs/framework/evidence/f2-controller-product-native/native-2026-10-04T07-42-53.047Z-2973c7b0/production-138/case-THROW.json"
+  ],
+  "nativeIdb": "docs/framework/evidence/wxt/p4-p5/p4-slot-leak-native-idb.json",
+  "chromePid": 5127,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ckemm6z9",
+  "profileRemoved": true,
+  "ownedProcesses": "",
+  "at": "2026-10-04T08:16:29.797829+00:00",
+  "fullP4Accepted": false,
+  "original603Closed": false,
+  "contractCount": 27
+}

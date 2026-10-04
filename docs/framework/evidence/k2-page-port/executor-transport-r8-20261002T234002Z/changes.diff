@@ -1,0 +1,496 @@
+--- src/agents/page-agent.js (before)
++++ src/agents/page-agent.js (after)
+@@ -1,7 +1,9 @@
+-import {invariant, canonical, digest, BUDGETS, PROTOCOL, validate} from '../platform/protocol.js';
++import {invariant, canonical, digest, BUDGETS, PROTOCOL, validate, sameIdentity} from '../platform/protocol.js';
++import {commandRecordKey} from '../platform/journal.js';
+ 
+ const bytes = value => new TextEncoder().encode(canonical(value)).byteLength;
+ const pageUrl = location => { const url = new URL(location.href); url.hash = ''; return url.href; };
++const pageACKKey = request => canonical([commandRecordKey(request), request.frameIndex]);
+ 
+ export function readRawPage({document, plan, maxRows = plan.limits.maxRecords}) {
+   const containers = document.querySelectorAll(plan.list.containerSelector);
+@@ -60,7 +62,6 @@
+     if (!preview) invariant(pageIdentity === request.payload.expectedPageIdentity, 'E_TARGET');
+     const {rawRows, hasMore, emptyEvidence} = readRawPage({document, plan, maxRows: preview ? 10 : plan.limits.maxRecords});
+     invariant(bytes(rawRows) <= BUDGETS.maxStoredBytes, 'E_LIMIT');
+-    const rawSignature = await digest({pageIdentity, rawRows});
+     let frameIndex = 0, rowStart = 0;
+     while (rowStart < rawRows.length) {
+       invariant(!job.cancelled, 'E_CANCELLED');
+@@ -76,7 +77,7 @@
+       invariant(frame && end > rowStart, 'E_LIMIT', 'A whole row cannot fit in one frame');
+       frame.digest = preview ? await digest({selectionId: request.context.selectionId, requestId: request.requestId, frameIndex, rowStart, rawRows: frame.rawRows}) :
+         await digest({snapshotId: request.payload.snapshotId, frameIndex, rowStart, rawRows: frame.rawRows});
+-      const ackKey = preview ? `source:${request.context.selectionId}:${request.requestId}:${frameIndex}` : `page:${request.commandId}:${frameIndex}`;
++      const ackKey = preview ? `source:${request.context.selectionId}:${request.requestId}:${frameIndex}` : pageACKKey(frame);
+       const acknowledgment = waitACK(ackKey, frame.digest, job);
+       // Attach a rejection observer before sending, so a concurrent cancellation cannot become unhandled.
+       acknowledgment.catch(() => {});
+@@ -86,6 +87,9 @@
+       await acknowledgment;
+       rowStart = end; frameIndex++;
+     }
++    invariant(!job.cancelled, 'E_CANCELLED');
++    // The whole-page signature is needed at EOF, not before sending the first frame.
++    const rawSignature = await digest({pageIdentity, rawRows});
+     invariant(!job.cancelled, 'E_CANCELLED');
+     const base = new URL(document.baseURI);
+     invariant(['http:', 'https:'].includes(base.protocol) && !base.username && !base.password && base.origin === allowedOrigin, 'E_TARGET');
+@@ -148,9 +152,11 @@
+     const request = message.payload;
+     try {
+       if (message.type === 'PAGE_FRAME_ACK' || message.type === 'SOURCE_FRAME_ACK') {
+-        const key = message.type === 'PAGE_FRAME_ACK' ? `page:${request.commandId}:${request.frameIndex}` : `source:${request.selectionId}:${request.requestId}:${request.frameIndex}`;
++        const key = message.type === 'PAGE_FRAME_ACK' ? pageACKKey(request) : `source:${request.selectionId}:${request.requestId}:${request.frameIndex}`;
+         const pending = pendingACKs.get(key);
+-        invariant(pending?.digest === request.digest, 'E_HASH'); pending.resolve(); respond({acked: true}); return false;
++        invariant(pending?.digest === request.digest, 'E_HASH');
++        if (message.type === 'PAGE_FRAME_ACK') invariant(sameIdentity(pending.job.identity, request.identity), 'E_TARGET');
++        pending.resolve(); respond({acked: true}); return false;
+       }
+       if (message.type === 'SOURCE_CLEANUP') {
+         for (const [key, job] of sourceJobs) if (job.selectionId === request.selectionId && (!request.operationId || job.operationId === request.operationId)) { cancelJob(job); sourceJobs.delete(key); }
+@@ -158,9 +164,10 @@
+       }
+       if (message.type === 'PAGE_EXECUTE') {
+         validate('Command', request); invariant(request.state === 'dispatched', 'E_EFFECT_UNKNOWN');
+-        const existing = commands.get(request.commandId);
+-        if (existing) { invariant(existing.digest === request.digest, 'E_BATCH_CONFLICT'); respond({accepted: true, duplicate: true}); return false; }
+-        const job = {digest: request.digest, cancelled: false}; commands.set(request.commandId, job);
++        const key = commandRecordKey(request);
++        const existing = commands.get(key);
++        if (existing) { invariant(existing.digest === request.digest && sameIdentity(existing.identity, request.identity), 'E_BATCH_CONFLICT'); respond({accepted: true, duplicate: true}); return false; }
++        const job = {digest: request.digest, identity: structuredClone(request.identity), cancelled: false}; commands.set(key, job);
+         respond({accepted: true});
+         Promise.resolve().then(() => request.kind === 'read-page' ? streamRaw(request, job, false) : effect(request, job)).catch(error => { cancelJob(job); fail(error, request, false); });
+         return false;
+--- src/platform/page-port/index.js (before)
++++ src/platform/page-port/index.js (after)
+@@ -1,6 +1,7 @@
+ import {invariant, validate, canonical, digest, newId, sameIdentity, BUDGETS, PROTOCOL, CONTRACT_VERSION} from '../protocol.js';
+ import {authenticatedDocument, httpUrl, requireGrant, sessionIncarnation} from '../target/index.js';
+ import {createSourcePort} from './source.js';
++import {commandRecordKey, pageCommandKey} from '../journal.js';
+ 
+ const bytes = value => new TextEncoder().encode(canonical(value)).byteLength;
+ export async function validatePlan(template, plan) {
+@@ -32,6 +33,17 @@
+     return host;
+   }
+ 
++  async function commandRun(tx, identity, committed = false) {
++    validate('Identity', identity);
++    const run = await tx.get('runs', identity.runId);
++    const slot = await tx.get('runs', '@slot');
++    // A previously dispatched command may submit once during Stop; its identity is never rewritten.
++    const ignoreRevision = committed && run?.state === 'stopping' && (run.cancelSeq ?? 0) > 0;
++    invariant(run && !run.retirementId && slot?.currentRunId === identity.runId &&
++      sameIdentity(run.identity, identity, {ignoreRevision}), 'E_TARGET');
++    return run;
++  }
++
+   async function templateFor(tx, command) {
+     const values = await tx.all('templates');
+     const matches = values.map(v => v.template || v.revisionData || v).filter(v => v.contentHash === command.identity.templateHash);
+@@ -47,10 +59,12 @@
+     const incarnation = await sessionIncarnation(session);
+     await requireGrant(api, command.identity.target.allowedOrigin);
+     const authorization = await tx('readonly', async t => {
+-      const stored = await t.get('commandJournal', command.commandId);
+-      invariant(stored?.state === 'dispatched' && stored.digest === command.digest && sameIdentity(stored.identity, command.identity), 'E_EFFECT_UNKNOWN');
+-      const run = await t.get('runs', command.identity.runId);
+-      invariant(run && !run.retirementId && sameIdentity(run.identity, command.identity, {ignoreRevision: true}) && run.browserSessionIncarnation === incarnation, 'E_TARGET');
++      const stored = await t.get('commandJournal', commandRecordKey(command));
++      const previous = await t.get('commandJournal', pageCommandKey('submit', command.identity.runId, command.commandId));
++      invariant(stored && (stored.state === 'dispatched' || stored.state === 'effect_unknown' && previous) &&
++        stored.digest === command.digest && sameIdentity(stored.identity, command.identity), 'E_EFFECT_UNKNOWN');
++      const run = await commandRun(t, command.identity, true);
++      invariant(run.browserSessionIncarnation === incarnation, 'E_TARGET');
+       await registered(t, run);
+       return {template: await templateFor(t, command), run};
+     });
+@@ -63,14 +77,15 @@
+       } else invariant(command.payload.userConfirmed === pagination.userConfirmed && command.payload.postcondition === pagination.postcondition.kind && command.payload.timeoutMs === pagination.postcondition.timeoutMs, 'E_SEMANTIC');
+     }
+     const admitted = await tx('readwrite', async t => {
+-      const stored = await t.get('commandJournal', command.commandId);
+-      const run = await t.get('runs', command.identity.runId);
+-      invariant(stored?.state === 'dispatched' && stored.digest === command.digest && run && !run.retirementId &&
+-        sameIdentity(run.identity, command.identity, {ignoreRevision: true}), 'E_TARGET');
++      const stored = await t.get('commandJournal', commandRecordKey(command));
++      const run = await commandRun(t, command.identity, true);
++      invariant(stored && ['dispatched', 'effect_unknown'].includes(stored.state) && stored.digest === command.digest && sameIdentity(stored.identity, command.identity), 'E_TARGET');
+       await registered(t, run);
+-      const key = `page-submit:${command.commandId}`;
+-      if (await t.get('commandJournal', key)) return false;
+-      await t.put('commandJournal', {tag: 'page-submit', commandId: command.commandId, digest: command.digest,
++      const key = pageCommandKey('submit', command.identity.runId, command.commandId);
++      const previous = await t.get('commandJournal', key);
++      if (previous) { invariant(previous.digest === command.digest && sameIdentity(previous.identity, command.identity), 'E_BATCH_CONFLICT'); return false; }
++      invariant(stored.state === 'dispatched', 'E_EFFECT_UNKNOWN');
++      await t.put('commandJournal', {tag: 'page-submit', operationCommandId: command.commandId, identity: command.identity, digest: command.digest,
+         browserSessionIncarnation: incarnation, submissionCount: 1, state: 'dispatched', dispatchAt: new Date().toISOString()}, key);
+       return true;
+     });
+@@ -79,13 +94,14 @@
+     try {
+       const target = command.identity.target;
+       await api.scripting.executeScript({target: {tabId: target.tabId, documentIds: [target.documentId]}, world: 'ISOLATED', files: ['agents/page-agent.js']});
+-      await api.tabs.sendMessage(target.tabId, {protocol: PROTOCOL, type: 'PAGE_EXECUTE', payload: command}, {documentId: target.documentId, frameId: 0});
++      const receipt = await api.tabs.sendMessage(target.tabId, {protocol: PROTOCOL, type: 'PAGE_EXECUTE', payload: command}, {documentId: target.documentId, frameId: 0});
++      invariant(receipt?.accepted && !receipt.error, 'E_TARGET', 'Fixed page agent did not accept the command');
+       return {commandId: command.commandId, state: 'dispatched', duplicate: false};
+     } catch (error) {
+       await tx('readwrite', async t => {
+-        const value = await t.get('commandJournal', `page-submit:${command.commandId}`);
++        const value = await t.get('commandJournal', pageCommandKey('submit', command.identity.runId, command.commandId));
+         value.state = 'effect_unknown'; value.errorCode = error.code || 'E_TARGET';
+-        await t.put('commandJournal', value, `page-submit:${command.commandId}`);
++        await t.put('commandJournal', value, pageCommandKey('submit', command.identity.runId, command.commandId));
+       });
+       return {commandId: command.commandId, state: 'effect_unknown', duplicate: false};
+     }
+@@ -114,25 +130,26 @@
+     }
+     const frameDigest = await digest(frame);
+     const outcome = await tx('readwrite', async t => {
+-      const current = await t.get('runs', identity.runId);
+-      invariant(current && !current.retirementId && sameIdentity(current.identity, identity, {ignoreRevision: true}), 'E_TARGET');
++      const reading = message.type === 'PAGE_DATA' || message.type === 'PAGE_END';
++      const current = await commandRun(t, identity, !reading);
+       await registered(t, current);
+-      const command = await t.get('commandJournal', frame.commandId);
+-      invariant(command && ['dispatched', 'effect_unknown'].includes(command.state) && sameIdentity(command.identity, identity, {ignoreRevision: true}), 'E_OWNER');
+-      if (message.type === 'PAGE_DATA' || message.type === 'PAGE_END') {
++      const command = await t.get('commandJournal', commandRecordKey(frame));
++      invariant(command && ['dispatched', 'effect_unknown'].includes(command.state) && sameIdentity(command.identity, identity), 'E_OWNER');
++      if (reading) {
+         invariant(current.state === 'running' && (current.cancelSeq ?? 0) === 0, 'E_CANCELLED');
+         invariant(command.kind === 'read-page' && frame.snapshotId === command.payload.snapshotId, 'E_TARGET');
+         const page = await t.get('pageSnapshots', frame.snapshotId);
+-        invariant(page && page.readCommandId === command.commandId && page.state === 'open', 'E_TARGET');
++        invariant(page && page.readCommandId === command.commandId && page.state === 'open' && sameIdentity(page.sourceIdentity, identity), 'E_TARGET');
+         const plan = command.payload.plan;
+-        const rawKey = `page-raw:${command.commandId}`;
+-        const raw = await t.get('commandJournal', rawKey) || {tag: 'page-raw', commandId: command.commandId, frames: [], rows: [], bytes: 0, end: null};
++        const rawKey = pageCommandKey('raw', command.identity.runId, command.commandId);
++        const raw = await t.get('commandJournal', rawKey) || {tag: 'page-raw', operationCommandId: command.commandId, identity, frames: [], rows: [], bytes: 0, end: null};
++        invariant(sameIdentity(raw.identity, identity), 'E_OWNER');
+         if (message.type === 'PAGE_DATA') {
+           const existing = raw.frames[frame.frameIndex];
+           if (existing) {
+             if (existing.digest !== frame.digest) {
+               raw.failed = 'E_BATCH_CONFLICT'; command.state = 'effect_unknown';
+-              await t.put('commandJournal', command, command.commandId);
++              await t.put('commandJournal', command, commandRecordKey(command));
+               await t.put('commandJournal', raw, rawKey); return {conflict: true};
+             }
+             return {duplicate: true, acked: !!existing.acked};
+@@ -149,7 +166,7 @@
+           raw.rows.push(...frame.rawRows); raw.frames.push({digest: frame.digest, rowStart: frame.rowStart, rowCount: frame.rawRows.length, frame, acked: false});
+           await t.put('commandJournal', raw, rawKey);
+           command.rawFrames = raw.frames.map(item => item.frame);
+-          await t.put('commandJournal', command, command.commandId);
++          await t.put('commandJournal', command, commandRecordKey(command));
+         } else {
+           if (raw.end) { invariant(canonical(raw.end) === canonical(frame), 'E_BATCH_CONFLICT'); return {duplicate: true}; }
+           invariant(!raw.failed && raw.frames.every(f => f.acked) && frame.frameCount === raw.frames.length && frame.rowCount === raw.rows.length, 'E_SEAL_INCOMPLETE');
+@@ -160,10 +177,10 @@
+           return {endCandidate: {raw, rawKey}};
+         }
+       } else {
+-        const effectKey = `page-effect:${command.commandId}`;
++        const effectKey = pageCommandKey('effect', command.identity.runId, command.commandId);
+         const old = await t.get('commandJournal', effectKey);
+         if (old) { invariant(old.digest === frameDigest, 'E_BATCH_CONFLICT'); return {duplicate: true}; }
+-        await t.put('commandJournal', {tag: 'page-effect', commandId: command.commandId, identity, sender: document,
++        await t.put('commandJournal', {tag: 'page-effect', operationCommandId: command.commandId, identity, sender: document,
+           digest: frameDigest, result: frame, receivedAt: new Date().toISOString()}, effectKey);
+       }
+       return {duplicate: false};
+@@ -173,14 +190,17 @@
+       const {raw, rawKey} = outcome.endCandidate;
+       invariant(await digest({pageIdentity, rawRows: raw.rows}) === frame.rawSignature, 'E_HASH');
+       await tx('readwrite', async t => {
+-        const current = await t.get('runs', identity.runId);
+-        invariant(current?.state === 'running' && !current.retirementId && sameIdentity(current.identity, identity, {ignoreRevision: true}), 'E_CANCELLED');
++        const current = await commandRun(t, identity);
++        invariant(current.state === 'running' && (current.cancelSeq ?? 0) === 0, 'E_CANCELLED');
++        await registered(t, current);
+         const latest = await t.get('commandJournal', rawKey);
+         invariant(!latest.failed && canonical(latest.rows) === canonical(raw.rows), 'E_SEAL_INCOMPLETE');
+         if (latest.end) invariant(canonical(latest.end) === canonical(frame), 'E_BATCH_CONFLICT');
+         latest.end = frame; await t.put('commandJournal', latest, rawKey);
+-        const command = await t.get('commandJournal', frame.commandId); command.rawEnd = frame; command.pageEnd = frame;
+-        await t.put('commandJournal', command, frame.commandId);
++        const command = await t.get('commandJournal', commandRecordKey(frame));
++        invariant(command && sameIdentity(command.identity, identity), 'E_OWNER');
++        command.rawEnd = frame; command.pageEnd = frame;
++        await t.put('commandJournal', command, commandRecordKey(command));
+       });
+     }
+     if (!outcome.duplicate) await emitToHost(run.registrationId, {protocol: PROTOCOL, type: message.type, payload: frame});
+@@ -190,12 +210,16 @@
+   async function ackPageFrame(request, sender) {
+     const host = await assertHost(sender);
+     const authorization = await tx('readwrite', async t => {
+-      const run = await t.get('runs', request.identity.runId);
++      const run = await commandRun(t, request.identity);
+       invariant(run && run.registrationId === host.registrationId && host.hostDocumentId === run.hostDocumentId && run.state === 'running', 'E_OWNER');
++      invariant((run.cancelSeq ?? 0) === 0, 'E_CANCELLED');
+       if (admitIdentity) await admitIdentity(t, request.identity, sender);
+       else invariant(sameIdentity(run.identity, request.identity), 'E_TARGET');
+       await registered(t, run);
+-      const raw = await t.get('commandJournal', `page-raw:${request.commandId}`);
++      const command = await t.get('commandJournal', commandRecordKey(request));
++      invariant(command && sameIdentity(command.identity, request.identity), 'E_OWNER');
++      const raw = await t.get('commandJournal', pageCommandKey('raw', request.identity.runId, request.commandId));
++      invariant(raw && sameIdentity(raw.identity, request.identity), 'E_OWNER');
+       const frame = raw?.frames[request.frameIndex];
+       invariant(frame && !raw.failed && frame.digest === request.digest, 'E_HASH');
+       const records = (await t.all('records')).filter(r => r.snapshotId === frame.frame.snapshotId).sort((a, b) => a.rowIndex - b.rowIndex);
+@@ -203,11 +227,11 @@
+         const record = records.find(r => r.rowIndex === frame.rowStart + i);
+         invariant(record && canonical(record.raw) === canonical(frame.frame.rawRows[i]), 'E_SEAL_INCOMPLETE', 'Raw ACK requires matching durable staged records');
+       }
+-      frame.acked = true; await t.put('commandJournal', raw, `page-raw:${request.commandId}`);
++      frame.acked = true; await t.put('commandJournal', raw, pageCommandKey('raw', request.identity.runId, request.commandId));
+       return {target: request.identity.target};
+     });
+     const target = authorization.target;
+-    await api.tabs.sendMessage(target.tabId, {protocol: PROTOCOL, type: 'PAGE_FRAME_ACK', payload: {commandId: request.commandId,
++    await api.tabs.sendMessage(target.tabId, {protocol: PROTOCOL, type: 'PAGE_FRAME_ACK', payload: {identity: request.identity, commandId: request.commandId,
+       frameIndex: request.frameIndex, digest: request.digest}}, {documentId: target.documentId, frameId: 0});
+     return {acked: true};
+   }
+--- tests/foundation/page-port-service.test.mjs (before)
++++ tests/foundation/page-port-service.test.mjs (after)
+@@ -4,9 +4,15 @@
+ import {createPagePortService, validatePlan} from '../../src/platform/page-port/index.js';
+ import {installPageAgent, readRawPage} from '../../src/agents/page-agent.js';
+ import {digest, PROTOCOL} from '../../src/platform/protocol.js';
++import {commandRecordKey, pageCommandKey} from '../../src/platform/journal.js';
+ import {fixture, domFixture, turn} from './page-port-fixtures.test.mjs';
+ 
+-async function setup() { const f = await fixture(); f.targetService = createTargetService(f); f.service = createPagePortService(f); return f; }
++async function setup() { const f = await fixture();
++  await f.storage.transaction(['commandJournal'], 'readwrite', async tx => {
++    await tx.delete('commandJournal', f.command.commandId);
++    await tx.put('commandJournal', f.command, commandRecordKey(f.command));
++  });
++  f.targetService = createTargetService(f); f.service = createPagePortService(f); return f; }
+ async function data(f, rows = [{name: '完整'.repeat(150), count: '0'}], frameIndex = 0, rowStart = 0) {
+   const frame = {type: 'page-data', identity: f.identity, commandId: f.command.commandId, snapshotId: 'snapshot-1', frameIndex, rowStart, rawRows: rows, digest: ''};
+   frame.digest = await digest({snapshotId: frame.snapshotId, frameIndex, rowStart, rawRows: rows}); return frame;
+@@ -65,14 +71,14 @@
+   const f = await setup(); const frame = await data(f);
+   const received = await f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_DATA', payload: frame}, f.agentSender);
+   assert.equal(received.received, true); assert.equal(received.frameAck, false);
+-  assert.deepEqual(f.storage.value('commandJournal', f.command.commandId).rawFrames, [frame]);
++  assert.deepEqual(f.storage.value('commandJournal', commandRecordKey(f.command)).rawFrames, [frame]);
+   await assert.rejects(f.service.ackPageFrame({identity: f.identity, commandId: 'command-1', frameIndex: 0, digest: frame.digest}, f.sender), {code: 'E_SEAL_INCOMPLETE'});
+   assert.equal(f.calls.length, 0);
+   await stage(f, frame);
+   const ack = f.calls.find(c => c[0] === 'sendMessage')[2]; assert.equal(ack.type, 'PAGE_FRAME_ACK'); assert.equal(ack.payload.digest, frame.digest);
+   const eof = await end(f, frame.rawRows);
+   await f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_END', payload: eof}, f.agentSender);
+-  assert.deepEqual(f.storage.value('commandJournal', 'command-1').pageEnd, eof);
++  assert.deepEqual(f.storage.value('commandJournal', commandRecordKey(f.command)).pageEnd, eof);
+   assert.equal(f.events.every(e => e.id === f.host.registrationId), true); assert.equal(f.events.at(-1).event.payload.type, 'page-end');
+ });
+ 
+@@ -83,8 +89,8 @@
+   assert.equal(f.events.length, 1);
+   const changed = await data(f, [{name: 'changed', count: '1'}]);
+   await assert.rejects(f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_DATA', payload: changed}, f.agentSender), {code: 'E_BATCH_CONFLICT'});
+-  assert.equal(f.storage.value('commandJournal', 'page-raw:command-1').failed, 'E_BATCH_CONFLICT');
+-  assert.equal(f.storage.value('commandJournal', 'command-1').state, 'effect_unknown');
++  assert.equal(f.storage.value('commandJournal', pageCommandKey('raw', f.identity.runId, f.command.commandId)).failed, 'E_BATCH_CONFLICT');
++  assert.equal(f.storage.value('commandJournal', commandRecordKey(f.command)).state, 'effect_unknown');
+ });
+ 
+ test('actual sender document defeats payload identity spoof; stop rejects new raw data', async () => {
+@@ -106,7 +112,7 @@
+   const bad = {...good, rawSignature: await digest({pageIdentity: f.template.startUrl, rawRows: first.rawRows})};
+   await assert.rejects(f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_END', payload: bad}, f.agentSender), {code: 'E_HASH'});
+   await f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_END', payload: good}, f.agentSender);
+-  assert.equal(f.storage.value('commandJournal', 'command-1').pageEnd.rowCount, 6);
++  assert.equal(f.storage.value('commandJournal', commandRecordKey(f.command)).pageEnd.rowCount, 6);
+ });
+ 
+ test('fixed raw DOM reader retains long text, explicit empty string and optional missing attr without transforms', async () => {
+@@ -131,11 +137,171 @@
+   await turn(); await turn();
+   const frame = messages.find(m => m.type === 'PAGE_DATA')?.payload; assert.ok(frame);
+   assert.equal(messages.some(m => m.type === 'PAGE_END'), false);
+-  listener({protocol: PROTOCOL, type: 'PAGE_FRAME_ACK', payload: {commandId: 'command-1', frameIndex: 0, digest: frame.digest}}, {id: api.runtime.id}, () => {});
++  listener({protocol: PROTOCOL, type: 'PAGE_FRAME_ACK', payload: {identity: f.identity, commandId: 'command-1', frameIndex: 0, digest: frame.digest}}, {id: api.runtime.id}, () => {});
+   await turn(); await turn();
+   const eof = messages.find(m => m.type === 'PAGE_END').payload;
+   assert.equal(eof.rowCount, 2); assert.equal(eof.rawSignature, await digest({pageIdentity: f.template.startUrl, rawRows: frame.rawRows}));
+   agent.dispose();
++});
++
++test('page transport sends its first frame before starting the EOF signature hash', {timeout: 2000}, async t => {
++  const f = await fixture(); const messages = []; let listener, releaseSignature, firstFrame, signatureStarted, ended;
++  const frameReady = new Promise(resolve => { firstFrame = resolve; });
++  const signatureReady = new Promise(resolve => { signatureStarted = resolve; });
++  const endReady = new Promise(resolve => { ended = resolve; });
++  const signatureGate = new Promise(resolve => { releaseSignature = resolve; });
++  const hash = crypto.subtle.digest.bind(crypto.subtle); let signatureCalls = 0;
++  t.mock.method(crypto.subtle, 'digest', async (algorithm, bytes) => {
++    const value = JSON.parse(new TextDecoder().decode(bytes));
++    if (Object.hasOwn(value, 'pageIdentity')) { signatureCalls++; signatureStarted(); await signatureGate; }
++    return hash(algorithm, bytes);
++  });
++  const api = {runtime: {id: f.api.runtime.id, getURL: f.api.runtime.getURL,
++    onMessage: {addListener: fn => { listener = fn; }, removeListener() {}}, sendMessage: async message => {
++      messages.push(message); if (message.type === 'PAGE_DATA') firstFrame(message.payload);
++      if (message.type === 'PAGE_END') ended(message.payload); return {received: true};
++    }}};
++  const document = domFixture([{name: 'complete', count: '0'}]); document.baseURI = f.template.startUrl;
++  const agent = installPageAgent({api, document, location: {href: f.template.startUrl}});
++  t.after(() => { releaseSignature(); agent.dispose(); });
++  let ack; listener({protocol: PROTOCOL, type: 'PAGE_EXECUTE', payload: f.command}, {id: api.runtime.id}, value => { ack = value; });
++  assert.deepEqual(ack, {accepted: true}); assert.equal(messages.length, 0);
++  const frame = await frameReady;
++  assert.equal(signatureCalls, 0); assert.equal(messages.some(message => message.type === 'PAGE_END'), false);
++  listener({protocol: PROTOCOL, type: 'PAGE_FRAME_ACK', payload: {identity: f.identity, commandId: f.command.commandId,
++    frameIndex: frame.frameIndex, digest: frame.digest}}, {id: api.runtime.id}, value => { ack = value; });
++  assert.deepEqual(ack, {acked: true}); await signatureReady;
++  assert.equal(messages.some(message => message.type === 'PAGE_END'), false);
++  releaseSignature(); const eof = await endReady;
++  assert.equal(eof.rawSignature, await digest({pageIdentity: f.template.startUrl, rawRows: frame.rawRows}));
++});
++
++test('run-scoped submit/raw/effect journals preserve both runs and stay outside the unique command index', async () => {
++  const f = await setup(); const firstFrame = await data(f);
++  assert.equal((await f.service.executeCommand(f.command)).duplicate, false);
++  await f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_DATA', payload: firstFrame}, f.agentSender);
++  const effect = {identity: f.identity, commandId: f.command.commandId, pageIdentity: f.template.startUrl, outcome: 'failed', error: {code: 'E_TARGET'}};
++  await f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_ERROR', payload: effect}, f.agentSender);
++  const secondIdentity = {...f.identity, runId: 'run-2'};
++  const secondCommand = {...f.command, identity: secondIdentity, payload: {...f.command.payload, snapshotId: 'snapshot-2'}};
++  secondCommand.digest = await digest({commandId: secondCommand.commandId, identity: secondIdentity, kind: secondCommand.kind, payload: secondCommand.payload});
++  f.storage.seed('runs', 'run-2', {...f.run, runId: 'run-2', identity: secondIdentity});
++  f.storage.seed('runs', '@slot', {currentRunId: 'run-2', state: 'held'});
++  f.storage.seed('commandJournal', commandRecordKey(secondCommand), secondCommand);
++  f.storage.seed('pageSnapshots', 'snapshot-2', {snapshotId: 'snapshot-2', state: 'open', readCommandId: secondCommand.commandId, sourceIdentity: secondIdentity});
++  assert.equal((await f.service.executeCommand(secondCommand)).duplicate, false);
++  assert.equal((await f.service.executeCommand(secondCommand)).duplicate, true);
++  assert.equal(f.calls.filter(call => call[0] === 'sendMessage').length, 2);
++  const secondFrame = {...firstFrame, identity: secondIdentity, snapshotId: 'snapshot-2', rawRows: [{name: 'second', count: '1'}]};
++  secondFrame.digest = await digest({snapshotId: secondFrame.snapshotId, frameIndex: 0, rowStart: 0, rawRows: secondFrame.rawRows});
++  await f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_DATA', payload: secondFrame}, f.agentSender);
++  const secondEffect = {...effect, identity: secondIdentity};
++  await f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_ERROR', payload: secondEffect}, f.agentSender);
++  assert.equal((await f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_ERROR', payload: secondEffect}, f.agentSender)).duplicate, true);
++  await assert.rejects(f.service.executeCommand(f.command), {code: 'E_TARGET'});
++  await assert.rejects(f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_DATA', payload: firstFrame}, f.agentSender), {code: 'E_TARGET'});
++  await assert.rejects(f.service.ackPageFrame({identity: f.identity, commandId: f.command.commandId, frameIndex: 0, digest: firstFrame.digest}, f.sender), {code: 'E_TARGET'});
++  for (const [identity, frame, outcome] of [[f.identity, firstFrame, effect], [secondIdentity, secondFrame, secondEffect]]) {
++    for (const kind of ['submit', 'raw', 'effect']) {
++      const row = f.storage.value('commandJournal', pageCommandKey(kind, identity.runId, f.command.commandId));
++      assert.equal(row.operationCommandId, f.command.commandId); assert.equal(Object.hasOwn(row, 'commandId'), false);
++      assert.deepEqual(row.identity, identity);
++    }
++    assert.deepEqual(f.storage.value('commandJournal', pageCommandKey('raw', identity.runId, f.command.commandId)).frames[0].frame, frame);
++    assert.deepEqual(f.storage.value('commandJournal', pageCommandKey('effect', identity.runId, f.command.commandId)).result, outcome);
++  }
++  const indexedRows = await f.storage.transaction(['commandJournal'], 'readonly', async tx =>
++    (await tx.all('commandJournal')).filter(row => row.identity?.runId && row.commandId));
++  assert.equal(indexedRows.length, 2); assert.deepEqual(indexedRows.map(row => row.identity.runId).sort(), ['run-1', 'run-2']);
++});
++
++test('raw frame and ACK never infer a missing run or accept a command with a rewritten revision', async () => {
++  const f = await setup(); const frame = await data(f);
++  const missingIdentity = structuredClone(frame); delete missingIdentity.identity.runId;
++  await assert.rejects(f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_DATA', payload: missingIdentity}, f.agentSender), {code: 'E_SCHEMA'});
++  await assert.rejects(f.service.ackPageFrame({commandId: f.command.commandId, frameIndex: 0, digest: frame.digest}, f.sender), {code: 'E_SCHEMA'});
++  const revised = {...f.identity, runRevision: 2};
++  f.storage.seed('runs', f.run.runId, {...f.run, identity: revised, runRevision: 2});
++  await assert.rejects(f.service.handleAgentMessage({protocol: PROTOCOL, type: 'PAGE_DATA', payload: {...frame, identity: revised}}, f.agentSender), {code: 'E_OWNER'});
++  assert.equal(f.events.length, 0); assert.equal(f.storage.value('commandJournal', pageCommandKey('raw', f.identity.runId, f.command.commandId)), undefined);
++  assert.deepEqual(f.storage.value('commandJournal', commandRecordKey(f.command)).identity, f.identity);
++});
++
++test('negative fixed-agent receipt is unknown and its run-scoped submission cannot replay', async () => {
++  const f = await setup(); f.api.tabs.sendMessage = async (...args) => { f.calls.push(['sendMessage', ...args]); return {error: {code: 'E_SCHEMA'}}; };
++  assert.equal((await f.service.executeCommand(f.command)).state, 'effect_unknown');
++  const submission = f.storage.value('commandJournal', pageCommandKey('submit', f.identity.runId, f.command.commandId));
++  assert.equal(submission.state, 'effect_unknown'); assert.equal(submission.errorCode, 'E_TARGET');
++  f.storage.seed('commandJournal', commandRecordKey(f.command), {...f.command, state: 'effect_unknown'});
++  assert.deepEqual(await f.service.executeCommand(f.command), {commandId: f.command.commandId, state: 'effect_unknown', duplicate: true});
++  assert.equal(f.calls.filter(call => call[0] === 'sendMessage').length, 1);
++  assert.deepEqual(f.storage.value('commandJournal', pageCommandKey('submit', f.identity.runId, f.command.commandId)), submission);
++});
++
++test('packaged agent and page port exchange a durable run-bound ACK before saving the complete EOF', {timeout: 2000}, async t => {
++  const f = await setup(); let listener, frameReceived, endReceived;
++  const frameReady = new Promise(resolve => { frameReceived = resolve; });
++  const endReady = new Promise(resolve => { endReceived = resolve; });
++  f.api.runtime.onMessage = {addListener: fn => { listener = fn; }, removeListener() {}};
++  f.api.runtime.sendMessage = async message => {
++    const receipt = await f.service.handleAgentMessage(message, f.agentSender);
++    if (message.type === 'PAGE_DATA') frameReceived(message.payload);
++    if (message.type === 'PAGE_END') endReceived(message.payload);
++    return receipt;
++  };
++  f.api.tabs.sendMessage = async (...args) => {
++    f.calls.push(['sendMessage', ...args]); let receipt;
++    listener(args[1], {id: f.api.runtime.id, url: f.api.runtime.getURL('sw.js')}, value => { receipt = value; });
++    return receipt;
++  };
++  const rows = [{name: '完整'.repeat(150), count: '0'}, {name: '', count: '1'}];
++  const document = domFixture(rows); document.baseURI = f.template.startUrl;
++  const agent = installPageAgent({api: f.api, document, location: {href: f.template.startUrl}}); t.after(() => agent.dispose());
++  assert.equal((await f.service.executeCommand(f.command)).state, 'dispatched');
++  const frame = await frameReady;
++  assert.deepEqual(JSON.parse(JSON.stringify(frame.rawRows)), rows);
++  assert.equal(f.storage.value('commandJournal', commandRecordKey(f.command)).pageEnd, undefined);
++  assert.deepEqual(await stage(f, frame), {acked: true});
++  const browserACK = f.calls.find(call => call[0] === 'sendMessage' && call[2].type === 'PAGE_FRAME_ACK')[2].payload;
++  assert.deepEqual(browserACK.identity, f.identity); assert.equal(browserACK.commandId, f.command.commandId);
++  const eof = await endReady;
++  assert.equal(eof.rowCount, rows.length); assert.equal(eof.rawSignature, await digest({pageIdentity: f.template.startUrl, rawRows: rows}));
++  assert.deepEqual(f.storage.value('commandJournal', commandRecordKey(f.command)).pageEnd, eof);
++  assert.equal((await f.service.executeCommand(f.command)).duplicate, true);
++  assert.equal(f.calls.filter(call => call[0] === 'sendMessage' && call[2].type === 'PAGE_EXECUTE').length, 1);
++});
++
++test('agent command and ACK namespaces separate equal command IDs and digests across runs', {timeout: 2000}, async t => {
++  const f = await fixture(); const messages = []; let listener, framesReady, firstEnd, allEnds;
++  const frames = new Promise(resolve => { framesReady = resolve; });
++  const oneEnd = new Promise(resolve => { firstEnd = resolve; });
++  const ends = new Promise(resolve => { allEnds = resolve; });
++  const api = {runtime: {id: f.api.runtime.id, getURL: f.api.runtime.getURL,
++    onMessage: {addListener: fn => { listener = fn; }, removeListener() {}}, sendMessage: async message => {
++      messages.push(message);
++      if (message.type === 'PAGE_DATA' && messages.filter(item => item.type === 'PAGE_DATA').length === 2) framesReady();
++      if (message.type === 'PAGE_END') { firstEnd(message.payload); if (messages.filter(item => item.type === 'PAGE_END').length === 2) allEnds(); }
++      return {received: true};
++    }}};
++  const document = domFixture([{name: 'same raw frame', count: '0'}]); document.baseURI = f.template.startUrl;
++  const agent = installPageAgent({api, document, location: {href: f.template.startUrl}}); t.after(() => agent.dispose());
++  const send = (type, payload) => { let response; listener({protocol: PROTOCOL, type, payload}, {id: api.runtime.id}, value => { response = value; }); return response; };
++  const second = {...f.command, identity: {...f.identity, runId: 'run-2'}};
++  second.digest = await digest({commandId: second.commandId, identity: second.identity, kind: second.kind, payload: second.payload});
++  assert.deepEqual(send('PAGE_EXECUTE', f.command), {accepted: true}); assert.deepEqual(send('PAGE_EXECUTE', second), {accepted: true});
++  assert.deepEqual(send('PAGE_EXECUTE', f.command), {accepted: true, duplicate: true});
++  await frames;
++  const rawFrames = messages.filter(item => item.type === 'PAGE_DATA').map(item => item.payload);
++  assert.equal(rawFrames[0].digest, rawFrames[1].digest);
++  const ack = {commandId: f.command.commandId, frameIndex: 0, digest: rawFrames[0].digest};
++  assert.equal(send('PAGE_FRAME_ACK', ack).error.code, 'E_SCHEMA');
++  assert.equal(send('PAGE_FRAME_ACK', {...ack, identity: {...f.identity, runRevision: 2}}).error.code, 'E_TARGET');
++  assert.equal(messages.some(item => item.type === 'PAGE_END'), false);
++  assert.deepEqual(send('PAGE_FRAME_ACK', {...ack, identity: f.identity}), {acked: true});
++  assert.equal((await oneEnd).identity.runId, f.identity.runId);
++  assert.equal(messages.filter(item => item.type === 'PAGE_END').length, 1);
++  assert.deepEqual(send('PAGE_FRAME_ACK', {...ack, identity: second.identity}), {acked: true}); await ends;
++  assert.deepEqual(messages.filter(item => item.type === 'PAGE_END').map(item => item.payload.identity.runId).sort(), ['run-1', 'run-2']);
+ });
+ 
+ async function sourceSetup() {

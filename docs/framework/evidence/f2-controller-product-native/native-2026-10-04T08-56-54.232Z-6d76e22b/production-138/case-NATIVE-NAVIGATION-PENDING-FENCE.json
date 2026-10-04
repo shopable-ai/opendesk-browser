@@ -1,0 +1,12 @@
+{
+  "id": "NATIVE-NAVIGATION-PENDING-FENCE",
+  "families": "NAV01/AUTH01",
+  "expected": "Actual native document or permission loss cancels the pending operation; no late effect, released slot and borrowed target survives",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791104337413,
+  "elapsedMs": 0.0007080000068526715
+}

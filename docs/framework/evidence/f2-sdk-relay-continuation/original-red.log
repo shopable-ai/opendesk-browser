@@ -1,0 +1,43 @@
+{
+  "baseline": true,
+  "observations": [
+    {
+      "case": "fresh-MAIN",
+      "sameModuleIdempotent": true,
+      "code": "E_SDK_GLOBAL_CONFLICT"
+    },
+    {
+      "case": "same-ID-changed-digest",
+      "nativeDispatches": 1,
+      "conflictReplies": 0
+    },
+    {
+      "case": "timeout-reused-ID-old-callback-first",
+      "pendingAfterOld": 0,
+      "replies": [
+        "E_TIMEOUT",
+        "old-result"
+      ]
+    }
+  ]
+}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ undefined
+- true
+
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-sdk-relay-continuation/original-red-reproductions.mjs:48:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.3.1

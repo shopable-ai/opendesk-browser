@@ -1,0 +1,156 @@
+{
+  "f1": [
+    {
+      "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json",
+      "bytes": 17201,
+      "sha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+      "bytes": 47920,
+      "sha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/architect/final-union-review.json",
+      "bytes": 73891,
+      "sha256": "c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/code-reviewer/final-union-review.json",
+      "bytes": 197858,
+      "sha256": "7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f"
+    }
+  ],
+  "launcher": {
+    "implementationPath": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+    "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+    "python": "/usr/bin/python3",
+    "path": "/Users/shopme/.codex/browser-testing/launch.py",
+    "sha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "bytes": 257,
+    "profileOwner": "global launcher: fresh mkdtemp codex-cft-*; no runner profile writes",
+    "lifecycle": "launcher stays running; owned Chrome Browser.close or launcher SIGTERM; launcher finally removes profile",
+    "nativeArgumentsProof": "actual main PID/PPID and ps command plus Browser.getBrowserCommandLine; mock keychain/password-store/profile/loopback verified",
+    "logPreservation": "read-only chrome.log file descriptor held across launcher unlink; bytes copied to evidence",
+    "resolveOnly": [
+      {
+        "at": "2026-10-04T06:57:17.562Z",
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+        "pid": 72322,
+        "executable": "/usr/bin/python3",
+        "args": [
+          "/Users/shopme/.codex/browser-testing/launch.py",
+          "--resolve-only",
+          "--executable",
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+        ],
+        "stdout": "{\"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\"}\n",
+        "stderr": "",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "requestedVersion": "138.0.7204.183",
+        "nativeExecuted": false,
+        "resolvedExecutable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+      }
+    ]
+  },
+  "previousRunnerSha256": "dd33ded5d8dc90efbb17342a0d03f59cb4acf7fb0894419b67e4605679d11d77",
+  "frozenSourceSlices": [
+    {
+      "path": "src/platform/page-port/codec.js",
+      "bytes": 11956,
+      "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "bytes": 3317,
+      "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+    },
+    {
+      "path": "src/framework/ChromePage.js",
+      "bytes": 13188,
+      "sha256": "750269e6467ee0b88e59712bc0489bc53f2b1949648080a2e79560efc3daad66"
+    },
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "bytes": 46109,
+      "sha256": "71c59aec15a69a4a09fd9b3377f57d4e1c6ed8c21682b2e5b3a1770b0cb4c3d9"
+    },
+    {
+      "path": "src/platform/storage/repository.js",
+      "bytes": 62232,
+      "sha256": "79b63ca70898032772b5ed845da8b965f9bcec6201c84ea10990df23e9e32089"
+    },
+    {
+      "path": "src/platform/downloads/index.js",
+      "bytes": 54632,
+      "sha256": "741f2a85cfbee87de515f53a2299e8ab5ee1a908dbc5ddc1ce5a1338ccd3da9e"
+    },
+    {
+      "path": "src/platform/downloads/blob-lifecycle.js",
+      "bytes": 2381,
+      "sha256": "6742d0a9ccb1a7b71d02933d6dc66e8ca021d3984b4ea613130bde4b7f319e66"
+    },
+    {
+      "path": "src/run-host.js",
+      "bytes": 12465,
+      "sha256": "784a54555d1af7db50efaa139eaf114b7e027354f68b67c25cb2db72c4913391"
+    },
+    {
+      "path": "src/ui/script-editor.js",
+      "bytes": 13210,
+      "sha256": "5eb4286a8e465a24f0fb4eff0266cac7d8c991eae60f9f0b69c076161efcdfb1"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "bytes": 4962,
+      "sha256": "13f9b283cffe72161ef24bc40b32c6c75fd8b9ee5be078735ac924384d1f0be2"
+    },
+    {
+      "path": "src/scripting/packaged/page-session.js",
+      "bytes": 6197,
+      "sha256": "c687eb9ac81808b9de3bdeefa893a2476aec2211154fd5a11083b13c64cf1029"
+    },
+    {
+      "path": "src/scripting/packaged/registry.js",
+      "bytes": 10533,
+      "sha256": "29cb99fed55cb84e28580ba623a235ce9bea06ce7b2c11edb293f7bc4668853a"
+    },
+    {
+      "path": "src/scripting/sandbox/controller.js",
+      "bytes": 7681,
+      "sha256": "571f10e36091753d203826b61ee5dcdd921a37f657c968e9e4db4f86049e01bd"
+    },
+    {
+      "path": "src/scripting/sandbox/worker-runtime.js",
+      "bytes": 2734,
+      "sha256": "0c5f33a9d61436cd7af722287adfc0b7073ca834c7d7dd0dce32da17f14742ef"
+    },
+    {
+      "path": "src/scripting/sandbox/page-proxy.js",
+      "bytes": 2751,
+      "sha256": "a2e3c5532b790f6c9c9eb58112226db9eabfff03573da832df97a620f72d7375"
+    },
+    {
+      "path": "src/scripting/sandbox/sandbox.js",
+      "bytes": 6047,
+      "sha256": "246c883e2c17414f43d0aaf82b4059118f32fa4e9a9dd931528ee7deedcda8c8"
+    },
+    {
+      "path": "wxt.config.mjs",
+      "bytes": 3215,
+      "sha256": "2e4ddf14b3061c9dc0e3c346f29e459722287ec11003ab3738c501bababfeb70"
+    }
+  ],
+  "sourceObservations": [],
+  "checked": [
+    "Global launcher identity/lifecycle and exact binaries via resolve-only (no Chrome process)",
+    "Preserved dd33 original runner",
+    "Frozen same-candidate independent F1 qualifications",
+    "Actual UI selectors/outcome/typed artifact contract",
+    "Frozen control-to-foundation codec JSON-hop kind/presence assertions"
+  ],
+  "nativeExecuted": false
+}

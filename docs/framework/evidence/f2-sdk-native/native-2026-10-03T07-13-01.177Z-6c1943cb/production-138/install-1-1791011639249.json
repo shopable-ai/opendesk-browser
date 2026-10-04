@@ -1,0 +1,33 @@
+{
+  "state": "error",
+  "text": "E_ENTITLEMENT：Storage and a bound subject are required",
+  "raw": "",
+  "beforePermissions": {
+    "origins": [],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "afterPermissions": {
+    "origins": [
+      "http://127.0.0.1/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "documentId": "C701BD80297DEB4DB764DBFBB67EE7D8",
+  "tabId": 1367786679
+}

@@ -1,0 +1,48 @@
+✔ SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs (28.16825ms)
+✔ SDK recovery reconciles atomic storage durable result before broker receipt and never replays it (3.531958ms)
+✔ SDK restart at dispatched cut pauses its run with original unknown effect and no replacement (1.765208ms)
+✔ SDK Hello needs native document/grant and never claims a controller slot (1.432583ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (1.678875ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (1.237666ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (31.931083ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (6.153458ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (8.877166ms)
+✔ durable session duplicate after authority restart does not resubmit native set (1.437208ms)
+✔ native session failure records unknown dispatch and will not retry same write (2.42425ms)
+✔ SW recovery fences dispatched write gap and retains original identity/deadline (3.314958ms)
+✔ durable duplicate cannot extend original 15s service deadline (4.157584ms)
+✔ native permission remove then regrant cannot revive old request/grant (2.401833ms)
+✔ observed navigation invalidates current page Hello and pending admission (0.683167ms)
+✔ notification permission removal with empty origins revokes the affected grant (0.442542ms)
+✔ notification native receipt and durable undefined survive delivery revocation (3.51025ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (34.138084ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (1.414166ms)
+✔ SVC cookie reads use exact URL; no public-suffix or neighboring-domain expansion (1.987208ms)
+✔ SVC cookie batch preserves explicit expiry/default session and Host-prefix rules (3.126333ms)
+✔ SVC cookie removal awaits all callbacks and checks each permission (5.384917ms)
+✔ SVC Chrome lastError and missing cookie callbacks are typed failures (0.905042ms)
+✔ SVC fixed injection requires exact doc and correct resource/world before Chrome call (0.848958ms)
+✔ SVC notification click has no page URL, clears once, close/late events do not resettle (0.801375ms)
+✔ CMP13 real loopback four HTTP methods, body and serializable projection (40.920791ms)
+✔ CMP13 real response false retained (4.539459ms)
+✔ CMP13 real response zero retained (1.772208ms)
+✔ CMP13 real response null retained (2.605709ms)
+✔ HTTP vs network vs bad JSON/UTF8 typed errors and restricted error response (10.536ms)
+✔ denied URL and config have zero real HTTP; native grant rechecked post response (4.054416ms)
+✔ private native receipt hook persists HTTP fact before post revocation, not normalized checkServer result (5.342375ms)
+✔ manual redirect never follows unauthorized destination (2.063083ms)
+✔ actual abort during stalled body/HTTP, size budget and caller cancellation (80.228666ms)
+✔ backend 15s budget independent from client timeout and earlier native deadline (3.22425ms)
+✔ stalled pre/post native permission validation still obeys driver deadline without replay (42.459291ms)
+✔ server checks real observable success/failure and never reports opaque available (21.916125ms)
+✔ external IP info disabled default and never calls original external endpoint in tests (0.190125ms)
+✔ notification true callback wait, lastError refusal and pre/post authorization (0.87175ms)
+✔ service HTTP result preserves business object inside response.data rather than outer authority (2.582084ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 399.243708

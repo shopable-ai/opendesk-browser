@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "startedAt": "2026-10-02T19:30:48.233Z",
+  "finishedAt": "2026-10-02T19:30:51.265Z",
+  "runId": "2026-10-02T19-30-48-228Z-m5-ui-138-e41c4bc7",
+  "scope": "F1 userScripts prototype only",
+  "requestedModel": {
+    "leader": "gpt-6.1-sol",
+    "reasoning": "xhigh",
+    "serverResolvedRuntime": "unknown"
+  },
+  "candidateSha256": "e587b05aa61538b886369cbc163c7b3b824f12929406b291f3c60eaa8d55c07c",
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+  "frozenInputs": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+      "bytes": 1453,
+      "sha256": "e192b17a4142102ff8b40f6ab6018d21d34343bb602a528242ec24190288460a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+      "bytes": 7870,
+      "sha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "bytes": 31648,
+      "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+      "bytes": 13767,
+      "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4"
+    }
+  ],
+  "actualBrowser": {
+    "version": "138.0.7204.183",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "channel": "CfT milestone138",
+    "headed": true,
+    "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/2026-10-02T19-30-48-228Z-m5-ui-138-e41c4bc7",
+    "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+    "os": {
+      "platform": "darwin",
+      "release": "25.5.0",
+      "arch": "arm64"
+    },
+    "playwrightVersion": "1.62.1"
+  },
+  "httpServer": {
+    "base": "http://127.0.0.1:53676",
+    "requests": 0
+  },
+  "actual": [],
+  "failed": [],
+  "notTested": [
+    "F2 product integration and atomic authority admission/settlement",
+    "F3 real workbench/revisions/persistence/download",
+    "Worker/CSP/RPC/termination: owned by leader",
+    "page infinite-loop termination: no general guarantee"
+  ],
+  "screenshots": [
+    {
+      "name": "initial-details",
+      "path": "initial-details.png",
+      "url": "chrome://extensions/?id=ndjfjgagpdcenfgedcjomjcobgfppjnl"
+    }
+  ],
+  "cleanup": {
+    "browserContextClosed": true,
+    "loopbackServerClosed": true,
+    "outstandingHolds": 0
+  },
+  "userScriptsRequiredCasesPassed": false,
+  "fullF1GateDecision": "not made by this fixture; independent combined review required"
+}

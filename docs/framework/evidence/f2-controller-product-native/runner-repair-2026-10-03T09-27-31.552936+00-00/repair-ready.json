@@ -1,0 +1,47 @@
+{
+  "runnerSha256": "6a67374cb9d121097644afc67873af4e6267032b822540b739d598e33b9f134a",
+  "sourceHash": "798f0f6ae8aa86a526e4556d67962aa40553b40f8b41ef66014eb766c523df41",
+  "sourceChangedPaths": [
+    "tests/framework/k5-controller-product-native.mjs"
+  ],
+  "packages": {
+    "production": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+    "development": "1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60"
+  },
+  "readyPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-03T09-27-31.732Z-880bd58f/ready.json",
+  "receiptPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/main-rebuild-receipt.json",
+  "originalSlotContinued": true,
+  "expectationsUnchanged": true,
+  "originalRawPreserved": true,
+  "validation": [
+    {
+      "at": "2026-10-03T09:27:31.620641+00:00",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 82050,
+      "args": [
+        "node",
+        "--check",
+        "tests/framework/k5-controller-product-native.mjs"
+      ],
+      "exitCode": 0,
+      "runnerSha256": "6a67374cb9d121097644afc67873af4e6267032b822540b739d598e33b9f134a",
+      "nativeExecuted": false
+    },
+    {
+      "at": "2026-10-03T09:27:31.944490+00:00",
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 82052,
+      "args": [
+        "node",
+        "tests/framework/k5-controller-product-native.mjs",
+        "--contract-check",
+        "--mode=all",
+        "--chrome=all"
+      ],
+      "exitCode": 0,
+      "runnerSha256": "6a67374cb9d121097644afc67873af4e6267032b822540b739d598e33b9f134a",
+      "nativeExecuted": false
+    }
+  ],
+  "nativeExecuted": false
+}

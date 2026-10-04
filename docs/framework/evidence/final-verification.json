@@ -1,0 +1,14 @@
+{
+  "verifiedAt": "2026-10-02T14:17:48.979624+00:00",
+  "sameHashIndependentDesignReportsValid": true,
+  "independentPrototypeFinalValid": true,
+  "prototypeManifestSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815",
+  "fixtureFilesVerified": 8,
+  "productBaselineFilesVerifiedUnchanged": 37,
+  "auditInputFilesVerifiedUnchanged": 18,
+  "reportBindingsVerified": true,
+  "executionCompletionFlagsFalse": true,
+  "F3Tested": false,
+  "pauseDisposition": "explicit-user-conditional-stop",
+  "generatedEvidenceOnly": "not a functional completion certificate"
+}

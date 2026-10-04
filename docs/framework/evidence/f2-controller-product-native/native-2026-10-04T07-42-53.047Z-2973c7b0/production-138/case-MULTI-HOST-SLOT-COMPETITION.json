@@ -1,0 +1,36 @@
+{
+  "id": "MULTI-HOST-SLOT-COMPETITION",
+  "families": "CTRL03/AUTH01",
+  "expected": "Two real product hosts contend; loser gets E_OWNER; no loser run/effect; winner retains slot",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "167a86738d821602a6092f76de37ceefc68613a39f988a92b19c4a32315991df",
+  "verificationInputsSha256": "079e0879f377d0705d86e013a402cd49abc3fbf5235cc47f8d0bb0323fd44f6a",
+  "packageSha256": "faad7957d67832a3ce767cbc371f503edde1837734a191b38d7327825b2cec9a",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791101256321,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'E_OWNER'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'E_OWNER'\n\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:786:16\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:407:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:780:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:368:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:198:3"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "results",
+    "text": "任务 aa9d48a4-9efd-4e20-bd7a-f81649378736：completed",
+    "result": "{\"run\": {\"tag\": \"controller-run\", \"runId\": \"aa9d48a4-9efd-4e20-bd7a-f81649378736\", \"state\": \"completed\", \"runRevision\": 4, \"ownerEpoch\": 2, \"cancelSeq\": 1, \"identity\": {\"tag\": \"controller-run\", \"runId\": \"aa9d48a4-9efd-4e20-bd7a-f81649378736\", \"hostInstanceId\": \"92d5e1c9-99b1-482c-900a-ccc6663dbd7e\", \"hostDocumentId\": \"1ED17715045A59661EA4286972E9F7DB\", \"ownerEpoch\": 1, \"scriptId\": \"native-1b2d9548-1fbc-496b-9ac3-702a622ef21d\", \"revision\": 1, \"contentHash\": \"0df04b2de4366e2b09a0cda00041b99d826a06f7cbb8529d1156df14a3bba936\", \"target\": {\"tabId\": 937145912, \"frameId\": 0, \"documentId\": \"B2CB4CE336948113B701E79C6746D5EB\", \"url\": \"http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=borrowed\", \"allowedOrigin\": \"http://127.0.0.1:60682\", \"targetSessionId\": \"b72896fd-4ff4-481f-8540-b6cddcbcfe8f\", \"targetVersion\": 1, \"mode\": \"borrowed\", \"browserSessionIncarnation\": \"783c378f-9c0d-4717-8a68-c44dc6945261\"}}, \"target\": {\"tabId\": 937145912, \"frameId\": 0, \"documentId\": \"B2CB4CE336948113B701E79C6746D5EB\", \"url\": \"http://127.0.0.1:60682/form?seed=8b117f67-11a6-470c-90d4-aa0dbff9f139&role=borrowed\", \"allowedOrigin\": \"http://127.0.0.1:60682\", \"targetSessionId\": \"b72896fd-4ff4-481f-8540-b6cddcbcfe8f\", \"targetVersion\": 1, \"mode\": \"borrowed\", \"browserSessionIncarnation\": \"783c378f-9c0d-4717-8a68-c44dc6945261\"}, \"revision\": {\"scriptId\": \"native-1b2d9548-1fbc-496b-9ac3-702a622ef21d\", \"revision\": 1, \"sourceHash\": \"0df04b2de4366e2b09a0cda00041b99d826a06f7cbb8529d1156df14a3bba936\", \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"aa9d48a4-9efd-4e20-bd7a-f81649378736\\\",\\\"9f87bf65-ee80-420b-8a0f-bf97194bd5bf\\\",\\\"native-1b2d9548-1fbc-496b-9ac3-702a622ef21d\\\",1]\"}, \"deadlineAt\": 1791101365109, \"retirementId\": \"e2d82a11-9785-422e-8dcd-68b259924eea\", \"retirementState\": \"released\", \"resultId\": \"40fefa6b-8c22-4d2d-bdd7-4de34100d4f4\", \"terminalReason\": null, \"workerRetired\": true, \"scriptId\": \"native-1b2d9548-1fbc-496b-9ac3-702a622ef21d\", \"contentHash\": \"0df04b2de4366e2b09a0cda00041b99d826a06f7cbb8529d1156df14a3bba936\"}, \"results\": [{\"runId\": \"aa9d48a4-9efd-4e20-bd7a-f81649378736\", \"resultId\": \"40fefa6b-8c22-4d2d-bdd7-4de34100d4f4\", \"state\": \"completed\", \"value\": \"winner\"}]}",
+    "version": "已保存 r1 · 0df04b2de4366e2b09a0cda00041b99d826a06f7cbb8529d1156df14a3bba936",
+    "runId": "aa9d48a4-9efd-4e20-bd7a-f81649378736",
+    "download": "浏览器已完成下载 · SHA-256 86a5afbc5b64b0384b705eff19812ef34f7e39bbc960b9574a6339df48474999",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 144973.971166
+}

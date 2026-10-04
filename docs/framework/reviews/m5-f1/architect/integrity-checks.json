@@ -1,0 +1,833 @@
+{
+  "createdAt": "2026-10-02T20:14:41.088002+00:00",
+  "mismatches": [],
+  "checks": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.json",
+      "expectedSha256": "453d779d6a7d95f0a4e4214ad2ae01f84294ddf9b392ca9b74f9614b4debc0e4",
+      "actualSha256": "453d779d6a7d95f0a4e4214ad2ae01f84294ddf9b392ca9b74f9614b4debc0e4",
+      "match": true,
+      "kind": "checkpoint"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.md",
+      "expectedSha256": "ff2c83d5794463e37f1a4670b8028536fc81256cbbbebe90f790d4ded38b0c37",
+      "actualSha256": "ff2c83d5794463e37f1a4670b8028536fc81256cbbbebe90f790d4ded38b0c37",
+      "match": true,
+      "kind": "checkpoint"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+      "expectedSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+      "actualSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+      "match": true,
+      "kind": "approvedPlanManifest"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "expectedSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "actualSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "match": true,
+      "kind": "currentSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "expectedSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "actualSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "match": true,
+      "kind": "currentSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+      "expectedSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "actualSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "match": true,
+      "kind": "currentSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+      "expectedSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "actualSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "match": true,
+      "kind": "currentSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "expectedSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "actualSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "match": true,
+      "kind": "currentSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+      "expectedSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "actualSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "match": true,
+      "kind": "currentSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+      "expectedSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "actualSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "match": true,
+      "kind": "currentSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/report.json",
+      "expectedSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+      "actualSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+      "match": true,
+      "kind": "authorFinalReport"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/candidate-manifest.json",
+      "expectedSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "actualSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "match": true,
+      "kind": "pageCandidate"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/evidence-manifest.json",
+      "expectedSha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7",
+      "actualSha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7",
+      "match": true,
+      "kind": "authorEvidenceManifest"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/candidate-manifest.json",
+      "expectedSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "actualSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/cases-live.json",
+      "expectedSha256": "dac4f236d88ecddf0e0e440ec512269407ff9e1697a241d722ac22e103428c3d",
+      "actualSha256": "dac4f236d88ecddf0e0e440ec512269407ff9e1697a241d722ac22e103428c3d",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/console.json",
+      "expectedSha256": "c3b33d15557405dc7ec68a6c7fba61fe932ec295321b25297080e03485bf3c99",
+      "actualSha256": "c3b33d15557405dc7ec68a6c7fba61fe932ec295321b25297080e03485bf3c99",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/fixture-resources.json",
+      "expectedSha256": "f86f11805e495e796398b7ce6df7055fbc7a1a19765d0f487e8409797e87360d",
+      "actualSha256": "f86f11805e495e796398b7ce6df7055fbc7a1a19765d0f487e8409797e87360d",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/host-off-MAIN.png",
+      "expectedSha256": "b62f6f2f9cf1255766a38e32009378903cef31dee234dd401dd8e1497699bb6a",
+      "actualSha256": "b62f6f2f9cf1255766a38e32009378903cef31dee234dd401dd8e1497699bb6a",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/host-off-USER_SCRIPT.png",
+      "expectedSha256": "f1705049211b0794daeee877f327f5670870f29dd3f29ab3d80a25d54d517b26",
+      "actualSha256": "f1705049211b0794daeee877f327f5670870f29dd3f29ab3d80a25d54d517b26",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/host-on-MAIN.png",
+      "expectedSha256": "3f8ee398ee4cdf4089655fbf4c0f2c107c131cc8f76c604571599274c816a52a",
+      "actualSha256": "3f8ee398ee4cdf4089655fbf4c0f2c107c131cc8f76c604571599274c816a52a",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/host-on-USER_SCRIPT.png",
+      "expectedSha256": "8d4d9c648e36db64a4815a0fa0c29d090bce15d172f47044a43bb370053196eb",
+      "actualSha256": "8d4d9c648e36db64a4815a0fa0c29d090bce15d172f47044a43bb370053196eb",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/http.json",
+      "expectedSha256": "8b45c7c9ea45546908b2376aea120b1e9dc2310177770f8541d988896f554e43",
+      "actualSha256": "8b45c7c9ea45546908b2376aea120b1e9dc2310177770f8541d988896f554e43",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/initial-details.png",
+      "expectedSha256": "456ec60397a1bd1e2e0914029559b7f1ea2ca390db20be831d06f8610eda2ed0",
+      "actualSha256": "456ec60397a1bd1e2e0914029559b7f1ea2ca390db20be831d06f8610eda2ed0",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/owned-target.png",
+      "expectedSha256": "192b2702256e2df95a6368072cb76d4efe7f2e1e25073c36466f882ee71cc420",
+      "actualSha256": "192b2702256e2df95a6368072cb76d4efe7f2e1e25073c36466f882ee71cc420",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/packaged-main-callbacks.json",
+      "expectedSha256": "8195aa79f0f1874e971d987cd1dc50e7e905feb28ce9900af176d2a8374469f0",
+      "actualSha256": "8195aa79f0f1874e971d987cd1dc50e7e905feb28ce9900af176d2a8374469f0",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/queued-native-observations.json",
+      "expectedSha256": "824fbe078ece9c1ba1d8fa0e7df0332d17c6bde8a15608239f2e8648ce8795e0",
+      "actualSha256": "824fbe078ece9c1ba1d8fa0e7df0332d17c6bde8a15608239f2e8648ce8795e0",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-off-native-completed-MAIN.png",
+      "expectedSha256": "987cfad9e614d18f87d0b49f3ef229654dbaf33b5307d750adac195a082b7c46",
+      "actualSha256": "987cfad9e614d18f87d0b49f3ef229654dbaf33b5307d750adac195a082b7c46",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-off-native-completed-USER_SCRIPT.png",
+      "expectedSha256": "184d51ef3e40476d5a90b18054316c1586ad64e64113e31c4e6cc853a73549b2",
+      "actualSha256": "184d51ef3e40476d5a90b18054316c1586ad64e64113e31c4e6cc853a73549b2",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-off-pending-MAIN.png",
+      "expectedSha256": "a3ee831e535f18811e8ad2568660d3cf1f1c05293924526ab53d975f8fced47d",
+      "actualSha256": "a3ee831e535f18811e8ad2568660d3cf1f1c05293924526ab53d975f8fced47d",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-off-pending-USER_SCRIPT.png",
+      "expectedSha256": "8353ba215fd906d73138cd5f5deec784dead579275e00ec4cfdde7e8cf3d6907",
+      "actualSha256": "8353ba215fd906d73138cd5f5deec784dead579275e00ec4cfdde7e8cf3d6907",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-on-native-completed-MAIN.png",
+      "expectedSha256": "72b73569b57c063eb9177c43f00f27714f8d0dd89811a4e438177e15fade9ec3",
+      "actualSha256": "72b73569b57c063eb9177c43f00f27714f8d0dd89811a4e438177e15fade9ec3",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-on-native-completed-USER_SCRIPT.png",
+      "expectedSha256": "944a6c06e6efee4f3ca20b111b45151965b2fe0b6bb1732c4a9a04e668135af1",
+      "actualSha256": "944a6c06e6efee4f3ca20b111b45151965b2fe0b6bb1732c4a9a04e668135af1",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-on-pending-MAIN.png",
+      "expectedSha256": "c3467a759decf8d27571b0d6aab63dc3f62de55233234a9ffa259c324f99afa9",
+      "actualSha256": "c3467a759decf8d27571b0d6aab63dc3f62de55233234a9ffa259c324f99afa9",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-on-pending-USER_SCRIPT.png",
+      "expectedSha256": "b8c4bc5f8e10e767d5facd6200f1ee1fff477a672683271804c24e86a032147b",
+      "actualSha256": "b8c4bc5f8e10e767d5facd6200f1ee1fff477a672683271804c24e86a032147b",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/raw-injections.json",
+      "expectedSha256": "666b1d5caf5e3373003d9408fa38652a074783bc3d7b910702f6758b2d536a0c",
+      "actualSha256": "666b1d5caf5e3373003d9408fa38652a074783bc3d7b910702f6758b2d536a0c",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/re-enabled-MAIN.png",
+      "expectedSha256": "123f35b9fef01b0b193e37c4ff6b40b2422cf204dcfe4dd17d257c813b94a4e7",
+      "actualSha256": "123f35b9fef01b0b193e37c4ff6b40b2422cf204dcfe4dd17d257c813b94a4e7",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/re-enabled-USER_SCRIPT.png",
+      "expectedSha256": "d2dbd53c148fed0cc575f0a3a2a2d1d418263936ab571fe7eba31ca14111c093",
+      "actualSha256": "d2dbd53c148fed0cc575f0a3a2a2d1d418263936ab571fe7eba31ca14111c093",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/report.json",
+      "expectedSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+      "actualSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/results.png",
+      "expectedSha256": "1668964920272b48490ccc7dbe7a2421a433cab248fbe1df1c39a54b1c063548",
+      "actualSha256": "1668964920272b48490ccc7dbe7a2421a433cab248fbe1df1c39a54b1c063548",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/revoke-MAIN.png",
+      "expectedSha256": "dc095b8958328d07eb742b40a7d8ea6576cd38f02fea143d86edc21f8484ec06",
+      "actualSha256": "dc095b8958328d07eb742b40a7d8ea6576cd38f02fea143d86edc21f8484ec06",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/revoke-USER_SCRIPT.png",
+      "expectedSha256": "9d28287a8a4aa3f17d87839e927bacf79378ced4decad46b8f1cfa759928964a",
+      "actualSha256": "9d28287a8a4aa3f17d87839e927bacf79378ced4decad46b8f1cfa759928964a",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-after-native-off-MAIN.png",
+      "expectedSha256": "da419c11428fcbfa47f29e2a8eb7d39e21df22b2e1c7cc9ab337a43b658b3572",
+      "actualSha256": "da419c11428fcbfa47f29e2a8eb7d39e21df22b2e1c7cc9ab337a43b658b3572",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-after-native-off-USER_SCRIPT.png",
+      "expectedSha256": "5dbd13c5b895e735d5adfd9e29609ec760dd4decb16f3ab8671fd3989bdf0b73",
+      "actualSha256": "5dbd13c5b895e735d5adfd9e29609ec760dd4decb16f3ab8671fd3989bdf0b73",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-after-native-on-MAIN.png",
+      "expectedSha256": "02f2bbe08d699e58afc37e8a3234800d20df89fe26c189a093e11d43133fec22",
+      "actualSha256": "02f2bbe08d699e58afc37e8a3234800d20df89fe26c189a093e11d43133fec22",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-after-native-on-USER_SCRIPT.png",
+      "expectedSha256": "239234b09bd8762fec8aeedbf81b9e0ab068d858dee2d13bce69420a49cea7b3",
+      "actualSha256": "239234b09bd8762fec8aeedbf81b9e0ab068d858dee2d13bce69420a49cea7b3",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-off.png",
+      "expectedSha256": "823174a6c1609d714d947b612e7b00bf34fd8498c82397ebd9d936eb0705fad1",
+      "actualSha256": "823174a6c1609d714d947b612e7b00bf34fd8498c82397ebd9d936eb0705fad1",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-on.png",
+      "expectedSha256": "5e65ffef5ec3009eda3c67fa04d54ce6ea7a98a30a4cbf56bc163b2a3462403f",
+      "actualSha256": "5e65ffef5ec3009eda3c67fa04d54ce6ea7a98a30a4cbf56bc163b2a3462403f",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "expectedSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "actualSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "expectedSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "actualSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+      "expectedSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "actualSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+      "expectedSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "actualSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "expectedSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "actualSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+      "expectedSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "actualSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+      "expectedSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "actualSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+      "expectedSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+      "actualSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/execution-plan.md",
+      "expectedSha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+      "actualSha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json",
+      "expectedSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+      "actualSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/goal-constraints.md",
+      "expectedSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+      "actualSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "expectedSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+      "actualSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+      "expectedSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+      "actualSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "expectedSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+      "actualSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+      "match": true,
+      "kind": "binary"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/report.json",
+      "expectedSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+      "actualSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+      "match": true,
+      "kind": "authorFinalReport"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/candidate-manifest.json",
+      "expectedSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "actualSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "match": true,
+      "kind": "pageCandidate"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/evidence-manifest.json",
+      "expectedSha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790",
+      "actualSha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790",
+      "match": true,
+      "kind": "authorEvidenceManifest"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/candidate-manifest.json",
+      "expectedSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "actualSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/cases-live.json",
+      "expectedSha256": "4e848d67618d46b9113c76d73f9eb1b4eb59cd6df38e06c6f039f7cb1a02080c",
+      "actualSha256": "4e848d67618d46b9113c76d73f9eb1b4eb59cd6df38e06c6f039f7cb1a02080c",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/console.json",
+      "expectedSha256": "173c35b0bcc4ce69e77d2fcb6190db7a99b77e789e37c7dfa71f69f57cc5d3b6",
+      "actualSha256": "173c35b0bcc4ce69e77d2fcb6190db7a99b77e789e37c7dfa71f69f57cc5d3b6",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/fixture-resources.json",
+      "expectedSha256": "f86f11805e495e796398b7ce6df7055fbc7a1a19765d0f487e8409797e87360d",
+      "actualSha256": "f86f11805e495e796398b7ce6df7055fbc7a1a19765d0f487e8409797e87360d",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/host-off-MAIN.png",
+      "expectedSha256": "ab368db495d8399aa5436091c86fe4333b0f7c947bc60012ca273f685383c271",
+      "actualSha256": "ab368db495d8399aa5436091c86fe4333b0f7c947bc60012ca273f685383c271",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/host-off-USER_SCRIPT.png",
+      "expectedSha256": "65950fc407fd9694dd0b4c6bdb9b20e3bb0f41f1b720504fd583b1d399547e87",
+      "actualSha256": "65950fc407fd9694dd0b4c6bdb9b20e3bb0f41f1b720504fd583b1d399547e87",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/host-on-MAIN.png",
+      "expectedSha256": "06a9e20d96f2563e19e3961fbeb33d3e97ce46751cf75f33f45fb9c9ca1ec905",
+      "actualSha256": "06a9e20d96f2563e19e3961fbeb33d3e97ce46751cf75f33f45fb9c9ca1ec905",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/host-on-USER_SCRIPT.png",
+      "expectedSha256": "672e8237e323be901f91a93b27fe98f3bbae1f3095249c16b31aa76d24eb2998",
+      "actualSha256": "672e8237e323be901f91a93b27fe98f3bbae1f3095249c16b31aa76d24eb2998",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/http.json",
+      "expectedSha256": "82967772bd4388723c26fa7ed3014bd1801f659b1f98bcf1d19943cd9d17b5f2",
+      "actualSha256": "82967772bd4388723c26fa7ed3014bd1801f659b1f98bcf1d19943cd9d17b5f2",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/initial-details.png",
+      "expectedSha256": "07a0870d59709701267d95079da5899f417d1edb2bc2d31f609832d71fb98f50",
+      "actualSha256": "07a0870d59709701267d95079da5899f417d1edb2bc2d31f609832d71fb98f50",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/owned-target.png",
+      "expectedSha256": "7584fc4a8e04cfb5ddc92fad3340790a57bc7c8b8af02fcfdb1099e69805bd93",
+      "actualSha256": "7584fc4a8e04cfb5ddc92fad3340790a57bc7c8b8af02fcfdb1099e69805bd93",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/packaged-main-callbacks.json",
+      "expectedSha256": "561e77d9009d80848d88fac3ab26fcb25e1969f110b40d16130a8aae6b6a725e",
+      "actualSha256": "561e77d9009d80848d88fac3ab26fcb25e1969f110b40d16130a8aae6b6a725e",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/queued-native-observations.json",
+      "expectedSha256": "fc61adccb35e0bac32e4c9d653a33b4d794744e1c20285d6630cc60574535032",
+      "actualSha256": "fc61adccb35e0bac32e4c9d653a33b4d794744e1c20285d6630cc60574535032",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-off-native-completed-MAIN.png",
+      "expectedSha256": "dcedb7c3f1fc9be6a7e55d31963b225639d23aaa56a1fc61e3738e9216deb3d7",
+      "actualSha256": "dcedb7c3f1fc9be6a7e55d31963b225639d23aaa56a1fc61e3738e9216deb3d7",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-off-native-completed-USER_SCRIPT.png",
+      "expectedSha256": "361445a7e12688e0a6d257ca9066a1a97a700b6e8c3a4143b48389425d40ba88",
+      "actualSha256": "361445a7e12688e0a6d257ca9066a1a97a700b6e8c3a4143b48389425d40ba88",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-off-pending-MAIN.png",
+      "expectedSha256": "60fd2318e159d671494a7cf2c13e3ba72f680a505adcb77d541b2c843c720ce2",
+      "actualSha256": "60fd2318e159d671494a7cf2c13e3ba72f680a505adcb77d541b2c843c720ce2",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-off-pending-USER_SCRIPT.png",
+      "expectedSha256": "81b0244d2b22b2caac86025231cf078a78ccda303d85e92919586ba72fd98631",
+      "actualSha256": "81b0244d2b22b2caac86025231cf078a78ccda303d85e92919586ba72fd98631",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-on-native-completed-MAIN.png",
+      "expectedSha256": "05e0e92754e92e9a135120e907469625a5df41a82e94ded6bb22a9febd64fe10",
+      "actualSha256": "05e0e92754e92e9a135120e907469625a5df41a82e94ded6bb22a9febd64fe10",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-on-native-completed-USER_SCRIPT.png",
+      "expectedSha256": "c0314650ecce591faa11c1bff3642006496c70eb3ce84a4c39eb33e1d97e125c",
+      "actualSha256": "c0314650ecce591faa11c1bff3642006496c70eb3ce84a4c39eb33e1d97e125c",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-on-pending-MAIN.png",
+      "expectedSha256": "d2e506837b9f75f246ab04798813d4a3fc7424ca1b52f5748d653cfcb3429288",
+      "actualSha256": "d2e506837b9f75f246ab04798813d4a3fc7424ca1b52f5748d653cfcb3429288",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-on-pending-USER_SCRIPT.png",
+      "expectedSha256": "52bed6ae57f8088598de6eaac0f2c64bc20439876d7557ff1f03f4fb74cbf96e",
+      "actualSha256": "52bed6ae57f8088598de6eaac0f2c64bc20439876d7557ff1f03f4fb74cbf96e",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/raw-injections.json",
+      "expectedSha256": "44797f34f6a11cc9feba8da27769f0d74ca4be1215a3eef33682865306a27867",
+      "actualSha256": "44797f34f6a11cc9feba8da27769f0d74ca4be1215a3eef33682865306a27867",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/re-enabled-MAIN.png",
+      "expectedSha256": "8b53193bdccd133fb43ae4d6c963a6f750dc748e85ffefabba5206fadd233c75",
+      "actualSha256": "8b53193bdccd133fb43ae4d6c963a6f750dc748e85ffefabba5206fadd233c75",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/re-enabled-USER_SCRIPT.png",
+      "expectedSha256": "53b2fc10c42170ab0df23da8c6a8f7328b59de93a579266f5ec087d422e7e9a8",
+      "actualSha256": "53b2fc10c42170ab0df23da8c6a8f7328b59de93a579266f5ec087d422e7e9a8",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/report.json",
+      "expectedSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+      "actualSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/results.png",
+      "expectedSha256": "7010f6b0402b654671906c733a2026e3f5a1749b3cd32addf7bb5ac4a22824fe",
+      "actualSha256": "7010f6b0402b654671906c733a2026e3f5a1749b3cd32addf7bb5ac4a22824fe",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/revoke-MAIN.png",
+      "expectedSha256": "adf0b76e15ee3cb2eee4095118d84f6e17e32aff6f19d9870a71128f9a2d19a4",
+      "actualSha256": "adf0b76e15ee3cb2eee4095118d84f6e17e32aff6f19d9870a71128f9a2d19a4",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/revoke-USER_SCRIPT.png",
+      "expectedSha256": "4be4b0c9203c09791541c5c95b3ec4e909c26911d834ff29fc3e97dcb2bbb603",
+      "actualSha256": "4be4b0c9203c09791541c5c95b3ec4e909c26911d834ff29fc3e97dcb2bbb603",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-after-native-off-MAIN.png",
+      "expectedSha256": "771d67ec76892bcaa1ecb823fd2ffae25f6d48399cf35cb2906d2313d9abb2c7",
+      "actualSha256": "771d67ec76892bcaa1ecb823fd2ffae25f6d48399cf35cb2906d2313d9abb2c7",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-after-native-off-USER_SCRIPT.png",
+      "expectedSha256": "aa1a59e3ff67ff5a4131c60d182ac31cdb8f0c5d0f410f305367455609e6a9d2",
+      "actualSha256": "aa1a59e3ff67ff5a4131c60d182ac31cdb8f0c5d0f410f305367455609e6a9d2",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-after-native-on-MAIN.png",
+      "expectedSha256": "6e1c1bdc752375e4f95dbb97ed925ecd18e51f11713df3e75308f29f9cdf0c57",
+      "actualSha256": "6e1c1bdc752375e4f95dbb97ed925ecd18e51f11713df3e75308f29f9cdf0c57",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-after-native-on-USER_SCRIPT.png",
+      "expectedSha256": "9e2984e2cb15eac652b20e42b7ea169882124eaae30e3e3e9c8dcb82096dab19",
+      "actualSha256": "9e2984e2cb15eac652b20e42b7ea169882124eaae30e3e3e9c8dcb82096dab19",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-off.png",
+      "expectedSha256": "1004056a4618d9c56de26731905346b8e9ec8f8bf9573bdd5058f5a3c58f1521",
+      "actualSha256": "1004056a4618d9c56de26731905346b8e9ec8f8bf9573bdd5058f5a3c58f1521",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-on.png",
+      "expectedSha256": "622e609736dba1fc43333808a8cd46aaaaf2a26e03e38cd17816660bd4438cab",
+      "actualSha256": "622e609736dba1fc43333808a8cd46aaaaf2a26e03e38cd17816660bd4438cab",
+      "match": true,
+      "kind": "authorEvidenceFile"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "expectedSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "actualSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "expectedSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "actualSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+      "expectedSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "actualSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+      "expectedSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "actualSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "expectedSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "actualSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+      "expectedSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "actualSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+      "expectedSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "actualSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "match": true,
+      "kind": "candidateSource"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+      "expectedSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+      "actualSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/execution-plan.md",
+      "expectedSha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+      "actualSha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json",
+      "expectedSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+      "actualSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/goal-constraints.md",
+      "expectedSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+      "actualSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "expectedSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+      "actualSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+      "expectedSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+      "actualSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+      "match": true,
+      "kind": "frozenInput"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "expectedSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+      "actualSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+      "match": true,
+      "kind": "binary"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-16-35-242Z-installed-cft-149-221265ae/report.json",
+      "expectedSha256": "4b29a0174922ef2d00297c291234501d94f873fa972cc74be3ef43f15104173f",
+      "actualSha256": "4b29a0174922ef2d00297c291234501d94f873fa972cc74be3ef43f15104173f",
+      "match": true,
+      "kind": "preservedHistoricalReport"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-17-39-461Z-installed-cft-149-1853a61f/report.json",
+      "expectedSha256": "6ced4003058d5e18dbf020c4428ad2a15b480228c4456fadd6dbb11ee3802da5",
+      "actualSha256": "6ced4003058d5e18dbf020c4428ad2a15b480228c4456fadd6dbb11ee3802da5",
+      "match": true,
+      "kind": "preservedHistoricalReport"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-06-447Z-installed-cft-149-90b95412/report.json",
+      "expectedSha256": "3adecb50d4b5bff416717fd81895bbbd1a8faaedd09865d614c0cc76c12b8d71",
+      "actualSha256": "3adecb50d4b5bff416717fd81895bbbd1a8faaedd09865d614c0cc76c12b8d71",
+      "match": true,
+      "kind": "preservedHistoricalReport"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-28-823Z-installed-cft-149-689ca983/report.json",
+      "expectedSha256": "0e998d297d234978ad67f1c3a2c737bbb03b3fcee80ce30021e07daf424a1203",
+      "actualSha256": "0e998d297d234978ad67f1c3a2c737bbb03b3fcee80ce30021e07daf424a1203",
+      "match": true,
+      "kind": "preservedHistoricalReport"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/checkpoint.json",
+      "expectedSha256": "1fcc9b312d74df6325cacb1065bf656fc692146cf961a049e534c065b84af3e8",
+      "actualSha256": "1fcc9b312d74df6325cacb1065bf656fc692146cf961a049e534c065b84af3e8",
+      "match": true,
+      "kind": "preservedHistoricalCheckpoint"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/checkpoint.md",
+      "expectedSha256": "a39cceeac532f17efa121598418aaca14bb120d19bb4c87cd0409fadb9006739",
+      "actualSha256": "a39cceeac532f17efa121598418aaca14bb120d19bb4c87cd0409fadb9006739",
+      "match": true,
+      "kind": "preservedHistoricalCheckpoint"
+    }
+  ],
+  "remainingOwnedBrowserProcesses": []
+}

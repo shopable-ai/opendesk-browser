@@ -1,0 +1,12 @@
+{
+  "id": "DOWNLOAD-FALSE",
+  "families": "DLGEN01/DLGEN02",
+  "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791104337411,
+  "elapsedMs": 0.0004579999949783087
+}

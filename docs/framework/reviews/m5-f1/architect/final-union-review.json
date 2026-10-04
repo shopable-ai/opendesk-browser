@@ -1,0 +1,1740 @@
+{
+  "schema": "m5-f1-independent-architect-final-union-review-v1",
+  "createdAt": "2026-10-02T22:27:50.320377+00:00",
+  "role": "architecture / devils advocate",
+  "independent": true,
+  "authorOfCandidate": false,
+  "requestedModel": "gpt-6.1-sol",
+  "requestedReasoningEffort": "xhigh",
+  "actualModel": "unknown",
+  "actualReasoningEffort": "unknown",
+  "candidateManifestPath": "docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json",
+  "candidateManifestSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+  "candidateSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66",
+  "approvedPlanManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "controlSourceCandidateSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+  "pageSourceCandidateSha256": "f29dc4afa233a67457585e6a35cf327252760ead96d9edce6c16975f9a502c0a",
+  "verdict": "APPROVE",
+  "laneVerdict": "CLEAR",
+  "f1ContractVerdict": "PASS",
+  "allF1ContractsPassed": true,
+  "qualificationScope": "This independent Architect F1 mechanism/function assessment of the exact union under approved round6 only; other independent reviewer approvals and public gate transitions remain separate.",
+  "score": null,
+  "scoreNote": "F1 is a mechanism contract decision, not a design score.",
+  "coverage12": [
+    {
+      "id": "F1-CTRL-USER-ASYNC",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 3,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "用户 async body 在真实 opaque sandbox Worker 内编译；goto/title/url 与 type/click/wait/text 真实顺序完成，读回 BaseAlice。",
+        "实际 throw、SyntaxError、未授权 origin、false/0/null/undefined 和不可克隆返回分别可辨。",
+        "权限 await 前后及各后续 native effect 前重新验证冻结的原 owner/epoch/tab/doc，旧请求不能借新 run/target 恢复。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/worker-harness.js",
+          "line": 4
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/worker-harness.js",
+          "line": 52
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 86
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 105
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c",
+          "caseIds": [
+            "F1-PERMISSION-AWAIT-STOP-GOTO",
+            "F1-PERMISSION-AWAIT-STOP-CLICK",
+            "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+            "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+            "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+            "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+            "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+            "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+            "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+            "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+            "F1-USER-GOTO-TITLE-URL",
+            "F1-USER-TYPE-CLICK-WAIT-READ",
+            "F1-USER-THROW",
+            "F1-USER-SYNTAX",
+            "F1-ADAPTER-REJECTION",
+            "F1-RETURN-false",
+            "F1-RETURN-0",
+            "F1-RETURN-null",
+            "F1-RETURN-undefined",
+            "F1-UNSERIALIZABLE"
+          ],
+          "recordsField": "cases"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e",
+          "caseIds": [
+            "F1-PERMISSION-AWAIT-STOP-GOTO",
+            "F1-PERMISSION-AWAIT-STOP-CLICK",
+            "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+            "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+            "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+            "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+            "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+            "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+            "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+            "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+            "F1-USER-GOTO-TITLE-URL",
+            "F1-USER-TYPE-CLICK-WAIT-READ",
+            "F1-USER-THROW",
+            "F1-USER-SYNTAX",
+            "F1-ADAPTER-REJECTION",
+            "F1-RETURN-false",
+            "F1-RETURN-0",
+            "F1-RETURN-null",
+            "F1-RETURN-undefined",
+            "F1-UNSERIALIZABLE"
+          ],
+          "recordsField": "cases"
+        }
+      ],
+      "limits": [],
+      "blockers": []
+    },
+    {
+      "id": "F1-CTRL-PRIVATE-CHANNEL",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 32,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "错误 peer、global forged completion、重绑、重放、wrong run 与全局/prototype patch 不产生伪终态或额外 page effect；当前合法请求可用。",
+        "可信闭包在用户代码前捕获调用、clone、Promise/Map/send primitives；实际结果仅经一次绑定的私有 MessagePort。",
+        "真实 Worker 中 extension API 不可用，DOM 不存在。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/worker-harness.js",
+          "line": 4
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/worker-harness.js",
+          "line": 18
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 86
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/sandbox.html",
+          "line": 93
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c",
+          "caseIds": [
+            "F1-GLOBAL-FORGERY-PATCH",
+            "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+            "F1-FAKE-PEER"
+          ],
+          "recordsField": "cases"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e",
+          "caseIds": [
+            "F1-GLOBAL-FORGERY-PATCH",
+            "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+            "F1-FAKE-PEER"
+          ],
+          "recordsField": "cases"
+        }
+      ],
+      "limits": [],
+      "blockers": []
+    },
+    {
+      "id": "F1-CTRL-CSP-NETWORK",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 60,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "native Log/CSP 记录 connect-src/script-src 拒绝；fetch/XHR/WebSocket/importScripts 的实际结果和服务器无禁用请求相互印证。",
+        "HTTP CORS 与 WebSocket 正向可达性在前后分别成立，拒绝原因不是单凭 CORS/异常推断。",
+        "sandbox 不含 allow-same-origin；无 debugger/offscreen 权限或特权 fallback。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/manifest.json",
+          "line": 1
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/sandbox.html",
+          "line": 1
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 339
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 372
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c",
+          "caseIds": [
+            "F1-GLOBAL-FORGERY-PATCH",
+            "F1-CSP-NETWORK-ATTRIBUTION"
+          ],
+          "recordsField": "cases"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e",
+          "caseIds": [
+            "F1-GLOBAL-FORGERY-PATCH",
+            "F1-CSP-NETWORK-ATTRIBUTION"
+          ],
+          "recordsField": "cases"
+        }
+      ],
+      "limits": [],
+      "blockers": []
+    },
+    {
+      "id": "F1-CTRL-TRUE-TERMINATE",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 85,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "STOP/DEADLINE/HOST-CLOSE 六个实际 loop 都有进入标记、立即关闭 admission、exact targetDestroyed 与 target absent、后续合法 run。",
+        "native trace 以 Blob URL、Worker targetId、创建 frame/host、PID/workerThreadId 因果绑定；CPU 依据该 PID 重算，未使用最高增量 renderer 作为最终归属。",
+        "确认初始 loop CPU 增长、三个 post 样本低增量或 OS 独立确认 PID 退出；loop Worker 未附 Inspector。",
+        "保守单调时钟从实际触发区间下界计时：六项停止观察均 <=3000ms；settledAt 不是 terminate 完成证明。旧严格 2s 状态保留。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 74
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 197
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 204
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 215
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c",
+          "caseIds": [
+            "F1-INFINITE-LOOP-STOP",
+            "F1-AFTER-TERMINATION-STOP",
+            "F1-INFINITE-LOOP-DEADLINE",
+            "F1-AFTER-TERMINATION-DEADLINE",
+            "F1-INFINITE-LOOP-HOST-CLOSE",
+            "F1-AFTER-TERMINATION-HOST-CLOSE"
+          ],
+          "recordsField": "cases"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e",
+          "caseIds": [
+            "F1-INFINITE-LOOP-STOP",
+            "F1-AFTER-TERMINATION-STOP",
+            "F1-INFINITE-LOOP-DEADLINE",
+            "F1-AFTER-TERMINATION-DEADLINE",
+            "F1-INFINITE-LOOP-HOST-CLOSE",
+            "F1-AFTER-TERMINATION-HOST-CLOSE"
+          ],
+          "recordsField": "cases"
+        }
+      ],
+      "limits": [
+        "3s 是获批 round5/6 原生窗口；没有 <2s 或瞬时物理停止承诺。CPU 是因果绑定进程的 quiescence 观察，native threadId 提供归属；不是声称测量了每线程 CPU。"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "F1-CTRL-RESOURCE",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 111,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "每版 success/throw/timeout/cancel 各5、20个不同 run；原始 Blob URL 在创建它的 opaque realm 先真实可加载，再撤销，随后同 URL load-error，不使用新建 URL 替代。",
+        "每 run 实际 exact Worker targetDestroyed/absent，ports/workers/blob/probeWorkers 回0，host 回 baseline。",
+        "timeout/cancel 每次在真实 pageWaits=1/pending=1/timer=1 后触发；DOM wait/observer/timer 清理、最后合法 run 和最终 native Worker absence 均核实。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/sandbox.html",
+          "line": 24
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/sandbox.html",
+          "line": 42
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/sandbox.html",
+          "line": 64
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 79
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 249
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 384
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c",
+          "caseIds": [
+            "F1-RESOURCE-SUCCESS-0",
+            "F1-RESOURCE-THROW-0",
+            "F1-RESOURCE-TIMEOUT-0",
+            "F1-RESOURCE-CANCEL-0",
+            "F1-RESOURCE-SUCCESS-1",
+            "F1-RESOURCE-THROW-1",
+            "F1-RESOURCE-TIMEOUT-1",
+            "F1-RESOURCE-CANCEL-1",
+            "F1-RESOURCE-SUCCESS-2",
+            "F1-RESOURCE-THROW-2",
+            "F1-RESOURCE-TIMEOUT-2",
+            "F1-RESOURCE-CANCEL-2",
+            "F1-RESOURCE-SUCCESS-3",
+            "F1-RESOURCE-THROW-3",
+            "F1-RESOURCE-TIMEOUT-3",
+            "F1-RESOURCE-CANCEL-3",
+            "F1-RESOURCE-SUCCESS-4",
+            "F1-RESOURCE-THROW-4",
+            "F1-RESOURCE-TIMEOUT-4",
+            "F1-RESOURCE-CANCEL-4",
+            "F1-AFTER-CLEANUP-VALID",
+            "F1-RESOURCE-INDEPENDENT-OBSERVATION"
+          ],
+          "recordsField": "cases"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e",
+          "caseIds": [
+            "F1-RESOURCE-SUCCESS-0",
+            "F1-RESOURCE-THROW-0",
+            "F1-RESOURCE-TIMEOUT-0",
+            "F1-RESOURCE-CANCEL-0",
+            "F1-RESOURCE-SUCCESS-1",
+            "F1-RESOURCE-THROW-1",
+            "F1-RESOURCE-TIMEOUT-1",
+            "F1-RESOURCE-CANCEL-1",
+            "F1-RESOURCE-SUCCESS-2",
+            "F1-RESOURCE-THROW-2",
+            "F1-RESOURCE-TIMEOUT-2",
+            "F1-RESOURCE-CANCEL-2",
+            "F1-RESOURCE-SUCCESS-3",
+            "F1-RESOURCE-THROW-3",
+            "F1-RESOURCE-TIMEOUT-3",
+            "F1-RESOURCE-CANCEL-3",
+            "F1-RESOURCE-SUCCESS-4",
+            "F1-RESOURCE-THROW-4",
+            "F1-RESOURCE-TIMEOUT-4",
+            "F1-RESOURCE-CANCEL-4",
+            "F1-AFTER-CLEANUP-VALID",
+            "F1-RESOURCE-INDEPENDENT-OBSERVATION"
+          ],
+          "recordsField": "cases"
+        }
+      ],
+      "limits": [],
+      "blockers": []
+    },
+    {
+      "id": "F1-PAGE-SOURCE-DOC",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 142,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "双 world code/file 分别在 top/same-origin/cross-origin granted document 真执行；returned documentId 正确，逐步比较其余 document marker 保持前值，另一个 tab 无 mutation。",
+        "实际原生调用 target 仅 tabId+documentIds；错误 code/file、空 source、func/args、doc+frame、缺 file 原生拒绝且无目标 mutation。",
+        "7条 adapter 预校验 dispatchCount=0 单独记账，不计作 native execution。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+          "line": 57
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 131
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/run-headed.mjs",
+          "line": 253
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/report.json",
+          "reportSha256": "91ace4d9404391ec5cd94c1b50e52f2e24e42ee3fd32d7192215ada29f911d29",
+          "caseIds": [
+            "USER_SCRIPT-DOCUMENT-TOP",
+            "USER_SCRIPT-DOCUMENT-SAME",
+            "USER_SCRIPT-DOCUMENT-CROSS",
+            "USER_SCRIPT-FILE-DOCUMENT-TOP",
+            "USER_SCRIPT-FILE-DOCUMENT-SAME",
+            "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+            "MAIN-DOCUMENT-TOP",
+            "MAIN-DOCUMENT-SAME",
+            "MAIN-DOCUMENT-CROSS",
+            "MAIN-FILE-DOCUMENT-TOP",
+            "MAIN-FILE-DOCUMENT-SAME",
+            "MAIN-FILE-DOCUMENT-CROSS",
+            "SOURCE-BOTH",
+            "SOURCE-NEITHER",
+            "SOURCE-FUNC-ARGS",
+            "TARGET-DOC-FRAME",
+            "SOURCE-MISSING-FILE",
+            "PRE-DISPATCH-NATIVE",
+            "PRE-DISPATCH-BOUND",
+            "PRE-DISPATCH-NONFINITE",
+            "PRE-DISPATCH-FUNCTIONARG",
+            "PRE-DISPATCH-BIGINT",
+            "PRE-DISPATCH-CYCLE",
+            "PRE-DISPATCH-MISSINGTARGET"
+          ],
+          "recordsField": "actual/failed"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/report.json",
+          "reportSha256": "19d8f31b8fc0917cfed1fb5fa228d753ce20aa8e7c4ae2e0d76cdedc187bc4f4",
+          "caseIds": [
+            "USER_SCRIPT-DOCUMENT-TOP",
+            "USER_SCRIPT-DOCUMENT-SAME",
+            "USER_SCRIPT-DOCUMENT-CROSS",
+            "USER_SCRIPT-FILE-DOCUMENT-TOP",
+            "USER_SCRIPT-FILE-DOCUMENT-SAME",
+            "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+            "MAIN-DOCUMENT-TOP",
+            "MAIN-DOCUMENT-SAME",
+            "MAIN-DOCUMENT-CROSS",
+            "MAIN-FILE-DOCUMENT-TOP",
+            "MAIN-FILE-DOCUMENT-SAME",
+            "MAIN-FILE-DOCUMENT-CROSS",
+            "SOURCE-BOTH",
+            "SOURCE-NEITHER",
+            "SOURCE-FUNC-ARGS",
+            "TARGET-DOC-FRAME",
+            "SOURCE-MISSING-FILE",
+            "PRE-DISPATCH-NATIVE",
+            "PRE-DISPATCH-BOUND",
+            "PRE-DISPATCH-NONFINITE",
+            "PRE-DISPATCH-FUNCTIONARG",
+            "PRE-DISPATCH-BIGINT",
+            "PRE-DISPATCH-CYCLE",
+            "PRE-DISPATCH-MISSINGTARGET"
+          ],
+          "recordsField": "actual/failed"
+        }
+      ],
+      "limits": [],
+      "blockers": []
+    },
+    {
+      "id": "F1-PAGE-TYPED-RESULTS",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 181,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "Promise 真实等待并回 typed value；false/0/空串/null/undefined 各自保真；sync TypeError、async RangeError、closure ReferenceError 分类正确。",
+        "业务对象 PageBrigeCode=1/message=domain 原样作为业务值，不被误判框架错误。",
+        "native/bound source、nonfinite/function/BigInt/cycle/missing target 预派发拒绝，真实 dispatchCount=0。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+          "line": 1
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+          "line": 36
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+          "line": 77
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/report.json",
+          "reportSha256": "91ace4d9404391ec5cd94c1b50e52f2e24e42ee3fd32d7192215ada29f911d29",
+          "caseIds": [
+            "USER_SCRIPT-ADAPTER-PROMISE",
+            "USER_SCRIPT-ADAPTER-THROW",
+            "USER_SCRIPT-ADAPTER-REJECT",
+            "USER_SCRIPT-ADAPTER-UNDEFINED",
+            "USER_SCRIPT-ADAPTER-TRUE",
+            "USER_SCRIPT-ADAPTER-FALSE",
+            "USER_SCRIPT-ADAPTER-ZERO",
+            "USER_SCRIPT-ADAPTER-EMPTY",
+            "USER_SCRIPT-ADAPTER-NULL",
+            "USER_SCRIPT-ADAPTER-BUSINESS",
+            "USER_SCRIPT-ADAPTER-CLOSURE",
+            "MAIN-ADAPTER-PROMISE",
+            "MAIN-ADAPTER-THROW",
+            "MAIN-ADAPTER-REJECT",
+            "MAIN-ADAPTER-UNDEFINED",
+            "MAIN-ADAPTER-TRUE",
+            "MAIN-ADAPTER-FALSE",
+            "MAIN-ADAPTER-ZERO",
+            "MAIN-ADAPTER-EMPTY",
+            "MAIN-ADAPTER-NULL",
+            "MAIN-ADAPTER-BUSINESS",
+            "MAIN-ADAPTER-CLOSURE",
+            "PRE-DISPATCH-NATIVE",
+            "PRE-DISPATCH-BOUND",
+            "PRE-DISPATCH-NONFINITE",
+            "PRE-DISPATCH-FUNCTIONARG",
+            "PRE-DISPATCH-BIGINT",
+            "PRE-DISPATCH-CYCLE",
+            "PRE-DISPATCH-MISSINGTARGET"
+          ],
+          "recordsField": "actual/failed"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/report.json",
+          "reportSha256": "19d8f31b8fc0917cfed1fb5fa228d753ce20aa8e7c4ae2e0d76cdedc187bc4f4",
+          "caseIds": [
+            "USER_SCRIPT-ADAPTER-PROMISE",
+            "USER_SCRIPT-ADAPTER-THROW",
+            "USER_SCRIPT-ADAPTER-REJECT",
+            "USER_SCRIPT-ADAPTER-UNDEFINED",
+            "USER_SCRIPT-ADAPTER-TRUE",
+            "USER_SCRIPT-ADAPTER-FALSE",
+            "USER_SCRIPT-ADAPTER-ZERO",
+            "USER_SCRIPT-ADAPTER-EMPTY",
+            "USER_SCRIPT-ADAPTER-NULL",
+            "USER_SCRIPT-ADAPTER-BUSINESS",
+            "USER_SCRIPT-ADAPTER-CLOSURE",
+            "MAIN-ADAPTER-PROMISE",
+            "MAIN-ADAPTER-THROW",
+            "MAIN-ADAPTER-REJECT",
+            "MAIN-ADAPTER-UNDEFINED",
+            "MAIN-ADAPTER-TRUE",
+            "MAIN-ADAPTER-FALSE",
+            "MAIN-ADAPTER-ZERO",
+            "MAIN-ADAPTER-EMPTY",
+            "MAIN-ADAPTER-NULL",
+            "MAIN-ADAPTER-BUSINESS",
+            "MAIN-ADAPTER-CLOSURE",
+            "PRE-DISPATCH-NATIVE",
+            "PRE-DISPATCH-BOUND",
+            "PRE-DISPATCH-NONFINITE",
+            "PRE-DISPATCH-FUNCTIONARG",
+            "PRE-DISPATCH-BIGINT",
+            "PRE-DISPATCH-CYCLE",
+            "PRE-DISPATCH-MISSINGTARGET"
+          ],
+          "recordsField": "actual/failed"
+        }
+      ],
+      "limits": [],
+      "blockers": []
+    },
+    {
+      "id": "F1-PAGE-NATIVE-DIAGNOSTICS",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 223,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "双版两 world raw throw/reject 都是 resolved，result:null、hasResult:true、hasError:false；四个旧期待实际仍 FAIL。",
+        "独立认定该原生形状不足以提供 native error 字段合同；包装合同由 page 内真实 await/catch typed envelope 实现并分别有实际错误/值/文档 fence 证据，故不阻断已承诺 wrapper API。",
+        "保留 raw undefined 的实际 shape 和 required permissions.remove 错误，不把 wrapper 成功当 raw FAIL 的替代证据。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+          "line": 36
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+          "line": 77
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/run-headed.mjs",
+          "line": 253
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/report.json",
+          "reportSha256": "91ace4d9404391ec5cd94c1b50e52f2e24e42ee3fd32d7192215ada29f911d29",
+          "caseIds": [
+            "USER_SCRIPT-RAW-UNDEFINED",
+            "USER_SCRIPT-ADAPTER-THROW",
+            "USER_SCRIPT-ADAPTER-REJECT",
+            "USER_SCRIPT-ADAPTER-UNDEFINED",
+            "MAIN-RAW-UNDEFINED",
+            "MAIN-ADAPTER-THROW",
+            "MAIN-ADAPTER-REJECT",
+            "MAIN-ADAPTER-UNDEFINED",
+            "USER_SCRIPT-RAW-THROW",
+            "USER_SCRIPT-RAW-REJECT",
+            "MAIN-RAW-THROW",
+            "MAIN-RAW-REJECT"
+          ],
+          "recordsField": "actual/failed"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/report.json",
+          "reportSha256": "19d8f31b8fc0917cfed1fb5fa228d753ce20aa8e7c4ae2e0d76cdedc187bc4f4",
+          "caseIds": [
+            "USER_SCRIPT-RAW-UNDEFINED",
+            "USER_SCRIPT-ADAPTER-THROW",
+            "USER_SCRIPT-ADAPTER-REJECT",
+            "USER_SCRIPT-ADAPTER-UNDEFINED",
+            "MAIN-RAW-UNDEFINED",
+            "MAIN-ADAPTER-THROW",
+            "MAIN-ADAPTER-REJECT",
+            "MAIN-ADAPTER-UNDEFINED",
+            "USER_SCRIPT-RAW-THROW",
+            "USER_SCRIPT-RAW-REJECT",
+            "MAIN-RAW-THROW",
+            "MAIN-RAW-REJECT"
+          ],
+          "recordsField": "actual/failed"
+        }
+      ],
+      "limits": [
+        "不得向产品暴露未验证的 native error shape 保证；raw FAIL 对象和原 expected 保留。"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 255,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "四个 required 子项每版 4/4/4/12 个 coverage cell；分别核 actual 并不依赖作者通过总数。OFF 新 native 调用拒绝、wrapper dispatchCount=0，ON 新操作真成功。",
+        "pending/native-completed 两阶段 host 自有 native getScripts monitor 真观察 OFF，first fence 跨 ON 保留，旧结果拒绝一次；runnerFenceWrites=false，source 无主动 recheck 造 fence。",
+        "原生 site permission onRemoved 与可信 ownGrant UI epoch 在撤销/恢复后继续 fence；伪 caller epoch 不生效；cancel/deadline 和文档 invalidation 不纳入开关历史例外。",
+        "baseline/restrictive page CSP 与 USER_SCRIPT world allow/deny 六场景均执行 code/file，以结果+真实 HTTP 1/0 次+inline control 证明实际策略。",
+        "unobserved OFF→ON 实际发生于 host task 间隙，monitor 未关闭、host/doc/authority 未变，old result 被接受；原 FAIL 保留，另4条 assessmentOnly 仅记录获批限制。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 18
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 34
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 48
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 86
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 256
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/run-headed.mjs",
+          "line": 475
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/run-headed.mjs",
+          "line": 522
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/report.json",
+          "reportSha256": "91ace4d9404391ec5cd94c1b50e52f2e24e42ee3fd32d7192215ada29f911d29",
+          "caseIds": [
+            "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+            "USER_SCRIPT-HOST-UI-RACE-PENDING",
+            "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+            "USER_SCRIPT-SWITCH-OBSERVED-PENDING",
+            "USER_SCRIPT-OWN-GRANT-PENDING",
+            "USER_SCRIPT-CANCEL-PENDING",
+            "USER_SCRIPT-DEADLINE-PENDING",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+            "USER_SCRIPT-SWITCH-OBSERVED-NATIVE-COMPLETED",
+            "USER_SCRIPT-OWN-GRANT-NATIVE-COMPLETED",
+            "USER_SCRIPT-CANCEL-NATIVE-COMPLETED",
+            "USER_SCRIPT-DEADLINE-NATIVE-COMPLETED",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+            "MAIN-HOST-UI-REVOKE-RESTORE",
+            "MAIN-HOST-UI-RACE-PENDING",
+            "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+            "MAIN-SWITCH-OBSERVED-PENDING",
+            "MAIN-OWN-GRANT-PENDING",
+            "MAIN-CANCEL-PENDING",
+            "MAIN-DEADLINE-PENDING",
+            "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+            "MAIN-SWITCH-OBSERVED-NATIVE-COMPLETED",
+            "MAIN-OWN-GRANT-NATIVE-COMPLETED",
+            "MAIN-CANCEL-NATIVE-COMPLETED",
+            "MAIN-DEADLINE-NATIVE-COMPLETED",
+            "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+            "CSP-BASELINE-MAIN-PAGE",
+            "CSP-BASELINE-USER_SCRIPT-ALLOW",
+            "CSP-BASELINE-USER_SCRIPT-DENY",
+            "CSP-RESTRICTIVE-MAIN-PAGE",
+            "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+            "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+            "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+            "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED"
+          ],
+          "recordsField": "actual/failed"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/report.json",
+          "reportSha256": "19d8f31b8fc0917cfed1fb5fa228d753ce20aa8e7c4ae2e0d76cdedc187bc4f4",
+          "caseIds": [
+            "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+            "USER_SCRIPT-HOST-UI-RACE-PENDING",
+            "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+            "USER_SCRIPT-SWITCH-OBSERVED-PENDING",
+            "USER_SCRIPT-OWN-GRANT-PENDING",
+            "USER_SCRIPT-CANCEL-PENDING",
+            "USER_SCRIPT-DEADLINE-PENDING",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+            "USER_SCRIPT-SWITCH-OBSERVED-NATIVE-COMPLETED",
+            "USER_SCRIPT-OWN-GRANT-NATIVE-COMPLETED",
+            "USER_SCRIPT-CANCEL-NATIVE-COMPLETED",
+            "USER_SCRIPT-DEADLINE-NATIVE-COMPLETED",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+            "MAIN-HOST-UI-REVOKE-RESTORE",
+            "MAIN-HOST-UI-RACE-PENDING",
+            "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+            "MAIN-SWITCH-OBSERVED-PENDING",
+            "MAIN-OWN-GRANT-PENDING",
+            "MAIN-CANCEL-PENDING",
+            "MAIN-DEADLINE-PENDING",
+            "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+            "MAIN-SWITCH-OBSERVED-NATIVE-COMPLETED",
+            "MAIN-OWN-GRANT-NATIVE-COMPLETED",
+            "MAIN-CANCEL-NATIVE-COMPLETED",
+            "MAIN-DEADLINE-NATIVE-COMPLETED",
+            "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+            "CSP-BASELINE-MAIN-PAGE",
+            "CSP-BASELINE-USER_SCRIPT-ALLOW",
+            "CSP-BASELINE-USER_SCRIPT-DENY",
+            "CSP-RESTRICTIVE-MAIN-PAGE",
+            "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+            "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+            "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+            "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED"
+          ],
+          "recordsField": "actual/failed"
+        }
+      ],
+      "limits": [
+        "只在 operation 未观察 OFF 且无其他 authority/document invalidation 的同 host/doc 周期，不能追溯取消旧 result/effect。最终 native availability check 不是连续历史的原子证明。",
+        "site access OFF 直接 raw execute 曾 pending-at-observation-deadline；其后随旧文档销毁返回 null，不称原生拒绝/自动取消。",
+        "native-completed OFF negative 的 offEffect 可为上一轮 ON positive 的旧 marker；核查本轮不同 token 未写入，而非强求所有既有页面状态为 null。"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "F1-PAGE-OLD-DOC-RACE",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 320,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "两 world pending/native-completed 操作在真实 navigation 后由 onCommitted/精确 document 检查拒绝，当前 doc 真实新调用成功。",
+        "旧 doc native 执行无 fresh mutation；固定 packaged MAIN 旧 callback 明确拒绝且新 request 未收到旧 callback；正常当前 callback 成功。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 95
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+          "line": 64
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/adapter.js",
+          "line": 77
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/report.json",
+          "reportSha256": "91ace4d9404391ec5cd94c1b50e52f2e24e42ee3fd32d7192215ada29f911d29",
+          "caseIds": [
+            "PACKAGED-MAIN-CALLBACK",
+            "USER_SCRIPT-OLD-DOCUMENT-RACE",
+            "MAIN-OLD-DOCUMENT-RACE",
+            "USER_SCRIPT-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+            "MAIN-OLD-DOCUMENT-RACE-AFTER-NATIVE"
+          ],
+          "recordsField": "actual/failed"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/report.json",
+          "reportSha256": "19d8f31b8fc0917cfed1fb5fa228d753ce20aa8e7c4ae2e0d76cdedc187bc4f4",
+          "caseIds": [
+            "PACKAGED-MAIN-CALLBACK",
+            "USER_SCRIPT-OLD-DOCUMENT-RACE",
+            "MAIN-OLD-DOCUMENT-RACE",
+            "USER_SCRIPT-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+            "MAIN-OLD-DOCUMENT-RACE-AFTER-NATIVE"
+          ],
+          "recordsField": "actual/failed"
+        }
+      ],
+      "limits": [],
+      "blockers": []
+    },
+    {
+      "id": "F1-SW-AND-PAGE-LOOP",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 350,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "真实 stop exact ServiceWorker version 后 genuine runtime wake：extension identity 不变、SW epoch 改变，长期 controller 仍在 host。",
+        "dispose 旧 private host channel 并导航 fresh host 后新 epoch/新 channel 真运行，旧资源清0。",
+        "owned MAIN loop 有真实 native document identity 和独立服务器 loop-entered beacon，exact owned target 被销毁；borrowed target 关闭拒绝、在 dispose 后仍存活。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/sw.js",
+          "line": 1
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 86
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 438
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 455
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c",
+          "caseIds": [
+            "F1-SW-HOST-RECONNECT",
+            "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+          ],
+          "recordsField": "cases"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e",
+          "caseIds": [
+            "F1-SW-HOST-RECONNECT",
+            "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+          ],
+          "recordsField": "cases"
+        }
+      ],
+      "limits": [
+        "只验证 owned tab retirement；不提供 MAIN while(true) 的通用 terminate/借用 tab 销毁能力。Allow User Scripts 周期的自然 host 重建未观察，不能冒称已覆盖自然恢复。"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "F1-VERSION-MATRIX",
+      "required": true,
+      "verdict": "PASS",
+      "architectureVerdict": "CLEAR",
+      "contractRef": {
+        "path": "docs/framework/reviews/migration-execution-v5/round-6/candidate/stage0/f1-cases.json",
+        "line": 374,
+        "sha256": "8e4cf5025e5bab893d367ba8b370dd36de2dc4d8ca5946edcea0386b8f1d3455"
+      },
+      "actualFindings": [
+        "同 control 4666d1…、page f29dc… source manifest 在 138.0.7204.183 与 154.0.8037.92 真浏览器逐版实跑；二进制哈希及所有17 live/frozen source 一致。",
+        "headed 页面 UI 与 native CDP control 的完整必需维度均有 actual；每版 control 56 unique cases、page 111 unique records 的具体机制分别核查。",
+        "计数严格分账：page 102 positive 中4 assessmentOnly，9 retained FAIL 原样；147 execute+1 API不可用未调用、7预校验、3固定 scripting。24子项是 coverage cell，复用 case 不增执行数。"
+      ],
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/run-native.mjs",
+          "line": 1
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/run-headed.mjs",
+          "line": 1
+        }
+      ],
+      "evidence": [
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c",
+          "caseIds": [
+            "F1-INFINITE-LOOP-STOP",
+            "F1-AFTER-TERMINATION-STOP",
+            "F1-INFINITE-LOOP-DEADLINE",
+            "F1-AFTER-TERMINATION-DEADLINE",
+            "F1-INFINITE-LOOP-HOST-CLOSE",
+            "F1-AFTER-TERMINATION-HOST-CLOSE",
+            "F1-PERMISSION-AWAIT-STOP-GOTO",
+            "F1-PERMISSION-AWAIT-STOP-CLICK",
+            "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+            "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+            "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+            "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+            "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+            "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+            "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+            "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+            "F1-USER-GOTO-TITLE-URL",
+            "F1-USER-TYPE-CLICK-WAIT-READ",
+            "F1-USER-THROW",
+            "F1-USER-SYNTAX",
+            "F1-ADAPTER-REJECTION",
+            "F1-RETURN-false",
+            "F1-RETURN-0",
+            "F1-RETURN-null",
+            "F1-RETURN-undefined",
+            "F1-UNSERIALIZABLE",
+            "F1-GLOBAL-FORGERY-PATCH",
+            "F1-DEADLINE",
+            "F1-PENDING-PAGE-DEADLINE",
+            "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+            "F1-FAKE-PEER",
+            "F1-CSP-NETWORK-ATTRIBUTION",
+            "F1-RESOURCE-SUCCESS-0",
+            "F1-RESOURCE-THROW-0",
+            "F1-RESOURCE-TIMEOUT-0",
+            "F1-RESOURCE-CANCEL-0",
+            "F1-RESOURCE-SUCCESS-1",
+            "F1-RESOURCE-THROW-1",
+            "F1-RESOURCE-TIMEOUT-1",
+            "F1-RESOURCE-CANCEL-1",
+            "F1-RESOURCE-SUCCESS-2",
+            "F1-RESOURCE-THROW-2",
+            "F1-RESOURCE-TIMEOUT-2",
+            "F1-RESOURCE-CANCEL-2",
+            "F1-RESOURCE-SUCCESS-3",
+            "F1-RESOURCE-THROW-3",
+            "F1-RESOURCE-TIMEOUT-3",
+            "F1-RESOURCE-CANCEL-3",
+            "F1-RESOURCE-SUCCESS-4",
+            "F1-RESOURCE-THROW-4",
+            "F1-RESOURCE-TIMEOUT-4",
+            "F1-RESOURCE-CANCEL-4",
+            "F1-AFTER-CLEANUP-VALID",
+            "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+            "F1-SW-HOST-RECONNECT",
+            "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+          ],
+          "recordsField": "cases"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+          "reportSha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e",
+          "caseIds": [
+            "F1-INFINITE-LOOP-STOP",
+            "F1-AFTER-TERMINATION-STOP",
+            "F1-INFINITE-LOOP-DEADLINE",
+            "F1-AFTER-TERMINATION-DEADLINE",
+            "F1-INFINITE-LOOP-HOST-CLOSE",
+            "F1-AFTER-TERMINATION-HOST-CLOSE",
+            "F1-PERMISSION-AWAIT-STOP-GOTO",
+            "F1-PERMISSION-AWAIT-STOP-CLICK",
+            "F1-PERMISSION-AWAIT-DEADLINE-GOTO",
+            "F1-PERMISSION-AWAIT-DEADLINE-CLICK",
+            "F1-PERMISSION-AWAIT-HOST-CLOSE-GOTO",
+            "F1-PERMISSION-AWAIT-HOST-CLOSE-CLICK",
+            "F1-PERMISSION-AWAIT-NEW-RUN-GOTO",
+            "F1-PERMISSION-AWAIT-NEW-RUN-CLICK",
+            "F1-PERMISSION-AWAIT-NEW-TARGET-GOTO",
+            "F1-PERMISSION-AWAIT-NEW-TARGET-CLICK",
+            "F1-USER-GOTO-TITLE-URL",
+            "F1-USER-TYPE-CLICK-WAIT-READ",
+            "F1-USER-THROW",
+            "F1-USER-SYNTAX",
+            "F1-ADAPTER-REJECTION",
+            "F1-RETURN-false",
+            "F1-RETURN-0",
+            "F1-RETURN-null",
+            "F1-RETURN-undefined",
+            "F1-UNSERIALIZABLE",
+            "F1-GLOBAL-FORGERY-PATCH",
+            "F1-DEADLINE",
+            "F1-PENDING-PAGE-DEADLINE",
+            "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+            "F1-FAKE-PEER",
+            "F1-CSP-NETWORK-ATTRIBUTION",
+            "F1-RESOURCE-SUCCESS-0",
+            "F1-RESOURCE-THROW-0",
+            "F1-RESOURCE-TIMEOUT-0",
+            "F1-RESOURCE-CANCEL-0",
+            "F1-RESOURCE-SUCCESS-1",
+            "F1-RESOURCE-THROW-1",
+            "F1-RESOURCE-TIMEOUT-1",
+            "F1-RESOURCE-CANCEL-1",
+            "F1-RESOURCE-SUCCESS-2",
+            "F1-RESOURCE-THROW-2",
+            "F1-RESOURCE-TIMEOUT-2",
+            "F1-RESOURCE-CANCEL-2",
+            "F1-RESOURCE-SUCCESS-3",
+            "F1-RESOURCE-THROW-3",
+            "F1-RESOURCE-TIMEOUT-3",
+            "F1-RESOURCE-CANCEL-3",
+            "F1-RESOURCE-SUCCESS-4",
+            "F1-RESOURCE-THROW-4",
+            "F1-RESOURCE-TIMEOUT-4",
+            "F1-RESOURCE-CANCEL-4",
+            "F1-AFTER-CLEANUP-VALID",
+            "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+            "F1-SW-HOST-RECONNECT",
+            "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+          ],
+          "recordsField": "cases"
+        },
+        {
+          "version": "138.0.7204.183",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/report.json",
+          "reportSha256": "91ace4d9404391ec5cd94c1b50e52f2e24e42ee3fd32d7192215ada29f911d29",
+          "caseIds": [
+            "SWITCH-OFF",
+            "SWITCH-ON",
+            "USER_SCRIPT-RAW-PROMISE",
+            "USER_SCRIPT-RAW-UNDEFINED",
+            "USER_SCRIPT-CODE",
+            "USER_SCRIPT-ADAPTER-PROMISE",
+            "USER_SCRIPT-ADAPTER-THROW",
+            "USER_SCRIPT-ADAPTER-REJECT",
+            "USER_SCRIPT-ADAPTER-UNDEFINED",
+            "USER_SCRIPT-ADAPTER-TRUE",
+            "USER_SCRIPT-ADAPTER-FALSE",
+            "USER_SCRIPT-ADAPTER-ZERO",
+            "USER_SCRIPT-ADAPTER-EMPTY",
+            "USER_SCRIPT-ADAPTER-NULL",
+            "USER_SCRIPT-ADAPTER-BUSINESS",
+            "USER_SCRIPT-ADAPTER-CLOSURE",
+            "USER_SCRIPT-FILE",
+            "USER_SCRIPT-WORLD",
+            "USER_SCRIPT-LEGACY",
+            "USER_SCRIPT-DOCUMENT-TOP",
+            "USER_SCRIPT-DOCUMENT-SAME",
+            "USER_SCRIPT-DOCUMENT-CROSS",
+            "USER_SCRIPT-FILE-DOCUMENT-TOP",
+            "USER_SCRIPT-FILE-DOCUMENT-SAME",
+            "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+            "MAIN-RAW-PROMISE",
+            "MAIN-RAW-UNDEFINED",
+            "MAIN-CODE",
+            "MAIN-ADAPTER-PROMISE",
+            "MAIN-ADAPTER-THROW",
+            "MAIN-ADAPTER-REJECT",
+            "MAIN-ADAPTER-UNDEFINED",
+            "MAIN-ADAPTER-TRUE",
+            "MAIN-ADAPTER-FALSE",
+            "MAIN-ADAPTER-ZERO",
+            "MAIN-ADAPTER-EMPTY",
+            "MAIN-ADAPTER-NULL",
+            "MAIN-ADAPTER-BUSINESS",
+            "MAIN-ADAPTER-CLOSURE",
+            "MAIN-FILE",
+            "MAIN-WORLD",
+            "MAIN-LEGACY",
+            "MAIN-DOCUMENT-TOP",
+            "MAIN-DOCUMENT-SAME",
+            "MAIN-DOCUMENT-CROSS",
+            "MAIN-FILE-DOCUMENT-TOP",
+            "MAIN-FILE-DOCUMENT-SAME",
+            "MAIN-FILE-DOCUMENT-CROSS",
+            "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+            "USER_SCRIPT-OLD-DOCUMENT-RACE",
+            "MAIN-SWITCH-REVOKE-INFLIGHT",
+            "MAIN-OLD-DOCUMENT-RACE",
+            "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+            "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+            "USER_SCRIPT-HOST-UI-RACE-PENDING",
+            "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+            "USER_SCRIPT-SWITCH-OBSERVED-PENDING",
+            "USER_SCRIPT-OWN-GRANT-PENDING",
+            "USER_SCRIPT-CANCEL-PENDING",
+            "USER_SCRIPT-DEADLINE-PENDING",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+            "USER_SCRIPT-SWITCH-OBSERVED-NATIVE-COMPLETED",
+            "USER_SCRIPT-OWN-GRANT-NATIVE-COMPLETED",
+            "USER_SCRIPT-CANCEL-NATIVE-COMPLETED",
+            "USER_SCRIPT-DEADLINE-NATIVE-COMPLETED",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+            "USER_SCRIPT-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+            "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+            "MAIN-HOST-UI-REVOKE-RESTORE",
+            "MAIN-HOST-UI-RACE-PENDING",
+            "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+            "MAIN-SWITCH-OBSERVED-PENDING",
+            "MAIN-OWN-GRANT-PENDING",
+            "MAIN-CANCEL-PENDING",
+            "MAIN-DEADLINE-PENDING",
+            "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+            "MAIN-SWITCH-OBSERVED-NATIVE-COMPLETED",
+            "MAIN-OWN-GRANT-NATIVE-COMPLETED",
+            "MAIN-CANCEL-NATIVE-COMPLETED",
+            "MAIN-DEADLINE-NATIVE-COMPLETED",
+            "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+            "MAIN-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+            "CSP-BASELINE-MAIN-PAGE",
+            "CSP-BASELINE-USER_SCRIPT-ALLOW",
+            "CSP-BASELINE-USER_SCRIPT-DENY",
+            "CSP-RESTRICTIVE-MAIN-PAGE",
+            "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+            "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+            "USER_SCRIPT-RAW-THROW",
+            "USER_SCRIPT-RAW-REJECT",
+            "MAIN-RAW-THROW",
+            "MAIN-RAW-REJECT",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+            "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+            "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED"
+          ],
+          "recordsField": "actual/failed"
+        },
+        {
+          "version": "154.0.8037.92",
+          "reportPath": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/report.json",
+          "reportSha256": "19d8f31b8fc0917cfed1fb5fa228d753ce20aa8e7c4ae2e0d76cdedc187bc4f4",
+          "caseIds": [
+            "SWITCH-OFF",
+            "SWITCH-ON",
+            "USER_SCRIPT-RAW-PROMISE",
+            "USER_SCRIPT-RAW-UNDEFINED",
+            "USER_SCRIPT-CODE",
+            "USER_SCRIPT-ADAPTER-PROMISE",
+            "USER_SCRIPT-ADAPTER-THROW",
+            "USER_SCRIPT-ADAPTER-REJECT",
+            "USER_SCRIPT-ADAPTER-UNDEFINED",
+            "USER_SCRIPT-ADAPTER-TRUE",
+            "USER_SCRIPT-ADAPTER-FALSE",
+            "USER_SCRIPT-ADAPTER-ZERO",
+            "USER_SCRIPT-ADAPTER-EMPTY",
+            "USER_SCRIPT-ADAPTER-NULL",
+            "USER_SCRIPT-ADAPTER-BUSINESS",
+            "USER_SCRIPT-ADAPTER-CLOSURE",
+            "USER_SCRIPT-FILE",
+            "USER_SCRIPT-WORLD",
+            "USER_SCRIPT-LEGACY",
+            "USER_SCRIPT-DOCUMENT-TOP",
+            "USER_SCRIPT-DOCUMENT-SAME",
+            "USER_SCRIPT-DOCUMENT-CROSS",
+            "USER_SCRIPT-FILE-DOCUMENT-TOP",
+            "USER_SCRIPT-FILE-DOCUMENT-SAME",
+            "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+            "MAIN-RAW-PROMISE",
+            "MAIN-RAW-UNDEFINED",
+            "MAIN-CODE",
+            "MAIN-ADAPTER-PROMISE",
+            "MAIN-ADAPTER-THROW",
+            "MAIN-ADAPTER-REJECT",
+            "MAIN-ADAPTER-UNDEFINED",
+            "MAIN-ADAPTER-TRUE",
+            "MAIN-ADAPTER-FALSE",
+            "MAIN-ADAPTER-ZERO",
+            "MAIN-ADAPTER-EMPTY",
+            "MAIN-ADAPTER-NULL",
+            "MAIN-ADAPTER-BUSINESS",
+            "MAIN-ADAPTER-CLOSURE",
+            "MAIN-FILE",
+            "MAIN-WORLD",
+            "MAIN-LEGACY",
+            "MAIN-DOCUMENT-TOP",
+            "MAIN-DOCUMENT-SAME",
+            "MAIN-DOCUMENT-CROSS",
+            "MAIN-FILE-DOCUMENT-TOP",
+            "MAIN-FILE-DOCUMENT-SAME",
+            "MAIN-FILE-DOCUMENT-CROSS",
+            "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+            "USER_SCRIPT-OLD-DOCUMENT-RACE",
+            "MAIN-SWITCH-REVOKE-INFLIGHT",
+            "MAIN-OLD-DOCUMENT-RACE",
+            "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+            "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+            "USER_SCRIPT-HOST-UI-RACE-PENDING",
+            "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+            "USER_SCRIPT-SWITCH-OBSERVED-PENDING",
+            "USER_SCRIPT-OWN-GRANT-PENDING",
+            "USER_SCRIPT-CANCEL-PENDING",
+            "USER_SCRIPT-DEADLINE-PENDING",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+            "USER_SCRIPT-SWITCH-OBSERVED-NATIVE-COMPLETED",
+            "USER_SCRIPT-OWN-GRANT-NATIVE-COMPLETED",
+            "USER_SCRIPT-CANCEL-NATIVE-COMPLETED",
+            "USER_SCRIPT-DEADLINE-NATIVE-COMPLETED",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+            "USER_SCRIPT-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+            "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+            "MAIN-HOST-UI-REVOKE-RESTORE",
+            "MAIN-HOST-UI-RACE-PENDING",
+            "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+            "MAIN-SWITCH-OBSERVED-PENDING",
+            "MAIN-OWN-GRANT-PENDING",
+            "MAIN-CANCEL-PENDING",
+            "MAIN-DEADLINE-PENDING",
+            "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-PENDING",
+            "MAIN-SWITCH-OBSERVED-NATIVE-COMPLETED",
+            "MAIN-OWN-GRANT-NATIVE-COMPLETED",
+            "MAIN-CANCEL-NATIVE-COMPLETED",
+            "MAIN-DEADLINE-NATIVE-COMPLETED",
+            "MAIN-SWITCH-UNOBSERVED-CYCLE-LIMIT-NATIVE-COMPLETED",
+            "MAIN-OLD-DOCUMENT-RACE-AFTER-NATIVE",
+            "CSP-BASELINE-MAIN-PAGE",
+            "CSP-BASELINE-USER_SCRIPT-ALLOW",
+            "CSP-BASELINE-USER_SCRIPT-DENY",
+            "CSP-RESTRICTIVE-MAIN-PAGE",
+            "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+            "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+            "USER_SCRIPT-RAW-THROW",
+            "USER_SCRIPT-RAW-REJECT",
+            "MAIN-RAW-THROW",
+            "MAIN-RAW-REJECT",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+            "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+            "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+            "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED"
+          ],
+          "recordsField": "actual/failed"
+        }
+      ],
+      "limits": [
+        "未宣称正式603 product cases 或 F2/F3通过；不以 manifest minimum 或 149 证据推断138。"
+      ],
+      "blockers": []
+    }
+  ],
+  "coverageSummary": {
+    "required": 12,
+    "independentlyPassed": 12,
+    "blocked": 0
+  },
+  "blockers": [],
+  "oldBlockClosures": [
+    {
+      "id": "CR-F1-CTRL-001",
+      "status": "CLOSED_FOR_EXACT_UNION",
+      "reason": "冻结 owner 身份跨每个 await 复核；10个 permission continuation races 两版 oldDispatches/oldDeliveries/serverHits 为0；额外真实 native permissions Promise stop 的微任务顺序也无 native tabs.update，后续合法run成功。",
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 86
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 111
+        }
+      ],
+      "additionalEvidence": {
+        "path": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/report.json",
+        "bytes": 23956,
+        "sha256": "9dfdf4cd7999c5b1f66ce7f222ae3ce3a21e19ea082e363426e159f087591ba4"
+      },
+      "historicalReportPreserved": true
+    },
+    {
+      "id": "CR-F1-CTRL-002",
+      "status": "CLOSED_FOR_EXACT_UNION",
+      "reason": "实际原始 Blob URL 正向可加载→撤销→同 URL negative load-error，actual Worker target 消失；每版20真实round及timeout/cancel各5真实pageWaits在触发前已存在，最终资源0。",
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/sandbox.html",
+          "line": 42
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/sandbox.html",
+          "line": 64
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/control/fixture/host.js",
+          "line": 79
+        }
+      ],
+      "historicalReportPreserved": true
+    },
+    {
+      "id": "ARCH-PAGE-01 / CR-F1-PAGE-001",
+      "status": "CLOSED_WITH_APPROVED_ROUND6_BOUNDARY",
+      "reason": "observed OFF 由操作自有监测真 sticky fence，runner主动fence移除；unobserved OFF→ON 旧反例仍实际FAIL，原取消保证仅由已批准round6受影响条件修订关闭，不能称修复了不可观察历史。真实grant/doc/cancel/deadline不享此例外。",
+      "sourceRefs": [
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 48
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 86
+        },
+        {
+          "path": "docs/framework/reviews/m5-f1/final-candidate-v1/sources/page/fixture/host.js",
+          "line": 95
+        }
+      ],
+      "historicalReportPreserved": true
+    },
+    {
+      "id": "RAW_NATIVE_ERROR_SHAPE_AND_REQUIRED_REMOVE",
+      "status": "LIMITATION_CLASSIFIED_NOT_RELABELLED",
+      "reason": "raw4+required-remove1 FAIL保留；独立确认wrapper typed contract实跑成立且真实UI site revoke提供另外的authority证据，legacy restore不证明实际撤权。",
+      "historicalReportPreserved": true
+    }
+  ],
+  "integrity": {
+    "manifestMatched": true,
+    "manifestBytes": 47920,
+    "pinnedArtifactEntries": 130,
+    "sourceFiles": 17,
+    "liveAndFrozenSourceChecks": 34,
+    "artifactAndReferenceAndSourceHashByteChecks": 168,
+    "allMatched": true,
+    "pageEvidenceNestedManifestChecks": "Both final page inventories, source manifests and binaries verified earlier in this bounded review; no unresolved mismatch.",
+    "historyUnchanged": true,
+    "postReviewCandidateMustRemainSameSha256": "a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66"
+  },
+  "actualVersions": [
+    {
+      "lane": "control",
+      "version": "138.0.7204.183",
+      "report": {
+        "path": "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "bytes": 1428655,
+        "sha256": "5672dc6fde3d1bed0e64d93d56a6d87ac62d7a91ea6583f9060e67f69ebc382c",
+        "actualPass": 56,
+        "currentFailedCaseIds": [],
+        "sourceUnchangedDuringRun": true,
+        "historicalEvidenceUnchanged": true
+      },
+      "uniqueCases": 56,
+      "recordedPass": 56,
+      "sourceUnchanged": true,
+      "historyUnchanged": true,
+      "resourcesAfterDispose": {
+        "pending": 0,
+        "timer": 0,
+        "port": 0,
+        "frame": 0,
+        "pageWaits": 0,
+        "resourceReplies": 0,
+        "permissionBarriers": 0
+      },
+      "browserExited": true
+    },
+    {
+      "lane": "control",
+      "version": "154.0.8037.92",
+      "report": {
+        "path": "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json",
+        "bytes": 1522967,
+        "sha256": "9011ad0235c2b7d1db5a4d325076725fa4eca41fd061b2ddf9151511e45ed87e",
+        "actualPass": 56,
+        "currentFailedCaseIds": [],
+        "sourceUnchangedDuringRun": true,
+        "historicalEvidenceUnchanged": true
+      },
+      "uniqueCases": 56,
+      "recordedPass": 56,
+      "sourceUnchanged": true,
+      "historyUnchanged": true,
+      "resourcesAfterDispose": {
+        "pending": 0,
+        "timer": 0,
+        "port": 0,
+        "frame": 0,
+        "pageWaits": 0,
+        "resourceReplies": 0,
+        "permissionBarriers": 0
+      },
+      "browserExited": true
+    },
+    {
+      "lane": "page",
+      "version": "138.0.7204.183",
+      "report": {
+        "path": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-43-14-105Z-m5-round6-138-final-r1-e4583721/report.json",
+        "bytes": 13460691,
+        "sha256": "91ace4d9404391ec5cd94c1b50e52f2e24e42ee3fd32d7192215ada29f911d29",
+        "actualPass": 102,
+        "retainedFailedIds": [
+          "USER_SCRIPT-RAW-THROW",
+          "USER_SCRIPT-RAW-REJECT",
+          "MAIN-RAW-THROW",
+          "MAIN-RAW-REJECT",
+          "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "HOST-PERMISSION-REVOKE"
+        ],
+        "currentFailedCaseIds": [],
+        "missingRequiredSubcaseScenarios": [],
+        "requiredSubcaseScenarioCount": 24,
+        "authorUserScriptsRequiredCasesPassed": false
+      },
+      "recordedPositive": 102,
+      "assessmentOnlyIncluded": 4,
+      "nonAssessmentPositive": 98,
+      "retainedFailedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+        "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+        "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+        "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "totalUniqueCaseRecords": 111,
+      "executionCaseRecords": 107,
+      "rawFunctionAttempts": 148,
+      "nativeExecuteInvocations": 147,
+      "unavailableBeforeNativeExecute": 1,
+      "adapterPrevalidation": 7,
+      "fixedPackagedScriptingInvocations": 3,
+      "requiredSubcaseCoverageCells": {
+        "F1-PAGE-AUTH-CSP/OFF-NEW-CALL": 4,
+        "F1-PAGE-AUTH-CSP/OBSERVED-OFF-STICKY": 4,
+        "F1-PAGE-AUTH-CSP/UNOBSERVED-CYCLE-LIMIT": 4,
+        "F1-PAGE-AUTH-CSP/REAL-AUTHORITY-FENCE": 12
+      },
+      "coverageCellsAreNotAdditionalExecutions": true,
+      "resourcesFinal": {
+        "pending": 0,
+        "activeOperations": 0,
+        "acceptanceBarriers": 0,
+        "observationTimers": 0,
+        "authorizationMonitors": 0,
+        "authorizationProbes": 0,
+        "deadlineTimers": 0,
+        "rawPending": 0
+      },
+      "browserClosed": true,
+      "authorUserScriptsRequiredCasesPassed": false
+    },
+    {
+      "lane": "page",
+      "version": "154.0.8037.92",
+      "report": {
+        "path": "tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T21-45-38-480Z-m5-round6-154-final-r1-88420ebe/report.json",
+        "bytes": 13528134,
+        "sha256": "19d8f31b8fc0917cfed1fb5fa228d753ce20aa8e7c4ae2e0d76cdedc187bc4f4",
+        "actualPass": 102,
+        "retainedFailedIds": [
+          "USER_SCRIPT-RAW-THROW",
+          "USER_SCRIPT-RAW-REJECT",
+          "MAIN-RAW-THROW",
+          "MAIN-RAW-REJECT",
+          "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+          "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+          "HOST-PERMISSION-REVOKE"
+        ],
+        "currentFailedCaseIds": [],
+        "missingRequiredSubcaseScenarios": [],
+        "requiredSubcaseScenarioCount": 24,
+        "authorUserScriptsRequiredCasesPassed": false
+      },
+      "recordedPositive": 102,
+      "assessmentOnlyIncluded": 4,
+      "nonAssessmentPositive": 98,
+      "retainedFailedIds": [
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+        "USER_SCRIPT-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+        "MAIN-SWITCH-UNOBSERVED-ORIGINAL-PENDING",
+        "MAIN-SWITCH-UNOBSERVED-ORIGINAL-NATIVE-COMPLETED",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "totalUniqueCaseRecords": 111,
+      "executionCaseRecords": 107,
+      "rawFunctionAttempts": 148,
+      "nativeExecuteInvocations": 147,
+      "unavailableBeforeNativeExecute": 1,
+      "adapterPrevalidation": 7,
+      "fixedPackagedScriptingInvocations": 3,
+      "requiredSubcaseCoverageCells": {
+        "F1-PAGE-AUTH-CSP/OFF-NEW-CALL": 4,
+        "F1-PAGE-AUTH-CSP/OBSERVED-OFF-STICKY": 4,
+        "F1-PAGE-AUTH-CSP/UNOBSERVED-CYCLE-LIMIT": 4,
+        "F1-PAGE-AUTH-CSP/REAL-AUTHORITY-FENCE": 12
+      },
+      "coverageCellsAreNotAdditionalExecutions": true,
+      "resourcesFinal": {
+        "pending": 0,
+        "activeOperations": 0,
+        "acceptanceBarriers": 0,
+        "observationTimers": 0,
+        "authorizationMonitors": 0,
+        "authorizationProbes": 0,
+        "deadlineTimers": 0,
+        "rawPending": 0
+      },
+      "browserClosed": true,
+      "authorUserScriptsRequiredCasesPassed": false
+    }
+  ],
+  "terminationActualEvidence": [
+    {
+      "version": "138.0.7204.183",
+      "caseId": "F1-INFINITE-LOOP-STOP",
+      "workerTargetId": "CA9F4780BA71A6A6861D4AFEDB06692E",
+      "causalRendererPid": 92536,
+      "causalWorkerThreadId": 37812528,
+      "cessationObservedMs": 2432.9857503814696,
+      "targetDestroyedObservedMs": 2005.4133753814695,
+      "targetAbsentObservedMs": 2059.1892093814695,
+      "old2sContractStatus": "FAIL"
+    },
+    {
+      "version": "138.0.7204.183",
+      "caseId": "F1-INFINITE-LOOP-DEADLINE",
+      "workerTargetId": "50137705FF7188B4D2969995DFDDC376",
+      "causalRendererPid": 92559,
+      "causalWorkerThreadId": 37812713,
+      "cessationObservedMs": 2436.27691661853,
+      "targetDestroyedObservedMs": 2002.7748746185307,
+      "targetAbsentObservedMs": 2063.14466661853,
+      "old2sContractStatus": "FAIL"
+    },
+    {
+      "version": "138.0.7204.183",
+      "caseId": "F1-INFINITE-LOOP-HOST-CLOSE",
+      "workerTargetId": "64783A01EFCD1D654AF3AAFAA8B1F5F6",
+      "causalRendererPid": 92578,
+      "causalWorkerThreadId": 37812892,
+      "cessationObservedMs": 530.2370420000007,
+      "targetDestroyedObservedMs": 6.233083999999508,
+      "targetAbsentObservedMs": 160.2435000000005,
+      "old2sContractStatus": "PASS"
+    },
+    {
+      "version": "154.0.8037.92",
+      "caseId": "F1-INFINITE-LOOP-STOP",
+      "workerTargetId": "5AC28B5078FF64586F26F7C3DD6468B8",
+      "causalRendererPid": 92534,
+      "causalWorkerThreadId": 37812503,
+      "cessationObservedMs": 2327.1447080953676,
+      "targetDestroyedObservedMs": 2004.1076670953676,
+      "targetAbsentObservedMs": 2019.5639580953675,
+      "old2sContractStatus": "FAIL"
+    },
+    {
+      "version": "154.0.8037.92",
+      "caseId": "F1-INFINITE-LOOP-DEADLINE",
+      "workerTargetId": "2CD223876CD4D73194DCF5939D88DA54",
+      "causalRendererPid": 92551,
+      "causalWorkerThreadId": 37812682,
+      "cessationObservedMs": 2324.0829170953675,
+      "targetDestroyedObservedMs": 2005.0786670953676,
+      "targetAbsentObservedMs": 2019.094833095367,
+      "old2sContractStatus": "FAIL"
+    },
+    {
+      "version": "154.0.8037.92",
+      "caseId": "F1-INFINITE-LOOP-HOST-CLOSE",
+      "workerTargetId": "31E902294DB9BC17E54F215F1DF4BBF0",
+      "causalRendererPid": 92570,
+      "causalWorkerThreadId": 37812842,
+      "cessationObservedMs": 515.501083000001,
+      "targetDestroyedObservedMs": 9.048083000000588,
+      "targetAbsentObservedMs": 166.27416699999958,
+      "old2sContractStatus": "PASS"
+    }
+  ],
+  "additionalNativePermissionPromiseRegression": {
+    "reference": {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/report.json",
+      "bytes": 23956,
+      "sha256": "9dfdf4cd7999c5b1f66ce7f222ae3ce3a21e19ea082e363426e159f087591ba4"
+    },
+    "actualRuns": 2,
+    "nativeDispatchAfterStop": 0,
+    "forbiddenServerHits": 0,
+    "subsequentLegalRun": true,
+    "method": "Thin delegate to real native Promise; records native resolution after synchronous stop admission fence. This is separate from the no-Inspector infinite loop timing probe."
+  },
+  "reviewMethod": {
+    "readOnlyScope": [
+      "Approved round6 contracts and inherited original scope",
+      "17 frozen prototype sources and their live hash counterparts",
+      "130 exact-union evidence artifacts, four full version reports, raw CDP protocol/trace, network/resource/permission evidence",
+      "Prior independent page counterexample and native signal/Chromium evidence; union-preserved control counterexample",
+      "Author handoffs used only as indexes, not passing oracles"
+    ],
+    "newWholeRepositoryAudit": false,
+    "newChromeRunForThisFinalUnionReview": false,
+    "actualDataProcessing": "Python parses large JSON in-file and emits only selected actual fields/predicates; native protocol/trace event membership, timing/CPU/target identity and original-URL resource evidence checked independently.",
+    "productOrPrototypeOrCandidateWrites": false,
+    "publicGateOrLedgerWrites": false,
+    "priorBlockReportsRewritten": false
+  },
+  "strongestCounterexamples": [
+    {
+      "counterexample": "权限Promise await中stop后旧goto借当前新owner派发",
+      "currentClosure": "原 owner/target 作为不可变入参在 await 后核验，真实native promise竞态无late native dispatch及HTTPeffect。",
+      "residualBoundary": "任何后续产品异步native调用都须遵循同一owner验证；此报告不证明未实现产品的全部异步路径。"
+    },
+    {
+      "counterexample": "同host/doc rapid OFF→ON在任务阻塞期间不可观察",
+      "currentClosure": "仍接受旧effect/result且原FAIL保留；仅受批准round6明确限制覆盖。",
+      "residualBoundary": "polling永远不是完整权限历史；不得将真origin/ownGrant/doc撤销混入此例外。"
+    },
+    {
+      "counterexample": "target metadata先gone但CPU loop仍活跃",
+      "currentClosure": "原2s故障保留；最终oracle同时要求因果PID CPU quiescence/OS退出+exactTargetDestroyed+absent+3s conservative timing。",
+      "residualBoundary": "绝不把terminate调用或单个afterCPU=0解释为真实已停。"
+    }
+  ],
+  "watch": [
+    {
+      "id": "ARCH-WATCH-SWITCH-HISTORY",
+      "finding": "无未观察浏览器开关历史保证；final availability不是原子持续授权。",
+      "contractualLimit": true,
+      "requiresNewApprovalIfExpanded": true
+    },
+    {
+      "id": "ARCH-WATCH-HOST-REBUILD",
+      "finding": "本页面UI周期自然host重建未观察；有control显式dispose/reconnect真实证据。",
+      "claimAllowed": "tested explicit recovery only"
+    },
+    {
+      "id": "ARCH-WATCH-PRODUCT-INTEGRATION",
+      "finding": "F2原603 product cases、SDK183/services/resources63、journal及F3同包资格未由原型证明。",
+      "claimAllowed": "F1 frozen mechanism candidate only"
+    }
+  ],
+  "candidateGateStatesObserved": {
+    "backendPrototypePassed": false,
+    "fullImplementationReleased": false,
+    "frameworkFunctionalMigrationComplete": false,
+    "productPackageSha256": null
+  },
+  "publicGateMutationPerformed": false,
+  "F2Passed": false,
+  "F3Passed": false,
+  "productCases603ClaimedExecuted": false,
+  "nextRequiredReview": "Separate Critic/code reviewer review of this same union; this file neither mutates gates nor releases product implementation."
+}

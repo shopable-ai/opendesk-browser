@@ -1,0 +1,236 @@
+{
+  "fixtureVersion": "1.0.0",
+  "status": "planned",
+  "productResult": "not-run",
+  "cases": [
+    {
+      "id": "unknown-top",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "add",
+          "path": "/unexpected",
+          "value": true
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_TEMPLATE_UNKNOWN_FIELD",
+            "path": "/unexpected",
+            "value": true,
+            "remediation": "remove-unknown-field"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    },
+    {
+      "id": "unknown--list",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "add",
+          "path": "/list/unexpected",
+          "value": true
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_TEMPLATE_UNKNOWN_FIELD",
+            "path": "/list/unexpected",
+            "value": true,
+            "remediation": "remove-unknown-field"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    },
+    {
+      "id": "unknown--fields-0",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "add",
+          "path": "/fields/0/unexpected",
+          "value": true
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_TEMPLATE_UNKNOWN_FIELD",
+            "path": "/fields/0/unexpected",
+            "value": true,
+            "remediation": "remove-unknown-field"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    },
+    {
+      "id": "unknown--pagination",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "add",
+          "path": "/pagination/unexpected",
+          "value": true
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_TEMPLATE_UNKNOWN_FIELD",
+            "path": "/pagination/unexpected",
+            "value": true,
+            "remediation": "remove-unknown-field"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    },
+    {
+      "id": "unknown--limits",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "add",
+          "path": "/limits/unexpected",
+          "value": true
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_TEMPLATE_UNKNOWN_FIELD",
+            "path": "/limits/unexpected",
+            "value": true,
+            "remediation": "remove-unknown-field"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    },
+    {
+      "id": "restricted-json-5",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "replace",
+          "path": "/limits/maxPages",
+          "value": 1.5
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_CANONICAL_INTEGER",
+            "path": "/limits/maxPages",
+            "value": 1.5,
+            "remediation": "reject-before-hashing"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    },
+    {
+      "id": "restricted-json-6",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "replace",
+          "path": "/limits/maxPages",
+          "value": 9007199254740992
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_CANONICAL_INTEGER",
+            "path": "/limits/maxPages",
+            "value": 9007199254740992,
+            "remediation": "reject-before-hashing"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    },
+    {
+      "id": "restricted-json-7",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "add",
+          "path": "/未知",
+          "value": 1
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_CANONICAL_KEY",
+            "path": "/未知",
+            "value": 1,
+            "remediation": "reject-before-hashing"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    },
+    {
+      "id": "restricted-json-8",
+      "status": "planned",
+      "input": {
+        "base": "single-page/expected-template.json",
+        "mutation": {
+          "op": "replace",
+          "path": "/detail",
+          "value": {
+            "__proto__": {}
+          }
+        },
+        "recomputeContentHash": false
+      },
+      "expected": {
+        "templateRevision": null,
+        "errors": [
+          {
+            "code": "E_TEMPLATE_DANGEROUS_KEY",
+            "path": "/detail",
+            "value": {
+              "__proto__": {}
+            },
+            "remediation": "reject-before-hashing"
+          }
+        ],
+        "hashEvaluationAllowed": false
+      }
+    }
+  ]
+}

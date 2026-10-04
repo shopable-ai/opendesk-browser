@@ -1,0 +1,583 @@
+{
+  "id": "F2-K2-SDK-018",
+  "label": "138",
+  "startedAt": "2026-10-04T09:38:11.578Z",
+  "status": "FAIL",
+  "evidence": {
+    "payload": {
+      "requestId": "b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6",
+      "method": "APPSTORAGE_SETITEM",
+      "argsWire": {
+        "type": "object",
+        "value": [
+          [
+            "key",
+            {
+              "type": "string",
+              "value": "storage-cut-3422a796-e6de-44b3-9253-0276442bbb2f"
+            }
+          ],
+          [
+            "value",
+            {
+              "type": "boolean",
+              "value": false
+            }
+          ]
+        ]
+      },
+      "deadlineAt": 1791106721578
+    },
+    "barrier": {
+      "sourceHash": "652b7f62d75c6cac38baac6f2cfc69c07340bb1149068b0b7b7d14241da06c0d",
+      "range": [
+        79720,
+        79724
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 79720
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 79724
+      },
+      "text": "P(r)",
+      "resultExpression": "s",
+      "contextExpression": "r",
+      "senderExpression": null,
+      "requestedLocation": {
+        "scriptId": "6",
+        "lineNumber": 0,
+        "columnNumber": 79720,
+        "type": "call"
+      },
+      "actualLocation": {
+        "scriptId": "6",
+        "lineNumber": 0,
+        "columnNumber": 79720
+      },
+      "paused": {
+        "callFrames": [
+          {
+            "callFrameId": "-3157562886566299527.1.0",
+            "functionName": "H",
+            "functionLocation": {
+              "scriptId": "6",
+              "lineNumber": 0,
+              "columnNumber": 77222
+            },
+            "location": {
+              "scriptId": "6",
+              "lineNumber": 0,
+              "columnNumber": 79720
+            },
+            "url": "",
+            "scopeChain": [
+              {
+                "type": "local",
+                "object": {
+                  "type": "object",
+                  "className": "Object",
+                  "description": "Object",
+                  "objectId": "-3157562886566299527.1.654"
+                },
+                "name": "H",
+                "startLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 77222
+                },
+                "endLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 79819
+                }
+              },
+              {
+                "type": "block",
+                "object": {
+                  "type": "object",
+                  "className": "Object",
+                  "description": "Object",
+                  "objectId": "-3157562886566299527.1.655"
+                },
+                "name": "we",
+                "startLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 68798
+                },
+                "endLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 104760
+                }
+              },
+              {
+                "type": "closure",
+                "object": {
+                  "type": "object",
+                  "className": "Object",
+                  "description": "Object",
+                  "objectId": "-3157562886566299527.1.656"
+                },
+                "name": "we",
+                "startLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 68798
+                },
+                "endLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 104760
+                }
+              },
+              {
+                "type": "closure",
+                "object": {
+                  "type": "object",
+                  "className": "Object",
+                  "description": "Object",
+                  "objectId": "-3157562886566299527.1.657"
+                },
+                "startLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 15
+                },
+                "endLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 254906
+                }
+              },
+              {
+                "type": "global",
+                "object": {
+                  "type": "object",
+                  "className": "ServiceWorkerGlobalScope",
+                  "description": "ServiceWorkerGlobalScope",
+                  "objectId": "-3157562886566299527.1.658"
+                }
+              }
+            ],
+            "this": {
+              "type": "undefined"
+            },
+            "canBeRestarted": false
+          }
+        ],
+        "reason": "other",
+        "hitBreakpoints": [
+          "4:0:79720:6"
+        ]
+      },
+      "observedState": {
+        "state": "durable",
+        "runState": "preparing",
+        "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+        "nativeKvSubmissions": 1,
+        "brokerReceiptPresent": false
+      }
+    },
+    "nativeKvTrace": {
+      "sourceHash": "652b7f62d75c6cac38baac6f2cfc69c07340bb1149068b0b7b7d14241da06c0d",
+      "point": {
+        "range": [
+          60562,
+          60593
+        ],
+        "location": {
+          "lineNumber": 0,
+          "columnNumber": 60562
+        },
+        "endLocation": {
+          "lineNumber": 0,
+          "columnNumber": 60593
+        },
+        "text": "t.onsuccess=()=>e.yes(t.result)",
+        "requestExpression": "t",
+        "actionExpression": "e.action",
+        "closureBindings": {
+          "store": "e",
+          "value": "t",
+          "key": "n"
+        },
+        "senderExpression": null
+      },
+      "submissions": [
+        {
+          "at": "2026-10-04T09:38:11.639Z",
+          "paused": {
+            "callFrames": [
+              {
+                "callFrameId": "-3157562886566299527.1.0",
+                "functionName": "b",
+                "functionLocation": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 60500
+                },
+                "location": {
+                  "scriptId": "6",
+                  "lineNumber": 0,
+                  "columnNumber": 60562
+                },
+                "url": "",
+                "scopeChain": [
+                  {
+                    "type": "block",
+                    "object": {
+                      "type": "object",
+                      "className": "Object",
+                      "description": "Object",
+                      "objectId": "-3157562886566299527.1.97"
+                    },
+                    "name": "b",
+                    "startLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 60542
+                    },
+                    "endLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 60642
+                    }
+                  },
+                  {
+                    "type": "block",
+                    "object": {
+                      "type": "object",
+                      "className": "Object",
+                      "description": "Object",
+                      "objectId": "-3157562886566299527.1.98"
+                    },
+                    "name": "b",
+                    "startLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 60516
+                    },
+                    "endLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 60679
+                    }
+                  },
+                  {
+                    "type": "local",
+                    "object": {
+                      "type": "object",
+                      "className": "Object",
+                      "description": "Object",
+                      "objectId": "-3157562886566299527.1.99"
+                    },
+                    "name": "b",
+                    "startLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 60500
+                    },
+                    "endLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 60798
+                    }
+                  },
+                  {
+                    "type": "closure",
+                    "object": {
+                      "type": "object",
+                      "className": "Object",
+                      "description": "Object",
+                      "objectId": "-3157562886566299527.1.100"
+                    },
+                    "startLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 59691
+                    },
+                    "endLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 61122
+                    }
+                  },
+                  {
+                    "type": "closure",
+                    "object": {
+                      "type": "object",
+                      "className": "Object",
+                      "description": "Object",
+                      "objectId": "-3157562886566299527.1.101"
+                    },
+                    "name": "U",
+                    "startLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 59647
+                    },
+                    "endLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 61125
+                    }
+                  },
+                  {
+                    "type": "closure",
+                    "object": {
+                      "type": "object",
+                      "className": "Object",
+                      "description": "Object",
+                      "objectId": "-3157562886566299527.1.102"
+                    },
+                    "startLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 15
+                    },
+                    "endLocation": {
+                      "scriptId": "6",
+                      "lineNumber": 0,
+                      "columnNumber": 254906
+                    }
+                  },
+                  {
+                    "type": "global",
+                    "object": {
+                      "type": "object",
+                      "className": "ServiceWorkerGlobalScope",
+                      "description": "ServiceWorkerGlobalScope",
+                      "objectId": "-3157562886566299527.1.103"
+                    }
+                  }
+                ],
+                "this": {
+                  "type": "undefined"
+                },
+                "canBeRestarted": true
+              }
+            ],
+            "reason": "other",
+            "hitBreakpoints": [
+              "4:0:60562:6"
+            ]
+          },
+          "native": {
+            "sourceClass": "IDBObjectStore",
+            "store": "frameworkKV",
+            "mode": "readwrite",
+            "database": "opendesk-browser",
+            "readyState": "pending"
+          },
+          "requestObjectId": "-3157562886566299527.1.104",
+          "scopeName": "Closure (put)",
+          "key": "kv:[\"page:http://127.0.0.1:61120\",\"user\",\"storage-cut-3422a796-e6de-44b3-9253-0276442bbb2f\"]",
+          "value": {
+            "tag": "framework-kv",
+            "namespace": "page:http://127.0.0.1:61120",
+            "area": "user",
+            "key": "storage-cut-3422a796-e6de-44b3-9253-0276442bbb2f",
+            "valueWire": {
+              "type": "string",
+              "value": "false"
+            }
+          }
+        }
+      ],
+      "errors": [],
+      "attachments": [
+        {
+          "scriptId": "6",
+          "location": {
+            "scriptId": "6",
+            "lineNumber": 0,
+            "columnNumber": 60562
+          },
+          "actualLocation": {
+            "scriptId": "6",
+            "lineNumber": 0,
+            "columnNumber": 60562
+          }
+        }
+      ]
+    },
+    "pausedContext": {
+      "requestId": "b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6",
+      "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+      "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+      "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+      "requestDigest": "4d7559d764b6e3f477dc05f383a82061bbb6c38fbc3bb5e29a1bc0c7a7a0ec98",
+      "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d"
+    },
+    "pausedStorage": {
+      "result": {
+        "tag": "sdk-result",
+        "namespace": "page:http://127.0.0.1:61120",
+        "principal": "sdk:http://127.0.0.1:61120",
+        "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+        "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+        "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+        "requestId": "b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6",
+        "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+        "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+        "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6\"]",
+        "requestDigest": "4d7559d764b6e3f477dc05f383a82061bbb6c38fbc3bb5e29a1bc0c7a7a0ec98",
+        "storageRequestDigest": "d158ba85b0a22bbe67cbf5b9ae498d79e8c70639324b9ee7a515e713cea7e9e6",
+        "state": "durable",
+        "outcomeWire": {
+          "protocol": "opendesk.value.v1",
+          "ok": true,
+          "value": {
+            "type": "undefined"
+          }
+        },
+        "committedAt": 1791106691645,
+        "receiptAt": "2026-10-04T09:38:11.645Z",
+        "valueWire": {
+          "type": "undefined"
+        }
+      },
+      "context": {
+        "requestId": "b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6",
+        "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+        "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+        "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+        "requestDigest": "4d7559d764b6e3f477dc05f383a82061bbb6c38fbc3bb5e29a1bc0c7a7a0ec98",
+        "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d"
+      }
+    },
+    "snapshots": [
+      "138/snapshot-6-storage-durable-before-broker.json"
+    ],
+    "beforeRows": {
+      "operation": {
+        "tag": "sdk-operation",
+        "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6\"]",
+        "tabId": 1669973067,
+        "frameId": 0,
+        "documentId": "A61A6B4A77E335C03A0BFC0CF19CE703",
+        "origin": "http://127.0.0.1:61120",
+        "principal": "sdk:http://127.0.0.1:61120",
+        "namespace": "page:http://127.0.0.1:61120",
+        "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+        "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+        "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+        "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+        "requestId": "b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6",
+        "requestDigest": "4d7559d764b6e3f477dc05f383a82061bbb6c38fbc3bb5e29a1bc0c7a7a0ec98",
+        "method": "APPSTORAGE_SETITEM",
+        "capability": "storage.persistent",
+        "effect": "write",
+        "deadlineAt": 1791106706604,
+        "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+        "state": "durable",
+        "cancelSeq": 0,
+        "submissionCount": 0,
+        "admittedAt": "2026-10-04T09:38:11.604Z",
+        "storageRequestDigest": "d158ba85b0a22bbe67cbf5b9ae498d79e8c70639324b9ee7a515e713cea7e9e6",
+        "durableAt": 1791106691645,
+        "receiptAt": "2026-10-04T09:38:11.645Z",
+        "receipt": {
+          "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+          "state": "durable"
+        }
+      },
+      "runs": [
+        {
+          "key": "568e5897-7088-46a8-8a76-8ef14e99a425",
+          "value": {
+            "tag": "sdk-service",
+            "driver": "framework.sdk-service.v1",
+            "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+            "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+            "namespace": "page:http://127.0.0.1:61120",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "state": "preparing",
+            "createdAt": "2026-10-04T09:38:11.606Z"
+          }
+        }
+      ],
+      "results": [
+        {
+          "key": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+          "value": {
+            "tag": "sdk-result",
+            "namespace": "page:http://127.0.0.1:61120",
+            "principal": "sdk:http://127.0.0.1:61120",
+            "grantIncarnation": "52da2dc8-b46e-4d81-a600-da2c3aa3626d",
+            "runId": "568e5897-7088-46a8-8a76-8ef14e99a425",
+            "opId": "320937f5-99d2-48ee-878d-6ab39dacafd4",
+            "requestId": "b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6",
+            "resultId": "12aa66b9-fe8a-4fac-a0f0-bca149885c92",
+            "browserSessionIncarnation": "d9fc1ac0-717a-475f-825b-0d8be0ede2b0",
+            "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:61120\",1669973067,0,\"A61A6B4A77E335C03A0BFC0CF19CE703\",\"52da2dc8-b46e-4d81-a600-da2c3aa3626d\",\"b05-9f6a6c30-ee91-4359-9d0a-933bd2d7c4d6\"]",
+            "requestDigest": "4d7559d764b6e3f477dc05f383a82061bbb6c38fbc3bb5e29a1bc0c7a7a0ec98",
+            "storageRequestDigest": "d158ba85b0a22bbe67cbf5b9ae498d79e8c70639324b9ee7a515e713cea7e9e6",
+            "state": "durable",
+            "outcomeWire": {
+              "protocol": "opendesk.value.v1",
+              "ok": true,
+              "value": {
+                "type": "undefined"
+              }
+            },
+            "committedAt": 1791106691645,
+            "receiptAt": "2026-10-04T09:38:11.645Z",
+            "valueWire": {
+              "type": "undefined"
+            }
+          }
+        }
+      ]
+    },
+    "kvBefore": [
+      {
+        "key": "kv:[\"page:http://127.0.0.1:61120\",\"user\",\"storage-cut-3422a796-e6de-44b3-9253-0276442bbb2f\"]",
+        "value": {
+          "tag": "framework-kv",
+          "namespace": "page:http://127.0.0.1:61120",
+          "area": "user",
+          "key": "storage-cut-3422a796-e6de-44b3-9253-0276442bbb2f",
+          "valueWire": {
+            "type": "string",
+            "value": "false"
+          }
+        }
+      }
+    ],
+    "workerStop": {
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "runningStatus": "running",
+        "status": "activated",
+        "scriptLastModified": 1791102341,
+        "scriptResponseTime": 0,
+        "controlledClients": [
+          "2BAAB05F0111290A087AABC93D656470"
+        ],
+        "targetId": "0FD86BE862C91965EE5B2F9ABCD1FC89"
+      },
+      "targetId": "0FD86BE862C91965EE5B2F9ABCD1FC89",
+      "requestedAt": "2026-10-04T09:38:11.685Z"
+    }
+  },
+  "error": {
+    "message": "Timed out: SW targetDestroyed event",
+    "stack": "Error: Timed out: SW targetDestroyed event\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:244:9)\n    at async stopWorker (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:554:32)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:736:13\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:387:11)\n    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:715:9)\n    at async main (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:1037:3)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:1049:84"
+  },
+  "reason": "Timed out: SW targetDestroyed event",
+  "measurements": {
+    "elapsedMs": 72153.37570900001,
+    "rawCdpSequenceStart": 7450,
+    "rawCdpSequenceEnd": 7705,
+    "httpRecordCountStart": 5,
+    "httpRecordCountEnd": 5
+  },
+  "endedAt": "2026-10-04T09:39:23.730Z"
+}

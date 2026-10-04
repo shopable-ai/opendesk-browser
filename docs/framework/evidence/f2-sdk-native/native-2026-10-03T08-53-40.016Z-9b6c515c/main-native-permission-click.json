@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-10-03T08:59:29.368Z",
+  "source": "Main same-thread native CUA report",
+  "mode": "production",
+  "chrome": "138",
+  "actualPid": 32796,
+  "action": "Main CUA full .app bound after ps verified live PID; clicked native Allow AX index 8",
+  "requestedOrigin": "http://127.0.0.1/*",
+  "reportedNativeInstalled": true,
+  "reportedGrantId": "0d4a6355-9ea5-4ee4-a49b-071332117139",
+  "documentId": "F9014181AEB89A71FAED289E06CE3917",
+  "reportedFixedFiles": 2,
+  "settingsTouched": false,
+  "oldChrome154Touched": false,
+  "nativeRuntimeValidation": "separate runner CDP and UI raw evidence; this report is attribution only"
+}

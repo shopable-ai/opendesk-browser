@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-03T09:00:42.131909+00:00",
+  "observer": "Main via CUA",
+  "liveProcessVerifiedBeforeBinding": true,
+  "ownedBrowserPid": 32796,
+  "actualArgvProof": "production-138/launcher-1-verified.json",
+  "appPath": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app",
+  "nativeDialogObserved": {
+    "extension": "OpenDesk Browser",
+    "requestedScope": "读取和更改您在127.0.0.1上的数据",
+    "allowAXIndex": 8
+  },
+  "action": "actual native CUA click Allow",
+  "postActionToolObserved": {
+    "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+    "installed": true,
+    "documentId": "F9014181AEB89A71FAED289E06CE3917",
+    "grantIncarnation": "0d4a6355-9ea5-4ee4-a49b-071332117139",
+    "files": [
+      "agents/page-relay.js",
+      "framework/sdk-main.js"
+    ]
+  },
+  "runnerNativeRawStillRequired": true,
+  "f3Accepted": false
+}

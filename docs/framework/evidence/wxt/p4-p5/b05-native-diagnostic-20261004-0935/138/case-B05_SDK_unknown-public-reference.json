@@ -1,0 +1,21 @@
+{
+  "id": "B05.SDK.unknown-public-reference",
+  "label": "138",
+  "startedAt": "2026-10-04T09:41:35.999Z",
+  "status": "NOT_TESTED",
+  "evidence": {},
+  "error": {
+    "code": "E_NATIVE_NOT_OBSERVED",
+    "message": "Real public SDK invocation at the unknown crash point was not observed",
+    "stack": "Error: Real public SDK invocation at the unknown crash point was not observed\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:795:35\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:387:17)\n    at runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:794:15)\n    at async main (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:1037:3)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/b05-product-acceptance-20261003.mjs:1049:84"
+  },
+  "reason": "Real public SDK invocation at the unknown crash point was not observed",
+  "measurements": {
+    "elapsedMs": 0.18904199998360127,
+    "rawCdpSequenceStart": 7752,
+    "rawCdpSequenceEnd": 7752,
+    "httpRecordCountStart": 6,
+    "httpRecordCountEnd": 6
+  },
+  "endedAt": "2026-10-04T09:41:35.999Z"
+}

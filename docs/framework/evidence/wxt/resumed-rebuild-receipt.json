@@ -1,0 +1,17 @@
+{
+  "runnerSha256": "00b8b155e20df1bc484b6c1f3767ca74c71aa177418e7eab0c8304fe1d5958a9",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "sourceHash": "a544b755f840167ee4762aa057e518af971698bff66620c0b68c889ab860db72",
+  "packages": {
+    "production": "d2c872514e2c843811549de0e25ba4b35f58e7daf870efd321cf18918c706280",
+    "development": "bbbb168152de7684ae125fe554460d3f3b9575eb0c72ec4c614740733814a6fe"
+  },
+  "productInputsSha256": "77089b49b354ab3a77cbab642ce80ef6ccda1b7096c27d27a59ccb337f4a7d23",
+  "verificationInputsSha256": "8624f641cc60bcd738f4a8ecfefcad9ca02a60d0b36870055f2d168aab2b8484",
+  "readyForControllerNative": true,
+  "executionWindow": {
+    "lane": "controller-product-native",
+    "sdkRunnerIdle": true
+  },
+  "contractCheckEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-04T05-27-25.762Z-f1f81185/ready.json"
+}

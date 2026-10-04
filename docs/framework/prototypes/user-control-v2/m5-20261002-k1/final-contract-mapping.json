@@ -1,0 +1,497 @@
+{
+  "type": "Frozen K1 author coverage map; independent acceptance pending",
+  "executionContractManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "sourceSha256": "711f26eb86374be69617a8c638ba3736cf27c96b3bff437def5c8f37681a28d1",
+  "reports": [
+    "tests/prototypes/user-control-v2/evidence/m5-round5-138-final-2026-10-02T20-57-52.225Z/report.json",
+    "tests/prototypes/user-control-v2/evidence/m5-round5-154-final-2026-10-02T20-57-52.227Z/report.json"
+  ],
+  "requiredControlContracts": [
+    {
+      "contractId": "F1-CTRL-USER-ASYNC",
+      "conditions": [
+        "real Worker user async body compilation",
+        "ordered goto/title/url and awaited actual BaseAlice type/click/wait/read",
+        "actual throw/syntax and adapter origin rejection",
+        "false/0/null/undefined preserved; unserializable value has typed error",
+        "deadline and pending DOM wait cancellation"
+      ],
+      "caseIds": [
+        "F1-USER-GOTO-TITLE-URL",
+        "F1-USER-TYPE-CLICK-WAIT-READ",
+        "F1-USER-THROW",
+        "F1-USER-SYNTAX",
+        "F1-ADAPTER-REJECTION",
+        "F1-RETURN-false",
+        "F1-RETURN-0",
+        "F1-RETURN-null",
+        "F1-RETURN-undefined",
+        "F1-UNSERIALIZABLE",
+        "F1-DEADLINE",
+        "F1-PENDING-PAGE-DEADLINE"
+      ],
+      "rawEvidenceLocations": [
+        "report.cases[id].input/expected/actual/effect/delivery/cleanup/documentId/world"
+      ],
+      "authorObservedStatusByVersion": {
+        "Chrome/138.0.7204.183": {
+          "F1-USER-GOTO-TITLE-URL": "PASS",
+          "F1-USER-TYPE-CLICK-WAIT-READ": "PASS",
+          "F1-USER-THROW": "PASS",
+          "F1-USER-SYNTAX": "PASS",
+          "F1-ADAPTER-REJECTION": "PASS",
+          "F1-RETURN-false": "PASS",
+          "F1-RETURN-0": "PASS",
+          "F1-RETURN-null": "PASS",
+          "F1-RETURN-undefined": "PASS",
+          "F1-UNSERIALIZABLE": "PASS",
+          "F1-DEADLINE": "PASS",
+          "F1-PENDING-PAGE-DEADLINE": "PASS"
+        },
+        "Chrome/154.0.8037.92": {
+          "F1-USER-GOTO-TITLE-URL": "PASS",
+          "F1-USER-TYPE-CLICK-WAIT-READ": "PASS",
+          "F1-USER-THROW": "PASS",
+          "F1-USER-SYNTAX": "PASS",
+          "F1-ADAPTER-REJECTION": "PASS",
+          "F1-RETURN-false": "PASS",
+          "F1-RETURN-0": "PASS",
+          "F1-RETURN-null": "PASS",
+          "F1-RETURN-undefined": "PASS",
+          "F1-UNSERIALIZABLE": "PASS",
+          "F1-DEADLINE": "PASS",
+          "F1-PENDING-PAGE-DEADLINE": "PASS"
+        }
+      },
+      "coverageNotes": []
+    },
+    {
+      "contractId": "F1-CTRL-PRIVATE-CHANNEL",
+      "conditions": [
+        "wrong event.source sibling peer remains unbound",
+        "forged global completion cannot settle run",
+        "captured primitives survive global/Map/Promise/MessagePort/structuredClone/Object.freeze patches",
+        "replay seq/rebind/wrong run-epoch rejected; genuine operation only; stopped settlement"
+      ],
+      "caseIds": [
+        "F1-GLOBAL-FORGERY-PATCH",
+        "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+        "F1-FAKE-PEER"
+      ],
+      "rawEvidenceLocations": [
+        "report.cases[id].actual.fakePeer/fakeResult",
+        "report.cases[id].actual.replayRejects",
+        "report.evidence.rejects/operations/deliveries",
+        "report.hosts[].initialized.sandbox"
+      ],
+      "authorObservedStatusByVersion": {
+        "Chrome/138.0.7204.183": {
+          "F1-GLOBAL-FORGERY-PATCH": "PASS",
+          "F1-REPLAY-REBIND-WRONG-RUN-STOP": "PASS",
+          "F1-FAKE-PEER": "PASS"
+        },
+        "Chrome/154.0.8037.92": {
+          "F1-GLOBAL-FORGERY-PATCH": "PASS",
+          "F1-REPLAY-REBIND-WRONG-RUN-STOP": "PASS",
+          "F1-FAKE-PEER": "PASS"
+        }
+      },
+      "coverageNotes": [
+        "Worker chrome/runtime and document absence are observed in actual user body; parent DOM access denial is measured by the fixed opaque sandbox initialization probe rather than a separate direct parent.document user body."
+      ]
+    },
+    {
+      "contractId": "F1-CTRL-CSP-NETWORK",
+      "conditions": [
+        "actual null-origin sandbox and inaccessible extension APIs/parent DOM",
+        "fetch/XHR/WebSocket/importScripts denied by effective Worker connect-src/script-src",
+        "HTTP CORS-reachable and WebSocket positive checks before/after at extension context",
+        "zero server requests for uniquely tagged forbidden Worker probes",
+        "finite CSP observer is finished before no further loop; loop domain uses entirely fresh uninspected hosts before all CSP probes"
+      ],
+      "caseIds": [
+        "F1-CSP-NETWORK-ATTRIBUTION",
+        "F1-GLOBAL-FORGERY-PATCH"
+      ],
+      "rawEvidenceLocations": [
+        "report.cases[id].actual.networkResult/positiveBefore/positiveAfter/denialEvidence/workerPolicyEvents/serverHits",
+        "report.networkServerHits",
+        "protocol.json Log.entryAdded and finite observer attachment/detachment",
+        "report.hosts[].initialized.sandbox"
+      ],
+      "authorObservedStatusByVersion": {
+        "Chrome/138.0.7204.183": {
+          "F1-GLOBAL-FORGERY-PATCH": "PASS",
+          "F1-CSP-NETWORK-ATTRIBUTION": "PASS"
+        },
+        "Chrome/154.0.8037.92": {
+          "F1-GLOBAL-FORGERY-PATCH": "PASS",
+          "F1-CSP-NETWORK-ATTRIBUTION": "PASS"
+        }
+      },
+      "coverageNotes": [
+        "Only the finite network test is inspector-observed for effective policy logs; none of the infinite loop Workers or their creator sandbox has an inspector session."
+      ]
+    },
+    {
+      "contractId": "F1-CTRL-TRUE-TERMINATE",
+      "conditions": [
+        "actual await page.mark then while(true) entered with causally mapped pre-stop CPU growth",
+        "held actual Blob/name/null-origin identity before user execution",
+        "native trace Worker URL+workerId=targetId and PID/threadId; native parent frame and sandbox execution match",
+        "no loop Worker or creator inspector attachment throughout",
+        "calibrated monotonic actual cancellation/deadline/host-close trigger; deadline due and fired recorded",
+        "immediate admission fence, true terminal, one genuine operation/delivery and no late effect",
+        "genuine targetDestroyed and independently fetched absence by trigger+3000ms",
+        "sustained post-stop CPU quiescence or independently OS-confirmed mapped PID exit by trigger+3000ms; missing sample stays null",
+        "surviving host responsive; genuine new control after each retirement and resource baseline",
+        "original old2s FAIL and historical bytes preserved"
+      ],
+      "caseIds": [
+        "F1-INFINITE-LOOP-STOP",
+        "F1-INFINITE-LOOP-DEADLINE",
+        "F1-INFINITE-LOOP-HOST-CLOSE",
+        "F1-AFTER-TERMINATION-STOP",
+        "F1-AFTER-TERMINATION-DEADLINE",
+        "F1-AFTER-TERMINATION-HOST-CLOSE"
+      ],
+      "rawEvidenceLocations": [
+        "report.cases[id].actual.causalWorker/clockCalibration/triggerInterval/loopResult/admissionObservation",
+        "report.cases[id].actual.cpuHeld/cpuBefore/cpuLoop/cpuStop/cpuEarly/cpuSamples/postSamples/postCPUValues/postDeltas/lifecycleObservation",
+        "report.cases[id].actual.destroyed/absentSample/destroyedMilliseconds/absenceMilliseconds/cessationMilliseconds/observerThroughout",
+        "trace.json native TracingSessionIdForWorker and sandbox FunctionCall",
+        "protocol.json Page.frameAttached/Target.targetDestroyed",
+        "report.cases[AFTER-TERMINATION-*].actual/effect/delivery/cleanup",
+        "round4-immutability-final.json"
+      ],
+      "authorObservedStatusByVersion": {
+        "Chrome/138.0.7204.183": {
+          "F1-INFINITE-LOOP-STOP": "PASS",
+          "F1-AFTER-TERMINATION-STOP": "PASS",
+          "F1-INFINITE-LOOP-DEADLINE": "PASS",
+          "F1-AFTER-TERMINATION-DEADLINE": "PASS",
+          "F1-INFINITE-LOOP-HOST-CLOSE": "PASS",
+          "F1-AFTER-TERMINATION-HOST-CLOSE": "PASS"
+        },
+        "Chrome/154.0.8037.92": {
+          "F1-INFINITE-LOOP-STOP": "PASS",
+          "F1-AFTER-TERMINATION-STOP": "PASS",
+          "F1-INFINITE-LOOP-DEADLINE": "PASS",
+          "F1-AFTER-TERMINATION-DEADLINE": "PASS",
+          "F1-INFINITE-LOOP-HOST-CLOSE": "PASS",
+          "F1-AFTER-TERMINATION-HOST-CLOSE": "PASS"
+        }
+      },
+      "coverageNotes": [
+        "Causal metadata can be retrieved after stopping, but no trigger clock is reset and raw sample windows/target observations must themselves meet 3000ms. The 0.03 CPU-second threshold applies to each 150ms post interval; actual Stable deltas are far smaller."
+      ]
+    },
+    {
+      "contractId": "F1-CTRL-RESOURCE",
+      "conditions": [
+        "5 success/5 throw/5 timeout/5 cancel actual runs",
+        "pending/timer/page DOM waits and host resource state return to operating baseline",
+        "independent native Worker target set returns to empty baseline",
+        "same effective worker-src positive fixed-harness loader; actual revoked current-origin Blob URL Worker loader rejection",
+        "no live per-run Worker/ports/Blob/probe; genuine subsequent valid run",
+        "final dispose pending/timer/port/frame/pageWaits/resourceReplies all0 and browser/server exit"
+      ],
+      "caseIds": [
+        "F1-RESOURCE-SUCCESS-0",
+        "F1-RESOURCE-THROW-0",
+        "F1-RESOURCE-TIMEOUT-0",
+        "F1-RESOURCE-CANCEL-0",
+        "F1-RESOURCE-SUCCESS-1",
+        "F1-RESOURCE-THROW-1",
+        "F1-RESOURCE-TIMEOUT-1",
+        "F1-RESOURCE-CANCEL-1",
+        "F1-RESOURCE-SUCCESS-2",
+        "F1-RESOURCE-THROW-2",
+        "F1-RESOURCE-TIMEOUT-2",
+        "F1-RESOURCE-CANCEL-2",
+        "F1-RESOURCE-SUCCESS-3",
+        "F1-RESOURCE-THROW-3",
+        "F1-RESOURCE-TIMEOUT-3",
+        "F1-RESOURCE-CANCEL-3",
+        "F1-RESOURCE-SUCCESS-4",
+        "F1-RESOURCE-THROW-4",
+        "F1-RESOURCE-TIMEOUT-4",
+        "F1-RESOURCE-CANCEL-4",
+        "F1-AFTER-CLEANUP-VALID",
+        "F1-RESOURCE-INDEPENDENT-OBSERVATION"
+      ],
+      "rawEvidenceLocations": [
+        "report.cases[RESOURCE-*].actual/cleanup",
+        "report.cases[F1-RESOURCE-INDEPENDENT-OBSERVATION].actual.baseline/finalTargets/resourceBaseline/finalResources/probe",
+        "report.resourceEvidence.retired",
+        "report.disposedResources/workerTargetsAfterDispose/cleanup",
+        "final-cleanup-audit.json"
+      ],
+      "authorObservedStatusByVersion": {
+        "Chrome/138.0.7204.183": {
+          "F1-RESOURCE-SUCCESS-0": "PASS",
+          "F1-RESOURCE-THROW-0": "PASS",
+          "F1-RESOURCE-TIMEOUT-0": "PASS",
+          "F1-RESOURCE-CANCEL-0": "PASS",
+          "F1-RESOURCE-SUCCESS-1": "PASS",
+          "F1-RESOURCE-THROW-1": "PASS",
+          "F1-RESOURCE-TIMEOUT-1": "PASS",
+          "F1-RESOURCE-CANCEL-1": "PASS",
+          "F1-RESOURCE-SUCCESS-2": "PASS",
+          "F1-RESOURCE-THROW-2": "PASS",
+          "F1-RESOURCE-TIMEOUT-2": "PASS",
+          "F1-RESOURCE-CANCEL-2": "PASS",
+          "F1-RESOURCE-SUCCESS-3": "PASS",
+          "F1-RESOURCE-THROW-3": "PASS",
+          "F1-RESOURCE-TIMEOUT-3": "PASS",
+          "F1-RESOURCE-CANCEL-3": "PASS",
+          "F1-RESOURCE-SUCCESS-4": "PASS",
+          "F1-RESOURCE-THROW-4": "PASS",
+          "F1-RESOURCE-TIMEOUT-4": "PASS",
+          "F1-RESOURCE-CANCEL-4": "PASS",
+          "F1-AFTER-CLEANUP-VALID": "PASS",
+          "F1-RESOURCE-INDEPENDENT-OBSERVATION": "PASS"
+        },
+        "Chrome/154.0.8037.92": {
+          "F1-RESOURCE-SUCCESS-0": "PASS",
+          "F1-RESOURCE-THROW-0": "PASS",
+          "F1-RESOURCE-TIMEOUT-0": "PASS",
+          "F1-RESOURCE-CANCEL-0": "PASS",
+          "F1-RESOURCE-SUCCESS-1": "PASS",
+          "F1-RESOURCE-THROW-1": "PASS",
+          "F1-RESOURCE-TIMEOUT-1": "PASS",
+          "F1-RESOURCE-CANCEL-1": "PASS",
+          "F1-RESOURCE-SUCCESS-2": "PASS",
+          "F1-RESOURCE-THROW-2": "PASS",
+          "F1-RESOURCE-TIMEOUT-2": "PASS",
+          "F1-RESOURCE-CANCEL-2": "PASS",
+          "F1-RESOURCE-SUCCESS-3": "PASS",
+          "F1-RESOURCE-THROW-3": "PASS",
+          "F1-RESOURCE-TIMEOUT-3": "PASS",
+          "F1-RESOURCE-CANCEL-3": "PASS",
+          "F1-RESOURCE-SUCCESS-4": "PASS",
+          "F1-RESOURCE-THROW-4": "PASS",
+          "F1-RESOURCE-TIMEOUT-4": "PASS",
+          "F1-RESOURCE-CANCEL-4": "PASS",
+          "F1-AFTER-CLEANUP-VALID": "PASS",
+          "F1-RESOURCE-INDEPENDENT-OBSERVATION": "PASS"
+        }
+      },
+      "coverageNotes": [
+        "Operating host-owned frame/port baseline is1; per-run and final-dispose resources are0. Direct loader negatives sample the current opaque realm retired URL and a just-revoked positive URL, not every URL across all 20 retired opaque realms. Prior realms are retired and tied to native target lifecycle; they are not mislabeled as same-origin loader samples."
+      ]
+    },
+    {
+      "contractId": "F1-SW-AND-PAGE-LOOP",
+      "conditions": [
+        "exact native service-worker version stopped and genuinely woken with changed SW epoch",
+        "long controller remains outside SW and survives SW restart",
+        "private host dispose/reconnect uses new host epoch and real control run",
+        "MAIN unique real entered server POST + CPU growth before controlled owned-tab retirement",
+        "borrowed binding owned=false refuses retirement, survives adapter dispose",
+        "only original runner owner then closes its sentinel; no borrowed-tab close by adapter"
+      ],
+      "caseIds": [
+        "F1-SW-HOST-RECONNECT",
+        "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY"
+      ],
+      "rawEvidenceLocations": [
+        "report.cases[F1-SW-HOST-RECONNECT].actual/cleanup",
+        "report.cases[F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY].actual.mainEntered/mainArm/mainCpuSamples/mainRetire/ownedTargetDestroyed/borrowedBinding/borrowedRefusal/borrowedStillPresent/cleanup"
+      ],
+      "authorObservedStatusByVersion": {
+        "Chrome/138.0.7204.183": {
+          "F1-SW-HOST-RECONNECT": "PASS",
+          "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY": "PASS"
+        },
+        "Chrome/154.0.8037.92": {
+          "F1-SW-HOST-RECONNECT": "PASS",
+          "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY": "PASS"
+        }
+      },
+      "coverageNotes": [
+        "MAIN is proved as owned-tab retirement with real loop entry; no Worker.terminate or physical MAIN-stop guarantee is claimed."
+      ]
+    },
+    {
+      "contractId": "F1-VERSION-MATRIX: K1 control slice",
+      "conditions": [
+        "same final source manifest on 138.0.7204.183 and154.0.8037.92 fresh profiles",
+        "actual version/OS/executable hash/extension identity/profile/doc/world recorded",
+        "46 actual PASS statuses per version with no fixtureFailure",
+        "actual extension WebUI grant state and chrome.permissions API state recorded"
+      ],
+      "caseIds": [
+        "F1-ADAPTER-REJECTION",
+        "F1-AFTER-CLEANUP-VALID",
+        "F1-AFTER-TERMINATION-DEADLINE",
+        "F1-AFTER-TERMINATION-HOST-CLOSE",
+        "F1-AFTER-TERMINATION-STOP",
+        "F1-CSP-NETWORK-ATTRIBUTION",
+        "F1-DEADLINE",
+        "F1-FAKE-PEER",
+        "F1-GLOBAL-FORGERY-PATCH",
+        "F1-INFINITE-LOOP-DEADLINE",
+        "F1-INFINITE-LOOP-HOST-CLOSE",
+        "F1-INFINITE-LOOP-STOP",
+        "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY",
+        "F1-PENDING-PAGE-DEADLINE",
+        "F1-REPLAY-REBIND-WRONG-RUN-STOP",
+        "F1-RESOURCE-CANCEL-0",
+        "F1-RESOURCE-CANCEL-1",
+        "F1-RESOURCE-CANCEL-2",
+        "F1-RESOURCE-CANCEL-3",
+        "F1-RESOURCE-CANCEL-4",
+        "F1-RESOURCE-INDEPENDENT-OBSERVATION",
+        "F1-RESOURCE-SUCCESS-0",
+        "F1-RESOURCE-SUCCESS-1",
+        "F1-RESOURCE-SUCCESS-2",
+        "F1-RESOURCE-SUCCESS-3",
+        "F1-RESOURCE-SUCCESS-4",
+        "F1-RESOURCE-THROW-0",
+        "F1-RESOURCE-THROW-1",
+        "F1-RESOURCE-THROW-2",
+        "F1-RESOURCE-THROW-3",
+        "F1-RESOURCE-THROW-4",
+        "F1-RESOURCE-TIMEOUT-0",
+        "F1-RESOURCE-TIMEOUT-1",
+        "F1-RESOURCE-TIMEOUT-2",
+        "F1-RESOURCE-TIMEOUT-3",
+        "F1-RESOURCE-TIMEOUT-4",
+        "F1-RETURN-0",
+        "F1-RETURN-false",
+        "F1-RETURN-null",
+        "F1-RETURN-undefined",
+        "F1-SW-HOST-RECONNECT",
+        "F1-UNSERIALIZABLE",
+        "F1-USER-GOTO-TITLE-URL",
+        "F1-USER-SYNTAX",
+        "F1-USER-THROW",
+        "F1-USER-TYPE-CLICK-WAIT-READ"
+      ],
+      "rawEvidenceLocations": [
+        "report.browser/identity/hosts/initialized/siteAccess/extensionUi",
+        "extension-ui.json/extension-ui.png/workbench.png",
+        "candidate-manifest.json",
+        "final-source-manifest.json/final-matrix.json"
+      ],
+      "authorObservedStatusByVersion": {
+        "Chrome/138.0.7204.183": {
+          "F1-INFINITE-LOOP-STOP": "PASS",
+          "F1-AFTER-TERMINATION-STOP": "PASS",
+          "F1-INFINITE-LOOP-DEADLINE": "PASS",
+          "F1-AFTER-TERMINATION-DEADLINE": "PASS",
+          "F1-INFINITE-LOOP-HOST-CLOSE": "PASS",
+          "F1-AFTER-TERMINATION-HOST-CLOSE": "PASS",
+          "F1-USER-GOTO-TITLE-URL": "PASS",
+          "F1-USER-TYPE-CLICK-WAIT-READ": "PASS",
+          "F1-USER-THROW": "PASS",
+          "F1-USER-SYNTAX": "PASS",
+          "F1-ADAPTER-REJECTION": "PASS",
+          "F1-RETURN-false": "PASS",
+          "F1-RETURN-0": "PASS",
+          "F1-RETURN-null": "PASS",
+          "F1-RETURN-undefined": "PASS",
+          "F1-UNSERIALIZABLE": "PASS",
+          "F1-GLOBAL-FORGERY-PATCH": "PASS",
+          "F1-DEADLINE": "PASS",
+          "F1-PENDING-PAGE-DEADLINE": "PASS",
+          "F1-REPLAY-REBIND-WRONG-RUN-STOP": "PASS",
+          "F1-FAKE-PEER": "PASS",
+          "F1-CSP-NETWORK-ATTRIBUTION": "PASS",
+          "F1-RESOURCE-SUCCESS-0": "PASS",
+          "F1-RESOURCE-THROW-0": "PASS",
+          "F1-RESOURCE-TIMEOUT-0": "PASS",
+          "F1-RESOURCE-CANCEL-0": "PASS",
+          "F1-RESOURCE-SUCCESS-1": "PASS",
+          "F1-RESOURCE-THROW-1": "PASS",
+          "F1-RESOURCE-TIMEOUT-1": "PASS",
+          "F1-RESOURCE-CANCEL-1": "PASS",
+          "F1-RESOURCE-SUCCESS-2": "PASS",
+          "F1-RESOURCE-THROW-2": "PASS",
+          "F1-RESOURCE-TIMEOUT-2": "PASS",
+          "F1-RESOURCE-CANCEL-2": "PASS",
+          "F1-RESOURCE-SUCCESS-3": "PASS",
+          "F1-RESOURCE-THROW-3": "PASS",
+          "F1-RESOURCE-TIMEOUT-3": "PASS",
+          "F1-RESOURCE-CANCEL-3": "PASS",
+          "F1-RESOURCE-SUCCESS-4": "PASS",
+          "F1-RESOURCE-THROW-4": "PASS",
+          "F1-RESOURCE-TIMEOUT-4": "PASS",
+          "F1-RESOURCE-CANCEL-4": "PASS",
+          "F1-AFTER-CLEANUP-VALID": "PASS",
+          "F1-RESOURCE-INDEPENDENT-OBSERVATION": "PASS",
+          "F1-SW-HOST-RECONNECT": "PASS",
+          "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY": "PASS"
+        },
+        "Chrome/154.0.8037.92": {
+          "F1-INFINITE-LOOP-STOP": "PASS",
+          "F1-AFTER-TERMINATION-STOP": "PASS",
+          "F1-INFINITE-LOOP-DEADLINE": "PASS",
+          "F1-AFTER-TERMINATION-DEADLINE": "PASS",
+          "F1-INFINITE-LOOP-HOST-CLOSE": "PASS",
+          "F1-AFTER-TERMINATION-HOST-CLOSE": "PASS",
+          "F1-USER-GOTO-TITLE-URL": "PASS",
+          "F1-USER-TYPE-CLICK-WAIT-READ": "PASS",
+          "F1-USER-THROW": "PASS",
+          "F1-USER-SYNTAX": "PASS",
+          "F1-ADAPTER-REJECTION": "PASS",
+          "F1-RETURN-false": "PASS",
+          "F1-RETURN-0": "PASS",
+          "F1-RETURN-null": "PASS",
+          "F1-RETURN-undefined": "PASS",
+          "F1-UNSERIALIZABLE": "PASS",
+          "F1-GLOBAL-FORGERY-PATCH": "PASS",
+          "F1-DEADLINE": "PASS",
+          "F1-PENDING-PAGE-DEADLINE": "PASS",
+          "F1-REPLAY-REBIND-WRONG-RUN-STOP": "PASS",
+          "F1-FAKE-PEER": "PASS",
+          "F1-CSP-NETWORK-ATTRIBUTION": "PASS",
+          "F1-RESOURCE-SUCCESS-0": "PASS",
+          "F1-RESOURCE-THROW-0": "PASS",
+          "F1-RESOURCE-TIMEOUT-0": "PASS",
+          "F1-RESOURCE-CANCEL-0": "PASS",
+          "F1-RESOURCE-SUCCESS-1": "PASS",
+          "F1-RESOURCE-THROW-1": "PASS",
+          "F1-RESOURCE-TIMEOUT-1": "PASS",
+          "F1-RESOURCE-CANCEL-1": "PASS",
+          "F1-RESOURCE-SUCCESS-2": "PASS",
+          "F1-RESOURCE-THROW-2": "PASS",
+          "F1-RESOURCE-TIMEOUT-2": "PASS",
+          "F1-RESOURCE-CANCEL-2": "PASS",
+          "F1-RESOURCE-SUCCESS-3": "PASS",
+          "F1-RESOURCE-THROW-3": "PASS",
+          "F1-RESOURCE-TIMEOUT-3": "PASS",
+          "F1-RESOURCE-CANCEL-3": "PASS",
+          "F1-RESOURCE-SUCCESS-4": "PASS",
+          "F1-RESOURCE-THROW-4": "PASS",
+          "F1-RESOURCE-TIMEOUT-4": "PASS",
+          "F1-RESOURCE-CANCEL-4": "PASS",
+          "F1-AFTER-CLEANUP-VALID": "PASS",
+          "F1-RESOURCE-INDEPENDENT-OBSERVATION": "PASS",
+          "F1-SW-HOST-RECONNECT": "PASS",
+          "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY": "PASS"
+        }
+      },
+      "coverageNotes": [
+        "Headless native Chrome WebUI observed real grant state; no headed human interaction claim. userScripts ON/OFF, code/file, precise-doc/both-world/world-CSP and UI revoke/restore/pending dimensions are owned by the separately frozen page lane and require main-writer union review."
+      ]
+    }
+  ],
+  "unexecutedWithinK1": [
+    "headed human UI interaction",
+    "separate direct parent.document user-Worker attack body",
+    "individual same-origin loader retest of every Blob from all20 retired opaque realms"
+  ],
+  "separatePageLaneDimensions": [
+    "userScripts ON/OFF",
+    "code/file",
+    "precise document",
+    "both execution worlds",
+    "world CSP",
+    "UI revoke/restore/pending"
+  ],
+  "backendPrototypePassed": false,
+  "F2": false,
+  "requiresIndependentReview": true
+}

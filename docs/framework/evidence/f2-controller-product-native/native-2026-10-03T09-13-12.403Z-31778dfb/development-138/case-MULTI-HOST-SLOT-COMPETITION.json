@@ -1,0 +1,33 @@
+{
+  "id": "MULTI-HOST-SLOT-COMPETITION",
+  "families": "CTRL03/AUTH01",
+  "expected": "Two real product hosts contend; loser gets E_OWNER; no loser run/effect; winner retains slot",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "startedAt": 1791018823323,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanative-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-134a6911-0d53-4e00-9413-40b2b6c13265'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanative-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-134a6911-0d53-4e00-9413-40b2b6c13265'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:630:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:629:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+    "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinativnativnatinativnatinatinatinatinatinanative-134a6911-0d53-4e00-9413-40b2b6c13265tive-bf1cbbf6-cbfc-44a6-bf82-b9b9e6572963ve-d2663bcc-1608-4af3-a121-480b9759ce07ve-e80d722e-8d18-4d4e-80c7-381595fe4b42ve-a2d34a32-488c-4a12-b011-4f13ec277c0ave-3afab6f1-1e2d-46c0-94b6-5e71e660edb3ve-72d343c8-055b-4aa3-8ffe-16b89e568823e-63b109d3-144f-4823-a931-a873162d14ebve-aa838ed8-d4aa-49fe-8b00-c05cec3d9974e-47c46e58-3aa9-476b-8d3d-e2590fde2995e-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "ready",
+    "text": "公共运行入口已就绪，请保存脚本并选择目标",
+    "result": "",
+    "version": "尚未保存",
+    "runId": "",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": true,
+    "stopDisabled": true
+  },
+  "elapsedMs": 41.14379199999894
+}

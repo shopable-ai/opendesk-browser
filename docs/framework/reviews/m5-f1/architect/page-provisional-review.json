@@ -1,0 +1,2204 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "M5-F1-ARCH-PAGE-PROVISIONAL-2edcc1b0",
+  "createdAt": "2026-10-02T20:14:41.088002+00:00",
+  "reviewer": {
+    "role": "architecture/devils-advocate",
+    "independentOfCandidateAuthors": true,
+    "candidateAuthorship": false,
+    "modelSetting": "inherited/default; no override",
+    "effortSetting": "inherited/default; no override",
+    "serverResolvedRuntime": "unknown"
+  },
+  "repo": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "gitUsed": false,
+  "scope": "Frozen page lane and requested bounded control oracle advisory; separate round-5 plan amendment reviewed in its own reports; no whole-repository audit",
+  "approvedPlanManifestSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "pagePrototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "finalUnionCandidateSha256": null,
+  "laneVerdict": "BLOCK",
+  "provisional": true,
+  "finalF1Approved": false,
+  "allF1PASS": false,
+  "score": null,
+  "scoreReason": "No numeric plan score substitutes for native F1 qualification; no score was requested for this provisional evidence review.",
+  "F2Approved": false,
+  "F3Approved": false,
+  "productCasesExecutedByReviewer": 0,
+  "all603ProductCasesNotRun": true,
+  "sourceScope": [
+    {
+      "path": "run-headed.mjs",
+      "oldSha256": "12212055d7b7cd348755d76066c82e6db640cb84ccdf665300b9331c3181284b",
+      "newSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "changed": true
+    },
+    {
+      "path": "fixture/adapter.js",
+      "oldSha256": "ddd235656167922308f674b02d70b1784737f9d27aac6b641b90c921808c29a6",
+      "newSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "changed": true
+    },
+    {
+      "path": "fixture/file-source.js",
+      "oldSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "newSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "changed": false
+    },
+    {
+      "path": "fixture/host.html",
+      "oldSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "newSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "changed": false
+    },
+    {
+      "path": "fixture/host.js",
+      "oldSha256": "476d817a69c9cbd4160275b7172fea94e5dfe4ba7d582fab6e8eef4475393b9d",
+      "newSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "changed": true
+    },
+    {
+      "path": "fixture/manifest.json",
+      "oldSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "newSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "changed": false
+    },
+    {
+      "path": "fixture/sw.js",
+      "oldSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "newSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "changed": false
+    }
+  ],
+  "runs": [
+    {
+      "version": "138.0.7204.183",
+      "environment": {
+        "version": "138.0.7204.183",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "executableSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+        "channel": "CfT milestone138",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1",
+        "fixtureIdentity": {
+          "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*",
+              "http://localhost/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 userScripts v2 fixture",
+            "permissions": [
+              "userScripts",
+              "scripting",
+              "tabs",
+              "webNavigation"
+            ],
+            "version": "0.0.2"
+          }
+        }
+      },
+      "candidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/report.json",
+      "reportSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+      "evidenceFileCount": 34,
+      "caseCount": 85,
+      "PASS": 80,
+      "FAIL": 5,
+      "failedRequired": [
+        {
+          "id": "USER_SCRIPT-RAW-THROW",
+          "pass": false,
+          "required": true,
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": "USER_SCRIPT-RAW-REJECT",
+          "pass": false,
+          "required": true,
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": "MAIN-RAW-THROW",
+          "pass": false,
+          "required": true,
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": "MAIN-RAW-REJECT",
+          "pass": false,
+          "required": true,
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "83A371C9A94900CF86B4E8EC42546A72",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": "HOST-PERMISSION-REVOKE",
+          "pass": false,
+          "required": true,
+          "actual": null,
+          "error": {
+            "name": "Error",
+            "message": "page.evaluate: Error: You cannot remove required permissions.",
+            "stack": "page.evaluate: Error: You cannot remove required permissions.\n    at call (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:89:41)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:493:29\n    at async runCase (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:104:24)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:491:5"
+          }
+        }
+      ],
+      "caseInputAccounting": {
+        "rawAttempts": 100,
+        "nativeExecute": 99,
+        "unavailableBeforeNative": 1,
+        "resolvedAtCaseSnapshot": 84,
+        "rejectedAfterNative": 9,
+        "pendingAtCaseSnapshot": 6,
+        "adapterPrevalidationCases": 7,
+        "fixedMAINNativeScripting": 3
+      },
+      "finalHostTraceAccounting": {
+        "entries": 99,
+        "resolved": 90,
+        "rejected": 9,
+        "pending": 0,
+        "notFullLifetimeLedger": true
+      },
+      "allCaseIdsReviewed": [
+        "SWITCH-OFF",
+        "SWITCH-ON",
+        "USER_SCRIPT-RAW-PROMISE",
+        "USER_SCRIPT-RAW-UNDEFINED",
+        "USER_SCRIPT-CODE",
+        "USER_SCRIPT-ADAPTER-PROMISE",
+        "USER_SCRIPT-ADAPTER-THROW",
+        "USER_SCRIPT-ADAPTER-REJECT",
+        "USER_SCRIPT-ADAPTER-UNDEFINED",
+        "USER_SCRIPT-ADAPTER-TRUE",
+        "USER_SCRIPT-ADAPTER-FALSE",
+        "USER_SCRIPT-ADAPTER-ZERO",
+        "USER_SCRIPT-ADAPTER-EMPTY",
+        "USER_SCRIPT-ADAPTER-NULL",
+        "USER_SCRIPT-ADAPTER-BUSINESS",
+        "USER_SCRIPT-ADAPTER-CLOSURE",
+        "USER_SCRIPT-FILE",
+        "USER_SCRIPT-WORLD",
+        "USER_SCRIPT-LEGACY",
+        "USER_SCRIPT-DOCUMENT-TOP",
+        "USER_SCRIPT-DOCUMENT-SAME",
+        "USER_SCRIPT-DOCUMENT-CROSS",
+        "USER_SCRIPT-FILE-DOCUMENT-TOP",
+        "USER_SCRIPT-FILE-DOCUMENT-SAME",
+        "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+        "MAIN-RAW-PROMISE",
+        "MAIN-RAW-UNDEFINED",
+        "MAIN-CODE",
+        "MAIN-ADAPTER-PROMISE",
+        "MAIN-ADAPTER-THROW",
+        "MAIN-ADAPTER-REJECT",
+        "MAIN-ADAPTER-UNDEFINED",
+        "MAIN-ADAPTER-TRUE",
+        "MAIN-ADAPTER-FALSE",
+        "MAIN-ADAPTER-ZERO",
+        "MAIN-ADAPTER-EMPTY",
+        "MAIN-ADAPTER-NULL",
+        "MAIN-ADAPTER-BUSINESS",
+        "MAIN-ADAPTER-CLOSURE",
+        "MAIN-FILE",
+        "MAIN-WORLD",
+        "MAIN-LEGACY",
+        "MAIN-DOCUMENT-TOP",
+        "MAIN-DOCUMENT-SAME",
+        "MAIN-DOCUMENT-CROSS",
+        "MAIN-FILE-DOCUMENT-TOP",
+        "MAIN-FILE-DOCUMENT-SAME",
+        "MAIN-FILE-DOCUMENT-CROSS",
+        "SOURCE-BOTH",
+        "SOURCE-NEITHER",
+        "SOURCE-FUNC-ARGS",
+        "TARGET-DOC-FRAME",
+        "SOURCE-MISSING-FILE",
+        "PRE-DISPATCH-NATIVE",
+        "PRE-DISPATCH-BOUND",
+        "PRE-DISPATCH-NONFINITE",
+        "PRE-DISPATCH-FUNCTIONARG",
+        "PRE-DISPATCH-BIGINT",
+        "PRE-DISPATCH-CYCLE",
+        "PRE-DISPATCH-MISSINGTARGET",
+        "PACKAGED-MAIN-CALLBACK",
+        "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+        "USER_SCRIPT-OLD-DOCUMENT-RACE",
+        "MAIN-SWITCH-REVOKE-INFLIGHT",
+        "MAIN-OLD-DOCUMENT-RACE",
+        "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+        "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+        "USER_SCRIPT-HOST-UI-RACE-PENDING",
+        "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+        "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+        "MAIN-HOST-UI-REVOKE-RESTORE",
+        "MAIN-HOST-UI-RACE-PENDING",
+        "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+        "CSP-BASELINE-MAIN-PAGE",
+        "CSP-BASELINE-USER_SCRIPT-ALLOW",
+        "CSP-BASELINE-USER_SCRIPT-DENY",
+        "CSP-RESTRICTIVE-MAIN-PAGE",
+        "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+        "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+        "HOST-PERMISSION-RESTORE",
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "caseLineReferences": {
+        "SWITCH-OFF": 93,
+        "SWITCH-ON": 218,
+        "USER_SCRIPT-RAW-PROMISE": 301,
+        "USER_SCRIPT-RAW-UNDEFINED": 419,
+        "USER_SCRIPT-CODE": 531,
+        "USER_SCRIPT-ADAPTER-PROMISE": 793,
+        "USER_SCRIPT-ADAPTER-THROW": 967,
+        "USER_SCRIPT-ADAPTER-REJECT": 1117,
+        "USER_SCRIPT-ADAPTER-UNDEFINED": 1267,
+        "USER_SCRIPT-ADAPTER-TRUE": 1414,
+        "USER_SCRIPT-ADAPTER-FALSE": 1564,
+        "USER_SCRIPT-ADAPTER-ZERO": 1714,
+        "USER_SCRIPT-ADAPTER-EMPTY": 1864,
+        "USER_SCRIPT-ADAPTER-NULL": 2014,
+        "USER_SCRIPT-ADAPTER-BUSINESS": 2161,
+        "USER_SCRIPT-ADAPTER-CLOSURE": 2356,
+        "USER_SCRIPT-FILE": 2506,
+        "USER_SCRIPT-WORLD": 2629,
+        "USER_SCRIPT-LEGACY": 2747,
+        "USER_SCRIPT-DOCUMENT-TOP": 2859,
+        "USER_SCRIPT-DOCUMENT-SAME": 3035,
+        "USER_SCRIPT-DOCUMENT-CROSS": 3211,
+        "USER_SCRIPT-FILE-DOCUMENT-TOP": 3387,
+        "USER_SCRIPT-FILE-DOCUMENT-SAME": 3530,
+        "USER_SCRIPT-FILE-DOCUMENT-CROSS": 3673,
+        "MAIN-RAW-PROMISE": 3816,
+        "MAIN-RAW-UNDEFINED": 3934,
+        "MAIN-CODE": 4046,
+        "MAIN-ADAPTER-PROMISE": 4308,
+        "MAIN-ADAPTER-THROW": 4482,
+        "MAIN-ADAPTER-REJECT": 4632,
+        "MAIN-ADAPTER-UNDEFINED": 4782,
+        "MAIN-ADAPTER-TRUE": 4929,
+        "MAIN-ADAPTER-FALSE": 5079,
+        "MAIN-ADAPTER-ZERO": 5229,
+        "MAIN-ADAPTER-EMPTY": 5379,
+        "MAIN-ADAPTER-NULL": 5529,
+        "MAIN-ADAPTER-BUSINESS": 5676,
+        "MAIN-ADAPTER-CLOSURE": 5871,
+        "MAIN-FILE": 6021,
+        "MAIN-WORLD": 6144,
+        "MAIN-LEGACY": 6262,
+        "MAIN-DOCUMENT-TOP": 6374,
+        "MAIN-DOCUMENT-SAME": 6550,
+        "MAIN-DOCUMENT-CROSS": 6726,
+        "MAIN-FILE-DOCUMENT-TOP": 6902,
+        "MAIN-FILE-DOCUMENT-SAME": 7045,
+        "MAIN-FILE-DOCUMENT-CROSS": 7188,
+        "SOURCE-BOTH": 7331,
+        "SOURCE-NEITHER": 7444,
+        "SOURCE-FUNC-ARGS": 7554,
+        "TARGET-DOC-FRAME": 7667,
+        "SOURCE-MISSING-FILE": 7782,
+        "PRE-DISPATCH-NATIVE": 7894,
+        "PRE-DISPATCH-BOUND": 7956,
+        "PRE-DISPATCH-NONFINITE": 8018,
+        "PRE-DISPATCH-FUNCTIONARG": 8080,
+        "PRE-DISPATCH-BIGINT": 8142,
+        "PRE-DISPATCH-CYCLE": 8204,
+        "PRE-DISPATCH-MISSINGTARGET": 8266,
+        "PACKAGED-MAIN-CALLBACK": 8328,
+        "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT": 8433,
+        "USER_SCRIPT-OLD-DOCUMENT-RACE": 8743,
+        "MAIN-SWITCH-REVOKE-INFLIGHT": 9125,
+        "MAIN-OLD-DOCUMENT-RACE": 9679,
+        "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE": 10061,
+        "USER_SCRIPT-HOST-UI-REVOKE-RESTORE": 11582,
+        "USER_SCRIPT-HOST-UI-RACE-PENDING": 13205,
+        "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED": 15274,
+        "MAIN-SWITCH-REVOKE-AFTER-NATIVE": 17825,
+        "MAIN-HOST-UI-REVOKE-RESTORE": 20474,
+        "MAIN-HOST-UI-RACE-PENDING": 23357,
+        "MAIN-HOST-UI-RACE-NATIVE-COMPLETED": 26686,
+        "CSP-BASELINE-MAIN-PAGE": 30497,
+        "CSP-BASELINE-USER_SCRIPT-ALLOW": 30787,
+        "CSP-BASELINE-USER_SCRIPT-DENY": 31086,
+        "CSP-RESTRICTIVE-MAIN-PAGE": 31405,
+        "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW": 31735,
+        "CSP-RESTRICTIVE-USER_SCRIPT-DENY": 32059,
+        "HOST-PERMISSION-RESTORE": 32402,
+        "USER_SCRIPT-RAW-THROW": 32669,
+        "USER_SCRIPT-RAW-REJECT": 32790,
+        "MAIN-RAW-THROW": 32902,
+        "MAIN-RAW-REJECT": 33023,
+        "HOST-PERMISSION-REVOKE": 33135
+      },
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "hostTransitions": 22,
+      "naturalHostRebuilds": 0,
+      "initializationFailure": null,
+      "legacyRestorationProven": false
+    },
+    {
+      "version": "154.0.8037.92",
+      "environment": {
+        "version": "154.0.8037.92",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "executableSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+        "channel": "CfT Stable154",
+        "headed": true,
+        "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/profiles/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a",
+        "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+        "os": {
+          "platform": "darwin",
+          "release": "25.5.0",
+          "arch": "arm64"
+        },
+        "playwrightVersion": "1.62.1",
+        "fixtureIdentity": {
+          "id": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+          "manifest": {
+            "background": {
+              "service_worker": "sw.js"
+            },
+            "content_security_policy": {
+              "extension_pages": "script-src 'self'; object-src 'none'"
+            },
+            "host_permissions": [
+              "http://127.0.0.1/*",
+              "http://localhost/*"
+            ],
+            "manifest_version": 3,
+            "minimum_chrome_version": "138",
+            "name": "OpenDesk F1 userScripts v2 fixture",
+            "permissions": [
+              "userScripts",
+              "scripting",
+              "tabs",
+              "webNavigation"
+            ],
+            "version": "0.0.2"
+          }
+        }
+      },
+      "candidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+      "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/report.json",
+      "reportSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+      "evidenceFileCount": 34,
+      "caseCount": 85,
+      "PASS": 80,
+      "FAIL": 5,
+      "failedRequired": [
+        {
+          "id": "USER_SCRIPT-RAW-THROW",
+          "pass": false,
+          "required": true,
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": "USER_SCRIPT-RAW-REJECT",
+          "pass": false,
+          "required": true,
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": "MAIN-RAW-THROW",
+          "pass": false,
+          "required": true,
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": "MAIN-RAW-REJECT",
+          "pass": false,
+          "required": true,
+          "actual": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "502FEF6A0C05A5D72B75D04ABC6A49E8",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": null,
+                "hasError": false
+              }
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": "HOST-PERMISSION-REVOKE",
+          "pass": false,
+          "required": true,
+          "actual": null,
+          "error": {
+            "name": "Error",
+            "message": "page.evaluate: Error: You cannot remove required permissions.",
+            "stack": "page.evaluate: Error: You cannot remove required permissions.\n    at call (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:89:41)\n    at /Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:493:29\n    at async runCase (/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:104:24)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs:491:5"
+          }
+        }
+      ],
+      "caseInputAccounting": {
+        "rawAttempts": 100,
+        "nativeExecute": 99,
+        "unavailableBeforeNative": 1,
+        "resolvedAtCaseSnapshot": 84,
+        "rejectedAfterNative": 9,
+        "pendingAtCaseSnapshot": 6,
+        "adapterPrevalidationCases": 7,
+        "fixedMAINNativeScripting": 3
+      },
+      "finalHostTraceAccounting": {
+        "entries": 99,
+        "resolved": 90,
+        "rejected": 9,
+        "pending": 0,
+        "notFullLifetimeLedger": true
+      },
+      "allCaseIdsReviewed": [
+        "SWITCH-OFF",
+        "SWITCH-ON",
+        "USER_SCRIPT-RAW-PROMISE",
+        "USER_SCRIPT-RAW-UNDEFINED",
+        "USER_SCRIPT-CODE",
+        "USER_SCRIPT-ADAPTER-PROMISE",
+        "USER_SCRIPT-ADAPTER-THROW",
+        "USER_SCRIPT-ADAPTER-REJECT",
+        "USER_SCRIPT-ADAPTER-UNDEFINED",
+        "USER_SCRIPT-ADAPTER-TRUE",
+        "USER_SCRIPT-ADAPTER-FALSE",
+        "USER_SCRIPT-ADAPTER-ZERO",
+        "USER_SCRIPT-ADAPTER-EMPTY",
+        "USER_SCRIPT-ADAPTER-NULL",
+        "USER_SCRIPT-ADAPTER-BUSINESS",
+        "USER_SCRIPT-ADAPTER-CLOSURE",
+        "USER_SCRIPT-FILE",
+        "USER_SCRIPT-WORLD",
+        "USER_SCRIPT-LEGACY",
+        "USER_SCRIPT-DOCUMENT-TOP",
+        "USER_SCRIPT-DOCUMENT-SAME",
+        "USER_SCRIPT-DOCUMENT-CROSS",
+        "USER_SCRIPT-FILE-DOCUMENT-TOP",
+        "USER_SCRIPT-FILE-DOCUMENT-SAME",
+        "USER_SCRIPT-FILE-DOCUMENT-CROSS",
+        "MAIN-RAW-PROMISE",
+        "MAIN-RAW-UNDEFINED",
+        "MAIN-CODE",
+        "MAIN-ADAPTER-PROMISE",
+        "MAIN-ADAPTER-THROW",
+        "MAIN-ADAPTER-REJECT",
+        "MAIN-ADAPTER-UNDEFINED",
+        "MAIN-ADAPTER-TRUE",
+        "MAIN-ADAPTER-FALSE",
+        "MAIN-ADAPTER-ZERO",
+        "MAIN-ADAPTER-EMPTY",
+        "MAIN-ADAPTER-NULL",
+        "MAIN-ADAPTER-BUSINESS",
+        "MAIN-ADAPTER-CLOSURE",
+        "MAIN-FILE",
+        "MAIN-WORLD",
+        "MAIN-LEGACY",
+        "MAIN-DOCUMENT-TOP",
+        "MAIN-DOCUMENT-SAME",
+        "MAIN-DOCUMENT-CROSS",
+        "MAIN-FILE-DOCUMENT-TOP",
+        "MAIN-FILE-DOCUMENT-SAME",
+        "MAIN-FILE-DOCUMENT-CROSS",
+        "SOURCE-BOTH",
+        "SOURCE-NEITHER",
+        "SOURCE-FUNC-ARGS",
+        "TARGET-DOC-FRAME",
+        "SOURCE-MISSING-FILE",
+        "PRE-DISPATCH-NATIVE",
+        "PRE-DISPATCH-BOUND",
+        "PRE-DISPATCH-NONFINITE",
+        "PRE-DISPATCH-FUNCTIONARG",
+        "PRE-DISPATCH-BIGINT",
+        "PRE-DISPATCH-CYCLE",
+        "PRE-DISPATCH-MISSINGTARGET",
+        "PACKAGED-MAIN-CALLBACK",
+        "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT",
+        "USER_SCRIPT-OLD-DOCUMENT-RACE",
+        "MAIN-SWITCH-REVOKE-INFLIGHT",
+        "MAIN-OLD-DOCUMENT-RACE",
+        "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE",
+        "USER_SCRIPT-HOST-UI-REVOKE-RESTORE",
+        "USER_SCRIPT-HOST-UI-RACE-PENDING",
+        "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED",
+        "MAIN-SWITCH-REVOKE-AFTER-NATIVE",
+        "MAIN-HOST-UI-REVOKE-RESTORE",
+        "MAIN-HOST-UI-RACE-PENDING",
+        "MAIN-HOST-UI-RACE-NATIVE-COMPLETED",
+        "CSP-BASELINE-MAIN-PAGE",
+        "CSP-BASELINE-USER_SCRIPT-ALLOW",
+        "CSP-BASELINE-USER_SCRIPT-DENY",
+        "CSP-RESTRICTIVE-MAIN-PAGE",
+        "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW",
+        "CSP-RESTRICTIVE-USER_SCRIPT-DENY",
+        "HOST-PERMISSION-RESTORE",
+        "USER_SCRIPT-RAW-THROW",
+        "USER_SCRIPT-RAW-REJECT",
+        "MAIN-RAW-THROW",
+        "MAIN-RAW-REJECT",
+        "HOST-PERMISSION-REVOKE"
+      ],
+      "caseLineReferences": {
+        "SWITCH-OFF": 93,
+        "SWITCH-ON": 218,
+        "USER_SCRIPT-RAW-PROMISE": 301,
+        "USER_SCRIPT-RAW-UNDEFINED": 419,
+        "USER_SCRIPT-CODE": 531,
+        "USER_SCRIPT-ADAPTER-PROMISE": 793,
+        "USER_SCRIPT-ADAPTER-THROW": 967,
+        "USER_SCRIPT-ADAPTER-REJECT": 1117,
+        "USER_SCRIPT-ADAPTER-UNDEFINED": 1267,
+        "USER_SCRIPT-ADAPTER-TRUE": 1414,
+        "USER_SCRIPT-ADAPTER-FALSE": 1564,
+        "USER_SCRIPT-ADAPTER-ZERO": 1714,
+        "USER_SCRIPT-ADAPTER-EMPTY": 1864,
+        "USER_SCRIPT-ADAPTER-NULL": 2014,
+        "USER_SCRIPT-ADAPTER-BUSINESS": 2161,
+        "USER_SCRIPT-ADAPTER-CLOSURE": 2356,
+        "USER_SCRIPT-FILE": 2506,
+        "USER_SCRIPT-WORLD": 2629,
+        "USER_SCRIPT-LEGACY": 2747,
+        "USER_SCRIPT-DOCUMENT-TOP": 2859,
+        "USER_SCRIPT-DOCUMENT-SAME": 3035,
+        "USER_SCRIPT-DOCUMENT-CROSS": 3211,
+        "USER_SCRIPT-FILE-DOCUMENT-TOP": 3387,
+        "USER_SCRIPT-FILE-DOCUMENT-SAME": 3530,
+        "USER_SCRIPT-FILE-DOCUMENT-CROSS": 3673,
+        "MAIN-RAW-PROMISE": 3816,
+        "MAIN-RAW-UNDEFINED": 3934,
+        "MAIN-CODE": 4046,
+        "MAIN-ADAPTER-PROMISE": 4308,
+        "MAIN-ADAPTER-THROW": 4482,
+        "MAIN-ADAPTER-REJECT": 4632,
+        "MAIN-ADAPTER-UNDEFINED": 4782,
+        "MAIN-ADAPTER-TRUE": 4929,
+        "MAIN-ADAPTER-FALSE": 5079,
+        "MAIN-ADAPTER-ZERO": 5229,
+        "MAIN-ADAPTER-EMPTY": 5379,
+        "MAIN-ADAPTER-NULL": 5529,
+        "MAIN-ADAPTER-BUSINESS": 5676,
+        "MAIN-ADAPTER-CLOSURE": 5871,
+        "MAIN-FILE": 6021,
+        "MAIN-WORLD": 6144,
+        "MAIN-LEGACY": 6262,
+        "MAIN-DOCUMENT-TOP": 6374,
+        "MAIN-DOCUMENT-SAME": 6550,
+        "MAIN-DOCUMENT-CROSS": 6726,
+        "MAIN-FILE-DOCUMENT-TOP": 6902,
+        "MAIN-FILE-DOCUMENT-SAME": 7045,
+        "MAIN-FILE-DOCUMENT-CROSS": 7188,
+        "SOURCE-BOTH": 7331,
+        "SOURCE-NEITHER": 7444,
+        "SOURCE-FUNC-ARGS": 7554,
+        "TARGET-DOC-FRAME": 7667,
+        "SOURCE-MISSING-FILE": 7782,
+        "PRE-DISPATCH-NATIVE": 7894,
+        "PRE-DISPATCH-BOUND": 7956,
+        "PRE-DISPATCH-NONFINITE": 8018,
+        "PRE-DISPATCH-FUNCTIONARG": 8080,
+        "PRE-DISPATCH-BIGINT": 8142,
+        "PRE-DISPATCH-CYCLE": 8204,
+        "PRE-DISPATCH-MISSINGTARGET": 8266,
+        "PACKAGED-MAIN-CALLBACK": 8328,
+        "USER_SCRIPT-SWITCH-REVOKE-INFLIGHT": 8433,
+        "USER_SCRIPT-OLD-DOCUMENT-RACE": 8743,
+        "MAIN-SWITCH-REVOKE-INFLIGHT": 9111,
+        "MAIN-OLD-DOCUMENT-RACE": 9651,
+        "USER_SCRIPT-SWITCH-REVOKE-AFTER-NATIVE": 10019,
+        "USER_SCRIPT-HOST-UI-REVOKE-RESTORE": 11484,
+        "USER_SCRIPT-HOST-UI-RACE-PENDING": 13051,
+        "USER_SCRIPT-HOST-UI-RACE-NATIVE-COMPLETED": 15064,
+        "MAIN-SWITCH-REVOKE-AFTER-NATIVE": 17559,
+        "MAIN-HOST-UI-REVOKE-RESTORE": 20152,
+        "MAIN-HOST-UI-RACE-PENDING": 22979,
+        "MAIN-HOST-UI-RACE-NATIVE-COMPLETED": 26252,
+        "CSP-BASELINE-MAIN-PAGE": 30007,
+        "CSP-BASELINE-USER_SCRIPT-ALLOW": 30297,
+        "CSP-BASELINE-USER_SCRIPT-DENY": 30596,
+        "CSP-RESTRICTIVE-MAIN-PAGE": 30915,
+        "CSP-RESTRICTIVE-USER_SCRIPT-ALLOW": 31245,
+        "CSP-RESTRICTIVE-USER_SCRIPT-DENY": 31569,
+        "HOST-PERMISSION-RESTORE": 31912,
+        "USER_SCRIPT-RAW-THROW": 32179,
+        "USER_SCRIPT-RAW-REJECT": 32300,
+        "MAIN-RAW-THROW": 32412,
+        "MAIN-RAW-REJECT": 32533,
+        "HOST-PERMISSION-REVOKE": 32645
+      },
+      "cleanup": {
+        "resourceBaseline": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "fixtureResources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        },
+        "browserContextClosed": true,
+        "loopbackServerClosed": true,
+        "outstandingHolds": 0
+      },
+      "hostTransitions": 22,
+      "naturalHostRebuilds": 0,
+      "initializationFailure": null,
+      "legacyRestorationProven": false
+    }
+  ],
+  "integrity": {
+    "mismatches": [],
+    "checks": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.json",
+        "expectedSha256": "453d779d6a7d95f0a4e4214ad2ae01f84294ddf9b392ca9b74f9614b4debc0e4",
+        "actualSha256": "453d779d6a7d95f0a4e4214ad2ae01f84294ddf9b392ca9b74f9614b4debc0e4",
+        "match": true,
+        "kind": "checkpoint"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/m5-checkpoint-k1-2026-10-02.md",
+        "expectedSha256": "ff2c83d5794463e37f1a4670b8028536fc81256cbbbebe90f790d4ded38b0c37",
+        "actualSha256": "ff2c83d5794463e37f1a4670b8028536fc81256cbbbebe90f790d4ded38b0c37",
+        "match": true,
+        "kind": "checkpoint"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+        "expectedSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+        "actualSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+        "match": true,
+        "kind": "approvedPlanManifest"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+        "expectedSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+        "actualSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+        "match": true,
+        "kind": "currentSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+        "expectedSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+        "actualSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+        "match": true,
+        "kind": "currentSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+        "expectedSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+        "actualSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+        "match": true,
+        "kind": "currentSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+        "expectedSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+        "actualSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+        "match": true,
+        "kind": "currentSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+        "expectedSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+        "actualSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+        "match": true,
+        "kind": "currentSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+        "expectedSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+        "actualSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+        "match": true,
+        "kind": "currentSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+        "expectedSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+        "actualSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+        "match": true,
+        "kind": "currentSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/report.json",
+        "expectedSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+        "actualSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+        "match": true,
+        "kind": "authorFinalReport"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/candidate-manifest.json",
+        "expectedSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "actualSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "match": true,
+        "kind": "pageCandidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/evidence-manifest.json",
+        "expectedSha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7",
+        "actualSha256": "0a231b7cebda3c94e9a27f9ebceff350fdbb57ad590094c235c99f2b8069e1c7",
+        "match": true,
+        "kind": "authorEvidenceManifest"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/candidate-manifest.json",
+        "expectedSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "actualSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/cases-live.json",
+        "expectedSha256": "dac4f236d88ecddf0e0e440ec512269407ff9e1697a241d722ac22e103428c3d",
+        "actualSha256": "dac4f236d88ecddf0e0e440ec512269407ff9e1697a241d722ac22e103428c3d",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/console.json",
+        "expectedSha256": "c3b33d15557405dc7ec68a6c7fba61fe932ec295321b25297080e03485bf3c99",
+        "actualSha256": "c3b33d15557405dc7ec68a6c7fba61fe932ec295321b25297080e03485bf3c99",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/fixture-resources.json",
+        "expectedSha256": "f86f11805e495e796398b7ce6df7055fbc7a1a19765d0f487e8409797e87360d",
+        "actualSha256": "f86f11805e495e796398b7ce6df7055fbc7a1a19765d0f487e8409797e87360d",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/host-off-MAIN.png",
+        "expectedSha256": "b62f6f2f9cf1255766a38e32009378903cef31dee234dd401dd8e1497699bb6a",
+        "actualSha256": "b62f6f2f9cf1255766a38e32009378903cef31dee234dd401dd8e1497699bb6a",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/host-off-USER_SCRIPT.png",
+        "expectedSha256": "f1705049211b0794daeee877f327f5670870f29dd3f29ab3d80a25d54d517b26",
+        "actualSha256": "f1705049211b0794daeee877f327f5670870f29dd3f29ab3d80a25d54d517b26",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/host-on-MAIN.png",
+        "expectedSha256": "3f8ee398ee4cdf4089655fbf4c0f2c107c131cc8f76c604571599274c816a52a",
+        "actualSha256": "3f8ee398ee4cdf4089655fbf4c0f2c107c131cc8f76c604571599274c816a52a",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/host-on-USER_SCRIPT.png",
+        "expectedSha256": "8d4d9c648e36db64a4815a0fa0c29d090bce15d172f47044a43bb370053196eb",
+        "actualSha256": "8d4d9c648e36db64a4815a0fa0c29d090bce15d172f47044a43bb370053196eb",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/http.json",
+        "expectedSha256": "8b45c7c9ea45546908b2376aea120b1e9dc2310177770f8541d988896f554e43",
+        "actualSha256": "8b45c7c9ea45546908b2376aea120b1e9dc2310177770f8541d988896f554e43",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/initial-details.png",
+        "expectedSha256": "456ec60397a1bd1e2e0914029559b7f1ea2ca390db20be831d06f8610eda2ed0",
+        "actualSha256": "456ec60397a1bd1e2e0914029559b7f1ea2ca390db20be831d06f8610eda2ed0",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/owned-target.png",
+        "expectedSha256": "192b2702256e2df95a6368072cb76d4efe7f2e1e25073c36466f882ee71cc420",
+        "actualSha256": "192b2702256e2df95a6368072cb76d4efe7f2e1e25073c36466f882ee71cc420",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/packaged-main-callbacks.json",
+        "expectedSha256": "8195aa79f0f1874e971d987cd1dc50e7e905feb28ce9900af176d2a8374469f0",
+        "actualSha256": "8195aa79f0f1874e971d987cd1dc50e7e905feb28ce9900af176d2a8374469f0",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/queued-native-observations.json",
+        "expectedSha256": "824fbe078ece9c1ba1d8fa0e7df0332d17c6bde8a15608239f2e8648ce8795e0",
+        "actualSha256": "824fbe078ece9c1ba1d8fa0e7df0332d17c6bde8a15608239f2e8648ce8795e0",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-off-native-completed-MAIN.png",
+        "expectedSha256": "987cfad9e614d18f87d0b49f3ef229654dbaf33b5307d750adac195a082b7c46",
+        "actualSha256": "987cfad9e614d18f87d0b49f3ef229654dbaf33b5307d750adac195a082b7c46",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-off-native-completed-USER_SCRIPT.png",
+        "expectedSha256": "184d51ef3e40476d5a90b18054316c1586ad64e64113e31c4e6cc853a73549b2",
+        "actualSha256": "184d51ef3e40476d5a90b18054316c1586ad64e64113e31c4e6cc853a73549b2",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-off-pending-MAIN.png",
+        "expectedSha256": "a3ee831e535f18811e8ad2568660d3cf1f1c05293924526ab53d975f8fced47d",
+        "actualSha256": "a3ee831e535f18811e8ad2568660d3cf1f1c05293924526ab53d975f8fced47d",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-off-pending-USER_SCRIPT.png",
+        "expectedSha256": "8353ba215fd906d73138cd5f5deec784dead579275e00ec4cfdde7e8cf3d6907",
+        "actualSha256": "8353ba215fd906d73138cd5f5deec784dead579275e00ec4cfdde7e8cf3d6907",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-on-native-completed-MAIN.png",
+        "expectedSha256": "72b73569b57c063eb9177c43f00f27714f8d0dd89811a4e438177e15fade9ec3",
+        "actualSha256": "72b73569b57c063eb9177c43f00f27714f8d0dd89811a4e438177e15fade9ec3",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-on-native-completed-USER_SCRIPT.png",
+        "expectedSha256": "944a6c06e6efee4f3ca20b111b45151965b2fe0b6bb1732c4a9a04e668135af1",
+        "actualSha256": "944a6c06e6efee4f3ca20b111b45151965b2fe0b6bb1732c4a9a04e668135af1",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-on-pending-MAIN.png",
+        "expectedSha256": "c3467a759decf8d27571b0d6aab63dc3f62de55233234a9ffa259c324f99afa9",
+        "actualSha256": "c3467a759decf8d27571b0d6aab63dc3f62de55233234a9ffa259c324f99afa9",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/race-on-pending-USER_SCRIPT.png",
+        "expectedSha256": "b8c4bc5f8e10e767d5facd6200f1ee1fff477a672683271804c24e86a032147b",
+        "actualSha256": "b8c4bc5f8e10e767d5facd6200f1ee1fff477a672683271804c24e86a032147b",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/raw-injections.json",
+        "expectedSha256": "666b1d5caf5e3373003d9408fa38652a074783bc3d7b910702f6758b2d536a0c",
+        "actualSha256": "666b1d5caf5e3373003d9408fa38652a074783bc3d7b910702f6758b2d536a0c",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/re-enabled-MAIN.png",
+        "expectedSha256": "123f35b9fef01b0b193e37c4ff6b40b2422cf204dcfe4dd17d257c813b94a4e7",
+        "actualSha256": "123f35b9fef01b0b193e37c4ff6b40b2422cf204dcfe4dd17d257c813b94a4e7",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/re-enabled-USER_SCRIPT.png",
+        "expectedSha256": "d2dbd53c148fed0cc575f0a3a2a2d1d418263936ab571fe7eba31ca14111c093",
+        "actualSha256": "d2dbd53c148fed0cc575f0a3a2a2d1d418263936ab571fe7eba31ca14111c093",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/report.json",
+        "expectedSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+        "actualSha256": "9ce8963db227431f8bfd4ce4e45ba44d25970b4c4604a138b461e893bd9557e5",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/results.png",
+        "expectedSha256": "1668964920272b48490ccc7dbe7a2421a433cab248fbe1df1c39a54b1c063548",
+        "actualSha256": "1668964920272b48490ccc7dbe7a2421a433cab248fbe1df1c39a54b1c063548",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/revoke-MAIN.png",
+        "expectedSha256": "dc095b8958328d07eb742b40a7d8ea6576cd38f02fea143d86edc21f8484ec06",
+        "actualSha256": "dc095b8958328d07eb742b40a7d8ea6576cd38f02fea143d86edc21f8484ec06",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/revoke-USER_SCRIPT.png",
+        "expectedSha256": "9d28287a8a4aa3f17d87839e927bacf79378ced4decad46b8f1cfa759928964a",
+        "actualSha256": "9d28287a8a4aa3f17d87839e927bacf79378ced4decad46b8f1cfa759928964a",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-after-native-off-MAIN.png",
+        "expectedSha256": "da419c11428fcbfa47f29e2a8eb7d39e21df22b2e1c7cc9ab337a43b658b3572",
+        "actualSha256": "da419c11428fcbfa47f29e2a8eb7d39e21df22b2e1c7cc9ab337a43b658b3572",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-after-native-off-USER_SCRIPT.png",
+        "expectedSha256": "5dbd13c5b895e735d5adfd9e29609ec760dd4decb16f3ab8671fd3989bdf0b73",
+        "actualSha256": "5dbd13c5b895e735d5adfd9e29609ec760dd4decb16f3ab8671fd3989bdf0b73",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-after-native-on-MAIN.png",
+        "expectedSha256": "02f2bbe08d699e58afc37e8a3234800d20df89fe26c189a093e11d43133fec22",
+        "actualSha256": "02f2bbe08d699e58afc37e8a3234800d20df89fe26c189a093e11d43133fec22",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-after-native-on-USER_SCRIPT.png",
+        "expectedSha256": "239234b09bd8762fec8aeedbf81b9e0ab068d858dee2d13bce69420a49cea7b3",
+        "actualSha256": "239234b09bd8762fec8aeedbf81b9e0ab068d858dee2d13bce69420a49cea7b3",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-off.png",
+        "expectedSha256": "823174a6c1609d714d947b612e7b00bf34fd8498c82397ebd9d936eb0705fad1",
+        "actualSha256": "823174a6c1609d714d947b612e7b00bf34fd8498c82397ebd9d936eb0705fad1",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-208Z-m5-final-138-r4-801068af/switch-on.png",
+        "expectedSha256": "5e65ffef5ec3009eda3c67fa04d54ce6ea7a98a30a4cbf56bc163b2a3462403f",
+        "actualSha256": "5e65ffef5ec3009eda3c67fa04d54ce6ea7a98a30a4cbf56bc163b2a3462403f",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+        "expectedSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+        "actualSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+        "expectedSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+        "actualSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+        "expectedSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+        "actualSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+        "expectedSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+        "actualSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+        "expectedSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+        "actualSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+        "expectedSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+        "actualSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+        "expectedSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+        "actualSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+        "expectedSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+        "actualSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/execution-plan.md",
+        "expectedSha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+        "actualSha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json",
+        "expectedSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+        "actualSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/goal-constraints.md",
+        "expectedSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+        "actualSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+        "expectedSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+        "actualSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+        "expectedSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+        "actualSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "expectedSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+        "actualSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+        "match": true,
+        "kind": "binary"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/report.json",
+        "expectedSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+        "actualSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+        "match": true,
+        "kind": "authorFinalReport"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/candidate-manifest.json",
+        "expectedSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "actualSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "match": true,
+        "kind": "pageCandidate"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/evidence-manifest.json",
+        "expectedSha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790",
+        "actualSha256": "420d67d3970377f1dcca7732a4eb91c7b35f3582f4464680fc6e5a1218558790",
+        "match": true,
+        "kind": "authorEvidenceManifest"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/candidate-manifest.json",
+        "expectedSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "actualSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/cases-live.json",
+        "expectedSha256": "4e848d67618d46b9113c76d73f9eb1b4eb59cd6df38e06c6f039f7cb1a02080c",
+        "actualSha256": "4e848d67618d46b9113c76d73f9eb1b4eb59cd6df38e06c6f039f7cb1a02080c",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/console.json",
+        "expectedSha256": "173c35b0bcc4ce69e77d2fcb6190db7a99b77e789e37c7dfa71f69f57cc5d3b6",
+        "actualSha256": "173c35b0bcc4ce69e77d2fcb6190db7a99b77e789e37c7dfa71f69f57cc5d3b6",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/fixture-resources.json",
+        "expectedSha256": "f86f11805e495e796398b7ce6df7055fbc7a1a19765d0f487e8409797e87360d",
+        "actualSha256": "f86f11805e495e796398b7ce6df7055fbc7a1a19765d0f487e8409797e87360d",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/host-off-MAIN.png",
+        "expectedSha256": "ab368db495d8399aa5436091c86fe4333b0f7c947bc60012ca273f685383c271",
+        "actualSha256": "ab368db495d8399aa5436091c86fe4333b0f7c947bc60012ca273f685383c271",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/host-off-USER_SCRIPT.png",
+        "expectedSha256": "65950fc407fd9694dd0b4c6bdb9b20e3bb0f41f1b720504fd583b1d399547e87",
+        "actualSha256": "65950fc407fd9694dd0b4c6bdb9b20e3bb0f41f1b720504fd583b1d399547e87",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/host-on-MAIN.png",
+        "expectedSha256": "06a9e20d96f2563e19e3961fbeb33d3e97ce46751cf75f33f45fb9c9ca1ec905",
+        "actualSha256": "06a9e20d96f2563e19e3961fbeb33d3e97ce46751cf75f33f45fb9c9ca1ec905",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/host-on-USER_SCRIPT.png",
+        "expectedSha256": "672e8237e323be901f91a93b27fe98f3bbae1f3095249c16b31aa76d24eb2998",
+        "actualSha256": "672e8237e323be901f91a93b27fe98f3bbae1f3095249c16b31aa76d24eb2998",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/http.json",
+        "expectedSha256": "82967772bd4388723c26fa7ed3014bd1801f659b1f98bcf1d19943cd9d17b5f2",
+        "actualSha256": "82967772bd4388723c26fa7ed3014bd1801f659b1f98bcf1d19943cd9d17b5f2",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/initial-details.png",
+        "expectedSha256": "07a0870d59709701267d95079da5899f417d1edb2bc2d31f609832d71fb98f50",
+        "actualSha256": "07a0870d59709701267d95079da5899f417d1edb2bc2d31f609832d71fb98f50",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/owned-target.png",
+        "expectedSha256": "7584fc4a8e04cfb5ddc92fad3340790a57bc7c8b8af02fcfdb1099e69805bd93",
+        "actualSha256": "7584fc4a8e04cfb5ddc92fad3340790a57bc7c8b8af02fcfdb1099e69805bd93",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/packaged-main-callbacks.json",
+        "expectedSha256": "561e77d9009d80848d88fac3ab26fcb25e1969f110b40d16130a8aae6b6a725e",
+        "actualSha256": "561e77d9009d80848d88fac3ab26fcb25e1969f110b40d16130a8aae6b6a725e",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/queued-native-observations.json",
+        "expectedSha256": "fc61adccb35e0bac32e4c9d653a33b4d794744e1c20285d6630cc60574535032",
+        "actualSha256": "fc61adccb35e0bac32e4c9d653a33b4d794744e1c20285d6630cc60574535032",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-off-native-completed-MAIN.png",
+        "expectedSha256": "dcedb7c3f1fc9be6a7e55d31963b225639d23aaa56a1fc61e3738e9216deb3d7",
+        "actualSha256": "dcedb7c3f1fc9be6a7e55d31963b225639d23aaa56a1fc61e3738e9216deb3d7",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-off-native-completed-USER_SCRIPT.png",
+        "expectedSha256": "361445a7e12688e0a6d257ca9066a1a97a700b6e8c3a4143b48389425d40ba88",
+        "actualSha256": "361445a7e12688e0a6d257ca9066a1a97a700b6e8c3a4143b48389425d40ba88",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-off-pending-MAIN.png",
+        "expectedSha256": "60fd2318e159d671494a7cf2c13e3ba72f680a505adcb77d541b2c843c720ce2",
+        "actualSha256": "60fd2318e159d671494a7cf2c13e3ba72f680a505adcb77d541b2c843c720ce2",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-off-pending-USER_SCRIPT.png",
+        "expectedSha256": "81b0244d2b22b2caac86025231cf078a78ccda303d85e92919586ba72fd98631",
+        "actualSha256": "81b0244d2b22b2caac86025231cf078a78ccda303d85e92919586ba72fd98631",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-on-native-completed-MAIN.png",
+        "expectedSha256": "05e0e92754e92e9a135120e907469625a5df41a82e94ded6bb22a9febd64fe10",
+        "actualSha256": "05e0e92754e92e9a135120e907469625a5df41a82e94ded6bb22a9febd64fe10",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-on-native-completed-USER_SCRIPT.png",
+        "expectedSha256": "c0314650ecce591faa11c1bff3642006496c70eb3ce84a4c39eb33e1d97e125c",
+        "actualSha256": "c0314650ecce591faa11c1bff3642006496c70eb3ce84a4c39eb33e1d97e125c",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-on-pending-MAIN.png",
+        "expectedSha256": "d2e506837b9f75f246ab04798813d4a3fc7424ca1b52f5748d653cfcb3429288",
+        "actualSha256": "d2e506837b9f75f246ab04798813d4a3fc7424ca1b52f5748d653cfcb3429288",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/race-on-pending-USER_SCRIPT.png",
+        "expectedSha256": "52bed6ae57f8088598de6eaac0f2c64bc20439876d7557ff1f03f4fb74cbf96e",
+        "actualSha256": "52bed6ae57f8088598de6eaac0f2c64bc20439876d7557ff1f03f4fb74cbf96e",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/raw-injections.json",
+        "expectedSha256": "44797f34f6a11cc9feba8da27769f0d74ca4be1215a3eef33682865306a27867",
+        "actualSha256": "44797f34f6a11cc9feba8da27769f0d74ca4be1215a3eef33682865306a27867",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/re-enabled-MAIN.png",
+        "expectedSha256": "8b53193bdccd133fb43ae4d6c963a6f750dc748e85ffefabba5206fadd233c75",
+        "actualSha256": "8b53193bdccd133fb43ae4d6c963a6f750dc748e85ffefabba5206fadd233c75",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/re-enabled-USER_SCRIPT.png",
+        "expectedSha256": "53b2fc10c42170ab0df23da8c6a8f7328b59de93a579266f5ec087d422e7e9a8",
+        "actualSha256": "53b2fc10c42170ab0df23da8c6a8f7328b59de93a579266f5ec087d422e7e9a8",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/report.json",
+        "expectedSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+        "actualSha256": "fde6cca62d3325d1a3aaceb6a0cb6719aec283ea5215f2c8d8d992ca506cf736",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/results.png",
+        "expectedSha256": "7010f6b0402b654671906c733a2026e3f5a1749b3cd32addf7bb5ac4a22824fe",
+        "actualSha256": "7010f6b0402b654671906c733a2026e3f5a1749b3cd32addf7bb5ac4a22824fe",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/revoke-MAIN.png",
+        "expectedSha256": "adf0b76e15ee3cb2eee4095118d84f6e17e32aff6f19d9870a71128f9a2d19a4",
+        "actualSha256": "adf0b76e15ee3cb2eee4095118d84f6e17e32aff6f19d9870a71128f9a2d19a4",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/revoke-USER_SCRIPT.png",
+        "expectedSha256": "4be4b0c9203c09791541c5c95b3ec4e909c26911d834ff29fc3e97dcb2bbb603",
+        "actualSha256": "4be4b0c9203c09791541c5c95b3ec4e909c26911d834ff29fc3e97dcb2bbb603",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-after-native-off-MAIN.png",
+        "expectedSha256": "771d67ec76892bcaa1ecb823fd2ffae25f6d48399cf35cb2906d2313d9abb2c7",
+        "actualSha256": "771d67ec76892bcaa1ecb823fd2ffae25f6d48399cf35cb2906d2313d9abb2c7",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-after-native-off-USER_SCRIPT.png",
+        "expectedSha256": "aa1a59e3ff67ff5a4131c60d182ac31cdb8f0c5d0f410f305367455609e6a9d2",
+        "actualSha256": "aa1a59e3ff67ff5a4131c60d182ac31cdb8f0c5d0f410f305367455609e6a9d2",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-after-native-on-MAIN.png",
+        "expectedSha256": "6e1c1bdc752375e4f95dbb97ed925ecd18e51f11713df3e75308f29f9cdf0c57",
+        "actualSha256": "6e1c1bdc752375e4f95dbb97ed925ecd18e51f11713df3e75308f29f9cdf0c57",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-after-native-on-USER_SCRIPT.png",
+        "expectedSha256": "9e2984e2cb15eac652b20e42b7ea169882124eaae30e3e3e9c8dcb82096dab19",
+        "actualSha256": "9e2984e2cb15eac652b20e42b7ea169882124eaae30e3e3e9c8dcb82096dab19",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-off.png",
+        "expectedSha256": "1004056a4618d9c56de26731905346b8e9ec8f8bf9573bdd5058f5a3c58f1521",
+        "actualSha256": "1004056a4618d9c56de26731905346b8e9ec8f8bf9573bdd5058f5a3c58f1521",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/m5-2026-10-02T19-51-32-210Z-m5-final-154-r4-4bad238a/switch-on.png",
+        "expectedSha256": "622e609736dba1fc43333808a8cd46aaaaf2a26e03e38cd17816660bd4438cab",
+        "actualSha256": "622e609736dba1fc43333808a8cd46aaaaf2a26e03e38cd17816660bd4438cab",
+        "match": true,
+        "kind": "authorEvidenceFile"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+        "expectedSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+        "actualSha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+        "expectedSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+        "actualSha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+        "expectedSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+        "actualSha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+        "expectedSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+        "actualSha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+        "expectedSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+        "actualSha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+        "expectedSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+        "actualSha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+        "expectedSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+        "actualSha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+        "match": true,
+        "kind": "candidateSource"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/candidate-manifest.json",
+        "expectedSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+        "actualSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/execution-plan.md",
+        "expectedSha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+        "actualSha256": "2acf8728068d9b56c35301f581734d1e22c77df81c7043767fe8d542ef6aeb6d",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json",
+        "expectedSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+        "actualSha256": "3531feacced1fc6f26fd878027c2d0c307d0fe80c9c79cd21f1cd5043db23ffb",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/goal-constraints.md",
+        "expectedSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+        "actualSha256": "d1cc79d6fbbc757004b07e256a3a544cfbd9e15e82a2be8a083c1667a86e51e3",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+        "expectedSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+        "actualSha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+        "expectedSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+        "actualSha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+        "match": true,
+        "kind": "frozenInput"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "expectedSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+        "actualSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+        "match": true,
+        "kind": "binary"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-16-35-242Z-installed-cft-149-221265ae/report.json",
+        "expectedSha256": "4b29a0174922ef2d00297c291234501d94f873fa972cc74be3ef43f15104173f",
+        "actualSha256": "4b29a0174922ef2d00297c291234501d94f873fa972cc74be3ef43f15104173f",
+        "match": true,
+        "kind": "preservedHistoricalReport"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-17-39-461Z-installed-cft-149-1853a61f/report.json",
+        "expectedSha256": "6ced4003058d5e18dbf020c4428ad2a15b480228c4456fadd6dbb11ee3802da5",
+        "actualSha256": "6ced4003058d5e18dbf020c4428ad2a15b480228c4456fadd6dbb11ee3802da5",
+        "match": true,
+        "kind": "preservedHistoricalReport"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-06-447Z-installed-cft-149-90b95412/report.json",
+        "expectedSha256": "3adecb50d4b5bff416717fd81895bbbd1a8faaedd09865d614c0cc76c12b8d71",
+        "actualSha256": "3adecb50d4b5bff416717fd81895bbbd1a8faaedd09865d614c0cc76c12b8d71",
+        "match": true,
+        "kind": "preservedHistoricalReport"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/evidence/2026-10-02T15-18-28-823Z-installed-cft-149-689ca983/report.json",
+        "expectedSha256": "0e998d297d234978ad67f1c3a2c737bbb03b3fcee80ce30021e07daf424a1203",
+        "actualSha256": "0e998d297d234978ad67f1c3a2c737bbb03b3fcee80ce30021e07daf424a1203",
+        "match": true,
+        "kind": "preservedHistoricalReport"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/checkpoint.json",
+        "expectedSha256": "1fcc9b312d74df6325cacb1065bf656fc692146cf961a049e534c065b84af3e8",
+        "actualSha256": "1fcc9b312d74df6325cacb1065bf656fc692146cf961a049e534c065b84af3e8",
+        "match": true,
+        "kind": "preservedHistoricalCheckpoint"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/user-scripts-v2/checkpoint.md",
+        "expectedSha256": "a39cceeac532f17efa121598418aaca14bb120d19bb4c87cd0409fadb9006739",
+        "actualSha256": "a39cceeac532f17efa121598418aaca14bb120d19bb4c87cd0409fadb9006739",
+        "match": true,
+        "kind": "preservedHistoricalCheckpoint"
+      }
+    ],
+    "all68AuthorEvidenceFilesVerified": true,
+    "historical4ReportsAnd2CheckpointsMatch": true,
+    "freshProbeAllFrozenSourcesUnchanged": true,
+    "remainingOwnedBrowserProcesses": []
+  },
+  "contractCoverage": [
+    {
+      "id": "F1-CTRL-USER-ASYNC",
+      "required": true,
+      "provisionalArchitecturalDisposition": "NOT_REVIEWED_FINAL_CONTROL",
+      "expected": "actual user body compiles only inside Worker; awaited page calls in order; BaseAlice; actual values/error/syntax; no operation on unauthorized origin",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-CTRL-PRIVATE-CHANNEL",
+      "required": true,
+      "provisionalArchitecturalDisposition": "NOT_REVIEWED_FINAL_CONTROL",
+      "expected": "reject attacks without true completion or extra page effect; true current run works; captured harness primitives remain safe; no extension API/DOM accessible",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-CTRL-CSP-NETWORK",
+      "required": true,
+      "provisionalArchitecturalDisposition": "NOT_REVIEWED_FINAL_CONTROL",
+      "expected": "record real policy/CSP violation and positive reachability; denied direct network classified by evidence (not CORS inference); no allow-same-origin/SW eval or privileged fallback",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-CTRL-TRUE-TERMINATE",
+      "required": true,
+      "provisionalArchitecturalDisposition": "PENDING_FINAL_CONTROL_WITH_OBSERVATION_BLOCKERS",
+      "expected": "loop entered; admission closed; browser independently observes Worker gone/CPU execution stopped within test 2s; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union",
+      "pendingRound5Expected": "loop entered; admission closed; browser independently proves the exact run Worker stops executing and its target is destroyed within 3s of the actual host cancellation/deadline trigger (native Chromium two-second force-termination grace plus one-second observation/scheduling allowance); admission closes immediately, no debugger is attached to the loop Worker; initial loop CPU growth and post-stop quiescence are independently observed; host responsive; no late action; counters not sole proof; collect new unaffected control with actual failed old observation preserved",
+      "expectedCapturedFromRound4": true
+    },
+    {
+      "id": "F1-CTRL-RESOURCE",
+      "required": true,
+      "provisionalArchitecturalDisposition": "NOT_REVIEWED_FINAL_CONTROL",
+      "expected": "compare actual independent observations before/after and revoked URL load failure; all per-run resources return baseline; later valid run works; preserve old manually counted partial proof",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-PAGE-SOURCE-DOC",
+      "required": true,
+      "provisionalArchitecturalDisposition": "CLEAR",
+      "expected": "real execute uses tabId+documentIds only; selected document altered; others unchanged; invalid rejects without dispatch; returned documentId matches; old document cannot mutate fresh",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-PAGE-TYPED-RESULTS",
+      "required": true,
+      "provisionalArchitecturalDisposition": "CLEAR",
+      "expected": "wrapper awaits/returns typed false/0/empty/null/undefined; actual throw/rejection/closure error once; business PageBrigeCode unchanged; unsupported args/source reject predispatch; native diagnostics distinct, no claim native error fields all work",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-PAGE-NATIVE-DIAGNOSTICS",
+      "required": true,
+      "provisionalArchitecturalDisposition": "CLEAR_DIAGNOSTIC_DISPOSITION_RAW_FAIL_UNCHANGED",
+      "expected": "save actual raw API resolved/rejected/error/result shape in each version, keep all historical failure objects immutable; classify separately from wrapper; independent F1 reviewer must close effect on promised API contract, no silent pass replacement",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-PAGE-AUTH-CSP",
+      "required": true,
+      "provisionalArchitecturalDisposition": "BLOCK",
+      "expected": "real browser UI change confirmed by actual permission/API+mutation negative controls; new operations reject while revoked; pending effects may occur but old result fenced; restore only after actual revoke; no permissions.remove required workaround false proof",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-PAGE-OLD-DOC-RACE",
+      "required": true,
+      "provisionalArchitecturalDisposition": "CLEAR",
+      "expected": "old pending result/old callback rejected and cannot settle new request; new real document call works; original target/from-to recorded where navigation adapter applies; no assumed world/run sender fields",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-SW-AND-PAGE-LOOP",
+      "required": true,
+      "provisionalArchitecturalDisposition": "NOT_REVIEWED_FINAL_CONTROL",
+      "expected": "long controller not moved SW; reconnect identity/epoch validated; MAIN loop no false terminate guarantee, only owned tab retirement allowed; borrowed tabs not closed",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    },
+    {
+      "id": "F1-VERSION-MATRIX",
+      "required": true,
+      "provisionalArchitecturalDisposition": "PENDING_UNION_AND_BLOCKED_PAGE_AUTH",
+      "expected": "per binary real complete required matrix; 149 local evidence insufficient; minimum cannot infer from manifest120; inability/failure138 requires explicit scope delta and independent renewed approval before manifest range narrowing",
+      "note": "page-only dispositions are not approval of all twelve contracts or final union"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "ARCH-PAGE-01",
+      "severity": "BLOCK",
+      "confidence": "high",
+      "contract": "F1-PAGE-AUTH-CSP",
+      "summary": "Transient actual Allow User Scripts OFF→ON permits old native-completed result acceptance when runner does not manufacture an operation fence.",
+      "contractRef": "docs/framework/stage0/f1-cases.json:284",
+      "sourceRefs": [
+        "tests/prototypes/user-scripts-v2/fixture/host.js:10",
+        "tests/prototypes/user-scripts-v2/fixture/host.js:51",
+        "tests/prototypes/user-scripts-v2/fixture/host.js:108",
+        "tests/prototypes/user-scripts-v2/run-headed.mjs:411",
+        "tests/prototypes/user-scripts-v2/fixture/adapter.js:64"
+      ],
+      "independentEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/report.json",
+      "evidenceLines": [
+        49,
+        294,
+        311,
+        556,
+        1492,
+        1743,
+        1760,
+        2011
+      ],
+      "observed": [
+        {
+          "version": "138.0.7204.183",
+          "world": "USER_SCRIPT",
+          "offAvailability": false,
+          "sameHostTimeOrigin": true,
+          "offPermissionEvents": [],
+          "accepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "fence": null,
+          "injectedOperationRecheck": false
+        },
+        {
+          "version": "138.0.7204.183",
+          "world": "MAIN",
+          "offAvailability": false,
+          "sameHostTimeOrigin": true,
+          "offPermissionEvents": [],
+          "accepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "fence": null,
+          "injectedOperationRecheck": false
+        },
+        {
+          "version": "154.0.8037.92",
+          "world": "USER_SCRIPT",
+          "offAvailability": false,
+          "sameHostTimeOrigin": true,
+          "offPermissionEvents": [],
+          "accepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "fence": null,
+          "injectedOperationRecheck": false
+        },
+        {
+          "version": "154.0.8037.92",
+          "world": "MAIN",
+          "offAvailability": false,
+          "sameHostTimeOrigin": true,
+          "offPermissionEvents": [],
+          "accepted": {
+            "kind": "value",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          "fence": null,
+          "injectedOperationRecheck": false
+        }
+      ],
+      "positiveControl": "Same real site-permission revoke/restore without fixture.recheck rejects old results via chrome.permissions.onRemoved in both versions/worlds.",
+      "rootCause": "Browser switch availability is checked only at admission/settlement; OFF history is not latched. onRemoved handles only origins; runner recheck explicitly writes fence. Current true state cannot prove uninterrupted authorization.",
+      "requiredRepair": [
+        "Implement and prove an operation-owned browser-backed revocation/incarnation invalidation path; do not rely on runner recheck or move its effect into a passive observer.",
+        "Keep granted-again operations separate from old pending operations. Real UI OFF/ON must prevent acceptance of old native-completed and pending outcomes in both worlds/versions, with no test-injected fence.",
+        "If browser provides no reliable history signal for a transient change, record the limitation and keep this contract blocked; periodic checks alone cannot prove every OFF/ON interval. Do not silently narrow the contract.",
+        "Freeze changed page sources and affected evidence in a new candidate, preserve all historical FAIL, then review the final union candidate."
+      ]
+    }
+  ],
+  "nativeDiagnosticDisposition": {
+    "contract": "F1-PAGE-NATIVE-DIAGNOSTICS",
+    "architecture": "CLEAR for recording/classification; native historical expectations still FAIL",
+    "actualBothWorldsBothVersions": {
+      "promiseOutcome": "resolved",
+      "result": null,
+      "hasError": false,
+      "rawUndefinedAlsoNull": true
+    },
+    "impactOnPromisedWrapper": "No automatic disqualification: fn invocation, await and result encoding occur inside wrapper try/catch; genuine throws/rejections yield an explicit protocol error envelope. Host checks exact document and envelope before accepting. Raw result:null missing envelope is rejected as E_RESULT_CODEC. Never infer native error support from wrapper success.",
+    "refs": [
+      "docs/framework/stage0/f1-cases.json:247",
+      "docs/framework/execution-plan.md:77",
+      "tests/prototypes/user-scripts-v2/fixture/adapter.js:43",
+      "tests/prototypes/user-scripts-v2/fixture/adapter.js:77"
+    ],
+    "nativePermissionDisposition": "Required remove error remains FAIL; actual UI host revoke/restore has native permission/event and mutation evidence. Direct native calls withheld at 1s remain pending and later resolve null on old doc disposal. Wrapper admission rejects before dispatch; it is a separate claim, not native cancellation.",
+    "legacyFailureRewritten": false
+  },
+  "watches": [
+    {
+      "id": "ARCH-PAGE-W01",
+      "topic": "MAIN world shared intrinsics",
+      "refs": [
+        "tests/prototypes/user-scripts-v2/fixture/adapter.js:4",
+        "tests/prototypes/user-scripts-v2/fixture/adapter.js:25"
+      ],
+      "note": "MAIN result wrapper is page-controlled, using Object/Array/Number/String and user code shared realm. No privilege escalation shown; accepted page data is not an authority receipt or trusted broker evidence. USER_SCRIPT isolation is separately evidenced. This review does not promise tamper-proof MAIN results."
+    },
+    {
+      "id": "ARCH-PAGE-W02",
+      "topic": "Resource evidence scope",
+      "refs": [
+        "tests/prototypes/user-scripts-v2/fixture/host.js:4",
+        "tests/prototypes/user-scripts-v2/fixture/host.js:104",
+        "tests/prototypes/user-scripts-v2/fixture/host.js:117"
+      ],
+      "note": "Active pending/barrier/timer/rawPending return to zero and owned contexts/HTTP server close. Settled operations and traces remain evidence records in Maps/arrays until context disposal; not proof of long-lived F2/F3 baseline or effect-once."
+    },
+    {
+      "id": "ARCH-PAGE-W03",
+      "topic": "Natural host rebuild",
+      "note": "22 actual UI transitions per author version did not rebuild host document/timeOrigin. Reconnect recovery branch unobserved, not PASS."
+    }
+  ],
+  "controlOracleAdvisory": {
+    "finalVerdict": "not issued; control not frozen; supplemental only",
+    "contract": "F1-CTRL-TRUE-TERMINATE",
+    "contractRef": "docs/framework/stage0/f1-cases.json:103",
+    "openedNonFinalReport": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-57-31.381Z/report.json",
+    "openedNonFinalReportSha256": "99861cf2a654bcf0f9d3f71645a8c94b2e3e64d4770183b92dc8891780011730",
+    "openedNonFinalCases": [
+      {
+        "id": "F1-INFINITE-LOOP-STOP",
+        "status": "FAIL",
+        "removalMilliseconds": 2011,
+        "loopCPU": 0.3770379999999999,
+        "afterCPU": 0,
+        "loopTarget": {
+          "targetId": "CD5077A970034FEC17849E0E432EC36F",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "839DF174B17AC058252411EFE1AED6B1"
+        },
+        "destroyed": {
+          "method": "Target.targetDestroyed",
+          "params": {
+            "targetId": "CD5077A970034FEC17849E0E432EC36F"
+          },
+          "observedAt": 1790971056361
+        }
+      },
+      {
+        "id": "F1-INFINITE-LOOP-DEADLINE",
+        "status": "FAIL",
+        "removalMilliseconds": null,
+        "loopCPU": 0.3746649999999999,
+        "afterCPU": 0.0006179999999999866,
+        "loopTarget": {
+          "targetId": "C26BDBCC86C909D4EDADBE0F0675A38D",
+          "type": "worker",
+          "title": "",
+          "url": "",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "839DF174B17AC058252411EFE1AED6B1"
+        },
+        "destroyed": {
+          "method": "Target.targetDestroyed",
+          "params": {
+            "targetId": "C26BDBCC86C909D4EDADBE0F0675A38D"
+          },
+          "observedAt": 1790971059743
+        }
+      }
+    ],
+    "selectedSourceAtReview": {
+      "runNativeSha256": "a58ef57a688a1956325a4282a3708ef9ac66f97be5e08b6821aa1fab32f7f23f",
+      "hostSha256": "43347966021dc2f8e2cdccdeeb8552ab0bb437924d70e8a7c00fa389dc770c31"
+    },
+    "sourceRefs": [
+      "tests/prototypes/user-control-v2/run-native.mjs:108",
+      "tests/prototypes/user-control-v2/run-native.mjs:206",
+      "tests/prototypes/user-control-v2/run-native.mjs:207",
+      "tests/prototypes/user-control-v2/run-native.mjs:211",
+      "tests/prototypes/user-control-v2/run-native.mjs:223",
+      "tests/prototypes/user-control-v2/fixture/host.js:58"
+    ],
+    "conditionalInterpretation": "The approved Worker gone/CPU execution stopped language permits independent proof of actual execution cessation within 2s; delayed CDP descriptor metadata need not be equated with live execution. This is an evidentiary distinction only, not permission to relax 2s or rewrite expectations. Exact Worker-associated execution evidence is mandatory.",
+    "currentHighestRendererHeuristicSufficient": false,
+    "reasons": [
+      "Highest renderer cumulative CPU delta is not a mapping from the exact private run/Blob target to an OS process/thread. Fresh profile still has multiple renderer processes and other runnable JS.",
+      "busyRenderer.delta>0.1 provides activity correlation, not causal ownership; SystemInfo processInfo has PID/type/cpuTime but no Worker target identity.",
+      "Missing pre/stop/early samples are mapped to zero. Zero cannot stand for observed cessation unless the same bound process/thread is independently confirmed dead.",
+      "A single low-CPU 150ms interval can reflect scheduling/starvation; final target disappearance alone cannot establish it was stopped by the deadline.",
+      "settledAt is emitted after admission closes and stop is posted; it is a trigger proxy, not termination-done. Delayed observer retrieval/realm recreation cannot reset the 2s clock."
+    ],
+    "requiredEvidence": [
+      "Native runId/name/Blob URL, correct extension/host parent/epoch and unique target identification, with no attached Worker debugger during infinite loop.",
+      "Independent target-to-renderer/thread association, or explicitly exclusive renderer execution proven before loop start; no unbound highest-delta shortcut.",
+      "Observe loop entered plus sustained bound native CPU activity before stop; record stop admission-close/stopSentAt or due/fired deadline/host-close request with a common calibrated monotonic clock.",
+      "Timestamp CPU sample request and response bounds; observe sustained bound execution cessation by trigger+2s, plus true process/thread exit or target destruction/absence. Missing samples must be unknown unless confirmed lifecycle exit; sampling intervals crossing the deadline cannot be used as within-deadline proof.",
+      "Retain sustained post-stop observations, host responsiveness and no late page operations; separate native Worker stop, owned realm retirement, CPU cessation and CDP descriptor disposal.",
+      "Preserve old FAIL. No backend/permission change or contract amendment without authorized review."
+    ],
+    "latest20_06Information": {
+      "provenance": "user-supplied current update; report path not opened or independently validated",
+      "stopEarlyCPU": 0.14,
+      "deadlineEarlyCPU": 0.145,
+      "sampleWindowSeconds": 0.15,
+      "targetRemovalApproxMilliseconds": 2001,
+      "hostCloseReportedStopMilliseconds": 13,
+      "userReportedDisposition": "STOP/DEADLINE true execution FAIL; HOST-CLOSE PASS; owned MAIN/borrowed boundary added FAIL",
+      "reviewEffect": "Consistent with continued execution rather than a metadata-only explanation; no control approval issued.",
+      "source": "Subsequently independently read report named by round-5 amendment; historical FAIL preserved"
+    },
+    "originalReviewedContractRef": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-4/candidate/stage0/f1-cases.json:103",
+    "newNativeMechanismEvidence": [
+      {
+        "version": "138.0.7204.183",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/third_party/blink/renderer/core/workers/worker_thread.cc",
+        "localEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/chromium-source-evidence/138.0.7204.183-worker_thread.cc",
+        "sha256": "7c989d222ed648eaf8650b7ce2f3d9ec4ab5b83e739ccb6788d7d667c5d0961e",
+        "lineNumbers": {
+          "constant": 82,
+          "terminate": 262,
+          "schedule": 532,
+          "constructor": 522,
+          "force": 568,
+          "testOnly": 314
+        },
+        "constantMilliseconds": 2000
+      },
+      {
+        "version": "154.0.8037.92",
+        "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/third_party/blink/renderer/core/workers/worker_thread.cc",
+        "localEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/chromium-source-evidence/154.0.8037.92-worker_thread.cc",
+        "sha256": "f5e2a985450beea9dde7c0045654f789e22c38c43339c83292c364b1431e3a84",
+        "lineNumbers": {
+          "constant": 84,
+          "terminate": 265,
+          "schedule": 514,
+          "constructor": 504,
+          "force": 551,
+          "testOnly": 308
+        },
+        "constantMilliseconds": 2000
+      }
+    ],
+    "noInspectorOsDiagnostic": {
+      "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-worker-stop-diagnostic/report-mock-keychain.json",
+      "reportSha256": "3d88d523b1d9cff33bf13ca05746e5f588d1d6d13da63ed67540be6fbda5c8e3",
+      "driver": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-worker-stop-diagnostic/diagnose.py",
+      "driverSha256": "3d9489923231af46d6188da3dda12f4d133ff386a509ec678375162c73d49262",
+      "reportAndDriverHashesMatch": true,
+      "harnessSha256AtDiagnostic": "acef8dd9b9b1e7c5b7fc88eebf42213e150110b71a945d85655d5ca06958ac84",
+      "sameHarnessMatchesHistorical20_06SourceManifest": true,
+      "historicalSourceManifest": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T20-06-30.807Z/candidate-manifest.json",
+      "historicalSourceManifestSha256": "bddbd1e2c9dd958881aaba40ca1a6e66208f5fd552a58512a467ce3def8b8f57",
+      "currentHarnessDifferentBecauseControlIsStillUnfrozen": true,
+      "currentHarnessSha256AtReview": "630ab92f6a629d8027d11c0f47c0b5c21a2c60f86a6d859b8ef0d78cabcd39ee",
+      "noCdpConnectionOrDebuggerInDriver": true,
+      "remoteDebugEndpointFlagPresentButNoClientAttached": true,
+      "purpose": "negative/explanatory diagnostic only; not final F1 proof",
+      "renderer": 70456,
+      "cpuObservationsSecondsAfterTrigger": [
+        {
+          "t": 1.9252,
+          "cpu": 2.95
+        },
+        {
+          "t": 2.0759,
+          "cpu": 3.06
+        },
+        {
+          "t": 2.2319,
+          "cpu": 3.06
+        },
+        {
+          "t": 3.0089,
+          "cpu": 3.06
+        }
+      ],
+      "interpretation": "CPU continues after terminate returns and reaches a sustained plateau near 2.08s. Coarse whole-process sampling has no exact Worker-to-PID proof or sample-request timestamps, so do not claim exact termination instant or qualification. It corroborates the exact-tag delayed-force mechanism; it is not merely CDP metadata delay.",
+      "terminationMarker": "Driver line 17 reports after terminate() returns, not after native thread completion",
+      "cleanup": {
+        "browserExit": 0,
+        "serverClosed": true
+      }
+    },
+    "subsequentHistoricalReportsIndependentlyOpened": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-57-31.381Z/report.json",
+        "sha256": "99861cf2a654bcf0f9d3f71645a8c94b2e3e64d4770183b92dc8891780011730",
+        "failures": [
+          {
+            "id": "F1-INFINITE-LOOP-STOP",
+            "status": "FAIL",
+            "earlyCPU": null,
+            "descriptorRemovalMilliseconds": null
+          },
+          {
+            "id": "F1-INFINITE-LOOP-DEADLINE",
+            "status": "FAIL",
+            "earlyCPU": null,
+            "descriptorRemovalMilliseconds": null
+          }
+        ]
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T20-06-30.807Z/report.json",
+        "sha256": "572b5602247a05b10f97af83b1f35688423451d0988eb5878a355e8b4daacb36",
+        "failures": [
+          {
+            "id": "F1-INFINITE-LOOP-STOP",
+            "status": "FAIL",
+            "earlyCPU": 0.14035800000000004,
+            "descriptorRemovalMilliseconds": 2001
+          },
+          {
+            "id": "F1-INFINITE-LOOP-DEADLINE",
+            "status": "FAIL",
+            "earlyCPU": 0.14502100000000007,
+            "descriptorRemovalMilliseconds": 2001
+          },
+          {
+            "id": "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY",
+            "status": "FAIL",
+            "earlyCPU": null,
+            "descriptorRemovalMilliseconds": null
+          }
+        ]
+      }
+    ],
+    "planChangeEffect": "Upon formal round-5 effectiveness, new runs must prove exact Worker execution and target destruction within actual-trigger+3s. Old 2s FAIL remain FAIL. No CPU-only eventual target shortcut, and highest-renderer heuristic remains insufficient.",
+    "nativeGraceBypassAssessment": "A fixed 3s qualification window permits the chosen native Worker backend to honor the real-loop contract while retaining actual termination, exact ownership and strict failure for late/unbound evidence. No native grace bypass exposed to ordinary Worker JavaScript was found in reviewed source. TerminateForTesting uses an internal synchronous force path and is not an allowed web/extension capability. Host tab retirement evidence is a separate already-owned host-close scenario and cannot substitute for stop/deadline."
+  },
+  "independentProbe": {
+    "script": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/page-transient-revoke-probe.mjs",
+    "scriptSha256": "3700d7f3afc3262dee91b2d2d5bfb03acdca762a47686fbc86190418150f9f2b",
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/report.json",
+    "reportSha256": "a3688fe2138ee62225f589203576339d5719bf3436a2cd67a789a5e54e51b53b",
+    "versions": [
+      "138.0.7204.183",
+      "154.0.8037.92"
+    ],
+    "sourceUnchanged": true,
+    "tests": 8,
+    "switchCounterexamples": 4,
+    "hostPermissionPositiveControls": 4,
+    "matrixTotalsUnchanged": true,
+    "cleanup": {
+      "serverClosed": true
+    }
+  },
+  "stopCondition": "Page provisional review complete with concrete BLOCK; final all-F1 disposition awaits user-provided frozen two-lane union hash and same-candidate evidence review.",
+  "writeBoundary": "Only independent F1 review folder plus explicitly authorized round-5 architect.json/.md; no candidate/source/fixture/gates/ledger edits, no old-chat messaging or reactivation",
+  "updatedAt": "2026-10-02T20:30:10.917612+00:00",
+  "syntaxChecks": [
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "command": "node --check",
+      "exitCode": 0
+    },
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "command": "node --check",
+      "exitCode": 0
+    },
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "command": "node --check",
+      "exitCode": 0
+    }
+  ],
+  "separateExecutionPlanAmendment": {
+    "candidateSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+    "score": 96,
+    "verdict": "APPROVE",
+    "blockers": [],
+    "review": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/architect.json",
+    "md": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/architect.md",
+    "scope": "plan only; awaits independent same-hash Critic for effectiveness; not F1 approval",
+    "oldFailsChanged": false,
+    "proposedNewBoundMilliseconds": 3000,
+    "finalUnionCandidateStillMissing": true
+  },
+  "sourceScopeBase": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2",
+  "finalFrozenSourceChecks": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "sha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "match": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "match": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+      "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "match": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+      "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "match": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "sha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "match": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+      "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "match": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+      "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "match": true
+    }
+  ],
+  "revocationSignalSupplement": {
+    "json": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/page-revocation-signal-review.json",
+    "md": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/page-revocation-signal-review.md",
+    "verdict": "BLOCK",
+    "newSolutionObserved": false
+  }
+}

@@ -1,0 +1,32 @@
+✔ four services extend the original eighteen; malicious/oversized arguments cannot reach a sink (5.622834ms)
+✔ trusted zero clock, runtime root and log own-undefined survive effect receipt before delivery (2.634042ms)
+✔ only two fixed bytes/SHA resources and seven aliases are readable; hostile paths issue zero fetch (54.162875ms)
+✔ old bridge consumers keep exactly their data layer and original Promise; reinjection refreshes the same facade (7.037792ms)
+✔ the old frozen service ABI is rejected instead of being silently reused (0.323667ms)
+✔ typed error projection preserves original reference and existing details without leaking internal fields (1.637166ms)
+✔ window transport rejects original promise once with the wire reference and releases its pending timer (0.933959ms)
+✔ Hello incarnation: relay-timeout cannot replace fresh success (15.849791ms)
+✔ Hello incarnation: relay-timeout cannot replace fresh denial (4.222916ms)
+✔ Hello incarnation: late-success cannot replace fresh success (4.232125ms)
+✔ Hello incarnation: late-success cannot replace fresh denial (11.677667ms)
+✔ Hello incarnation: late-failure cannot replace fresh success (3.020375ms)
+✔ Hello incarnation: late-failure cannot replace fresh denial (1.427709ms)
+✔ a request ID named hello uses the final-result channel, never Hello readiness (4.971208ms)
+✔ uncorrelated Ready events do not settle a current Hello; pagehide is terminal (0.217166ms)
+✔ production exact fixed MAIN/ISOLATED bundles correlate every reinjected Hello (33.060209ms)
+✔ development exact fixed MAIN/ISOLATED bundles correlate every reinjected Hello (19.643125ms)
+✔ exact review reproducer: two fresh evaluations reuse frozen globals and perform new Hello (25.329333ms)
+✔ fresh native Hello updates expanded/shrunken grant subset and refuses failed regrant (18.456583ms)
+✔ reinjection preserves old pending legacy callback and stable ChromeBridgeEvents (3.964292ms)
+✔ overlapping reinjections serialize fixed Hello so late old callback cannot supply fresh grant (12.251875ms)
+✔ hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed (0.426292ms)
+✔ dispose and pagehide are terminal: fresh evaluation cannot resurrect immutable installation (4.562791ms)
+✔ borrowed lifecycle and forged function toString cannot impersonate ownership of a different global (0.4375ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 307.16725

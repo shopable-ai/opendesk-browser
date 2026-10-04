@@ -1,0 +1,636 @@
+{
+  "scope": "K1 author regression adapted from Fermat native pending-promise counter; finite Worker; no termination timing claim",
+  "candidateSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+  "instrumentation": "In-memory thin delegates invoke real chrome.permissions.contains and real chrome.tabs.update. Delegate schedules ordinary harness.stop() in a microtask after real permission request, before native promise resolution. Native results unchanged. This models an allowed stop arrival during authorization; no mocked permission or tabs response.",
+  "runs": [
+    {
+      "version": "138.0.7204.183",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/profile-138.0.7204.183-ADB0CF",
+      "executableSha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+      "actualVersion": "138.0.7204.183",
+      "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+      "initial": {
+        "sandbox": {
+          "kind": "sandbox-ready",
+          "origin": "null",
+          "extensionAPI": false,
+          "parentAccess": false
+        },
+        "positiveNetwork": "<!doctype html><title>Independent native stop fence</title><input id=\"name\" value=\"Base\">",
+        "tabId": 1760072685,
+        "documentId": "3E373A8DA62550CC1DAB748871CE01BC",
+        "hostEpoch": "f563ef1e-257e-42f2-a595-fd8ff65642e3",
+        "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        },
+        "world": "ISOLATED fixed scripting adapter"
+      },
+      "probe": {
+        "destination": "http://127.0.0.1:61325/after-stop?version=138.0.7204.183",
+        "observations": [
+          {
+            "kind": "native-permission-request",
+            "wallMs": 1790977941489,
+            "monoMs": 180.19999980926514,
+            "active": {
+              "runId": "2ed02757-b717-452f-959d-35f257349679",
+              "lastId": 1
+            }
+          },
+          {
+            "kind": "host-stop-returned",
+            "wallMs": 1790977941489,
+            "monoMs": 180.40000009536743,
+            "active": null
+          },
+          {
+            "kind": "native-permission-resolved",
+            "wallMs": 1790977941489,
+            "monoMs": 180.5,
+            "active": null,
+            "value": true
+          }
+        ],
+        "terminal": {
+          "runId": "2ed02757-b717-452f-959d-35f257349679",
+          "body": "await page.goto(params.url); return \"unexpected\";",
+          "kind": "stopped",
+          "error": {
+            "name": "AbortError",
+            "message": "Stopped by host"
+          },
+          "terminalTriggeredAt": 1790977941489,
+          "terminalTriggeredMonoMs": 180.30000019073486,
+          "admissionClosedMonoMs": 180.30000019073486,
+          "timerDueMonoMs": 5177,
+          "deadlineFiredMonoMs": null,
+          "settledAt": 1790977941489
+        },
+        "actualTab": {
+          "active": false,
+          "audible": false,
+          "autoDiscardable": true,
+          "discarded": false,
+          "frozen": false,
+          "groupId": -1,
+          "height": 633,
+          "highlighted": false,
+          "id": 1760072685,
+          "incognito": false,
+          "index": 2,
+          "lastAccessed": 1790977941419.288,
+          "mutedInfo": {
+            "muted": false
+          },
+          "pinned": false,
+          "selected": false,
+          "status": "complete",
+          "title": "Independent native stop fence",
+          "url": "http://127.0.0.1:61325/form",
+          "width": 1280,
+          "windowId": 1760072682
+        },
+        "evidence": {
+          "records": [
+            {
+              "runId": "2ed02757-b717-452f-959d-35f257349679",
+              "body": "await page.goto(params.url); return \"unexpected\";",
+              "kind": "stopped",
+              "error": {
+                "name": "AbortError",
+                "message": "Stopped by host"
+              },
+              "terminalTriggeredAt": 1790977941489,
+              "terminalTriggeredMonoMs": 180.30000019073486,
+              "admissionClosedMonoMs": 180.30000019073486,
+              "timerDueMonoMs": 5177,
+              "deadlineFiredMonoMs": null,
+              "settledAt": 1790977941489
+            },
+            {
+              "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+              "body": "return await page.title();",
+              "kind": "result",
+              "value": "Independent native stop fence",
+              "valueType": "string",
+              "valuePresent": true,
+              "terminalTriggeredAt": 1790977941580,
+              "terminalTriggeredMonoMs": 271.59999990463257,
+              "admissionClosedMonoMs": 271.59999990463257,
+              "timerDueMonoMs": 5267,
+              "deadlineFiredMonoMs": null,
+              "settledAt": 1790977941580
+            }
+          ],
+          "operations": [
+            {
+              "runId": "2ed02757-b717-452f-959d-35f257349679",
+              "id": 1,
+              "method": "goto",
+              "args": [
+                "http://127.0.0.1:61325/after-stop?version=138.0.7204.183"
+              ],
+              "targetBefore": {
+                "runId": "2ed02757-b717-452f-959d-35f257349679",
+                "hostEpoch": "f563ef1e-257e-42f2-a595-fd8ff65642e3",
+                "sandboxEpoch": "b3840bee-a1c6-4cd2-8a86-2e3468526ab0",
+                "tabId": 1760072685,
+                "documentId": "3E373A8DA62550CC1DAB748871CE01BC",
+                "targetEpoch": 1
+              }
+            },
+            {
+              "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+              "id": 1,
+              "method": "title",
+              "args": [],
+              "targetBefore": {
+                "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+                "hostEpoch": "f563ef1e-257e-42f2-a595-fd8ff65642e3",
+                "sandboxEpoch": "d9911641-493e-4c5c-9bc4-e36114e258bd",
+                "tabId": 1760072685,
+                "documentId": "3E373A8DA62550CC1DAB748871CE01BC",
+                "targetEpoch": 1
+              }
+            }
+          ],
+          "deliveries": [
+            {
+              "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+              "id": 1,
+              "kind": "reply",
+              "value": "Independent native stop fence"
+            }
+          ],
+          "rejects": [
+            {
+              "reason": "operation-owner-fenced",
+              "runId": "2ed02757-b717-452f-959d-35f257349679",
+              "id": 1,
+              "method": "goto"
+            }
+          ],
+          "policy": [],
+          "retired": [
+            {
+              "kind": "retired",
+              "runId": "2ed02757-b717-452f-959d-35f257349679",
+              "reason": "stopped",
+              "revokedURL": "blob:null/6c780cfa-f322-454f-93c5-a144c8b7c731",
+              "terminateCalledAt": 1790977941489,
+              "terminateReturnedAt": 1790977941489,
+              "retiredAt": 1790977941489,
+              "sandboxEpoch": "b3840bee-a1c6-4cd2-8a86-2e3468526ab0"
+            }
+          ],
+          "realmRetirements": [
+            {
+              "runId": "2ed02757-b717-452f-959d-35f257349679",
+              "sandboxEpoch": "b3840bee-a1c6-4cd2-8a86-2e3468526ab0",
+              "reason": "stopped",
+              "revokedURL": "blob:null/6c780cfa-f322-454f-93c5-a144c8b7c731",
+              "mode": "remove",
+              "at": 1790977941490,
+              "removedAt": 1790977941490
+            }
+          ],
+          "workers": [
+            {
+              "kind": "worker-created",
+              "runId": "2ed02757-b717-452f-959d-35f257349679",
+              "url": "blob:null/6c780cfa-f322-454f-93c5-a144c8b7c731",
+              "name": "OpenDesk-F1-2ed02757-b717-452f-959d-35f257349679",
+              "sandboxEpoch": "b3840bee-a1c6-4cd2-8a86-2e3468526ab0"
+            },
+            {
+              "kind": "worker-bound",
+              "runId": "2ed02757-b717-452f-959d-35f257349679",
+              "url": "blob:null/6c780cfa-f322-454f-93c5-a144c8b7c731",
+              "held": false,
+              "identity": {
+                "url": "blob:null/6c780cfa-f322-454f-93c5-a144c8b7c731",
+                "name": "OpenDesk-F1-2ed02757-b717-452f-959d-35f257349679",
+                "origin": "null"
+              },
+              "sandboxEpoch": "b3840bee-a1c6-4cd2-8a86-2e3468526ab0"
+            },
+            {
+              "kind": "worker-created",
+              "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+              "url": "blob:null/c0ae24d3-7748-4ec5-89ea-084d8a63d445",
+              "name": "OpenDesk-F1-d9c54fa9-e001-416b-b73f-dcd316390883",
+              "sandboxEpoch": "d9911641-493e-4c5c-9bc4-e36114e258bd"
+            },
+            {
+              "kind": "worker-bound",
+              "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+              "url": "blob:null/c0ae24d3-7748-4ec5-89ea-084d8a63d445",
+              "held": false,
+              "identity": {
+                "url": "blob:null/c0ae24d3-7748-4ec5-89ea-084d8a63d445",
+                "name": "OpenDesk-F1-d9c54fa9-e001-416b-b73f-dcd316390883",
+                "origin": "null"
+              },
+              "sandboxEpoch": "d9911641-493e-4c5c-9bc4-e36114e258bd"
+            }
+          ],
+          "effectDispatches": [
+            {
+              "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+              "method": "title",
+              "api": "chrome.scripting.executeScript",
+              "target": {
+                "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+                "hostEpoch": "f563ef1e-257e-42f2-a595-fd8ff65642e3",
+                "sandboxEpoch": "d9911641-493e-4c5c-9bc4-e36114e258bd",
+                "tabId": 1760072685,
+                "documentId": "3E373A8DA62550CC1DAB748871CE01BC",
+                "targetEpoch": 1
+              },
+              "at": 1790977941580,
+              "monoMs": 270.90000009536743
+            }
+          ],
+          "permissionBarriers": [],
+          "hostEpoch": "f563ef1e-257e-42f2-a595-fd8ff65642e3",
+          "sandboxEpoch": "d9911641-493e-4c5c-9bc4-e36114e258bd",
+          "active": null
+        },
+        "resources": {
+          "pending": 0,
+          "timer": 0,
+          "port": 1,
+          "frame": 1,
+          "pageWaits": 0,
+          "resourceReplies": 0,
+          "permissionBarriers": 0
+        },
+        "subsequent": {
+          "runId": "d9c54fa9-e001-416b-b73f-dcd316390883",
+          "body": "return await page.title();",
+          "kind": "result",
+          "value": "Independent native stop fence",
+          "valueType": "string",
+          "valuePresent": true,
+          "terminalTriggeredAt": 1790977941580,
+          "terminalTriggeredMonoMs": 271.59999990463257,
+          "admissionClosedMonoMs": 271.59999990463257,
+          "timerDueMonoMs": 5267,
+          "deadlineFiredMonoMs": null,
+          "settledAt": 1790977941580
+        }
+      },
+      "nativeServerHits": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 0,
+        "frame": 0,
+        "pageWaits": 0,
+        "resourceReplies": 0,
+        "permissionBarriers": 0
+      },
+      "browserClosed": true,
+      "profileRemoved": true
+    },
+    {
+      "version": "154.0.8037.92",
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/profile-154.0.8037.92-XpB8kY",
+      "executableSha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+      "actualVersion": "154.0.8037.92",
+      "extensionId": "klkhjgdgiamblehcbkepadedldbjklan",
+      "initial": {
+        "sandbox": {
+          "kind": "sandbox-ready",
+          "origin": "null",
+          "extensionAPI": false,
+          "parentAccess": false
+        },
+        "positiveNetwork": "<!doctype html><title>Independent native stop fence</title><input id=\"name\" value=\"Base\">",
+        "tabId": 649718437,
+        "documentId": "39667F31122F179E2E22D6318ADCA6C5",
+        "hostEpoch": "5fa10a19-c9c7-41c1-9f19-e8f690d28406",
+        "runtimeId": "klkhjgdgiamblehcbkepadedldbjklan",
+        "manifest": {
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'none'; frame-src 'self'; worker-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; object-src 'none'"
+          },
+          "host_permissions": [
+            "http://127.0.0.1/*"
+          ],
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk F1 user control v2",
+          "permissions": [
+            "scripting",
+            "tabs"
+          ],
+          "sandbox": {
+            "pages": [
+              "sandbox.html"
+            ]
+          },
+          "version": "0.0.2"
+        },
+        "world": "ISOLATED fixed scripting adapter"
+      },
+      "probe": {
+        "destination": "http://127.0.0.1:61325/after-stop?version=154.0.8037.92",
+        "observations": [
+          {
+            "kind": "native-permission-request",
+            "wallMs": 1790977942180,
+            "monoMs": 114.90000009536743,
+            "active": {
+              "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "lastId": 1
+            }
+          },
+          {
+            "kind": "host-stop-returned",
+            "wallMs": 1790977942180,
+            "monoMs": 115.09999990463257,
+            "active": null
+          },
+          {
+            "kind": "native-permission-resolved",
+            "wallMs": 1790977942180,
+            "monoMs": 115.09999990463257,
+            "active": null,
+            "value": true
+          }
+        ],
+        "terminal": {
+          "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+          "body": "await page.goto(params.url); return \"unexpected\";",
+          "kind": "stopped",
+          "error": {
+            "name": "AbortError",
+            "message": "Stopped by host"
+          },
+          "terminalTriggeredAt": 1790977942180,
+          "terminalTriggeredMonoMs": 115,
+          "admissionClosedMonoMs": 115,
+          "timerDueMonoMs": 5111.599999904633,
+          "deadlineFiredMonoMs": null,
+          "settledAt": 1790977942180
+        },
+        "actualTab": {
+          "active": false,
+          "audible": false,
+          "autoDiscardable": true,
+          "discarded": false,
+          "frozen": false,
+          "groupId": -1,
+          "height": 633,
+          "highlighted": false,
+          "id": 649718437,
+          "incognito": false,
+          "index": 2,
+          "lastAccessed": 1790977942139.879,
+          "mutedInfo": {
+            "muted": false
+          },
+          "pinned": false,
+          "selected": false,
+          "splitViewId": -1,
+          "status": "complete",
+          "title": "Independent native stop fence",
+          "url": "http://127.0.0.1:61325/form",
+          "width": 1280,
+          "windowId": 649718434
+        },
+        "evidence": {
+          "records": [
+            {
+              "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "body": "await page.goto(params.url); return \"unexpected\";",
+              "kind": "stopped",
+              "error": {
+                "name": "AbortError",
+                "message": "Stopped by host"
+              },
+              "terminalTriggeredAt": 1790977942180,
+              "terminalTriggeredMonoMs": 115,
+              "admissionClosedMonoMs": 115,
+              "timerDueMonoMs": 5111.599999904633,
+              "deadlineFiredMonoMs": null,
+              "settledAt": 1790977942180
+            },
+            {
+              "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+              "body": "return await page.title();",
+              "kind": "result",
+              "value": "Independent native stop fence",
+              "valueType": "string",
+              "valuePresent": true,
+              "terminalTriggeredAt": 1790977942232,
+              "terminalTriggeredMonoMs": 166.80000019073486,
+              "admissionClosedMonoMs": 166.80000019073486,
+              "timerDueMonoMs": 5162.700000286102,
+              "deadlineFiredMonoMs": null,
+              "settledAt": 1790977942232
+            }
+          ],
+          "operations": [
+            {
+              "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "id": 1,
+              "method": "goto",
+              "args": [
+                "http://127.0.0.1:61325/after-stop?version=154.0.8037.92"
+              ],
+              "targetBefore": {
+                "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+                "hostEpoch": "5fa10a19-c9c7-41c1-9f19-e8f690d28406",
+                "sandboxEpoch": "63968c3c-c30d-4ab1-9b88-3cfdab03bfe5",
+                "tabId": 649718437,
+                "documentId": "39667F31122F179E2E22D6318ADCA6C5",
+                "targetEpoch": 1
+              }
+            },
+            {
+              "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+              "id": 1,
+              "method": "title",
+              "args": [],
+              "targetBefore": {
+                "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+                "hostEpoch": "5fa10a19-c9c7-41c1-9f19-e8f690d28406",
+                "sandboxEpoch": "67ccca66-8997-44e6-a456-8917ad33afad",
+                "tabId": 649718437,
+                "documentId": "39667F31122F179E2E22D6318ADCA6C5",
+                "targetEpoch": 1
+              }
+            }
+          ],
+          "deliveries": [
+            {
+              "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+              "id": 1,
+              "kind": "reply",
+              "value": "Independent native stop fence"
+            }
+          ],
+          "rejects": [
+            {
+              "reason": "operation-owner-fenced",
+              "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "id": 1,
+              "method": "goto"
+            }
+          ],
+          "policy": [],
+          "retired": [
+            {
+              "kind": "retired",
+              "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "reason": "stopped",
+              "revokedURL": "blob:null/10a29aa5-c54b-4d2e-8802-c8431425ffa1",
+              "terminateCalledAt": 1790977942180,
+              "terminateReturnedAt": 1790977942180,
+              "retiredAt": 1790977942180,
+              "sandboxEpoch": "63968c3c-c30d-4ab1-9b88-3cfdab03bfe5"
+            }
+          ],
+          "realmRetirements": [
+            {
+              "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "sandboxEpoch": "63968c3c-c30d-4ab1-9b88-3cfdab03bfe5",
+              "reason": "stopped",
+              "revokedURL": "blob:null/10a29aa5-c54b-4d2e-8802-c8431425ffa1",
+              "mode": "remove",
+              "at": 1790977942181,
+              "removedAt": 1790977942181
+            }
+          ],
+          "workers": [
+            {
+              "kind": "worker-created",
+              "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "url": "blob:null/10a29aa5-c54b-4d2e-8802-c8431425ffa1",
+              "name": "OpenDesk-F1-3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "sandboxEpoch": "63968c3c-c30d-4ab1-9b88-3cfdab03bfe5"
+            },
+            {
+              "kind": "worker-bound",
+              "runId": "3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+              "url": "blob:null/10a29aa5-c54b-4d2e-8802-c8431425ffa1",
+              "held": false,
+              "identity": {
+                "url": "blob:null/10a29aa5-c54b-4d2e-8802-c8431425ffa1",
+                "name": "OpenDesk-F1-3eebb418-faa7-436d-a84c-b9dfa99b5b6b",
+                "origin": "null"
+              },
+              "sandboxEpoch": "63968c3c-c30d-4ab1-9b88-3cfdab03bfe5"
+            },
+            {
+              "kind": "worker-created",
+              "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+              "url": "blob:null/5c6965e5-5d08-4117-8d47-2ee5d4123f81",
+              "name": "OpenDesk-F1-6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+              "sandboxEpoch": "67ccca66-8997-44e6-a456-8917ad33afad"
+            },
+            {
+              "kind": "worker-bound",
+              "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+              "url": "blob:null/5c6965e5-5d08-4117-8d47-2ee5d4123f81",
+              "held": false,
+              "identity": {
+                "url": "blob:null/5c6965e5-5d08-4117-8d47-2ee5d4123f81",
+                "name": "OpenDesk-F1-6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+                "origin": "null"
+              },
+              "sandboxEpoch": "67ccca66-8997-44e6-a456-8917ad33afad"
+            }
+          ],
+          "effectDispatches": [
+            {
+              "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+              "method": "title",
+              "api": "chrome.scripting.executeScript",
+              "target": {
+                "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+                "hostEpoch": "5fa10a19-c9c7-41c1-9f19-e8f690d28406",
+                "sandboxEpoch": "67ccca66-8997-44e6-a456-8917ad33afad",
+                "tabId": 649718437,
+                "documentId": "39667F31122F179E2E22D6318ADCA6C5",
+                "targetEpoch": 1
+              },
+              "at": 1790977942232,
+              "monoMs": 166.30000019073486
+            }
+          ],
+          "permissionBarriers": [],
+          "hostEpoch": "5fa10a19-c9c7-41c1-9f19-e8f690d28406",
+          "sandboxEpoch": "67ccca66-8997-44e6-a456-8917ad33afad",
+          "active": null
+        },
+        "resources": {
+          "pending": 0,
+          "timer": 0,
+          "port": 1,
+          "frame": 1,
+          "pageWaits": 0,
+          "resourceReplies": 0,
+          "permissionBarriers": 0
+        },
+        "subsequent": {
+          "runId": "6c9ff94f-ff6e-4f55-98ac-297c7529dc61",
+          "body": "return await page.title();",
+          "kind": "result",
+          "value": "Independent native stop fence",
+          "valueType": "string",
+          "valuePresent": true,
+          "terminalTriggeredAt": 1790977942232,
+          "terminalTriggeredMonoMs": 166.80000019073486,
+          "admissionClosedMonoMs": 166.80000019073486,
+          "timerDueMonoMs": 5162.700000286102,
+          "deadlineFiredMonoMs": null,
+          "settledAt": 1790977942232
+        }
+      },
+      "nativeServerHits": [],
+      "cleanup": {
+        "pending": 0,
+        "timer": 0,
+        "port": 0,
+        "frame": 0,
+        "pageWaits": 0,
+        "resourceReplies": 0,
+        "permissionBarriers": 0
+      },
+      "browserClosed": true,
+      "profileRemoved": true
+    }
+  ],
+  "serverClosed": true,
+  "fixtureHostSha256": "4d1bf395ca51073e10234b748cd0aa30b960d790fe3426af47bfd54d07fddc11"
+}

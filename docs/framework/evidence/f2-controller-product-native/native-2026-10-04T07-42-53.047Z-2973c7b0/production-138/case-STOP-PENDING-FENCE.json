@@ -1,0 +1,36 @@
+{
+  "id": "STOP-PENDING-FENCE",
+  "families": "CTRL01/LEAK01",
+  "expected": "Real UI stop during native page wait; durable cancel; no late page operation; borrowed target survives",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "167a86738d821602a6092f76de37ceefc68613a39f988a92b19c4a32315991df",
+  "verificationInputsSha256": "079e0879f377d0705d86e013a402cd49abc3fbf5235cc47f8d0bb0323fd44f6a",
+  "packageSha256": "faad7957d67832a3ce767cbc371f503edde1837734a191b38d7327825b2cec9a",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791101401296,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "E_OWNER",
+    "name": "Error",
+    "message": "E_OWNER：Previous controller target has not retired",
+    "stack": "Error: E_OWNER：Previous controller target has not retired\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:528:55\n    at async until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:203:50)\n    at async start (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:525:14)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:794:77\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:407:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:792:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:368:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:198:3"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "error",
+    "text": "E_OWNER：Previous controller target has not retired",
+    "result": "{\"scriptId\": \"native-9eee03fa-6c26-4faa-b99c-aeef19a9f372\", \"revision\": 1, \"contentHash\": \"262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b\"}",
+    "version": "已保存 r1 · 262c063b5f7569fae198e48b12c849fd61b1b73036924a5e6b3d4098aa02219b",
+    "runId": "aa9d48a4-9efd-4e20-bd7a-f81649378736",
+    "download": "浏览器已完成下载 · SHA-256 86a5afbc5b64b0384b705eff19812ef34f7e39bbc960b9574a6339df48474999",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 50371.82245900016
+}

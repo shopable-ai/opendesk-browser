@@ -1,0 +1,104 @@
+✖ REGRESSION-R3-host-gone: document loss persists retirement without requiring the old host (5.443459ms)
+✖ REGRESSION-R4-control-states: late stop preserves an existing retirement (0.894ms)
+✖ REGRESSION-R4-control-states: session recovery preserves a durable retirement (0.399333ms)
+✖ REGRESSION-R5-terminal-fence-gap: every committed terminal has a durable retirement (0.99875ms)
+✖ REGRESSION-R6-false-completion: caller naturalEnd cannot complete an unbound run (0.481417ms)
+✖ REGRESSION-R8-journal-key-collision: a caller command ID cannot replace host metadata (4.442166ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 87.947208
+
+✖ failing tests:
+
+test at tests/framework/k2-control-state-regressions.test.mjs:54:1
+✖ REGRESSION-R3-host-gone: document loss persists retirement without requiring the old host (5.443459ms)
+  AssertionError [ERR_ASSERTION]: lost document needs a durable retirement for independent reconciliation
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-control-state-regressions.test.mjs:58:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/framework/k2-control-state-regressions.test.mjs:63:1
+✖ REGRESSION-R4-control-states: late stop preserves an existing retirement (0.894ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'stopping'
+  - 'retiring'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-control-state-regressions.test.mjs:71:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'stopping',
+    expected: 'retiring',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/framework/k2-control-state-regressions.test.mjs:78:1
+✖ REGRESSION-R4-control-states: session recovery preserves a durable retirement (0.399333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'paused_unknown'
+  - 'retiring'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-control-state-regressions.test.mjs:82:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'paused_unknown',
+    expected: 'retiring',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/framework/k2-control-state-regressions.test.mjs:87:1
+✖ REGRESSION-R5-terminal-fence-gap: every committed terminal has a durable retirement (0.99875ms)
+  AssertionError [ERR_ASSERTION]: a crash after any commit must leave a recoverable retirement
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-control-state-regressions.test.mjs:93:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/framework/k2-control-state-regressions.test.mjs:100:1
+✖ REGRESSION-R6-false-completion: caller naturalEnd cannot complete an unbound run (0.481417ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-control-state-regressions.test.mjs:102:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/framework/k2-control-state-regressions.test.mjs:107:1
+✖ REGRESSION-R8-journal-key-collision: a caller command ID cannot replace host metadata (4.442166ms)
+  Error [FoundationError]: Host registration has expired or belongs to another document
+      at invariant (file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/protocol.js:14:25)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/authority.js:14:7
+      at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-control-state-regressions.test.mjs:25:22 {
+    code: 'E_OWNER'
+  }

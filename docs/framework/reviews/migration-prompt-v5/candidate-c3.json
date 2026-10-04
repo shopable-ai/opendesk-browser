@@ -1,0 +1,22 @@
+{
+  "candidate": "migration-goal-prompt-v5-c3",
+  "scope": "prompt-and-migration-organization-only; not stage0/product approval",
+  "files": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-migration-v5.txt",
+      "sha256": "f0c9de8f4a5c1b3fe49d11aaedd124d31984b0261ffa40db4716e8dc2f3b949d"
+    }
+  ],
+  "immutableSnapshot": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-prompt-v5/candidate-c3.txt",
+  "context": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/continue-in-new-chat.md",
+      "sha256": "08b973f6be397fefb6dc4610ac27af9d41cdca9bc8dd26254ba99718ca53c055"
+    }
+  ],
+  "functionalGatesChanged": false,
+  "changesSinceC2": [
+    "Make two mode branches explicitly conditional",
+    "Correct npm check to npm run check; no test removed"
+  ]
+}

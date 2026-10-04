@@ -1,0 +1,42 @@
+{
+  "id": "NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES",
+  "families": "P4/RESOURCE",
+  "expected": "Real disabled native capability yields typed failed result, released owned target, pin and slot before positive user-script tests",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "productInputsSha256": "167a86738d821602a6092f76de37ceefc68613a39f988a92b19c4a32315991df",
+  "verificationInputsSha256": "d6964f33006f518313fb1fbe66cab270121625bc82d3889e5a2bc221153d1468",
+  "packageSha256": "faad7957d67832a3ce767cbc371f503edde1837734a191b38d7327825b2cec9a",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791099409205,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "E_RUNNER_UI_INPUT",
+    "name": "Error",
+    "message": "Native selectAll did not select actual UI input #script-run-id",
+    "stack": "Error: Native selectAll did not select actual UI input #script-run-id\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:450:27)\n    at async readUI (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:543:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:549:80)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:586:22\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:407:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:585:7)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:368:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:198:3",
+    "actual": {
+      "focused": true,
+      "value": "a",
+      "start": 1,
+      "end": 1
+    }
+  },
+  "attribution": "runner",
+  "ui": {
+    "state": "results",
+    "text": "任务 279e69f7-78bd-4694-a296-ce875c1ebf76：failed",
+    "result": "{\"run\": {\"tag\": \"controller-run\", \"runId\": \"279e69f7-78bd-4694-a296-ce875c1ebf76\", \"state\": \"failed\", \"runRevision\": 4, \"ownerEpoch\": 2, \"cancelSeq\": 1, \"identity\": {\"tag\": \"controller-run\", \"runId\": \"279e69f7-78bd-4694-a296-ce875c1ebf76\", \"hostInstanceId\": \"cf1334c1-3bfe-4cf4-b2fc-b9c7b5aa415e\", \"hostDocumentId\": \"6C486B01E746873BC9D45D1C7D474664\", \"ownerEpoch\": 1, \"scriptId\": \"native-50a4f48f-500e-45d1-a6cd-8254387685c5\", \"revision\": 1, \"contentHash\": \"a2fda27769078f2a04a68f9f25358e8cc15836240685b3992a024872b37962f1\", \"target\": {\"tabId\": 818386500, \"frameId\": 0, \"documentId\": \"246A7600418DB103476A81748A4EE0B3\", \"url\": \"http://127.0.0.1:54511/form?seed=2bbdbab6-ae05-4daa-a30a-862a649bff54&role=owned\", \"allowedOrigin\": \"http://127.0.0.1:54511\", \"creationId\": \"946fd64b-d5e8-4c6a-9121-01f7d7dcede9\", \"targetSessionId\": \"628324f7-9a4f-4d84-a7f2-a626ad455598\", \"targetVersion\": 1, \"mode\": \"owned\", \"browserSessionIncarnation\": \"76a0f748-b893-4c90-b7a7-e7d932dfa728\"}}, \"target\": {\"tabId\": 818386500, \"frameId\": 0, \"documentId\": \"246A7600418DB103476A81748A4EE0B3\", \"url\": \"http://127.0.0.1:54511/form?seed=2bbdbab6-ae05-4daa-a30a-862a649bff54&role=owned\", \"allowedOrigin\": \"http://127.0.0.1:54511\", \"creationId\": \"946fd64b-d5e8-4c6a-9121-01f7d7dcede9\", \"targetSessionId\": \"628324f7-9a4f-4d84-a7f2-a626ad455598\", \"targetVersion\": 1, \"mode\": \"owned\", \"browserSessionIncarnation\": \"76a0f748-b893-4c90-b7a7-e7d932dfa728\"}, \"revision\": {\"scriptId\": \"native-50a4f48f-500e-45d1-a6cd-8254387685c5\", \"revision\": 1, \"sourceHash\": \"a2fda27769078f2a04a68f9f25358e8cc15836240685b3992a024872b37962f1\", \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"279e69f7-78bd-4694-a296-ce875c1ebf76\\\",\\\"7493f23c-6155-44fe-b9a8-e70c1f46aadb\\\",\\\"native-50a4f48f-500e-45d1-a6cd-8254387685c5\\\",1]\"}, \"deadlineAt\": 1791099516592, \"retirementId\": \"6c243aee-0fc8-4ed2-b1b1-751aea8b6afb\", \"retirementState\": \"released\", \"resultId\": \"42ed5cb7-fe3e-484f-9ee4-40589f09ed76\", \"terminalReason\": {\"code\": \"E_USER_SCRIPTS_UNAVAILABLE\", \"name\": \"PageError\", \"message\": \"E_USER_SCRIPTS_UNAVAILABLE\"}, \"workerRetired\": true, \"scriptId\": \"native-50a4f48f-500e-45d1-a6cd-8254387685c5\", \"contentHash\": \"a2fda27769078f2a04a68f9f25358e8cc15836240685b3992a024872b37962f1\"}, \"results\": [{\"runId\": \"279e69f7-78bd-4694-a296-ce875c1ebf76\", \"resultId\": \"42ed5cb7-fe3e-484f-9ee4-40589f09ed76\", \"state\": \"failed\", \"error\": {\"code\": \"E_USER_SCRIPTS_UNAVAILABLE\", \"name\": \"PageError\", \"message\": \"E_USER_SCRIPTS_UNAVAILABLE\"}}]}",
+    "version": "已保存 r1 · a2fda27769078f2a04a68f9f25358e8cc15836240685b3992a024872b37962f1",
+    "runId": "a",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 77894.422209
+}

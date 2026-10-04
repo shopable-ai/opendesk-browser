@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "OpenDesk F1 userScripts v2 fixture",
+  "version": "0.0.2",
+  "minimum_chrome_version": "138",
+  "permissions": ["userScripts", "scripting", "tabs", "webNavigation"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "background": {"service_worker": "sw.js"},
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'"}
+}

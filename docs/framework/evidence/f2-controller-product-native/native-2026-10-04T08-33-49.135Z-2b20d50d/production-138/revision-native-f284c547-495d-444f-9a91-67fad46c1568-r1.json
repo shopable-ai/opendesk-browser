@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-f284c547-495d-444f-9a91-67fad46c1568",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "0df04b2de4366e2b09a0cda00041b99d826a06f7cbb8529d1156df14a3bba936",
+  "sourceUtf8": "await page.waitForTimeout(5000); return 'winner';"
+}

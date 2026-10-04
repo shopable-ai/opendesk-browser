@@ -1,0 +1,663 @@
+{
+  "contractVersion": "1.0.0",
+  "status": "planned inputs and expected outcomes; no production execution",
+  "cases": [
+    {
+      "id": "stop-first",
+      "gates": [
+        "M07",
+        "M09"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "prepare C1",
+        "commit cancel(seq=1)",
+        "try dispatch C1"
+      ],
+      "expected": {
+        "command": "cancelled",
+        "chromeCalls": 0,
+        "run": "stopping",
+        "newRetries": 0
+      }
+    },
+    {
+      "id": "dispatch-first",
+      "gates": [
+        "M07"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "prepare C1",
+        "commit dispatched",
+        "commit cancel",
+        "Chrome call C1",
+        "confirm effect"
+      ],
+      "expected": {
+        "chromeCalls": 1,
+        "runAfterReconcile": "stopped",
+        "mayChangePageAfterStop": true,
+        "newDispatches": 0
+      }
+    },
+    {
+      "id": "dispatch-call-gap",
+      "gates": [
+        "M07"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "commit dispatched",
+        "crash before Chrome call",
+        "restart SW",
+        "query inconclusive"
+      ],
+      "expected": {
+        "command": "effect_unknown",
+        "run": "paused_unknown",
+        "chromeReplays": 0,
+        "slotHeld": true
+      }
+    },
+    {
+      "id": "epoch-late-reply",
+      "gates": [
+        "M07",
+        "M09"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "owner epoch1 effect_unknown",
+        "abandon increments epoch2",
+        "close old tab and commit retirement",
+        "new run epoch3",
+        "epoch1 reply"
+      ],
+      "expected": {
+        "newRunChanges": 0,
+        "oldResultVisibility": false,
+        "oldReply": "audit-only",
+        "newChromeDispatchesFromOldEpoch": 0
+      }
+    },
+    {
+      "id": "lease-no-takeover",
+      "gates": [
+        "M07"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "host lease expires",
+        "attempt claimRun"
+      ],
+      "expected": {
+        "run": "paused_unknown",
+        "newRunRejected": "E_OWNER",
+        "slotHeld": true
+      }
+    },
+    {
+      "id": "retire-unverified",
+      "gates": [
+        "M07"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "explicit abandon",
+        "fence epoch",
+        "tabs.remove errors",
+        "tabs.get still exists"
+      ],
+      "expected": {
+        "run": "retiring",
+        "slotHeld": true,
+        "newRunRejected": "E_OWNER"
+      }
+    },
+    {
+      "id": "retire-release",
+      "gates": [
+        "M07"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "explicit abandon",
+        "fence epoch",
+        "tabs.remove old ID",
+        "observe/get tab absent",
+        "commit evidence",
+        "claim new run"
+      ],
+      "expected": {
+        "oldRun": "abandoned_unknown",
+        "slotReleased": true,
+        "newRunAllowed": true,
+        "oldPagesAborted": true
+      }
+    },
+    {
+      "id": "three-batch-last-fails",
+      "gates": [
+        "M06"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "existing sealed P0 rows=2 pages=1 checkpoint=P0",
+        "P1 stage b0 rows=2 ACK",
+        "P1 stage b1 rows=2 ACK",
+        "P1 b2 rows=2 fails quota",
+        "abort P1"
+      ],
+      "expected": {
+        "visibleRows": 2,
+        "committedCount": 2,
+        "committedPages": 1,
+        "checkpoint": "P0",
+        "P1StagedRows": 4,
+        "P1State": "aborted",
+        "P1ExportedRows": 0,
+        "run": "interrupted with E_QUOTA",
+        "storedBytesIncludesStaged": true
+      }
+    },
+    {
+      "id": "three-batch-seal",
+      "gates": [
+        "M06"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "P0 sealed 2 rows",
+        "P1 ACK b0/b1/b2 each2 rows",
+        "seal expects3 batches6 rows matched bytes/digests"
+      ],
+      "expected": {
+        "visibleRows": 8,
+        "committedCount": 8,
+        "committedPages": 2,
+        "checkpoint": "P1",
+        "P1State": "sealed"
+      }
+    },
+    {
+      "id": "stop-before-seal",
+      "gates": [
+        "M06",
+        "M07"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "P1 ACK three batches6 rows, existing P0 rows2",
+        "cancel commits",
+        "seal P1"
+      ],
+      "expected": {
+        "P1State": "aborted",
+        "visibleRows": 2,
+        "committedCount": 2,
+        "checkpoint": "P0",
+        "sealError": "E_CANCELLED"
+      }
+    },
+    {
+      "id": "seal-before-stop",
+      "gates": [
+        "M06",
+        "M07"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "P1 ACK3 batches6 rows, existing P0 rows2",
+        "seal P1 commits",
+        "cancel commits"
+      ],
+      "expected": {
+        "visibleRows": 8,
+        "committedCount": 8,
+        "checkpoint": "P1",
+        "run": "stopping"
+      }
+    },
+    {
+      "id": "stage-duplicate",
+      "gates": [
+        "M06"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "stage b0 rows2",
+        "lose ACK",
+        "resend identical b0"
+      ],
+      "expected": {
+        "ACK": "duplicate durable-staged",
+        "stagedRows": 2,
+        "committedCount": 0
+      }
+    },
+    {
+      "id": "stage-digest-conflict",
+      "gates": [
+        "M06"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "stage b0 digestA",
+        "resend same id digestB"
+      ],
+      "expected": {
+        "error": "E_BATCH_CONFLICT",
+        "page": "aborted",
+        "committedCount": 0
+      }
+    },
+    {
+      "id": "seal-missing-batch",
+      "gates": [
+        "M06"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "stage indexes0,2",
+        "seal expected3"
+      ],
+      "expected": {
+        "error": "E_SEAL_INCOMPLETE",
+        "page": "open",
+        "committedCount": 0,
+        "checkpointUnchanged": true
+      }
+    },
+    {
+      "id": "seal-duplicate",
+      "gates": [
+        "M06"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "seal page6 rows",
+        "repeat identical seal"
+      ],
+      "expected": {
+        "committedCount": 6,
+        "committedPages": 1,
+        "duplicate": true
+      }
+    },
+    {
+      "id": "download-id-start",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "dispatch attemptA",
+        "callback id7 search in_progress"
+      ],
+      "expected": {
+        "browserDownloadComplete": false,
+        "attempt": "in_progress",
+        "diskHashVerified": false
+      }
+    },
+    {
+      "id": "download-complete",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "bound id7",
+        "onChanged complete",
+        "search id7 complete"
+      ],
+      "expected": {
+        "attempt": "complete",
+        "job": "delivery_complete-if-all-volumes",
+        "URLReleased": true,
+        "diskHashVerified": false
+      }
+    },
+    {
+      "id": "download-interrupted",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "bound id7",
+        "search interrupted reason FILE_NO_SPACE"
+      ],
+      "expected": {
+        "attempt": "interrupted",
+        "job": "delivery_failed",
+        "browserDownloadComplete": false
+      }
+    },
+    {
+      "id": "download-zero",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "SW crash ID-save gap",
+        "0 unique candidates",
+        "60s mapping deadline"
+      ],
+      "expected": {
+        "attempt": "mapping_unknown",
+        "automaticDownloadCalls": 0,
+        "URLReleased": true
+      }
+    },
+    {
+      "id": "download-one",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "ID-save gap",
+        "duplicate onCreated events id7",
+        "search exact URL+extension+time unique id7"
+      ],
+      "expected": {
+        "boundId": 7,
+        "automaticDownloadCalls": 0,
+        "candidateCountAfterDedupe": 1
+      }
+    },
+    {
+      "id": "download-many",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "ID-save gap",
+        "two distinct candidate IDs exact URL+extension+time"
+      ],
+      "expected": {
+        "attempt": "conflict",
+        "boundId": null,
+        "automaticDownloadCalls": 0
+      }
+    },
+    {
+      "id": "download-host-close-after-complete",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "complete receipt persisted",
+        "host closes",
+        "search still complete"
+      ],
+      "expected": {
+        "attempt": "complete",
+        "job": "delivery_complete",
+        "URLReleased": true
+      }
+    },
+    {
+      "id": "download-host-close-before-terminal",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "id7 bound in_progress",
+        "host closes",
+        "search interrupted NETWORK_FAILED"
+      ],
+      "expected": {
+        "attempt": "interrupted",
+        "browserDownloadComplete": false
+      }
+    },
+    {
+      "id": "download-deadline-late-complete",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "id7 in_progress",
+        "10min deadline query inconclusive, release URL",
+        "later search id7 complete"
+      ],
+      "expected": {
+        "attempt": "complete",
+        "receiptLate": true,
+        "timedOutAtRetained": true,
+        "releaseTimestampRetained": true,
+        "browserDownloadComplete": true
+      }
+    },
+    {
+      "id": "download-reexport-isolation",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "attemptA id7 hits deadline",
+        "user reexports new jobB attemptB URLB",
+        "late complete id7",
+        "id8 B in_progress"
+      ],
+      "expected": {
+        "jobA": "delivery_complete-with-late-history",
+        "jobB": "delivering",
+        "attemptB": "in_progress",
+        "urlAEqualsB": false,
+        "ACompletesB": false
+      }
+    },
+    {
+      "id": "download-abandon-tombstone",
+      "gates": [
+        "M08",
+        "M10"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "attemptA abandoned",
+        "late complete id7"
+      ],
+      "expected": {
+        "attemptProjection": "abandoned",
+        "auditContainsLateComplete": true,
+        "jobResurrected": false
+      }
+    },
+    {
+      "id": "download-multivolume",
+      "gates": [
+        "M08"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "volume1 complete",
+        "volume2 interrupted"
+      ],
+      "expected": {
+        "job": "delivery_partial",
+        "deliveredVolumes": 1,
+        "delivery_complete": false
+      }
+    },
+    {
+      "id": "template-reject",
+      "gates": [
+        "M03",
+        "M09"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "unknown major/field/capability, invalidCSS, duplicatefield, dangerouskey, depth13, foreignURL"
+      ],
+      "expected": {
+        "saveAllowed": false,
+        "errors": [
+          "E_VERSION",
+          "E_SCHEMA",
+          "E_CAPABILITY",
+          "E_SEMANTIC"
+        ]
+      }
+    },
+    {
+      "id": "template-falsy-long-notitle",
+      "gates": [
+        "M03",
+        "M04"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "migration single-page fixture",
+        "save/close/reopen",
+        "preview/run via same compiler"
+      ],
+      "expected": {
+        "preserve": [
+          0,
+          false,
+          "",
+          null,
+          "150\u4e2d\u6587\u5b57"
+        ],
+        "filterByTitle": false,
+        "columnOrder": "fixture exact",
+        "immutableRevision": true
+      }
+    },
+    {
+      "id": "run-isolation-pagination",
+      "gates": [
+        "M04",
+        "M05"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "fixture2 pages\u00d73 rows",
+        "run1",
+        "run2 from initial URL"
+      ],
+      "expected": {
+        "perRunCount": 6,
+        "mixedRuns": false,
+        "sourcePageNavigated": false
+      }
+    },
+    {
+      "id": "pagination-signature",
+      "gates": [
+        "M05"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "first5 rows identical, sixth changes",
+        "next-button postcondition",
+        "repeat full page all rows identical"
+      ],
+      "expected": {
+        "firstChangeRecognized": true,
+        "secondRepeatedPage": "paused_unknown, not completed",
+        "blindClickRetry": false,
+        "repeatPage": "paused_unknown, no natural-end evidence, no second-page seal/no blind retry; slot held"
+      }
+    },
+    {
+      "id": "budget-plus-one",
+      "gates": [
+        "M05",
+        "M06"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "maxPages=1 after first3 rows",
+        "second-page command disallowed",
+        "maxRecords=5 page2 contains3 rows after page1=3"
+      ],
+      "expected": {
+        "maxPagesRun": "limit_reached count3",
+        "maxRecordsRun": "limit_reached count3 (whole page2 aborted)",
+        "success": false
+      }
+    },
+    {
+      "id": "permissions-senders",
+      "gates": [
+        "M09"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "forged web sender",
+        "source activeTab then no execute-origin grant",
+        "revoke grant between prepare/dispatch",
+        "cross-origin target"
+      ],
+      "expected": {
+        "dispatchChromeCalls": 0,
+        "reject": true,
+        "activeTabTransfers": false
+      }
+    },
+    {
+      "id": "storage-delete-retention",
+      "gates": [
+        "M10"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "upgrade migration fails",
+        "active/open-download run expiry",
+        "delete run then old callback"
+      ],
+      "expected": {
+        "failedMigration": "read-only with backup, no clean DB",
+        "activeOrPendingAutoDeleted": false,
+        "lateCallbackResurrects": false
+      }
+    },
+    {
+      "id": "entitlement-exports",
+      "gates": [
+        "M10"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "expired/invalid Pro signature",
+        "free one-run capability",
+        "existing Pro-run records exported after expiry"
+      ],
+      "expected": {
+        "newProFeatures": false,
+        "existingDataExportAllowed": true,
+        "networkMandatory": false
+      }
+    },
+    {
+      "id": "module-single-product",
+      "gates": [
+        "M11"
+      ],
+      "status": "planned-not-executed",
+      "steps": [
+        "02 fixed module slot",
+        "03 domain module import",
+        "pack single manifest",
+        "complete template->run->stop->export journey"
+      ],
+      "expected": {
+        "newOwnerOrDB": false,
+        "finalExtensions": 1,
+        "placeholderCountsAsProductPassed": false
+      }
+    }
+  ]
+}

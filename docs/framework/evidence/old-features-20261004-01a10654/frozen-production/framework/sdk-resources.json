@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "resources": [
+    {
+      "path": "framework/sdk-main.js",
+      "bytes": 26347,
+      "sha256": "c124401bca4570129e27fb283a5f3628964063279cab4bf1af9c4b5457e99d3f"
+    },
+    {
+      "path": "agents/page-relay.js",
+      "bytes": 14595,
+      "sha256": "2a2f57ddab6401ca881a3ebfece6de2f12864f5c6505032ebe4dad4c61ea7804"
+    }
+  ]
+}

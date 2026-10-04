@@ -1,0 +1,237 @@
+{
+  "url": "chrome://extensions/?id=klkhjgdgiamblehcbkepadedldbjklan",
+  "title": "扩展程序 - OpenDesk F1 user control v2",
+  "controls": [
+    {
+      "tag": "input",
+      "id": "searchInput",
+      "text": "",
+      "value": "",
+      "checked": false,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "devMode",
+      "text": "",
+      "checked": false,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 718,
+        "y": 19.984375,
+        "w": 26,
+        "h": 16
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "enableToggle",
+      "text": "",
+      "checked": true,
+      "disabled": false,
+      "aria": "开启，扩展程序已启用",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "enableToggle",
+      "text": "",
+      "checked": true,
+      "disabled": false,
+      "aria": "开启，扩展程序已启用",
+      "box": {
+        "x": 672,
+        "y": 132,
+        "w": 26,
+        "h": 16
+      }
+    },
+    {
+      "tag": "input",
+      "id": "native",
+      "text": "",
+      "value": "on",
+      "checked": true,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "crToggle",
+      "text": "",
+      "checked": true,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 672,
+        "y": 460.109375,
+        "w": 26,
+        "h": 16
+      }
+    },
+    {
+      "tag": "input",
+      "id": "native",
+      "text": "",
+      "value": "on",
+      "checked": true,
+      "disabled": true,
+      "aria": null,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "crToggle",
+      "text": "",
+      "checked": true,
+      "disabled": true,
+      "aria": null,
+      "box": {
+        "x": 672,
+        "y": 509.109375,
+        "w": 26,
+        "h": 16
+      }
+    },
+    {
+      "tag": "input",
+      "id": "native",
+      "text": "",
+      "value": "on",
+      "checked": true,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "crToggle",
+      "text": "",
+      "checked": true,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 672,
+        "y": 557.625,
+        "w": 26,
+        "h": 16
+      }
+    },
+    {
+      "tag": "input",
+      "id": "native",
+      "text": "",
+      "value": "on",
+      "checked": false,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "crToggle",
+      "text": "",
+      "checked": false,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 672,
+        "y": 664.125,
+        "w": 26,
+        "h": 16
+      }
+    },
+    {
+      "tag": "input",
+      "id": "native",
+      "text": "",
+      "value": "on",
+      "checked": false,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "crToggle",
+      "text": "",
+      "checked": false,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 672,
+        "y": 729.15625,
+        "w": 26,
+        "h": 16
+      }
+    },
+    {
+      "tag": "input",
+      "id": "native",
+      "text": "",
+      "value": "on",
+      "checked": true,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "cr-toggle",
+      "id": "crToggle",
+      "text": "",
+      "checked": true,
+      "disabled": false,
+      "aria": null,
+      "box": {
+        "x": 672,
+        "y": 794.1875,
+        "w": 26,
+        "h": 16
+      }
+    }
+  ]
+}

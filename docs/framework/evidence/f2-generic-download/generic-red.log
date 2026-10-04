@@ -1,0 +1,100 @@
+✖ generic APIs prepare committed typed values without templates, Blob creation or native dispatch (21.853417ms)
+✖ generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle (4.430417ms)
+✖ generic preparation rejects forged namespace, wrong result/run/principal/session and actual sender before writing (1.811667ms)
+✖ generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes (1.675625ms)
+✖ generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks (16.551875ms)
+✖ generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs (3.874542ms)
+✖ generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified (2.213083ms)
+✖ generic current-document registration is rechecked inside attempt, read and dispatch transactions (4.056083ms)
+✖ generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion (1.562792ms)
+✖ generic missing issued namespace/principal fails closed and never derives authority from payload (2.68875ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 0
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 292.297667
+
+✖ failing tests:
+
+test at tests/framework/k2-generic-download.test.mjs:69:1
+✖ generic APIs prepare committed typed values without templates, Blob creation or native dispatch (21.853417ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:71:52)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests/framework/k2-generic-download.test.mjs:80:1
+✖ generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle (4.430417ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:81:38)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/framework/k2-generic-download.test.mjs:99:1
+✖ generic preparation rejects forged namespace, wrong result/run/principal/session and actual sender before writing (1.811667ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:101:26)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/framework/k2-generic-download.test.mjs:111:1
+✖ generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes (1.675625ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:121:28)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/framework/k2-generic-download.test.mjs:127:1
+✖ generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks (16.551875ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:129:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/framework/k2-generic-download.test.mjs:139:1
+✖ generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs (3.874542ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:140:38)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/framework/k2-generic-download.test.mjs:150:1
+✖ generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified (2.213083ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:151:37)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/framework/k2-generic-download.test.mjs:161:1
+✖ generic current-document registration is rechecked inside attempt, read and dispatch transactions (4.056083ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:163:39)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/framework/k2-generic-download.test.mjs:175:1
+✖ generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion (1.562792ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:176:37)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/framework/k2-generic-download.test.mjs:185:1
+✖ generic missing issued namespace/principal fails closed and never derives authority from payload (2.68875ms)
+  TypeError: service.prepareArtifact is not a function
+      at Object.prepare (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:58:51)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k2-generic-download.test.mjs:187:26)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

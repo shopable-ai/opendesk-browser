@@ -1,0 +1,12 @@
+{
+  "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+  "families": "USC01/USC02/USC03",
+  "expected": "Running r1 remains pinned while UI saves r2 and tombstones head; r1 source/params/result stay unchanged until retirement; new start from another real host holding r2 is rejected E_TOMBSTONE",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "NOT_TESTED",
+  "selected": false,
+  "reason": "Not selected by --cases",
+  "skippedAt": 1791102996674,
+  "elapsedMs": 0.0010830000101123005
+}

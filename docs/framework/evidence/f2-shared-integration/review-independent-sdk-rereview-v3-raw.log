@@ -1,0 +1,728 @@
+Independent SDK rereview v3; cwd=/Users/shopme/Documents/workspace/opendesk-browser
+Requested gpt-6.1-sol/xhigh; resolved runtime unknown.
+Only this log and independent-sdk-rereview-v3.json written.
+
+CASE old-native-success
+COMMAND
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import {installPageSdk} from './src/framework/sdk/entry.js';
+import {createWindowTransport} from './src/framework/sdk/transport.js';
+import {installPageRelay} from './src/agents/page-relay.js';
+import {SDK_READY_EVENT} from './src/framework/sdk/registry.js';
+class DetailEvent extends Event { constructor(type,{detail}) {super(type); this.detail=detail;} }
+const window=new EventTarget(), timers=new Map(), callbacks=[], results=[]; let next=0;
+const setTimer=(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;}, clearTimer=id=>timers.delete(id);
+const options={window,CustomEvent:DetailEvent,setTimer,clearTimer};
+const relay=installPageRelay({...options,api:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}});
+window.addEventListener(SDK_READY_EVENT,e=>results.push(JSON.parse(e.detail)));
+const page={window,CustomEvent:DetailEvent};
+const sdk=installPageSdk({global:page,transport:createWindowTransport(options)});
+const first=sdk.ready().then(x=>({ready:x}),e=>({error:e.code}));
+const turn=()=>new Promise(resolve=>setImmediate(resolve));await turn();
+const originalTimers=[...timers.keys()]; assert.equal(callbacks.length,1);
+installPageSdk({global:page,transport:createWindowTransport(options)});
+let freshOutcome='pending'; const fresh=sdk.ready().then(x=>{freshOutcome={ready:x};return freshOutcome;},e=>{freshOutcome={error:e.code};return freshOutcome;});
+await turn(); assert.equal(callbacks.length,1);
+const oldMainTimer=timers.get(originalTimers[0]), oldRelayTimer=timers.get(originalTimers[1]);
+oldMainTimer.fn(); await turn(); assert.equal(callbacks.length,2);
+callbacks[0].cb({ok:true,data:{sdkVersion:'1.0.0',ready:true,methods:['APPLOCAL_GETITEM']}}); await turn();
+callbacks[1].cb({ok:false,error:{code:'E_GRANT_REVOKED',message:'new actual Hello denied'}});await turn();
+assert.deepEqual(await first,{error:'E_TIMEOUT'}); assert.equal(callbacks.length,2); for(const {m} of callbacks){assert.deepEqual(Object.keys(m).sort(),['payload','protocol','type']);assert.equal(m.type,'SDK_HELLO');assert.deepEqual(m.payload,{sdkVersion:'1.0.0'});} assert.deepEqual(await fresh,{error:'E_GRANT_REVOKED'}); console.log(JSON.stringify({case:'reinjection-old-native-Hello-success-after-MAIN-timeout-poisons-fresh-denied-Hello',sameTimeoutMs:[oldMainTimer.ms,oldRelayTimer.ms],first:await first,fresh:await fresh,nativeHelloDispatches:callbacks.length,readyEvents:results}));
+sdk.dispose();relay.removeEventListeners();
+JS
+EXIT 0
+{"case":"reinjection-old-native-Hello-success-after-MAIN-timeout-poisons-fresh-denied-Hello","sameTimeoutMs":[30000,30000],"first":{"error":"E_TIMEOUT"},"fresh":{"error":"E_GRANT_REVOKED"},"nativeHelloDispatches":2,"readyEvents":[{"protocol":"opendesk.foundation.v1","helloId":"86edae87463070fa19e00229b6bc1959","response":{"ok":true,"data":{"sdkVersion":"1.0.0","ready":true,"methods":["APPLOCAL_GETITEM"]}}},{"protocol":"opendesk.foundation.v1","helloId":"5a91b6010bb78bc34aed9b7d15d69804","response":{"ok":false,"error":{"code":"E_GRANT_REVOKED","message":"new actual Hello denied"}}}]}
+
+CASE old-relay-timeout
+COMMAND
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import {installPageSdk} from './src/framework/sdk/entry.js';
+import {createWindowTransport} from './src/framework/sdk/transport.js';
+import {installPageRelay} from './src/agents/page-relay.js';
+import {SDK_READY_EVENT} from './src/framework/sdk/registry.js';
+class DetailEvent extends Event { constructor(type,{detail}) {super(type); this.detail=detail;} }
+const window=new EventTarget(), timers=new Map(), callbacks=[], results=[]; let next=0;
+const setTimer=(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;}, clearTimer=id=>timers.delete(id);
+const options={window,CustomEvent:DetailEvent,setTimer,clearTimer};
+const relay=installPageRelay({...options,api:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}});
+window.addEventListener(SDK_READY_EVENT,e=>results.push(JSON.parse(e.detail)));
+const page={window,CustomEvent:DetailEvent};
+const sdk=installPageSdk({global:page,transport:createWindowTransport(options)});
+const first=sdk.ready().then(x=>({ready:x}),e=>({error:e.code}));
+const turn=()=>new Promise(resolve=>setImmediate(resolve));await turn();
+const originalTimers=[...timers.keys()]; assert.equal(callbacks.length,1);
+installPageSdk({global:page,transport:createWindowTransport(options)});
+let freshOutcome='pending'; const fresh=sdk.ready().then(x=>{freshOutcome={ready:x};return freshOutcome;},e=>{freshOutcome={error:e.code};return freshOutcome;});
+await turn(); assert.equal(callbacks.length,1);
+const oldMainTimer=timers.get(originalTimers[0]), oldRelayTimer=timers.get(originalTimers[1]);
+oldMainTimer.fn(); await turn(); assert.equal(callbacks.length,2);
+oldRelayTimer.fn(); await turn();
+callbacks[1].cb({ok:true,data:{sdkVersion:'1.0.0',ready:true,methods:['APPSTORAGE_CLEAR']}});await turn();
+assert.deepEqual(await first,{error:'E_TIMEOUT'}); assert.equal(callbacks.length,2); for(const {m} of callbacks){assert.deepEqual(Object.keys(m).sort(),['payload','protocol','type']);assert.equal(m.type,'SDK_HELLO');assert.deepEqual(m.payload,{sdkVersion:'1.0.0'});} assert.deepEqual(await fresh,{ready:{sdkVersion:'1.0.0',ready:true,methods:['APPSTORAGE_CLEAR']}}); console.log(JSON.stringify({case:'reinjection-previous-Hello-MAIN-timeout-before-relay-timeout',sameTimeoutMs:[oldMainTimer.ms,oldRelayTimer.ms],first:await first,fresh:await fresh,nativeHelloDispatches:callbacks.length,readyEvents:results}));
+sdk.dispose();relay.removeEventListeners();
+JS
+EXIT 0
+{"case":"reinjection-previous-Hello-MAIN-timeout-before-relay-timeout","sameTimeoutMs":[30000,30000],"first":{"error":"E_TIMEOUT"},"fresh":{"ready":{"sdkVersion":"1.0.0","ready":true,"methods":["APPSTORAGE_CLEAR"]}},"nativeHelloDispatches":2,"readyEvents":[{"protocol":"opendesk.foundation.v1","helloId":"53c413913f742fd323c505e4b83652b8","response":{"ok":false,"error":{"code":"E_TIMEOUT","message":"Relay deadline exceeded"}}},{"protocol":"opendesk.foundation.v1","helloId":"fc2e14057d86871314a2c5c994f7fa88","response":{"ok":true,"data":{"sdkVersion":"1.0.0","ready":true,"methods":["APPSTORAGE_CLEAR"]}}}]}
+
+CASE recovery-factory-combinations
+COMMAND
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+import {validateSdkRequest} from './src/framework/sdk/registry.js';
+import {decodeValue} from './src/platform/page-port/codec.js';
+let source=await readFile('tests/framework/k2-sdk-broker.test.mjs','utf8');
+source=source.slice(0,source.indexOf('const code = expected')).replace(/from '(\.\.[^']+)'/g,(_,p)=>`from '${new URL(p,pathToFileURL(process.cwd()+'/tests/framework/k2-sdk-broker.test.mjs')).href}'`);
+const {fixture}=await import('data:text/javascript;base64,'+Buffer.from(source+'\nexport {fixture};').toString('base64'));
+const operation=f=>f.rows('commandJournal').then(rows=>rows.filter(x=>x.tag==='sdk-operation'));
+const snapshot=async f=>({operations:await operation(f),runs:await f.rows('runs'),results:await f.rows('results')});
+const request=p=>validateSdkRequest({requestId:p.requestId,method:p.method,args:decodeValue(p.argsWire),deadlineAt:p.deadlineAt});
+for(const [kind,selector] of [['same-document-frame',{tabId:2,frameId:0,reason:'navigation'}],['new-document-tab',{tabId:2,reason:'navigation'}],['origin',{origins:['https://*.example/*'],permissions:[],reason:'permission-removed'}],['notifications',{origins:[],permissions:['notifications'],reason:'permission-removed'}]]){
+ const f=await fixture();const originalGrant=await f.grant();const oldSender=structuredClone(f.sender);
+ const p=f.payload('APPLOCAL_SETITEM',{key:'regrant',value:0},'old-regrant-id');await f.broker.request(p,f.sender);
+ const oldAdmission=await f.authority.admitSdk(request(p),f.sender);
+ await f.authority.revokeSdkGrants(selector);
+ if(kind==='new-document-tab'){f.navigate('new-document');f.sender.documentId='new-document';}
+ const newGrant=await f.grant();assert.notEqual(newGrant.grantIncarnation,originalGrant.grantIncarnation);
+ const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);
+ const broker=f.makeBroker(fresh);assert.equal((await broker.hello({sdkVersion:'1.0.0'},f.sender)).ready,true);
+ await assert.rejects(broker.request(p,oldSender),e=>e.code===(kind==='new-document-tab'?'E_DOCUMENT_STALE':'E_GRANT_REVOKED'));
+ await assert.rejects(oldAdmission.context.authorize(),e=>['E_DOCUMENT_STALE','E_GRANT_REVOKED'].includes(e.code));
+ const result=decodeValue((await broker.request(f.payload('APPLOCAL_GETITEM',{key:'regrant'},'new-regrant-id'),f.sender)).valueWire);assert.equal(result.data,0);
+ assert.equal(f.nativeCalls.filter(x=>x.method==='set').length,1);
+ console.log(JSON.stringify({case:'regrant-double-recover',kind,status:'PASS',oldIncarnationAndRequestFenced:true,nativeSetCount:1,result:result.data}));broker.dispose();f.broker.dispose();
+}
+{
+ const f=await fixture();await f.grant();const p=f.payload('APPSTORAGE_SETITEM',{key:'atomic-cut',value:false},'atomic-cut-id');
+ const a=await f.authority.admitSdk(request(p),f.sender);await f.storage.executeSdk(p.method,request(p).args,a.context);
+ assert.equal((await f.rows('runs'))[0].state,'preparing');assert.equal(f.storage.writes.filter(x=>x.store==='frameworkKV').length,1);
+ const result=(await f.rows('results'))[0];assert.equal(result.state,'durable');
+ for(const field of ['opKey','requestDigest','opId','runId','namespace','grantIncarnation','browserSessionIncarnation'])assert.equal(result[field],a.operation[field]);
+ const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);
+ const broker=f.makeBroker(fresh);const run=(await f.rows('runs'))[0];assert.equal(run.state,'completed');assert.equal(run.resultId,result.resultId);
+ const reply=decodeValue((await broker.request(p,f.sender)).valueWire);assert.equal(reply.PageBrigeCode,0);assert(Object.hasOwn(reply,'data'));assert.equal(reply.data,undefined);
+ assert.equal(f.storage.writes.filter(x=>x.store==='frameworkKV').length,1);assert.equal((await f.rows('frameworkKV')).length,1);assert.equal(decodeValue((await f.rows('frameworkKV'))[0].valueWire),'false');
+ assert.equal((await f.rows('results')).length,1);assert.equal((await operation(f))[0].deliveryState,'response_ready');assert.notEqual((await operation(f))[0].deliveryState,'delivered');
+ const operationAfter=(await operation(f))[0];for(const field of ['opId','opKey','requestDigest','deadlineAt','grantIncarnation','runId','resultId'])assert.equal(operationAfter[field],a.operation[field]);
+ console.log(JSON.stringify({case:'atomic-result-before-broker-receipt-double-recover',status:'PASS',frameworkKVWrites:1,resultCount:1,runState:run.state,deliveryState:operationAfter.deliveryState,originalBindings:true}));broker.dispose();f.broker.dispose();
+}
+for(const [method,args,capability] of [['AXIOS_POST',{url:'https://fixture.example/write',data:0},'network'],['APPLOCAL_SETITEM',{key:'unknown',value:0},'storage.session'],['CREATE_NOTIFY',{title:'unknown',content:'unknown'},'notifications']]){
+ let fetchCount=0;const f=await fixture({fetchImpl:async()=>{fetchCount++;throw Error('should not dispatch');}});await f.grant();const p=f.payload(method,args,'unknown-cut-id');const a=await f.authority.admitSdk(request(p),f.sender);
+ await a.context.authorize({capability,phase:'pre',...(capability==='network'?{url:args.url}:{})});
+ const fresh=f.makeAuthority();await fresh.recoverSdk();const once=await snapshot(f);await fresh.recoverSdk();assert.deepEqual(await snapshot(f),once);
+ const broker=f.makeBroker(fresh);await assert.rejects(broker.request(p,f.sender),e=>e.code==='E_EFFECT_UNKNOWN');const op=(await operation(f))[0],run=(await f.rows('runs'))[0];
+ assert.equal(op.state,'effect_unknown');assert.equal(run.state,'paused_unknown');assert.equal(op.submissionCount,1);assert.equal(op.deliveryState,'denied');
+ for(const field of ['opId','opKey','requestDigest','deadlineAt','grantIncarnation','runId','resultId'])assert.equal(op[field],a.operation[field]);
+ assert.equal((await operation(f)).length,1);assert.equal((await f.rows('runs')).length,1);assert.equal((await f.rows('results')).length,0);assert.equal(fetchCount,0);assert.equal(f.nativeCalls.length,0);
+ console.log(JSON.stringify({case:'dispatched-double-recover-no-replay',method,status:'PASS',operationState:op.state,runState:run.state,dispatchesAfterRecovery:0,originalBindings:true}));broker.dispose();f.broker.dispose();
+}
+console.log('INDEPENDENT_COMBINATIONS 8/8 PASS; serial transaction/Chrome callback oracle only');
+JS
+EXIT 0
+{"case":"regrant-double-recover","kind":"same-document-frame","status":"PASS","oldIncarnationAndRequestFenced":true,"nativeSetCount":1,"result":0}
+{"case":"regrant-double-recover","kind":"new-document-tab","status":"PASS","oldIncarnationAndRequestFenced":true,"nativeSetCount":1,"result":0}
+{"case":"regrant-double-recover","kind":"origin","status":"PASS","oldIncarnationAndRequestFenced":true,"nativeSetCount":1,"result":0}
+{"case":"regrant-double-recover","kind":"notifications","status":"PASS","oldIncarnationAndRequestFenced":true,"nativeSetCount":1,"result":0}
+{"case":"atomic-result-before-broker-receipt-double-recover","status":"PASS","frameworkKVWrites":1,"resultCount":1,"runState":"completed","deliveryState":"response_ready","originalBindings":true}
+{"case":"dispatched-double-recover-no-replay","method":"AXIOS_POST","status":"PASS","operationState":"effect_unknown","runState":"paused_unknown","dispatchesAfterRecovery":0,"originalBindings":true}
+{"case":"dispatched-double-recover-no-replay","method":"APPLOCAL_SETITEM","status":"PASS","operationState":"effect_unknown","runState":"paused_unknown","dispatchesAfterRecovery":0,"originalBindings":true}
+{"case":"dispatched-double-recover-no-replay","method":"CREATE_NOTIFY","status":"PASS","operationState":"effect_unknown","runState":"paused_unknown","dispatchesAfterRecovery":0,"originalBindings":true}
+INDEPENDENT_COMBINATIONS 8/8 PASS; serial transaction/Chrome callback oracle only
+
+CASE scoped-suite
+COMMAND
+node --test tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-broker.test.mjs tests/framework/k4-chrome-services.test.mjs tests/framework/k4-network.test.mjs
+EXIT 0
+✔ SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs (27.339ms)
+✔ SDK recovery reconciles atomic storage durable result before broker receipt and never replays it (2.679125ms)
+✔ SDK restart at dispatched cut pauses its run with original unknown effect and no replacement (1.491792ms)
+✔ SDK Hello needs native document/grant and never claims a controller slot (0.535042ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (0.711042ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (0.455166ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (23.01725ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (7.515583ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (7.884458ms)
+✔ durable session duplicate after authority restart does not resubmit native set (3.149083ms)
+✔ native session failure records unknown dispatch and will not retry same write (1.905292ms)
+✔ SW recovery fences dispatched write gap and retains original identity/deadline (0.845667ms)
+✔ durable duplicate cannot extend original 15s service deadline (1.576125ms)
+✔ native permission remove then regrant cannot revive old request/grant (3.06425ms)
+✔ observed navigation invalidates current page Hello and pending admission (0.80925ms)
+✔ notification permission removal with empty origins revokes the affected grant (0.461875ms)
+✔ notification native receipt and durable undefined survive delivery revocation (2.621375ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (28.07ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (1.666583ms)
+✔ same-ID changed args/method/original deadline reaches broker and explicitly delivers conflict (3.337625ms)
+✔ timeout plus reused ID: old success or rejection cannot finish/delete replacement (1.4505ms)
+✔ 100 same-ID same-digest real relay dispatches all reach product broker admission: serial oracle, not native B05 (64.95975ms)
+✔ deadline, canonical codec and legitimate request ID hello remain exact at native boundary (0.295625ms)
+✔ bad page fields/ACK errors never consume another entry; dispose clears timers and late callbacks (0.268209ms)
+✔ SVC cookie reads use exact URL; no public-suffix or neighboring-domain expansion (2.1895ms)
+✔ SVC cookie batch preserves explicit expiry/default session and Host-prefix rules (4.872334ms)
+✔ SVC cookie removal awaits all callbacks and checks each permission (5.963542ms)
+✔ SVC Chrome lastError and missing cookie callbacks are typed failures (0.348417ms)
+✔ SVC fixed injection requires exact doc and correct resource/world before Chrome call (0.285584ms)
+✔ SVC notification click has no page URL, clears once, close/late events do not resettle (0.387875ms)
+✔ CMP13 real loopback four HTTP methods, body and serializable projection (38.019584ms)
+✔ CMP13 real response false retained (2.733792ms)
+✔ CMP13 real response zero retained (3.023917ms)
+✔ CMP13 real response null retained (2.514791ms)
+✔ HTTP vs network vs bad JSON/UTF8 typed errors and restricted error response (7.17ms)
+✔ denied URL and config have zero real HTTP; native grant rechecked post response (3.303666ms)
+✔ private native receipt hook persists HTTP fact before post revocation, not normalized checkServer result (3.957333ms)
+✔ manual redirect never follows unauthorized destination (1.975125ms)
+✔ actual abort during stalled body/HTTP, size budget and caller cancellation (78.295959ms)
+✔ backend 15s budget independent from client timeout and earlier native deadline (1.697291ms)
+✔ stalled pre/post native permission validation still obeys driver deadline without replay (42.011958ms)
+✔ server checks real observable success/failure and never reports opaque available (23.504667ms)
+✔ external IP info disabled default and never calls original external endpoint in tests (0.233959ms)
+✔ notification true callback wait, lastError refusal and pre/post authorization (0.790416ms)
+✔ service HTTP result preserves business object inside response.data rather than outer authority (2.252416ms)
+✔ Hello incarnation: relay-timeout cannot replace fresh success (16.375541ms)
+✔ Hello incarnation: relay-timeout cannot replace fresh denial (1.477542ms)
+✔ Hello incarnation: late-success cannot replace fresh success (1.4385ms)
+✔ Hello incarnation: late-success cannot replace fresh denial (0.667375ms)
+✔ Hello incarnation: late-failure cannot replace fresh success (1.234458ms)
+✔ Hello incarnation: late-failure cannot replace fresh denial (1.720125ms)
+✔ a request ID named hello uses the final-result channel, never Hello readiness (2.06425ms)
+✔ uncorrelated Ready events do not settle a current Hello; pagehide is terminal (0.242958ms)
+✔ production exact fixed MAIN/ISOLATED bundles correlate every reinjected Hello (506.3855ms)
+✔ development exact fixed MAIN/ISOLATED bundles correlate every reinjected Hello (58.337667ms)
+✔ exact review reproducer: two fresh evaluations reuse frozen globals and perform new Hello (21.845041ms)
+✔ fresh native Hello updates expanded/shrunken grant subset and refuses failed regrant (14.658625ms)
+✔ reinjection preserves old pending legacy callback and stable ChromeBridgeEvents (3.837375ms)
+✔ overlapping reinjections serialize fixed Hello so late old callback cannot supply fresh grant (4.18325ms)
+✔ hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed (0.733958ms)
+✔ dispose and pagehide are terminal: fresh evaluation cannot resurrect immutable installation (3.040625ms)
+✔ borrowed lifecycle and forged function toString cannot impersonate ownership of a different global (0.253834ms)
+✔ CMP15 callback preserves false (13.255417ms)
+✔ CMP15 callback preserves 0 (1.701167ms)
+✔ CMP15 callback preserves undefined (0.585084ms)
+✔ CMP15 callback preserves null (1.453792ms)
+✔ CMP15 callback preserves  (0.342041ms)
+✔ CMP15 callback preserves 0 (0.61275ms)
+✔ CMP15 callback preserves  (0.480917ms)
+✔ CMP15 callback preserves [object Object] (0.306459ms)
+✔ CMP15 inner business error business denied remains original rejection (0.809042ms)
+✔ CMP15 inner business error [object Object] remains original rejection (0.895875ms)
+✔ CMP15 inner business error null remains original rejection (0.344208ms)
+✔ CMP15 inner business error undefined remains original rejection (0.459916ms)
+✔ CMP15 inner business error false remains original rejection (0.447792ms)
+✔ CMP15 inner business error 0 remains original rejection (0.3025ms)
+✔ CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending (4.310584ms)
+✔ CMP15 unicode legacy Base64 callback and ACK never settle early (1.73925ms)
+✔ CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement (0.320375ms)
+✔ B03 client deadline and document dispose clean original pending once (14.950167ms)
+✔ CMP07 AppStorage String semantics and AppLocal typed presence cross codec (0.739208ms)
+✔ CMP13 four HTTP facades preserve call shape (0.143792ms)
+✔ schema/config/business refusal dispatches nothing (0.402416ms)
+✔ CMP14 notifications preserve desc rules with typed null/body errors (0.9565ms)
+✔ CMP14 server results use latency order, input ties and all-failed null (0.219ms)
+✔ CMP08 strict compact JSON never runs code; wrapAsync is only source transformation (0.118833ms)
+✔ CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID (0.460917ms)
+✔ CMP08 UtilInfo stays idle until explicit call and keeps original URL (0.069583ms)
+✔ events retain old strings and route lifecycle solely to injected RunHost (0.080958ms)
+✔ sleep resolves undefined and abort removes timer (1.127583ms)
+✔ SDK install conflicts never overwrite page functions; same installation is idempotent (0.61475ms)
+✔ Hello cannot be ready from partial or wrong-version allowlist (5.0295ms)
+✔ fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority (2.611584ms)
+✔ CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data (0.565417ms)
+✔ Hello grant subset permits its methods and rejects other calls before native request (0.155084ms)
+✔ fixture 100 concurrent original promises once settle; not native B05 evidence (10.940416ms)
+✔ relay rejects page claims and raw script without native dispatch (1.620417ms)
+✔ native typed authority/transport failure is outer error; business remains inner (1.981625ms)
+✔ service dispatcher delegates storage and atomic device context without namespace from page (0.191791ms)
+ℹ tests 99
+ℹ suites 0
+ℹ pass 99
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 722.061542
+
+CASE independent-additional-boundaries
+COMMAND
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import {createWindowTransport} from './src/framework/sdk/transport.js';
+import {installPageRelay} from './src/agents/page-relay.js';
+import {PROTOCOL,SDK_VERSION,SDK_HELLO_EVENT,SDK_REQUEST_EVENT,SDK_READY_EVENT} from './src/framework/sdk/registry.js';
+import {encodeValue,decodeValue,createValueCodec} from './src/platform/page-port/codec.js';
+class DetailEvent extends Event{constructor(type,{detail}){super(type);this.detail=detail;}}
+const turn=()=>new Promise(resolve=>setImmediate(resolve));
+function fixture(){
+ const window=new EventTarget(),callbacks=[],timers=new Map(),readyEvents=[];let next=0;
+ const options={window,CustomEvent:DetailEvent,setTimer:(fn,ms)=>{const id=++next;timers.set(id,{fn,ms});return id;},clearTimer:id=>timers.delete(id)};
+ const relay=installPageRelay({...options,api:{runtime:{sendMessage:(m,cb)=>callbacks.push({m,cb})}}});
+ const transport=createWindowTransport(options);
+ window.addEventListener(SDK_READY_EVENT,e=>readyEvents.push(JSON.parse(e.detail)));
+ const dispatch=(type,message)=>window.dispatchEvent(new DetailEvent(type,{detail:JSON.stringify(message)}));
+ const cleanup=()=>{transport.dispose();relay.removeEventListeners();assert.equal(timers.size,0);};
+ return {window,callbacks,timers,readyEvents,relay,transport,dispatch,cleanup};
+}
+const helloOk=()=>({ok:true,data:{sdkVersion:SDK_VERSION,ready:true,methods:['APPLOCAL_GETITEM']}});
+const resultOk=value=>({ok:true,data:{valueWire:encodeValue({PageBrigeCode:0,data:value})}});
+const request=()=>({requestId:'hello',method:'APPLOCAL_GETITEM',args:{key:'typed'},deadlineAt:Date.now()+10000});
+function nativeHelloExact(message){assert.deepEqual(message,{protocol:PROTOCOL,type:'SDK_HELLO',payload:{sdkVersion:SDK_VERSION}});}
+for(const order of ['result-before-ready','ready-before-result','cancel-literal-before-ready']){
+ const f=fixture();let helloSettled=false,requestSettled=false;
+ const hello=f.transport.hello().then(x=>{helloSettled=true;return x;},e=>{helloSettled=true;throw e;});
+ const req=f.transport.request(request()).then(x=>{requestSettled=true;return x;},e=>{requestSettled=true;return {error:e.code};});
+ assert.equal(f.callbacks.length,2);nativeHelloExact(f.callbacks[0].m);assert.equal(f.transport.diagnostics().pending,2);
+ if(order==='ready-before-result'){f.callbacks[0].cb(helloOk());await turn();assert.equal(requestSettled,false);f.callbacks[1].cb(resultOk(false));}
+ else if(order==='cancel-literal-before-ready'){f.transport.cancel('hello');assert.deepEqual(await req,{error:'E_CANCELLED'});f.callbacks[1].cb(resultOk(false));await turn();assert.equal(helloSettled,false);f.callbacks[0].cb(helloOk());}
+ else {f.callbacks[1].cb(resultOk(false));await turn();assert.equal(helloSettled,false);f.callbacks[0].cb(helloOk());}
+ assert.deepEqual(await hello,helloOk().data);
+ if(order!=='cancel-literal-before-ready')assert.deepEqual(await req,{requestId:'hello',result:{PageBrigeCode:0,data:false}});
+ f.cleanup();console.log(JSON.stringify({case:'simultaneous-literal-hello',order,status:'PASS'}));
+}
+{
+ const f=fixture();const first=f.transport.request(request());const oldTimer=[...f.timers.values()][0];
+ f.callbacks[0].cb(resultOk(false));await first;
+ const second=f.transport.request(request());let settled=false;second.then(()=>settled=true,()=>settled=true);
+ oldTimer.fn();await turn();assert.equal(settled,false);assert.equal(f.transport.diagnostics().pending,1);
+ f.callbacks[1].cb(resultOk(0));assert.deepEqual(await second,{requestId:'hello',result:{PageBrigeCode:0,data:0}});
+ f.cleanup();console.log(JSON.stringify({case:'old-cleared-transport-timer-cannot-consume-reused-literal-id',status:'PASS'}));
+}
+{
+ const f=fixture();f.dispatch(SDK_HELLO_EVENT,{protocol:PROTOCOL,type:'SDK_HELLO',payload:{sdkVersion:SDK_VERSION}});
+ const current=f.transport.hello();let settled=false;current.then(()=>settled=true,()=>settled=true);
+ f.callbacks.forEach(({m})=>nativeHelloExact(m));f.callbacks[0].cb(helloOk());await turn();assert.equal(settled,false);
+ assert.equal(Object.hasOwn(f.readyEvents[0],'helloId'),false);
+ f.callbacks[1].cb(helloOk());assert.deepEqual(await current,helloOk().data);f.cleanup();
+ console.log(JSON.stringify({case:'native-uncorrelated-legacy-hello-cannot-consume-current-correlated-ready',status:'PASS'}));
+}
+{
+ const f=fixture();const id='a'.repeat(32);
+ const invalid=[
+ [SDK_HELLO_EVENT,{protocol:PROTOCOL,type:'SDK_HELLO',helloId:'bad',payload:{sdkVersion:SDK_VERSION}}],
+ [SDK_HELLO_EVENT,{protocol:PROTOCOL,type:'SDK_HELLO',helloId:id,payload:{sdkVersion:SDK_VERSION,helloId:id}}],
+ [SDK_REQUEST_EVENT,{protocol:PROTOCOL,type:'SDK_REQUEST',helloId:id,payload:{requestId:'hello',method:'APPLOCAL_GETITEM',argsWire:encodeValue({key:'x'}),deadlineAt:Date.now()+10000}}]
+ ];
+ for(const [type,message] of invalid)f.dispatch(type,message);
+ await turn();assert.equal(f.callbacks.length,0);assert.equal(f.relay.diagnostics().pending,0);
+ f.cleanup();console.log(JSON.stringify({case:'correlation-id-is-page-hello-envelope-only-malformed-and-native-payload-claims-refused',status:'PASS',nativeDispatches:0}));
+}
+{
+ const expected={type:'object',value:[
+ ['a',{type:'undefined'}],['b',{type:'boolean',value:false}],['c',{type:'number',value:0}],
+ ['d',{type:'number',value:0,negativeZero:true}],['e',{type:'null'}],['f',{type:'string',value:'中文🙂'}]]};
+ const value={f:'中文🙂',e:null,d:-0,c:0,b:false,a:undefined};
+ const factory=createValueCodec({profile:'foundation'});
+ assert.deepEqual(encodeValue(value),expected);assert.deepEqual(factory.encodeValue(value),expected);
+ const actual=decodeValue(JSON.parse(JSON.stringify(expected)));assert.deepEqual(actual,value);assert(Object.hasOwn(actual,'a'));assert(Object.is(actual.d,-0));
+ assert.equal(JSON.stringify(encodeValue({key:'x',value:{b:0,a:false}})),JSON.stringify(encodeValue({value:{a:false,b:0},key:'x'})));
+ console.log(JSON.stringify({case:'foundation-sdk-wire-exact-type-value-golden-and-canonical-digest-order',status:'PASS'}));
+}
+{
+ const nested=depth=>{let x=0;for(let i=0;i<depth;i++)x={x};return x;};
+ assert.deepEqual(decodeValue(encodeValue(nested(12))),nested(12));
+ assert.deepEqual(decodeValue(encodeValue({key:'typed',value:nested(11)})),{key:'typed',value:nested(11)});
+ assert.deepEqual(decodeValue(encodeValue({PageBrigeCode:0,data:nested(11)})),{PageBrigeCode:0,data:nested(11)});
+ for(const value of [nested(13),{key:'typed',value:nested(12)},{PageBrigeCode:0,data:nested(12)}])
+ assert.throws(()=>encodeValue(value),e=>e.code==='E_VALUE_SERIALIZATION'&&e.stage==='encode');
+ const deepWire=depth=>{let x={type:'number',value:0};for(let i=0;i<depth;i++)x={type:'object',value:[['x',x]]};return x;};
+ assert.throws(()=>decodeValue(deepWire(13)),e=>e.code==='E_VALUE_SERIALIZATION'&&e.stage==='decode');
+ let getters=0;const wire={type:'number'};Object.defineProperty(wire,'value',{enumerable:true,get(){getters++;return 0;}});
+ assert.throws(()=>decodeValue(wire),e=>e.code==='E_VALUE_SERIALIZATION'&&e.stage==='decode');assert.equal(getters,0);
+ assert.throws(()=>decodeValue({type:'object',value:[['x',{type:'null'}],['x',{type:'null'}]]}),e=>e.code==='E_VALUE_SERIALIZATION');
+ assert.throws(()=>encodeValue('\ud800'),e=>e.code==='E_VALUE_SERIALIZATION');
+ assert.throws(()=>encodeValue('汉',{maxBytes:1}),e=>e.code==='E_VALUE_SERIALIZATION');
+ console.log(JSON.stringify({case:'foundation-sdk-wrapper-depth12-refusals-accessors-unicode-byte-boundary',status:'PASS'}));
+}
+console.log('INDEPENDENT_V3_BOUNDARIES 8/8 PASS; controlled window/Chrome callback oracle only');
+JS
+EXIT 0
+{"case":"simultaneous-literal-hello","order":"result-before-ready","status":"PASS"}
+{"case":"simultaneous-literal-hello","order":"ready-before-result","status":"PASS"}
+{"case":"simultaneous-literal-hello","order":"cancel-literal-before-ready","status":"PASS"}
+{"case":"old-cleared-transport-timer-cannot-consume-reused-literal-id","status":"PASS"}
+{"case":"native-uncorrelated-legacy-hello-cannot-consume-current-correlated-ready","status":"PASS"}
+{"case":"correlation-id-is-page-hello-envelope-only-malformed-and-native-payload-claims-refused","status":"PASS","nativeDispatches":0}
+{"case":"foundation-sdk-wire-exact-type-value-golden-and-canonical-digest-order","status":"PASS"}
+{"case":"foundation-sdk-wrapper-depth12-refusals-accessors-unicode-byte-boundary","status":"PASS"}
+INDEPENDENT_V3_BOUNDARIES 8/8 PASS; controlled window/Chrome callback oracle only
+
+CASE startup-syntax
+COMMAND
+node --check src/platform/host/broker.js
+node --check src/features/scraping/background.js
+EXIT 0
+
+CASE sdk-after-startup-drift
+COMMAND
+node --test tests/framework/k2-sdk-broker.test.mjs
+EXIT 0
+✔ SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs (20.036667ms)
+✔ SDK recovery reconciles atomic storage durable result before broker receipt and never replays it (2.335041ms)
+✔ SDK restart at dispatched cut pauses its run with original unknown effect and no replacement (1.689166ms)
+✔ SDK Hello needs native document/grant and never claims a controller slot (0.559833ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (1.183084ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (1.339125ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (25.448625ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (4.237125ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (7.09075ms)
+✔ durable session duplicate after authority restart does not resubmit native set (1.528167ms)
+✔ native session failure records unknown dispatch and will not retry same write (1.650791ms)
+✔ SW recovery fences dispatched write gap and retains original identity/deadline (0.870333ms)
+✔ durable duplicate cannot extend original 15s service deadline (1.826125ms)
+✔ native permission remove then regrant cannot revive old request/grant (2.183ms)
+✔ observed navigation invalidates current page Hello and pending admission (0.736334ms)
+✔ notification permission removal with empty origins revokes the affected grant (0.459833ms)
+✔ notification native receipt and durable undefined survive delivery revocation (2.102167ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (34.92675ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (1.599042ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 255.770875
+
+SDK/relay/entry/codec/test syntax checks each returned exit 0 (not LSP/type approval).
+
+STARTUP FOLLOWUP FULL BROKER/CONSUMER READ
+import {createStorage} from '../storage/index.js';
+import {createSessionTyped} from '../storage/session.js';
+import {createDownloadService} from '../downloads/index.js';
+import {createRunAuthority} from './authority.js';
+import {createSdkBroker} from './sdk-broker.js';
+import {createTabsService} from '../chrome/tabs.js';
+import {SDK_FILES} from '../../framework/sdk/registry.js';
+import {PROTOCOL, FoundationError, invariant, newId, canonical} from '../protocol.js';
+import {httpUrl, isToolSender} from '../../environment.js';
+import {bytesToBase64} from '../page-port/codec.js';
+import {BUDGETS} from '../protocol.js';
+
+const templateOperations = new Set(['claimRun','snapshotRun','prepareCommand','dispatchCommand','stopRun','abandonUnknown','finishRun',
+  'createTarget','reconcileTargetCreation','bindTarget','retireTarget','ackPageFrame','ackSourceFrame','openSourceContext',
+  'startSourceSelection','cancelSourceSelection','releaseSourceContext','previewSource','saveTemplate','listTemplates',
+  'getTemplateRevision','renameTemplate','beginPage','stagePageBatch','sealPage','readRecords','openReaderPin','releaseReaderPin',
+  'prepareExport','retryExport','abandonExport','getEntitlementSnapshot','entitlementStatus','installEntitlement','revokeEntitlement','deleteRun']);
+
+export async function createFoundationBroker({api = chrome, ports = new Map(), clock = {now:()=>Date.now()}, indexedDB = globalThis.indexedDB,
+  templateConsumer} = {}) {
+  let {browserSessionIncarnation:session} = await api.storage.session.get('browserSessionIncarnation');
+  if (!session) { session = newId(); await api.storage.session.set({browserSessionIncarnation:session}); }
+  const storage = await createStorage({clock,indexedDB,sessionTyped:createSessionTyped({api})});
+  invariant(templateConsumer === undefined || typeof templateConsumer?.attach === 'function' &&
+    typeof templateConsumer.createEntitlement === 'function' && typeof templateConsumer.validatePlan === 'function',
+  'E_SCHEMA','An explicit trusted consumer descriptor is required');
+  const unavailable = () => {throw new FoundationError('E_MODULE_NOT_INSTALLED','The template consumer has not been registered');};
+  const entitlement = templateConsumer?.createEntitlement({storage,clock});
+  const validatePlan = templateConsumer?.validatePlan ?? unavailable;
+  const emitToHost = async (registrationId,event) => {
+    const host = await storage.transaction(['commandJournal'], 'readonly', tx => tx.get('commandJournal',`host:${registrationId}`));
+    if (!host?.active || host.browserSessionIncarnation !== session) return;
+    const port = ports.get(host.hostDocumentId);
+    if (!port || port.registrationId !== registrationId) return;
+    try { port.postMessage({protocol:PROTOCOL,registrationId,event}); } catch { /* The durable facts remain queryable. */ }
+  };
+  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock});
+  const downloads = createDownloadService({storage,api,clock,assertHost:authority.assertHost});
+  const sdk = createSdkBroker({authority,storage,api,clock});
+  await authority.recover();
+  downloads.attach();
+  await downloads.reconcilePending();
+  const background = operation => Promise.resolve(operation).catch(error => console.error(`[foundation ${error.code || 'E_EFFECT_UNKNOWN'}] ${error.message}`));
+  const consumer=templateConsumer?.attach({storage,api,session,authority,downloads,entitlement,emitToHost,background});
+  await consumer?.reconcileRetirements();
+  const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
+  const routes = {
+    commitControllerScript:(p,s)=>authority.commitControllerScript(p,s),
+    getControllerScript:(p,s)=>authority.getControllerScript(p,s),
+    startControllerRun:(p,s)=>authority.startControllerRun(p,s),
+    controllerOperation:(p,s)=>authority.controllerOperation(p,s),
+    stopControllerRun:(p,s)=>authority.stopControllerRun(p,s),
+    finishControllerRun:(p,s)=>authority.finishControllerRun(p,s),
+    snapshotControllerRun:(p,s)=>authority.snapshotControllerRun(p,s),
+    retireControllerTarget:(p,s)=>authority.retireControllerTarget(p,s),
+    tombstoneControllerScript:(p,s)=>authority.tombstoneControllerScript(p,s),
+    garbageCollectControllerScript:(p,s)=>authority.garbageCollectControllerScript(p,s),
+    grantSdk:(p,s)=>authority.grantSdk(p,s),
+    async installSdk(p,s) {
+      const grant = await authority.grantSdk(p,s);
+      const driver = createTabsService({api,authorize:() => authority.authorizeSdkInjection(p,s,grant.grantIncarnation)});
+      const target = {tabId:p.tabId,documentIds:[p.documentId]};
+      try {
+        await driver.injectFixed({target,file:SDK_FILES.relay,world:'ISOLATED'});
+        await driver.injectFixed({target,file:SDK_FILES.main,world:'MAIN'});
+        return {...grant,installed:true,files:[SDK_FILES.relay,SDK_FILES.main]};
+      } catch (error) {
+        await authority.revokeSdkGrants({tabId:p.tabId,frameId:p.frameId,documentId:p.documentId,reason:'installation-failed'});
+        throw error;
+      }
+    },
+    registerHost:(p,s)=>authority.registerHost(p,s),
+    prepareArtifact:(p,s)=>downloads.prepareArtifact(p,s),
+    prepareAttempt:(p,s)=>downloads.prepareAttempt(p,s),
+    prepareAttempts:(p,s)=>downloads.prepareAttempts(p,s),
+    dispatchDownload:(p,s)=>downloads.dispatchDownload(p,s),
+    reconcileDownload:(p,s)=>downloads.reconcileDownload(p,s),
+    async readArtifact(p,s) {
+      const {artifact,bytes} = await downloads.readArtifact(p,s);
+      const blocks = [];
+      for (let offset = 0; offset < bytes.length; offset += BUDGETS.maxRawFrameBytes)
+        blocks.push(bytesToBase64(bytes.slice(offset,offset + BUDGETS.maxRawFrameBytes)));
+      if (!blocks.length) blocks.push(bytesToBase64(new Uint8Array()));
+      return {artifact,blocks};
+    },
+    recordResourceRelease:(p,s)=>downloads.recordResourceRelease(p,s),
+    async getGestureTicket() {
+      const {foundationGestureTicketId} = await api.storage.session.get('foundationGestureTicketId');
+      return {gestureTicketId:foundationGestureTicketId ?? null};
+    },
+    ...consumer?.routes
+  };
+  async function handle(message,sender) {
+    invariant(message?.protocol === PROTOCOL,'E_VERSION','Unknown foundation protocol');
+    // Tagged values preserve undefined across Chrome's JSON hop. Validate these
+    // envelopes before legacy canonical JSON, whose domain intentionally excludes it.
+    if (message.type === 'SDK_HELLO') return sdk.hello(message.payload,sender);
+    if (message.type === 'SDK_REQUEST') return sdk.request(message.payload,sender);
+    canonical(message.payload ?? {}, {maxDepth:['startControllerRun','controllerOperation','finishControllerRun'].includes(message.type) ? 48 : 12});
+    if (message.type === 'BOOTSTRAP_READY') return consumer ? consumer.bootstrapReady(message.payload,sender) : unavailable();
+    if (message.type === 'TARGET_READY') return consumer ? consumer.agentReady(message.payload,sender) : unavailable();
+    if (['AGENT_READY','PAGE_DATA','PAGE_END','PAGE_EFFECT','PAGE_ERROR','SOURCE_RESULT','SOURCE_PREVIEW_DATA','SOURCE_PREVIEW_END','SOURCE_ERROR'].includes(message.type)) return consumer ? consumer.handleAgentMessage(message,sender) : unavailable();
+    invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
+    if (!consumer && templateOperations.has(message.type)) unavailable();
+    const route = Object.hasOwn(routes, message.type) ? routes[message.type] : undefined;
+    invariant(route,'E_CAPABILITY','Unknown or unavailable foundation operation');
+    if (message.type !== 'registerHost') await authenticate(message,sender);
+    const p = message.payload ?? {};
+    if (p.identity) await storage.transaction(['runs','commandJournal'], 'readonly',tx=>authority.admitIdentity(tx,p.identity,sender,
+      {ignoreRevision:['ackPageFrame'].includes(message.type),allowSettled:['ackPageFrame'].includes(message.type)}));
+    return route(p,sender);
+  }
+  async function issueGestureTicket(tab) {
+    invariant(tab && !tab.incognito && Number.isInteger(tab.id),'E_PERMISSION','Action source tab unavailable');
+    const source = httpUrl(tab.url);
+    const gestureTicketId = newId();
+    await storage.transaction(['commandJournal'],'readwrite',tx=>tx.put('commandJournal',{tag:'gesture-ticket',gestureTicketId,
+      sourceTabId:tab.id,sourceUrl:source.href,origin:source.origin,gestureAt:new Date(clock.now()).toISOString(),
+      browserSessionIncarnation:session,consumed:false},`gesture:${gestureTicketId}`));
+    await api.storage.session.set({foundationGestureTicketId:gestureTicketId});
+    return gestureTicketId;
+  }
+  async function disconnectHost(registrationId,documentId) {
+    const contexts = await api.runtime.getContexts({documentIds:[documentId]});
+    const documentGone = contexts.length === 0;
+    await authority.loseHost(registrationId,{documentGone});
+    if (documentGone) {
+      await consumer?.invalidateHost(registrationId);
+      await consumer?.reconcileRetirements();
+    }
+  }
+  return {handle,issueGestureTicket,disconnectHost,authority,storage,pagePort:consumer?.pagePort,targets:consumer?.targets,downloads,entitlement,session,emitToHost,sdk};
+}
+import {createEntitlementService} from '../../platform/entitlement/index.js';
+import {createTargetService} from '../../platform/target/index.js';
+import {createPagePortService, validatePlan} from '../../platform/page-port/index.js';
+import {invariant, newId, projectCommand} from '../../platform/protocol.js';
+
+// Explicit business registration injects this descriptor into the existing broker.
+// It consumes the broker's one storage, authority and download service.
+export function createScrapingBackground({subject} = {}) {
+  invariant(typeof subject === 'string' && subject.length > 0,'E_ENTITLEMENT','A bound template subject is required');
+  return Object.freeze({validatePlan,
+    createEntitlement:({storage,clock}) => createEntitlementService({storage,clock,subject}),
+    attach({storage,api,session,authority,downloads,entitlement,emitToHost,background}) {
+      const targets=createTargetService({storage,api,session,assertHost:authority.assertHost});
+      const pagePort=createPagePortService({storage,api,session,targetService:targets,assertHost:authority.assertHost,
+        admitIdentity:authority.admitIdentity,emitToHost});
+      const routes={
+    claimRun:(p,s)=>authority.claimRun(p,s),
+    snapshotRun:(p,s)=>authority.snapshotRun(p,s),
+    prepareCommand:(p,s)=>authority.prepareCommand(p,s),
+    async dispatchCommand(p,s) {
+      const authorization = await authority.authorizeDispatch(p,s);
+      if (authorization.call) background(pagePort.executeCommand(projectCommand(authorization.command))
+        .catch(async error=>{await authority.markUnknown(authorization.command,error);throw error;}));
+      return {accepted:true,state:authorization.command.state};
+    },
+    stopRun:(p,s)=>authority.stopRun(p,s),
+    abandonUnknown:(p,s)=>authority.abandonUnknown(p,s),
+    finishRun:(p,s)=>authority.finishRun(p,s),
+    createTarget:(p,s)=>targets.createTarget(p,s),
+    reconcileTargetCreation:(p,s)=>targets.reconcileTargetCreation(p,s),
+    bindTarget:(p,s)=>targets.bindTarget(p,s),
+    retireTarget:(p,s)=>targets.retireTarget(p,s),
+    ackPageFrame:(p,s)=>pagePort.ackPageFrame(p,s),
+    ackSourceFrame:(p,s)=>pagePort.ackSourceFrame(p,s),
+    openSourceContext:(p,s)=>pagePort.openSourceContext(p,s),
+    startSourceSelection:(p,s)=>pagePort.startSourceSelection(p,s),
+    cancelSourceSelection:(p,s)=>pagePort.cancelSourceSelection(p,s),
+    releaseSourceContext:(p,s)=>pagePort.releaseSourceContext(p,s),
+    async previewSource(p,s) {
+      const stream = await pagePort.previewSource(p,s);
+      const host = await authority.assertHost(s);
+      background((async()=>{for await (const frame of stream) await emitToHost(host.registrationId,frame);})());
+      return {accepted:true,selectionId:p.context.selectionId,requestId:p.requestId};
+    },
+    async saveTemplate(p) {
+      const snapshot = await entitlement.getSnapshot();
+      return storage.saveTemplate(p,{admitTemplate:({templateId,tx})=>entitlement.admitTemplate({templateId,tx,snapshot})});
+    },
+    listTemplates:p=>storage.listTemplates(p),
+    getTemplateRevision:p=>storage.getTemplateRevision(p),
+    renameTemplate:p=>storage.renameTemplate(p),
+    beginPage:p=>storage.beginPage(p),
+    stagePageBatch:p=>storage.stagePageBatch(p),
+    sealPage:p=>storage.sealPage(p),
+    readRecords:p=>storage.readRecords(p),
+    openReaderPin:p=>storage.openReaderPin(p),
+    releaseReaderPin:p=>storage.releaseReaderPin(p),
+    prepareExport:(p,s)=>downloads.prepareExport(p,s),
+    retryExport:(p,s)=>downloads.retryExport(p,s),
+    abandonExport:(p,s)=>downloads.abandonExport(p,s),
+    getEntitlementSnapshot:()=>entitlement.getSnapshot(),
+    entitlementStatus:()=>entitlement.status(),
+    installEntitlement:p=>entitlement.install(p),
+    revokeEntitlement:p=>entitlement.revoke(p),
+    async deleteRun(p,s) {
+      invariant(p.explicitUserAction === true, 'E_OWNER', 'Deletion needs an explicit user action');
+      let run = await storage.transaction(['runs'], 'readonly', tx=>tx.get('runs',p.runId));
+      invariant(run && !run.tombstoned,'E_TOMBSTONE','Run unavailable');
+      if (run.retirementState !== 'released') {
+        const retired = await authority.abandonUnknown({runId:p.runId,expectedRunRevision:run.runRevision,requestId:newId(),userExplicit:true},s);
+        const result = await targets.retireTarget({retirementId:retired.retirementId},s);
+        invariant(result.slotReleased === true,'E_EFFECT_UNKNOWN','Target retirement still unresolved');
+      }
+      await downloads.abandonRun({runId:p.runId},s);
+      return storage.deleteRun(p);
+    }
+      };
+      return Object.freeze({routes,targets,pagePort,
+        bootstrapReady:(payload,sender)=>targets.bootstrapReady(payload,sender),
+        agentReady:(payload,sender)=>targets.agentReady(payload,sender),
+        handleAgentMessage:(message,sender)=>pagePort.handleAgentMessage(message,sender),
+        reconcileRetirements:()=>targets.reconcileRetirements(),
+        invalidateHost:registrationId=>pagePort.invalidateHost(registrationId)});
+    }
+  });
+}
+
+INITIAL HASH SNAPSHOT
+{
+  "at": "2026-10-03T08:42:52.645458+00:00",
+  "files": {
+    "/tmp/opendesk-hello-incarnation-fixed.tap": "b13ef53a9cc0ec7ce2216e28e75a79ef204bd1d0a3421bf01c22c080dfabbf9c",
+    "docs/framework/evidence/f2-shared-integration/independent-sdk-rereview-v2.json": "ac712cc8d56c12ab8947c0fa6bc4bcca2d5b2ea80d1b3df2809eb3705334a662",
+    "docs/framework/evidence/f2-shared-integration/independent-sdk-review.json": "c9f6d2329dc059173edfa64e5a942bd17dcef9fa67fa62ffba9b5096f51adfca",
+    "docs/framework/evidence/f2-shared-integration/review-independent-sdk-rereview-v2-raw.log": "c7493c1e251a7ebe0b6e2759be065c4c21f2c62de1972656fd6d457306c56ebd",
+    "docs/framework/evidence/k4/router-contract.json": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+    "src/agents/page-relay.js": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+    "src/framework/sdk/entry.js": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb",
+    "src/framework/sdk/registry.js": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+    "src/framework/sdk/transport.js": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/host/broker.js": "5d27f3f2cfadfb007a618dfa02ef0fc3ca4b068d7c6774c545c96eab7bf7bcb6",
+    "src/platform/host/sdk-broker.js": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+    "src/platform/host/sdk-methods.js": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+    "src/platform/page-port/codec.js": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+    "src/platform/protocol.js": "3e54a49f76eefef607b3d431ac2fcf1ef205e16e108ec29cb6eab2912b70b5a5",
+    "src/platform/storage/index.js": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+    "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+    "src/platform/storage/session.js": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+    "src/sw.js": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+    "tests/framework/k2-sdk-broker.test.mjs": "d053acce3ea43f73cebcdacd3b67a0227c0253e49257a0df80490603cd2509cd",
+    "tests/framework/k2-sdk-relay-races.test.mjs": "66870457ca64206230755b1fb57bb78514a0c6fd5cb35457cdc3ce60347bdd56",
+    "tests/framework/k4-chrome-services.test.mjs": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b",
+    "tests/framework/k4-network.test.mjs": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306",
+    "tests/framework/k4-sdk-hello-races.test.mjs": "3ef082041a5fff7aef8661dcbede3d70733af4025ed22d145852f9963cd55979",
+    "tests/framework/k4-sdk-reinjection.test.mjs": "cd251209e5d00fa659f175bfdfb4b6706954daa39ed445734c28abecf45a059b",
+    "tests/framework/k4-sdk.test.mjs": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+    "webpack.config.cjs": "7625eb9d73b3ec1ff5109fd42162d2800c32840eda9b0f32ca38922b087f47c8"
+  }
+}
+STARTUP BEFORE SNAPSHOT
+{
+  "at": "2026-10-03T08:51:55.361598+00:00",
+  "files": {
+    "src/platform/host/broker.js": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb",
+    "src/features/scraping/background.js": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+    "src/sw.js": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+    "src/platform/host/sdk-broker.js": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+    "src/platform/page-port/codec.js": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+    "src/framework/sdk/transport.js": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+    "src/agents/page-relay.js": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+    "src/framework/sdk/entry.js": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb"
+  }
+}
+AFTER SNAPSHOT
+{
+  "at": "2026-10-03T08:53:41.696450+00:00",
+  "files": {
+    "/tmp/opendesk-hello-incarnation-fixed.tap": "b13ef53a9cc0ec7ce2216e28e75a79ef204bd1d0a3421bf01c22c080dfabbf9c",
+    "docs/framework/evidence/f2-shared-integration/independent-sdk-rereview-v2.json": "ac712cc8d56c12ab8947c0fa6bc4bcca2d5b2ea80d1b3df2809eb3705334a662",
+    "docs/framework/evidence/f2-shared-integration/independent-sdk-review.json": "c9f6d2329dc059173edfa64e5a942bd17dcef9fa67fa62ffba9b5096f51adfca",
+    "docs/framework/evidence/f2-shared-integration/review-independent-sdk-rereview-v2-raw.log": "c7493c1e251a7ebe0b6e2759be065c4c21f2c62de1972656fd6d457306c56ebd",
+    "docs/framework/evidence/k4/router-contract.json": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+    "src/agents/page-relay.js": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+    "src/framework/sdk/entry.js": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb",
+    "src/framework/sdk/registry.js": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+    "src/framework/sdk/transport.js": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/host/broker.js": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb",
+    "src/platform/host/sdk-broker.js": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+    "src/platform/host/sdk-methods.js": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+    "src/platform/page-port/codec.js": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+    "src/platform/protocol.js": "3e54a49f76eefef607b3d431ac2fcf1ef205e16e108ec29cb6eab2912b70b5a5",
+    "src/platform/storage/index.js": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+    "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+    "src/platform/storage/session.js": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+    "src/sw.js": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+    "src/features/scraping/background.js": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+    "tests/framework/k2-sdk-broker.test.mjs": "d053acce3ea43f73cebcdacd3b67a0227c0253e49257a0df80490603cd2509cd",
+    "tests/framework/k2-sdk-relay-races.test.mjs": "66870457ca64206230755b1fb57bb78514a0c6fd5cb35457cdc3ce60347bdd56",
+    "tests/framework/k4-chrome-services.test.mjs": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b",
+    "tests/framework/k4-network.test.mjs": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306",
+    "tests/framework/k4-sdk-hello-races.test.mjs": "3ef082041a5fff7aef8661dcbede3d70733af4025ed22d145852f9963cd55979",
+    "tests/framework/k4-sdk-reinjection.test.mjs": "cd251209e5d00fa659f175bfdfb4b6706954daa39ed445734c28abecf45a059b",
+    "tests/framework/k4-sdk.test.mjs": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+    "webpack.config.cjs": "7625eb9d73b3ec1ff5109fd42162d2800c32840eda9b0f32ca38922b087f47c8",
+    "docs/framework/evidence/f2-sdk-native/native-2026-10-03T07-17-21.428Z-0b89c413/production-138/report.json": "7e60adcee96e006d8656a7fef9481398101f53867ea7a056f172d156b9b71202"
+  }
+}
+
+PRE-WRITE HASH CHECK
+{
+  "at": "2026-10-03T08:57:27.874985+00:00",
+  "files": {
+    "/tmp/opendesk-hello-incarnation-fixed.tap": "b13ef53a9cc0ec7ce2216e28e75a79ef204bd1d0a3421bf01c22c080dfabbf9c",
+    "docs/framework/evidence/f2-shared-integration/independent-sdk-rereview-v2.json": "ac712cc8d56c12ab8947c0fa6bc4bcca2d5b2ea80d1b3df2809eb3705334a662",
+    "docs/framework/evidence/f2-shared-integration/independent-sdk-review.json": "c9f6d2329dc059173edfa64e5a942bd17dcef9fa67fa62ffba9b5096f51adfca",
+    "docs/framework/evidence/f2-shared-integration/review-independent-sdk-rereview-v2-raw.log": "c7493c1e251a7ebe0b6e2759be065c4c21f2c62de1972656fd6d457306c56ebd",
+    "docs/framework/evidence/k4/router-contract.json": "ed0f8ca67074327ab1b4ca96411d8c3b71354339914f2e6aae6b128db89aab5f",
+    "src/agents/page-relay.js": "3789a8f2da70f2b70f654f8a097cf4dc05932ef54fe56841db24a1c2986e696a",
+    "src/framework/sdk/entry.js": "32e12344058700cd20f5ed36a1619f577a59e2f124ecb6fa3912523faeb7afeb",
+    "src/framework/sdk/registry.js": "5541b608d3b3fcc1c490d824bc10b64e42e9f99673ad387548a96b97722a7ffb",
+    "src/framework/sdk/transport.js": "38fc8c6e1bacbd12b454e8b61a9f423636731ebccf9b859485a0be16b8f7647e",
+    "src/platform/host/authority.js": "572b8cfac023d3ce165e735ecaafe765a92924e5c8601ff1bbddec7aa063d0eb",
+    "src/platform/host/broker.js": "c2e28239f3d3d1630ff45d6855cd8e60f61550a6769a3b60393564fc57e935bb",
+    "src/platform/host/sdk-broker.js": "789642f903e8b8980aa3002c377bdf018aa7d4920fc49c8fbd349e8d725f45c9",
+    "src/platform/host/sdk-methods.js": "57ca783190f1f7ef30a7217e83a6075d56e5242554f2155a56dc0dee10d957ab",
+    "src/platform/page-port/codec.js": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10",
+    "src/platform/protocol.js": "3e54a49f76eefef607b3d431ac2fcf1ef205e16e108ec29cb6eab2912b70b5a5",
+    "src/platform/storage/index.js": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c",
+    "src/platform/storage/repository.js": "5d59cd680e0493f1b756dc8495b22e18c3cc81e1809ba594d4cc7f1c87f20dbb",
+    "src/platform/storage/session.js": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1",
+    "src/sw.js": "4958b9a0ee6d521074b36a00967348787f3056d7e51523b133bbc157b40f9796",
+    "src/features/scraping/background.js": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578",
+    "tests/framework/k2-sdk-broker.test.mjs": "d053acce3ea43f73cebcdacd3b67a0227c0253e49257a0df80490603cd2509cd",
+    "tests/framework/k2-sdk-relay-races.test.mjs": "66870457ca64206230755b1fb57bb78514a0c6fd5cb35457cdc3ce60347bdd56",
+    "tests/framework/k4-chrome-services.test.mjs": "d76c8a0618cfe40e53fae7d34164ae7cb69e57cb55c4fcc89a6e76583456061b",
+    "tests/framework/k4-network.test.mjs": "821dfb6093f404e3a8d1c9daf320272c43eb47aa2cff2db29a5879607a407306",
+    "tests/framework/k4-sdk-hello-races.test.mjs": "3ef082041a5fff7aef8661dcbede3d70733af4025ed22d145852f9963cd55979",
+    "tests/framework/k4-sdk-reinjection.test.mjs": "cd251209e5d00fa659f175bfdfb4b6706954daa39ed445734c28abecf45a059b",
+    "tests/framework/k4-sdk.test.mjs": "544e4410c7266de629c9ddbc3dafec0434ffe620334fe5ad46fc13af1fd8ef4c",
+    "webpack.config.cjs": "7625eb9d73b3ec1ff5109fd42162d2800c32840eda9b0f32ca38922b087f47c8",
+    "docs/framework/evidence/f2-sdk-native/native-2026-10-03T07-17-21.428Z-0b89c413/production-138/report.json": "7e60adcee96e006d8656a7fef9481398101f53867ea7a056f172d156b9b71202"
+  }
+}

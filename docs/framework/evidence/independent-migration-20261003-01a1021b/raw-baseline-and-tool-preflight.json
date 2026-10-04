@@ -1,0 +1,595 @@
+{
+  "createdAtUTC": "2026-10-03T15:41:14.274673+00:00",
+  "records": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-basic-20261003-coop/native-2026-10-03T10-05-25.019Z-982bb2b6/production-138/report.json",
+      "sha256": "55bbff7f5e33fa1230bc1fcf7e66943592088890eff90c6aaa4feaa35d21c635",
+      "summary": {
+        "PASS": 3,
+        "FAIL": 1,
+        "BLOCKED": 0,
+        "NOT_TESTED": 21
+      },
+      "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+      "sourceHash": "798f0f6ae8aa86a526e4556d67962aa40553b40f8b41ef66014eb766c523df41",
+      "error": {
+        "code": "E_RUNNER_UI_SELECTION",
+        "name": "Error",
+        "message": "Runner prerequisite failed; remaining cases not executed",
+        "stack": "Error: Runner prerequisite failed; remaining cases not executed\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:400:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:582:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3",
+        "actual": {
+          "code": "E_RUNNER_UI_SELECTION",
+          "name": "Error",
+          "message": "Native selection differs: #script-target-mode",
+          "stack": "Error: Native selection differs: #script-target-mode\n    at select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:459:54)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:478:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:584:75\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:393:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:582:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3",
+          "actual": {
+            "desired": "borrowed",
+            "before": {
+              "selectedIndex": 0,
+              "value": "owned",
+              "focused": false,
+              "options": [
+                {
+                  "value": "owned",
+                  "text": "创建隔离网页",
+                  "disabled": false
+                },
+                {
+                  "value": "borrowed",
+                  "text": "使用明确选定的现有文档",
+                  "disabled": false
+                }
+              ]
+            },
+            "after": {
+              "selectedIndex": 0,
+              "value": "owned",
+              "focused": true,
+              "options": [
+                {
+                  "value": "owned",
+                  "text": "创建隔离网页",
+                  "disabled": false
+                },
+                {
+                  "value": "borrowed",
+                  "text": "使用明确选定的现有文档",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        }
+      },
+      "cleanup": {
+        "exit": {
+          "at": 1791021957503,
+          "code": 0,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 29215,
+        "chromePid": 29228,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-xohp9e6z",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 398,
+        "nativeLogSha256": "314352f96fe844aa50e0b34d83372ba5e2c8b26d15312e8a3912013a3c188f3f",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1085,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "tested": [
+        {
+          "id": "SAVE-R1-SELECT-PARAMS",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "MINIMAL-RETURN7",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+          "status": "FAIL",
+          "error": {
+            "code": "E_RUNNER_UI_SELECTION",
+            "name": "Error",
+            "message": "Native selection differs: #script-target-mode",
+            "stack": "Error: Native selection differs: #script-target-mode\n    at select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:459:54)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:478:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:584:75\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:393:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:582:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3",
+            "actual": {
+              "desired": "borrowed",
+              "before": {
+                "selectedIndex": 0,
+                "value": "owned",
+                "focused": false,
+                "options": [
+                  {
+                    "value": "owned",
+                    "text": "创建隔离网页",
+                    "disabled": false
+                  },
+                  {
+                    "value": "borrowed",
+                    "text": "使用明确选定的现有文档",
+                    "disabled": false
+                  }
+                ]
+              },
+              "after": {
+                "selectedIndex": 0,
+                "value": "owned",
+                "focused": true,
+                "options": [
+                  {
+                    "value": "owned",
+                    "text": "创建隔离网页",
+                    "disabled": false
+                  },
+                  {
+                    "value": "borrowed",
+                    "text": "使用明确选定的现有文档",
+                    "disabled": false
+                  }
+                ]
+              }
+            }
+          },
+          "attribution": "runner"
+        }
+      ]
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-basic-20261003-coop/native-2026-10-03T10-07-28.674Z-1fec84be/production-138/report.json",
+      "sha256": "cba2409f9470196ad20d5e6b44411c9798ed2334f8f027e22c57699c4175d1db",
+      "summary": {
+        "PASS": 3,
+        "FAIL": 1,
+        "BLOCKED": 0,
+        "NOT_TESTED": 21
+      },
+      "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+      "sourceHash": "798f0f6ae8aa86a526e4556d67962aa40553b40f8b41ef66014eb766c523df41",
+      "error": {
+        "code": "E_RUNNER_UI_SELECTION",
+        "name": "Error",
+        "message": "Runner prerequisite failed; remaining cases not executed",
+        "stack": "Error: Runner prerequisite failed; remaining cases not executed\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:400:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:583:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3",
+        "actual": {
+          "code": "E_RUNNER_UI_SELECTION",
+          "name": "Error",
+          "message": "Native selection differs: #script-target-mode",
+          "stack": "Error: Native selection differs: #script-target-mode\n    at select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:460:54)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:479:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:585:75\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:393:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:583:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3",
+          "actual": {
+            "desired": "borrowed",
+            "before": {
+              "selectedIndex": 0,
+              "value": "owned",
+              "focused": false,
+              "options": [
+                {
+                  "value": "owned",
+                  "text": "创建隔离网页",
+                  "disabled": false
+                },
+                {
+                  "value": "borrowed",
+                  "text": "使用明确选定的现有文档",
+                  "disabled": false
+                }
+              ]
+            },
+            "after": {
+              "selectedIndex": 0,
+              "value": "owned",
+              "focused": true,
+              "options": [
+                {
+                  "value": "owned",
+                  "text": "创建隔离网页",
+                  "disabled": false
+                },
+                {
+                  "value": "borrowed",
+                  "text": "使用明确选定的现有文档",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        }
+      },
+      "cleanup": {
+        "exit": {
+          "at": 1791022056622,
+          "code": 0,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 32976,
+        "chromePid": 32977,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-2orav946",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 248,
+        "nativeLogSha256": "95d131a343fea5ca8f3cc6be617908b2f251692ec937504bbdad9634178118e5",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1085,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "tested": [
+        {
+          "id": "SAVE-R1-SELECT-PARAMS",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "MINIMAL-RETURN7",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+          "status": "FAIL",
+          "error": {
+            "code": "E_RUNNER_UI_SELECTION",
+            "name": "Error",
+            "message": "Native selection differs: #script-target-mode",
+            "stack": "Error: Native selection differs: #script-target-mode\n    at select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:460:54)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:479:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:585:75\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:393:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:583:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3",
+            "actual": {
+              "desired": "borrowed",
+              "before": {
+                "selectedIndex": 0,
+                "value": "owned",
+                "focused": false,
+                "options": [
+                  {
+                    "value": "owned",
+                    "text": "创建隔离网页",
+                    "disabled": false
+                  },
+                  {
+                    "value": "borrowed",
+                    "text": "使用明确选定的现有文档",
+                    "disabled": false
+                  }
+                ]
+              },
+              "after": {
+                "selectedIndex": 0,
+                "value": "owned",
+                "focused": true,
+                "options": [
+                  {
+                    "value": "owned",
+                    "text": "创建隔离网页",
+                    "disabled": false
+                  },
+                  {
+                    "value": "borrowed",
+                    "text": "使用明确选定的现有文档",
+                    "disabled": false
+                  }
+                ]
+              }
+            }
+          },
+          "attribution": "runner"
+        }
+      ]
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-basic-20261003-coop/native-2026-10-03T10-08-50.813Z-18783ed6/production-138/report.json",
+      "sha256": "829d58693853941c78f0c3bbadf87f3e0d46924f8c6ed89b22106eba55e0a793",
+      "summary": {
+        "PASS": 3,
+        "FAIL": 1,
+        "BLOCKED": 0,
+        "NOT_TESTED": 21
+      },
+      "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+      "sourceHash": "798f0f6ae8aa86a526e4556d67962aa40553b40f8b41ef66014eb766c523df41",
+      "error": {
+        "code": "E_OBSERVATION_TIMEOUT",
+        "name": "Error",
+        "message": "Runner prerequisite failed; remaining cases not executed",
+        "stack": "Error: Runner prerequisite failed; remaining cases not executed\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:400:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:588:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3",
+        "actual": {
+          "code": "E_OBSERVATION_TIMEOUT",
+          "name": "Error",
+          "message": "Observation timed out: native CUA selection #script-target-mode",
+          "stack": "Error: Observation timed out: native CUA selection #script-target-mode\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:197:17)\n    at async select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:462:7)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:484:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:590:75\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:393:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:588:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3"
+        }
+      },
+      "cleanup": {
+        "exit": {
+          "at": 1791022336198,
+          "code": 0,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 33979,
+        "chromePid": 33980,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-zz1dqw4a",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 1136,
+        "nativeLogSha256": "8f13a2795d0fd3eece165887ece31be1c828ed1c237212c7ae51984b9e880772",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1085,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "tested": [
+        {
+          "id": "SAVE-R1-SELECT-PARAMS",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "MINIMAL-RETURN7",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+          "status": "FAIL",
+          "error": {
+            "code": "E_OBSERVATION_TIMEOUT",
+            "name": "Error",
+            "message": "Observation timed out: native CUA selection #script-target-mode",
+            "stack": "Error: Observation timed out: native CUA selection #script-target-mode\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:197:17)\n    at async select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:462:7)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:484:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:590:75\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:393:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:588:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:360:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:191:3"
+          },
+          "attribution": "product-or-native-contract"
+        }
+      ]
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-basic-20261003-coop/native-2026-10-03T10-14-24.036Z-31558f16/production-138/report.json",
+      "sha256": "0b6addd2e0c96e69464fa6692baea8b64408be292962dd5c0b292e30f703a13b",
+      "summary": {
+        "PASS": 0,
+        "FAIL": 0,
+        "BLOCKED": 0,
+        "NOT_TESTED": 25
+      },
+      "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+      "sourceHash": "798f0f6ae8aa86a526e4556d67962aa40553b40f8b41ef66014eb766c523df41",
+      "error": {
+        "code": "E_RUNNER_CDP",
+        "name": "Error",
+        "message": "production-138-8A904D6FBD09B39DE6C8B380D3ABE653 Runtime.evaluate timeout",
+        "stack": "Error: production-138-8A904D6FBD09B39DE6C8B380D3ABE653 Runtime.evaluate timeout\n    at Timeout._onTimeout (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:216:72)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)"
+      },
+      "cleanup": {
+        "exit": {
+          "at": 1791022522392,
+          "code": 137,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 39194,
+        "chromePid": 39224,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ngrc1sld",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 98,
+        "nativeLogSha256": "4de66241bb6b2ecb0fc330e46e3e245e31e3a7d1f834324f8d1a7168202da342",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1085,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "tested": []
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/independent-basic-20261003-coop/native-2026-10-03T10-16-28.206Z-5c6d046f/production-138/report.json",
+      "sha256": "7a89c9e3aa7104b9d84f1accb6f7c581b8cf4774fd0ff9361124cfc42299f3e2",
+      "summary": {
+        "PASS": 1,
+        "FAIL": 0,
+        "BLOCKED": 1,
+        "NOT_TESTED": 23
+      },
+      "packageHash": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
+      "sourceHash": "798f0f6ae8aa86a526e4556d67962aa40553b40f8b41ef66014eb766c523df41",
+      "error": {
+        "code": "E_NATIVE_PERMISSION_WAIT",
+        "name": "Error",
+        "message": "Native permission still pending; remaining cases not executed",
+        "stack": "Error: Native permission still pending; remaining cases not executed\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:401:55)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:573:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:362:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:193:3",
+        "actual": {
+          "code": "E_NATIVE_PERMISSION_WAIT",
+          "name": "Error",
+          "message": "Observation timed out: actual permission and product admission",
+          "stack": "Error: Observation timed out: actual permission and product admission\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:199:17)\n    at async start (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:500:14)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:575:19\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:395:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:573:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:362:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:193:3",
+          "actual": {
+            "latest": {
+              "state": "authorizing",
+              "text": "正在授权选定目标…",
+              "result": "{\"scriptId\": \"native-57d4dbfb-5acf-4e72-bc2b-9cf03e6b1202\", \"revision\": 1, \"contentHash\": \"722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902\"}",
+              "version": "已保存 r1 · 722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+              "runId": "",
+              "download": "结果下载保留类型信息，包括 undefined。",
+              "runDisabled": true,
+              "stopDisabled": false
+            },
+            "permissionsBefore": {
+              "origins": [],
+              "permissions": [
+                "activeTab",
+                "downloads",
+                "storage",
+                "tabs",
+                "webNavigation",
+                "scripting",
+                "userScripts"
+              ]
+            },
+            "permissionsAfter": {
+              "origins": [],
+              "permissions": [
+                "activeTab",
+                "downloads",
+                "storage",
+                "tabs",
+                "webNavigation",
+                "scripting",
+                "userScripts"
+              ]
+            }
+          }
+        }
+      },
+      "cleanup": {
+        "exit": {
+          "at": 1791022611436,
+          "code": 0,
+          "signal": null
+        },
+        "pidAlive": false,
+        "launcherPidAlive": false,
+        "launcherPid": 40760,
+        "chromePid": 40764,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-92xsrhnc",
+        "profileOwner": "global launcher",
+        "profileRemoved": true,
+        "profileRetainedForRawEvidence": false,
+        "nativeLogBytes": 248,
+        "nativeLogSha256": "5cbee4c82dcf82cf3d69e524c79041d4aedc8d8fb1a0f10b508bdb4ebeb62ff1",
+        "nativeLogPreservedAfterLauncherExit": true,
+        "launcherStdoutBytes": 1103,
+        "launcherStderrBytes": 0,
+        "errors": []
+      },
+      "tested": [
+        {
+          "id": "SAVE-R1-SELECT-PARAMS",
+          "status": "PASS",
+          "error": null,
+          "attribution": null
+        },
+        {
+          "id": "MINIMAL-RETURN7",
+          "status": "BLOCKED",
+          "error": {
+            "code": "E_NATIVE_PERMISSION_WAIT",
+            "name": "Error",
+            "message": "Observation timed out: actual permission and product admission",
+            "stack": "Error: Observation timed out: actual permission and product admission\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:199:17)\n    at async start (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:500:14)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:575:19\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:395:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:573:5)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:362:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/independent-basic-20261003-coop.mjs:193:3",
+            "actual": {
+              "latest": {
+                "state": "authorizing",
+                "text": "正在授权选定目标…",
+                "result": "{\"scriptId\": \"native-57d4dbfb-5acf-4e72-bc2b-9cf03e6b1202\", \"revision\": 1, \"contentHash\": \"722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902\"}",
+                "version": "已保存 r1 · 722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+                "runId": "",
+                "download": "结果下载保留类型信息，包括 undefined。",
+                "runDisabled": true,
+                "stopDisabled": false
+              },
+              "permissionsBefore": {
+                "origins": [],
+                "permissions": [
+                  "activeTab",
+                  "downloads",
+                  "storage",
+                  "tabs",
+                  "webNavigation",
+                  "scripting",
+                  "userScripts"
+                ]
+              },
+              "permissionsAfter": {
+                "origins": [],
+                "permissions": [
+                  "activeTab",
+                  "downloads",
+                  "storage",
+                  "tabs",
+                  "webNavigation",
+                  "scripting",
+                  "userScripts"
+                ]
+              }
+            }
+          },
+          "attribution": "permission-wait"
+        }
+      ]
+    }
+  ],
+  "threeRepeatedScenesAreThree": true,
+  "notF3": true,
+  "cuaPreflight": {
+    "call": "await cua.getState()",
+    "result": "30.0372s timeout; kernel reset",
+    "beforeAnyNewBrowserLaunch": true,
+    "attribution": "tool-inventory-block; no product assertion",
+    "osPermissionCause": "unknown"
+  },
+  "reviewerHandles": [
+    {
+      "id": "01a10265-d4f7-7ef0-ac30-c89ef6574ee2",
+      "state": "last bounded wait10s yielded no terminal status; not restarted"
+    }
+  ],
+  "currentToolFollowup": {
+    "productAssertionsReached": false,
+    "browserStartedByThisChat": false,
+    "globalInventory": {
+      "call": "cua.getState()",
+      "result": "js execution timed out; kernel reset, rerun your request",
+      "durationSeconds": 30.0382
+    },
+    "knownAppDocumentation": {
+      "call": "cua.getApp(\"Codex\")",
+      "result": "Computer Use is not allowed to use the app com.openai.codex for safety reasons",
+      "retriedOrBypassed": false
+    },
+    "nativeInventory": {
+      "call": "cua.listApps()",
+      "success": true,
+      "durationSeconds": 0.0574,
+      "ownedChrome138Bound": false
+    },
+    "existingUnrelatedProcessObservation": "149.0.7827.55 helpers under /Applications/Google Chrome.app; no control/close attempted",
+    "nextBinding": "待writer新包交付后，仅由合格launcher启动owned138临时profile，核验pid/profile，再按确切app路径+owned marker绑定；不控制现有个人/不明实例",
+    "classification": "工具前置；不是产品FAIL或F3证据"
+  }
+}

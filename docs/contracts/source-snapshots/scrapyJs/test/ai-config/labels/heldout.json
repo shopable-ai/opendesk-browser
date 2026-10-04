@@ -1,0 +1,529 @@
+{
+  "schemaVersion": 1,
+  "split": "heldout",
+  "origin": "http://ai-fixture.test",
+  "oracle": {
+    "source": "Sidecar-authored literal annotations; not extracted from any candidate or runtime",
+    "derivedFromCandidate": false,
+    "weakeningProhibited": true,
+    "annotationVersion": "2026-10-01",
+    "lockPolicy": "Immutable acceptance oracle. Implementers read only; do not alter fields, values, counts, state, error codes, or matching strength to fit a candidate."
+  },
+  "happyPath": {
+    "listPageIds": [
+      "heldout-list-1",
+      "heldout-list-2"
+    ],
+    "detailPageIds": [
+      "heldout-detail-h1",
+      "heldout-detail-h2",
+      "heldout-detail-h3",
+      "heldout-detail-h4",
+      "heldout-detail-h5"
+    ],
+    "listPageCount": 2,
+    "detailPageCount": 5,
+    "recordCount": 5,
+    "requestCount": 7,
+    "requestRoutes": [
+      "/heldout/catalog?page=1",
+      "/heldout/items/h1",
+      "/heldout/items/h2",
+      "/heldout/catalog?page=2",
+      "/heldout/items/h3",
+      "/heldout/items/h4",
+      "/heldout/items/h5"
+    ],
+    "stopReason": "end",
+    "records": [
+      {
+        "id": "h1",
+        "title": "Amber lamp",
+        "detailUrl": "http://ai-fixture.test/heldout/items/h1",
+        "imageUrl": "http://ai-fixture.test/heldout/images/h1.png",
+        "price": "$39.00",
+        "author": "Ari"
+      },
+      {
+        "id": "h2",
+        "title": "Birch chair",
+        "detailUrl": "http://ai-fixture.test/heldout/items/h2",
+        "imageUrl": "http://ai-fixture.test/images/h2.png",
+        "price": "$75.00",
+        "author": "Bo"
+      },
+      {
+        "id": "h3",
+        "title": "Cedar desk",
+        "detailUrl": "http://ai-fixture.test/heldout/items/h3",
+        "imageUrl": "http://ai-fixture.test/images/h3.png",
+        "price": "$120.00",
+        "author": "Cy"
+      },
+      {
+        "id": "h4",
+        "title": "Dune shelf",
+        "detailUrl": "http://ai-fixture.test/heldout/items/h4",
+        "imageUrl": null,
+        "price": "$64.50",
+        "author": null
+      },
+      {
+        "id": "h5",
+        "title": "Elm stool",
+        "detailUrl": "http://ai-fixture.test/heldout/items/h5",
+        "imageUrl": "http://ai-fixture.test/images/h5.png",
+        "price": "$28.00",
+        "author": "Em"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "id": "heldout-list-1",
+      "file": "fixtures/heldout/list-page-1.html",
+      "route": "/heldout/catalog?page=1",
+      "url": "http://ai-fixture.test/heldout/catalog?page=1",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "positive",
+        "next-href"
+      ],
+      "templateFamily": "heldout-tiles",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "h1",
+            "title": "Amber lamp",
+            "detailUrl": "http://ai-fixture.test/heldout/items/h1",
+            "imageUrl": "http://ai-fixture.test/heldout/images/h1.png"
+          },
+          {
+            "id": "h2",
+            "title": "Birch chair",
+            "detailUrl": "http://ai-fixture.test/heldout/items/h2",
+            "imageUrl": "http://ai-fixture.test/images/h2.png"
+          }
+        ],
+        "next": {
+          "kind": "href",
+          "url": "http://ai-fixture.test/heldout/catalog?page=2"
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "heldout-list-2",
+      "file": "fixtures/heldout/list-page-2.html",
+      "route": "/heldout/catalog?page=2",
+      "url": "http://ai-fixture.test/heldout/catalog?page=2",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "positive",
+        "layout-change",
+        "non-first-page",
+        "last-page",
+        "optional-missing"
+      ],
+      "templateFamily": "heldout-table",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "h3",
+            "title": "Cedar desk",
+            "detailUrl": "http://ai-fixture.test/heldout/items/h3",
+            "imageUrl": "http://ai-fixture.test/images/h3.png"
+          },
+          {
+            "id": "h4",
+            "title": "Dune shelf",
+            "detailUrl": "http://ai-fixture.test/heldout/items/h4",
+            "imageUrl": null
+          },
+          {
+            "id": "h5",
+            "title": "Elm stool",
+            "detailUrl": "http://ai-fixture.test/heldout/items/h5",
+            "imageUrl": "http://ai-fixture.test/images/h5.png"
+          }
+        ],
+        "next": {
+          "kind": "end",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "heldout-detail-h1",
+      "file": "fixtures/heldout/detail-h1.html",
+      "route": "/heldout/items/h1",
+      "url": "http://ai-fixture.test/heldout/items/h1",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive"
+      ],
+      "templateFamily": "heldout-definition-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "h1",
+            "title": "Amber lamp",
+            "price": "$39.00",
+            "author": "Ari"
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "heldout-detail-h2",
+      "file": "fixtures/heldout/detail-h2.html",
+      "route": "/heldout/items/h2",
+      "url": "http://ai-fixture.test/heldout/items/h2",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive"
+      ],
+      "templateFamily": "heldout-definition-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "h2",
+            "title": "Birch chair",
+            "price": "$75.00",
+            "author": "Bo"
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "heldout-detail-h3",
+      "file": "fixtures/heldout/detail-h3.html",
+      "route": "/heldout/items/h3",
+      "url": "http://ai-fixture.test/heldout/items/h3",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive",
+        "layout-change",
+        "non-first-page"
+      ],
+      "templateFamily": "heldout-table-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "h3",
+            "title": "Cedar desk",
+            "price": "$120.00",
+            "author": "Cy"
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "heldout-detail-h4",
+      "file": "fixtures/heldout/detail-h4.html",
+      "route": "/heldout/items/h4",
+      "url": "http://ai-fixture.test/heldout/items/h4",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive",
+        "optional-missing",
+        "layout-change",
+        "non-first-page"
+      ],
+      "templateFamily": "heldout-table-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "h4",
+            "title": "Dune shelf",
+            "price": "$64.50",
+            "author": null
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "heldout-detail-h5",
+      "file": "fixtures/heldout/detail-h5.html",
+      "route": "/heldout/items/h5",
+      "url": "http://ai-fixture.test/heldout/items/h5",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive",
+        "layout-change",
+        "non-first-page"
+      ],
+      "templateFamily": "heldout-table-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "h5",
+            "title": "Elm stool",
+            "price": "$28.00",
+            "author": "Em"
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "heldout-missing-required",
+      "file": "fixtures/heldout/missing-required.html",
+      "route": "/heldout/catalog?case=missing-required",
+      "url": "http://ai-fixture.test/heldout/catalog?case=missing-required",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "required-missing"
+      ],
+      "templateFamily": "heldout-table",
+      "expected": {
+        "pageState": "ready",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "FIELD_REQUIRED"
+      }
+    },
+    {
+      "id": "heldout-empty",
+      "file": "fixtures/heldout/empty.html",
+      "route": "/heldout/catalog?case=empty",
+      "url": "http://ai-fixture.test/heldout/catalog?case=empty",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "empty",
+        "last-page"
+      ],
+      "templateFamily": "heldout-table",
+      "expected": {
+        "pageState": "empty",
+        "records": [],
+        "next": {
+          "kind": "end",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "heldout-duplicate",
+      "file": "fixtures/heldout/duplicate.html",
+      "route": "/heldout/catalog?case=duplicate",
+      "url": "http://ai-fixture.test/heldout/catalog?case=duplicate",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "duplicate",
+        "layout-change",
+        "non-first-page"
+      ],
+      "templateFamily": "heldout-table",
+      "expected": {
+        "pageState": "ready",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "DUPLICATE_PAGE"
+      },
+      "context": {
+        "seenIdentityIds": [
+          "h1",
+          "h2"
+        ],
+        "observedIdentityIds": [
+          "h1",
+          "h2"
+        ],
+        "previousPageId": "heldout-list-1"
+      }
+    },
+    {
+      "id": "heldout-login",
+      "file": "fixtures/heldout/login.html",
+      "route": "/heldout/catalog?case=login",
+      "url": "http://ai-fixture.test/heldout/catalog?case=login",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "login",
+        "decoy-records"
+      ],
+      "templateFamily": "heldout-table",
+      "expected": {
+        "pageState": "login",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "PAGE_LOGIN"
+      }
+    },
+    {
+      "id": "heldout-error",
+      "file": "fixtures/heldout/error.html",
+      "route": "/heldout/catalog?case=error",
+      "url": "http://ai-fixture.test/heldout/catalog?case=error",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "error",
+        "decoy-records",
+        "application-error-http-200"
+      ],
+      "templateFamily": "heldout-table",
+      "expected": {
+        "pageState": "error",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "PAGE_ERROR"
+      }
+    },
+    {
+      "id": "heldout-error-region",
+      "file": "fixtures/heldout/error-region.html",
+      "route": "/heldout/catalog?case=error-region",
+      "url": "http://ai-fixture.test/heldout/catalog?case=error-region",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "positive",
+        "error-region-candidate"
+      ],
+      "templateFamily": "heldout-table",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "h1",
+            "title": "Amber lamp",
+            "detailUrl": "http://ai-fixture.test/heldout/items/h1",
+            "imageUrl": "http://ai-fixture.test/heldout/images/h1.png"
+          }
+        ],
+        "next": {
+          "kind": "end",
+          "url": null
+        },
+        "errorCode": null
+      },
+      "candidateCases": [
+        {
+          "id": "heldout-select-error-region",
+          "candidateOverride": {
+            "list": {
+              "container": "[data-role=\"error-results\"]"
+            }
+          },
+          "expected": {
+            "pageState": "ready",
+            "records": [],
+            "next": {
+              "kind": "blocked",
+              "url": null
+            },
+            "errorCode": "ERROR_REGION_SELECTED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "heldout-cardinality",
+      "file": "fixtures/heldout/cardinality.html",
+      "route": "/heldout/catalog?case=cardinality",
+      "url": "http://ai-fixture.test/heldout/catalog?case=cardinality",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "cardinality-many"
+      ],
+      "templateFamily": "heldout-table",
+      "expected": {
+        "pageState": "ready",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "FIELD_CARDINALITY"
+      }
+    },
+    {
+      "id": "heldout-detail-mismatch",
+      "file": "fixtures/heldout/detail-mismatch.html",
+      "route": "/heldout/items/h1?case=mismatch",
+      "url": "http://ai-fixture.test/heldout/items/h1?case=mismatch",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "list-detail-mismatch"
+      ],
+      "templateFamily": "heldout-table-detail",
+      "context": {
+        "listRecord": {
+          "id": "h1",
+          "title": "Amber lamp",
+          "detailUrl": "http://ai-fixture.test/heldout/items/h1",
+          "imageUrl": "http://ai-fixture.test/heldout/images/h1.png"
+        }
+      },
+      "expected": {
+        "pageState": "ready",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "DETAIL_MISMATCH"
+      }
+    }
+  ]
+}

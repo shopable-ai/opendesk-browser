@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Frozen supplemental native acceptance expectations; not PASS evidence or a new SDK interface",
+  "approvalBoundary": "Must be included in the same final production independent architect/critic review; not approved by this file",
+  "inheritedBaseline": "Original603 remain unchanged; SDK001-016 and current writer SDK017-019 are explicit additions",
+  "cases": [
+    {
+      "id": "F2-K2-SDK-001",
+      "required": true,
+      "phase": "F3",
+      "title": "SDK Hello needs native document/grant and never claims a controller slot",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "SDK Hello needs native document/grant and never claims a controller slot",
+      "expected": "Fixed MAIN/ISOLATED and real native sender/document/grant produce SDK_HELLO; controller runs remain zero.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-002",
+      "required": true,
+      "phase": "F3",
+      "title": "SDK grant and request payload cannot carry page authority/namespace/bare args",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "SDK grant and request payload cannot carry page authority/namespace/bare args",
+      "expected": "Page payload cannot supply authority, namespace, target, run or bare args; enforce 18-method registry and argsWire/valueWire.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-003",
+      "required": true,
+      "phase": "F3",
+      "title": "SDK sender/document/lifecycle fences reject before any storage effect",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "SDK sender/document/lifecycle fences reject before any storage effect",
+      "expected": "Native sender, document, lifecycle and grant fences reject before any storage or driver effect.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-004",
+      "required": true,
+      "phase": "F3",
+      "title": "100 same-ID concurrent persistent calls commit one effect and one result",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "100 same-ID concurrent persistent calls commit one effect and one result",
+      "expected": "100 concurrent same principal/doc/grant/requestId and digest produce one admission, sdk-service run, op and server write.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-005",
+      "required": true,
+      "phase": "F3",
+      "title": "same ID with changed args or deadline conflicts and does not overwrite effect",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "same ID with changed args or deadline conflicts and does not overwrite effect",
+      "expected": "Same ID with changed method, args, version or deadline returns E_REQUEST_CONFLICT without overwriting the original or causing another effect.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-006",
+      "required": true,
+      "phase": "F3",
+      "title": "native session adapter preserves own undefined/false/0 across Chrome JSON storage",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "native session adapter preserves own undefined/false/0 across Chrome JSON storage",
+      "expected": "Native browser-session adapter preserves own undefined, false and zero through Chrome JSON transport with the unique codec.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-007",
+      "required": true,
+      "phase": "F3",
+      "title": "durable session duplicate after authority restart does not resubmit native set",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "durable session duplicate after authority restart does not resubmit native set",
+      "expected": "After authority/SW restart, a durable duplicate returns the original browser-session result without another native set.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-008",
+      "required": true,
+      "phase": "F3",
+      "title": "native session failure records unknown dispatch and will not retry same write",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "native session failure records unknown dispatch and will not retry same write",
+      "expected": "Native session write failure after dispatch records unknown and never retries the same write.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-009",
+      "required": true,
+      "phase": "F3",
+      "title": "SW recovery fences dispatched write gap and retains original identity/deadline",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "SW recovery fences dispatched write gap and retains original identity/deadline",
+      "expected": "SW recovery fences a dispatched write before receipt and retains the original run/op/digest/deadline.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-010",
+      "required": true,
+      "phase": "F3",
+      "title": "durable duplicate cannot extend original 15s service deadline",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "durable duplicate cannot extend original 15s service deadline",
+      "expected": "Durable duplicates cannot extend the original 15s service deadline or an earlier context deadline.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-011",
+      "required": true,
+      "phase": "F3",
+      "title": "native permission remove then regrant cannot revive old request/grant",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "native permission remove then regrant cannot revive old request/grant",
+      "expected": "Native permission remove then regrant rejects the old request/grant and never revives its incarnation.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-012",
+      "required": true,
+      "phase": "F3",
+      "title": "observed navigation invalidates current page Hello and pending admission",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "observed navigation invalidates current page Hello and pending admission",
+      "expected": "Observed navigation invalidates old document Hello and pending admission; new Hello does not inherit old pending.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-013",
+      "required": true,
+      "phase": "F3",
+      "title": "notification permission removal with empty origins revokes the affected grant",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "notification permission removal with empty origins revokes the affected grant",
+      "expected": "Notification permission removal even with empty origins revokes its affected grant and rejects further native effects.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-014",
+      "required": true,
+      "phase": "F3",
+      "title": "notification native receipt and durable undefined survive delivery revocation",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "notification native receipt and durable undefined survive delivery revocation",
+      "expected": "Notification native receipt and durable own undefined survive delivery revocation; effect and delivery remain distinct.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-015",
+      "required": true,
+      "phase": "F3",
+      "title": "successful HTTP business envelope remains data and stores native result before delivery",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "successful HTTP business envelope remains data and stores native result before delivery",
+      "expected": "Successful HTTP business PageBrigeCode/ok/error envelope remains data, with native result durable before delivery.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-016",
+      "required": true,
+      "phase": "F3",
+      "title": "SDK backend timer clamps to earlier caller deadline even for hung native callback",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "SDK backend timer clamps to earlier caller deadline even for hung native callback",
+      "expected": "Backend timer uses at most 15s and earlier caller deadline even when a native callback hangs.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-017",
+      "required": true,
+      "phase": "F3",
+      "title": "SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs",
+      "expected": "Explicit regrant after SW restart restores coherent permission/document epochs for new calls without reviving old IDs; preserve origin, navigation and notification combinations.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-018",
+      "required": true,
+      "phase": "F3",
+      "title": "SDK recovery reconciles atomic storage durable result before broker receipt and never replays it",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "SDK recovery reconciles atomic storage durable result before broker receipt and never replays it",
+      "expected": "Persistent frameworkKV and result commit atomically before broker receipt; recovery completes the original result and native KV put/commit count proves no replay.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    },
+    {
+      "id": "F2-K2-SDK-019",
+      "required": true,
+      "phase": "F3",
+      "title": "SDK restart at dispatched cut pauses its run with original unknown effect and no replacement",
+      "productEntry": "Original production fixed SDK through native sender -> unique authority/broker/IDB -> short static driver -> durable receipt -> fixed relay",
+      "preconditions": [
+        "fresh isolated CFT profile",
+        "native page grant and exact document",
+        "controller run count zero",
+        "same frozen production package"
+      ],
+      "input": "SDK restart at dispatched cut pauses its run with original unknown effect and no replacement",
+      "expected": "After dispatched commit but before fetch, SW termination leaves original paused_unknown run/effect_unknown op; resubmission returns original unknown reference, makes no replacement run/op and no HTTP write.",
+      "source": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/continue-product-migration-20261002.txt",
+        "sha256": "2cdfad1e2baca182d86e4b97e99436283d197032c59cf1031725806e5d2f3933"
+      }
+    }
+  ]
+}

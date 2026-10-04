@@ -1,0 +1,27 @@
+{
+  "classification": "P4-P5 bounded milestone, not full migration acceptance",
+  "componentTests": {
+    "passed": 413,
+    "failed": 0,
+    "log": "docs/framework/evidence/wxt/p4-p5/host-recovery-all-components.log"
+  },
+  "sdkNative": {
+    "report": "docs/framework/evidence/f2-sdk-native/native-2026-10-04T09-23-54.100Z-a9793184/production-138/report.json",
+    "summary": {
+      "PASS": 17,
+      "FAIL": 0,
+      "BLOCKED": 0,
+      "NOT_TESTED": 0
+    },
+    "profileRemoved": true,
+    "sameProfileBrowserRestartCase": "BROWSER-SESSION-END-PERSISTENT-SURVIVES-APPLOCAL-EXPIRES"
+  },
+  "nativeIdb": "docs/framework/evidence/k2-storage/k2-idb-2026-10-04T09-34-07-191Z-09c23da4/report.json",
+  "retainedSdkFailure": "docs/framework/evidence/f2-sdk-native/native-2026-10-04T09-07-10.495Z-d3734cc5",
+  "notClosed": [
+    "P4 full27 final round",
+    "B05 four native crashpoints",
+    "original603+19",
+    "P6/P7"
+  ]
+}

@@ -1,0 +1,1266 @@
+{
+  "schemaVersion": "1.0",
+  "stage": "02A",
+  "status": "ready",
+  "environmentReady": true,
+  "generatedAt": "2026-10-02T06:55:51.370166+00:00",
+  "contractVersion": "1.0.0",
+  "contractHash": "1486ff9c442807c0d447e542252830731faeede5f81cd685c5f146daecdba2a1",
+  "compilerVersion": "1.0.0",
+  "sourceHash": "6188ff9cadd06b44a19d08982a3dadc5596cd6303140c8eba0fdd25996e89f29",
+  "sourceHashRecipe": "SHA-256 exact docs/contracts/source-ledger.json captured provenance bytes, not live checkout",
+  "productRoot": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "sourceTreeHash": "30e560e0a1b4f0455ff7cce12603c29f5156492c4274e697455fecf8ac7ade08",
+  "sourceTreeHashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); only engineering source/config/tests, excludes source contracts and outputs",
+  "sourceIndex": [
+    {
+      "path": "README.md",
+      "bytes": 2565,
+      "sha256": "6eee48317d78ce53b25f3b23e5803f10a9d763d433dd51c2897ef76825f77ba0"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 556,
+      "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 53720,
+      "sha256": "3a7ccce04fe0bb9b355ce885cb8a7c6a5e8567b467022ed6a6f90a00940edc3b"
+    },
+    {
+      "path": "package.json",
+      "bytes": 827,
+      "sha256": "74b90118949b661ffe9f5002d82318c872447229d8fd0613f2837ef0b450777c"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "bytes": 1293,
+      "sha256": "4ec6bd61c5d14f8bffeadebdea090b5b1870118bb00baa6ea3c24ceeaff7a02b"
+    },
+    {
+      "path": "scripts/check-source.mjs",
+      "bytes": 488,
+      "sha256": "11bfa068d480dea4a918ceffeff0d53b2e3856fed18be4ed5a5baa96e7541659"
+    },
+    {
+      "path": "scripts/pack.mjs",
+      "bytes": 1018,
+      "sha256": "456f97c445427478b3817ee94d6e14f5c68ae13f8bbd8e4b6d26977359239717"
+    },
+    {
+      "path": "scripts/verify-package.mjs",
+      "bytes": 5292,
+      "sha256": "5e422a900876c4ee4645988e422394328c58b2cdd592de2ff498d92b2b4aabc1"
+    },
+    {
+      "path": "scripts/zip-package.py",
+      "bytes": 596,
+      "sha256": "419af524727e618bf143b95375deb2882f47385f694d7f927c8d5d896aa7999a"
+    },
+    {
+      "path": "src/agents/health.js",
+      "bytes": 1107,
+      "sha256": "c14df03a64c908fa800b9ba4cdb0287a5d6ae12e25b0de8b8d599c273c874f0f"
+    },
+    {
+      "path": "src/agents/selection-entry.js",
+      "bytes": 277,
+      "sha256": "7af5313c7b2fb484ab7e0b8d7357600ba9dbfce5ef763f45441c1d7b019f5ae0"
+    },
+    {
+      "path": "src/environment.js",
+      "bytes": 10944,
+      "sha256": "3b5e5d6fdc1a45d9024c75aff3676cc8f68a94717463a9b4fe4e52e2c8cd2dd6"
+    },
+    {
+      "path": "src/features/scraping/index.js",
+      "bytes": 708,
+      "sha256": "45bac1dfb4463206a2be48104b276bff4a15dd8a34f530b891bc662596ececed"
+    },
+    {
+      "path": "src/run-host.js",
+      "bytes": 639,
+      "sha256": "2ceb51a19cf837e80f68ce1fffca6a5caae2207fa9ba7ac6e17e20ff255211b2"
+    },
+    {
+      "path": "src/sw.js",
+      "bytes": 1921,
+      "sha256": "db7067ecd80cc99f822d1e99a90edbac00db41d83bad7e5335dcea7c962908f7"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "bytes": 885,
+      "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "bytes": 2300,
+      "sha256": "c79258ab1f1749a2e13b95883f617026b72ddd81962ca1f5a43c10c538b7ab61"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "bytes": 1256,
+      "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+    },
+    {
+      "path": "tests/environment/boundaries.test.mjs",
+      "bytes": 10436,
+      "sha256": "8f4cdb48c36ce1712f53287993316eb0904223ca5bb108546ba70c9521f3aee8"
+    },
+    {
+      "path": "tests/environment/package.test.mjs",
+      "bytes": 2108,
+      "sha256": "5dc900f82d2e1c5d5dd0842312449be18468280e7b54fd7b6a8a0df721351f8c"
+    },
+    {
+      "path": "webpack.config.cjs",
+      "bytes": 949,
+      "sha256": "9327d598f23852ba03857c2776f88f382361622f44925a374d3dd2455a7329c5"
+    }
+  ],
+  "framework": {
+    "kind": "native MV3 + JavaScript ESM source + webpack classic IIFE artifacts",
+    "decision": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/framework-decision.md",
+      "bytes": 8224,
+      "sha256": "19ea38555fdf9e110ec6c29402bf23076ae423cce5b42ce8f878801f45f6e52f"
+    },
+    "consumerNodeRequired": false,
+    "wxtAdopted": false
+  },
+  "tools": {
+    "node": {
+      "command": [
+        "node",
+        "--version"
+      ],
+      "exitCode": 0,
+      "version": "v24.16.0"
+    },
+    "npm": {
+      "command": [
+        "npm",
+        "--version"
+      ],
+      "exitCode": 0,
+      "version": "11.13.0"
+    },
+    "python": {
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "exitCode": 0,
+      "version": "Python 3.14.6"
+    },
+    "browserTestNode": {
+      "command": [
+        "/Users/shopme/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--version"
+      ],
+      "exitCode": 0,
+      "version": "v24.19.0"
+    },
+    "lockedDependencies": {
+      "webpack": {
+        "declared": "5.95.0",
+        "installedLockVersion": "5.95.0"
+      },
+      "webpack-cli": {
+        "declared": "5.1.4",
+        "installedLockVersion": "5.1.4"
+      },
+      "terser-webpack-plugin": {
+        "declared": "5.3.10",
+        "installedLockVersion": "5.3.10"
+      },
+      "terser": {
+        "declared": "5.34.1",
+        "installedLockVersion": "5.34.1"
+      }
+    },
+    "lockPackageCountIncludingRoot": 119
+  },
+  "builds": {
+    "production": {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "packageHash": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+      "zipPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/opendesk-browser-production.zip",
+      "zipSha256": "ceb5efbd5b3fe5d9a9276a5ccc71b12629bfa32a28d3fdfb3b1965f10ecfb9cf",
+      "assets": [
+        {
+          "path": "agents/health.js",
+          "bytes": 656,
+          "sha256": "641edccc816cb398d49a6bf946befa3ea92af23385bf046cf6cf2b00e446086d"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 203,
+          "sha256": "e50cab8ddf0c4a3ec03b59b0366f87651df8465fdeea39db380b0f5051d32f1f"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 556,
+          "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 7403,
+          "sha256": "2c826557eeea9145d30472b7ce65b29d2bdc7a89f6d02d02d1b95dc6e64b4623"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 885,
+          "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 2840,
+          "sha256": "a7a1162dfb52fcfcc86de024f1f06d8c483e0b7fa55c1b950a444cd2f8dba720"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 1256,
+          "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+        }
+      ]
+    },
+    "development": {
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "packageHash": "2867a88ab02272f1b21a368944508629d9654d49940ddb8cacaa319dafcd4fd3",
+      "zipPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/opendesk-browser-development.zip",
+      "zipSha256": "ed53b968c2abdba425ddd8f72be0025b9eb51a7d1b01e445fd6a7c663ab6030f",
+      "assets": [
+        {
+          "path": "agents/health.js",
+          "bytes": 16201,
+          "sha256": "6bbc50ee1c169c437c3f1e2944b353eecfbeac0d42a2744977cba36dca8717ce"
+        },
+        {
+          "path": "agents/health.js.map",
+          "bytes": 16050,
+          "sha256": "e800aaf5b6d3ea8447c40d3c15124e49cb79c073d05b94cc8ffa05849202de7e"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 1291,
+          "sha256": "e573e0320f6a68d3671eb0004ee2758669c52b413d7f26df0259549bc47f68a1"
+        },
+        {
+          "path": "agents/selection-entry.js.map",
+          "bytes": 1051,
+          "sha256": "0371f0c5c787583e651c55c250efaaaee2df306e87d567050a80bbdc5ae80cc6"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 556,
+          "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 17140,
+          "sha256": "cec9f33612c296cd9befb2c2ee70f6be222cca4c8137185f25c769f3500f17b2"
+        },
+        {
+          "path": "sw.js.map",
+          "bytes": 17034,
+          "sha256": "a61904549ca1e214b30f74568f6086d8779ace24416dfe4d8e02920704fdd34e"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 885,
+          "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 20093,
+          "sha256": "b2d1c4c98c6e87ae631397af034dc89460dd5d655c6a5f89fe4c72230d856d51"
+        },
+        {
+          "path": "ui/tool-shell.js.map",
+          "bytes": 19283,
+          "sha256": "78fc2c1462c0bba982e594aefc6d79489d13ca967de2be92f92c71529f47850c"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 1256,
+          "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+        }
+      ]
+    }
+  },
+  "manifest": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/manifest.json",
+    "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61",
+    "background": {
+      "service_worker": "sw.js"
+    },
+    "permissions": [
+      "storage",
+      "scripting",
+      "activeTab",
+      "downloads"
+    ],
+    "optionalHostPermissions": [
+      "http://*/*",
+      "https://*/*"
+    ],
+    "minimumChromeVersion": "120",
+    "minimumChrome120Tested": false,
+    "contentSecurityPolicy": {
+      "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+  },
+  "entries": {
+    "worker": "sw.js",
+    "toolWindow": "ui/tool.html",
+    "toolShell": "ui/tool-shell.js",
+    "engineeringRunHostSource": "src/run-host.js",
+    "moduleSlot": "src/features/scraping/index.js",
+    "moduleFactory": "createScrapingModule({contracts,storage,pagePort,runCommands,exportBridge,entitlement,clock})",
+    "staticImportCount": 1,
+    "classicHealth": "agents/health.js",
+    "classicSelectionSlot": "agents/selection-entry.js"
+  },
+  "moduleHandshake": {
+    "contractVersion": "1.0.0",
+    "contractHash": "1486ff9c442807c0d447e542252830731faeede5f81cd685c5f146daecdba2a1",
+    "status": "MODULE_NOT_INSTALLED",
+    "capabilities": []
+  },
+  "serviceBindings": {
+    "contracts": "version/hash metadata only",
+    "clock": "Date.now diagnostic clock",
+    "storage": null,
+    "pagePort": null,
+    "runCommands": null,
+    "exportBridge": null,
+    "entitlement": null
+  },
+  "integrationContracts": {
+    "publicFoundationOwner": "02B",
+    "contractPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/contract.json",
+    "foundationTaskMap": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/task-breakdown.json",
+    "wireAndStorageFixturesRoot": "/Users/shopme/Documents/workspace/opendesk-browser/contracts/fixtures",
+    "instruction": "Implement locked contracts once in 02B, then supply module services. Do not treat environment diagnostic registry/session source pointer as production target owner, journal, recovery or storage."
+  },
+  "implementedCapabilities": [
+    "Independent locked build/pack and exact-byte fingerprints for both modes",
+    "MV3 classic worker, CSP-safe classic static entry bundles, local HTML/CSS assets",
+    "Action opens/discovers/focuses one popup tool window; concurrent opens share a creation promise",
+    "Tool-only environment protocol admission using extension id, exact URL, document/frame/lifecycle",
+    "Action source activeTab health without navigating source",
+    "Authorized optional-site new diagnostic tab creation; authenticated AGENT_READY from actual sender",
+    "Fixed HEALTH reply bound to tab/frame/document/origin/agent nonce/request UUID",
+    "Stale/reloaded/closed/restricted/cross-origin target rejection and optional permission revalidation",
+    "Scraping module absence remains buildable and visible as MODULE_NOT_INSTALLED"
+  ],
+  "unimplementedCapabilities": [
+    "Production RunHost core loop and command controller",
+    "PagePort command/journal/stop/recovery or replay behavior",
+    "IDB connection, page stage/seal and durable run/record/checkpoint repository",
+    "Artifact/CSV/XLSX formatting and browser download receipts",
+    "Entitlement/account/paid workflow",
+    "Selection UI/field preview, templates/compiler, scraping runner or pagination"
+  ],
+  "productionRunHostImplemented": false,
+  "selectionImplemented": false,
+  "scrapingImplemented": false,
+  "productImplementationPassed": false,
+  "productAcceptance": "not-run",
+  "environmentProtocol": "opendesk.environment.v1",
+  "allowedToolMessages": [
+    "OPEN_TOOL",
+    "CREATE_HEALTH_TARGET",
+    "CHECK_HEALTH",
+    "CHECK_SOURCE"
+  ],
+  "healthResultMeaning": "environment-health-only; no selection or collection success",
+  "validation": {
+    "generatedAt": "2026-10-02T06:47:20.648767+00:00",
+    "status": "passed",
+    "tests": {
+      "passed": 20,
+      "failed": 0
+    },
+    "results": [
+      {
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-0.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "build:dev"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-1.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "pack"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-2.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "pack:dev"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-3.log"
+      },
+      {
+        "command": [
+          "npm",
+          "test"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-4.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "check"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-5.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "verify"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-6.log"
+      },
+      {
+        "command": [
+          "node",
+          "scripts/build.mjs",
+          "production"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-build-production.log"
+      },
+      {
+        "command": [
+          "node",
+          "scripts/pack.mjs",
+          "production"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-pack-production.log"
+      },
+      {
+        "test": "repeat-build-pack",
+        "mode": "production",
+        "status": "passed",
+        "packageHash": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+        "zipSha256": "ceb5efbd5b3fe5d9a9276a5ccc71b12629bfa32a28d3fdfb3b1965f10ecfb9cf"
+      },
+      {
+        "command": [
+          "node",
+          "scripts/build.mjs",
+          "development"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-build-development.log"
+      },
+      {
+        "command": [
+          "node",
+          "scripts/pack.mjs",
+          "development"
+        ],
+        "exitCode": 0,
+        "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-pack-development.log"
+      },
+      {
+        "test": "repeat-build-pack",
+        "mode": "development",
+        "status": "passed",
+        "packageHash": "2867a88ab02272f1b21a368944508629d9654d49940ddb8cacaa319dafcd4fd3",
+        "zipSha256": "ed53b968c2abdba425ddd8f72be0025b9eb51a7d1b01e445fd6a7c663ab6030f"
+      }
+    ]
+  },
+  "ordinaryChrome": {
+    "stage": "02A",
+    "browserKind": "ordinary Chrome",
+    "version": "Google Chrome 154.0.8037.93",
+    "browserBinaryHash": "b4a14b08946ab78756169696fd272d6c3040a22df52da4f83f665225685f4c10",
+    "executablePath": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "packageHash": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+    "buildMode": "production",
+    "checks": [
+      {
+        "id": "ordinary-load-production",
+        "status": "passed",
+        "evidence": {
+          "id": "efhcmggbgamacpfhhmooelgdkepdcghh"
+        }
+      },
+      {
+        "id": "singleton-concurrent-open",
+        "status": "passed",
+        "count": 1,
+        "windowId": 661393507
+      },
+      {
+        "id": "classic-authenticated-document-health",
+        "status": "passed",
+        "evidence": {
+          "ok": true,
+          "data": {
+            "target": {
+              "tabId": 661393506,
+              "frameId": 0,
+              "documentId": "76D59663EFAD797880ED6E8CF65B43B7",
+              "agentInstanceId": "3c6ebbec-d275-42a3-90ba-be804c5c7e8a",
+              "origin": "http://127.0.0.1:18769",
+              "authorizationMode": "activeTab"
+            },
+            "readyState": "complete",
+            "scope": "environment-health-only",
+            "selectionImplemented": false
+          }
+        }
+      },
+      {
+        "id": "repeated-classic-init-stable-instance",
+        "status": "passed"
+      },
+      {
+        "id": "reloaded-document-refused",
+        "status": "passed",
+        "evidence": {
+          "ok": false,
+          "error": {
+            "code": "E_TARGET",
+            "message": "目标登记已失效，请重新绑定健康探针"
+          }
+        }
+      },
+      {
+        "id": "closed-tab-refused",
+        "status": "passed",
+        "evidence": {
+          "ok": false,
+          "error": {
+            "code": "E_TARGET",
+            "message": "目标标签页已关闭"
+          }
+        }
+      },
+      {
+        "id": "restricted-page-refused",
+        "status": "passed",
+        "evidence": {
+          "ok": false,
+          "error": {
+            "code": "E_TARGET",
+            "message": "请从 HTTP(S) 原页面点击扩展入口"
+          }
+        }
+      },
+      {
+        "id": "observed-tool-page-errors",
+        "status": "passed",
+        "errors": []
+      }
+    ],
+    "productionImplemented": false,
+    "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+    "status": "passed",
+    "generatedAt": "2026-10-02T06:47:42.231Z"
+  },
+  "independentBrowser": {
+    "schemaVersion": 1,
+    "stage": "02A",
+    "status": "passed",
+    "ownerStage": "06",
+    "verifiedAt": "2026-10-02T06:54:11.750686+00:00",
+    "runId": "2026-10-02T06-50-28-313Z",
+    "report": {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/02a/browser-smoke-report.json",
+      "bytes": 150596,
+      "sha256": "6e2783c10f6cede8b07cc1d43bc798566357f675c224a850f25336e432b95f33"
+    },
+    "builds": {
+      "production": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+      "development": "2867a88ab02272f1b21a368944508629d9654d49940ddb8cacaa319dafcd4fd3"
+    },
+    "suites": [
+      {
+        "browserKind": "cft",
+        "version": "Chrome/149.0.7827.55",
+        "mode": "production",
+        "packageHash": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+        "checksPassed": 25,
+        "checksFailed": 0,
+        "caseIds": [
+          "real-build-loaded",
+          "missing-source-accurate-error",
+          "module-slot-honest-status",
+          "concurrent-open-creates-single-popup",
+          "actual-action-captures-source",
+          "captured-source-not-current-active-tab",
+          "source-health-real-identity",
+          "target-requires-site-grant",
+          "real-ui-create-granted-target",
+          "repeated-agent-ready-keeps-optional-mode",
+          "two-targets-exact-identity-and-isolation",
+          "forged-target-rejected",
+          "forged-agent-ready-sender-rejected",
+          "static-selection-slot-does-not-select",
+          "reload-invalidates-old-document-no-reinjection",
+          "closed-target-accurate-error",
+          "permission-revocation-accurate-error",
+          "forged-authorization-mode-cannot-bypass-revocation",
+          "revoked-permission-cannot-create-target",
+          "restricted-urls-rejected-before-tab-creation",
+          "restricted-action-does-not-bind-source",
+          "original-page-never-navigated-or-mutated",
+          "packaged-resources-and-normal-console",
+          "real-extension-csp-blocks-inline-script",
+          "closed-tool-reopens-single-window"
+        ],
+        "normalConsoleErrorCount": 0,
+        "expectedIntentionalCspViolations": 2,
+        "originalReport": {
+          "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/02a/runs/2026-10-02T06-50-28-313Z/cft-production/report.json",
+          "bytes": 33154,
+          "sha256": "fbd2f2cf8b1bcd5edf1f9752d56b3d51147629748534a623f18229f36f048869"
+        },
+        "installedSnapshot": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/work/dev-browser/02a/builds/efaab5e9d0fe8e97/production",
+        "profileControlledBy": "06 only"
+      },
+      {
+        "browserKind": "cft",
+        "version": "Chrome/149.0.7827.55",
+        "mode": "development",
+        "packageHash": "2867a88ab02272f1b21a368944508629d9654d49940ddb8cacaa319dafcd4fd3",
+        "checksPassed": 25,
+        "checksFailed": 0,
+        "caseIds": [
+          "real-build-loaded",
+          "missing-source-accurate-error",
+          "module-slot-honest-status",
+          "concurrent-open-creates-single-popup",
+          "actual-action-captures-source",
+          "captured-source-not-current-active-tab",
+          "source-health-real-identity",
+          "target-requires-site-grant",
+          "real-ui-create-granted-target",
+          "repeated-agent-ready-keeps-optional-mode",
+          "two-targets-exact-identity-and-isolation",
+          "forged-target-rejected",
+          "forged-agent-ready-sender-rejected",
+          "static-selection-slot-does-not-select",
+          "reload-invalidates-old-document-no-reinjection",
+          "closed-target-accurate-error",
+          "permission-revocation-accurate-error",
+          "forged-authorization-mode-cannot-bypass-revocation",
+          "revoked-permission-cannot-create-target",
+          "restricted-urls-rejected-before-tab-creation",
+          "restricted-action-does-not-bind-source",
+          "original-page-never-navigated-or-mutated",
+          "packaged-resources-and-normal-console",
+          "real-extension-csp-blocks-inline-script",
+          "closed-tool-reopens-single-window"
+        ],
+        "normalConsoleErrorCount": 0,
+        "expectedIntentionalCspViolations": 2,
+        "originalReport": {
+          "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/02a/runs/2026-10-02T06-50-28-313Z/cft-development/report.json",
+          "bytes": 33133,
+          "sha256": "488422b26e833565db55b7bc4d890014ec895069a0ce9bb03657ea53b006f5f2"
+        },
+        "installedSnapshot": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/work/dev-browser/02a/builds/efaab5e9d0fe8e97/development",
+        "profileControlledBy": "06 only"
+      },
+      {
+        "browserKind": "ordinary",
+        "version": "Chrome/154.0.8037.93",
+        "mode": "production",
+        "packageHash": "efaab5e9d0fe8e971eb73898888d4efd1e993ce7fa5c8db4a1603fefbf03328b",
+        "checksPassed": 25,
+        "checksFailed": 0,
+        "caseIds": [
+          "real-build-loaded",
+          "missing-source-accurate-error",
+          "module-slot-honest-status",
+          "concurrent-open-creates-single-popup",
+          "actual-action-captures-source",
+          "captured-source-not-current-active-tab",
+          "source-health-real-identity",
+          "target-requires-site-grant",
+          "real-ui-create-granted-target",
+          "repeated-agent-ready-keeps-optional-mode",
+          "two-targets-exact-identity-and-isolation",
+          "forged-target-rejected",
+          "forged-agent-ready-sender-rejected",
+          "static-selection-slot-does-not-select",
+          "reload-invalidates-old-document-no-reinjection",
+          "closed-target-accurate-error",
+          "permission-revocation-accurate-error",
+          "forged-authorization-mode-cannot-bypass-revocation",
+          "revoked-permission-cannot-create-target",
+          "restricted-urls-rejected-before-tab-creation",
+          "restricted-action-does-not-bind-source",
+          "original-page-never-navigated-or-mutated",
+          "packaged-resources-and-normal-console",
+          "real-extension-csp-blocks-inline-script",
+          "closed-tool-reopens-single-window"
+        ],
+        "normalConsoleErrorCount": 0,
+        "expectedIntentionalCspViolations": 2,
+        "originalReport": {
+          "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/02a/runs/2026-10-02T06-50-28-313Z/ordinary-production/report.json",
+          "bytes": 32949,
+          "sha256": "30303145964928539c27d76b2be59e82fa9c7ceeae6751c27f6c75886c06e045"
+        },
+        "installedSnapshot": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/work/dev-browser/02a/builds/efaab5e9d0fe8e97/production",
+        "profileControlledBy": "06 only"
+      },
+      {
+        "browserKind": "ordinary",
+        "version": "Chrome/154.0.8037.93",
+        "mode": "development",
+        "packageHash": "2867a88ab02272f1b21a368944508629d9654d49940ddb8cacaa319dafcd4fd3",
+        "checksPassed": 25,
+        "checksFailed": 0,
+        "caseIds": [
+          "real-build-loaded",
+          "missing-source-accurate-error",
+          "module-slot-honest-status",
+          "concurrent-open-creates-single-popup",
+          "actual-action-captures-source",
+          "captured-source-not-current-active-tab",
+          "source-health-real-identity",
+          "target-requires-site-grant",
+          "real-ui-create-granted-target",
+          "repeated-agent-ready-keeps-optional-mode",
+          "two-targets-exact-identity-and-isolation",
+          "forged-target-rejected",
+          "forged-agent-ready-sender-rejected",
+          "static-selection-slot-does-not-select",
+          "reload-invalidates-old-document-no-reinjection",
+          "closed-target-accurate-error",
+          "permission-revocation-accurate-error",
+          "forged-authorization-mode-cannot-bypass-revocation",
+          "revoked-permission-cannot-create-target",
+          "restricted-urls-rejected-before-tab-creation",
+          "restricted-action-does-not-bind-source",
+          "original-page-never-navigated-or-mutated",
+          "packaged-resources-and-normal-console",
+          "real-extension-csp-blocks-inline-script",
+          "closed-tool-reopens-single-window"
+        ],
+        "normalConsoleErrorCount": 0,
+        "expectedIntentionalCspViolations": 2,
+        "originalReport": {
+          "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/02a/runs/2026-10-02T06-50-28-313Z/ordinary-development/report.json",
+          "bytes": 32928,
+          "sha256": "776705150f15884e1738bb02dce89b04131a55cbb5d7bd5458e861a98931542b"
+        },
+        "installedSnapshot": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/work/dev-browser/02a/builds/efaab5e9d0fe8e97/development",
+        "profileControlledBy": "06 only"
+      }
+    ],
+    "checksPassed": 100,
+    "checksFailed": 0,
+    "scope": "environment shell and health only; not RunHost, stop, DB, downloads, entitlement or scraping",
+    "productSmokeStatus": "pending",
+    "ordinaryChromeMinimum120": "pending",
+    "manualNativePermissionPrompt": "pending",
+    "assetFingerprintAndZipVerified": true
+  },
+  "upstreamReadyHandoff": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/contracts/handoff.json",
+    "bytes": 11389,
+    "sha256": "a6cc4e6125a05434a1cd113890024eb0b4bf6a8ccdd1c6713034283a992784d0"
+  },
+  "review": {
+    "status": "APPROVE",
+    "artifact": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/final-review.md",
+      "bytes": 5406,
+      "sha256": "068df8974e3e1c0f4fe00a0bf23df379cb638e3ca17eb88ed851293293bd9dfb"
+    }
+  },
+  "sourceProvenance": {
+    "strategy": "Engineering new implementation. EXT-R01 reuses window interaction intent; no legacy SDK/business/code files copied. Static health-agent boundary follows approved 01 contracts.",
+    "initialAudit": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/source-state.json",
+      "bytes": 1250451,
+      "sha256": "19f4d718bd69d92ed273c26440179bc49ed9c185c6d3b27c30d994b0c34332b1"
+    },
+    "finalCheck": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/final-source-verification.json",
+      "bytes": 171821,
+      "sha256": "d8fae1f1eab5471d3f041a132608e16dae409c2c46c77b218ab967fb5847500a"
+    },
+    "protectedContractFiles": 504,
+    "protectedContractsTreeHash": "704ab0e0d769f44f2c07717f0da0587596684520a14ca0049d9323715777c428",
+    "upstreamArtifactIndexChecked": 24,
+    "deliveryArtifactsChecked": 675,
+    "livePathsSampled": 540,
+    "livePathsChangedSinceInitialAudit": 13,
+    "liveSourcesFrozen": false,
+    "sourceMutationCommandsExecuted": [],
+    "downstreamRule": "02B/03 refresh and classify source generations before copying reuse candidates; 13 later live changes are recorded, not overwritten."
+  },
+  "installationAndSmoke": {
+    "ordinaryChromeExecutable": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "ordinaryChromeVersion": "Google Chrome 154.0.8037.93",
+    "ordinaryChromeBinaryHash": "b4a14b08946ab78756169696fd272d6c3040a22df52da4f83f665225685f4c10",
+    "ordinaryChromeDownloadUrl": "https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg",
+    "signatureCommand": [
+      "codesign",
+      "--verify",
+      "--deep",
+      "--strict",
+      "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/Google Chrome.app"
+    ],
+    "signatureExitCode": 0,
+    "smokeCommand": [
+      "/Users/shopme/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/smoke.mjs"
+    ],
+    "smokeExitCode": 0,
+    "loadMethod": "Own isolated persistent profile, ordinary Chrome with --enable-unsafe-extension-debugging; browser-root Extensions.loadUnpacked actual production directory and Extensions.triggerAction actual type=tab target. Fixtures use Python only in testing.",
+    "manualLoad": "Chrome Extensions developer mode > Load unpacked > dist/production. Click extension action on an HTTP(S) page; module status is not installed. Consumer runtime requires no test server or Node."
+  },
+  "knownFailuresClosed": [
+    {
+      "issue": "Optional permission revoked while awaiting tabs.get caused hidden-URL E_TARGET",
+      "fix": "Pass actual admission mode and check permission again after tab lookup, before URL inspection"
+    },
+    {
+      "issue": "Repeated AGENT_READY reset optional authorization",
+      "fix": "Preserve admission on same document/nonce; require new bind for nonce replacement"
+    },
+    {
+      "issue": "Late healthy reply survives document/permission invalidation",
+      "fix": "Revalidate permission/tab and registry object/generation after response"
+    },
+    {
+      "issue": "Concurrent bind waiter overwrite",
+      "fix": "Per-document waiter set and invalidation/timeout cleanup"
+    },
+    {
+      "issue": "Package verifier accepted missing HTML/CSS or wrong worker",
+      "fix": "Require all seven package assets and exact manifest worker"
+    },
+    {
+      "issue": "Window focus/query failure could create second window",
+      "fix": "Return E_TARGET on focus error, rediscover on next explicit open"
+    },
+    {
+      "issue": "Focus operation displayed healthy",
+      "fix": "Only environment-health scope gets health-success copy"
+    },
+    {
+      "issue": "Unknown internal authorization mode could inject",
+      "fix": "Bind mode whitelist before Chrome API calls"
+    },
+    {
+      "issue": "Real Chrome revocation hides tab URL and returned E_TARGET",
+      "fix": "Check optional site permission before tab URL inspection and after response"
+    }
+  ],
+  "pending": [
+    {
+      "id": "Chrome120",
+      "owner": "04/06",
+      "reason": "minimum manifest version declared; no minimum-version real browser evidence"
+    },
+    {
+      "id": "manual-permission-prompt-and-toolbar-click",
+      "owner": "04/06",
+      "reason": "Mac locked native UI; automatic tests invoke actual action API and pregrant actual host permission. Native interactive permission dialog acceptance is not claimed."
+    },
+    {
+      "id": "product-M01-M11-and-demand-M12",
+      "owner": "02B/03/04",
+      "reason": "Environment pass is independent of migration, product reliability and commercial acceptance"
+    }
+  ],
+  "rootOwnership": {
+    "writerUntilHandoff": "02A",
+    "handoffReady": true,
+    "writerAfterHandoff": "02B",
+    "02AProductWritesEnded": true,
+    "successorThreadId": "01a0f8dd-77cc-7ec2-97a6-71daf39029d4",
+    "stage03Released": false,
+    "instruction": "Only after ready handoff and 02A stops all product writes, start 02B; further public fixes are coordinated by 02B."
+  },
+  "artifactIndex": [
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/smoke.mjs",
+      "bytes": 6445,
+      "sha256": "8ef86cb7a352ccfc0730380ddb056dd059de020c2b83d5c8468a93e9b9384fb0"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/README.md",
+      "bytes": 2565,
+      "sha256": "6eee48317d78ce53b25f3b23e5803f10a9d763d433dd51c2897ef76825f77ba0"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/opendesk-browser-development.zip",
+      "bytes": 36098,
+      "sha256": "ed53b968c2abdba425ddd8f72be0025b9eb51a7d1b01e445fd6a7c663ab6030f"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/opendesk-browser-production.zip",
+      "bytes": 7453,
+      "sha256": "ceb5efbd5b3fe5d9a9276a5ccc71b12629bfa32a28d3fdfb3b1965f10ecfb9cf"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/agents/health.js",
+      "bytes": 16201,
+      "sha256": "6bbc50ee1c169c437c3f1e2944b353eecfbeac0d42a2744977cba36dca8717ce"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/agents/health.js.map",
+      "bytes": 16050,
+      "sha256": "e800aaf5b6d3ea8447c40d3c15124e49cb79c073d05b94cc8ffa05849202de7e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/agents/selection-entry.js",
+      "bytes": 1291,
+      "sha256": "e573e0320f6a68d3671eb0004ee2758669c52b413d7f26df0259549bc47f68a1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/agents/selection-entry.js.map",
+      "bytes": 1051,
+      "sha256": "0371f0c5c787583e651c55c250efaaaee2df306e87d567050a80bbdc5ae80cc6"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/manifest.json",
+      "bytes": 556,
+      "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/sw.js",
+      "bytes": 17140,
+      "sha256": "cec9f33612c296cd9befb2c2ee70f6be222cca4c8137185f25c769f3500f17b2"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/sw.js.map",
+      "bytes": 17034,
+      "sha256": "a61904549ca1e214b30f74568f6086d8779ace24416dfe4d8e02920704fdd34e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/ui/tool-shell.css",
+      "bytes": 885,
+      "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/ui/tool-shell.js",
+      "bytes": 20093,
+      "sha256": "b2d1c4c98c6e87ae631397af034dc89460dd5d655c6a5f89fe4c72230d856d51"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/ui/tool-shell.js.map",
+      "bytes": 19283,
+      "sha256": "78fc2c1462c0bba982e594aefc6d79489d13ca967de2be92f92c71529f47850c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development/ui/tool.html",
+      "bytes": 1256,
+      "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production/agents/health.js",
+      "bytes": 656,
+      "sha256": "641edccc816cb398d49a6bf946befa3ea92af23385bf046cf6cf2b00e446086d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production/agents/selection-entry.js",
+      "bytes": 203,
+      "sha256": "e50cab8ddf0c4a3ec03b59b0366f87651df8465fdeea39db380b0f5051d32f1f"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json",
+      "bytes": 556,
+      "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production/sw.js",
+      "bytes": 7403,
+      "sha256": "2c826557eeea9145d30472b7ce65b29d2bdc7a89f6d02d02d1b95dc6e64b4623"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production/ui/tool-shell.css",
+      "bytes": 885,
+      "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production/ui/tool-shell.js",
+      "bytes": 2840,
+      "sha256": "a7a1162dfb52fcfcc86de024f1f06d8c483e0b7fa55c1b950a444cd2f8dba720"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production/ui/tool.html",
+      "bytes": 1256,
+      "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/browser-test-request.json",
+      "bytes": 4956,
+      "sha256": "2c2762db94f4db04349c1b305971d511a46c46b05ef385b215bf092bbfe76281"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/build-development.json",
+      "bytes": 2277,
+      "sha256": "2ff2760b018995765dcbddad5d466fdca306fed407b172176758be15fbf23e88"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/build-production.json",
+      "bytes": 1610,
+      "sha256": "65840d8a47f59b0f3fff12a5509e4a8e4c36b5bc68a44a938754acc061a90f8d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/final-review.md",
+      "bytes": 5406,
+      "sha256": "068df8974e3e1c0f4fe00a0bf23df379cb638e3ca17eb88ed851293293bd9dfb"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/final-source-verification.json",
+      "bytes": 171821,
+      "sha256": "d8fae1f1eab5471d3f041a132608e16dae409c2c46c77b218ab967fb5847500a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/implementation-plan.md",
+      "bytes": 1580,
+      "sha256": "5e14d599b74ec6cb4107d4c08282aa7dbd72bfa4f4cfbb69a9c7479f70c08391"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/independent-browser-verification.json",
+      "bytes": 9087,
+      "sha256": "89697d1f40fdf2c5132b58d48815858a752333b86fa285b3ca0d5b7e178e7807"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/ordinary-chrome-smoke.json",
+      "bytes": 2463,
+      "sha256": "7114d3ab6c1f218f5d62fdcaa91eae2d95ed50da7ce8c3dc9ae3e815f7238ded"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/pack-development.json",
+      "bytes": 236,
+      "sha256": "3aa0ca66482791e9a4a0856d07db2a3c6988bacc3d18c226daf2fec504f95239"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/pack-production.json",
+      "bytes": 234,
+      "sha256": "7bb9d64b1e549b37147fe371c222a780cdeec20b412d17cfb29c594a19b4d6ca"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-build-development.log",
+      "bytes": 134,
+      "sha256": "f6a2818a35e5c11413285a7b1dfb23663b1ab810e6905eac37bb6892546875bf"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-build-production.log",
+      "bytes": 132,
+      "sha256": "4221957f74a919359f2e4a3126848b9ca4f9a751ef497fd1c059d37a2d159d00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-pack-development.log",
+      "bytes": 215,
+      "sha256": "e37f2b5759e9d75054f7af75742cab80d3b5495b66b81949203b72a2b07563ba"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/repeat-pack-production.log",
+      "bytes": 213,
+      "sha256": "55848a18de85d68892a5afaabb4f4da4a8dd1b9a3202691bb4e56fb8548a4e85"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/review-regressions-before.log",
+      "bytes": 4779,
+      "sha256": "161e3962fcaa42d775f9fc707414be4e429e0ed232f9b7ac235cfe5b8e59181c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/review-regressions-final-before.log",
+      "bytes": 6009,
+      "sha256": "f9994d984eae3156e68eee30e832ec68ba4970a47e673b2cb7238981c26fb4a7"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/revoke-race-after.log",
+      "bytes": 2007,
+      "sha256": "18593e765de1457860a2e702f04a5dcdd9ed46cd4bdf93aa9ba2a703347b346c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/revoke-race-before.log",
+      "bytes": 2032,
+      "sha256": "88ab2ffc0f6791cd113b01511a74c446fe327b7c7a2767f7c49f770c737c1881"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/source-state.json",
+      "bytes": 1250451,
+      "sha256": "19f4d718bd69d92ed273c26440179bc49ed9c185c6d3b27c30d994b0c34332b1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/source-state.md",
+      "bytes": 17814,
+      "sha256": "a72b5ef7ab01de1e863e8b16e8387719aa6f2620e72588c29d4d45687694616c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-0.log",
+      "bytes": 201,
+      "sha256": "752b1bdbc8cc52e77753c0380019e86259cde1babe977a515c922f5ccf77fe37"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-1.log",
+      "bytes": 208,
+      "sha256": "7e241a68144f941412e3b441167a366852fee5dea9ee1744280a4dc28e4cd3cf"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-2.log",
+      "bytes": 280,
+      "sha256": "44bcf08475e4ee6f810518d24c0c36058f861a64364f5d333743e2272f7e6e47"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-3.log",
+      "bytes": 287,
+      "sha256": "80e24e63422ec6041c08f4ae87dbdcbaeb57913158113a06a7f24c0a2bcfea83"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-4.log",
+      "bytes": 2009,
+      "sha256": "f8b92743e05a41b6591d0453d9af4be549ff66f200735ae000b08854de64f31d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-5.log",
+      "bytes": 107,
+      "sha256": "3a2403f045b9c0b8c1975353c7a9ec77bc3bef40022c6ccec1364690b7746b6e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation-6.log",
+      "bytes": 2940,
+      "sha256": "54ec3799ce0778ebf1ced944d13f233bd97c38e6af8c8e5ed2ff3f1a24c34edf"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/environment/validation.json",
+      "bytes": 3184,
+      "sha256": "bad8ae2b84a49603703aa5bb8d4f45952723ad5add76ecd1541a4a15fc95f10d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/manifest.json",
+      "bytes": 556,
+      "sha256": "fb1de5e7c131c97e56e161604c0e9f17adcbd63b2a15f432181f937782455f61"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/package-lock.json",
+      "bytes": 53720,
+      "sha256": "3a7ccce04fe0bb9b355ce885cb8a7c6a5e8567b467022ed6a6f90a00940edc3b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/package.json",
+      "bytes": 827,
+      "sha256": "74b90118949b661ffe9f5002d82318c872447229d8fd0613f2837ef0b450777c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/scripts/build.mjs",
+      "bytes": 1293,
+      "sha256": "4ec6bd61c5d14f8bffeadebdea090b5b1870118bb00baa6ea3c24ceeaff7a02b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/scripts/check-source.mjs",
+      "bytes": 488,
+      "sha256": "11bfa068d480dea4a918ceffeff0d53b2e3856fed18be4ed5a5baa96e7541659"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/scripts/pack.mjs",
+      "bytes": 1018,
+      "sha256": "456f97c445427478b3817ee94d6e14f5c68ae13f8bbd8e4b6d26977359239717"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs",
+      "bytes": 5292,
+      "sha256": "5e422a900876c4ee4645988e422394328c58b2cdd592de2ff498d92b2b4aabc1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/scripts/zip-package.py",
+      "bytes": 596,
+      "sha256": "419af524727e618bf143b95375deb2882f47385f694d7f927c8d5d896aa7999a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/health.js",
+      "bytes": 1107,
+      "sha256": "c14df03a64c908fa800b9ba4cdb0287a5d6ae12e25b0de8b8d599c273c874f0f"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/selection-entry.js",
+      "bytes": 277,
+      "sha256": "7af5313c7b2fb484ab7e0b8d7357600ba9dbfce5ef763f45441c1d7b019f5ae0"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/environment.js",
+      "bytes": 10944,
+      "sha256": "3b5e5d6fdc1a45d9024c75aff3676cc8f68a94717463a9b4fe4e52e2c8cd2dd6"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/features/scraping/index.js",
+      "bytes": 708,
+      "sha256": "45bac1dfb4463206a2be48104b276bff4a15dd8a34f530b891bc662596ececed"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/run-host.js",
+      "bytes": 639,
+      "sha256": "2ceb51a19cf837e80f68ce1fffca6a5caae2207fa9ba7ac6e17e20ff255211b2"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/sw.js",
+      "bytes": 1921,
+      "sha256": "db7067ecd80cc99f822d1e99a90edbac00db41d83bad7e5335dcea7c962908f7"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/ui/tool-shell.css",
+      "bytes": 885,
+      "sha256": "d5846f757bbadbb83612f1394780555d986de7046f9414e7bda266854e3dfc3e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/ui/tool-shell.js",
+      "bytes": 2300,
+      "sha256": "c79258ab1f1749a2e13b95883f617026b72ddd81962ca1f5a43c10c538b7ab61"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/ui/tool.html",
+      "bytes": 1256,
+      "sha256": "2b4b9b7858c9ad76de84504cffa1fe970ca0cd15e8c234d7d61ccc12a351d71b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/boundaries.test.mjs",
+      "bytes": 10436,
+      "sha256": "8f4cdb48c36ce1712f53287993316eb0904223ca5bb108546ba70c9521f3aee8"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs",
+      "bytes": 2108,
+      "sha256": "5dc900f82d2e1c5d5dd0842312449be18468280e7b54fd7b6a8a0df721351f8c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/webpack.config.cjs",
+      "bytes": 949,
+      "sha256": "9327d598f23852ba03857c2776f88f382361622f44925a374d3dd2455a7329c5"
+    }
+  ]
+}

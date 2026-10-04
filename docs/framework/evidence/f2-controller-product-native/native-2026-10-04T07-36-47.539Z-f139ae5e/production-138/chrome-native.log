@@ -1,0 +1,6 @@
+
+DevTools listening on ws://127.0.0.1:54532/devtools/browser/d06e2e47-512d-483f-81e8-07440a41497a
+[96374:43533954:1004/003651.459930:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[96374:43533954:1004/003716.712634:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[96374:43533954:1004/003751.473152:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:483] ConnectionHandler failed with net error: -2
+2026-10-04 00:38:07.056 Google Chrome for Testing[96374:43533770] error messaging the mach port for IMKCFRunLoopWakeUpReliable

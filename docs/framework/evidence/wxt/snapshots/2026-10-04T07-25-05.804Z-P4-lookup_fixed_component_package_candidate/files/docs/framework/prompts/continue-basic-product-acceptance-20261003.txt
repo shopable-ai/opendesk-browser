@@ -1,0 +1,50 @@
+继续 OpenDesk Browser 通用框架迁移。先完成普通 JS 和现工作台基本功能的真实验收，再推进独立 SDK 和 F3。直接执行，不优化提示词，不重新全库审计，不重新审批已批准方案，不扩写另一份开发规划。
+
+工程：/Users/shopme/Documents/workspace/opendesk-browser
+旧工程只读：/Users/shopme/Documents/workspace/todo-user-vue/src-bex
+原开发计划及冻结材料只读：/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs
+
+先解决并发写入：旧聊天“续接 OpenDesk Browser 迁移 Goal”（threadId=01a1007d-556c-7783-b5dd-c09312a10236）仍负责共享产品代码和原生浏览器执行。用户已决定分工合作，本新对话优先承担基础功能验收、检查机制和独立证据审查。授权读取该聊天状态并发送工作协调消息。先核对 public-owner.json、旧聊天最新状态和运行中的测试；不单方面接管 writer，不覆盖其 src、runner、构建脚本、gates、ledger、handoff，不并发构建或抢占原生测试时段。新增检查文件使用明确独占路径；需要产品修复时给旧聊天具体复现和证据，由其修复。浏览器测试按双方约定串行执行，不操作另一测试会话或个人 Chrome。
+
+完整读取以下文件，不能只读摘要；历史续接附件按文件中的引用完整读取。第一次状态报告不为凑数字重跑整套测试：
+1. docs/framework/prompts/goal-migration-v5.txt 及其要求的历史续接附件。
+2. docs/framework/prompts/continue-product-migration-20261002.txt，继承完整接口和验收合同。
+3. docs/framework/execution-plan.md、execution-tasks.json、execution-gates.json、source-compatibility-ledger.json、framework-handoff.json、product-continuation-checkpoint.json。
+4. 上述原开发计划目录中的 file-tasks.md 全文。
+5. docs/framework/evidence/progress-20261003/old-key-files.json、current-verification.json。
+6. 已完成的协作成果：docs/framework/product-acceptance-workflow-20261003.md；docs/framework/evidence/continuation-20261003-current/source-behavior-map.md、mechanism-verification.json、acceptance-mechanism-followup.json、sdk-runner-notes.md。
+7. tests/framework/k5-controller-product-native.mjs、tests/framework/verify-product-acceptance.mjs、tests/framework/b05-product-acceptance-20261003.mjs；仅按本轮目标检查相关调用链，不重新全库审计。
+
+已知事实需核对当前版本，不直接当最新验收结论：
+- 阶段0 round6和F1同一最终联合候选已独立批准；K0/K1关闭，关键里程碑2/7=28.6%。不回到方案审批。
+- 预定core源码路径最近一次核对为123/130=94.6%，之前122/130是历史；48/48公开成员只证明符号覆盖。
+- 历史完整foundation/framework 243/243、environment 20/20、源码69项通过；这些验证当时无输入漂移，但之后源码有变化，不等于最新产品包通过。
+- 本协作聊天的验收检查器针对性测试24/24，独立复核的11项机制问题已关闭；这不证明任何产品功能通过。
+- 正式同包验收台账最近为0/603，另保留19项SDK增项；frameworkFunctionalMigrationComplete=false、F3未通过。不得猜测整体完成90%。
+- 最近已构建production包hash：552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89。须重新核对当前构建回执、源码闭包和包hash，不因这段文字再次构建。
+- 控制入口首轮真实证据：docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-13-12.403Z-31778dfb/summary.json。production/138、production/154、development/138各23 FAIL，development/154为23 NOT_TESTED。首批失败集中在原生输入没有替换原值，脚本ID变成my-scriptnative-…，尚未到保存和运行；下载等存在前置失败级联。原始FAIL必须保留，不擅自改PASS，也不能据此认定23个产品功能都失败。检查 attribution-correction.json 和随后新运行，旧聊天已修补原生全选及焦点/选区核对。
+- 独立SDK此前production/138记录15 PASS、1 NOT_TESTED，只是局部证据。旧聊天已有控制入口、API48、CP1任务；不重复实现CP1，不把后置崩溃点作为当前第一优先级。
+
+第一阶段只沿这条主线推进：
+保存committed revision/hash/params → 唯一admission → 精确target/document → run context → 控制Worker → return/error/stop → durable结果 → 资源清理及下载。
+RunHost已有scriptId→startController普通JS分支；仅legacy startScraping要求template。不要因采集import仍存在就误判普通JS依赖模板。
+
+按下列顺序取得同包真实证据。每一步先通过最小前置用例，再扩大相关测试；前置失败时查明原因，避免无意义地级联重跑全部用例：
+1. 真实工作台原生输入、保存r1、核对IDB immutable revision及源码SHA256、选择版本和参数。优先验证输入确实替换旧值。
+2. 采集未注册、无模板条件下，经真实工作台运行下面最小脚本，取得title/url真实返回及durable结果：
+   await page.goto(params.url);
+   return {title: await page.title(), url: await page.url()};
+3. r1在途时保存r2，证明在途源码/hash/params仍为r1；删除head不能GC被pin的r1；pin在retirement后释放，新运行不得绕过tombstone。实际测试选择版本，不能只验证符号或HTML控件存在。
+4. 验return、throw、rejection、stop及deadline；false/0/undefined/own-undefined跨唯一codec保留；原生FAIL和授权反例保留。控制Worker真实物理终止≤3s，必须有原生target/CPU或批准合同要求的证据；MAIN不承诺通用终止，borrowed页不关闭。
+5. 关闭并重开工作台后读取同一持久结果，不重复启动run。browser-session寿命另外验证，不以工作台重开替代浏览器会话重启。
+6. 从该结果真实下载，确认Chrome downloads complete、artifact/result/run关联、实际磁盘字节数和SHA256一致，并核对Blob及其他资源清理。构建、UI提示、下载开始事件均不能替代终态与磁盘证据。
+
+第二阶段在基本主链过关后推进独立SDK B05：无controller，真实授权→固定ISOLATED/MAIN→真实Hello→原生sender→唯一broker/IDB→短driver→回程。继承固定入口、18 method allowlist、SDK_HELLO、argsWire/valueWire、唯一codec、broker创建context和共享cookies/storage/network/notifications；业务PageBrigeCode始终在data内。接续已有runner，补100并发、四崩溃点、重复/冲突、撤权/导航、交付失败及unknown不重放。不造sender、不替换authority/IDB、不增加第二存储或权限层；无法真实观察的项目明确NOT_TESTED并列缺口。
+
+继续沿用T01–T13与K0→K1→K2→K3/K4→K5→K6，旧compat/src-bex和旧assets/core目录方案已被按职责迁移替代。最终保留原603项及明确增项、历史17失败/R1–R8、1000轮混合、10轮重连、2轮插件禁用、资源baseline和独立SDK验收。冻结同一最新production包，由未参与当前候选编写的独立评审者验收。工作台集成、模块测试、F1、构建和评审分数都不能替代F3。不恢复旧代理、不修改冻结证据、不换构建体系、不新增依赖、不进入完整采集、优化或发布。
+
+沟通和完成要求：
+- 开始时用一张短表说明：当前主线、已证明的产品行为、尚未证明的行为、这一轮将执行的具体步骤；分别列里程碑、路径存在、符号覆盖、历史模块验证、正式同包台账，禁止混为整体完成率。
+- 每轮更新先说真实结果，例如“保存已通过，运行在X失败”，再给包hash、环境、证据路径和下一步。不要反复汇报准备了多少文档、读了多少文件。
+- 对每个基本功能留下旧行为→新模块实际调用链→保留/修正/限制→已有证据→剩余验收→完成条件。已有对应表可引用，补本轮缺口即可。
+- 本轮结束给基础主链逐项PASS/FAIL/BLOCKED/NOT_TESTED、真实失败原因、修复及复验、证据链接和剩余门禁。局部通过不得关闭父合同或宣布F3完成；若旧聊天仍持有测试时段，完成本聊天可独立执行的检查并交付明确证据，不能假称已跑浏览器。

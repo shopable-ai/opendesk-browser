@@ -1,0 +1,45 @@
+✔ K5 fixed SDK/control and resource closure validates actual production package (123.422375ms)
+✔ K5 production Worker exception rejects eval/Function aliases and reflective extra constructors (541.014833ms)
+✔ K5 fixed SDK/control and resource closure validates actual development package (130.791666ms)
+✔ K5 development Worker exception rejects eval/Function aliases and reflective extra constructors (1043.415917ms)
+✔ K5 fixed SDK files remain subject to privileged dynamic-execution scanner (2523.117833ms)
+✖ K5 privileged and opaque CSP mutations cannot broaden execution (817.347625ms)
+✔ K5 every HTML is scanned and Worker cannot become a privileged script entry (2556.968334ms)
+✔ K5 required sandbox/Worker/icon/MIT and unknown assets fail closed (1222.880917ms)
+✔ K5 remote JS scanner distinguishes data URLs ending json/jsp without accepting scripts (0.50825ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9065.743542
+
+✖ failing tests:
+
+test at tests/framework/k5-package.test.mjs:45:1
+✖ K5 privileged and opaque CSP mutations cannot broaden execution (817.347625ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /CSP|sandbox boundary|broad exposure|host permissions/. Input:
+  
+  'Error: Unexpected manifest entry/exposure'
+  
+      at async mutate (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-package.test.mjs:11:80)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-package.test.mjs:53:6)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: Unexpected manifest entry/exposure
+        at verifyManifest (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:59:65)
+        at verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:183:85)
+        at async waitForActual (node:assert:615:5)
+        at async strict.rejects (node:assert:738:25)
+        at async mutate (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-package.test.mjs:11:80)
+        at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-package.test.mjs:53:6)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    expected: /CSP|sandbox boundary|broad exposure|host permissions/,
+    operator: 'rejects',
+    diff: 'simple'
+  }

@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-02T20:41:20.679703+00:00",
+  "independent": true,
+  "role": "architecture/devils-advocate",
+  "verdict": "BLOCK",
+  "provisional": true,
+  "issueIds": [
+    "ARCH-PAGE-01",
+    "CR-F1-PAGE-001"
+  ],
+  "pagePrototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "finalUnionCandidateSha256": null,
+  "newSolutionObserved": false,
+  "currentFixtureSourceChecks": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "sha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "matchesRejectedFrozenCandidate": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "sha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "matchesRejectedFrozenCandidate": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "matchesRejectedFrozenCandidate": true
+    }
+  ],
+  "scope": "Bounded native signal capability inspection for selected userScripts revocation fence, not new repository audit; no additional browser runs or author fixture changes",
+  "sources": [
+    {
+      "version": "138.0.7204.183",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/138.0.7204.183-dispatcher.cc",
+      "sha256": "32b765f983fad8f02334be0b396d4de3bf6c5ce4229748221923565f2bfc758b",
+      "bytes": 67339,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/renderer/dispatcher.cc"
+    },
+    {
+      "version": "138.0.7204.183",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/138.0.7204.183-native_extension_bindings_system.cc",
+      "sha256": "5feb4a4a4a9f7f8957f4edbf8a1ec53effc1ea89171f833c00c78997e6c0a1a3",
+      "bytes": 48405,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/renderer/native_extension_bindings_system.cc"
+    },
+    {
+      "version": "138.0.7204.183",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/138.0.7204.183-renderer_startup_helper.cc",
+      "sha256": "2153b793358af55b451b9bc9e87696e88052aed3fc06074295b57a8b78391407",
+      "bytes": 25204,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/browser/renderer_startup_helper.cc"
+    },
+    {
+      "version": "138.0.7204.183",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/138.0.7204.183-user_script_manager.cc",
+      "sha256": "a86cbe32f05264eca8dd1fc97d7efe2655508b69d74bd59a1200dd58ba58fb35",
+      "bytes": 12268,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/browser/user_script_manager.cc"
+    },
+    {
+      "version": "138.0.7204.183",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/138.0.7204.183-user_scripts.idl",
+      "sha256": "4e4f0c6eca94037292b40fbdef81feaadcf88bc57ad40b8f42b6674aab96e2ad",
+      "bytes": 10003,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/common/api/user_scripts.idl"
+    },
+    {
+      "version": "138.0.7204.183",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/138.0.7204.183-user_scripts_api.cc",
+      "sha256": "19793a9ffcd5b6e182dabd3edac838d8cfb12b9599adfeaf917ad756b659b696",
+      "bytes": 33040,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/extensions/browser/api/user_scripts/user_scripts_api.cc"
+    },
+    {
+      "version": "154.0.8037.92",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/154.0.8037.92-dispatcher.cc",
+      "sha256": "3c6d1b2328a485461039a479661e1b0d7d9e07df9f7f5f9ad64c6bca2243cf61",
+      "bytes": 66731,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/renderer/dispatcher.cc"
+    },
+    {
+      "version": "154.0.8037.92",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/154.0.8037.92-native_extension_bindings_system.cc",
+      "sha256": "52e937ac17de23cc09e86ff4c79b6647bd01837f608500b1accf4e62b06a34a2",
+      "bytes": 53845,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/renderer/native_extension_bindings_system.cc"
+    },
+    {
+      "version": "154.0.8037.92",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/154.0.8037.92-renderer_startup_helper.cc",
+      "sha256": "ad3e0c490e50e7744af5d5a37ac72c19c1a55c594796cd8b6d0874d80abbfde3",
+      "bytes": 30262,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/browser/renderer_startup_helper.cc"
+    },
+    {
+      "version": "154.0.8037.92",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/154.0.8037.92-user_script_manager.cc",
+      "sha256": "8a0c286b6aeaeffb73e1f5ce5fd2270f21269f6e62a89962367a8986c5b9007e",
+      "bytes": 9964,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/browser/user_script_manager.cc"
+    },
+    {
+      "version": "154.0.8037.92",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/154.0.8037.92-user_scripts.webidl",
+      "sha256": "44e4717d50ae5a9bbf88903d89aa087928cfc10812ce9009237df4f4f5d1a6bc",
+      "bytes": 9524,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/common/api/user_scripts.webidl"
+    },
+    {
+      "version": "154.0.8037.92",
+      "localFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/native-signal-evidence/154.0.8037.92-user_scripts_api.cc",
+      "sha256": "200225e581c33d33b42bf81e0d741069471e5598cedcbb4534df58e897e4603e",
+      "bytes": 32695,
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/extensions/browser/api/user_scripts/user_scripts_api.cc"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SIGNAL-01",
+      "kind": "direct-source-evidence",
+      "claim": "Both exact-tag public userScripts schemas expose functions but no toggle event, revocation history or monotonic authorization epoch. This is an API-surface finding; not proof that every possible native side channel is impossible.",
+      "refs": {
+        "138.0.7204.183": "138.0.7204.183-user_scripts.idl:164",
+        "154.0.8037.92": "154.0.8037.92-user_scripts.webidl:150"
+      }
+    },
+    {
+      "id": "SIGNAL-02",
+      "kind": "direct-source-evidence",
+      "claim": "The browser internally updates current allowed state, enables/disables dynamic source and sends SetUserScriptsAllowed IPC. Reviewed path does not emit a public extension revocation-history event. Internal IPC is not itself an exposed extension capability.",
+      "refs": {
+        "138.0.7204.183": [
+          "138.0.7204.183-user_script_manager.cc:157",
+          "138.0.7204.183-renderer_startup_helper.cc:418",
+          "138.0.7204.183-dispatcher.cc:1352"
+        ],
+        "154.0.8037.92": [
+          "154.0.8037.92-user_script_manager.cc:130",
+          "154.0.8037.92-renderer_startup_helper.cc:552",
+          "154.0.8037.92-dispatcher.cc:1304"
+        ]
+      }
+    },
+    {
+      "id": "SIGNAL-03",
+      "kind": "direct-source-evidence-plus-bounded-inference",
+      "claim": "Renderer updates bindings, but GetAPIHelper returns a previously instantiated per-context cached API object. API object/function identity alone is not a revocation epoch. A claimed descriptor/binding side channel would require separate exact-version ordering, durability and genuine UI evidence; none is approved here.",
+      "refs": {
+        "138.0.7204.183": [
+          "138.0.7204.183-dispatcher.cc:1487",
+          "138.0.7204.183-native_extension_bindings_system.cc:681",
+          "138.0.7204.183-native_extension_bindings_system.cc:834"
+        ],
+        "154.0.8037.92": [
+          "154.0.8037.92-dispatcher.cc:1461",
+          "154.0.8037.92-native_extension_bindings_system.cc:744",
+          "154.0.8037.92-native_extension_bindings_system.cc:962"
+        ]
+      }
+    },
+    {
+      "id": "SIGNAL-04",
+      "kind": "independent-native-counterexample",
+      "claim": "Unchanged fixture accepts old native-completed result after genuine switch OFF then ON in both versions/worlds without test-injected recheck. This existing counterexample remains authoritative until corrected frozen candidate is provided.",
+      "evidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/m5-f1/architect/independent-evidence/2026-10-02T20-08-55-875Z/report.json",
+      "reportSha256": "a3688fe2138ee62225f589203576339d5719bf3436a2cd67a789a5e54e51b53b"
+    }
+  ],
+  "pollingCounterexample": {
+    "historyA": "ON at t0; continuously ON; ON at t1",
+    "historyB": "ON at t0; OFF and ON entirely between native availability observations; ON at t1",
+    "observation": "Same successful current-state checks, same host/document, and no public durable history receipt. A poll-only observer cannot distinguish these histories.",
+    "additionalSchedulingRisk": "Timer interval is not maximum observation gap. Host event-loop pause, native response delay and browser process suspension can lengthen gaps; do not assume a minimum UI OFF dwell or instantaneous check-to-accept atomicity.",
+    "consequence": "Increasing poll rate, waiting for UI settling, or passing one long-OFF test cannot prove every transient revocation is fenced."
+  },
+  "provableNarrowBoundary": [
+    "When an operation-owned native availability check actually returns disabled/rejected, durably mark that operation and its earlier results invalid even after current authorization restores.",
+    "A genuine permissions.onRemoved observation can justify its documented host-permission fence; it cannot be assumed to represent the Allow User Scripts toggle.",
+    "An independently evidenced host/document incarnation change can invalidate old identities. Current UI cases did not observe natural host reconstruction.",
+    "Current checks can prove only authorization at the specific native check; they do not prove uninterrupted authorization since dispatch."
+  ],
+  "boundaryIsNotApprovedContractChange": true,
+  "currentContractRef": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/stage0/f1-cases.json:284",
+  "resolution": "The approved unconditional real-revocation/old-result fence remains BLOCK. A narrower observed-revocation promise is descriptive only and cannot replace it without an explicit independently reviewed contract/capability amendment.",
+  "newFixReviewRequirements": [
+    "Remove runner/reviewer calls that mutate operation fences. Measurement of UI/API state must remain read-only with respect to acceptance state.",
+    "Show operation-owned fail-closed invalidation and browser-backed event/incarnation/epoch with exact-version provenance and causal ordering before acceptance.",
+    "Real UI OFF→ON tests must cover native-pending and native-completed acceptance hold in both worlds and versions, restored-before-next-sample, delayed host task delivery, and later valid run. The counterexample need not add a full matrix solely for counts.",
+    "If using any binding/descriptors/Port/sentinel mechanism, demonstrate that every transition creates durable, authentic evidence even when transitions occur between host observations. Native internal update alone is insufficient.",
+    "Keep raw error-shape FAIL and wrapper-impact distinction, actual UI permission controls, old-document fencing and resource cleanup. No new privileges/backend or borrowed-tab closure.",
+    "Only frozen final two-lane union hash can receive overall F1 verdict; current round-5 plan approval is separate."
+  ],
+  "planSchemaNormalization": {
+    "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/reviews/migration-execution-v5/round-5/architect.json",
+    "candidateManifestSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+    "independent": true,
+    "score": 96,
+    "verdict": "APPROVE",
+    "blockers": [],
+    "judgmentChanged": false
+  },
+  "allF1PASS": false,
+  "backendPrototypePassed": false,
+  "F2Approved": false,
+  "F3Approved": false
+}

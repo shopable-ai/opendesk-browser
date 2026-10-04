@@ -1,0 +1,252 @@
+{
+  "type": "K1 author observation evidence; NOT approval candidate or independent acceptance",
+  "approvedExecutionContractSha256": "dd50a5098d247f594ab2234b9946c0004ce427ea8d6cb1abd130931c3bcecda1",
+  "pendingContractCandidateSha256": "a9c47c0e20d8bb5710fead199fc197ac98d3bc098dc3d96f2a719ed50b50651b",
+  "pendingContractEffective": false,
+  "sourceSha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+  "observations": [
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/report.json",
+      "sha256": "4cda9effbf8f59eeb586d11b9595d1238e5b0be69525ca64daf328a46e4cba07",
+      "sourceSha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+      "scope": "loop-only diagnostic",
+      "caseStatuses": [
+        {
+          "id": "F1-INFINITE-LOOP-STOP",
+          "status": "FAIL"
+        },
+        {
+          "id": "F1-INFINITE-LOOP-DEADLINE",
+          "status": "FAIL"
+        },
+        {
+          "id": "F1-INFINITE-LOOP-HOST-CLOSE",
+          "status": "PASS"
+        }
+      ],
+      "cleanup": {
+        "ownedBrowserExited": true,
+        "ownedBrowserPid": 74600,
+        "exitCode": 0,
+        "signalCode": null,
+        "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/profile",
+        "ownedTargets": [
+          "25199A3A3B4F79288A77D4171920EB27"
+        ],
+        "serverClosed": true,
+        "cdpWaiters": 0,
+        "abortedCdpRequests": 0
+      }
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/report.json",
+      "sha256": "2d1cdca153dd80a8ea65b52f63e97443835b1a56f6eccde8412de1cda6998337",
+      "sourceSha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+      "scope": "MAIN-only diagnostic",
+      "caseStatuses": [
+        {
+          "id": "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY",
+          "status": "PASS"
+        }
+      ],
+      "cleanup": {
+        "ownedBrowserExited": true,
+        "ownedBrowserPid": 74597,
+        "exitCode": 0,
+        "signalCode": null,
+        "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/profile",
+        "ownedTargets": [
+          "8E026F650DC8CDE61F1D17CE253B9490"
+        ],
+        "serverClosed": true,
+        "cdpWaiters": 0,
+        "abortedCdpRequests": 0
+      }
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/report.json",
+      "sha256": "a4e28d356dbb4a5e5c3d7949d6199ca9fb02769f202a2d95724f006f6d1d7f28",
+      "sourceSha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+      "scope": "loop-only diagnostic",
+      "caseStatuses": [
+        {
+          "id": "F1-INFINITE-LOOP-STOP",
+          "status": "FAIL"
+        },
+        {
+          "id": "F1-INFINITE-LOOP-DEADLINE",
+          "status": "FAIL"
+        },
+        {
+          "id": "F1-INFINITE-LOOP-HOST-CLOSE",
+          "status": "PASS"
+        }
+      ],
+      "cleanup": {
+        "ownedBrowserExited": true,
+        "ownedBrowserPid": 74598,
+        "exitCode": 0,
+        "signalCode": null,
+        "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/profile",
+        "ownedTargets": [
+          "9AF99C23F4B13491DE1B21B77F9A57D2"
+        ],
+        "serverClosed": true,
+        "cdpWaiters": 0,
+        "abortedCdpRequests": 0
+      }
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/report.json",
+      "sha256": "7065740f710a3e3b09a095ae9b029c3902dba4485b006d0ba44a40cfb67ac514",
+      "sourceSha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+      "scope": "MAIN-only diagnostic",
+      "caseStatuses": [
+        {
+          "id": "F1-OWNED-MAIN-LOOP-BORROWED-BOUNDARY",
+          "status": "PASS"
+        }
+      ],
+      "cleanup": {
+        "ownedBrowserExited": true,
+        "ownedBrowserPid": 74599,
+        "exitCode": 0,
+        "signalCode": null,
+        "ownedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/profile",
+        "ownedTargets": [
+          "2C22537746948CF35CD94E71F2E20B6F"
+        ],
+        "serverClosed": true,
+        "cdpWaiters": 0,
+        "abortedCdpRequests": 0
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/report.json",
+      "sha256": "4cda9effbf8f59eeb586d11b9595d1238e5b0be69525ca64daf328a46e4cba07",
+      "bytes": 166734
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/candidate-manifest.json",
+      "sha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+      "bytes": 1631
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/protocol.json",
+      "sha256": "2e8f7db788ec077ed9383db9ed313ff0f5feda91693abaed7c1945a74eb72ab3",
+      "bytes": 28390
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/console.json",
+      "sha256": "2a2c60401079d82b9f2b884599f0e999e81c78a168319f197238ebd90ed187fa",
+      "bytes": 31168
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-loop-observation-2026-10-02T20-24-24.314Z/workbench.png",
+      "sha256": "344cfe83586e18d39161886d6cc1631fc4413aa15de2fa399050bbe75a71a603",
+      "bytes": 8430
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/report.json",
+      "sha256": "2d1cdca153dd80a8ea65b52f63e97443835b1a56f6eccde8412de1cda6998337",
+      "bytes": 29643
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/candidate-manifest.json",
+      "sha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+      "bytes": 1631
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/protocol.json",
+      "sha256": "9c844060997e4ddc5135ded8226df406480f9be6af91bb70512ca65b52b55041",
+      "bytes": 12897
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/console.json",
+      "sha256": "664a0e0cd4160a4fc8dfdc1bee14068a342f30df7a6bfdfc40ba3e1dcb5fb6a2",
+      "bytes": 13935
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/extension-ui.json",
+      "sha256": "fa35d8e053791dcfd7ed41b02d40559a629623f75f6f907955654a716a8d8b9f",
+      "bytes": 7306
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/extension-ui.png",
+      "sha256": "9bb635089d1ea73ce0bb3345236bf349f0bb0b267e1b1e60651459338332510a",
+      "bytes": 29363
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-138-proposed-main-observation-2026-10-02T20-24-24.313Z/workbench.png",
+      "sha256": "b4402490d4f3c3a124032cfbb0ea169e247f3f835c67b2510b7f8939d21edcf7",
+      "bytes": 8376
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/report.json",
+      "sha256": "a4e28d356dbb4a5e5c3d7949d6199ca9fb02769f202a2d95724f006f6d1d7f28",
+      "bytes": 230197
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/candidate-manifest.json",
+      "sha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+      "bytes": 1631
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/protocol.json",
+      "sha256": "40701d2aaec7fc869af349d90cdad80a4c5aa6abe73a8ddaac12c91f1707e87c",
+      "bytes": 33428
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/console.json",
+      "sha256": "a42fae824c5887215528eb24e6c247c485c40133cd9009e839882e19378bf402",
+      "bytes": 37543
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-loop-observation-2026-10-02T20-24-24.313Z/workbench.png",
+      "sha256": "fa864a7fd81c49813b9822462b509c19c57d913d5eb746cc589fcfd174d50628",
+      "bytes": 8156
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/report.json",
+      "sha256": "7065740f710a3e3b09a095ae9b029c3902dba4485b006d0ba44a40cfb67ac514",
+      "bytes": 31977
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/candidate-manifest.json",
+      "sha256": "ff0c796fd5511ab83d0834a8575653e3d8c5e20a2e52de231ce2709e4a650bd5",
+      "bytes": 1631
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/protocol.json",
+      "sha256": "43808e597c7c1092733a58d8c266567873671220173830076b2fc2dfc564903d",
+      "bytes": 16301
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/console.json",
+      "sha256": "fcffff9038cf8b37c4eea2bf31ae36273c6368a7536d03b1d203ab2d05b6822d",
+      "bytes": 19041
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/extension-ui.json",
+      "sha256": "aceb3652e61df4e9415b6cb05cd5357f0296240ff61df92228e35c6ac62fe63f",
+      "bytes": 7463
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/extension-ui.png",
+      "sha256": "1156c4ddbbb789380c763972ef3aa269bd0401ba1eb768f0f6caba92164241a2",
+      "bytes": 27444
+    },
+    {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round4-154-proposed-main-observation-2026-10-02T20-24-24.313Z/workbench.png",
+      "sha256": "a4564deb97f18e431f68bcce09762af051bc172fa92c124a271f7706015b04a8",
+      "bytes": 8096
+    }
+  ],
+  "old2sStatusPreserved": true,
+  "fullSameSourceFinalMatrix": "pending formal contract release; selective loop and MAIN complete",
+  "backendPrototypePassed": false,
+  "F2": false,
+  "requiresIndependentReview": true
+}

@@ -1,0 +1,25 @@
+✔ generic APIs prepare committed typed values without templates, Blob creation or native dispatch (92.919583ms)
+✔ generic host reads artifact, creates Blob, dispatches once and settles via real callback/listeners/search lifecycle (15.843834ms)
+✔ generic preparation rejects forged namespace, wrong result/run/principal/session and actual sender before writing (10.879375ms)
+✔ generic prepare transaction rechecks durable host revocation/result replacement/tombstone and rolls back all writes (19.554ms)
+✔ generic data uses canonical explicit blocks with exact 8MiB/64 limits and independent integrity checks (783.83075ms)
+✔ generic attempt request dedupes, prevents simultaneous retries and reused/foreign Blob URLs (12.375291ms)
+✔ generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified (10.935875ms)
+✔ generic current-document registration is rechecked inside attempt, read and dispatch transactions (20.514042ms)
+✔ generic tombstone/abandon uses existing lifecycle and reader pin gates existing repository deletion (7.096125ms)
+✔ generic missing issued namespace/principal fails closed and never derives authority from payload (3.029333ms)
+✔ generic unsuccessful/missing wire results and legacy template entry points cannot manufacture artifacts (11.533333ms)
+✔ generic immutable result and artifact chunks are rechecked before attempt transaction commits (12.561792ms)
+✔ generic onCreated is not completion; wrong native identity and callback/search conflicts cannot certify delivery (39.809542ms)
+✔ generic native interruption/runtime.lastError use shared failure/unknown states and never resubmit (11.190459ms)
+✔ generic explicit fresh retry shares job/artifact; late evidence cannot release the new active reader pin (12.083417ms)
+✔ generic later registered document exports stable namespace history without acquiring the old run owner (12.46875ms)
+✔ generic abandonRun fences timed-out retry history so shared repository deletion does not strand old attempts (10.747333ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1238.82775

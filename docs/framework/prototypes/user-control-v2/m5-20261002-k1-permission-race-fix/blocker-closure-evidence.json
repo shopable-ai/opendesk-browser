@@ -1,0 +1,93 @@
+{
+  "sourceSha256": "4666d1e0275ee69e82ab9e0c713260df201a717a359fd6efca4dbc55af91cfd5",
+  "planHash": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "officialIndependentReviewPreserved": [
+    {
+      "path": "docs/framework/reviews/m5-f1/code-reviewer/control-review.json",
+      "sha256": "2bd05ee46b89d9f2ccac16307955b917b4c77becf03028d2bff34d35e573b558"
+    },
+    {
+      "path": "docs/framework/reviews/m5-f1/code-reviewer/control-review.md",
+      "sha256": "8a00b829cb705357f21f798b8c6f06ae7b50d7003d62e7c60ac4a8090b3468cc"
+    }
+  ],
+  "disposition": "AUTHOR_REMEDIATED_WITH_REAL_BROWSER_EVIDENCE_INDEPENDENT_CLOSURE_PENDING",
+  "CR-F1-CTRL-001": {
+    "fix": "Immutable entry owner/host/sandbox/run/target snapshot; irreversible cancellation; original owner checked after permissions and before every native effect; no continuation rebind.",
+    "fullRegressionCasesPerVersion": 10,
+    "rawForbiddenServerEffectsPerVersion": 0,
+    "nativePendingPromiseChecks": [
+      {
+        "version": "138.0.7204.183",
+        "status": "PASS",
+        "nativePermissionStopOrder": [
+          "native-permission-request",
+          "host-stop-returned",
+          "native-permission-resolved"
+        ],
+        "monoMs": [
+          180.19999980926514,
+          180.40000009536743,
+          180.5
+        ],
+        "nativeTabsUpdateDispatches": 0,
+        "rawServerHits": [],
+        "targetURL": "http://127.0.0.1:61325/form",
+        "newRunValue": "Independent native stop fence",
+        "cleanup": {
+          "pending": 0,
+          "timer": 0,
+          "port": 0,
+          "frame": 0,
+          "pageWaits": 0,
+          "resourceReplies": 0,
+          "permissionBarriers": 0
+        }
+      },
+      {
+        "version": "154.0.8037.92",
+        "status": "PASS",
+        "nativePermissionStopOrder": [
+          "native-permission-request",
+          "host-stop-returned",
+          "native-permission-resolved"
+        ],
+        "monoMs": [
+          114.90000009536743,
+          115.09999990463257,
+          115.09999990463257
+        ],
+        "nativeTabsUpdateDispatches": 0,
+        "rawServerHits": [],
+        "targetURL": "http://127.0.0.1:61325/form",
+        "newRunValue": "Independent native stop fence",
+        "cleanup": {
+          "pending": 0,
+          "timer": 0,
+          "port": 0,
+          "frame": 0,
+          "pageWaits": 0,
+          "resourceReplies": 0,
+          "permissionBarriers": 0
+        }
+      }
+    ],
+    "rawProbe": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/raw-stdout.json",
+    "executedProbeSource": {
+      "path": "tests/prototypes/user-control-v2/evidence/m5-round6-final-native-promise-race-2026-10-02T21-52-20.311250Z/probe.mjs",
+      "bytes": 5432,
+      "sha256": "03af2d2a6810c06e857b351aa52ecbe4967f9b41125008aceb3750843e083cf7"
+    }
+  },
+  "CR-F1-CTRL-002": {
+    "fix": "Each of 20 runs independently loads its actual Blob before revoke and rejects that same URL after revoke in the creating opaque realm, before any realm retirement; native exact Worker destroyed/absent; real DOM observer exists before timeout/cancel.",
+    "roundsPerVersion": 20,
+    "liveDOMObserverRoundsPerVersion": 10,
+    "evidence": [
+      "tests/prototypes/user-control-v2/evidence/m5-round6-138-owner-guard-final-2026-10-02T21-50-45.267Z/report.json#resourceRounds",
+      "tests/prototypes/user-control-v2/evidence/m5-round6-154-owner-guard-final-2026-10-02T21-50-45.267Z/report.json#resourceRounds"
+    ]
+  },
+  "backendPrototypePassed": false,
+  "F2": false
+}

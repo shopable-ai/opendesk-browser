@@ -1,0 +1,2959 @@
+{
+  "scope": "independent targeted counterexample only; not full F1",
+  "prototypeCandidateSha256": "2edcc1b0ca37f22a21105255cf90a02f1fa1b4a6e72081fa23d816708ee3a036",
+  "sources": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/run-headed.mjs",
+      "sha256": "189e20e4335eba6ed5f6186dd3e258d08452e2e61559c751d72187dd83f0c25d",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/adapter.js",
+      "sha256": "1f53b562e680d44d2ddd99dd325e42bf63b008976bcfa0a6d88355910ef9c0c3",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/file-source.js",
+      "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.html",
+      "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/host.js",
+      "sha256": "7676d0a3734ff6e60a16ef24e3c969e3f3eb6d5519f086aa7a32c6cde5fe893e",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/manifest.json",
+      "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-scripts-v2/fixture/sw.js",
+      "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71",
+      "unchanged": true
+    }
+  ],
+  "probeSha256": "3700d7f3afc3262dee91b2d2d5bfb03acdca762a47686fbc86190418150f9f2b",
+  "runs": [
+    {
+      "version": "138.0.7204.183",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+      "cases": [
+        {
+          "kind": "switch",
+          "world": "USER_SCRIPT",
+          "before": {
+            "state": "pending",
+            "started": 1790971736999,
+            "target": {
+              "tabId": 1735842884,
+              "frameId": 0,
+              "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 2,
+              "results": [
+                {
+                  "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971737003
+          },
+          "beforeHost": {
+            "timeOrigin": 1790971736876.1,
+            "tab": {
+              "active": false,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "favIconUrl": "",
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": false,
+              "id": 1735842882,
+              "incognito": false,
+              "index": 1,
+              "lastAccessed": 1790971736409.518,
+              "mutedInfo": {
+                "muted": false
+              },
+              "pinned": false,
+              "selected": false,
+              "status": "complete",
+              "title": "OpenDesk F1 userScripts v2 evidence",
+              "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+              "width": 1282,
+              "windowId": 1735842880
+            },
+            "events": [],
+            "resources": {
+              "pending": 1,
+              "acceptanceBarriers": 1,
+              "observationTimers": 0,
+              "rawPending": 0
+            }
+          },
+          "off": {
+            "ui": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "available": false,
+              "error": {
+                "name": "Error",
+                "message": "'userScripts.getScripts' is not available in this context.",
+                "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:62:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:39)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+              }
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971736876.1,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1735842882,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971736409.518,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "pinned": false,
+                "selected": false,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1735842880
+              },
+              "events": [],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "on": {
+            "ui": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971736876.1,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1735842882,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971736409.518,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "pinned": false,
+                "selected": false,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1735842880
+              },
+              "events": [],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971736999,
+            "target": {
+              "tabId": 1735842884,
+              "frameId": 0,
+              "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 2,
+              "results": [
+                {
+                  "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971737003,
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 2,
+                "results": [
+                  {
+                    "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "admission": {
+                "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62204/owned",
+                "origin": "http://127.0.0.1:62204",
+                "hostPermission": true
+              },
+              "settlement": {
+                "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62204/owned",
+                "origin": "http://127.0.0.1:62204",
+                "hostPermission": true
+              },
+              "accepted": {
+                "kind": "value",
+                "value": {
+                  "type": "boolean",
+                  "value": true
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971737283,
+            "settlementCount": 1
+          },
+          "contractExpected": "old result rejected after actual revoke even after restore",
+          "contractMet": false,
+          "injectedOperationRecheck": false
+        },
+        {
+          "kind": "switch",
+          "world": "MAIN",
+          "before": {
+            "state": "pending",
+            "started": 1790971737285,
+            "target": {
+              "tabId": 1735842884,
+              "frameId": 0,
+              "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 1,
+              "results": [
+                {
+                  "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971737286
+          },
+          "beforeHost": {
+            "timeOrigin": 1790971736876.1,
+            "tab": {
+              "active": false,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "favIconUrl": "",
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": false,
+              "id": 1735842882,
+              "incognito": false,
+              "index": 1,
+              "lastAccessed": 1790971736409.518,
+              "mutedInfo": {
+                "muted": false
+              },
+              "pinned": false,
+              "selected": false,
+              "status": "complete",
+              "title": "OpenDesk F1 userScripts v2 evidence",
+              "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+              "width": 1282,
+              "windowId": 1735842880
+            },
+            "events": [],
+            "resources": {
+              "pending": 1,
+              "acceptanceBarriers": 1,
+              "observationTimers": 0,
+              "rawPending": 0
+            }
+          },
+          "off": {
+            "ui": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "available": false,
+              "error": {
+                "name": "Error",
+                "message": "'userScripts.getScripts' is not available in this context.",
+                "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:62:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:39)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+              }
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971736876.1,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1735842882,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971736409.518,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "pinned": false,
+                "selected": false,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1735842880
+              },
+              "events": [],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "on": {
+            "ui": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971736876.1,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1735842882,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971736409.518,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "pinned": false,
+                "selected": false,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1735842880
+              },
+              "events": [],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971737285,
+            "target": {
+              "tabId": 1735842884,
+              "frameId": 0,
+              "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 1,
+              "results": [
+                {
+                  "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971737286,
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 1,
+                "results": [
+                  {
+                    "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "admission": {
+                "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62204/owned",
+                "origin": "http://127.0.0.1:62204",
+                "hostPermission": true
+              },
+              "settlement": {
+                "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62204/owned",
+                "origin": "http://127.0.0.1:62204",
+                "hostPermission": true
+              },
+              "accepted": {
+                "kind": "value",
+                "value": {
+                  "type": "boolean",
+                  "value": true
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971737425,
+            "settlementCount": 1
+          },
+          "contractExpected": "old result rejected after actual revoke even after restore",
+          "contractMet": false,
+          "injectedOperationRecheck": false
+        },
+        {
+          "kind": "site",
+          "world": "USER_SCRIPT",
+          "before": {
+            "state": "pending",
+            "started": 1790971737426,
+            "target": {
+              "tabId": 1735842884,
+              "frameId": 0,
+              "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 0,
+              "results": [
+                {
+                  "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971737427
+          },
+          "beforeHost": {
+            "timeOrigin": 1790971736876.1,
+            "tab": {
+              "active": false,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "favIconUrl": "",
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": false,
+              "id": 1735842882,
+              "incognito": false,
+              "index": 1,
+              "lastAccessed": 1790971736409.518,
+              "mutedInfo": {
+                "muted": false
+              },
+              "pinned": false,
+              "selected": false,
+              "status": "complete",
+              "title": "OpenDesk F1 userScripts v2 evidence",
+              "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+              "width": 1282,
+              "windowId": 1735842880
+            },
+            "events": [],
+            "resources": {
+              "pending": 1,
+              "acceptanceBarriers": 1,
+              "observationTimers": 0,
+              "rawPending": 0
+            }
+          },
+          "off": {
+            "ui": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": false,
+            "host": {
+              "timeOrigin": 1790971736876.1,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1735842882,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971736409.518,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "pinned": false,
+                "selected": false,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1735842880
+              },
+              "events": [
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737454
+                }
+              ],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "on": {
+            "ui": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971736876.1,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1735842882,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971736409.518,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "pinned": false,
+                "selected": false,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1735842880
+              },
+              "events": [
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737454
+                },
+                {
+                  "event": "added",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737520
+                }
+              ],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971737426,
+            "target": {
+              "tabId": 1735842884,
+              "frameId": 0,
+              "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 0,
+              "results": [
+                {
+                  "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971737427,
+            "fence": {
+              "name": "Error",
+              "message": "E_HOST_PERMISSION_REVOKED",
+              "observedBy": "chrome.permissions.onRemoved",
+              "at": 1790971737454
+            },
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 0,
+                "results": [
+                  {
+                    "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "accepted": {
+                "kind": "rejected",
+                "error": {
+                  "name": "Error",
+                  "message": "E_HOST_PERMISSION_REVOKED",
+                  "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:52:29)"
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971737567,
+            "settlementCount": 1
+          },
+          "contractExpected": "old result rejected after actual revoke even after restore",
+          "contractMet": true,
+          "injectedOperationRecheck": false
+        },
+        {
+          "kind": "site",
+          "world": "MAIN",
+          "before": {
+            "state": "pending",
+            "started": 1790971737568,
+            "target": {
+              "tabId": 1735842884,
+              "frameId": 0,
+              "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 0,
+              "results": [
+                {
+                  "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971737569
+          },
+          "beforeHost": {
+            "timeOrigin": 1790971736876.1,
+            "tab": {
+              "active": false,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "favIconUrl": "",
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": false,
+              "id": 1735842882,
+              "incognito": false,
+              "index": 1,
+              "lastAccessed": 1790971736409.518,
+              "mutedInfo": {
+                "muted": false
+              },
+              "pinned": false,
+              "selected": false,
+              "status": "complete",
+              "title": "OpenDesk F1 userScripts v2 evidence",
+              "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+              "width": 1282,
+              "windowId": 1735842880
+            },
+            "events": [
+              {
+                "event": "removed",
+                "value": {
+                  "origins": [
+                    "http://127.0.0.1/*",
+                    "http://localhost/*"
+                  ],
+                  "permissions": []
+                },
+                "at": 1790971737454
+              },
+              {
+                "event": "added",
+                "value": {
+                  "origins": [
+                    "http://127.0.0.1/*",
+                    "http://localhost/*"
+                  ],
+                  "permissions": []
+                },
+                "at": 1790971737520
+              }
+            ],
+            "resources": {
+              "pending": 1,
+              "acceptanceBarriers": 1,
+              "observationTimers": 0,
+              "rawPending": 0
+            }
+          },
+          "off": {
+            "ui": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": false,
+            "host": {
+              "timeOrigin": 1790971736876.1,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1735842882,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971736409.518,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "pinned": false,
+                "selected": false,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1735842880
+              },
+              "events": [
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737454
+                },
+                {
+                  "event": "added",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737520
+                },
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737595
+                }
+              ],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "on": {
+            "ui": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971736876.1,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1735842882,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971736409.518,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "pinned": false,
+                "selected": false,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1735842880
+              },
+              "events": [
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737454
+                },
+                {
+                  "event": "added",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737520
+                },
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737595
+                },
+                {
+                  "event": "added",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971737662
+                }
+              ],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971737568,
+            "target": {
+              "tabId": 1735842884,
+              "frameId": 0,
+              "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 0,
+              "results": [
+                {
+                  "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971737569,
+            "fence": {
+              "name": "Error",
+              "message": "E_HOST_PERMISSION_REVOKED",
+              "observedBy": "chrome.permissions.onRemoved",
+              "at": 1790971737596
+            },
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 0,
+                "results": [
+                  {
+                    "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "accepted": {
+                "kind": "rejected",
+                "error": {
+                  "name": "Error",
+                  "message": "E_HOST_PERMISSION_REVOKED",
+                  "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:52:29)"
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971737708,
+            "settlementCount": 1
+          },
+          "contractExpected": "old result rejected after actual revoke even after restore",
+          "contractMet": true,
+          "injectedOperationRecheck": false
+        }
+      ],
+      "cleanup": {
+        "contextClosed": true
+      },
+      "actualVersion": "138.0.7204.183",
+      "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "target": {
+        "tabId": 1735842884,
+        "frameId": 0,
+        "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+        "url": "http://127.0.0.1:62204/owned"
+      },
+      "finalHost": {
+        "timeOrigin": 1790971736876.1,
+        "tab": {
+          "active": false,
+          "audible": false,
+          "autoDiscardable": true,
+          "discarded": false,
+          "favIconUrl": "",
+          "frozen": false,
+          "groupId": -1,
+          "height": 759,
+          "highlighted": false,
+          "id": 1735842882,
+          "incognito": false,
+          "index": 1,
+          "lastAccessed": 1790971736409.518,
+          "mutedInfo": {
+            "muted": false
+          },
+          "pinned": false,
+          "selected": false,
+          "status": "complete",
+          "title": "OpenDesk F1 userScripts v2 evidence",
+          "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+          "width": 1282,
+          "windowId": 1735842880
+        },
+        "events": [
+          {
+            "event": "removed",
+            "value": {
+              "origins": [
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+              ],
+              "permissions": []
+            },
+            "at": 1790971737454
+          },
+          {
+            "event": "added",
+            "value": {
+              "origins": [
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+              ],
+              "permissions": []
+            },
+            "at": 1790971737520
+          },
+          {
+            "event": "removed",
+            "value": {
+              "origins": [
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+              ],
+              "permissions": []
+            },
+            "at": 1790971737595
+          },
+          {
+            "event": "added",
+            "value": {
+              "origins": [
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+              ],
+              "permissions": []
+            },
+            "at": 1790971737662
+          }
+        ],
+        "resources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        }
+      },
+      "trace": [
+        {
+          "injection": {
+            "target": {
+              "tabId": 1735842884,
+              "documentIds": [
+                "4B7E1BFB2037CBBFC72736733546431E"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+              }
+            ]
+          },
+          "started": 1790971737001,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "resolved",
+            "elapsedMs": 2,
+            "results": [
+              {
+                "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "injection": {
+            "target": {
+              "tabId": 1735842884,
+              "documentIds": [
+                "4B7E1BFB2037CBBFC72736733546431E"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+              }
+            ]
+          },
+          "started": 1790971737285,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "injection": {
+            "target": {
+              "tabId": 1735842884,
+              "documentIds": [
+                "4B7E1BFB2037CBBFC72736733546431E"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+              }
+            ]
+          },
+          "started": 1790971737427,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "injection": {
+            "target": {
+              "tabId": 1735842884,
+              "documentIds": [
+                "4B7E1BFB2037CBBFC72736733546431E"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+              }
+            ]
+          },
+          "started": 1790971737569,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "resolved",
+            "elapsedMs": 0,
+            "results": [
+              {
+                "documentId": "4B7E1BFB2037CBBFC72736733546431E",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "version": "154.0.8037.92",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/154.0.8037.92/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "binarySha256": "ce0c09ea98a7592e7799e54c1867797ccf99d4d6e821a11067c332e454732349",
+      "cases": [
+        {
+          "kind": "switch",
+          "world": "USER_SCRIPT",
+          "before": {
+            "state": "pending",
+            "started": 1790971738536,
+            "target": {
+              "tabId": 1432480324,
+              "frameId": 0,
+              "documentId": "76ED25B9F83567D693A4098433F1C173",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 2,
+              "results": [
+                {
+                  "documentId": "76ED25B9F83567D693A4098433F1C173",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971738540
+          },
+          "beforeHost": {
+            "timeOrigin": 1790971738478.5,
+            "tab": {
+              "active": false,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "favIconUrl": "",
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": false,
+              "id": 1432480322,
+              "incognito": false,
+              "index": 1,
+              "lastAccessed": 1790971738184.609,
+              "mutedInfo": {
+                "muted": false
+              },
+              "openerTabId": 1432480321,
+              "pinned": false,
+              "selected": false,
+              "splitViewId": -1,
+              "status": "complete",
+              "title": "OpenDesk F1 userScripts v2 evidence",
+              "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+              "width": 1282,
+              "windowId": 1432480320
+            },
+            "events": [],
+            "resources": {
+              "pending": 1,
+              "acceptanceBarriers": 1,
+              "observationTimers": 0,
+              "rawPending": 0
+            }
+          },
+          "off": {
+            "ui": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "available": false,
+              "error": {
+                "name": "Error",
+                "message": "'userScripts.getScripts' is not available in this context.",
+                "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:62:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:39)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+              }
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971738478.5,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1432480322,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971738184.609,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "openerTabId": 1432480321,
+                "pinned": false,
+                "selected": false,
+                "splitViewId": -1,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1432480320
+              },
+              "events": [],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "on": {
+            "ui": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971738478.5,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1432480322,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971738184.609,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "openerTabId": 1432480321,
+                "pinned": false,
+                "selected": false,
+                "splitViewId": -1,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1432480320
+              },
+              "events": [],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971738536,
+            "target": {
+              "tabId": 1432480324,
+              "frameId": 0,
+              "documentId": "76ED25B9F83567D693A4098433F1C173",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 2,
+              "results": [
+                {
+                  "documentId": "76ED25B9F83567D693A4098433F1C173",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971738540,
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 2,
+                "results": [
+                  {
+                    "documentId": "76ED25B9F83567D693A4098433F1C173",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "admission": {
+                "documentId": "76ED25B9F83567D693A4098433F1C173",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62204/owned",
+                "origin": "http://127.0.0.1:62204",
+                "hostPermission": true
+              },
+              "settlement": {
+                "documentId": "76ED25B9F83567D693A4098433F1C173",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62204/owned",
+                "origin": "http://127.0.0.1:62204",
+                "hostPermission": true
+              },
+              "accepted": {
+                "kind": "value",
+                "value": {
+                  "type": "boolean",
+                  "value": true
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971738878,
+            "settlementCount": 1
+          },
+          "contractExpected": "old result rejected after actual revoke even after restore",
+          "contractMet": false,
+          "injectedOperationRecheck": false
+        },
+        {
+          "kind": "switch",
+          "world": "MAIN",
+          "before": {
+            "state": "pending",
+            "started": 1790971738885,
+            "target": {
+              "tabId": 1432480324,
+              "frameId": 0,
+              "documentId": "76ED25B9F83567D693A4098433F1C173",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 1,
+              "results": [
+                {
+                  "documentId": "76ED25B9F83567D693A4098433F1C173",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971738886
+          },
+          "beforeHost": {
+            "timeOrigin": 1790971738478.5,
+            "tab": {
+              "active": false,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "favIconUrl": "",
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": false,
+              "id": 1432480322,
+              "incognito": false,
+              "index": 1,
+              "lastAccessed": 1790971738184.609,
+              "mutedInfo": {
+                "muted": false
+              },
+              "openerTabId": 1432480321,
+              "pinned": false,
+              "selected": false,
+              "splitViewId": -1,
+              "status": "complete",
+              "title": "OpenDesk F1 userScripts v2 evidence",
+              "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+              "width": 1282,
+              "windowId": 1432480320
+            },
+            "events": [],
+            "resources": {
+              "pending": 1,
+              "acceptanceBarriers": 1,
+              "observationTimers": 0,
+              "rawPending": 0
+            }
+          },
+          "off": {
+            "ui": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "available": false,
+              "error": {
+                "name": "Error",
+                "message": "'userScripts.getScripts' is not available in this context.",
+                "stack": "Error: 'userScripts.getScripts' is not available in this context.\n    at Object.availability (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:62:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:39)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+              }
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971738478.5,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1432480322,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971738184.609,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "openerTabId": 1432480321,
+                "pinned": false,
+                "selected": false,
+                "splitViewId": -1,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1432480320
+              },
+              "events": [],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "on": {
+            "ui": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971738478.5,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1432480322,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971738184.609,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "openerTabId": 1432480321,
+                "pinned": false,
+                "selected": false,
+                "splitViewId": -1,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1432480320
+              },
+              "events": [],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971738885,
+            "target": {
+              "tabId": 1432480324,
+              "frameId": 0,
+              "documentId": "76ED25B9F83567D693A4098433F1C173",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 1,
+              "results": [
+                {
+                  "documentId": "76ED25B9F83567D693A4098433F1C173",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971738886,
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 1,
+                "results": [
+                  {
+                    "documentId": "76ED25B9F83567D693A4098433F1C173",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "admission": {
+                "documentId": "76ED25B9F83567D693A4098433F1C173",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62204/owned",
+                "origin": "http://127.0.0.1:62204",
+                "hostPermission": true
+              },
+              "settlement": {
+                "documentId": "76ED25B9F83567D693A4098433F1C173",
+                "frameId": 0,
+                "url": "http://127.0.0.1:62204/owned",
+                "origin": "http://127.0.0.1:62204",
+                "hostPermission": true
+              },
+              "accepted": {
+                "kind": "value",
+                "value": {
+                  "type": "boolean",
+                  "value": true
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971739020,
+            "settlementCount": 1
+          },
+          "contractExpected": "old result rejected after actual revoke even after restore",
+          "contractMet": false,
+          "injectedOperationRecheck": false
+        },
+        {
+          "kind": "site",
+          "world": "USER_SCRIPT",
+          "before": {
+            "state": "pending",
+            "started": 1790971739022,
+            "target": {
+              "tabId": 1432480324,
+              "frameId": 0,
+              "documentId": "76ED25B9F83567D693A4098433F1C173",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 1,
+              "results": [
+                {
+                  "documentId": "76ED25B9F83567D693A4098433F1C173",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971739023
+          },
+          "beforeHost": {
+            "timeOrigin": 1790971738478.5,
+            "tab": {
+              "active": false,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "favIconUrl": "",
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": false,
+              "id": 1432480322,
+              "incognito": false,
+              "index": 1,
+              "lastAccessed": 1790971738184.609,
+              "mutedInfo": {
+                "muted": false
+              },
+              "openerTabId": 1432480321,
+              "pinned": false,
+              "selected": false,
+              "splitViewId": -1,
+              "status": "complete",
+              "title": "OpenDesk F1 userScripts v2 evidence",
+              "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+              "width": 1282,
+              "windowId": 1432480320
+            },
+            "events": [],
+            "resources": {
+              "pending": 1,
+              "acceptanceBarriers": 1,
+              "observationTimers": 0,
+              "rawPending": 0
+            }
+          },
+          "off": {
+            "ui": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": false,
+            "host": {
+              "timeOrigin": 1790971738478.5,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1432480322,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971738184.609,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "openerTabId": 1432480321,
+                "pinned": false,
+                "selected": false,
+                "splitViewId": -1,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1432480320
+              },
+              "events": [
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739054
+                }
+              ],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "on": {
+            "ui": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971738478.5,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1432480322,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971738184.609,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "openerTabId": 1432480321,
+                "pinned": false,
+                "selected": false,
+                "splitViewId": -1,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1432480320
+              },
+              "events": [
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739054
+                },
+                {
+                  "event": "added",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739128
+                }
+              ],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971739022,
+            "target": {
+              "tabId": 1432480324,
+              "frameId": 0,
+              "documentId": "76ED25B9F83567D693A4098433F1C173",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 1,
+              "results": [
+                {
+                  "documentId": "76ED25B9F83567D693A4098433F1C173",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971739023,
+            "fence": {
+              "name": "Error",
+              "message": "E_HOST_PERMISSION_REVOKED",
+              "observedBy": "chrome.permissions.onRemoved",
+              "at": 1790971739054
+            },
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 1,
+                "results": [
+                  {
+                    "documentId": "76ED25B9F83567D693A4098433F1C173",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "accepted": {
+                "kind": "rejected",
+                "error": {
+                  "name": "Error",
+                  "message": "E_HOST_PERMISSION_REVOKED",
+                  "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:52:29)"
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971739181,
+            "settlementCount": 1
+          },
+          "contractExpected": "old result rejected after actual revoke even after restore",
+          "contractMet": true,
+          "injectedOperationRecheck": false
+        },
+        {
+          "kind": "site",
+          "world": "MAIN",
+          "before": {
+            "state": "pending",
+            "started": 1790971739182,
+            "target": {
+              "tabId": 1432480324,
+              "frameId": 0,
+              "documentId": "76ED25B9F83567D693A4098433F1C173",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 1,
+              "results": [
+                {
+                  "documentId": "76ED25B9F83567D693A4098433F1C173",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971739184
+          },
+          "beforeHost": {
+            "timeOrigin": 1790971738478.5,
+            "tab": {
+              "active": false,
+              "audible": false,
+              "autoDiscardable": true,
+              "discarded": false,
+              "favIconUrl": "",
+              "frozen": false,
+              "groupId": -1,
+              "height": 759,
+              "highlighted": false,
+              "id": 1432480322,
+              "incognito": false,
+              "index": 1,
+              "lastAccessed": 1790971738184.609,
+              "mutedInfo": {
+                "muted": false
+              },
+              "openerTabId": 1432480321,
+              "pinned": false,
+              "selected": false,
+              "splitViewId": -1,
+              "status": "complete",
+              "title": "OpenDesk F1 userScripts v2 evidence",
+              "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+              "width": 1282,
+              "windowId": 1432480320
+            },
+            "events": [
+              {
+                "event": "removed",
+                "value": {
+                  "origins": [
+                    "http://127.0.0.1/*",
+                    "http://localhost/*"
+                  ],
+                  "permissions": []
+                },
+                "at": 1790971739054
+              },
+              {
+                "event": "added",
+                "value": {
+                  "origins": [
+                    "http://127.0.0.1/*",
+                    "http://localhost/*"
+                  ],
+                  "permissions": []
+                },
+                "at": 1790971739128
+              }
+            ],
+            "resources": {
+              "pending": 1,
+              "acceptanceBarriers": 1,
+              "observationTimers": 0,
+              "rawPending": 0
+            }
+          },
+          "off": {
+            "ui": "false",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": false,
+            "host": {
+              "timeOrigin": 1790971738478.5,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1432480322,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971738184.609,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "openerTabId": 1432480321,
+                "pinned": false,
+                "selected": false,
+                "splitViewId": -1,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1432480320
+              },
+              "events": [
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739054
+                },
+                {
+                  "event": "added",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739128
+                },
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739212
+                }
+              ],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "on": {
+            "ui": "true",
+            "availability": {
+              "defined": true,
+              "executeType": "function",
+              "scripts": [],
+              "available": true
+            },
+            "permission": true,
+            "host": {
+              "timeOrigin": 1790971738478.5,
+              "tab": {
+                "active": false,
+                "audible": false,
+                "autoDiscardable": true,
+                "discarded": false,
+                "favIconUrl": "",
+                "frozen": false,
+                "groupId": -1,
+                "height": 759,
+                "highlighted": false,
+                "id": 1432480322,
+                "incognito": false,
+                "index": 1,
+                "lastAccessed": 1790971738184.609,
+                "mutedInfo": {
+                  "muted": false
+                },
+                "openerTabId": 1432480321,
+                "pinned": false,
+                "selected": false,
+                "splitViewId": -1,
+                "status": "complete",
+                "title": "OpenDesk F1 userScripts v2 evidence",
+                "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+                "width": 1282,
+                "windowId": 1432480320
+              },
+              "events": [
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739054
+                },
+                {
+                  "event": "added",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739128
+                },
+                {
+                  "event": "removed",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739212
+                },
+                {
+                  "event": "added",
+                  "value": {
+                    "origins": [
+                      "http://127.0.0.1/*",
+                      "http://localhost/*"
+                    ],
+                    "permissions": []
+                  },
+                  "at": 1790971739453
+                }
+              ],
+              "resources": {
+                "pending": 1,
+                "acceptanceBarriers": 1,
+                "observationTimers": 0,
+                "rawPending": 0
+              }
+            }
+          },
+          "settled": {
+            "state": "settled",
+            "started": 1790971739182,
+            "target": {
+              "tabId": 1432480324,
+              "frameId": 0,
+              "documentId": "76ED25B9F83567D693A4098433F1C173",
+              "url": "http://127.0.0.1:62204/owned"
+            },
+            "native": {
+              "kind": "resolved",
+              "elapsedMs": 1,
+              "results": [
+                {
+                  "documentId": "76ED25B9F83567D693A4098433F1C173",
+                  "frameId": 0,
+                  "keys": [
+                    "documentId",
+                    "frameId",
+                    "result"
+                  ],
+                  "hasResult": true,
+                  "resultIsUndefined": false,
+                  "result": {
+                    "ok": true,
+                    "protocol": "opendesk.f1.user-scripts-v2",
+                    "value": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "hasError": false
+                }
+              ]
+            },
+            "nativeCompletedAt": 1790971739184,
+            "fence": {
+              "name": "Error",
+              "message": "E_HOST_PERMISSION_REVOKED",
+              "observedBy": "chrome.permissions.onRemoved",
+              "at": 1790971739212
+            },
+            "result": {
+              "native": {
+                "kind": "resolved",
+                "elapsedMs": 1,
+                "results": [
+                  {
+                    "documentId": "76ED25B9F83567D693A4098433F1C173",
+                    "frameId": 0,
+                    "keys": [
+                      "documentId",
+                      "frameId",
+                      "result"
+                    ],
+                    "hasResult": true,
+                    "resultIsUndefined": false,
+                    "result": {
+                      "ok": true,
+                      "protocol": "opendesk.f1.user-scripts-v2",
+                      "value": {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    },
+                    "hasError": false
+                  }
+                ]
+              },
+              "accepted": {
+                "kind": "rejected",
+                "error": {
+                  "name": "Error",
+                  "message": "E_HOST_PERMISSION_REVOKED",
+                  "stack": "Error: E_HOST_PERMISSION_REVOKED\n    at evaluate (chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.js:52:29)"
+                }
+              },
+              "dispatchCount": 1
+            },
+            "finished": 1790971739489,
+            "settlementCount": 1
+          },
+          "contractExpected": "old result rejected after actual revoke even after restore",
+          "contractMet": true,
+          "injectedOperationRecheck": false
+        }
+      ],
+      "cleanup": {
+        "contextClosed": true
+      },
+      "actualVersion": "154.0.8037.92",
+      "extensionId": "ndjfjgagpdcenfgedcjomjcobgfppjnl",
+      "target": {
+        "tabId": 1432480324,
+        "frameId": 0,
+        "documentId": "76ED25B9F83567D693A4098433F1C173",
+        "url": "http://127.0.0.1:62204/owned"
+      },
+      "finalHost": {
+        "timeOrigin": 1790971738478.5,
+        "tab": {
+          "active": false,
+          "audible": false,
+          "autoDiscardable": true,
+          "discarded": false,
+          "favIconUrl": "",
+          "frozen": false,
+          "groupId": -1,
+          "height": 759,
+          "highlighted": false,
+          "id": 1432480322,
+          "incognito": false,
+          "index": 1,
+          "lastAccessed": 1790971738184.609,
+          "mutedInfo": {
+            "muted": false
+          },
+          "openerTabId": 1432480321,
+          "pinned": false,
+          "selected": false,
+          "splitViewId": -1,
+          "status": "complete",
+          "title": "OpenDesk F1 userScripts v2 evidence",
+          "url": "chrome-extension://ndjfjgagpdcenfgedcjomjcobgfppjnl/host.html",
+          "width": 1282,
+          "windowId": 1432480320
+        },
+        "events": [
+          {
+            "event": "removed",
+            "value": {
+              "origins": [
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+              ],
+              "permissions": []
+            },
+            "at": 1790971739054
+          },
+          {
+            "event": "added",
+            "value": {
+              "origins": [
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+              ],
+              "permissions": []
+            },
+            "at": 1790971739128
+          },
+          {
+            "event": "removed",
+            "value": {
+              "origins": [
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+              ],
+              "permissions": []
+            },
+            "at": 1790971739212
+          },
+          {
+            "event": "added",
+            "value": {
+              "origins": [
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+              ],
+              "permissions": []
+            },
+            "at": 1790971739453
+          }
+        ],
+        "resources": {
+          "pending": 0,
+          "acceptanceBarriers": 0,
+          "observationTimers": 0,
+          "rawPending": 0
+        }
+      },
+      "trace": [
+        {
+          "injection": {
+            "target": {
+              "tabId": 1432480324,
+              "documentIds": [
+                "76ED25B9F83567D693A4098433F1C173"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+              }
+            ]
+          },
+          "started": 1790971738538,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "resolved",
+            "elapsedMs": 2,
+            "results": [
+              {
+                "documentId": "76ED25B9F83567D693A4098433F1C173",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "injection": {
+            "target": {
+              "tabId": 1432480324,
+              "documentIds": [
+                "76ED25B9F83567D693A4098433F1C173"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+              }
+            ]
+          },
+          "started": 1790971738885,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "76ED25B9F83567D693A4098433F1C173",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "injection": {
+            "target": {
+              "tabId": 1432480324,
+              "documentIds": [
+                "76ED25B9F83567D693A4098433F1C173"
+              ]
+            },
+            "world": "USER_SCRIPT",
+            "js": [
+              {
+                "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+              }
+            ]
+          },
+          "started": 1790971739022,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "76ED25B9F83567D693A4098433F1C173",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        },
+        {
+          "injection": {
+            "target": {
+              "tabId": 1432480324,
+              "documentIds": [
+                "76ED25B9F83567D693A4098433F1C173"
+              ]
+            },
+            "world": "MAIN",
+            "js": [
+              {
+                "code": "(async () => {\n    const encode = function encode(value, seen = new Set()) {\n  if (value === undefined) return {type: 'undefined'};\n  if (value === null) return {type: 'null'};\n  if (typeof value === 'boolean' || typeof value === 'string') return {type: typeof value, value};\n  if (typeof value === 'number' && Number.isFinite(value)) return {type: 'number', value};\n  if (typeof value !== 'object') throw new TypeError('E_VALUE_UNSERIALIZABLE');\n  if (seen.has(value)) throw new TypeError('E_VALUE_CYCLE');\n  const proto = Object.getPrototypeOf(value);\n  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new TypeError('E_VALUE_OBJECT');\n  seen.add(value);\n  const result = Array.isArray(value)\n    ? {type: 'array', value: Array.from(value, item => encode(item, seen))}\n    : {type: 'object', value: Object.keys(value).map(key => {\n      const descriptor = Object.getOwnPropertyDescriptor(value, key);\n      if (!descriptor || !('value' in descriptor)) throw new TypeError('E_VALUE_ACCESSOR');\n      return [key, encode(descriptor.value, seen)];\n    })};\n  seen.delete(value);\n  return result;\n};\n    const decode = function decode(node) {\n  switch (node.type) {\n    case 'undefined': return undefined;\n    case 'null': return null;\n    case 'boolean': case 'string': case 'number': return node.value;\n    case 'array': return node.value.map(decode);\n    case 'object': return Object.fromEntries(node.value.map(([key, value]) => [key, decode(value)]));\n    default: throw new TypeError('E_VALUE_TAG');\n  }\n};\n    try {\n      const fn = (() => true);\n      const result = await fn(...decode({\"type\":\"array\",\"value\":[]}));\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: true, value: encode(result)};\n    } catch (error) {\n      return {protocol: \"opendesk.f1.user-scripts-v2\", ok: false,\n        error: {name: String(error?.name || 'Error'), message: String(error?.message || error)}};\n    }\n  })()"
+              }
+            ]
+          },
+          "started": 1790971739183,
+          "apiInvoked": true,
+          "executeType": "function",
+          "outcome": {
+            "kind": "resolved",
+            "elapsedMs": 1,
+            "results": [
+              {
+                "documentId": "76ED25B9F83567D693A4098433F1C173",
+                "frameId": 0,
+                "keys": [
+                  "documentId",
+                  "frameId",
+                  "result"
+                ],
+                "hasResult": true,
+                "resultIsUndefined": false,
+                "result": {
+                  "ok": true,
+                  "protocol": "opendesk.f1.user-scripts-v2",
+                  "value": {
+                    "type": "boolean",
+                    "value": true
+                  }
+                },
+                "hasError": false
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "serverClosed": true
+  }
+}

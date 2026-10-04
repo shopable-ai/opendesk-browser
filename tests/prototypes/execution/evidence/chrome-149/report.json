@@ -1,0 +1,162 @@
+{
+  "startedAt": "2026-10-02T14:06:00.068Z",
+  "cases": [
+    {
+      "id": "FIX-control-packaged-classic",
+      "status": "PASS",
+      "fixedResourceLoaded": true
+    },
+    {
+      "id": "EX08-opaque-sandbox",
+      "status": "PASS",
+      "kind": "sandbox-ready",
+      "origin": "null",
+      "extensionAPI": false,
+      "parentAccess": false
+    },
+    {
+      "id": "EX08-classic-package",
+      "status": "FAIL",
+      "phase": "constructor",
+      "policy": "manifest sandbox allow-scripts without allow-same-origin",
+      "workerURL": "chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/worker-classic.js",
+      "error": {
+        "name": "SecurityError",
+        "message": "Failed to construct 'Worker': Script at 'chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/worker-classic.js' cannot be accessed from origin 'null'.",
+        "stack": "SecurityError: Failed to construct 'Worker': Script at 'chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/worker-classic.js' cannot be accessed from origin 'null'.\n    at probe (chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/sandbox.html:55:14)\n    at hostPort.onmessage (chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/sandbox.html:25:24)"
+      },
+      "notTested": [
+        "private Worker RPC",
+        "Worker network restriction",
+        "while(true) terminate"
+      ],
+      "resourcesAfter": {
+        "workers": 0,
+        "ports": 0,
+        "blobs": 0,
+        "timers": 0
+      }
+    },
+    {
+      "id": "EX08-module-package",
+      "status": "FAIL",
+      "phase": "constructor",
+      "policy": "manifest sandbox allow-scripts without allow-same-origin",
+      "workerURL": "chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/worker-module.js",
+      "error": {
+        "name": "SecurityError",
+        "message": "Failed to construct 'Worker': Script at 'chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/worker-module.js' cannot be accessed from origin 'null'.",
+        "stack": "SecurityError: Failed to construct 'Worker': Script at 'chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/worker-module.js' cannot be accessed from origin 'null'.\n    at probe (chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/sandbox.html:55:14)\n    at hostPort.onmessage (chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/sandbox.html:25:24)"
+      },
+      "notTested": [
+        "private Worker RPC",
+        "Worker network restriction",
+        "while(true) terminate"
+      ],
+      "resourcesAfter": {
+        "workers": 0,
+        "ports": 0,
+        "blobs": 0,
+        "timers": 0
+      }
+    },
+    {
+      "id": "EX08-classic-blob",
+      "status": "PASS",
+      "phase": "complete",
+      "policy": "manifest sandbox allow-scripts without allow-same-origin",
+      "workerURL": "blob:null/02abf943-25f7-49f1-a503-884797de7cdb",
+      "workerReady": true,
+      "ping": "pong",
+      "network": {
+        "blocked": true,
+        "name": "TypeError",
+        "message": "Failed to fetch"
+      },
+      "loop": "loop-entered",
+      "afterTerminateHeartbeat": true,
+      "terminateMilliseconds": 51.10000038146973,
+      "resourcesAfter": {
+        "workers": 0,
+        "ports": 0,
+        "blobs": 0,
+        "timers": 0
+      }
+    },
+    {
+      "id": "EX08-module-blob",
+      "status": "FAIL",
+      "phase": "worker-handshake",
+      "policy": "manifest sandbox allow-scripts without allow-same-origin",
+      "workerURL": "blob:null/a3773cda-934e-467c-aa72-2f9f72a02153",
+      "error": {
+        "name": "Error",
+        "message": "Worker error without message",
+        "stack": "Error: Worker error without message\n    at worker.onerror (chrome-extension://ngflknmbhhjghcbeooahmdlbljakmjni/sandbox.html:66:30)"
+      },
+      "notTested": [
+        "private Worker RPC",
+        "Worker network restriction",
+        "while(true) terminate"
+      ],
+      "resourcesAfter": {
+        "workers": 0,
+        "ports": 0,
+        "blobs": 0,
+        "timers": 0
+      }
+    },
+    {
+      "id": "EX08-host-resource-cleanup",
+      "status": "PASS",
+      "portClosed": true,
+      "frameRemoved": true
+    }
+  ],
+  "sandbox": {
+    "kind": "sandbox-ready",
+    "origin": "null",
+    "extensionAPI": false,
+    "parentAccess": false,
+    "resourcesAfter": {
+      "workers": 0,
+      "ports": 0,
+      "blobs": 0,
+      "timers": 0
+    },
+    "cspViolations": []
+  },
+  "finishedAt": "2026-10-02T14:06:00.365Z",
+  "backendPrototypePassed": false,
+  "actualBrowser": {
+    "version": "149.0.7827.55",
+    "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+    "channel": "Chrome for Testing",
+    "stable": false,
+    "extensionId": "ngflknmbhhjghcbeooahmdlbljakmjni",
+    "headed": true,
+    "isolatedProfile": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/profiles/chrome-149"
+  },
+  "networkServer": {
+    "url": "http://127.0.0.1:52226/probe",
+    "actualRequestCount": 0
+  },
+  "evidence": {
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/console.json",
+    "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/evidence/chrome-149/workbench.png",
+    "fixtureCandidate": "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/execution/candidate-manifest.json"
+  },
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+  "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815",
+  "notTested": [
+    "user async-body execution if Worker construction fails",
+    "userScripts authorization/version/document/result matrix",
+    "full F2 migration",
+    "all F3 mandatory product cases",
+    "minimum/stable authorization matrix"
+  ],
+  "cleanup": {
+    "browserContextClosed": true,
+    "loopbackServerClosed": true
+  }
+}

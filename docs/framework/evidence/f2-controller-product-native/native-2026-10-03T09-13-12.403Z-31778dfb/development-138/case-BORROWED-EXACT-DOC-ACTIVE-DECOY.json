@@ -1,0 +1,33 @@
+{
+  "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+  "families": "A01/A02/AUTH01",
+  "expected": "Explicit borrowed document changes; activated decoy and other documents do not; borrowed target survives",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "startedAt": 1791018822896,
+  "input": {},
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "ERR_ASSERTION",
+    "name": "AssertionError",
+    "message": "Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinative-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-0db7e54e-e9a2-4749-a7c1-218335dcca4e'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Actual UI input #script-id\n+ actual - expected\n\n+ 'my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinative-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5'\n- 'native-0db7e54e-e9a2-4749-a7c1-218335dcca4e'\n\n    at fill (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:427:12)\n    at async commit (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:454:5)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:575:7\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:386:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:572:40)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:353:72)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:185:3",
+    "actual": "my-scriptnative-40510d4b-61cc-4f68-b40b-ccnatinative-0db7e54e-e9a2-4749-a7c1-218335dcca4eve-dc62d8d1-734b-4168-8ff1-e9b5b4848506eb23880fe5"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "ready",
+    "text": "公共运行入口已就绪，请保存脚本并选择目标",
+    "result": "",
+    "version": "尚未保存",
+    "runId": "",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": true,
+    "stopDisabled": true
+  },
+  "elapsedMs": 59.8025000000016
+}

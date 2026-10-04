@@ -1,0 +1,8 @@
+{
+  "originalReportUnchanged": true,
+  "case": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+  "originalRawStatus": "FAIL",
+  "correctAttribution": "runner-native-select-and-CUA-binding-blocked",
+  "productPinAndDeletionExecuted": false,
+  "reason": "Native actual selected value remained owned; CUA exact-app binding repeatedly timeoutReached. Product r1/r2/pin assertions were not reached. Raw runner E_OBSERVATION_TIMEOUT attributed product-or-native-contract generically; corrected interpretation does not erase FAIL."
+}

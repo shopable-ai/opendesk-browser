@@ -1,0 +1,7 @@
+**Yes. Selecting the unique runs-put call’s AST `callee.property` (`put`, column `217021`) and requiring V8 breakpoint type `call` can satisfy frozen CP1. No acceptance-contract violation is identified.**
+
+CP1 requires abort/termination before native admission commit, atomic rollback, zero effects, and reuse of the original grant/request ID. It does **not** mandate CallExpression-start `217019` or AwaitExpression-start. [Contract](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/test-spec-v5.json:18484)
+
+`217019` is a harness selection policy. Changing it to the structurally derived `callee.property` location preserves exact semantic selection; it is not arbitrary nearest-offset relocation. The recorded native response confirms `217021` as a `call` breakpoint. [Selector](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-admission-abort-native-selector.mjs:69), [Native evidence](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/wxt/p4-p5/b05-native-diagnostic-20261004-0935/raw-cdp.jsonl:7448)
+
+Keep source identity, exact requested/actual/paused location equality, original transaction identity, `workDone=false`, `ended=false`, real pending request, and full rollback checks unchanged. **The breakpoint is eligible; CP1 passes only after those runtime checks succeed.** [Inspection](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-admission-abort-native-inspect.mjs:71)

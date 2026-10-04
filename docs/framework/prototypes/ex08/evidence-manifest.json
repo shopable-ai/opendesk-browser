@@ -1,0 +1,24 @@
+{
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f",
+  "prototypeCandidateSha256": "5cab9686da1ab1fbea307650bb419d7481e21d3292327d9d77b198e43826c815",
+  "actualChromeVersion": "149.0.7827.55",
+  "files": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/report.json",
+      "bytes": 5902,
+      "sha256": "18ce2c5b06870a4ac065d3c914abfedcb5f7b8919268c2821c14f5f331d26b80"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/console.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prototypes/ex08/workbench.png",
+      "bytes": 299927,
+      "sha256": "c32be976ef88b5671552d2c389f228f2dfbe2cdf0e92915fa84a155225a4ee08"
+    }
+  ],
+  "hashScope": "evidence files, not a downloaded product artifact",
+  "productDownloadTested": false
+}

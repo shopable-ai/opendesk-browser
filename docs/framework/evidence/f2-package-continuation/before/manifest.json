@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "OpenDesk Browser",
+  "version": "0.1.0",
+  "description": "OpenDesk Browser 浏览器自动化框架。",
+  "minimum_chrome_version": "138",
+  "permissions": ["storage", "scripting", "activeTab", "downloads", "tabs", "webNavigation", "userScripts"],
+  "optional_permissions": ["cookies", "notifications"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "background": {"service_worker": "sw.js"},
+  "action": {"default_title": "打开 OpenDesk Browser"},
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'self'"},
+  "incognito": "not_allowed"
+}

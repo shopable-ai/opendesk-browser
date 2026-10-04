@@ -1,0 +1,80 @@
+{
+  "candidateSha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a",
+  "files": [
+    {
+      "path": "candidate-manifest.json",
+      "bytes": 2181,
+      "sha256": "6ec4f7d8f83b1bc9dd1b17fde991fe015e387ebb3cc7841a8416f789f216c25a"
+    },
+    {
+      "path": "cases-live.json",
+      "bytes": 73597,
+      "sha256": "f25e13cabe61738dda2bffbf9e17b6f93e0bee74339f89b53ace4868b29a6b62"
+    },
+    {
+      "path": "console.json",
+      "bytes": 674,
+      "sha256": "5b485fe62cf47061c2c459cbadae8025bb4bcad5162f1639af2298f5988d1c94"
+    },
+    {
+      "path": "http.json",
+      "bytes": 3273,
+      "sha256": "3229493472c3378c69fb7eac8f05695dcfc3ed93620d5e8edea2e0d70d9e43a9"
+    },
+    {
+      "path": "initial-details.png",
+      "bytes": 83958,
+      "sha256": "340d2deef4f4efa439739116b3bc5be3046d6e523b66ee172f6f8d372bdbd155"
+    },
+    {
+      "path": "owned-target.png",
+      "bytes": 29900,
+      "sha256": "7ed5ae83bfe98ecb2ac8c971259022c155e2a1708fe010651be9e59aa12d2f49"
+    },
+    {
+      "path": "raw-injections.json",
+      "bytes": 92779,
+      "sha256": "2d060d4869eced368e84ebc1b027b6191c8343b068fdb8287926856c90c35552"
+    },
+    {
+      "path": "re-enabled-MAIN.png",
+      "bytes": 83594,
+      "sha256": "ae0395096cbf02d3c093530634a374e8603a353c72ad1fdf4820d9bb3bb73af1"
+    },
+    {
+      "path": "re-enabled-USER_SCRIPT.png",
+      "bytes": 83586,
+      "sha256": "7976f8499c5678f070010587f7892234b24ee024a0d6a3ff9dd8b0a01d239ebe"
+    },
+    {
+      "path": "report.json",
+      "bytes": 82284,
+      "sha256": "3adecb50d4b5bff416717fd81895bbbd1a8faaedd09865d614c0cc76c12b8d71"
+    },
+    {
+      "path": "results.png",
+      "bytes": 359545,
+      "sha256": "4df9566ea91d24baa5ae676ba2ea7e3aeb299412465c3508ca681e6f64e046ad"
+    },
+    {
+      "path": "revoke-MAIN.png",
+      "bytes": 83591,
+      "sha256": "1e343124e3795bb88464877ed26f12f70a6b84060ece9e64326096466ef78e03"
+    },
+    {
+      "path": "revoke-USER_SCRIPT.png",
+      "bytes": 83619,
+      "sha256": "55883f45a3da4757fc9ec3edc0a71342515859715f6afb550da6956461ce84df"
+    },
+    {
+      "path": "switch-off.png",
+      "bytes": 84045,
+      "sha256": "f3498dacb71dc4333ac668ed45bf5b45043983f2538d000bb378d15ccfa5ec3e"
+    },
+    {
+      "path": "switch-on.png",
+      "bytes": 83734,
+      "sha256": "5e214de008990444da2188748ace538e64ed16bd574a015c4664def9ab746087"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+import {execFileSync} from 'node:child_process';
+import {readFile, stat} from 'node:fs/promises';
+import {filesAt, PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SANDBOX_HTML, SANDBOX_META_CSP, FIXED_ASSETS, verifyManifest, inspectScript, BUILD_CONTRACT_SOURCE} from './verify-package.mjs';
+import {SDK_FILES} from '../src/framework/sdk/registry.js';
+import {createHash} from 'node:crypto';
+const files = [];
+for (const root of ['src', 'scripts', 'tests/environment']) {
+  for (const file of await filesAt(root)) if (/\.(?:js|cjs|mjs)$/.test(file)) files.push(`${root}/${file}`);
+}
+for (const file of await filesAt('tests/framework')) if (/^k5-package.*\.mjs$/.test(file)) files.push(`tests/framework/${file}`);
+files.push('wxt.config.mjs');
+for (const file of files) execFileSync(process.execPath, ['--check', file], {stdio: 'inherit'});
+if (BUILD_CONTRACT_SOURCE !== 'scripts/build-contract.mjs') throw new Error(`Unexpected build contract source: ${BUILD_CONTRACT_SOURCE}`);
+const packageManifest = JSON.parse(await readFile('package.json', 'utf8'));
+const packageLock = JSON.parse(await readFile('package-lock.json', 'utf8'));
+if (packageManifest.devDependencies?.acorn !== '8.15.0' || packageLock.packages?.['node_modules/acorn']?.version !== '8.15.0') throw new Error('Acorn must stay explicitly locked to 8.15.0');
+if (JSON.stringify(BUILD_POLICY) !== JSON.stringify({productionBytes: 256 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
+if (Object.entries(PACKAGE_ENTRIES).some(([name]) => name !== 'sw' && FIXED_OUTPUTS[name.split('/').at(-1)] !== `${name}.js`)) throw new Error('Unexpected fixed output contract');
+if (JSON.stringify(SDK_FILES) !== JSON.stringify({relay: 'agents/page-relay.js', main: 'framework/sdk-main.js'})) throw new Error('SDK fixed MAIN/ISOLATED output paths changed');
+for (const source of Object.values(PACKAGE_ENTRIES)) if (!(await stat(source)).isFile()) throw new Error(`Missing fixed entry: ${source}`);
+verifyManifest(JSON.parse(await readFile('manifest.json', 'utf8')));
+const sandboxHTML = await readFile(`src/${SANDBOX_HTML}`, 'utf8');
+if (!sandboxHTML.includes(`content="${SANDBOX_META_CSP}"`) || !sandboxHTML.includes('<script src="sandbox.js"></script>')) throw new Error('Source opaque sandbox resource/CSP contract changed');
+inspectScript(await readFile('src/scripting/sandbox/sandbox.js', 'utf8'), 'scripting/sandbox/sandbox.js', {sourceType: 'module'});
+const license = await readFile('docs/contracts/licenses/todo-user-vue-MIT.txt');
+const notice = FIXED_ASSETS['licenses/todo-user-vue-MIT.txt'];
+if (license.length !== notice.bytes || createHash('sha256').update(license).digest('hex') !== notice.sha256) throw new Error('Source MIT notice changed');
+for (const file of files.filter(path => path.startsWith('src/'))) if (/\/(?:compat|legacy)\/src-bex\//.test(file)) throw new Error(`Forbidden legacy runtime tree: ${file}`);
+console.log(`Syntax checked ${files.length} source/test/build files; ${BUILD_CONTRACT_SOURCE} entries, fixed SDK/control entries, strict CSP and original MIT checked`);

@@ -1,0 +1,116 @@
+{
+  "readOnlyInputs": [
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/solution-and-execution-plan.md",
+      "sha256": "7cd4f9122056ae5fd6e9184dc4663d86de51384b2e3cdc59977e6da3f2266ca4",
+      "bytes": 10192,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/approval.json",
+      "sha256": "72897c2508a9b8123fd59f4cf177859ef8cc80ab6323ca706d0091aceae4c9a4",
+      "bytes": 1829,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/review-progress.json",
+      "sha256": "80c9a1396ff81a631fb9544ec409cd3da933d5e5699f24e37af2c2652e8b8dd9",
+      "bytes": 4593,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/goal-brief.txt",
+      "sha256": "e62816338c288b5a49f15c3482169c91955ee45706689b1d0d576b11c6c1525e",
+      "bytes": 4187,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7",
+      "bytes": 31648,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/file-tasks.md",
+      "sha256": "30a4e00a78d511169f38aa7017959984be6a88afdb04f474f65298874e1b7258",
+      "bytes": 7888,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/migration-complete.md",
+      "sha256": "7319275eb58a031b3ec66af17b83dc4e5fab29c088d7d31d1a3f9ae36e5b0f96",
+      "bytes": 26715,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/protocol-contract.md",
+      "sha256": "33afffa92748ac1308d32a2ba1a883a196729704b9933cba7b5c3d0f59ceb7bc",
+      "bytes": 8502,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/compatibility-delta.md",
+      "sha256": "777fb115b7852b0c9b9102683e0fdc6a81271e48b367457d6e67005198c00b34",
+      "bytes": 4221,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/scraping-delta-contract.md",
+      "sha256": "a3bbf0482ef86e1fcc59605b11cafe4b504342abb814b3f13d6815be0844bc4b",
+      "bytes": 7313,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+      "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4",
+      "bytes": 13767,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/issues.md",
+      "sha256": "168b4b93e3ca1c5177a443041864cc99331a36828a26702757cabebc1814dbd3",
+      "bytes": 8665,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/source-evidence.md",
+      "sha256": "3889ed582b8bdafda19a63b2dd9580401c63caeb71ed315a3fa824c1268ebcb4",
+      "bytes": 3694,
+      "read": "complete"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/source-continuation-delta.md",
+      "sha256": "6989ddfab135182de28bd088a8518fef6f8f9d90eba4630b3300029c9e86c75b",
+      "bytes": 3953,
+      "read": "complete observation delegated; others leader"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/source-continuation-observation.json",
+      "sha256": "944d4927e609e22a0b91cc3141853032a6b38ea6ceb583989feacabd4ff5da4d",
+      "bytes": 54358,
+      "read": "complete observation delegated; others leader"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/recipe-continuation-observation.json",
+      "sha256": "21e65cfe19af9a2aafc86d631648d95080c6350b8c9d15d915bed6b4e270b886",
+      "bytes": 7993,
+      "read": "complete observation delegated; others leader"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/source-continuation-final.md",
+      "sha256": "d68631239e651d603fb6b45800b05fa951247e2e16eaa5c46414e1e884393394",
+      "bytes": 12989,
+      "read": "complete observation delegated; others leader"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/evidence/official-continuation.md",
+      "sha256": "e10ba97a1a00aed18176b8d1dcf2758be090cb3c82ee41c6bbc6e7a73046ba15",
+      "bytes": 1092,
+      "read": "complete observation delegated; others leader"
+    }
+  ],
+  "allActual72RowsAnd48ItemsRead": true,
+  "auditFilesModified": false,
+  "fullOldSourceAuditRepeated": false,
+  "sourceObservationReadCoverage": "evidence/source-handoff.json"
+}

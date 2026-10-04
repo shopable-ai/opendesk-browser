@@ -1,0 +1,268 @@
+[
+  {
+    "id": "NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES",
+    "families": "P4/RESOURCE",
+    "expected": "Real disabled native capability yields typed failed result, released owned target, pin and slot before positive user-script tests",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN",
+    "families": "A01/NAV01/CMP09",
+    "expected": "Real owned page navigates; BaseAlice, Typed/clicked; HTTP effect and durable typed return agree",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "P4-API48-WORKER-SEMANTICS",
+    "families": "API48/P4",
+    "expected": "All 48 members exercise supported calls or typed capability denial in the actual bound Worker; this does not close original host-context or final matrix variants",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "R1-PINNED-R2-SAVED-HEAD-DELETED",
+    "families": "USC01/USC02/USC03",
+    "expected": "Running r1 remains pinned while UI saves r2 and tombstones head; r1 source/params/result stay unchanged until retirement; new start from another real host holding r2 is rejected E_TOMBSTONE",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "BORROWED-EXACT-DOC-ACTIVE-DECOY",
+    "families": "A01/A02/AUTH01",
+    "expected": "Explicit borrowed document changes; activated decoy and other documents do not; borrowed target survives",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "BORROWED-CHILD-FRAME-EXACT-DOC",
+    "families": "A02/AUTH01",
+    "expected": "Actual child document selected from native frame inventory; only child changes; top/decoy survive",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "DURABLE-FALSE",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": true
+  },
+  {
+    "id": "DURABLE-ZERO",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "DURABLE-UNDEFINED",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "DURABLE-OWN-UNDEFINED",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": true
+  },
+  {
+    "id": "DURABLE-TRUE",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "DURABLE-BUSINESS",
+    "families": "USC03/CMP03/CMP10",
+    "expected": "Typed durable value and UI read preserve kind/presence; business fields remain data",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "DOWNLOAD-FALSE",
+    "families": "DLGEN01/DLGEN02",
+    "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": true
+  },
+  {
+    "id": "DOWNLOAD-ZERO",
+    "families": "DLGEN01/DLGEN02",
+    "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "DOWNLOAD-UNDEFINED",
+    "families": "DLGEN01/DLGEN02",
+    "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "DOWNLOAD-OWN-UNDEFINED",
+    "families": "DLGEN01/DLGEN02",
+    "expected": "Product download UI; native complete receipt, actual disk bytes/hash, durable valueWire, original Blob revoked",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "THROW",
+    "families": "USC03/EX02",
+    "expected": "Actual Worker throw persists failed typed error exactly once",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "REJECTION",
+    "families": "USC03/EX02",
+    "expected": "Actual rejected Promise persists failed typed error exactly once",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "MULTI-HOST-SLOT-COMPETITION",
+    "families": "CTRL03/AUTH01",
+    "expected": "Two real product hosts contend; loser gets E_OWNER; no loser run/effect; winner retains slot",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "STOP-PENDING-FENCE",
+    "families": "CTRL01/LEAK01",
+    "expected": "Real UI stop during native page wait; durable cancel; no late page operation; borrowed target survives",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "NATIVE-NAVIGATION-PENDING-FENCE",
+    "families": "NAV01/AUTH01",
+    "expected": "Actual native document or permission loss cancels the pending operation; no late effect, released slot and borrowed target survives",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "NATIVE-REVOCATION-PENDING-FENCE",
+    "families": "NAV01/AUTH01",
+    "expected": "Actual native document or permission loss cancels the pending operation; no late effect, released slot and borrowed target survives",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "WORKER-INFINITE-STOP",
+    "families": "CTRL03/EX03/LEAK01",
+    "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "WORKER-INFINITE-DEADLINE",
+    "families": "CTRL03/EX03/LEAK01",
+    "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "WORKER-INFINITE-HOST-CLOSE",
+    "families": "CTRL03/EX03/LEAK01",
+    "expected": "Actual loop CPU growth and native trace run/name/Blob/target/PID/thread correlation; physical cessation and exact target destroyed/absent <=3000ms; durable fence and retirement",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  },
+  {
+    "id": "REOPEN-PERSISTENT-RESULT",
+    "families": "USC03/CTRL03",
+    "expected": "Closing/reopening actual tool reads original durable outcome without executing old source",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": true
+  },
+  {
+    "id": "CLEANUP-NO-SCRAPING-RECORDS",
+    "families": "A01/LEAK01",
+    "expected": "Controller targets/frames retired, slot released; no template/row/seal/business run prerequisite",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": false,
+    "reason": "Not selected by --cases"
+  }
+]

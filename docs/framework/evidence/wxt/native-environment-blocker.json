@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-03T20:15:18.688477+00:00",
+  "code": "E_NATIVE_DESKTOP_LOCKED",
+  "source": "cua.getState native apps inventory",
+  "observedMessage": "The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually before continuing.",
+  "requiredExternalAction": "Unlock Mac and keep desktop available",
+  "nativeAcceptance": false,
+  "previousNativeAttempt": "docs/framework/evidence/f2-controller-product-native/native-2026-10-03T20-10-07.723Z-3843f8ef",
+  "previousAttemptFailure": "E_RUNNER_UI_SELECTION before admission; Enter commit added, not yet native verified",
+  "runId": null,
+  "recheckedAt": "2026-10-03T20:18:54.286801+00:00",
+  "recheckSource": "cua.listApps",
+  "recheckMessage": "The Mac is locked and automatic unlock could not unlock it",
+  "nativeSelectionAssistAdded": true,
+  "assistNativeVerified": false
+}

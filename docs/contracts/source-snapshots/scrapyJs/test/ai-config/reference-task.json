@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "taskId": "synthetic-catalog-list-detail",
+  "purpose": "Test-only explicit CSS/attr contract; not a model-generated candidate",
+  "execution": "http-cheerio",
+  "allowedOrigins": [
+    "http://ai-fixture.test"
+  ],
+  "allowedProtocols": [
+    "http:",
+    "https:"
+  ],
+  "identity": [
+    "id"
+  ],
+  "duplicatePolicy": "error",
+  "concurrency": 1,
+  "list": {
+    "container": "[data-role=\"results\"]",
+    "record": {
+      "selector": "[data-role=\"record\"]",
+      "relation": "directChildren"
+    },
+    "fields": {
+      "id": {
+        "selector": "[data-field=\"id\"]",
+        "read": "text",
+        "required": true,
+        "cardinality": "one",
+        "normalizers": [
+          "trim"
+        ],
+        "valueType": "string"
+      },
+      "title": {
+        "selector": "[data-field=\"title\"]",
+        "read": "text",
+        "required": true,
+        "cardinality": "one",
+        "normalizers": [
+          "trim"
+        ],
+        "valueType": "string"
+      },
+      "detailUrl": {
+        "selector": "[data-field=\"title\"]",
+        "read": "attr",
+        "attr": "href",
+        "required": true,
+        "cardinality": "one",
+        "normalizers": [
+          "resolveUrl"
+        ],
+        "valueType": "url"
+      },
+      "imageUrl": {
+        "selector": "[data-field=\"image\"]",
+        "read": "attr",
+        "attr": "src",
+        "required": false,
+        "cardinality": "one",
+        "missing": null,
+        "normalizers": [
+          "resolveUrl"
+        ],
+        "valueType": "url"
+      }
+    }
+  },
+  "detail": {
+    "container": "[data-role=\"detail\"]",
+    "linkField": "detailUrl",
+    "follow": "onePerListRecord",
+    "matchFields": [
+      "id",
+      "title"
+    ],
+    "fields": {
+      "id": {
+        "selector": "[data-field=\"id\"]",
+        "read": "text",
+        "required": true,
+        "cardinality": "one",
+        "normalizers": [
+          "trim"
+        ],
+        "valueType": "string"
+      },
+      "title": {
+        "selector": "[data-field=\"title\"]",
+        "read": "text",
+        "required": true,
+        "cardinality": "one",
+        "normalizers": [
+          "trim"
+        ],
+        "valueType": "string"
+      },
+      "price": {
+        "selector": "[data-field=\"price\"]",
+        "read": "text",
+        "required": true,
+        "cardinality": "one",
+        "valueType": "string",
+        "normalizers": [
+          "trim"
+        ]
+      },
+      "author": {
+        "selector": "[data-field=\"author\"]",
+        "read": "text",
+        "required": false,
+        "cardinality": "one",
+        "missing": null,
+        "normalizers": [
+          "trim"
+        ],
+        "valueType": "string"
+      }
+    }
+  },
+  "states": {
+    "ready": "[data-state=\"ready\"]",
+    "empty": "[data-state=\"empty\"]",
+    "login": "[data-state=\"login\"]",
+    "error": "[data-state=\"error\"]",
+    "allowEmpty": true
+  },
+  "pagination": {
+    "kind": "nextHref",
+    "selector": "[data-role=\"next\"]",
+    "attr": "href",
+    "disabledSelector": "[data-role=\"next\"][aria-disabled=\"true\"]",
+    "endSelector": "[data-state=\"end\"]",
+    "missingNextIsEnd": false
+  },
+  "limits": {
+    "maxListPages": 2,
+    "maxDetailPages": 5,
+    "maxItems": 5,
+    "maxRequests": 7
+  },
+  "expectedDelivery": {
+    "itemsPerDetail": 1,
+    "listRowsAreDeliverables": false,
+    "exactRecordOrder": true,
+    "accepted": 5,
+    "committed": 5,
+    "processingPending": 0,
+    "pending": 0,
+    "deliveryUnknown": 0
+  },
+  "synthetic": true,
+  "userIntent": "Synthetic acceptance task, not a real business request: read two static HTTP catalog list pages, retain exactly five ordered product records, follow each record's href once to its detail page, align list/detail id and title, and deliver the hard-coded id/title/detailUrl/imageUrl/price/author data. Ignore advertisements, summary rows, and error regions; do not infer missing business facts.",
+  "mode": "list-detail",
+  "profile": "http-cheerio",
+  "browserAI": "unsupported",
+  "seedUrlsBySplit": {
+    "training": "http://ai-fixture.test/training/catalog?page=1",
+    "heldout": "http://ai-fixture.test/heldout/catalog?page=1"
+  },
+  "excludedRegions": [
+    "[data-role=\"error-region\"]",
+    "[data-state=\"login\"]",
+    "[data-state=\"error\"]"
+  ],
+  "errorCodes": [
+    "UNSUPPORTED_CAPABILITY",
+    "FIELD_REQUIRED",
+    "DUPLICATE_PAGE",
+    "PAGE_LOGIN",
+    "PAGE_ERROR",
+    "ERROR_REGION_SELECTED",
+    "FIELD_CARDINALITY",
+    "DETAIL_MISMATCH"
+  ]
+}

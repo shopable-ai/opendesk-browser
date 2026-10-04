@@ -1,0 +1,528 @@
+{
+  "schemaVersion": 1,
+  "split": "training",
+  "origin": "http://ai-fixture.test",
+  "oracle": {
+    "source": "Sidecar-authored literal annotations; not extracted from any candidate or runtime",
+    "derivedFromCandidate": false,
+    "weakeningProhibited": true,
+    "annotationVersion": "2026-10-01",
+    "lockPolicy": "Immutable acceptance oracle. Implementers read only; do not alter fields, values, counts, state, error codes, or matching strength to fit a candidate."
+  },
+  "happyPath": {
+    "listPageIds": [
+      "training-list-1",
+      "training-list-2"
+    ],
+    "detailPageIds": [
+      "training-detail-t1",
+      "training-detail-t2",
+      "training-detail-t3",
+      "training-detail-t4",
+      "training-detail-t5"
+    ],
+    "listPageCount": 2,
+    "detailPageCount": 5,
+    "recordCount": 5,
+    "requestCount": 7,
+    "requestRoutes": [
+      "/training/catalog?page=1",
+      "/training/items/t1",
+      "/training/items/t2",
+      "/training/items/t3",
+      "/training/catalog?page=2",
+      "/training/items/t4",
+      "/training/items/t5"
+    ],
+    "stopReason": "end",
+    "records": [
+      {
+        "id": "t1",
+        "title": "Alpha notebook",
+        "detailUrl": "http://ai-fixture.test/training/items/t1",
+        "imageUrl": "http://ai-fixture.test/images/t1.png",
+        "price": "$12.00",
+        "author": "Ada"
+      },
+      {
+        "id": "t2",
+        "title": "Beta pencil",
+        "detailUrl": "http://ai-fixture.test/training/items/t2",
+        "imageUrl": "http://ai-fixture.test/images/t2.png",
+        "price": "$2.50",
+        "author": "Ben"
+      },
+      {
+        "id": "t3",
+        "title": "Gamma folder",
+        "detailUrl": "http://ai-fixture.test/training/items/t3",
+        "imageUrl": null,
+        "price": "$4.00",
+        "author": null
+      },
+      {
+        "id": "t4",
+        "title": "Delta pen",
+        "detailUrl": "http://ai-fixture.test/training/items/t4",
+        "imageUrl": "http://ai-fixture.test/images/t4.png",
+        "price": "$8.75",
+        "author": "Dee"
+      },
+      {
+        "id": "t5",
+        "title": "Epsilon ruler",
+        "detailUrl": "http://ai-fixture.test/training/items/t5",
+        "imageUrl": "http://ai-fixture.test/images/t5.png",
+        "price": "$3.20",
+        "author": "Eli"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "id": "training-list-1",
+      "file": "fixtures/training/list-page-1.html",
+      "route": "/training/catalog?page=1",
+      "url": "http://ai-fixture.test/training/catalog?page=1",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "positive",
+        "next-href",
+        "optional-missing"
+      ],
+      "templateFamily": "training-ul",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "t1",
+            "title": "Alpha notebook",
+            "detailUrl": "http://ai-fixture.test/training/items/t1",
+            "imageUrl": "http://ai-fixture.test/images/t1.png"
+          },
+          {
+            "id": "t2",
+            "title": "Beta pencil",
+            "detailUrl": "http://ai-fixture.test/training/items/t2",
+            "imageUrl": "http://ai-fixture.test/images/t2.png"
+          },
+          {
+            "id": "t3",
+            "title": "Gamma folder",
+            "detailUrl": "http://ai-fixture.test/training/items/t3",
+            "imageUrl": null
+          }
+        ],
+        "next": {
+          "kind": "href",
+          "url": "http://ai-fixture.test/training/catalog?page=2"
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "training-list-2",
+      "file": "fixtures/training/list-page-2.html",
+      "route": "/training/catalog?page=2",
+      "url": "http://ai-fixture.test/training/catalog?page=2",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "positive",
+        "layout-change",
+        "non-first-page",
+        "last-page"
+      ],
+      "templateFamily": "training-cards",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "t4",
+            "title": "Delta pen",
+            "detailUrl": "http://ai-fixture.test/training/items/t4",
+            "imageUrl": "http://ai-fixture.test/images/t4.png"
+          },
+          {
+            "id": "t5",
+            "title": "Epsilon ruler",
+            "detailUrl": "http://ai-fixture.test/training/items/t5",
+            "imageUrl": "http://ai-fixture.test/images/t5.png"
+          }
+        ],
+        "next": {
+          "kind": "end",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "training-detail-t1",
+      "file": "fixtures/training/detail-t1.html",
+      "route": "/training/items/t1",
+      "url": "http://ai-fixture.test/training/items/t1",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive"
+      ],
+      "templateFamily": "training-main-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "t1",
+            "title": "Alpha notebook",
+            "price": "$12.00",
+            "author": "Ada"
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "training-detail-t2",
+      "file": "fixtures/training/detail-t2.html",
+      "route": "/training/items/t2",
+      "url": "http://ai-fixture.test/training/items/t2",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive"
+      ],
+      "templateFamily": "training-main-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "t2",
+            "title": "Beta pencil",
+            "price": "$2.50",
+            "author": "Ben"
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "training-detail-t3",
+      "file": "fixtures/training/detail-t3.html",
+      "route": "/training/items/t3",
+      "url": "http://ai-fixture.test/training/items/t3",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive",
+        "optional-missing"
+      ],
+      "templateFamily": "training-main-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "t3",
+            "title": "Gamma folder",
+            "price": "$4.00",
+            "author": null
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "training-detail-t4",
+      "file": "fixtures/training/detail-t4.html",
+      "route": "/training/items/t4",
+      "url": "http://ai-fixture.test/training/items/t4",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive",
+        "layout-change",
+        "non-first-page"
+      ],
+      "templateFamily": "training-article-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "t4",
+            "title": "Delta pen",
+            "price": "$8.75",
+            "author": "Dee"
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "training-detail-t5",
+      "file": "fixtures/training/detail-t5.html",
+      "route": "/training/items/t5",
+      "url": "http://ai-fixture.test/training/items/t5",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "positive",
+        "layout-change",
+        "non-first-page"
+      ],
+      "templateFamily": "training-article-detail",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "t5",
+            "title": "Epsilon ruler",
+            "price": "$3.20",
+            "author": "Eli"
+          }
+        ],
+        "next": {
+          "kind": "none",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "training-missing-required",
+      "file": "fixtures/training/missing-required.html",
+      "route": "/training/catalog?case=missing-required",
+      "url": "http://ai-fixture.test/training/catalog?case=missing-required",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "required-missing"
+      ],
+      "templateFamily": "training-cards",
+      "expected": {
+        "pageState": "ready",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "FIELD_REQUIRED"
+      }
+    },
+    {
+      "id": "training-empty",
+      "file": "fixtures/training/empty.html",
+      "route": "/training/catalog?case=empty",
+      "url": "http://ai-fixture.test/training/catalog?case=empty",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "empty",
+        "last-page"
+      ],
+      "templateFamily": "training-cards",
+      "expected": {
+        "pageState": "empty",
+        "records": [],
+        "next": {
+          "kind": "end",
+          "url": null
+        },
+        "errorCode": null
+      }
+    },
+    {
+      "id": "training-duplicate",
+      "file": "fixtures/training/duplicate.html",
+      "route": "/training/catalog?case=duplicate",
+      "url": "http://ai-fixture.test/training/catalog?case=duplicate",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "duplicate",
+        "layout-change",
+        "non-first-page"
+      ],
+      "templateFamily": "training-cards",
+      "expected": {
+        "pageState": "ready",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "DUPLICATE_PAGE"
+      },
+      "context": {
+        "seenIdentityIds": [
+          "t1",
+          "t2",
+          "t3"
+        ],
+        "observedIdentityIds": [
+          "t2",
+          "t3"
+        ],
+        "previousPageId": "training-list-1"
+      }
+    },
+    {
+      "id": "training-login",
+      "file": "fixtures/training/login.html",
+      "route": "/training/catalog?case=login",
+      "url": "http://ai-fixture.test/training/catalog?case=login",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "login",
+        "decoy-records"
+      ],
+      "templateFamily": "training-cards",
+      "expected": {
+        "pageState": "login",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "PAGE_LOGIN"
+      }
+    },
+    {
+      "id": "training-error",
+      "file": "fixtures/training/error.html",
+      "route": "/training/catalog?case=error",
+      "url": "http://ai-fixture.test/training/catalog?case=error",
+      "status": 503,
+      "stage": "list",
+      "scenarios": [
+        "error",
+        "decoy-records",
+        "http-503"
+      ],
+      "templateFamily": "training-cards",
+      "expected": {
+        "pageState": "error",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "PAGE_ERROR"
+      }
+    },
+    {
+      "id": "training-error-region",
+      "file": "fixtures/training/error-region.html",
+      "route": "/training/catalog?case=error-region",
+      "url": "http://ai-fixture.test/training/catalog?case=error-region",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "positive",
+        "error-region-candidate"
+      ],
+      "templateFamily": "training-cards",
+      "expected": {
+        "pageState": "ready",
+        "records": [
+          {
+            "id": "t1",
+            "title": "Alpha notebook",
+            "detailUrl": "http://ai-fixture.test/training/items/t1",
+            "imageUrl": "http://ai-fixture.test/images/t1.png"
+          }
+        ],
+        "next": {
+          "kind": "end",
+          "url": null
+        },
+        "errorCode": null
+      },
+      "candidateCases": [
+        {
+          "id": "training-select-error-region",
+          "candidateOverride": {
+            "list": {
+              "container": "[data-role=\"error-results\"]"
+            }
+          },
+          "expected": {
+            "pageState": "ready",
+            "records": [],
+            "next": {
+              "kind": "blocked",
+              "url": null
+            },
+            "errorCode": "ERROR_REGION_SELECTED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "training-cardinality",
+      "file": "fixtures/training/cardinality.html",
+      "route": "/training/catalog?case=cardinality",
+      "url": "http://ai-fixture.test/training/catalog?case=cardinality",
+      "status": 200,
+      "stage": "list",
+      "scenarios": [
+        "cardinality-many"
+      ],
+      "templateFamily": "training-cards",
+      "expected": {
+        "pageState": "ready",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "FIELD_CARDINALITY"
+      }
+    },
+    {
+      "id": "training-detail-mismatch",
+      "file": "fixtures/training/detail-mismatch.html",
+      "route": "/training/items/t1?case=mismatch",
+      "url": "http://ai-fixture.test/training/items/t1?case=mismatch",
+      "status": 200,
+      "stage": "detail",
+      "scenarios": [
+        "list-detail-mismatch"
+      ],
+      "templateFamily": "training-article-detail",
+      "context": {
+        "listRecord": {
+          "id": "t1",
+          "title": "Alpha notebook",
+          "detailUrl": "http://ai-fixture.test/training/items/t1",
+          "imageUrl": "http://ai-fixture.test/images/t1.png"
+        }
+      },
+      "expected": {
+        "pageState": "ready",
+        "records": [],
+        "next": {
+          "kind": "blocked",
+          "url": null
+        },
+        "errorCode": "DETAIL_MISMATCH"
+      }
+    }
+  ]
+}

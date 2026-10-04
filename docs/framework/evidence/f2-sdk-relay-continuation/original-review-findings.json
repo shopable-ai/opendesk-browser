@@ -1,0 +1,79 @@
+[
+  {
+    "id": "SDK-REVIEW-03",
+    "priority": "P2",
+    "severity": "MEDIUM",
+    "title": "Actual fixed MAIN reinjection cannot use the module-local idempotence cache",
+    "locations": [
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/entry.js",
+        "line": 14,
+        "endLine": 21
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/entry.js",
+        "line": 37,
+        "endLine": 45
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/platform/host/broker.js",
+        "line": 58,
+        "endLine": 67
+      }
+    ],
+    "contract": "Trusted reauthorization/reinstallation of the same exact document must work with fixed packaged entries and real Hello. Own SDK globals must remain distinguishable from page conflicts.",
+    "cause": "installations is a module-local WeakMap. Re-evaluating the packaged MAIN entry creates a fresh map; the previous immutable globals remain. The new entry throws E_SDK_GLOBAL_CONFLICT at OpenDeskSDK instead of reusing/revalidating its own prior installation. Broker installSdk injects both files on each invocation, even when grantSdk returns an existing grant.",
+    "reproducer": {
+      "boundary": "Two fresh evaluations of exact entry.js source with identical absolute dependency imports; demonstrates JavaScript module-state lifetime. Actual repeated Chrome fixed-file injection was not run by this review.",
+      "steps": [
+        "Install SDK once into an otherwise clean page global.",
+        "Call installPageSdk again from the same evaluated module: succeeds.",
+        "Evaluate the same entry source in a second module instance, representing a repeated fixed script injection.",
+        "Call its installPageSdk on the same global."
+      ],
+      "expected": "Recognize an intact own installation and refresh actual Hello/grant subset as necessary, or provide an explicit controlled lifecycle for reinstall; continue to reject unrelated page globals.",
+      "actual": "Same-module call is idempotent; fresh entry evaluation throws E_SDK_GLOBAL_CONFLICT: SDK global already exists: OpenDeskSDK.",
+      "code": "import {readFile} from 'node:fs/promises'; import {pathToFileURL} from 'node:url';\nconst path=pathToFileURL(process.cwd()+'/src/framework/sdk/entry.js');\nlet source=await readFile(path,'utf8'); source=source.replace(/from '(\\.\\.?\\/[^']+)'/g,(_,p)=>`from '${new URL(p,path).href}'`);\nconst one=await import('data:text/javascript;base64,'+Buffer.from(source+'\\n// first entry evaluation').toString('base64'));\nconst two=await import('data:text/javascript;base64,'+Buffer.from(source+'\\n// second entry evaluation').toString('base64'));\nconst transport={hello:async()=>({sdkVersion:'1.0.0',ready:true,methods:[]}),request:async()=>{throw Error('no calls expected')}};\nconst page={navigator:{userAgent:''}};\nconst sdk=one.installPageSdk({global:page,transport}); console.log(one.installPageSdk({global:page,transport})===sdk);\ntry {two.installPageSdk({global:page,transport});} catch(e) {console.log(e.code,e.message);} sdk.dispose();\n"
+    },
+    "requiredFix": "Make own installation recognition survive fixed-file re-evaluation without trusting arbitrary page-supplied readiness, and revalidate Hello/grant subsets after regrant. Retain immutable public globals and typed rejection of genuine page conflicts. Verify disposed/pagehide cases explicitly.",
+    "missingRegression": "Two actual MAIN file injections into one native document, then revoke/regrant with a changed capability subset; existing test uses the same imported function twice.",
+    "confidence": "high for fresh-evaluation exception; native driver failure propagation unverified",
+    "sourceStableDuringObservedWindow": true,
+    "relatedBrokerSourceMoving": true
+  },
+  {
+    "id": "SDK-REVIEW-04",
+    "priority": "P2",
+    "severity": "MEDIUM",
+    "title": "Relay dedup suppresses digest conflicts and lets an old callback consume a later same-ID entry",
+    "locations": [
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+        "line": 14,
+        "endLine": 17
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/src/agents/page-relay.js",
+        "line": 54,
+        "endLine": 68
+      }
+    ],
+    "contract": "Same ID and same normalized digest associates with the original operation; changed arguments/deadline must conflict. A late result must not settle another admission or mask its error.",
+    "cause": "Relay pending entries contain only timer and are keyed only by caller ID. It drops every in-flight duplicate before the broker can compare digests. Timers and native callback continuations call finish(id) without checking entry identity, so after an entry times out, an old callback can delete and fulfill a replacement entry with the same ID.",
+    "reproducer": {
+      "boundary": "Actual installPageRelay with controlled Chrome sendMessage callbacks and timers; does not claim native broker replay.",
+      "steps": [
+        "Dispatch APPLOCAL_SETITEM ID=same-id,value=1 and keep its native callback pending.",
+        "Dispatch same ID,value=2: no native request or conflict response is emitted; completion reports the first success.",
+        "For the late-callback case: time out ID=reused,value=1; dispatch ID=reused,value=2; resolve the OLD native callback first; then resolve the new callback with E_REQUEST_CONFLICT."
+      ],
+      "expected": "Changed digest is rejected distinctly without damaging the original pending operation. An old callback cannot finish the new entry; the new conflict is delivered.",
+      "actual": "First case: 1 native dispatch, 0 conflict replies, first success only. Late case: timeout then old-result success for reused; the actual new E_REQUEST_CONFLICT reply is dropped, pending=0."
+    },
+    "requiredFix": "Bind callback/timer settlement to a captured relay entry incarnation. Compare normalized digests for same-ID in-flight association or delegate conflict checking to the unique broker; never silently merge changed arguments/deadlines or let an old callback settle a new entry.",
+    "missingRegression": "In-flight same ID with changed arguments/deadline through the fixed relay, and timeout + ID reuse + reversed native response order. Existing direct broker conflict tests bypass this relay behavior.",
+    "confidence": "high",
+    "sourceStableDuringObservedWindow": true,
+    "noProvenWriteReplay": "The shared broker still fences unknown effects and rejects differing digests. This finding is incorrect relay settlement/conflict handling, not a demonstrated second native write."
+  }
+]

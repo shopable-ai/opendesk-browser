@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "scope": "F1 userScripts only; fixture, no F2",
+  "sources": [
+    {
+      "path": "run-headed.mjs",
+      "bytes": 29187,
+      "sha256": "f7b02b5b60602d5a73813665591c040178fb46ff6ae69973e75757b7efc0a9c0"
+    },
+    {
+      "path": "fixture/adapter.js",
+      "bytes": 4095,
+      "sha256": "ddd235656167922308f674b02d70b1784737f9d27aac6b641b90c921808c29a6"
+    },
+    {
+      "path": "fixture/file-source.js",
+      "bytes": 206,
+      "sha256": "0988ef295e1dce18ee3702d550e6c8c2ff7cd0e506e76b0ac41bce2f64e48cd5"
+    },
+    {
+      "path": "fixture/host.html",
+      "bytes": 410,
+      "sha256": "068dcd430b509b63ee382c8e3ced5fd1ff7fa3bc97eb27c19749a74a217794e4"
+    },
+    {
+      "path": "fixture/host.js",
+      "bytes": 5126,
+      "sha256": "476d817a69c9cbd4160275b7172fea94e5dfe4ba7d582fab6e8eef4475393b9d"
+    },
+    {
+      "path": "fixture/manifest.json",
+      "bytes": 408,
+      "sha256": "ba3ecbc2a3cc5df7d209d8ae8d89bd168849d0584d37f38c83c321b81c05b83b"
+    },
+    {
+      "path": "fixture/sw.js",
+      "bytes": 176,
+      "sha256": "e0e632751589567bafb5667861259cb78d8da6d14a3658618308b83a61c93b71"
+    }
+  ],
+  "frozenInputs": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-prompt.md",
+      "bytes": 3183,
+      "sha256": "8b851e5e6df372ac1c6586590ab50fcebecfcfceb568e0dba9167780847b3b35"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/goal-constraints.md",
+      "bytes": 7402,
+      "sha256": "07c95075d90851d0f1f27772e158eb8f16bef36bd0ab8cbe9fd77d07ad9e5b96"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/design.md",
+      "bytes": 31648,
+      "sha256": "e2d9a346fd82238a208c3e2a5acb5b334b12443bd42a8f6a63a4a19ac41f57e7"
+    },
+    {
+      "path": "/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/test-spec.md",
+      "bytes": 13767,
+      "sha256": "707d421df497f30e16edf47dbf7fe7f7f5daa77b91fa4fdcfdaf998f388056a4"
+    }
+  ],
+  "designManifestSha256": "acca60edf9031aafb4ecb740f5f0f33777a3694d23499f28ce37af63b38f592f"
+}

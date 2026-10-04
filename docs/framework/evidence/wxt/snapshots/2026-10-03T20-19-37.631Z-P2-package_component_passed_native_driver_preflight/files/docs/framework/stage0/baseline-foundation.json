@@ -1,0 +1,35 @@
+{
+  "kind": "fresh-pre-implementation-unit-baseline-not-Chrome-IDB-proof",
+  "at": "2026-10-02T18:06:05.359571+00:00",
+  "command": "node --test tests/foundation/*.test.mjs",
+  "exitCode": 1,
+  "evidence": "docs/framework/stage0/baseline-foundation.log",
+  "evidenceSha256": "a4b2d25ae2b76af1d648d5e04137325e88f1f8d2427cceb8a3cfdee0f5b9d9af",
+  "summary": [
+    "ℹ tests 115",
+    "ℹ pass 98",
+    "ℹ fail 17",
+    "ℹ cancelled 0",
+    "ℹ skipped 0",
+    "ℹ todo 0"
+  ],
+  "failures": [
+    "✖ frozen fixture full plan validates; recomputed broader selector/caps hash does not grant authority (13.308417ms)",
+    "✖ stop after dispatched commit still permits exactly one fixed Chrome invocation; revised identity never replayed (2.487041ms)",
+    "✖ post-dispatch epoch/target/grant fences prevent stale Chrome use (3.044959ms)",
+    "✖ script or command callback failure records unknown and cannot be blindly retried (1.950917ms)",
+    "✖ packaged DOM agent returns short ACK before stream, awaits explicit frame ACK, then emits complete signature (1.387625ms)",
+    "✖ preview samples at most ten full raw rows using shared plan binding and iterator ACK; no records written (2.144875ms)",
+    "✖ three batches: first two durable ACKs, third exact-byte failure hides whole page (5.060042ms)",
+    "✖ exact staged duplicate does not add bytes; conflicting valid digest aborts page (5.544375ms)",
+    "✖ stage may acknowledge authenticated raw frames before end; seal requires complete end (3.25225ms)",
+    "✖ seal recomputes all six rows; prefix-only signature fails (3.451417ms)",
+    "✖ batch gap, record key/field mismatch, and raw-end evidence mismatch reject (3.647292ms)",
+    "✖ stop wins before seal; seal wins before stop and preserves historic original ACK (2.955084ms)",
+    "✖ reader pins freeze watermark/count, paginate long typed values, and reject other cursors (2.934667ms)",
+    "✖ zero-batch empty page requires authenticated allowed-empty proof (2.931459ms)",
+    "✖ repeated full page signature without end is rejected and left invisible (3.066125ms)",
+    "✖ whole-page run limits, two pending ACKs, profile budget and injected disk quota (3.013917ms)",
+    "✖ delete refuses active owner/read pin/open job/unknown attempt and tombstones retired data (2.807291ms)"
+  ]
+}

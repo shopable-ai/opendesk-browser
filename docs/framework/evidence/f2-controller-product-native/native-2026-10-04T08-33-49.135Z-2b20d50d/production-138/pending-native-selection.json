@@ -1,0 +1,60 @@
+{
+  "state": "native-selection-assist",
+  "mode": "production",
+  "label": "138",
+  "pid": 52696,
+  "launcherPid": 52682,
+  "endpoint": "ws://127.0.0.1:57550/devtools/browser/35ad74c0-fc1b-4df4-8705-263fc156ae90",
+  "targetId": "259DFC59D968654358C5E2AD04FDCA6F",
+  "selector": "#script-tab",
+  "desired": "179444657",
+  "optionIndex": 7,
+  "before": {
+    "selectedIndex": 0,
+    "value": "",
+    "focused": false,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择具体网页",
+        "disabled": false
+      },
+      {
+        "value": "179444647",
+        "text": "[179444647] Controller borrowed · http://127.0.0.1:57522/form?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=borrowed",
+        "disabled": false
+      },
+      {
+        "value": "179444648",
+        "text": "[179444648] Controller decoy · http://127.0.0.1:57522/form?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=decoy",
+        "disabled": false
+      },
+      {
+        "value": "179444649",
+        "text": "[179444649] Controller top · http://127.0.0.1:57522/frames?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=top",
+        "disabled": false
+      },
+      {
+        "value": "179444654",
+        "text": "[179444654] Controller replaced · http://127.0.0.1:57522/form?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=replaced",
+        "disabled": false
+      },
+      {
+        "value": "179444655",
+        "text": "[179444655] Controller fence-revocation · http://127.0.0.1:57522/form?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=fence-revocation",
+        "disabled": false
+      },
+      {
+        "value": "179444656",
+        "text": "[179444656] Controller loop-stop · http://127.0.0.1:57522/form?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=loop-stop",
+        "disabled": false
+      },
+      {
+        "value": "179444657",
+        "text": "[179444657] Controller loop-deadline · http://127.0.0.1:57522/form?seed=ffefc286-fef1-47e6-ba13-2823abfec981&role=loop-deadline",
+        "disabled": false
+      }
+    ]
+  },
+  "instruction": "Use the bound live native Chrome window to commit this exact option; no DOM assignment or synthetic events"
+}
