@@ -2,6 +2,7 @@ import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
 import {FIXED_OUTPUTS, BUILD_POLICY} from './scripts/build-contract.mjs';
+import {compactRuntimeSchema} from './scripts/compact-schema.mjs';
 
 const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));
 delete manifest.manifest_version;
@@ -15,10 +16,13 @@ export default defineConfig({
   manifestVersion: 3,
   imports: false,
   manifest,
-  // Match the existing ES2022 output target and run normal compression twice.
-  // Do not enable unsafe transforms, property mangling, or remove the size gate.
-  vite: () => ({build: {minify: 'terser', terserOptions: {ecma: 2022,
-    compress: {passes: 2, unsafe: false}, format: {comments: false}},
+  vite: () => ({plugins: [{
+    name: 'opendesk-lossless-schema',
+    transform(source, id) {
+      if (id.replaceAll('\\', '/') !== resolve('src/platform/schema.js').replaceAll('\\', '/')) return;
+      return {code: compactRuntimeSchema(source), map: null};
+    }
+  }], build: {minify: 'terser', terserOptions: {format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'entrypoints:resolved'(wxt, entries) {

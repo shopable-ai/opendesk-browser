@@ -76,3 +76,38 @@ test('R7: durable timestamps require an actual calendar date and explicit timezo
       error => error.code === 'E_SCHEMA', observedAt);
   }
 });
+
+test('build schema compaction retains the full canonical contract and independent object identity', async () => {
+  const {compactRuntimeSchema} = await import('../../scripts/compact-schema.mjs');
+  const source = await readFile(new URL('../../src/platform/schema.js', import.meta.url), 'utf8');
+  const original = JSON.parse(await readFile(new URL('../../docs/contracts/schema.json', import.meta.url), 'utf8'));
+  const code = compactRuntimeSchema(source);
+  // Evaluate the real build transform in an isolated Node module, never privileged browser code.
+  const {default: compacted} = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+  assert.deepEqual(schema, original);
+  assert.deepEqual(compacted, original);
+  assert.equal(compactRuntimeSchema(source), code);
+  const seen = new Set(); let identifiers = 0;
+  function walk(value) {
+    if (!value || typeof value !== 'object') return;
+    assert.equal(seen.has(value), false, 'Every original object and array retains distinct identity');
+    seen.add(value);
+    if (value.pattern === '^[A-Za-z0-9._:-]+$') {
+      identifiers++;
+      assert.deepEqual(value, {type:'string',minLength:1,maxLength:128,pattern:'^[A-Za-z0-9._:-]+$'});
+    }
+    for (const child of Object.values(value)) walk(child);
+  }
+  walk(compacted);
+  assert.equal(identifiers, 106);
+});
+
+test('schema compaction rejects unknown code shape and does not rewrite object-looking strings', async () => {
+  const {compactRuntimeSchema} = await import('../../scripts/compact-schema.mjs');
+  assert.throws(() => compactRuntimeSchema('export default globalThis.schema'), /Unexpected/);
+  const source = await readFile(new URL('../../src/platform/schema.js', import.meta.url), 'utf8');
+  const objectText = JSON.stringify({type:'string',minLength:1,maxLength:128,pattern:'^[A-Za-z0-9._:-]+$'});
+  const fixture = source.split('export default ')[0] + 'export default ' + JSON.stringify({literal:objectText}) + ';\n';
+  const {default: value} = await import(`data:text/javascript;base64,${Buffer.from(compactRuntimeSchema(fixture)).toString('base64')}`);
+  assert.deepEqual(value, {literal:objectText});
+});

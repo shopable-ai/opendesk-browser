@@ -6,8 +6,10 @@ on:
     branches: [codex/p1-2-sdk-target-origins-20261004]
     paths:
       - 'src/**'
+      - 'scripts/**'
       - 'tests/framework/**'
       - 'tests/environment/**'
+      - 'docs/contracts/schema.json'
       - 'package.json'
       - 'package-lock.json'
       - 'wxt.config.mjs'
@@ -36,45 +38,19 @@ jobs:
           npm --version
       - name: Install locked dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: P1 source syntax
-        run: |
-          node --check src/platform/host/broker.js
-          node --check src/platform/host/sdk-methods.js
-          node --check src/framework/sdk/target-origins.js
-          node --check src/ui/sdk-approval.js
-          node --check src/ui/tool-shell.js
-          node --check tests/framework/fixtures/sdk-target-origins/client.js
-      - name: Full-import SDK regressions and adversarial target/UI/fixture checks
+      - name: Full-import SDK target, UI, actual HTTP count and schema regressions
         run: node --test --test-reporter=spec tests/framework/k2*.test.mjs
-      - name: Existing environment logic regressions
-        if: ${{ !cancelled() }}
-        run: find tests/environment -maxdepth 1 -name '*.test.mjs' ! -name 'package.test.mjs' -print0 | xargs -0 node --test --test-reporter=spec
       - name: Source checks
         if: ${{ !cancelled() }}
         run: npm run check
-      - name: Production build
+      - name: Production build and package verification
         id: production
         if: ${{ !cancelled() }}
         run: npm run build
-      - name: Production package and mutation checks
-        if: ${{ !cancelled() && steps.production.outcome == 'success' }}
-        run: |
-          node scripts/verify-package.mjs dist/production
-          node --test --test-reporter=spec tests/environment/package.test.mjs
-      - name: Capture exact failed source and installed dependency closure
-        if: ${{ failure() }}
-        run: |
-          mkdir -p "$RUNNER_TEMP/p1-diagnostic"
-          git rev-parse HEAD > "$RUNNER_TEMP/p1-diagnostic/source-sha.txt"
-          git archive HEAD | gzip > "$RUNNER_TEMP/p1-diagnostic/source.tar.gz"
-          tar -czf "$RUNNER_TEMP/p1-diagnostic/dependencies.tar.gz" node_modules
-          (cd "$RUNNER_TEMP/p1-diagnostic" && sha256sum *.tar.gz > SHA256SUMS)
-      - name: Retain failed-build diagnostic for one day
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: p1-diagnostic-${{ github.sha }}
-          path: ${{ runner.temp }}/p1-diagnostic/*
-          retention-days: 1
-          compression-level: 0
-          if-no-files-found: error
+      - name: Development build and package verification
+        id: development
+        if: ${{ !cancelled() }}
+        run: npm run build:dev
+      - name: Compiled SDK, HTTP, control, environment and package mutation regressions
+        if: ${{ !cancelled() && steps.production.outcome == 'success' && steps.development.outcome == 'success' }}
+        run: node --test --test-reporter=spec tests/framework/k[345]*.test.mjs tests/environment/*.test.mjs
