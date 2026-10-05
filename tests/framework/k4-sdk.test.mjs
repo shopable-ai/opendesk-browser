@@ -227,7 +227,7 @@ test('native typed authority/transport failure is outer error; business remains 
 test('service dispatcher delegates storage and atomic device context without namespace from page', async () => {
   const context = {namespace: 'trusted', authorizeInTransaction() {}}; const seen = [];
   const service = createSdkService({storage: {executeSdk: async (...args) => { seen.push(args); return undefined; }}, device: {getAppId: async ctx => { assert.equal(ctx, context); return '16characterid000'; }}});
-  assert.deepEqual(await service.execute('APPSTORAGE_SETITEM', {key: 'x', value: false}, context), legacyResult(undefined));
+  assert.deepEqual(await service.execute('APPSTORAGE_SETITEM', {key: 'x', value: false}, context), {ok: true, value: undefined});
   assert.deepEqual(seen[0], ['APPSTORAGE_SETITEM', {key: 'x', value: 'false'}, context]);
-  assert.equal((await service.execute('DEVICE_GET_APP_ID', {}, context)).data, '16characterid000');
+  assert.equal((await service.execute('DEVICE_GET_APP_ID', {}, context)).value, '16characterid000');
 });

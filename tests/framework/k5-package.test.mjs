@@ -14,6 +14,15 @@ async function mutate(change, expectation, mode = 'production') {
 async function append(root, file, text) { const path = join(root, file); await writeFile(path, (await readFile(path, 'utf8')) + '\n' + text); }
 async function manifest(root, change) { const path = join(root, 'manifest.json'), value = JSON.parse(await readFile(path, 'utf8')); change(value); await writeFile(path, JSON.stringify(value)); }
 
+test('K5 exact Worker constructor capability parameters and destructured shadow bindings', () => {
+  const source = `const n=Object.getPrototypeOf(async function(){}).constructor;
+    function proxy({identity:n}) { return n; }
+    new n('page','params','axiosx','AppStorage','AppLocal','storage',data.body);`;
+  assert.doesNotThrow(() => inspectScript(source, CONTROL_WORKER));
+  assert.throws(() => inspectScript(source.replace("'axiosx'", "'chrome'"), CONTROL_WORKER), /Unapproved dynamic constructor/);
+  assert.throws(() => inspectScript(source + ';const alias=n;', CONTROL_WORKER), /Unapproved dynamic constructor/);
+});
+
 for (const mode of ['production', 'development']) {
   test(`K5 fixed SDK/control and resource closure validates actual ${mode} package`, async () => {
     const report = await verifyPackage(`dist/${mode}`);

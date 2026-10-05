@@ -26,10 +26,10 @@ export function createSdkBroker({authority, storage, api, fetchImpl = globalThis
     const {context} = admission;
     try {
       const result = await service.execute(request.method, request.args, context);
-      invariant(result?.PageBrigeCode === 0 && Object.hasOwn(result, 'data'), 'E_SCHEMA', 'Invalid driver result');
+      invariant(result?.ok === true && Object.hasOwn(result, 'value'), 'E_SCHEMA', 'Invalid driver result');
       // Drivers commit storage effects and receipts atomically. Native drivers may
       // record a fact before post-authorization; final API value is recorded here.
-      return await context.recordEffect(result.data);
+      return await context.recordEffect(result.value);
     } catch (error) {
       await authority.failSdk(context, error);
       throw error;

@@ -33,7 +33,7 @@ async function generated(source, args = []) {
   const reply = jsonHop(await vm.runInContext(descriptor.code, context));
   return {reply, context, descriptor};
 }
-async function worker(source) {
+async function worker(source, operation) {
   const {port1,port2} = new MessageChannel();
   const identity = {runId:'codec-run',ownerEpoch:1,target};
   let bind;
@@ -44,6 +44,10 @@ async function worker(source) {
     const result = new Promise((resolve,reject) => {
       port1.on('message', message => {
         if(message.kind==='bound') port1.postMessage({kind:'execute',...identity,body:`return (${source});`,params:{}});
+        if(message.kind==='operation' && operation) {
+          const value=operation(message.envelope);
+          port1.postMessage({kind:'reply',...identity,id:message.id,reply:{requestId:message.envelope.requestId,value:encodeValue(value)}});
+        }
         if(message.kind==='result'||message.kind==='error') resolve(jsonHop(message));
       });
       port1.on('close', () => reject(new Error('Worker fixture closed before settlement')));
@@ -178,4 +182,15 @@ test('a factory captures serialization intrinsics before user global patches', (
   vm.runInContext(`const codec=(${foundation.createValueCodec.toString()})({profile:'control'});`,context);
   const result = vm.runInContext(`JSON.stringify=()=>{throw Error('patched JSON');};Object.keys=()=>[];Object.getOwnPropertyDescriptor=()=>null;Number.isFinite=()=>false;Set.prototype.has=()=>true;String.prototype.charCodeAt=()=>0;codec.encodeValue({present:undefined,zero:-0,text:'中😀'});`,context);
   assert.deepEqual(jsonHop(result),{t:'object',v:[['present',{t:'undefined'}],['zero',{t:'negative-zero'}],['text',{t:'string',v:'中😀'}]]});
+});
+
+
+test('actual fixed Worker runtime injects frozen network/storage facades through its private run port', async () => {
+  const methods=[];
+  const result=await worker('(async()=>{await AppStorage.setItem("n",0); const n=await storage.get("n"); const r=await axiosx.get("https://example.test/x"); return [n,r.data,Object.isFrozen(axiosx),typeof chrome];})()',envelope=>{
+    assert.equal(envelope.operation.kind,'service'); assert.equal(envelope.identity.runId,'codec-run'); methods.push(envelope.operation.method);
+    return envelope.operation.method==='AXIOS_GET'?{data:false,status:200}:envelope.operation.method==='CHROME_LOCAL_GET'?0:undefined;
+  });
+  assert.deepEqual(decodeValue(result.value),[0,false,true,'undefined']);
+  assert.deepEqual(methods,['APPSTORAGE_SETITEM','CHROME_LOCAL_GET','AXIOS_GET']);
 });

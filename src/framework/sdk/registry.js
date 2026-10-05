@@ -111,6 +111,7 @@ export const SDK_METHODS = Object.freeze({
   APPLOCAL_GETITEM: method('storage.session', 'read', args => storage(args)),
   APPLOCAL_SETITEM: method('storage.session', 'write', args => storage(args, true)),
   APPLOCAL_REMOVEITEM: method('storage.session', 'write', args => storage(args)),
+  CHROME_LOCAL_CLEAR: method('storage.persistent', 'write', empty),
   CHROME_LOCAL_GET: method('storage.persistent', 'read', args => {
     fields(args, ['key'], ['key']); if (args.key !== null) key(args.key); return args;
   }),

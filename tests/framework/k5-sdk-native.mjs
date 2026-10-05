@@ -9,7 +9,9 @@ import os from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
 import {PROTOCOL} from '../../src/platform/protocol.js';
-import {SDK_METHODS} from '../../src/framework/sdk/registry.js';
+import {SDK_METHODS, ADMITTED_METHODS, SDK_LIMITS} from '../../src/framework/sdk/registry.js';
+import {SDK_RESOURCE_PATHS, SDK_RESOURCE_ALIASES, SDK_RESOURCE_MANIFEST} from '../../src/framework/sdk/resource-contract.js';
+import {observeLegacyStorage, observeLegacyHttp, observeLegacyService, observeLegacyResource, discoverLegacyCompletion} from './k5-sdk-legacy-consumers.mjs';
 import {launchChrome, LAUNCHER} from './k5-sdk-native-launcher.mjs';
 
 // Load the existing built product verbatim. No generated extension, manifest key,
@@ -47,7 +49,7 @@ async function fingerprintSource() {
       for (const item of await readdir(path.join(root, prefix), {withFileTypes: true})) {
         const relative = `${prefix}/${item.name}`;
         if (item.isDirectory() && dir === 'src') await walk(relative);
-        else if (item.isFile() && (dir === 'src' || item.name.startsWith('k5-sdk-native'))) {
+        else if (item.isFile() && (dir === 'src' || item.name.startsWith('k5-sdk-native') || item.name === 'k5-sdk-legacy-consumers.mjs')) {
           const bytes = await readFile(path.join(root, relative)); sourceFiles.push({path: relative, bytes: bytes.length, sha256: digest(bytes)});
         }
       }
@@ -86,7 +88,9 @@ const server = createServer(async (req, res) => {
       business: {PageBrigeCode: 9, ok: false, error: 'business-data', message: 'keep-as-data'}})); }
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-const origin = `http://127.0.0.1:${server.address().port}`, reports = [], capabilities = ['network', 'storage.persistent', 'storage.session'];
+const origin = `http://127.0.0.1:${server.address().port}`, reports = [];
+const initialCapabilities = ['network', 'storage.persistent', 'storage.session', 'service.log', 'service.time', 'resources.packaged'];
+const capabilities = [...initialCapabilities];
 async function connect(url, label, traffic) {
   const socket = new WebSocket(url), pending = new Map(), listeners = new Set(); let sequence = 0;
   await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = reject; });
@@ -108,7 +112,7 @@ async function connect(url, label, traffic) {
       traffic.push(entry); appendFileSync(path.join(output, 'raw-cdp-live.jsonl'), JSON.stringify(entry) + '\n');
       socket.send(JSON.stringify(message));
     });
-  }, onEvent: listener => listeners.add(listener), close: () => socket.close()};
+  }, onEvent: listener => { listeners.add(listener); return () => listeners.delete(listener); }, close: () => socket.close()};
 }
 async function evaluate(client, expression) {
   const raw = await client.send('Runtime.evaluate', {expression, returnByValue: true, awaitPromise: true});
@@ -138,11 +142,25 @@ function sdkCall(method, args) {
     undefinedResult: value === undefined}), error => ({ok: false, error: {code: error?.code, message: error?.message}}));
 }
 const callExpression = (method, args) => `(${sdkCall.toString()})(${JSON.stringify(method)},${JSON.stringify(args)})`;
-const errorProjection = error => ({code: error.code, message: error.message, stack: error.stack});
+const errorProjection = error => ({code: error.code, message: error.message, stack: error.stack, observation: error.observation});
+const notObserved = (message, observation) => Object.assign(new Error(message), {code: 'E_NATIVE_OBSERVATION_UNAVAILABLE', observation});
+// Native evaluation inputs must keep own undefined keys for schema rejection.
+const pageValueExpression = value => value === undefined ? 'undefined' : Array.isArray(value)
+  ? `[${value.map(pageValueExpression).join(',')}]` : value !== null && typeof value === 'object'
+    ? `({${Object.entries(value).map(([key, item]) => `[${JSON.stringify(key)}]:${pageValueExpression(item)}`).join(',')}})` : JSON.stringify(value);
+const observerExpression = (observer, ...values) => `(${observer.toString()})(${values.map(pageValueExpression).join(',')})`;
 async function browserRun(mode, label) {
+  capabilities.splice(0, capabilities.length, ...initialCapabilities);
   const directory = path.join(output, `${mode}-${label}`); await mkdir(directory, {recursive: true});
   const extension = await realpath(path.join(root, 'dist', mode)), packageBefore = await fingerprint(extension);
   const manifest = JSON.parse(await readFile(path.join(extension, 'manifest.json'), 'utf8'));
+  const resourceManifest = JSON.parse(await readFile(path.join(extension, SDK_RESOURCE_MANIFEST), 'utf8'));
+  assert.equal(resourceManifest.schemaVersion, 1);
+  assert.deepEqual(resourceManifest.resources.map(row => row.path), SDK_RESOURCE_PATHS);
+  for (const row of resourceManifest.resources) {
+    const bytes = await readFile(path.join(extension, row.path));
+    assert.equal(row.bytes, bytes.length); assert.equal(row.sha256, digest(bytes));
+  }
   const binary = path.join(root, `tests/.cache/m5-browsers/${label === '138' ? '138.0.7204.183' : '154.0.8037.92'}/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`);
   const report = {mode, label, extension, packageBefore, productInputsSha256:inputBindings.productInputsSha256,
     verificationInputsSha256:inputBindings.verificationInputsSha256,packageHashes:bothPackageHashes,zipHashes,zipSha256:zipHashes[mode],unchangedProductPackage: true, alteredManifest: false,
@@ -150,17 +168,44 @@ async function browserRun(mode, label) {
     binary, binarySha256: digest(await readFile(binary)), launcher: LAUNCHER,
     OS: {type: os.type(), release: os.release(), arch: os.arch()}, boundary: 'Targeted native independent SDK through current product UI and broker; not full B05/F3/603 acceptance'};
   const traffic = [], seed = `sdk-native-${randomUUID()}`, persistentKey = `${seed}-persistent`, sessionKey = `${seed}-session`;
+  let current, owned;
+  async function evidenceForCase(id, record) {
+    const stem = id.replace(/[^a-zA-Z0-9_-]/g, '_'), rawPath = path.join(directory, `${stem}-result.json`);
+    const environment = {mode, label, completeVersion: report.completeVersion, packageSha256: packageBefore.packageHash,
+      productInputsSha256: inputBindings.productInputsSha256, verificationInputsSha256: inputBindings.verificationInputsSha256, zipSha256: zipHashes[mode],
+      targetId: current?.targetId, tabId: current?.tabId, documentId: current?.session?.documentId};
+    const raw = Buffer.from(JSON.stringify({...record, environment}, null, 2) + '\n'); await writeFile(rawPath, raw);
+    const evidence = [{path: path.relative(root, rawPath), bytes: raw.length, sha256: digest(raw), kind: 'native-function-result'}];
+    const rawCdp = Buffer.from(JSON.stringify({id, environment, traffic: traffic.slice(record.trafficStart, record.trafficEnd)}, null, 2) + '\n');
+    const rawCdpPath = path.join(directory, `${stem}-raw-cdp.json`); await writeFile(rawCdpPath, rawCdp);
+    evidence.push({path: path.relative(root, rawCdpPath), bytes: rawCdp.length, sha256: digest(rawCdp), kind: 'native-function-raw-cdp'});
+    if (current?.page) {
+      // Show observed function values, not an installation page or invented
+      // acceptance verdict. Full resource text remains in the hashed raw file.
+      const visible = JSON.stringify(record, (_key, value) => typeof value === 'string' && value.length > 256 ? `${value.slice(0, 256)}… [full value in raw result]` : value, 2);
+      await evaluate(current.page, `(()=>{let pre=document.querySelector('#sdk-native-function-result');if(!pre){pre=document.createElement('pre');pre.id='sdk-native-function-result';pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;background:white;color:black;padding:20px;font:16px monospace;max-height:80vh;overflow:auto';document.body.prepend(pre);}pre.textContent=${JSON.stringify(`${id}\n${visible}`)};pre.scrollIntoView();return{url:location.href,title:document.title};})()`);
+      await current.browserClient.send('Target.activateTarget', {targetId: current.targetId});
+      const capture = await current.page.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false});
+      const image = Buffer.from(capture.data, 'base64'), imagePath = path.join(directory, `${stem}-function-result.png`);
+      await writeFile(imagePath, image);
+      evidence.push({path: path.relative(root, imagePath), bytes: image.length, sha256: digest(image), kind: 'native-function-result-screenshot', targetId: current.targetId, tabId: current.tabId, documentId: current.session.documentId});
+    }
+    return evidence;
+  }
   const caseRun = async (id, operation) => {
+    const trafficStart = traffic.length; let actual;
     try {
-      const actual = await operation(); report.cases.push({id, status: 'PASS', actual});
+      actual = await operation(); const record = {id, status: 'PASS', actual, trafficStart, trafficEnd: traffic.length};
+      record.evidence = await evidenceForCase(id, record); report.cases.push(record);
       console.log(JSON.stringify({state: 'native-case', mode, label, id, status: 'PASS'})); return actual;
     } catch (error) {
-      const status = error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'BLOCKED' : 'FAIL';
-      report.cases.push({id, status, error: errorProjection(error)});
+      const status = error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'BLOCKED' : error.code === 'E_NATIVE_OBSERVATION_UNAVAILABLE' ? 'NOT_TESTED' : 'FAIL';
+      const record = {id, status, actual, error: errorProjection(error), trafficStart, trafficEnd: traffic.length};
+      try { record.evidence = await evidenceForCase(id, record); } catch (captureError) { record.evidenceError = errorProjection(captureError); }
+      report.cases.push(record);
       console.log(JSON.stringify({state: 'native-case', mode, label, id, status, error: errorProjection(error)})); return null;
     }
   };
-  let current, owned;
   async function startSession(number, restarted) {
     const clients = [], session = {number, launchMethod: 'global Python launcher'};
     report.sessions.push(session);
@@ -280,7 +325,8 @@ async function browserRun(mode, label) {
       session.profileRetainedForRestart = true;
       return next;
     }
-    return {session, tool, page, decoy, browserClient, install, snapshot, stopWorker, restartBrowser, stop, targetId, tabId};
+    current = {session, tool, page, decoy, browserClient, workerClient, install, snapshot, stopWorker, restartBrowser, stop, targetId, tabId};
+    return current;
   }
   try {
     const first = await startSession(1), {tool, page, decoy} = first;
@@ -291,14 +337,179 @@ async function browserRun(mode, label) {
     });
     assert(entry, 'Explicit product UI prerequisite failed');
     const installed = await caseRun('UI-TRUSTED-GESTURE-EXACT-DOCUMENT-INSTALL', first.install); assert(installed, 'Native product installation prerequisite failed');
-    await caseRun('NATIVE-HELLO-GRANT-SUBSET-NO-CONTROLLER', async () => {
+    const nativeHello = await caseRun('NATIVE-HELLO-GRANT-SUBSET-NO-CONTROLLER', async () => {
       const hello = await evaluate(page, 'OpenDeskSDK.ready()');
       assert.equal(hello.ready, true); assert.equal(hello.sdkVersion, '1.0.0');
-      assert.deepEqual([...hello.methods].sort(), Object.entries(SDK_METHODS).filter(([, method]) => capabilities.includes(method.capability)).map(([name]) => name).sort());
+      assert.equal(Object.keys(ADMITTED_METHODS).length, 23);
+      assert.deepEqual([...hello.methods].sort(), Object.entries(ADMITTED_METHODS).filter(([, method]) => capabilities.includes(method.capability)).map(([name]) => name).sort());
       assert.equal(await evaluate(decoy, 'typeof OpenDeskSDK'), 'undefined');
       const snap = await first.snapshot(); assert(!snap.data.runs.some(row => row.value.tag !== 'sdk-service'));
       assert(snap.data.commandJournal.some(row => row.value.tag === 'sdk-grant' && row.value.documentId === installed.documentId && row.value.active));
       return {hello, decoyHasSdk: false, journal: snap.data.commandJournal, controllerRuns: []};
+    });
+    assert(nativeHello, 'Real sender/grant Hello prerequisite failed; dependent SDK cases cannot run');
+    await caseRun('LEGACY-APPSTORAGE-APPLOCAL-REAL-COMPLETION-PROMISES', async () => {
+      const callbacks = [], observerErrors = [], inflight = new Set(); let breakpointId;
+      await page.send('Debugger.enable');
+      try {
+      const script = await until(() => traffic.filter(row => row.endpoint === first.targetId && row.message?.method === 'Debugger.scriptParsed')
+        .map(row => row.message.params).find(row => row.url === `chrome-extension://${report.extensionId}/framework/sdk-main.js`), 'real MAIN SDK script');
+      const {scriptSource} = await page.send('Debugger.getScriptSource', {scriptId: script.scriptId});
+      assert.equal(digest(scriptSource), resourceManifest.resources.find(row => row.path === 'framework/sdk-main.js').sha256);
+      const point = discoverLegacyCompletion(scriptSource);
+      const possible = await page.send('Debugger.getPossibleBreakpoints', {start: {scriptId: script.scriptId, ...point.location}, end: {scriptId: script.scriptId, ...point.endLocation}});
+      const exact = possible.locations.filter(location => location.lineNumber === point.location.lineNumber && location.columnNumber === point.location.columnNumber && location.type === 'call');
+      if (exact.length !== 1) throw notObserved('Exact real completion settlement call breakpoint unavailable', {point, possible});
+      const detach = page.onEvent(event => {
+        if (event.method !== 'Debugger.paused' || !event.params.hitBreakpoints?.includes(breakpointId)) return;
+        const task = (async () => {
+          try {
+            const frame = event.params.callFrames[0];
+            assert.equal(frame.location.scriptId, script.scriptId); assert.equal(frame.location.lineNumber, point.location.lineNumber); assert.equal(frame.location.columnNumber, point.location.columnNumber);
+            const inspected = await page.send('Debugger.evaluateOnCallFrame', {callFrameId: frame.callFrameId, returnByValue: true,
+              expression: `(()=>{const result=${point.resultExpression};const body=typeof result==='string'?JSON.parse(result):result;return{requestId:${point.requestExpression},code:body.PageBrigeCode,ownData:Object.hasOwn(body,'data'),undefinedData:body.data===undefined,valueKind:typeof body.data,data:body.data};})()`});
+            assert(!inspected.exceptionDetails, JSON.stringify(inspected.exceptionDetails));
+            callbacks.push({at: Date.now(), location: frame.location, ...inspected.result.value});
+          } catch (error) { observerErrors.push(errorProjection(error)); }
+          finally { await page.send('Debugger.resume'); }
+        })();
+        inflight.add(task); task.finally(() => inflight.delete(task)).catch(error => observerErrors.push(errorProjection(error)));
+      });
+      try {
+        const set = await page.send('Debugger.setBreakpoint', {location: {scriptId: script.scriptId, ...point.location}}); breakpointId = set.breakpointId;
+        if (set.actualLocation.lineNumber !== point.location.lineNumber || set.actualLocation.columnNumber !== point.location.columnNumber)
+          throw notObserved('Chrome moved the completion breakpoint away from the exact call', {point, actualLocation: set.actualLocation});
+        const actual = await evaluate(page, observerExpression(observeLegacyStorage, `${seed}-legacy`));
+        await Promise.all([...inflight]); assert.deepEqual(observerErrors, []);
+        assert.equal(actual.completionExport, 'function'); assert.equal(actual.pendingBefore, 0); assert.equal(actual.pendingAfter, 0); assert.equal(actual.diagnostics.pending, 0);
+        for (const name of ['persistentIsPromise', 'sessionIsPromise', 'persistentSetUndefined', 'sessionSetUndefined', 'sessionOwnUndefined', 'sessionAfterRemoveUndefined']) assert.equal(actual[name], true);
+        assert.equal(actual.persistent, 'false'); assert.equal(actual.sessionFalse, false); assert.equal(actual.sessionZero, 0); assert.equal(actual.sessionFalseValue, false); assert.equal(actual.sessionZeroValue, 0); assert.equal(actual.persistentAfterRemove, null);
+        assert.equal(callbacks.length, 12); assert(callbacks.every(row => row.code === 0 && row.ownData));
+        assert(callbacks.some(row => row.undefinedData)); assert(callbacks.some(row => row.data === 'false')); assert(callbacks.some(row => row.data === false)); assert(callbacks.some(row => row.data === 0));
+        const nativeEvents = await evaluate(page, '__sdkNativeEvents.filter(row=>row.name==="OPEN_DESK_SDK_RESULT")');
+        for (const callback of callbacks) assert(nativeEvents.some(row => row.message.requestId === callback.requestId && row.message.response?.ok === true), 'Each real completion must correlate with the native relay final response');
+        const snapshot = await first.snapshot(), operations = snapshot.data.commandJournal.filter(row => callbacks.some(callback => callback.requestId === row.value.requestId) && row.value.tag === 'sdk-operation');
+        assert.equal(operations.length, 12); assert(operations.every(row => row.value.state === 'durable'));
+        const receipts = operations.map(operation => snapshot.data.results.find(row => row.value.resultId === operation.value.resultId && row.value.opId === operation.value.opId && row.value.requestDigest === operation.value.requestDigest));
+        assert(receipts.every(row => row?.value.state === 'durable' && row.value.valueWire));
+        for (const receipt of receipts) {
+          const callback = callbacks.find(row => row.requestId === receipt.value.requestId);
+          assert.equal(callback.valueKind, typeof decodeValue(receipt.value.valueWire));
+          assert.equal(callback.undefinedData, decodeValue(receipt.value.valueWire) === undefined);
+        }
+        return {expected: {callbacks: 12, pending: 0, persistent: 'false', sessionFalse: false, sessionZero: 0}, actual, callbacks, point, scriptSha256: digest(scriptSource), nativeEvents, operations, receipts};
+      } finally {
+        try { if (breakpointId) await page.send('Debugger.removeBreakpoint', {breakpointId}); } finally { detach(); }
+      }
+      } finally { await page.send('Debugger.disable'); }
+    });
+    await caseRun('LEGACY-AXIOSX-ORIGINAL-HTTP-PARAMETERS-RESULTS-ERRORS', async () => {
+      const results = [];
+      for (const verb of ['get', 'post', 'put', 'delete']) {
+        const config = {params: {legacy: seed, verb, f: false, z: 0}, headers: {'x-native-legacy': seed}, withCredentials: false};
+        const result = await evaluate(page, observerExpression(observeLegacyHttp, verb, `${origin}/echo`, config));
+        assert(result.ok && result.isPromise, JSON.stringify(result)); assert.equal(result.value.status, 200); assert.equal(result.value.data.method, verb.toUpperCase());
+        assert.equal(result.value.data.business.PageBrigeCode, 9); assert.equal(result.value.data.falseValue, false); assert.equal(result.value.data.zero, 0);
+        assert.deepEqual(result.value.config.params, config.params); assert.equal(result.value.config.headers['x-native-legacy'], seed); assert.equal(result.value.config.method, verb);
+        const hit = serverEvents.find(hit => hit.method === verb.toUpperCase() && hit.url.includes(`legacy=${seed}`) && hit.url.includes(`verb=${verb}`));
+        assert(hit); assert.equal(hit.headers['x-native-legacy'], seed);
+        const query = new URL(hit.url, origin).searchParams; assert.equal(query.get('f'), 'false'); assert.equal(query.get('z'), '0');
+        if (['post', 'put'].includes(verb)) assert.deepEqual(JSON.parse(hit.body), {f: false, z: 0});
+        results.push({verb, config, result, rawServer: hit});
+      }
+      const invalid = await evaluate(page, observerExpression(observeLegacyHttp, 'get', `${origin}/echo?invalid-legacy=${seed}`, {invented: true}));
+      const failure = await evaluate(page, observerExpression(observeLegacyHttp, 'get', `${origin}/error?legacy=${seed}`, {}));
+      assert.equal(invalid.ok, false); assert.equal(invalid.error.code, 'E_CONFIG_UNSUPPORTED'); assert.equal(failure.ok, false); assert.equal(failure.error.code, 'E_HTTP');
+      assert.equal(failure.error.status, 503); assert.equal(failure.error.response.status, 503); assert.equal(failure.error.response.data.business, 'unavailable');
+      assert(!serverEvents.some(hit => hit.url.includes(`invalid-legacy=${seed}`)));
+      return {expected: {verbs: ['GET', 'POST', 'PUT', 'DELETE'], invalid: 'E_CONFIG_UNSUPPORTED', httpError: 'E_HTTP'}, results, invalid, failure};
+    });
+    await caseRun('LEGACY-FOUR-SERVICES-BRIDGE-DATA-AND-DIRECT-PROMISES', async () => {
+      const before = Date.now(), observations = [];
+      for (const direct of [false, true]) {
+        const log = await evaluate(page, observerExpression(observeLegacyService, 'log', {message: '迁移验收', data: [0, false]}, direct));
+        const time = await evaluate(page, observerExpression(observeLegacyService, 'getTime', {}, direct));
+        const bexUrl = await evaluate(page, observerExpression(observeLegacyService, 'bexUrl', {}, direct));
+        assert(log.ok && log.isPromise && log.undefinedValue); assert.equal(log.valueKind, 'undefined');
+        assert(time.ok && time.isPromise); assert.equal(time.valueKind, 'number'); assert(Number.isFinite(time.value)); assert(time.value >= before && time.value <= Date.now());
+        assert(bexUrl.ok && bexUrl.isPromise); assert.deepEqual(bexUrl.value, {url: `chrome-extension://${report.extensionId}/`});
+        if (!direct) for (const result of [log, time, bexUrl]) assert.equal(result.ownData, true);
+        const resource = await evaluate(page, observerExpression(observeLegacyService, 'requestResource', {url: SDK_RESOURCE_PATHS[0]}, direct));
+        assert(resource.ok && resource.isPromise); assert.equal(resource.value.success, true);
+        assert.equal(Buffer.byteLength(resource.value.data), resourceManifest.resources[0].bytes); assert.equal(digest(resource.value.data), resourceManifest.resources[0].sha256);
+        if (!direct) assert.equal(resource.ownData, true);
+        observations.push({direct, log, time, bexUrl, resource});
+      }
+      const helperRoot = await evaluate(page, 'OpenDeskSDK.resources.getBexUrlByBridge()'); assert.equal(helperRoot, `chrome-extension://${report.extensionId}/`);
+      return {expected: {ownUndefined: true, finiteClock: true, runtimeRoot: `chrome-extension://${report.extensionId}/`, resourceManifest}, observations, helperRoot,
+        zeroClockCoverage: {status: 'NOT_TESTED', reason: 'Production trusted Date clock did not return 0; exact zero must be checked with the existing trusted-clock component case, without mutating this native clock'}};
+    });
+    await caseRun('LEGACY-TWO-FIXED-RESOURCES-SEVEN-ALIASES-BYTES-SHA', async () => {
+      const observations = [];
+      await evaluate(page, 'globalThis.__nativeResourceExports={sdk:OpenDeskSDK,service,bridge:service.bridge,storage:AppStorage,local:AppLocal,http:axiosx};true');
+      for (const url of [...SDK_RESOURCE_PATHS, ...Object.keys(SDK_RESOURCE_ALIASES)]) {
+        const expectedPath = SDK_RESOURCE_ALIASES[url] ?? url, expected = resourceManifest.resources.find(row => row.path === expectedPath);
+        const bridge = await evaluate(page, observerExpression(observeLegacyResource, url, false));
+        const consumer = await evaluate(page, observerExpression(observeLegacyResource, `chrome-extension://${report.extensionId}/${url}`, true));
+        for (const observed of [bridge, consumer]) {
+          assert.equal(observed.value.success, true); assert.equal(typeof observed.value.data, 'string'); assert.equal(observed.bytes, expected.bytes); assert.equal(observed.sha256, expected.sha256);
+        }
+        assert.equal(bridge.ownData, true); assert.equal(bridge.value.data, consumer.value.data);
+        observations.push({url, expected, bridge, consumer});
+      }
+      const unchangedInstallation = await evaluate(page, '(()=>{const old=__nativeResourceExports;const unchanged=old.sdk===OpenDeskSDK&&old.service===service&&old.bridge===service.bridge&&old.storage===AppStorage&&old.local===AppLocal&&old.http===axiosx;delete globalThis.__nativeResourceExports;return unchanged;})()');
+      assert.equal(unchangedInstallation, true); assert.equal(observations.length, 9);
+      return {expected: resourceManifest, aliases: SDK_RESOURCE_ALIASES, observations, unchangedInstallation};
+    });
+    await caseRun('LEGACY-SERVICE-SCHEMA-BOUNDS-REMOTE-NO-EXTERNAL-FETCH', async () => {
+      const attempts = [
+        ['log', {message: 'x', discarded: true}, 'E_SCHEMA'], ['log', {message: 'x', data: 'wrong'}, 'E_SCHEMA'],
+        ['log', {message: 'x'.repeat(4097)}, 'E_LIMIT'], ['log', {message: 'x', data: Array(101).fill(0)}, 'E_LIMIT'],
+        ['getTime', {discarded: true}, 'E_SCHEMA'], ['bexUrl', {discarded: true}, 'E_SCHEMA'],
+        ['getTime', {discarded: undefined}, 'E_SCHEMA'],
+        ['requestResource', {url: SDK_RESOURCE_PATHS[0], discarded: true}, 'E_SCHEMA'],
+        ['requestResource', {url: `${origin}/forbidden-resource?seed=${seed}`}, 'E_SCHEMA'],
+        ['requestResource', {url: 'framework/../sdk-main.js'}, 'E_SCHEMA'], ['requestResource', {url: 'framework/%2e%2e/sdk-main.js'}, 'E_SCHEMA'],
+        ['requestResource', {url: '/framework/sdk-main.js'}, 'E_SCHEMA'], ['requestResource', {url: 'framework/sdk-main.js?x=1'}, 'E_SCHEMA'],
+        ['requestResource', {url: 'x'.repeat(1025)}, 'E_SCHEMA'], ['requestResource', {url: 'assets/js/unregistered.js'}, 'E_RESOURCE_UNAVAILABLE']
+      ];
+      await first.workerClient.send('Network.enable'); const start = traffic.length, requests = [], results = [];
+      const detach = first.workerClient.onEvent(event => { if (event.method === 'Network.requestWillBeSent') requests.push(event.params.request); });
+      try {
+        for (const [method, args, expectedCode] of attempts) for (const direct of [false, true]) {
+          const actual = await evaluate(page, observerExpression(observeLegacyService, method, args, direct));
+          assert.equal(actual.ok, false); assert.equal(actual.error.code, expectedCode); results.push({method, args, argsWire: encodeValue(args), direct, expectedCode, actual});
+        }
+        for (const [method, args, expectedCode] of attempts) {
+          const payload = {requestId: `schema-${randomUUID()}`, method, argsWire: encodeValue(args), deadlineAt: Date.now() + 30000};
+          const actual = await evaluate(page, rawExpression(payload));
+          assert.equal(actual.ok, false); assert.equal(actual.error.code, expectedCode);
+          results.push({method, args, boundary: 'real-relay-native-sender-broker-schema', payload, expectedCode, actual});
+        }
+        // Flush the real worker event channel without making a network call.
+        await first.workerClient.send('Runtime.evaluate', {expression: 'true', returnByValue: true});
+        assert(!requests.some(row => /^https?:/.test(row.url)), 'Invalid resource calls must produce zero external worker fetches');
+        assert(!serverEvents.some(hit => hit.url.includes('forbidden-resource')));
+        return {expected: {externalFetches: 0}, results, workerNetworkRequests: requests, trafficStart: start, serverEvents: serverEvents.filter(hit => hit.url.includes('forbidden-resource'))};
+      } finally { detach(); await first.workerClient.send('Network.disable'); }
+    });
+    await caseRun('LEGACY-LOG-REAL-DUPLICATE-CONFLICT-ONE-EFFECT', async () => {
+      const payload = {requestId: `legacy-log-${randomUUID()}`, method: 'log', argsWire: encodeValue({message: '迁移去重', data: [0, false]}), deadlineAt: Date.now() + 30000};
+      const logs = [], detach = first.workerClient.onEvent(event => {
+        if (event.method === 'Runtime.consoleAPICalled' && event.params.args?.[0]?.value === 'opendesk.sdk.log') logs.push(event.params);
+      });
+      try {
+        const original = await evaluate(page, rawExpression(payload)), duplicate = await evaluate(page, rawExpression(payload));
+        const conflict = await evaluate(page, rawExpression({...payload, argsWire: encodeValue({message: 'changed', data: [0, false]})}));
+        assert.equal(original.ok, true); assert.deepEqual(duplicate, original); assert.equal(conflict.error.code, 'E_REQUEST_CONFLICT');
+        const value = decodeValue(original.data.valueWire); assert.equal(value.PageBrigeCode, 0); assert(Object.hasOwn(value, 'data')); assert.equal(value.data, undefined);
+        await first.workerClient.send('Runtime.evaluate', {expression: 'true', returnByValue: true}); assert.equal(logs.length, 1);
+        const snap = await first.snapshot(), operations = snap.data.commandJournal.filter(row => row.value.tag === 'sdk-operation' && row.value.requestId === payload.requestId);
+        assert.equal(operations.length, 1); assert.equal(operations[0].value.state, 'durable'); assert.equal(operations[0].value.submissionCount, 1);
+        const receipt = snap.data.results.find(row => row.value.resultId === operations[0].value.resultId && row.value.opId === operations[0].value.opId && row.value.requestDigest === operations[0].value.requestDigest);
+        assert(receipt?.value.state === 'durable'); assert.equal(decodeValue(receipt.value.valueWire), undefined);
+        return {expected: {logEffects: 1, durableOperations: 1, conflict: 'E_REQUEST_CONFLICT'}, payload, original, duplicate, conflict, logs, operations, receipt};
+      } finally { detach(); }
     });
     await caseRun('PERSISTENT-STRING-CONVERSION-AND-UNDEFINED-SETTLEMENT', async () => {
       const set = await evaluate(page, callExpression('APPSTORAGE_SETITEM', {key: persistentKey, value: false}));
@@ -360,19 +571,41 @@ async function browserRun(mode, label) {
     });
     await caseRun('SESSION-AND-PERSISTENT-SURVIVE-SW-RESTART', async () => {
       const sessionValue = await evaluate(page, callExpression('APPLOCAL_GETITEM', {key: sessionKey})), persistentValue = await evaluate(page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey}));
-      assert(sessionValue.ok); assert.equal(sessionValue.value.f, false); assert.equal(sessionValue.value.z, 0); assert.equal(persistentValue.value, 'false'); return {sessionValue, persistentValue};
+      assert(sessionValue.ok); assert.equal(sessionValue.value.f, false); assert.equal(sessionValue.value.z, 0); assert.equal(persistentValue.value, 'false');
+      const legacy = await evaluate(page, `(async()=>{const session=await AppLocal.getItem(${JSON.stringify(sessionKey)});return{persistent:await AppStorage.getItem(${JSON.stringify(persistentKey)}),f:session.f,z:session.z,ownUndefined:Object.hasOwn(session,'u')&&session.u===undefined};})()`);
+      assert.equal(legacy.persistent, 'false'); assert.equal(legacy.f, false); assert.equal(legacy.z, 0); assert.equal(legacy.ownUndefined, true);
+      return {sessionValue, persistentValue, legacy};
     });
+    let revocationPayload, revocationOriginal, revocationOperation;
     await caseRun('NATIVE-PERMISSION-REMOVAL-REVOKES-GRANT', async () => {
+      // Create the old identity immediately before removal. The earlier
+      // duplicate test's 30s request is already stale after restart diagnostics.
+      revocationPayload = {requestId: `revoke-${randomUUID()}`, method: 'AXIOS_POST',
+        argsWire: encodeValue({url: `${origin}/echo?revocation=${seed}`, data: {f: false, z: 0}}), deadlineAt: Date.now() + SDK_LIMITS.maxTimeoutMs};
+      revocationOriginal = await evaluate(page, rawExpression(revocationPayload)); assert.equal(revocationOriginal.ok, true);
+      const admissionSnapshot = await first.snapshot();
+      revocationOperation = admissionSnapshot.data.commandJournal.find(row => row.value.tag === 'sdk-operation' && row.value.requestId === revocationPayload.requestId)?.value;
+      assert(revocationOperation); assert.equal(revocationOperation.state, 'durable'); assert.equal(revocationOperation.submissionCount, 1);
+      assert.equal(serverEvents.filter(hit => hit.url.includes(`revocation=${seed}`)).length, 1);
       const removed = await evaluate(tool, 'chrome.permissions.remove({origins:["http://127.0.0.1/*"]})'); assert.equal(removed, true);
       const value = await evaluate(page, callExpression('APPSTORAGE_SETITEM', {key: `${seed}-forbidden`, value: 'must-not-commit'}));
       assert.equal(value.ok, false); assert(['E_PERMISSION', 'E_GRANT_REVOKED'].includes(value.error.code));
-      const snap = await first.snapshot(); assert(!snap.data.frameworkKV.some(row => row.value.key === `${seed}-forbidden`)); return {removed, value, grants: snap.data.commandJournal.filter(row => row.value.tag === 'sdk-grant')};
+      const snap = await first.snapshot(); assert(!snap.data.frameworkKV.some(row => row.value.key === `${seed}-forbidden`)); return {removed, value, revocationPayload, revocationOriginal, revocationOperation, grants: snap.data.commandJournal.filter(row => row.value.tag === 'sdk-grant')};
     });
     await caseRun('TRUSTED-UI-REGRANT-DOES-NOT-REPLAY-OLD-REQUEST', async () => {
-      const install = await first.install(), old = await evaluate(page, rawExpression(duplicatePayload));
-      assert.equal(old.ok, false); assert(['E_GRANT_REVOKED', 'E_DEADLINE', 'E_TIMEOUT'].includes(old.error.code));
+      const install = await first.install(), replayStartedAt = Date.now();
+      const window = {requestId: revocationPayload?.requestId, requestDeadlineAt: revocationPayload?.deadlineAt,
+        admittedDeadlineAt: revocationOperation?.deadlineAt, replayStartedAt, install};
+      if (!revocationPayload || !revocationOperation || replayStartedAt >= Math.min(revocationPayload.deadlineAt, revocationOperation.deadlineAt))
+        throw notObserved('Regrant missed the original request/admitted deadline window; revocation was not observed with a live old request', window);
+      const old = await evaluate(page, rawExpression(revocationPayload));
+      window.replayObservedAt = Date.now(); window.old = old;
+      if (window.replayObservedAt >= Math.min(revocationPayload.deadlineAt, revocationOperation.deadlineAt))
+        throw notObserved('Old request expired during the observation; deadline rejection cannot prove grant revocation', window);
+      assert.equal(old.ok, false); assert.equal(old.error.code, 'E_GRANT_REVOKED');
       assert.equal(serverEvents.filter(hit => hit.url.includes(`duplicate=${seed}`)).length, 1);
-      const fresh = await evaluate(page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey})); assert.equal(fresh.value, 'false'); return {install, old, fresh};
+      assert.equal(serverEvents.filter(hit => hit.url.includes(`revocation=${seed}`)).length, 1);
+      const fresh = await evaluate(page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey})); assert.equal(fresh.value, 'false'); return {install, old, fresh, revocationPayload, revocationOriginal, revocationOperation, window};
     });
     await caseRun('NATIVE-NAVIGATION-INVALIDATES-OLD-DOCUMENT', async () => {
       const previous = first.session.documentId;
@@ -408,6 +641,16 @@ async function browserRun(mode, label) {
       await invoke('APPSTORAGE_SETITEM',{key,value:'clear-me'});
       assert((await invoke('APPSTORAGE_CLEAR')).undefinedResult);
       assert.equal((await invoke('APPSTORAGE_GETITEM',{key})).value,null);
+      await invoke('APPSTORAGE_SETITEM',{key,value:0});
+      await invoke('CHROME_LOCAL_SET',{values:{[key]:false}});
+      assert.equal((await invoke('APPSTORAGE_GETITEM',{key})).value,'0');
+      assert.equal((await invoke('CHROME_LOCAL_GET',{key})).value,false);
+      await invoke('APPSTORAGE_CLEAR');
+      assert.equal((await invoke('CHROME_LOCAL_GET',{key})).value,false);
+      await invoke('APPSTORAGE_SETITEM',{key,value:'survives'});
+      assert((await invoke('CHROME_LOCAL_CLEAR')).undefinedResult);
+      assert.equal((await invoke('APPSTORAGE_GETITEM',{key})).value,'survives');
+      assert((await invoke('CHROME_LOCAL_GET',{key})).undefinedResult);
       for(const verb of ['GET','POST','PUT','DELETE']) {
         const result=await invoke('AXIOS_'+verb,{url:origin+'/echo?all18='+seed,
           ...(['POST','PUT'].includes(verb)?{data:{f:false,z:0}}:{})});
@@ -437,10 +680,13 @@ async function browserRun(mode, label) {
           session:await (${sdkCall.toString()})('APPLOCAL_GETITEM',{key:${JSON.stringify(sessionKey)}}),hello:await OpenDeskSDK.ready()};})()`);
       assert(before.persistent.ok && before.session.ok); assert.equal(before.persistent.value, 'false');
       assert.equal(before.session.value.f, false); assert.equal(before.session.value.z, 0);
+      const legacyPersistentKey = `${persistentKey}-legacy-lifetime`, legacySessionKey = `${sessionKey}-legacy-lifetime`;
+      const legacyBefore = await evaluate(page, `(async()=>{const persistentSet=await AppStorage.setItem(${JSON.stringify(legacyPersistentKey)},0);const sessionSet=await AppLocal.setItem(${JSON.stringify(legacySessionKey)},{f:false,z:0,u:undefined});const session=await AppLocal.getItem(${JSON.stringify(legacySessionKey)});return{persistentSetUndefined:persistentSet===undefined,sessionSetUndefined:sessionSet===undefined,persistent:await AppStorage.getItem(${JSON.stringify(legacyPersistentKey)}),f:session.f,z:session.z,ownUndefined:Object.hasOwn(session,'u')&&session.u===undefined};})()`);
+      assert(legacyBefore.persistentSetUndefined && legacyBefore.sessionSetUndefined && legacyBefore.ownUndefined); assert.equal(legacyBefore.persistent, '0'); assert.equal(legacyBefore.f, false); assert.equal(legacyBefore.z, 0);
       const snapshotBefore = await first.snapshot();
       assert(Object.keys(snapshotBefore.sessionStorage).some(key => key.startsWith('framework-session:')));
       assert.equal(typeof snapshotBefore.sessionStorage.browserSessionIncarnation, 'string');
-      await writeFile(path.join(directory, 'browser-session-before.json'), JSON.stringify({before, snapshotBefore}, null, 2) + '\n');
+      await writeFile(path.join(directory, 'browser-session-before.json'), JSON.stringify({before, legacyBefore, snapshotBefore}, null, 2) + '\n');
       const next = await first.restartBrowser(), second = await startSession(2, next);
       assert.equal(second.session.launcher.profile, first.session.launcher.profile);
       assert.notEqual(second.session.pid, first.session.pid);
@@ -457,10 +703,12 @@ async function browserRun(mode, label) {
       assert.equal(hello.ready, true);
       const persistent = await evaluate(second.page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey}));
       const session = await evaluate(second.page, callExpression('APPLOCAL_GETITEM', {key: sessionKey}));
+      const legacyAfter = await evaluate(second.page, `(async()=>{const session=await AppLocal.getItem(${JSON.stringify(legacySessionKey)});return{persistent:await AppStorage.getItem(${JSON.stringify(legacyPersistentKey)}),sessionUndefined:session===undefined,sessionKind:typeof session};})()`);
+      assert.equal(legacyAfter.persistent, '0'); assert.equal(legacyAfter.sessionUndefined, true); assert.equal(legacyAfter.sessionKind, 'undefined');
       assert(persistent.ok); assert.equal(persistent.value, 'false');
       assert(session.ok && session.undefinedResult); assert.equal(session.valueKind, 'undefined');
       const snapshotAfter = await second.snapshot();
-      const actual = {before, snapshotBefore, restart: next.metadata, snapshotAfterRestart, install, hello, persistent, session, snapshotAfter};
+      const actual = {before, legacyBefore, snapshotBefore, restart: next.metadata, snapshotAfterRestart, install, hello, persistent, session, legacyAfter, snapshotAfter};
       await writeFile(path.join(directory, 'browser-session-after.json'), JSON.stringify(actual, null, 2) + '\n');
       return actual;
     });

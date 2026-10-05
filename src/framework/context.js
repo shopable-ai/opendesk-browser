@@ -1,3 +1,5 @@
+import {createHttp} from './sdk/http.js';
+import {createStorageFacades} from './sdk/storage.js';
 import {createBoundPage} from './ChromePage.js';
 import {PageError, requireValue, frozenCopy, encodeValue, decodeValue, newPageRequestId} from './control/value.js';
 
@@ -82,7 +84,9 @@ export function createRunContext({identity, revision, target = identity?.target,
     constructor(options) { return createBoundPage(binding, options); }
   }
   const page = createBoundPage(binding);
-  const context = Object.freeze({identity: owner, revision: pin, get target() { return current; }, page, ChromePage: SessionChromePage,
+  const serviceCall = (method, args) => request(method, [args], {kind:'service'});
+  const services = Object.freeze({axiosx:createHttp(serviceCall), ...createStorageFacades(serviceCall)});
+  const context = Object.freeze({identity: owner, revision: pin, get target() { return current; }, page, services, ChromePage: SessionChromePage,
     signal: lifetime.signal, dispose, snapshot: () => Object.freeze({closed: closed?.code || null, pending: pending.size, timer: timer === null || closed ? 0 : 1})});
   relays.set(context, async envelope => {
     guard();

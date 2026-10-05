@@ -32,5 +32,5 @@ export function createWorkerPageProxy({port, identity, revision, target, deadlin
     if (closed) return; closed = true; lifetime.abort(new PageError(code)); context.dispose(code);
     remove('message', receive); close(); pending.clear();
   }
-  return Object.freeze({page: context.page, context, dispose, snapshot: () => ({pending: pending.size, ...context.snapshot()})});
+  return Object.freeze({page: context.page, services: context.services, context, dispose, snapshot: () => ({pending: pending.size, ...context.snapshot()})});
 }

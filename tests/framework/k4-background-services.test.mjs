@@ -28,8 +28,8 @@ function fixture({time = 0, corrupt = false} = {}) {
   return {service:createSdkService({background}), background, context, effects, calls, logs, phases, manifest, contents};
 }
 
-test('four services extend the original eighteen; malicious/oversized arguments cannot reach a sink', async () => {
-  assert.equal(Object.keys(SDK_METHODS).length, 18); assert.equal(Object.keys(ADMITTED_METHODS).length, 22);
+test('four services and isolated Chrome clear extend the original eighteen; malicious/oversized arguments cannot reach a sink', async () => {
+  assert.equal(Object.keys(SDK_METHODS).length, 19); assert.equal(Object.keys(ADMITTED_METHODS).length, 23);
   for (const method of ['getTime', 'bexUrl']) assert.throws(() => normalizeMethod(method, {root:'fake'}), code('E_SCHEMA'));
   for (const args of [{message:'x', data:{}}, {message:'x', token:'secret'}]) assert.throws(() => normalizeMethod('log', args), code('E_SCHEMA'));
   assert.throws(() => normalizeMethod('log', {message:'中'.repeat(1366)}), code('E_LIMIT'));
@@ -40,10 +40,10 @@ test('four services extend the original eighteen; malicious/oversized arguments 
 
 test('trusted zero clock, runtime root and log own-undefined survive effect receipt before delivery', async () => {
   const f = fixture();
-  assert.equal((await f.service.execute('getTime', {}, f.context)).data, 0);
-  assert.deepEqual((await f.service.execute('bexUrl', {}, f.context)).data, {url:root});
+  assert.equal((await f.service.execute('getTime', {}, f.context)).value, 0);
+  assert.deepEqual((await f.service.execute('bexUrl', {}, f.context)).value, {url:root});
   const result = await f.service.execute('log', {message:'secret中文', data:[false, 0]}, f.context);
-  assert.equal(Object.hasOwn(result, 'data'), true); assert.equal(result.data, undefined);
+  assert.equal(Object.hasOwn(result, 'value'), true); assert.equal(result.value, undefined);
   assert.deepEqual(f.logs, [['opendesk.sdk.log', {messageBytes:12, dataItems:2}]]);
   assert.deepEqual(f.effects, [0, {url:root}, undefined]);
   assert.ok(!JSON.stringify(f.logs).includes('secret')); assert.equal(f.calls.length, 0);
@@ -56,7 +56,7 @@ test('only two fixed bytes/SHA resources and seven aliases are readable; hostile
   for (const path of [...SDK_RESOURCE_PATHS, ...Object.keys(SDK_RESOURCE_ALIASES)]) {
     const result = await f.service.execute('requestResource', {url:root + path}, f.context);
     const actualPath = SDK_RESOURCE_ALIASES[path] ?? path;
-    assert.deepEqual(result.data, {success:true, data:f.contents[SDK_RESOURCE_PATHS.indexOf(actualPath)].toString('utf8')});
+    assert.deepEqual(result.value, {success:true, data:f.contents[SDK_RESOURCE_PATHS.indexOf(actualPath)].toString('utf8')});
   }
   const count = f.calls.length;
   for (const url of ['https://remote.example/a.js', '../sw.js', '%2e%2e/sw.js', `${root}framework/sdk-main.js?x`, `${root}framework/sdk-main.js#x`,
@@ -71,7 +71,7 @@ test('only two fixed bytes/SHA resources and seven aliases are readable; hostile
 test('old bridge consumers keep exactly their data layer and original Promise; reinjection refreshes the same facade', async () => {
   const f = fixture(), page = {navigator:{userAgent:''}}; let hellos = 0;
   const transport = {hello:async () => { hellos++; return {ready:true, sdkVersion:SDK_VERSION, methods:Object.keys(ADMITTED_METHODS)}; },
-    request:async request => ({requestId:request.requestId, result:await f.service.execute(request.method, request.args, f.context)})};
+    request:async request => ({requestId:request.requestId, result:legacyResult((await f.service.execute(request.method, request.args, f.context)).value)})};
   const sdk = installPageSdk({global:page, transport});
   try {
     const bridge = page.service.bridge;

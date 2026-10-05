@@ -11,7 +11,7 @@ export function createStorageFacades(call) {
     removeItem: key => call('APPLOCAL_REMOVEITEM', {key})
   });
   const storage = Object.freeze({get: key => call('CHROME_LOCAL_GET', {key}), set: values => call('CHROME_LOCAL_SET', {values}),
-    remove: keys => call('CHROME_LOCAL_REMOVE', {keys}), clear: AppStorage.clear});
+    remove: keys => call('CHROME_LOCAL_REMOVE', {keys}), clear: () => call('CHROME_LOCAL_CLEAR', {})});
   return Object.freeze({AppStorage, AppLocal, storage,
     getObjectFromLocalStorage: key => call('CHROME_LOCAL_GET', {key}),
     saveObjectInLocalStorage: values => call('CHROME_LOCAL_SET', {values}),

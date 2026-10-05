@@ -318,3 +318,32 @@ test('shared authority-issued SDK context interoperates with atomic storage raw 
   await sdk.revokeSdkGrants({tabId: 1, documentId: 'fixture-document', reason: 'navigation'});
   await expects(() => storage.executeSdk('APPSTORAGE_GETITEM', {key: 'shared'}, read.context), 'E_DOCUMENT_STALE');
 });
+
+
+test('AppStorage and Chrome local same-name keys and clear stay in separate logical areas', async () => {
+  const storage = repositoryModel(), clock = {now: () => REGRESSION_TIME + 1000};
+  const api = {runtime: {id: 'fixture-extension'}, permissions: {contains: async () => true},
+    webNavigation: {getAllFrames: async () => [{frameId: 0, documentId: 'fixture-document', url: 'https://fixture.test/page'}]}};
+  const sdk = sdkMethods({storage, api, session: 'fixture-session', clock,
+    assertHost: async () => ({registrationId: 'fixture-host'}), currentHost: async () => null});
+  await sdk.grantSdk({tabId: 1, frameId: 0, documentId: 'fixture-document', capabilities: ['storage.persistent']}, {});
+  const sender = {id: api.runtime.id, tab: {id: 1, incognito: false}, frameId: 0,
+    documentId: 'fixture-document', documentLifecycle: 'active', url: 'https://fixture.test/page'};
+  let serial = 0;
+  const call = async (method, args = {}) => {
+    const {context} = await sdk.admitSdk({method, args, requestId: `partition-${++serial}`, deadlineAt: clock.now() + 10000}, sender);
+    return storage.executeSdk(method, args, context);
+  };
+  await call('APPSTORAGE_SETITEM', {key: 'shared', value: 0});
+  await call('CHROME_LOCAL_SET', {values: {shared: false, other: null}});
+  assert.equal(await call('APPSTORAGE_GETITEM', {key: 'shared'}), '0');
+  assert.equal(await call('CHROME_LOCAL_GET', {key: 'shared'}), false);
+  await call('APPSTORAGE_CLEAR');
+  assert.equal(await call('APPSTORAGE_GETITEM', {key: 'shared'}), null);
+  assert.equal(await call('CHROME_LOCAL_GET', {key: 'shared'}), false);
+  await call('APPSTORAGE_SETITEM', {key: 'shared', value: 'survives'});
+  await call('CHROME_LOCAL_CLEAR');
+  assert.equal(await call('APPSTORAGE_GETITEM', {key: 'shared'}), 'survives');
+  assert.equal(await call('CHROME_LOCAL_GET', {key: 'shared'}), undefined);
+  assert.deepEqual(await call('CHROME_LOCAL_GET', {key: null}), []);
+});

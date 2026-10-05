@@ -1,5 +1,4 @@
 import {normalizeMethod, fail, BACKGROUND_SERVICE_METHODS} from './registry.js';
-import {legacyResult} from './bridge.js';
 
 // Called only after the unique broker has authenticated/admitted/journaled the request.
 // The injected context and storage service belong to that broker, never the page payload.
@@ -30,6 +29,6 @@ export function createSdkService({network, notifications, storage, device, backg
       if (!device?.getAppId) throw fail('E_RESOURCE_UNAVAILABLE', 'Shared atomic device namespace adapter missing');
       value = await device.getAppId(context);
     }
-    return legacyResult(value);
+    return {ok: true, value};
   }});
 }

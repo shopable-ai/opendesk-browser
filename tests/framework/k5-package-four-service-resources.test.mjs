@@ -40,7 +40,7 @@ async function withPackage(mode, run) {
     for (const name of Object.keys(PACKAGE_ENTRIES)) {
       const path = `${name}.js`;
       const body = path === CONTROL_WORKER
-        ? 'const Body=Object.getPrototypeOf(async function(){}).constructor;const execution={body:""};return new Body("page","params",execution.body);'
+      ? 'const Body=Object.getPrototypeOf(async function(){}).constructor;const execution={body:""};return new Body("page","params","axiosx","AppStorage","AppLocal","storage",execution.body);'
         : 'return "fixture🙂";';
       let script = `var OpenDeskFixture=(function(){${body}})();\n`;
       if (mode === 'development') {

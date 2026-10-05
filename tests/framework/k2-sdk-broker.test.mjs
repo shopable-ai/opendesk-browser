@@ -153,7 +153,7 @@ test('SDK Hello needs native document/grant and never claims a controller slot',
   await assert.rejects(f.broker.hello({sdkVersion:'1.0.0'},f.sender),code('E_GRANT_REVOKED'));
   assert.equal((await f.rows('runs')).length,0);
   await f.grant(); const hello = await f.broker.hello({sdkVersion:'1.0.0'},f.sender);
-  assert.equal(hello.ready,true); assert.equal(hello.sdkVersion,'1.0.0'); assert.equal(hello.methods.length,17);
+  assert.equal(hello.ready,true); assert.equal(hello.sdkVersion,'1.0.0'); assert.equal(hello.methods.length,18);
   assert.ok(!hello.methods.includes('NETWORK_INFO_GET'));
   assert.equal((await f.rows('runs')).length,0);
 });

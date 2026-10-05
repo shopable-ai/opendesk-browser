@@ -122,5 +122,5 @@ test('notification true callback wait, lastError refusal and pre/post authorizat
 test('service HTTP result preserves business object inside response.data rather than outer authority', async () => {
   const dispatcher = createSdkService({network: service()});
   const result = await dispatcher.execute('AXIOS_GET', {url: `${base}/false`}, {});
-  assert.equal(result.PageBrigeCode, 0); assert.equal(result.data.data, false); assert.equal(result.data.status, 200);
+  assert.equal(result.ok, true); assert.equal(result.value.data, false); assert.equal(result.value.status, 200);
 });

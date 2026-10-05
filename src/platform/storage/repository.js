@@ -21,7 +21,7 @@ const headKey = STORAGE_KEYS.templateHead;
 const revisionKey = STORAGE_KEYS.templateRevision;
 const checkId = id => invariant(typeof id === 'string' && /^[A-Za-z0-9._:-]{1,128}$/.test(id), 'E_SCHEMA', 'Invalid id');
 const equal = (a, b) => canonical(a) === canonical(b);
-const sdkStores = ['frameworkKV', 'commandJournal', 'results'];
+const sdkStores = ['frameworkKV', 'commandJournal', 'results', 'runs'];
 const kvKey = (namespace, area, key) => `kv:${canonical([namespace, area, key])}`;
 const scriptKey = (namespace, id, revision) => `script:${canonical(revision === undefined ? [namespace, id] : [namespace, id, revision])}`;
 const pinKey = (context, id, revision) => `script-pin:${canonical([context.namespace, context.runId, context.opId, id, revision])}`;
@@ -254,27 +254,27 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     JSON.stringify(encodeValue(row[key])) === JSON.stringify(encodeValue(context[key])));
   const operation = async (tx, context) => {
     const row = await tx.get('commandJournal', context.opKey);
-    invariant(row?.tag === 'sdk-operation' && bound(row, context), 'E_OWNER', 'SDK operation binding mismatch');
+    invariant(row?.tag === (context.lifecycle === 'controller' ? 'controller-operation' : 'sdk-operation') && bound(row, context), 'E_OWNER', 'SDK operation binding mismatch');
     invariant(!['cancelled', 'revoked', 'effect_unknown', 'failed', 'interrupted'].includes(row.state), 'E_OWNER', 'SDK operation fenced');
     return row;
   };
   const durable = async (tx, context, op, requestDigest, outcomeWire) => {
     const old = await tx.get('results', context.resultId);
     invariant(!old, 'E_REQUEST_CONFLICT', 'Result ID already occupied');
-    const result = {tag: 'sdk-result', ...bindings(context), opKey: context.opKey, requestDigest: op.requestDigest,
+    const result = {tag: context.lifecycle === 'controller' ? 'controller-service-result' : 'sdk-result', ...bindings(context), opKey: context.opKey, requestDigest: op.requestDigest,
       storageRequestDigest: requestDigest,
       state: 'durable', outcomeWire, committedAt: now()};
     result.receiptAt = new Date(result.committedAt).toISOString();
     if (outcomeWire.ok) result.valueWire = outcomeWire.value;
     await tx.put('results', result, context.resultId);
     await tx.put('commandJournal', {...op, storageRequestDigest: requestDigest, state: 'durable',
-      durableAt: result.committedAt, receiptAt: result.receiptAt, resultId: context.resultId, receipt: {resultId: context.resultId, state: 'durable'}}, context.opKey);
+      valueWire: result.valueWire, durableAt: result.committedAt, receiptAt: result.receiptAt, resultId: context.resultId, receipt: {resultId: context.resultId, state: 'durable'}}, context.opKey);
     return result;
   };
   const originalResult = async (tx, context, op, requestDigest) => {
     invariant(op.storageRequestDigest === requestDigest, 'E_REQUEST_CONFLICT', 'SDK request digest conflict');
     const result = await tx.get('results', context.resultId);
-    invariant(result?.tag === 'sdk-result' && bound(result, context) && result.opKey === context.opKey &&
+    invariant(result?.tag === (context.lifecycle === 'controller' ? 'controller-service-result' : 'sdk-result') && bound(result, context) && result.opKey === context.opKey &&
       result.state === 'durable' && result.storageRequestDigest === requestDigest && result.requestDigest === op.requestDigest,
       'E_OWNER', 'Durable result binding mismatch');
     decodeOutcome(result.outcomeWire);
@@ -297,9 +297,10 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         return result;
       }
       invariant(['admitted', 'pending', 'prepared', 'dispatched'].includes(op.state), 'E_OWNER', 'Storage operation not admitted');
-      const read = key => tx.get('frameworkKV', kvKey(context.namespace, 'user', key));
+      const area = method.startsWith('APPSTORAGE_') ? 'app-storage' : 'chrome-local';
+      const read = key => tx.get('frameworkKV', kvKey(context.namespace, area, key));
       const put = (key, value) => tx.put('frameworkKV', {tag: 'framework-kv', namespace: context.namespace,
-        area: 'user', key, valueWire: encodeValue(value)}, kvKey(context.namespace, 'user', key));
+        area: area, key, valueWire: encodeValue(value)}, kvKey(context.namespace, area, key));
       const key = value => invariant(typeof value === 'string' && value.length > 0, 'E_SCHEMA', 'Storage key required');
       let value;
       if (method === 'APPSTORAGE_GETITEM') {
@@ -307,21 +308,21 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
       } else if (method === 'APPSTORAGE_SETITEM') {
         key(input.key); await put(input.key, String(input.value));
       } else if (method === 'APPSTORAGE_REMOVEITEM') {
-        key(input.key); await tx.delete('frameworkKV', kvKey(context.namespace, 'user', input.key));
+        key(input.key); await tx.delete('frameworkKV', kvKey(context.namespace, area, input.key));
       } else if (method === 'APPSTORAGE_CLEAR' || method === 'CHROME_LOCAL_CLEAR') {
-        for (const row of await tx.all('frameworkKV')) if (row.tag === 'framework-kv' && row.namespace === context.namespace && row.area === 'user') {
-          await tx.delete('frameworkKV', kvKey(context.namespace, 'user', row.key));
+        for (const row of await tx.all('frameworkKV')) if (row.tag === 'framework-kv' && row.namespace === context.namespace && row.area === area) {
+          await tx.delete('frameworkKV', kvKey(context.namespace, area, row.key));
         }
       } else if (method === 'CHROME_LOCAL_GET') {
         if (input.key === null) value = (await tx.all('frameworkKV')).filter(row => row.tag === 'framework-kv' &&
-          row.namespace === context.namespace && row.area === 'user').map(row => decodeValue(row.valueWire));
+          row.namespace === context.namespace && row.area === area).map(row => decodeValue(row.valueWire));
         else {key(input.key); const row = await read(input.key); value = row ? decodeValue(row.valueWire) : undefined;}
       } else if (method === 'CHROME_LOCAL_SET') {
         invariant(input.values && !Array.isArray(input.values) && typeof input.values === 'object', 'E_SCHEMA', 'Storage values object required');
         for (const [name, item] of Object.entries(input.values)) {key(name); await put(name, item);}
       } else if (method === 'CHROME_LOCAL_REMOVE') {
         const names = Array.isArray(input.keys) ? input.keys : [input.keys];
-        for (const name of names) {key(name); await tx.delete('frameworkKV', kvKey(context.namespace, 'user', name));}
+        for (const name of names) {key(name); await tx.delete('frameworkKV', kvKey(context.namespace, area, name));}
       } else if (method === 'DEVICE_GET_APP_ID') {
         const storageKey = kvKey(context.namespace, 'device', 'deviceID'), old = await tx.get('frameworkKV', storageKey);
         if (old) value = decodeValue(old.valueWire);
