@@ -1,0 +1,275 @@
+{
+  "status": "P1_CANDIDATE_IMPLEMENTED_NATIVE_ACCEPTANCE_PENDING",
+  "source": {
+    "baseSha": "426409791a35acb6a6e5eb3f6fcc8b0600f562b5",
+    "treeSha": "8ea3d1d352b41bb75b994f03a03d545993f5295e",
+    "files": [
+      {
+        "path": "src/platform/host/broker.js",
+        "gitBlob": "8a26a242e245c46973dd4202107109c6e1e3a199",
+        "sha256": "b68d32bad470db4d4b77efe4aa0d6ca2a80cb9ed88f0de40bc42b72518dac52c",
+        "bytes": 11631
+      },
+      {
+        "path": "src/platform/host/sdk-methods.js",
+        "gitBlob": "082f50d7719093cd61a7d470973e7568cbac1afe",
+        "sha256": "1bb35209b20b6bb2c947b55cbcd5103edd5e14db8c0b37a6337f48d36441079b",
+        "bytes": 35420
+      },
+      {
+        "path": "tests/framework/k2-sdk-broker.test.mjs",
+        "gitBlob": "99fb4dfc1b8aea69aae453d80cd03e4b47ac7a63",
+        "sha256": "d54a2e641201ab8438349c467f6175171e68d6189ef45083409c26538ef3b083",
+        "bytes": 23301
+      },
+      {
+        "path": "tests/framework/k2-sdk-reference-authority.test.mjs",
+        "gitBlob": "6c6a9ec7c2978c3e74689a20b214b0ef6ce106d8",
+        "sha256": "67e15d1eec95b02c3a98e37cebfebe2f3439706ea54d4cf70b1b319bfe9b5ead",
+        "bytes": 15768
+      },
+      {
+        "path": "tests/framework/k3-controller-authority.test.mjs",
+        "gitBlob": "5f511ae861dfbd3b088500c0198b0a40b8fb39aa",
+        "sha256": "fe034cfa471b4364012bce597037cdcbf2e2223771045359d247bfb05ba1a51c",
+        "bytes": 35164
+      },
+      {
+        "path": "tests/framework/k2-sdk-installation-race.test.mjs",
+        "gitBlob": "1b9b9990419f65ee2e7d941cabdc3400b68bb387",
+        "sha256": "d8114a0bd75b818f05f1a557095edccdb4661725816096207d630816a0b95fc5",
+        "bytes": 8270
+      }
+    ],
+    "sourceCommit": "01b48dcb49b31844d30c0e6fdeed1756e5046f11"
+  },
+  "baseBranchObserved": {
+    "name": "main",
+    "sha": "bb2038f992b1ad79311fc8436433a655f76ff735",
+    "modifiedByThisWork": false,
+    "candidateInitialAhead": 9,
+    "candidateInitialBehind": 9,
+    "mergeValidation": "NOT_TESTED"
+  },
+  "branch": "codex/p1-2-sdk-target-origins-20261004",
+  "draftPr": 2,
+  "dependencyProvenance": {
+    "artifactId": 11335726182,
+    "artifactSourceSha": "38763c78209794bec53c8ca848bfa0789dc4796e",
+    "archiveSha256": "b67c35ac90fe9541c81966613b053f9e2d6d49e4ef5f355d7cf822eaef964056",
+    "sourceRecovery": "Complete tracked tree and npm-ci dependency closure. Archive checksums and parent tree verified; five changed files restored to exact candidate tree c107450aaf8f086f83b73e52819241df2bab794b. No stripped imports or substituted production modules.",
+    "node": "v22.16.0",
+    "npm": "10.9.2",
+    "packageLockSha256": "5d5e1329365b35e458cec2cc0ef4b36b84dbcffe8a67a2611d2c060f30db7977"
+  },
+  "checks": [
+    {
+      "name": "SDK and UI full-import component regressions",
+      "command": "node --test --test-reporter=spec tests/framework/k2*.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "tests": 239,
+      "pass": 239,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "log": "final-k2.log",
+      "bytes": 21245,
+      "sha256": "25301ae57825b9e74a33dbdc732558db90c8999bbc659c3dd6f263d67967b615"
+    },
+    {
+      "name": "final-check",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "startedAt": "2026-10-05T10:45:53.326932+00:00",
+      "completedAt": "2026-10-05T10:45:55.481997+00:00",
+      "exitCode": 0,
+      "log": "final-check.log",
+      "sha256": "15384283897a14cdfb537e797366033ab0a72c92e2b55d4c5dc2ecdb2458389e",
+      "status": "PASS"
+    },
+    {
+      "name": "final-production",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-05T10:45:55.482362+00:00",
+      "completedAt": "2026-10-05T10:46:02.089153+00:00",
+      "exitCode": 0,
+      "log": "final-production.log",
+      "sha256": "e75d320e0dced630d663534b65fba838cb9710395a6e9d7ec9997f54813fd3ea",
+      "status": "PASS"
+    },
+    {
+      "name": "final-development",
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "startedAt": "2026-10-05T10:46:02.089492+00:00",
+      "completedAt": "2026-10-05T10:46:09.006398+00:00",
+      "exitCode": 0,
+      "log": "final-development.log",
+      "sha256": "a1ef19f167cafd0b0efb67d3807c2462b055db77ed264ed44993ecfdbdc1b3cb",
+      "status": "PASS"
+    },
+    {
+      "name": "final-compiled-complete",
+      "command": "node --test --test-reporter=spec tests/framework/k[345]*.test.mjs tests/environment/*.test.mjs",
+      "startedAt": "2026-10-05T10:46:47.311073+00:00",
+      "completedAt": "2026-10-05T10:47:06.238839+00:00",
+      "exitCode": 0,
+      "log": "final-compiled-complete.log",
+      "sha256": "ceee49a7fe37dbca2efa1ef3592336ca1a2a46c3fedcae24062593bcd7010d8e",
+      "replacesIncompleteLog": "final-compiled.log (batch tool time limit, no asserted completion)",
+      "status": "PASS",
+      "tests": 237,
+      "pass": 237,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  ],
+  "builds": {
+    "production": {
+      "mode": "production",
+      "builder": "wxt",
+      "status": "passed",
+      "packageHash": "61ac11ca50496025f51fe42eccc2709f9b08d85de60ec53c852efa5276b657b5",
+      "assets": 19,
+      "serviceWorkerBytes": 259348,
+      "unchangedServiceWorkerBudgetBytes": 262144,
+      "receipt": {
+        "log": "final-build-production.json",
+        "bytes": 21091,
+        "sha256": "6672b1e09fb136ba4a5ce554b50b18bee2e02c0012e316fc473ef156a9c1ebb9"
+      }
+    },
+    "development": {
+      "mode": "development",
+      "builder": "wxt",
+      "status": "passed",
+      "packageHash": "8c1e3706f3c470cc9afd2d3ec813d54f46798fc989289f9099657d7b643fe436",
+      "assets": 30,
+      "serviceWorkerBytes": 259473,
+      "unchangedServiceWorkerBudgetBytes": 524288,
+      "receipt": {
+        "log": "final-build-development.json",
+        "bytes": 22985,
+        "sha256": "38ab84a512249bc82497c3ed49950c5622044b86de66ad7310e0624fb48ea8b2"
+      }
+    }
+  },
+  "ci": {
+    "runId": 37298483285,
+    "jobId": 111725300829,
+    "sourceSha": "01b48dcb49b31844d30c0e6fdeed1756e5046f11",
+    "status": "completed",
+    "conclusion": "success",
+    "completedAt": "2026-10-05T10:45:26Z",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37298483285",
+    "nativeBrowser": false
+  },
+  "observedFailures": [
+    {
+      "log": "install-race-before-fix.log",
+      "basis": "4264097 with equivalent extraction of the existing installer and first three regression tests; before grant-specific cleanup",
+      "status": "FAIL",
+      "firstMismatch": "Old installation cleanup revoked the newer scope; stale closure also aged the entire document.",
+      "tests": 3,
+      "pass": 1,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "bytes": 2865,
+      "sha256": "3c2edd7d902157ca4517b6314c7839a57b50c6ccd51cdb92787a4ffa95b4d6bb"
+    },
+    {
+      "log": "lifecycle-before-fix.log",
+      "basis": "Installation fix plus all ten new regression cases, before native lifecycle gates",
+      "status": "FAIL",
+      "firstMismatch": "Authority accepted prerender/cached/pending_deletion/missing/unknown lifecycle or failed navigation.",
+      "tests": 10,
+      "pass": 4,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "bytes": 5012,
+      "sha256": "8a7050a6e775bef74b97d79ab9bba656ea7991186d082750afae5dd050725ceb"
+    },
+    {
+      "log": "revised-k2-first.log",
+      "status": "FAIL",
+      "firstMismatch": "Existing SDK native-frame test fixtures omitted lifecycle metadata. Product fail-closed behavior retained; enriched real frame shape, no assertions removed.",
+      "tests": 239,
+      "pass": 204,
+      "fail": 35,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "bytes": 50620,
+      "sha256": "0987cf3005a134e1c2211ea5a23536655f9926f60ea7d69da91d1839b94e2d84"
+    },
+    {
+      "log": "revised-compiled.log",
+      "status": "FAIL",
+      "firstMismatch": "Controller doc-top test fixture omitted active lifecycle; enriched only its native-frame metadata.",
+      "tests": 237,
+      "pass": 236,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "bytes": 23061,
+      "sha256": "851c06fde8ad1f0b3eab2e2bf68b03ad2c45b22197244ead688ea536b1cddd29"
+    }
+  ],
+  "incompleteExecutions": [
+    {
+      "log": "baseline-compiled.log",
+      "reason": "Container batch tool time limit; superseded by baseline-compiled-complete.log, 237/237 pass."
+    },
+    {
+      "log": "final-compiled.log",
+      "reason": "Container batch tool time limit; superseded by final-compiled-complete.log, 237/237 pass. Not counted as a completed test run."
+    }
+  ],
+  "native": {
+    "status": "NOT_TESTED",
+    "attemptedSourceSha": "426409791a35acb6a6e5eb3f6fcc8b0600f562b5",
+    "startup": "BLOCKED",
+    "observed": "DevToolsActivePort not observed within startup limit; managed policies also prohibit extension installation and URL access. No product user-chain assertion executed.",
+    "policies": {
+      "ExtensionInstallBlocklist": [
+        "*"
+      ],
+      "URLBlocklist": [
+        "*"
+      ]
+    },
+    "policyModified": false,
+    "personalProfilesOrOtherSessionsUsed": false,
+    "ownedProcessesExitedVerified": true,
+    "evidence": {
+      "log": "native-attempt.json",
+      "bytes": 1173,
+      "sha256": "e49346145f973857f922820b7ee503933bb83c2a20ff20d23b4eb73d619319f6"
+    },
+    "macAcceptance": "NOT_TESTED"
+  },
+  "scopeNotes": [
+    "SDK/axiosx real HTTP count tests use actual HTTP plus Chrome sender/permission and serial-storage component oracles; they do not prove a native extension sender, permissions dialog or IDB.",
+    "UI approval, target scope, fixture and HTTP paths already existed at the starting SHA; preserved and revalidated. This increment adds installation-incarnation cleanup, active-native-document gating and ten regressions.",
+    "Historical records and the old main-line ownership file are not modified. Documentation-only delivery commit does not alter the tested source tree files."
+  ]
+}
