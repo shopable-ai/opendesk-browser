@@ -3,26 +3,98 @@ import {httpUrl, permissionPattern} from '../../environment.js';
 import {canonicalValue, encodeValue, decodeValue} from '../page-port/codec.js';
 import {ADMITTED_METHODS, SDK_VERSION, validateSdkRequest} from '../../framework/sdk/registry.js';
 import {fields} from '../../framework/sdk/registry.js';
+import {normalizeSdkTargetScope} from '../../framework/sdk/target-origins.js';
 
 // Methods of the one run authority; this module owns no connection, router or slot.
 export function sdkMethods({storage, api, session, clock, assertHost, currentHost}) {
   const contexts = new WeakMap(), now = () => iso(clock);
-  const tabEpochs = new Map(), frameEpochs = new Map(), permissionBases = new Map(), permissionRemovals = [];
-  let notificationEpoch = 0;
+  // Persisted bases and observations in THIS worker are separate. Recovery must
+  // never subtract an already observed removal from a stored baseline.
+  const tabEpochs = new Map(), frameEpochs = new Map(), permissionBases = new Map();
+  const tabRemovals = new Map(), frameRemovals = new Map(), permissionRemovals = [];
+  const retiredGrants = new Set(), grantControllers = new Map();
+  const workerIncarnation = newId();
+  let notificationEpoch = 0, notificationRemovals = 0, notificationBaseKnown = false;
   const frameKey = doc => canonical([doc.tabId, doc.frameId]);
   const removalCount = origin => permissionRemovals.filter(origins => origins.some(pattern => matchesOrigin(pattern,origin))).length;
-  const epochs = doc => ({tabEpoch:tabEpochs.get(doc.tabId) || 0,
-    frameEpoch:frameEpochs.get(frameKey(doc)) || 0,
-    permissionEpoch:(permissionBases.get(doc.origin) || 0) + removalCount(doc.origin), notificationEpoch});
+  function permissionEpoch(origin) {
+    if (!permissionBases.has(origin)) permissionBases.set(origin,0);
+    return permissionBases.get(origin) + removalCount(origin);
+  }
+  function epochs(doc) {
+    if (!tabEpochs.has(doc.tabId)) tabEpochs.set(doc.tabId,0);
+    if (!frameEpochs.has(frameKey(doc))) frameEpochs.set(frameKey(doc),0);
+    notificationBaseKnown = true;
+    return {tabEpoch:tabEpochs.get(doc.tabId) + (tabRemovals.get(doc.tabId) || 0),
+      frameEpoch:frameEpochs.get(frameKey(doc)) + (frameRemovals.get(frameKey(doc)) || 0),
+      permissionEpoch:permissionEpoch(doc.origin), notificationEpoch:notificationEpoch + notificationRemovals};
+  }
+  const scopeEpochs = (doc, origins) => ({...epochs(doc),
+    originPermissionEpochs:origins.map(origin => [origin,permissionEpoch(origin)])});
   function assertFence(captured, deadline = true) {
     const current = epochs(captured.doc);
     invariant(current.tabEpoch === captured.tabEpoch && current.frameEpoch === captured.frameEpoch,
       'E_DOCUMENT_STALE', 'Observed document invalidation fences this SDK operation');
-    invariant(current.permissionEpoch === captured.permissionEpoch &&
+    invariant(!retiredGrants.has(captured.grantIncarnation) && current.permissionEpoch === captured.permissionEpoch &&
+      (captured.originPermissionEpochs || []).every(([origin,epoch]) => permissionEpoch(origin) === epoch) &&
       (!(captured.capability === 'notifications' || captured.capabilities?.includes('notifications')) ||
         current.notificationEpoch === captured.notificationEpoch),
-    'E_GRANT_REVOKED', 'Observed permission removal fences this SDK operation');
+    'E_GRANT_REVOKED', 'Observed scope or permission removal fences this SDK operation');
     if (deadline) invariant(clock.now() < captured.deadlineAt, 'E_DEADLINE', 'SDK short service expired');
+  }
+  function isActive(grant) {
+    return grant?.targetScopeVersion === undefined ? grant?.active === true :
+      grant.targetScopeVersion === 1 && grant.active === false && grant.crossOriginActive === true;
+  }
+  function readGrant(grant, doc) {
+    invariant(grant?.tag === 'sdk-grant' && isActive(grant), 'E_GRANT_REVOKED', 'SDK grant is inactive or has an unknown format');
+    if (grant.targetScopeVersion === undefined) {
+      invariant(!Object.hasOwn(grant,'targetScopeVersion') && !Object.hasOwn(grant,'targetOrigins') &&
+        !Object.hasOwn(grant,'originPermissionEpochs') && !Object.hasOwn(grant,'crossOriginActive'),
+      'E_GRANT_REVOKED', 'Malformed legacy SDK grant');
+      invariant(canonical(grant.allowedOrigins ?? [doc.origin]) === canonical([doc.origin]),
+        'E_GRANT_REVOKED', 'Legacy grants only authorize their source origin');
+      return {...grant,allowedOrigins:[doc.origin]};
+    }
+    // active:false is intentional: the P1.1 reader ignores new fields but rejects
+    // this record on its EXISTING active check. A version field alone is unsafe.
+    invariant(grant.workerIncarnation === workerIncarnation, 'E_GRANT_REVOKED',
+      'Cross-origin SDK authorization requires explicit approval after worker restart');
+    const scope = normalizeSdkTargetScope(doc.origin,grant.targetOrigins);
+    invariant(scope.targetOrigins.length > 0 && grant.capabilities?.includes('network') &&
+      canonical(scope.allowedOrigins) === canonical(grant.allowedOrigins) &&
+      Array.isArray(grant.originPermissionEpochs) && grant.originPermissionEpochs.length === scope.allowedOrigins.length &&
+      grant.originPermissionEpochs.every((pair,index) => Array.isArray(pair) && pair.length === 2 &&
+        pair[0] === scope.allowedOrigins[index] && Number.isSafeInteger(pair[1]) && pair[1] >= 0),
+    'E_GRANT_REVOKED', 'Malformed cross-origin SDK scope');
+    return grant;
+  }
+  function retire(grantIncarnation, code = 'E_GRANT_REVOKED') {
+    if (!grantIncarnation) return;
+    retiredGrants.add(grantIncarnation);
+    const live = grantControllers.get(grantIncarnation);
+    if (live) {
+      const error = new Error('The original SDK document or grant was invalidated'); error.code = code;
+      live.controller.abort(error); grantControllers.delete(grantIncarnation);
+    }
+  }
+  function signalFor(grant, doc) {
+    let live = grantControllers.get(grant.grantIncarnation);
+    if (!live) {
+      live = {grant,doc,controller:new AbortController()};
+      grantControllers.set(grant.grantIncarnation,live);
+    }
+    return live.controller.signal;
+  }
+  const grantFence = (grant,doc) => ({...grant,doc});
+  function grantResult(grant,doc) {
+    return {grantIncarnation:grant.grantIncarnation,documentId:doc.documentId,
+      sourceOrigin:doc.origin,capabilities:grant.capabilities,
+      targetOrigins:grant.allowedOrigins.filter(origin => origin !== doc.origin),allowedOrigins:grant.allowedOrigins,
+      requiresReapprovalAfterWorkerRestart:grant.targetScopeVersion === 1};
+  }
+  function requestOrigin(request) {
+    return ADMITTED_METHODS[request.method]?.capability === 'network' ? httpUrl(request.args.url ?? request.args.server).origin : undefined;
   }
   const grantKey = doc => `sdk-grant:${canonical([doc.tabId, doc.frameId, doc.documentId])}`;
   function document(sender) {
@@ -40,15 +112,15 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     invariant(await api.permissions.contains({origins:[permissionPattern(doc.origin)]}), 'E_PERMISSION', 'SDK site permission was revoked');
   }
   async function activeGrant(tx, doc, incarnation) {
-    const grant = await tx.get('commandJournal', grantKey(doc));
-    invariant(grant?.active && grant.browserSessionIncarnation === session && grant.principal === doc.principal &&
+    const grant = readGrant(await tx.get('commandJournal', grantKey(doc)),doc);
+    invariant(grant.browserSessionIncarnation === session && grant.principal === doc.principal &&
       (incarnation === undefined || grant.grantIncarnation === incarnation), 'E_GRANT_REVOKED', 'SDK grant is absent or fenced');
-    assertFence({...grant,doc}, false);
+    assertFence(grantFence(grant,doc), false);
     return grant;
   }
   async function grantSdk(request, sender) {
     const host = await assertHost(sender);
-    fields(request,['tabId','frameId','documentId','capabilities'],['tabId','frameId','documentId','capabilities']);
+    fields(request,['tabId','frameId','documentId','capabilities','targetOrigins'],['tabId','frameId','documentId','capabilities']);
     invariant(request && Number.isSafeInteger(request.tabId) && Number.isSafeInteger(request.frameId) &&
       typeof request.documentId === 'string' && Array.isArray(request.capabilities), 'E_SCHEMA', 'Invalid SDK grant');
     const frames = await api.webNavigation.getAllFrames({tabId:request.tabId});
@@ -56,53 +128,81 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     invariant(frame, 'E_DOCUMENT_STALE', 'Selected SDK document is no longer current');
     const origin = httpUrl(frame.url).origin;
     const doc = {tabId:request.tabId, frameId:request.frameId, documentId:request.documentId, origin, principal:`sdk:${origin}`};
-    const capturedEpochs = epochs(doc);
+    const scope = normalizeSdkTargetScope(origin,request.targetOrigins);
+    const capturedEpochs = scopeEpochs(doc,scope.allowedOrigins);
     await native(doc);
+    for (const target of scope.targetOrigins)
+      invariant(await api.permissions.contains({origins:[permissionPattern(target)]}), 'E_PERMISSION', 'Target permission was not approved');
     const supported = new Set(Object.values(ADMITTED_METHODS).map(method => method.capability));
     invariant(request.capabilities.length > 0 && request.capabilities.every(capability => supported.has(capability)), 'E_CAPABILITY', 'Unknown SDK grant capability');
     const capabilities = [...new Set(request.capabilities)].sort(), key = grantKey(doc);
+    invariant(!scope.targetOrigins.length || capabilities.includes('network'), 'E_CAPABILITY', 'Additional targets require the network capability');
     return storage.transaction(['commandJournal'], 'readwrite', async tx => {
       await currentHost(tx, host, sender);
-      assertFence({...capturedEpochs,doc}, false);
+      assertFence({...capturedEpochs,doc,capabilities}, false);
       const previous = await tx.get('commandJournal', key);
-      if (previous?.active && previous.browserSessionIncarnation === session &&
-        previous.tabEpoch === capturedEpochs.tabEpoch && previous.frameEpoch === capturedEpochs.frameEpoch &&
-        previous.permissionEpoch === capturedEpochs.permissionEpoch && previous.notificationEpoch === capturedEpochs.notificationEpoch &&
-        canonical(previous.capabilities) === canonical(capabilities))
-        return {grantIncarnation:previous.grantIncarnation, documentId:doc.documentId};
-      if (previous) await tx.put('commandJournal', {...previous, active:false, closedAt:now()}, `sdk-closed-grant:${previous.grantIncarnation}`);
-      const grant = {tag:'sdk-grant', ...doc, ...capturedEpochs, key, namespace:`page:${origin}`, capabilities, allowedOrigins:[origin],
-        grantIncarnation:newId(), browserSessionIncarnation:session, active:true, grantedAt:now(), registrationId:host.registrationId};
+      let reusable;
+      try { reusable = readGrant(previous,doc); assertFence(grantFence(reusable,doc),false); } catch { reusable = undefined; }
+      if (reusable && reusable.browserSessionIncarnation === session && reusable.principal === doc.principal &&
+        canonical(reusable.capabilities) === canonical(capabilities) &&
+        canonical(reusable.allowedOrigins) === canonical(scope.allowedOrigins))
+        return grantResult(reusable,doc);
+      // Close the in-memory incarnation BEFORE awaiting persistence. Even a
+      // failed transaction must not resurrect an already observed scope change.
+      if (previous) {
+        retire(previous.grantIncarnation);
+        await tx.put('commandJournal', {...previous,active:false,crossOriginActive:false,closedAt:now()}, `sdk-closed-grant:${previous.grantIncarnation}`);
+      }
+      const grant = {tag:'sdk-grant', ...doc, ...epochs(doc), key, namespace:`page:${origin}`, capabilities,
+        allowedOrigins:[...scope.allowedOrigins],grantIncarnation:newId(),browserSessionIncarnation:session,
+        active:true,grantedAt:now(),registrationId:host.registrationId};
+      if (scope.targetOrigins.length) Object.assign(grant,{targetScopeVersion:1,active:false,crossOriginActive:true,
+        targetOrigins:[...scope.targetOrigins],originPermissionEpochs:capturedEpochs.originPermissionEpochs,workerIncarnation});
+      assertFence({...capturedEpochs,doc,capabilities},false);
       await tx.put('commandJournal', grant, key);
-      return {grantIncarnation:grant.grantIncarnation, documentId:doc.documentId};
+      assertFence({...capturedEpochs,doc,capabilities},false);
+      return grantResult(grant,doc);
     });
+  }
+  async function readHello(request, sender) {
+    invariant(request && Object.keys(request).length === 1 && request.sdkVersion === SDK_VERSION, 'E_VERSION', 'SDK version differs');
+    const doc = document(sender), entry = {...epochs(doc),doc};
+    await native(doc);
+    const grant = await storage.transaction(['commandJournal'], 'readonly', async tx => {
+      const grant = await activeGrant(tx,doc);
+      assertFence(entry,false); assertFence(grantFence(grant,doc),false);
+      return grant;
+    });
+    assertFence(entry,false); assertFence(grantFence(grant,doc),false);
+    return {doc,grant};
   }
   async function helloSdk(request, sender) {
-    invariant(request && Object.keys(request).length === 1 && request.sdkVersion === SDK_VERSION, 'E_VERSION', 'SDK version differs');
-    const doc = document(sender);
-    await native(doc);
-    return storage.transaction(['commandJournal'], 'readonly', async tx => {
-      const grant = await activeGrant(tx, doc);
-      return {sdkVersion:SDK_VERSION, ready:true, methods:Object.entries(ADMITTED_METHODS)
-        .filter(([,method]) => grant.capabilities.includes(method.capability)).map(([name]) => name)};
-    });
+    const {grant} = await readHello(request,sender);
+    return {sdkVersion:SDK_VERSION,ready:true,methods:Object.entries(ADMITTED_METHODS)
+      .filter(([,method]) => grant.capabilities.includes(method.capability)).map(([name]) => name)};
   }
-  // Internal read-side of the existing authority, not a public SDK method.
-  // Preserve the former broker lookup's ordering and matching rules. In particular,
-  // deadlineAt remains part of the original digest, not a new admission deadline.
+  // Internal read-side of the SAME authority. No admission, renewal, replay or
+  // persistent writes. The original deadline is a digest field, not a new lease.
   async function lookupSdkInvocation(payload, sender) {
-    await helloSdk({sdkVersion:SDK_VERSION},sender);
-    const principal = `sdk:${httpUrl(sender.url).origin}`;
-    const doc = [principal,sender.tab.id,sender.frameId,sender.documentId];
+    const {doc:source,grant:initial} = await readHello({sdkVersion:SDK_VERSION},sender);
+    const captured = grantFence(initial,source);
+    const doc = [source.principal,source.tabId,source.frameId,source.documentId];
     const request = validateSdkRequest({requestId:payload.requestId,method:payload.method,
       args:decodeValue(payload.argsWire),deadlineAt:payload.deadlineAt});
     const requestDigest = await digestUtf8(canonical([request.method,canonicalValue(request.args),request.deadlineAt]));
+    const targetOrigin = requestOrigin(request);
+    if (targetOrigin) {
+      invariant(initial.allowedOrigins.includes(targetOrigin), 'E_PERMISSION', 'SDK target was not approved');
+      if (targetOrigin !== source.origin)
+        invariant(await api.permissions.contains({origins:[permissionPattern(targetOrigin)]}), 'E_PERMISSION', 'SDK target permission was revoked');
+    }
+    assertFence(captured,false);
     const operation = await storage.transaction(['commandJournal'],'readonly',async tx => {
-      const grant = await tx.get('commandJournal',grantKey({tabId:sender.tab.id,frameId:sender.frameId,documentId:sender.documentId}));
+      const grant = await activeGrant(tx,source,initial.grantIncarnation);
       const lock = await tx.get('commandJournal',`sdk-request:${canonical([...doc,payload.requestId])}`);
-      if (!grant?.active || grant.browserSessionIncarnation !== session || grant.principal !== principal ||
-        lock?.tag !== 'sdk-request' || lock.grantIncarnation !== grant.grantIncarnation) return;
+      if (lock?.tag !== 'sdk-request' || lock.grantIncarnation !== grant.grantIncarnation) return;
       const original = await tx.get('commandJournal',lock.opKey);
+      assertFence(captured,false);
       if (original?.tag !== 'sdk-operation' || original.opKey !== lock.opKey ||
         original.browserSessionIncarnation !== session || original.grantIncarnation !== grant.grantIncarnation ||
         canonical([original.principal,original.tabId,original.frameId,original.documentId]) !== canonical(doc) ||
@@ -110,8 +210,7 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
         !['dispatched','effect_unknown'].includes(original.state)) return;
       return original;
     });
-    // Distinguish no record from a matched record whose projection is undefined.
-    // The former handler assigned an own-undefined field in the latter case.
+    assertFence(captured,false);
     return operation ? {invocation:projectFoundationError({invocation:operation}).invocation} : undefined;
   }
   async function authorizeSdkInjection(request, sender, grantIncarnation) {
@@ -138,15 +237,19 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       operation.grantIncarnation === captured.grantIncarnation, 'E_REQUEST_CONFLICT', 'SDK admission changed');
     invariant(operation.state !== 'effect_unknown' && !operation.cancelSeq, 'E_EFFECT_UNKNOWN', 'Unknown SDK effect cannot be replayed');
     invariant(clock.now() < captured.deadlineAt, 'E_DEADLINE', 'SDK short service expired');
+    assertFence(captured);
     return {grant, operation};
   }
   async function authorizeSdk(context, request = {}) {
     const captured = contexts.get(context);
     invariant(captured, 'E_OWNER', 'SDK context was not issued by the shared authority');
     await native(captured.doc);
-    let targetOrigin;
+    let targetOrigin = captured.targetOrigin;
     if (request.url !== undefined) {
       targetOrigin = httpUrl(request.url).origin;
+      invariant(targetOrigin === captured.targetOrigin, 'E_PERMISSION', 'Driver target differs from the admitted request');
+    }
+    if (targetOrigin) {
       invariant(await api.permissions.contains({origins:[permissionPattern(targetOrigin)]}), 'E_PERMISSION', 'SDK request origin is not permitted');
     }
     if (request.capability === 'notifications') invariant(await api.permissions.contains({permissions:['notifications']}), 'E_PERMISSION', 'Notifications permission is absent');
@@ -159,6 +262,7 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
         admitted.operation.state = 'dispatched'; admitted.operation.submissionCount = 1; admitted.operation.dispatchAt = now();
         await tx.put('commandJournal', admitted.operation, captured.opKey);
       }
+      assertFence(captured);
       return admitted;
     });
   }
@@ -223,7 +327,9 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     });
   }
   async function admitSdk(request, sender) {
-    const doc = document(sender);
+    const doc = document(sender), targetOrigin = requestOrigin(request);
+    const entry = {...scopeEpochs(doc,targetOrigin ? [...new Set([doc.origin,targetOrigin])].sort() : [doc.origin]),doc,
+      capability:ADMITTED_METHODS[request.method]?.capability};
     await native(doc);
     const method = Object.hasOwn(ADMITTED_METHODS, request.method) && ADMITTED_METHODS[request.method];
     invariant(method, 'E_SERVICE_UNSUPPORTED', 'Unknown SDK method');
@@ -231,6 +337,8 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     const requestDigest = await digestUtf8(canonical([request.method, canonicalValue(request.args), request.deadlineAt]));
     const result = await storage.transaction(['commandJournal','runs','results'], 'readwrite', async tx => {
       const grant = await activeGrant(tx, doc);
+      assertFence(entry,false);
+      if (targetOrigin) invariant(grant.allowedOrigins.includes(targetOrigin), 'E_PERMISSION', 'SDK target was not approved');
       invariant(grant.capabilities.includes(method.capability), 'E_PERMISSION', 'SDK method capability is not granted');
       const lockKey = `sdk-request:${canonical([doc.principal, doc.tabId, doc.frameId, doc.documentId, request.requestId])}`;
       const lock = await tx.get('commandJournal', lockKey);
@@ -241,48 +349,62 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       else {
         operation = {tag:'sdk-operation', opKey, ...doc, namespace:grant.namespace, grantIncarnation:grant.grantIncarnation,
           runId:newId(), opId:newId(), resultId:newId(), requestId:request.requestId, requestDigest, method:request.method,
-          capability:method.capability, effect:method.effect, deadlineAt:Math.min(request.deadlineAt, clock.now() + 15000),
+          capability:method.capability, effect:method.effect, ...(targetOrigin ? {targetOrigin} : {}), deadlineAt:Math.min(request.deadlineAt, clock.now() + 15000),
           browserSessionIncarnation:session, state:'admitted', cancelSeq:0, submissionCount:0, admittedAt:now()};
         await tx.put('commandJournal', operation, opKey);
         await tx.put('commandJournal', {tag:'sdk-request', grantIncarnation:grant.grantIncarnation, opKey}, lockKey);
         await tx.put('runs', {tag:'sdk-service', driver:'framework.sdk-service.v1', runId:operation.runId, opId:operation.opId,
           namespace:operation.namespace, browserSessionIncarnation:session, state:'preparing', createdAt:now()}, operation.runId);
       }
-      return {operation, receipt:await tx.get('results', operation.resultId)};
+      const receipt = await tx.get('results', operation.resultId);
+      assertFence(entry,false); assertFence(grantFence(grant,doc),false);
+      return {operation,receipt,grant};
     });
-    const captured = {...result.operation, ...epochs(doc), doc};
+    const captured = {...grantFence(result.grant,doc),...result.operation,targetOrigin,doc};
+    assertFence(entry,false); assertFence(captured);
+    const signal = signalFor(result.grant,doc);
     let context;
-    context = Object.freeze({...result.operation,
+    context = Object.freeze({...result.operation,...(result.grant.targetScopeVersion === 1 ? {signal} : {}),
       authorize:request => authorizeSdk(context, request), authorizeInTransaction:tx => authorizeSdkInTransaction(tx, context),
       recordEffect:value => recordSdkEffect(context, value), recordNativeReceipt:receipt => recordSdkNativeReceipt(context, receipt),
       assertDispatch:() => assertFence(captured)});
     contexts.set(context, captured);
-    return {...result, context};
+    return {operation:result.operation,receipt:result.receipt,context};
   }
   async function revokeSdkGrants({tabId, frameId, documentId, origins, permissions, reason = 'revoked'} = {}) {
     // Called synchronously by native listeners: invalidate in-flight closures
     // before an asynchronous IDB transaction or a native permission regrant.
     if (tabId !== undefined && frameId !== undefined) {
-      const key = canonical([tabId,frameId]); frameEpochs.set(key,(frameEpochs.get(key) || 0) + 1);
-    } else if (tabId !== undefined) tabEpochs.set(tabId,(tabEpochs.get(tabId) || 0) + 1);
-    if (permissions?.includes('notifications')) notificationEpoch++;
+      const key = canonical([tabId,frameId]); frameRemovals.set(key,(frameRemovals.get(key) || 0) + 1);
+    } else if (tabId !== undefined) tabRemovals.set(tabId,(tabRemovals.get(tabId) || 0) + 1);
+    if (permissions?.includes('notifications')) notificationRemovals++;
     if (origins?.length) permissionRemovals.push([...origins]);
+    const affected = grant => {
+      if (tabId !== undefined && grant.tabId !== tabId || frameId !== undefined && grant.frameId !== frameId ||
+        documentId !== undefined && grant.documentId !== documentId) return false;
+      if (origins || permissions) return Boolean(origins?.some(pattern =>
+        (grant.allowedOrigins || [grant.origin]).some(origin => matchesOrigin(pattern,origin))) ||
+        permissions?.some(permission => grant.capabilities.includes(permission)));
+      return true;
+    };
+    for (const [incarnation,live] of grantControllers)
+      if (affected(live.grant)) retire(incarnation,tabId === undefined ? 'E_GRANT_REVOKED' : 'E_DOCUMENT_STALE');
     return storage.transaction(['commandJournal'], 'readwrite', async tx => {
       for (const grant of await tx.all('commandJournal')) {
-        if (grant.tag !== 'sdk-grant' || !grant.active) continue;
-        if (tabId !== undefined && grant.tabId !== tabId) continue;
-        if (frameId !== undefined && grant.frameId !== frameId) continue;
-        if (documentId !== undefined && grant.documentId !== documentId) continue;
-        if (origins || permissions) {
-          const originRemoved = origins?.some(pattern => matchesOrigin(pattern,grant.origin));
-          const permissionRemoved = permissions?.some(permission => grant.capabilities.includes(permission));
-          if (!originRemoved && !permissionRemoved) continue;
+        if (grant.tag !== 'sdk-grant' || !isActive(grant) || !affected(grant)) continue;
+        // A fresh grant created AFTER this observed native event must not be
+        // closed by an older delayed persistence callback.
+        if (tabId !== undefined || origins || permissions) {
+          try { assertFence(grantFence(grant,grant),false); continue; } catch { /* Original incarnation is fenced. */ }
         }
-        grant.active = false; grant.closedAt = now(); grant.closeReason = reason;
+        retire(grant.grantIncarnation);
+        grant.active = false; if (grant.targetScopeVersion !== undefined) grant.crossOriginActive = false;
+        grant.closedAt = now(); grant.closeReason = reason;
         await tx.put('commandJournal', grant, grant.key);
       }
     });
   }
+
   function matchesOrigin(pattern, origin) {
     if (pattern === '<all_urls>') return true;
     const match = /^(\*|https?|file):\/\/([^/]+)\//.exec(pattern);
@@ -314,20 +436,32 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
   async function recoverSdk() {
     return storage.transaction(['commandJournal','runs','results'], 'readwrite', async tx => {
       const rows = await tx.all('commandJournal');
-      // Active grants already contain committed event baselines. Restore only
-      // their current-session epochs, never a closed incarnation. Native frame
-      // and permission facts are still rechecked by Hello and every dispatch.
+      const recoveredTabs = new Map(), recoveredFrames = new Map(), recoveredPermissions = new Map();
+      let recoveredNotifications = 0;
+      const maximum = (map,key,value) => map.set(key,Math.max(map.get(key) || 0,value));
       for (const grant of rows) {
-        if (grant.tag !== 'sdk-grant' || !grant.active || grant.browserSessionIncarnation !== session) continue;
+        if (grant.tag !== 'sdk-grant' || !isActive(grant) || grant.browserSessionIncarnation !== session) continue;
+        if (grant.targetScopeVersion === 1 && grant.workerIncarnation !== workerIncarnation) {
+          // Conservative boundary: never recover cross-origin authority across
+          // a worker gap in which native revocation persistence may be lost.
+          retire(grant.grantIncarnation); grant.active = false; grant.crossOriginActive = false;
+          grant.closeReason = 'worker-restart-reapproval-required'; grant.closedAt = now();
+          await tx.put('commandJournal',grant,grant.key); continue;
+        }
         for (const field of ['tabEpoch','frameEpoch','permissionEpoch','notificationEpoch'])
           invariant(Number.isSafeInteger(grant[field]) && grant[field] >= 0,'E_GRANT_REVOKED','SDK grant epoch is malformed');
-        tabEpochs.set(grant.tabId,Math.max(tabEpochs.get(grant.tabId) || 0,grant.tabEpoch));
-        const key = frameKey(grant);
-        frameEpochs.set(key,Math.max(frameEpochs.get(key) || 0,grant.frameEpoch));
-        permissionBases.set(grant.origin,Math.max(permissionBases.get(grant.origin) || 0,
-          grant.permissionEpoch - removalCount(grant.origin)));
-        notificationEpoch = Math.max(notificationEpoch,grant.notificationEpoch);
+        maximum(recoveredTabs,grant.tabId,grant.tabEpoch);
+        maximum(recoveredFrames,frameKey(grant),grant.frameEpoch);
+        maximum(recoveredPermissions,grant.origin,grant.permissionEpoch);
+        for (const [origin,epoch] of grant.originPermissionEpochs || []) maximum(recoveredPermissions,origin,epoch);
+        recoveredNotifications = Math.max(recoveredNotifications,grant.notificationEpoch);
       }
+      // Restore only previously unknown bases. Runtime observations remain additive,
+      // and calling recover twice cannot double-count or cancel an observed event.
+      for (const [key,value] of recoveredTabs) if (!tabEpochs.has(key)) tabEpochs.set(key,value);
+      for (const [key,value] of recoveredFrames) if (!frameEpochs.has(key)) frameEpochs.set(key,value);
+      for (const [key,value] of recoveredPermissions) if (!permissionBases.has(key)) permissionBases.set(key,value);
+      if (!notificationBaseKnown) { notificationEpoch = recoveredNotifications; notificationBaseKnown = true; }
       for (const operation of rows) {
         if (operation.tag !== 'sdk-operation') continue;
         if (operation.state === 'dispatched') {
@@ -345,7 +479,7 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
             result.runId === operation.runId && result.opId === operation.opId && result.namespace === operation.namespace &&
             result.grantIncarnation === operation.grantIncarnation && result.opKey === operation.opKey &&
             result.requestDigest === operation.requestDigest,'E_EFFECT_UNKNOWN','SDK durable result binding differs');
-          await tx.put('runs',{...run,state:'completed',resultId:operation.resultId},run.runId);
+          await tx.put('runs',{...run,state:'completed',resultId:result.resultId},run.runId);
         } else if (operation.state === 'effect_unknown' || operation.state === 'failed') {
           await tx.put('runs',{...run,state:operation.state === 'effect_unknown' ? 'paused_unknown' : 'failed',
             terminalReason:operation.deliveryError?.message || operation.state},run.runId);
