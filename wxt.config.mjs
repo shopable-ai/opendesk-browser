@@ -15,7 +15,10 @@ export default defineConfig({
   manifestVersion: 3,
   imports: false,
   manifest,
-  vite: () => ({build: {minify: 'terser', terserOptions: {format: {comments: false}},
+  // Match the existing ES2022 output target and run normal compression twice.
+  // Do not enable unsafe transforms, property mangling, or remove the size gate.
+  vite: () => ({build: {minify: 'terser', terserOptions: {ecma: 2022,
+    compress: {passes: 2, unsafe: false}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'entrypoints:resolved'(wxt, entries) {

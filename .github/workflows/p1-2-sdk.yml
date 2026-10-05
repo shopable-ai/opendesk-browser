@@ -7,6 +7,7 @@ on:
     paths:
       - 'src/**'
       - 'tests/framework/**'
+      - 'tests/environment/**'
       - 'package.json'
       - 'package-lock.json'
       - 'wxt.config.mjs'
@@ -45,6 +46,9 @@ jobs:
           node --check tests/framework/fixtures/sdk-target-origins/client.js
       - name: Full-import SDK regressions and adversarial target/UI/fixture checks
         run: node --test --test-reporter=spec tests/framework/k2*.test.mjs
+      - name: Existing environment regressions
+        if: ${{ !cancelled() }}
+        run: node --test --test-reporter=spec tests/environment/*.test.mjs
       - name: Source checks
         if: ${{ !cancelled() }}
         run: npm run check
