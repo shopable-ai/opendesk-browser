@@ -37,7 +37,7 @@ Script Editor 保存 source
 
 脚本正文和页面不在同一执行环境。`page.title()` 通过固定包内 DOM 操作读取目标；`page.evaluate(...)` 通过受控页面计算路径。对受控程序而言 Page 可在可信导航后继续使用；旧元素和文档引用不得静默跟随新页面。
 
-源码：[script-editor](../../../../src/ui/script-editor.js)、[RunHost](../../../../src/run-host.js)、[Worker 参数](../../../../src/scripting/sandbox/worker-runtime.js)、[context](../../../../src/framework/context.js)、[ChromePage](../../../../src/framework/ChromePage.js)、[controller-methods](../../../../src/platform/host/controller-methods.js)、[native-driver](../../../../src/framework/control/native-driver.js)。
+源码：[script-editor](../../../src/ui/script-editor.js)、[RunHost](../../../src/run-host.js)、[Worker 参数](../../../src/scripting/sandbox/worker-runtime.js)、[context](../../../src/framework/context.js)、[ChromePage](../../../src/framework/ChromePage.js)、[controller-methods](../../../src/platform/host/controller-methods.js)、[native-driver](../../../src/framework/control/native-driver.js)。
 
 ### 2.2 独立 Page SDK 服务
 
@@ -53,7 +53,7 @@ Script Editor 保存 source
 
 来源页面可由自己的业务程序、按钮或 DevTools 调用 SDK，不必先保存 Controller 程序。SDK 安装不等于把后台全局 page 注入网页；CURRENT 的原始 executeScript / executeInBg 服务明确拒绝。
 
-源码：[SDK entry](../../../../src/framework/sdk/entry.js)、[transport](../../../../src/framework/sdk/transport.js)、[relay](../../../../src/agents/page-relay.js)、[sdk-broker](../../../../src/platform/host/sdk-broker.js)、[sdk-methods](../../../../src/platform/host/sdk-methods.js)。
+源码：[SDK entry](../../../src/framework/sdk/entry.js)、[transport](../../../src/framework/sdk/transport.js)、[relay](../../../src/agents/page-relay.js)、[sdk-broker](../../../src/platform/host/sdk-broker.js)、[sdk-methods](../../../src/platform/host/sdk-methods.js)。
 
 ### 2.3 已有页面执行机制不等于完整用户脚本产品
 
@@ -61,7 +61,7 @@ Script Editor 保存 source
 
 但所核对的当前入口并未证明以下完整闭环：通用用户脚本导入/安装 → 用户启用 → 元数据规则匹配 → 浏览器自动装载 → 每脚本/每文档实例管理 → 停用/升级/清理。CURRENT 只能写成“已有部分机制”，不能计作完整用户脚本管理器；也不能把未闭合的用户需求从 TARGET 中删掉。
 
-源码：[页面计算构造](../../../../src/scripting/user-scripts/page-evaluator.js)、[原生 driver](../../../../src/framework/control/native-driver.js)、[旧注入层](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/my-content-script.ts)。
+源码：[页面计算构造](../../../src/scripting/user-scripts/page-evaluator.js)、[原生 driver](../../../src/framework/control/native-driver.js)、[旧注入层](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/my-content-script.ts)。
 
 ## 3. CURRENT 状态表
 
@@ -216,7 +216,7 @@ P1.2 是浏览器服务授权切片，不是全部 Browser Framework，更不能
 | 用户脚本的页面 listener/DOM | 对应页面执行实例；不保证所有任意代码资源可强制回收 |
 | transport pending/timer/port | 当前上下文临时协作状态，不是恢复权威 |
 
-[authority](../../../../src/platform/host/authority.js)、[IDB schema](../../../../src/platform/storage/idb.js)、[repository](../../../../src/platform/storage/repository.js)、[session](../../../../src/platform/storage/session.js)。
+[authority](../../../src/platform/host/authority.js)、[IDB schema](../../../src/platform/storage/idb.js)、[repository](../../../src/platform/storage/repository.js)、[session](../../../src/platform/storage/session.js)。
 
 ## 11. 兼容与工程顺序
 
