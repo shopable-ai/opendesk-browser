@@ -21,6 +21,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
   document: doc = globalThis.document, controllerFactory = createControlController,
   templateModuleFactory = createScrapingModule} = {}) {
   const client = suppliedClient || createHostClient(api);
+  const controllerResources = new Set();
   const artifactResources = createHostBlobRegistry({clock});
   const ownsClient = !suppliedClient;
   const contracts = {contractVersion:CONTRACT_VERSION, contractHash:CONTRACT_HASH, compilerVersion:'1.0.0', budgets:BUDGETS,
@@ -73,19 +74,21 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       const controller = controllerFactory({context, document: doc,
         sandboxURL: api.runtime.getURL('scripting/sandbox/sandbox.html'),
         workerURL: api.runtime.getURL('scripting/sandbox/worker-runtime.js')});
-      local.control = controller;
+      local.control = controller; controllerResources.add(controller);
+      Promise.resolve(controller.resourceReleased || controller.retired).then(()=>controllerResources.delete(controller),()=>{});
       local.state = 'running'; notify(claim);
       local.completion = lastCompletion = completeController(local, claim, controller);
       return claim;
     } catch (error) {
       if (admitted && !local.control) {
-        local.context?.dispose();
-        const settled = await controls.finishControllerRun({runId: admitted.runId, requestId: crypto.randomUUID(),
-          status: disposed ? 'host-closed' : 'error', error: {code: error.code || 'E_CONTROL_EXECUTION', message: error.message}, workerRetired: true});
-        const retirement = await controls.retireControllerTarget({runId: admitted.runId});
-        lastCompletion = Promise.resolve({runId: admitted.runId, state: settled.run.state, result: settled.result, retirement});
+        local.context?.dispose(); local.runId=admitted.runId;
+        local.settlementRequest={runId:admitted.runId,requestId:`${admitted.runId}:finish`,status:disposed?'host-closed':'error',
+          error:{code:error.code||'E_CONTROL_EXECUTION',message:error.message},workerRetired:true};
+        try {lastCompletion=Promise.resolve(await settleController(local));}
+        catch (settlementError) {local.pendingSettlement=true;local.finishAttempted=true;
+          lastCompletion=Promise.resolve({runId:admitted.runId,state:'paused_unknown',pendingSettlement:true,error:{code:settlementError.code,message:settlementError.message}});}
       }
-      if (active === local) active = undefined; throw error;
+      if (active === local && !local.pendingSettlement) active = undefined; throw error;
     } finally { admissions.delete(admission); admissionDone(); }
   }
   async function completeController(local, claim, controller) {
@@ -100,17 +103,49 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
         if (!terminal) terminal = {status: 'error', error: {code: error.code || 'E_CONTROL_EXECUTION', message: error.message}};
       }
       const cleanup = await controller.retired;
-      const settled = await controls.finishControllerRun({runId: claim.runId, requestId: crypto.randomUUID(), status: terminal.status,
+      const finishRequestId = `${claim.runId}:finish`;
+      const finishRequest = {runId: claim.runId, requestId: finishRequestId, status: terminal.status,
         ...(terminal.status === 'succeeded' ? {valueWire: encodeValue(decodeControlValue(terminal.value))} : {error: terminal.error ||
           {code: terminal.status === 'timeout' ? 'E_TIMEOUT' : terminal.status === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED', message: terminal.status}}),
-        workerRetired: cleanup?.acknowledged === true || cleanup?.workerNeverCreated === true});
-      const retirement = await controls.retireControllerTarget({runId: claim.runId});
-      const outcome = {runId: claim.runId, state: settled.run.state, result: settled.result, retirement};
-      notify(outcome); return outcome;
+        workerRetired: cleanup?.acknowledged === true || cleanup?.workerNeverCreated === true};
+      local.settlementRequest = finishRequest;
+      local.workerRetired = finishRequest.workerRetired;
+      local.state = 'settling';
+      return await settleController(local);
     } catch (error) {
-      const outcome = {runId: claim.runId, state: 'paused_unknown', error: {code: error.code || 'E_EFFECT_UNKNOWN', message: error.message}};
+      if (local.settlementRequest) { local.pendingSettlement = true; local.finishAttempted = true; }
+      const outcome = {runId: claim.runId, state: 'paused_unknown', pendingSettlement: !!local.settlementRequest,
+        error: {code: error.code || 'E_EFFECT_UNKNOWN', message: error.message}};
       notify(outcome); return outcome;
-    } finally { local.context?.dispose(); if (active === local) active = undefined; }
+    } finally { local.context?.dispose(); if (active === local && !local.pendingSettlement) active = undefined; }
+  }
+  async function settleController(local) {
+    let settled, failure;
+    try {settled = await finishControllerRunWithRecovery(local.settlementRequest, local.finishAttempted);}
+    catch (error) {failure=error;}
+    local.finishAttempted = true;
+    const retirement = await controls.retireControllerTarget({runId: local.settlementRequest.runId});
+    if (failure) {local.pendingSettlement=retirement.state!=='released';if(!local.pendingSettlement && active===local) active=undefined;throw failure;}
+    const outcome = {runId: local.settlementRequest.runId, state: settled.run.state, result: settled.result, retirement};
+    local.pendingSettlement = retirement.state !== 'released';
+    local.state = local.pendingSettlement ? 'retiring' : 'settled';
+    notify(outcome);
+    if (active === local && !local.pendingSettlement) active = undefined;
+    return outcome;
+  }
+  async function finishControllerRunWithRecovery(request, observeFirst = false) {
+    if (observeFirst) {
+      const snapshot = await controls.snapshotControllerRun({runId:request.runId});
+      const result = snapshot.results?.find(row => row.runId === request.runId);
+      if (result && snapshot.run) return {run:snapshot.run,result};
+    }
+    try { return await controls.finishControllerRun(request); }
+    catch (error) {
+      const snapshot = await controls.snapshotControllerRun({runId: request.runId});
+      const result = snapshot.results?.find(row => row.runId === request.runId);
+      if (result && snapshot.run) return {run: snapshot.run, result};
+      throw error;
+    }
   }
   async function startScraping({template, originGrantEvidence, createTargetRequest}) {
     if (disposed || active) throw new FoundationError('E_OWNER','RunHost already owns a task or is disposed');
@@ -147,8 +182,17 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
   async function stop(request) {
     if (active?.controllerRun || request?.controller === true) {
       const {controller: ignored, ...payload} = request || {};
+      if (active?.runId === payload.runId) {
+        active.control?.stop?.();
+        active.controller.abort(new FoundationError(payload.reason === 'E_TIMEOUT' ? 'E_TIMEOUT' : 'E_CANCELLED', 'Stopped'));
+        if (active.settlementRequest) {
+          const local=active, snapshot=await controls.snapshotControllerRun({runId:local.runId});
+          if (!['completed','failed','stopped','interrupted'].includes(snapshot.run?.state))
+            await controls.stopControllerRun({...payload,requestId:payload.requestId || `${local.runId}:stop`});
+          return await settleController(local);
+        }
+      }
       const response = await controls.stopControllerRun({...payload, requestId: payload.requestId || crypto.randomUUID()});
-      if (active?.runId === payload.runId) active.controller.abort(new FoundationError(payload.reason === 'E_TIMEOUT' ? 'E_TIMEOUT' : 'E_CANCELLED', 'Stopped'));
       notify(response); return response;
     }
     const response = await client.runCommands.stopRun(request);
@@ -156,16 +200,26 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     if (active?.runId === request.runId) active.controller.abort(new FoundationError('E_CANCELLED','Stopped'));
     notify({runId:request.runId,...response}); return response;
   }
+  const unsubscribeConnection = client.subscribeConnection?.(event => {
+    const local = active;
+    if (!local?.controllerRun) return;
+    if (!event.connected) {local.control?.stop?.(); local.controller.abort(new FoundationError('E_EFFECT_UNKNOWN','Host observation disconnected'));}
+    else if (local.pendingSettlement && !local.reconciling) {
+      local.reconciling=settleController(local).catch(error=>notify({runId:local.runId,state:'paused_unknown',pendingSettlement:true,error:{code:error.code||'E_EFFECT_UNKNOWN',message:error.message}}))
+        .finally(()=>{local.reconciling=null;});
+    }
+  });
   const pagehide = () => dispose();
   doc?.defaultView?.addEventListener('pagehide', pagehide, {once: true});
   function dispose() {
-    if (disposed) return; disposed = true;
+    if (disposed) return; disposed = true; unsubscribeConnection?.();
     if (active?.controllerRun && active.runId) {
       const local = active;
       // Closing the actual host destroys its realm. Commit its cancel fence
       // while the document still exists; SW hostGone performs fallback recovery.
+      local.control?.close?.();
+      local.controller.abort(new FoundationError('E_HOST_CLOSED', 'RunHost closed'));
       controls.stopControllerRun({runId: local.runId, requestId: crypto.randomUUID(), reason: 'E_HOST_CLOSED'})
-        .then(() => { local.controller.abort(new FoundationError('E_HOST_CLOSED', 'RunHost closed')); local.control?.close(); })
         .catch(() => { local.context?.dispose('E_HOST_CLOSED'); local.control?.close(); });
     } else active?.controller.abort(new FoundationError('E_HOST_CLOSED', 'RunHost closed'));
     scraping?.dispose(); doc?.defaultView?.removeEventListener('pagehide', pagehide);
@@ -176,5 +230,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     handshake:{contractVersion:CONTRACT_VERSION,contractHash:CONTRACT_HASH}, productionRunHostImplemented:true,
     controller: controls, artifactResources, get completion() { return lastCompletion; }, get currentRun() { return active?.runId || null; },
     start, stop, subscribe:listener=>{observers.add(listener);return()=>observers.delete(listener);},
+    resourceSnapshot: () => ({client: client.resourceSnapshot?.() ?? {}, blobs: artifactResources.resourceSnapshot?.() ?? {},
+      controllers:[...controllerResources].map(control=>control.resourceSnapshot?.() || {})}),
     dispose};
 }

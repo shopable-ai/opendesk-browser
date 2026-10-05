@@ -155,6 +155,36 @@ test('generic attempt request dedupes, prevents simultaneous retries and reused/
   assert.equal((await f.rows('exportJobs'))[0].state,'abandoned');assert.equal(f.calls.length,0);
 });
 
+test('lost prepare response cleanup fences late preparation and never submits a download',async()=>{
+  for (const committed of [false,true]) {
+    const f=await fixture(), p=await f.prepare(), read=await f.service.readArtifact({artifactId:p.artifactId},f.sender);
+    const blobUrl=f.registry.create(read.bytes,read.artifact.mime), request={requestId:'lost-prepare',artifactId:p.artifactId,blobUrl};
+    if(committed) await f.service.prepareAttempt(request,f.sender);
+    assert.equal(f.registry.releaseUnsubmitted(blobUrl),true);
+    const retired=await f.service.retirePreparedArtifact({artifactId:p.artifactId},f.sender);
+    assert.equal(retired.attemptIds.length,Number(committed));
+    for(const attemptId of retired.attemptIds) await f.service.recordResourceRelease({attemptId},f.sender);
+    assert.deepEqual(await f.service.retirePreparedArtifact({artifactId:p.artifactId},f.sender),retired);
+    if(!committed) await assert.rejects(f.service.prepareAttempt(request,f.sender),errorCode('E_OWNER'));
+    for(const row of await f.rows('downloadReceipts')) if(row.tag==='attempt') assert.equal(row.attempt.state,'abandoned');
+    assert.equal(f.calls.length,0);assert.equal(f.registry.resourceSnapshot().blobs,0);
+    assert.ok((await f.rows('commandJournal')).filter(r=>r.tag==='reader-pin').every(r=>r.released));
+  }
+});
+
+test('native host absence retires unsubmitted artifacts; query failure and live hosts preserve them',async()=>{
+  for(const observation of ['live','unknown','gone']) {
+    const f=await fixture(), p=await f.prepare(), a=await f.attempt(p);
+    f.api.runtime.getContexts=async()=>{if(observation==='unknown')throw new Error('native query failed');return observation==='live'?[{documentId:'host-doc'}]:[];};
+    await f.service.reconcileHostResources();
+    const row=(await f.rows('downloadReceipts')).find(row=>row.tag==='attempt');
+    assert.equal(row.attempt.state,observation==='gone'?'abandoned':'prepared');
+    assert.equal(!!row.attempt.resourceReleasedAt,observation==='gone');
+    assert.equal(f.calls.length,0);
+    if(observation==='gone') await assert.rejects(f.service.dispatchDownload({attemptId:a.attemptId},f.sender));
+  }
+});
+
 test('generic dispatch ACK gap never replays; native mapping unknown and deadline release keep disk hash unverified',async()=>{
   const f=await fixture(),p=await f.prepare(),a=await f.attempt(p);
   f.storage.afterCommit=value=>{if(value?.state==='dispatched')throw new Error('ACK gap after commit');};

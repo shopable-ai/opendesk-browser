@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {inputIdentity} from '../../scripts/wxt-checkpoint.mjs';
 import {api48Source} from './p4-api48-native-source.mjs';
+import {runControllerCampaigns, CONTROLLER_CAMPAIGNS} from './k5-controller-native-campaigns.mjs';
 import {createServer} from 'node:http';
 import {spawn, execFileSync} from 'node:child_process';
 import {readFile, writeFile, mkdir, readdir, realpath, stat, open} from 'node:fs/promises';
@@ -28,6 +29,9 @@ const args = process.argv.slice(2);
 assert(!(args.includes('--native') && args.includes('--contract-check')), 'Contract-check and native execution are separate commands');
 const sourceOnly = args.includes('--source-only');
 const single = args.includes('--single');
+const campaignsRequested = args.includes('--campaigns');
+assert(args.filter(arg => arg.startsWith('--campaigns')).every(arg => arg === '--campaigns'), '--campaigns always runs the original 1000/10/2 counts');
+assert(!campaignsRequested || !single, '--campaigns uses the frozen 27-case runner; --single is a separate diagnostic');
 assert(!sourceOnly || args.includes('--contract-check') && !args.includes('--native'), '--source-only is a non-native contract-check for Main rebuild in progress');
 const option = (name, fallback) => args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3) || fallback;
 const modes = option('mode', 'all') === 'all' ? ['production', 'development'] : [option('mode')];
@@ -63,7 +67,7 @@ async function sourceFingerprint() {
   const files = (await fingerprint(path.join(root, 'src'))).files.map(row => ({...row, path: `src/${row.path}`}));
   for (const relative of ['manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json',
     ...(await readdir(path.join(root, 'scripts'))).filter(x => /\.(mjs|cjs|js)$/.test(x)).map(x => `scripts/${x}`),
-    ...(await readdir(path.join(root, 'tests/framework'))).filter(x => x.startsWith('k5-controller-product-native') || x.startsWith('k5-sdk-native')).map(x => `tests/framework/${x}`)]) {
+    ...(await readdir(path.join(root, 'tests/framework'))).filter(x => x.startsWith('k5-controller-product-native') || x === 'k5-controller-native-campaigns.mjs' || x.startsWith('k5-sdk-native')).map(x => `tests/framework/${x}`)]) {
     const bytes = await readFile(path.join(root, relative)); files.push({path: relative, bytes: bytes.length, sha256: digest(bytes)});
   }
   files.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
@@ -116,6 +120,7 @@ if (!single) assert.deepEqual(contracts.map(row => row.id), [
   'REOPEN-PERSISTENT-RESULT',
   'CLEANUP-NO-SCRAPING-RECORDS'
 ], 'Frozen full native contract ids changed');
+if (!single) contracts.push({id:'INCREMENTAL-WORKER-SERVICES',families:'T4/storage/network',expected:'Actual fixed Worker uses run-authorized HTTP and isolated typed storage; one server effect; no SDK admission',phase:'incremental',layer:'actual product entry native Chrome',status:'NOT_TESTED'});
 const allCaseIds = new Set(contracts.map(row => row.id));
 const selectedCaseIds = caseOption === 'all' ? new Set(allCaseIds) : new Set(caseOption.split(',').map(x => x.trim()).filter(Boolean));
 assert(selectedCaseIds.size > 0, '--cases must name at least one case or use all');
@@ -410,7 +415,10 @@ async function nativeMain() {
   const origin = `http://127.0.0.1:${server.address().port}`;
   log({state: 'native-server-ready', runnerPid: process.pid, origin, output});
   try {
-    for (const mode of modes) for (const label of labels) reports.push(await browserRun({mode, label, origin, serverEvents}));
+    nativeEnvironments: for (const mode of modes) for (const label of labels) {
+      const report = await browserRun({mode, label, origin, serverEvents}); reports.push(report);
+      if (campaignsRequested && (report.error || report.campaigns?.status !== 'PASS')) break nativeEnvironments;
+    }
   } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await json('raw-http-final.json', serverEvents); }
   const sourceAfter = await sourceFingerprint(); await json('source-manifest-after.json', sourceAfter);
   const inputAfter = await inputIdentity(); await json('input-bindings-after.json',inputAfter);
@@ -421,15 +429,37 @@ async function nativeMain() {
   const inputDrift = inputAfter.productInputsSha256!==inputBindings.productInputsSha256 || inputAfter.verificationInputsSha256!==inputBindings.verificationInputsSha256;
   const sourceDrift = sourceBefore.sourceHash !== sourceAfter.sourceHash || inputDrift;
   const summary = {stage: 'F2', reports: reports.map(x => ({mode: x.mode, label: x.label, pid: x.pid, launcherPid: x.launcherPid, launcherSha256: x.launcherSha256,
-    extensionId: x.extensionId, packageHash: x.packageHash, cases: x.cases, error: x.error, attribution: x.attribution, cleanup: x.cleanup, packageDrift: x.packageDrift, launcherDrift: x.launcherDrift})),
+    extensionId: x.extensionId, packageHash: x.packageHash, cases: x.cases,
+    campaigns: x.campaigns && {status:x.campaigns.status, requested:x.campaigns.requested, campaigns:x.campaigns.campaigns, stoppedAt:x.campaigns.stoppedAt},
+    error: x.error, attribution: x.attribution, cleanup: x.cleanup, packageDrift: x.packageDrift, launcherDrift: x.launcherDrift})),
     sourceDrift, finalProductPassed: false, f3Accepted: false, original603Closed: false, frameworkFunctionalMigrationComplete: false,
     classification: sourceDrift || reports.some(x => x.packageDrift || x.launcherDrift) ? 'diagnostic-drift' : 'targeted-native-product-entry',
-    caseSelection,
-    notTested: ['Full original603', 'All 48 members', 'Independent SDK B05', 'Four crash barriers', '1000 mixed rounds', '10 reconnect rounds', '2 plugin disable rounds', 'Independent final package review'], serverClosed: true, output};
+    caseSelection, campaignsRequested, campaignRequirements: CONTROLLER_CAMPAIGNS,
+    notTested: ['Full original603', 'All 48 members', 'Independent SDK B05', 'Four crash barriers',
+      ...(!campaignsRequested || reports.some(x => x.campaigns?.status !== 'PASS') ? ['1000 mixed rounds', '10 reconnect rounds', '2 plugin disable rounds'] : []),
+      'Independent final package review'], serverClosed: true, output};
+  // Merge observations only by actual occurrence id across the two real
+  // environments. Development is kept separate from final production evidence.
+  for (const mode of modes) {
+    const byId = new Map();
+    for (const report of reports.filter(row => row.mode === mode)) for (const record of report.campaigns?.records || []) {
+      const actual = {...record, packageDrift: report.packageDrift, sourceDrift,
+        pass: record.pass && !report.packageDrift && !sourceDrift};
+      const previous = byId.get(actual.id);
+      if (previous) {
+        assert.equal(previous.productPackageSha256, actual.productPackageSha256);
+        previous.observations.push(...actual.observations); previous.pass &&= actual.pass;
+      } else byId.set(actual.id, {...actual, observations: [...actual.observations]});
+    }
+    await json(`campaigns-${mode}-results.json`, {mode, records: [...byId.values()],
+      campaigns: reports.find(row => row.mode === mode)?.campaigns?.campaigns || {},
+      allEnvironmentsObserved: reports.filter(row => row.mode === mode).length === labels.length,
+      packageHash: packageBefore[mode].packageHash, sourceDrift, finalAcceptance: false});
+  }
   await json('summary.json', summary); log({state: 'native-finished', output, sourceDrift});
   const selectedOrPrereqNotPassed = reports.some(x => x.cases.some(c => (c.selected || c.prerequisite) && c.status !== 'PASS'));
   if (sourceDrift || reports.some(x => x.error || x.packageDrift || x.launcherDrift || x.cleanup?.pidAlive || x.cleanup?.launcherPidAlive || x.cleanup?.profileRemoved !== true ||
-    x.cleanup?.nativeLogPreservedAfterLauncherExit !== true || x.cleanup?.exit?.code !== 0) || selectedOrPrereqNotPassed) process.exitCode = 1;
+    x.cleanup?.nativeLogPreservedAfterLauncherExit !== true || x.cleanup?.exit?.code !== 0 || campaignsRequested && x.campaigns?.status !== 'PASS') || selectedOrPrereqNotPassed) process.exitCode = 1;
 }
 
 async function browserRun({mode, label, origin, serverEvents}) {
@@ -476,7 +506,7 @@ async function browserRun({mode, label, origin, serverEvents}) {
   async function openTool() {
     toolId = (await browserClient.send('Target.createTarget', {url: `chrome-extension://${report.extensionId}/ui/tool.html`})).targetId;
     tool = await attach(toolId); await tool.send('Page.enable');
-    await until(() => evaluate(tool, 'document.querySelector("#script-status")?.dataset.state === "ready"'), 'real product host ready');
+    await until(() => evaluate(tool, 'document.querySelector("#script-status")?.dataset.state === "results" && document.querySelector("#script-result")?.textContent.includes("runs")'), 'real product host authorized persistent projection');
     return {client: tool, targetId: toolId};
   }
   async function newPage(url) {
@@ -539,18 +569,20 @@ async function browserRun({mode, label, origin, serverEvents}) {
       input: 'trusted CDP mousePressed/mouseReleased and keyDown/keyUp'}) + '\n');
     if (after.value !== desired) throw Object.assign(new Error(`Native selection differs: ${selector}`), {code: 'E_RUNNER_UI_SELECTION', actual: {desired, before, after}});
   }
-  async function snapshot(client = tool) {
-    return evaluate(client, `(async()=>{const databases=await indexedDB.databases();if(!databases.some(d=>d.name==='opendesk-browser'))throw Error('product DB does not exist');
+  async function snapshot(client = tool, filter = null) {
+    return evaluate(client, `(async()=>{const filter=${JSON.stringify(filter)},databases=await indexedDB.databases();if(!databases.some(d=>d.name==='opendesk-browser'))throw Error('product DB does not exist');
       const rows=await new Promise((resolve,reject)=>{const request=indexedDB.open('opendesk-browser');request.onerror=()=>reject(request.error);request.onsuccess=()=>{
-      const db=request.result,names=[...db.objectStoreNames],tx=db.transaction(names,'readonly'),data={};for(const name of names){data[name]=[];const cursor=tx.objectStore(name).openCursor();cursor.onsuccess=()=>{const row=cursor.result;if(row){data[name].push({key:row.primaryKey,value:row.value});row.continue();}};}tx.oncomplete=()=>{db.close();resolve(data);};tx.onabort=()=>reject(tx.error);};});return{databases,rows};})()`);
+      const db=request.result,names=filter?.runId?['runs','results','commandJournal']:filter?.scriptId?['scriptRevisions']:[...db.objectStoreNames],tx=db.transaction(names,'readonly'),data={};for(const name of names){data[name]=[];const cursor=tx.objectStore(name).openCursor();cursor.onsuccess=()=>{const row=cursor.result;if(row){
+      const match=!filter || filter.runId && (row.value.runId===filter.runId || name==='runs' && row.primaryKey==='@slot') || filter.scriptId && row.value.scriptId===filter.scriptId;
+      if(match)data[name].push({key:row.primaryKey,value:row.value});row.continue();}};}tx.oncomplete=()=>{db.close();resolve(data);};tx.onabort=()=>reject(tx.error);};});return{databases,rows,...(filter?{filter}: {})};})()`);
   }
-  async function commit(source, params, client = tool, id = toolId, scriptId = `native-${randomUUID()}`) {
+  async function commit(source, params, client = tool, id = toolId, scriptId = `native-${randomUUID()}`, snapshotFilter = null) {
     await fill(client, id, '#script-id', scriptId); await fill(client, id, '#script-source', source); await fill(client, id, '#script-params', JSON.stringify(params));
     const expectedHash=digest(Buffer.from(source,'utf8'));
-    const previous=await snapshot(client), previousRevision=Math.max(0,...previous.rows.scriptRevisions.filter(x=>x.value.scriptId===scriptId).map(x=>x.value.revision));
+    const previous=await snapshot(client, snapshotFilter), previousRevision=Math.max(0,...previous.rows.scriptRevisions.filter(x=>x.value.scriptId===scriptId).map(x=>x.value.revision));
     await click(client, id, '#script-save');
     const committed=await until(async()=>{
-      const snap=await snapshot(client),revision=Number(await evaluate(client,'document.querySelector("#script-revision").value'));
+      const snap=await snapshot(client, snapshotFilter),revision=Number(await evaluate(client,'document.querySelector("#script-revision").value'));
       const row=snap.rows.scriptRevisions.find(x=>x.value.scriptId===scriptId && x.value.revision===revision && revision>previousRevision && x.value.contentHash===expectedHash)?.value;
       const view=await ui(client);
       return row && view.version.includes(expectedHash) && {snap,row,revision,view};
@@ -586,8 +618,8 @@ async function browserRun({mode, label, origin, serverEvents}) {
       throw error;
     }
   }
-  async function durable(runId, client = tool) {
-    return until(async () => { const snap = await snapshot(client), result = snap.rows.results.find(x => x.value.runId === runId)?.value;
+  async function durable(runId, client = tool, filtered = false) {
+    return until(async () => { const snap = await snapshot(client, filtered ? {runId} : null), result = snap.rows.results.find(x => x.value.runId === runId)?.value;
       const run = snap.rows.runs.find(x => x.value.runId === runId)?.value;
       return result && run?.retirementState === 'released' && {run, result, snapshot: snap};
     }, `durable terminal and retirement ${runId}`, 40000);
@@ -605,6 +637,210 @@ async function browserRun({mode, label, origin, serverEvents}) {
   }
   const chain = `await page.goto(params.url); const typed=await page.type('#name',params.name); const clicked=await page.click('#submit'); await page.waitForSelector('#result[data-done="true"]'); return {typed,clicked,read:await page.snapshot('#result'),title:await page.title(),url:await page.url(),revision:params.revision,f:false,z:0,u:undefined};`;
   const typedCases = new Map();
+  async function controllerCampaigns() {
+    const sessionId = randomUUID(), campaignDirectory = `${directory}/campaigns`;
+    await mkdir(path.join(output, campaignDirectory), {recursive: true});
+    const page = await newPage(`${origin}/form?seed=${seed}&role=campaign`);
+    const sdkPage = await newPage(`${origin}/form?seed=${seed}&role=campaign-sdk`);
+    const scriptId = `native-campaign-${sessionId}`;
+    const executedRuns = new Set(), executedResults = new Set(), physicalWorkers = new Set();
+    async function resources() {
+      const lifecycle = await evaluate(tool, `(async()=>{const d=globalThis.OpenDeskResourceDiagnostics;
+        return d && typeof d.snapshot==='function' ? await d.snapshot() : null;})()`);
+      const nativeTargets = await targets(), workers = nativeTargets.filter(row => row.type === 'worker');
+      const counts = lifecycle?.counts || lifecycle;
+      if (counts && Number.isInteger(counts.workers)) assert.equal(counts.workers, workers.length,
+        'Product Worker count must agree with actual native target inventory');
+      return {counts, lifecycle, nativeTargets, hostTargetId: toolId, observedAt: Date.now(),
+        readPath: 'actual tool globalThis.OpenDeskResourceDiagnostics.snapshot()',
+        observationMissing: lifecycle === null ? 'Product six-count lifecycle read is not connected' : null};
+    }
+    async function executeRound(kind, roundId, checkpoint) {
+      const source = kind === 'success' ? 'return {marker:params.roundId,title:await page.title()};' :
+        kind === 'error' ? 'await page.title(); throw new Error(params.roundId);' :
+        kind === 'timeout' ? 'await page.title(); while(true){}' :
+        "await page.waitForSelector('#campaign-never-'+params.roundId); await page.click('#submit'); return params.roundId;";
+      const params = {roundId}, revision = await commit(source, params, tool, toolId, scriptId, {scriptId});
+      const selected = await chooseBorrowed(page), eventStart = nativeEvents.length, httpStart = serverEvents.length;
+      const beforeTargets = await targets(); assert(!beforeTargets.some(row => row.type === 'worker'));
+      const input = {source, params, revision, selected, nativeHostTargetId: toolId};
+      await checkpoint({input, beforeTargets});
+      const runId = await start(); await checkpoint({input, runId, beforeTargets});
+      let trigger;
+      if (['cancel', 'navigation', 'host-close'].includes(kind)) {
+        const pending = await until(async () => (await snapshot(tool, {runId})).rows.commandJournal.find(row =>
+          row.value.runId === runId && row.value.tag === 'controller-operation' && row.value.state === 'dispatched'),
+        'campaign actual dispatched wait before native fence');
+        trigger = {at: Date.now(), monoMs: performance.now(), pending};
+        if (kind === 'cancel') await click(tool, toolId, '#script-stop');
+        else if (kind === 'navigation') {
+          page.url = `${origin}/form?seed=${seed}&role=campaign&round=${roundId}`;
+          trigger.navigation = await page.client.send('Page.navigate', {url: page.url});
+          await until(() => evaluate(page.client, 'document.readyState === "complete"'), 'campaign replaced real document');
+        } else {
+          trigger.closedHostTargetId = toolId;
+          trigger.close = await browserClient.send('Target.closeTarget', {targetId: toolId}); tool = null;
+          await until(async () => !(await targets()).some(row => row.targetId === trigger.closedHostTargetId), 'campaign old host actually absent');
+          await openTool(); trigger.reopenedHostTargetId = toolId;
+          assert.notEqual(trigger.closedHostTargetId, toolId);
+        }
+        await checkpoint({input, runId, beforeTargets, trigger});
+      }
+      const terminal = await durable(runId, tool, true), view = await readUI(runId);
+      assert(!executedRuns.has(runId), 'Every campaign execution has its own actual runId');
+      assert(!executedResults.has(terminal.result.resultId), 'Every campaign execution has its own actual resultId');
+      executedRuns.add(runId); executedResults.add(terminal.result.resultId);
+      assert.equal(terminal.run.runId, runId); assert.equal(terminal.result.runId, runId);
+      assert.equal(terminal.run.revision.sourceHash, revision.sourceHash);
+      assert.equal(terminal.result.revision.sourceHash, revision.sourceHash);
+      assert.equal(terminal.run.target.tabId, selected.tabId);
+      assert.equal(terminal.run.target.frameId, selected.frameId);
+      assert.equal(terminal.run.target.documentId, selected.documentId);
+      assert.deepEqual(decodeValue(terminal.run.paramsWire), params);
+      assert.equal(terminal.snapshot.rows.results.filter(row => row.value.runId === runId).length, 1);
+      assert.equal(terminal.run.retirementState, 'released');
+      assert.equal(terminal.snapshot.rows.runs.find(row => row.key === '@slot')?.value.currentRunId, null);
+      if (kind === 'success') {
+        assert.equal(terminal.result.state, 'completed'); assert.equal(terminal.result.outcome.ok, true);
+        const value = decodeValue(terminal.result.outcome.valueWire); assert.equal(value.marker, roundId);
+        assert.equal(value.title, await evaluate(page.client, 'document.title'));
+      } else {
+        assert.equal(terminal.result.outcome.ok, false);
+        if (kind === 'error') { assert.equal(terminal.result.state, 'failed'); assert(terminal.result.outcome.error.message.includes(roundId)); }
+        else assert.equal(terminal.result.outcome.error.code, {timeout: 'E_TIMEOUT', cancel: 'E_CANCELLED',
+          navigation: 'E_DOCUMENT_REPLACED', 'host-close': 'E_HOST_CLOSED'}[kind]);
+      }
+      const workerCreated = await until(() => {
+        const rows = nativeEvents.slice(eventStart).filter(event => event.method === 'Target.targetCreated' && event.params.targetInfo.type === 'worker');
+        assert(rows.length <= 1, 'One actual campaign run cannot borrow another Worker'); return rows.length === 1 && rows[0];
+      }, 'campaign actual Worker creation');
+      const workerId = workerCreated.params.targetInfo.targetId;
+      assert(!physicalWorkers.has(workerId), 'Physical Worker evidence cannot be borrowed from another execution');
+      physicalWorkers.add(workerId);
+      const workerDestroyed = await until(() => nativeEvents.slice(eventStart).find(event =>
+        event.method === 'Target.targetDestroyed' && event.params.targetId === workerId), 'campaign native physical Worker destruction');
+      const afterTargets = await targets(); assert(!afterTargets.some(row => row.targetId === workerId));
+      assert(afterTargets.some(row => row.targetId === page.id), 'Campaign borrowed native page must survive retirement');
+      if (['cancel', 'navigation', 'host-close'].includes(kind)) assert.equal(terminal.snapshot.rows.commandJournal.filter(row =>
+        row.value.runId === runId && row.value.tag === 'controller-operation').length, 1, 'No late click admitted after fence');
+      const http = serverEvents.slice(httpStart);
+      assert(!http.some(row => row.method === 'POST' && row.url.includes('role=campaign') &&
+        (() => { try { return JSON.parse(row.body).kind === 'click'; } catch { return false; } })()), 'No native late click effect after campaign fence');
+      if (kind === 'timeout') assert(terminal.run.deadlineAt <= Date.now(), 'Use the saved native product deadline without shortening it');
+      const actual = {input, runId, run: terminal.run, result: terminal.result,
+        journal: terminal.snapshot.rows.commandJournal.filter(row => row.value.runId === runId),
+        trigger, view, workerCreated, workerDestroyed, beforeTargets, afterTargets, http};
+      await checkpoint(actual); return actual;
+    }
+    async function reconnect(kind, roundId, checkpoint) {
+      if (kind === 'host') {
+        const closed = await executeRound('host-close', `${roundId}-closed`, checkpoint);
+        const recovered = await executeRound('success', `${roundId}-recovered`, checkpoint);
+        assert.notEqual(closed.runId, recovered.runId);
+        return {closed, recovered, profile: report.profile, pid: report.pid};
+      }
+      const original = await executeRound('success', `${roundId}-before-sw`, checkpoint);
+      const oldHostId = toolId, workerURL = `chrome-extension://${report.extensionId}/sw.js`;
+      const events = []; const serviceWorkerClient = tool;
+      serviceWorkerClient.onEvent(event => events.push(event)); await serviceWorkerClient.send('ServiceWorker.enable');
+      const oldTarget = (await targets()).find(row => row.type === 'service_worker' && row.url === workerURL); assert(oldTarget);
+      const version = await until(() => events.flatMap(event => event.params?.versions || []).find(row =>
+        row.scriptURL === workerURL && row.runningStatus === 'running' && row.targetId === oldTarget.targetId), 'campaign exact native SW version');
+      const eventStart = nativeEvents.length;
+      await checkpoint({original, stopInput: {version, oldTarget, oldHostId}});
+      await serviceWorkerClient.send('ServiceWorker.stopWorker', {versionId: version.versionId});
+      const destroyed = await until(() => nativeEvents.slice(eventStart).find(event => event.method === 'Target.targetDestroyed' &&
+        event.params.targetId === oldTarget.targetId), 'campaign real SW destroyed event');
+      const stoppedTargets = await targets(); assert(!stoppedTargets.some(row => row.targetId === oldTarget.targetId));
+      assert(stoppedTargets.some(row => row.targetId === oldHostId), 'Stopping SW must not close the long-lived host');
+      // The real extension document registers a fresh host and wakes the SW.
+      // No runner message uses a fabricated sender or synthetic registration.
+      await openTool(); const newHostId = toolId;
+      const recoveredWorker = await until(async () => (await targets()).find(row => row.type === 'service_worker' &&
+        row.url === workerURL && row.targetId !== oldTarget.targetId), 'campaign actual new SW target');
+      const recoveredVersions = events.flatMap(event => event.params?.versions || []).filter(row => row.scriptURL === workerURL);
+      await serviceWorkerClient.send('ServiceWorker.disable');
+      await browserClient.send('Target.closeTarget', {targetId: oldHostId});
+      await readUI(original.runId);
+      const persisted = await snapshot(); assert.deepEqual(persisted.rows.results.find(row => row.value.runId === original.runId)?.value.outcome, original.result.outcome);
+      const recovered = await executeRound('success', `${roundId}-after-sw`, checkpoint);
+      assert.notEqual(original.runId, recovered.runId);
+      return {original, version, oldTarget, oldHostId, newHostId, destroyed, stoppedTargets,
+        recoveredWorker, recoveredVersions, recovered, profile: report.profile, pid: report.pid};
+    }
+    async function installCampaignSDK() {
+      const selected = await chooseBorrowed(sdkPage);
+      await click(tool, toolId, '#sdk-refresh');
+      await until(() => evaluate(tool, `!!document.querySelector('#sdk-tab option[value="${selected.tabId}"]')`), 'campaign SDK exact tab');
+      await select(tool, '#sdk-tab', selected.tabId);
+      await until(() => evaluate(tool, `!!document.querySelector('#sdk-document option[value="${selected.documentId}"]')`), 'campaign SDK exact document');
+      await select(tool, '#sdk-document', selected.documentId);
+      const capability = '#sdk-capabilities input[value="storage.session"]';
+      if (!await evaluate(tool, `document.querySelector(${JSON.stringify(capability)}).checked`)) await click(tool, toolId, capability);
+      await click(tool, toolId, '#sdk-install');
+      await until(() => evaluate(tool, 'document.querySelector("#sdk-status").dataset.state === "installed"'), 'campaign real trusted SDK install');
+      const hello = await evaluate(sdkPage.client, 'OpenDeskSDK.ready()'); assert.equal(hello.ready, true);
+      return {selected, hello};
+    }
+    async function pluginDisabled(roundId, checkpoint) {
+      const disabled = await evaluate(tool, `({moduleStatus:document.querySelector('#scraping-panel')?.dataset.moduleStatus,
+        text:document.querySelector('#scraping-panel')?.textContent})`);
+      assert.equal(disabled.moduleStatus, 'MODULE_NOT_INSTALLED', 'Actual tool template module must be unregistered');
+      const before = await snapshot();
+      const {selected} = await installCampaignSDK();
+      // SDK call occurs before ordinary JS starts: no live controller is used.
+      assert(before.rows.runs.filter(row => row.value.tag === 'controller-run').every(row =>
+        ['completed','failed','stopped','interrupted'].includes(row.value.state) && row.value.retirementState === 'released'),
+      'Standalone SDK requires all controllers already retired');
+      const sdk = await evaluate(sdkPage.client, `(async()=>{const hello=await OpenDeskSDK.ready(),key=${JSON.stringify(`campaign-${roundId}`)};
+        const promise=OpenDeskSDK.AppLocal.setItem(key,{marker:${JSON.stringify(roundId)}}),isPromise=promise instanceof Promise;
+        const set=await promise,value=await OpenDeskSDK.AppLocal.getItem(key);await OpenDeskSDK.AppLocal.removeItem(key);
+        return{hello,isPromise,setKind:typeof set,value,diagnostics:OpenDeskSDK.diagnostics()};})()`);
+      assert.equal(sdk.hello.ready, true); assert.equal(sdk.isPromise, true); assert.equal(sdk.value.marker, roundId); assert.equal(sdk.diagnostics.pending, 0);
+      await checkpoint({disabled, selected, sdk});
+      const ordinaryJS = await executeRound('success', roundId, checkpoint), after = await snapshot();
+      for (const store of ['templates','templateRevisions','rows','seals']) {
+        assert(!before.rows[store]?.length); assert(!after.rows[store]?.length);
+      }
+      const beforeKeys = new Set(before.rows.commandJournal.map(row => JSON.stringify(row.key)));
+      const sdkJournal = after.rows.commandJournal.filter(row => row.value.tag === 'sdk-operation' &&
+        !beforeKeys.has(JSON.stringify(row.key)) && row.value.tabId === selected.tabId && row.value.documentId === selected.documentId &&
+        ['APPLOCAL_SETITEM','APPLOCAL_GETITEM','APPLOCAL_REMOVEITEM'].includes(row.value.method));
+      assert.equal(sdkJournal.length, 3, 'Standalone old AppLocal facade must reach three actual broker operations');
+      assert(sdkJournal.every(row => row.value.state === 'durable'));
+      const sdkDurable = sdkJournal.map(({value: operation}) => {
+        const run = after.rows.runs.find(row => row.value.runId === operation.runId)?.value;
+        const result = after.rows.results.find(row => row.value.resultId === operation.resultId)?.value;
+        assert.equal(run?.state, 'completed'); assert.equal(run?.resultId, operation.resultId);
+        assert.equal(result?.runId, operation.runId); assert.equal(result?.opId, operation.opId);
+        if (operation.method === 'APPLOCAL_GETITEM') assert.deepEqual(decodeValue(result.valueWire), sdk.value,
+          'The old facade Promise must equal the original durable SDK receipt value');
+        return {operation, run, result};
+      });
+      return {disabled, selected, sdk, sdkJournal, sdkDurable, ordinaryJS};
+    }
+    // Long-lived SDK relay/grant belongs to the initial numerical baseline.
+    // The two disabled rounds reinject that same document and must not add
+    // another listener/port or leave an old Promise behind.
+    const sdkBootstrap = await installCampaignSDK();
+    return runControllerCampaigns({sessionId, environmentId: `${mode}-chrome-${label}`,
+      bindings: {packageHash: report.packageHash, sourceHash: report.sourceHash, productInputsSha256: report.productInputsSha256,
+        verificationInputsSha256: report.verificationInputsSha256, runnerSha256},
+      preconditions: {pid: report.pid, launcherPid: report.launcherPid, profile: report.profile,
+        extensionId: report.extensionId, browserVersion: version, binarySha256: report.binarySha256,
+        originalProductDeadlineMs: 30000, preciseBorrowedTargets: [page.id, sdkPage.id], sdkBootstrap},
+      observeResources: resources, keepAlive: () => nativeLauncher.keepAlive(), log,
+      execute: ({kind, roundId, checkpoint}) => ['host','sw'].includes(kind) ? reconnect(kind, roundId, checkpoint) :
+        kind === 'plugin-disabled' ? pluginDisabled(roundId, checkpoint) : executeRound(kind, roundId, checkpoint),
+      async saveRound(round) {
+        const relative = `${campaignDirectory}/${round.id}.json`, bytes = JSON.stringify({round}, null, 2) + '\n';
+        await writeFile(path.join(output, relative), bytes);
+        return {path: path.relative(root, path.join(output, relative)), sha256: digest(bytes)};
+      },
+      saveManifest: manifest => json(`${campaignDirectory}/manifest.json`, {...manifest,
+        records: manifest.records.map(row => ({id:row.id, kind:row.kind, pass:row.pass,
+          occurrence:row.observations[0].occurrence, evidence:row.observations[0].evidence}))})});
+  }
   try {
     report.launcher = await nativeLauncher.ready(); report.endpoint = report.launcher.endpoint;
     report.pid = report.launcher.metadata.pid; report.profile = report.launcher.metadata.profile; report.browserArgs = report.launcher.metadata.args;
@@ -727,6 +963,16 @@ async function browserRun({mode, label, origin, serverEvents}) {
       const hits = serverEvents.filter(e => e.url.includes(`seed=${seed}`) && e.url.includes('role=goto') && e.method === 'POST');
       assert(hits.some(e => JSON.parse(e.body).kind === 'click' && JSON.parse(e.body).value === 'BaseAlice'));
       assert(!actual.snapshot.rows.templateRevisions?.length); return {...actual, valueWire: actual.result.outcome.valueWire, rawHTTP: hits};
+    });
+    await caseRun('INCREMENTAL-WORKER-SERVICES',async row=>{
+      const marker=randomUUID(), source=`await AppStorage.setItem(params.key,0); await storage.set({[params.key]:false}); const before=[await AppStorage.getItem(params.key),await storage.get(params.key)]; await AppStorage.clear(); const after=[await AppStorage.getItem(params.key),await storage.get(params.key)]; const response=await axiosx.post(params.url,{marker:params.key}); return {before,after,status:response.status,data:response.data};`;
+      row.input={source,params:{key:marker,url:`${origin}/observe?worker=${marker}`}};
+      const actual=await run(source,row.input.params),value=decodeValue(actual.result.outcome.valueWire);
+      assert.equal(actual.result.state,'completed');assert.deepEqual(value.before,['0',false]);assert.deepEqual(value.after,[null,false]);
+      assert.equal(value.status,200);assert.equal(value.data.observed,true);
+      const effects=serverEvents.filter(event=>event.url.includes(`worker=${marker}`)&&event.method==='POST');assert.equal(effects.length,1);
+      assert(!actual.snapshot.rows.runs.some(row=>row.value.tag==='sdk-service'));
+      return {...actual,value,effects};
     });
     await caseRun('R1-PINNED-R2-SAVED-HEAD-DELETED', async row => {
       const r1source = "await page.waitForTimeout(15000); return {source:'r1',params};", r2source = "return {source:'r2',params};";
@@ -983,6 +1229,11 @@ async function browserRun({mode, label, origin, serverEvents}) {
       for (const store of ['templates', 'templateRevisions', 'rows', 'seals']) assert(!actual.rows[store]?.length);
       await json(`${directory}/final-durable-snapshot.json`, actual); return {actual, nativeTargets, iframeCount};
     });
+    if (campaignsRequested) {
+      assert(report.cases.every(row => !row.selected && !row.prerequisite || row.status === 'PASS'),
+        'Selected original-case prerequisite failure stops dependent campaigns');
+      report.campaigns = await controllerCampaigns();
+    }
   } catch (error) { report.error = errorView(error); report.attribution = error.code?.startsWith('E_RUNNER') ? 'runner' : error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'permission-wait' : 'product-or-native-contract'; }
   finally {
     if (tool) await tool.send('Page.captureScreenshot', {format: 'png'}).then(async ({data}) => writeFile(path.join(absolute, 'final-ui.png'), Buffer.from(data, 'base64'))).catch(() => {});

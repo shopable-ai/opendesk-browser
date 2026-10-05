@@ -18,9 +18,9 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
   const status = find('script-status'), output = find('script-result');
   const tab = find('script-tab'), frame = find('script-document'), mode = find('script-target-mode');
   const revisions = new Map(), documents = new Map();
-  const downloadable = new Map(), downloads = new Map();
+  const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
-  let downloading = false;
+  let downloading = false, projection;
   let currentRevision, selectionVersion = 0, running = false, disposed = false;
   function display(state, message, value) {
     status.dataset.state = state; status.textContent = message;
@@ -30,9 +30,9 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
   const scriptId = () => find('script-id').value.trim();
   function update() {
     find('script-delete').disabled = !revisions.has(scriptId());
-    find('script-run').disabled = running || !currentRevision ||
+    find('script-run').disabled = running || !projection?.slotAvailable || !!host.currentRun || !currentRevision ||
       currentRevision.scriptId !== scriptId() || currentRevision.revision !== Number(find('script-revision').value);
-    find('script-stop').disabled = !running;
+    find('script-stop').disabled = !host.currentRun;
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
@@ -99,6 +99,7 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
     display('deleted','脚本已删除；已运行版本的源码保留至任务退休');
   }
   function showSnapshot(snapshot) {
+    projection = snapshot;
     const previous = resultSelect.value;
     downloadable.clear(); resultSelect.replaceChildren(new Option('请选择要下载的结果', ''));
     const values = snapshot.results.map(row => {
@@ -112,7 +113,7 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
     if (downloadable.has(previous)) resultSelect.value = previous;
     update();
     display('results', snapshot.run ? `任务 ${snapshot.run.runId}：${snapshot.run.state}` : '已读取持久结果',
-      {run:snapshot.run, results:values});
+      {run:snapshot.run, runs:snapshot.runs, results:values, downloads:snapshot.downloads, resultDeliveryDenied:snapshot.resultDeliveryDenied});
   }
   async function read() {
     const runId = find('script-run-id').value.trim();
@@ -121,19 +122,33 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
   async function observeDownload(attemptId) {
     const entry = downloads.get(attemptId);
     if (!entry || disposed) return;
+    entry.timer=null;
     try {
       const view = await client.request('reconcileDownload',{attemptId});
       if (disposed) return;
       entry.attempt = view.attempt;
       downloadStatus.textContent = `下载 ${view.attempt.state} · ${entry.sha256}`;
-      if (host.artifactResources.release(view.attempt)) {
+      entry.localRevoked ||= host.artifactResources.release(view.attempt);
+      if (entry.localRevoked) {
         await client.request('recordResourceRelease',{attemptId}); downloads.delete(attemptId);
         downloadStatus.textContent = view.receipt?.browserDownloadComplete === true
-          ? `浏览器已完成下载 · SHA-256 ${entry.sha256}` : `下载 ${view.attempt.state}，资源已释放 · ${entry.sha256}`;
+          ? `浏览器已完成下载 · 产物 SHA-256 ${entry.sha256}（磁盘文件待核对）` : `下载 ${view.attempt.state}，资源已释放 · ${entry.sha256}`;
       } else entry.timer = setTimeout(() => observeDownload(attemptId),1000);
     } catch (error) {
-      downloadStatus.textContent = `${error.code || 'E_EFFECT_UNKNOWN'}：${error.message}；保留资源与原尝试`;
+      downloadStatus.textContent = `${error.code || 'E_EFFECT_UNKNOWN'}：${error.message}；${entry.localRevoked ? '本地 Blob 已释放，等待后台确认' : '保留资源与原尝试'}`;
       if (!disposed) entry.timer = setTimeout(() => observeDownload(attemptId),1000);
+    }
+  }
+  async function retirePreparation(entry) {
+    entry.timer=null;
+    try {
+      const retired=await client.request('retirePreparedArtifact',{artifactId:entry.artifactId});
+      for(const attemptId of retired.attemptIds) await client.request('recordResourceRelease',{attemptId});
+      preparations.delete(entry.artifactId);
+      downloadStatus.textContent='未提交的下载已取消，本地资源与后台记录已收尾';
+    } catch(error) {
+      downloadStatus.textContent=`${error.code || 'E_EFFECT_UNKNOWN'}：未提交的 Blob 已在本地释放，等待后台取消确认`;
+      if(!disposed) entry.timer=setTimeout(()=>retirePreparation(entry),1000);
     }
   }
   async function downloadResult() {
@@ -154,7 +169,15 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
       for (const part of parts) {bytes.set(part,offset); offset += part.length;}
       invariant(await hashArtifactBytes(bytes) === artifact.sha256,'E_HASH','Artifact hash differs');
       const blobUrl = host.artifactResources.create(bytes,artifact.mime);
-      const attempt = await client.request('prepareAttempt',{requestId:crypto.randomUUID(),artifactId:artifact.artifactId,blobUrl});
+      const preparation={requestId:crypto.randomUUID(),artifactId:artifact.artifactId,blobUrl};
+      preparations.set(artifact.artifactId,preparation);
+      let attempt;
+      try { attempt = await client.request('prepareAttempt',preparation); }
+      catch(error) {
+        host.artifactResources.releaseUnsubmitted(blobUrl);
+        retirePreparation(preparation); throw error;
+      }
+      preparations.delete(artifact.artifactId);
       downloads.set(attempt.attemptId,{attempt,sha256:artifact.sha256});
       // Accepted dispatch is distinct from browser download completion.
       try {
@@ -188,7 +211,12 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
       const result = await host.completion;
       if (result.error) throw result.error;
       showSnapshot(await host.controller.snapshotControllerRun({runId:claim.runId}));
-    })().catch(fail).finally(() => {running = false; update();});
+    })().catch(fail).finally(async () => {
+      running = false;
+      try {showSnapshot(await host.controller.snapshotControllerRun(find('script-run-id').value ? {runId:find('script-run-id').value} : {}));}
+      catch (error) {projection=undefined;display('unknown',`后台状态待确认：${error.code || 'E_EFFECT_UNKNOWN'}`);}
+      update();
+    });
   }
   const onNavigation = details => {
     if (String(details.tabId) === tab.value) clearDocuments();
@@ -204,11 +232,14 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
     if (host.currentRun) {await host.stop({runId:host.currentRun,controller:true}); display('stopping','停止已提交，正在收尾…');}
   });
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
-  client.ready.then(() => display('ready','公共运行入口已就绪，请保存脚本并选择目标')).catch(fail);
+  const recoverView = () => read().catch(error=>{projection=undefined;update();fail(error);});
+  const unsubscribeConnection = client.subscribeConnection?.(event=>{if(event.connected) recoverView();});
+  client.ready.then(recoverView).catch(fail);
   refreshTabs().catch(fail); update();
-  return {host, dispose() {
-    if (disposed) return; disposed = true;
+  return {host, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer).length, pending:Number(downloading)+preparations.size}}), dispose() {
+    if (disposed) return; disposed = true; unsubscribeConnection?.();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     for (const entry of downloads.values()) clearTimeout(entry.timer);
+    for (const entry of preparations.values()) clearTimeout(entry.timer);
   }};
 }

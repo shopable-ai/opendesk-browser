@@ -417,3 +417,84 @@ test('template-disabled host registers once; forced harnessWorker termination pr
   assert.equal(registrations,1);host.dispose();assert.equal(disconnects,0);client.dispose();assert.equal(disconnects,1);
   assert.equal((await f.rows('results')).filter(r=>r.tag==='controller-result').length,1);
 });
+
+test('controller services share run authority and storage adapter without SDK admission or extra slot', async () => {
+  const f=await fixture(), run=await f.start(await f.commit());
+  let serial=0;
+  const envelope=(method,args,requestId=`service-${++serial}`)=>({requestId,identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'service',method,args:controlEncode([args])}});
+  const write=envelope('CHROME_LOCAL_SET',{values:{same:false,zero:0,empty:null,missing:undefined}});
+  const first=await f.authority.controllerOperation({envelope:write},f.sender);
+  assert.deepEqual(await f.authority.controllerOperation({envelope:write},f.sender),first);
+  await f.authority.controllerOperation({envelope:envelope('APPSTORAGE_SETITEM',{key:'same',value:0})},f.sender);
+  const read=await f.authority.controllerOperation({envelope:envelope('CHROME_LOCAL_GET',{key:'same'})},f.sender);
+  assert.deepEqual(read.value,controlEncode(false));
+  assert.equal((await f.rows('runs')).filter(r=>r.tag==='sdk-service').length,0);
+  assert.equal((await f.rows('results')).filter(r=>r.tag==='controller-service-result').length,3);
+  assert.equal((await f.rows('frameworkKV')).filter(r=>r.area==='chrome-local').length,4);
+  await assert.rejects(f.authority.controllerOperation({envelope:{...write,operation:{...write.operation,args:controlEncode([{values:{same:true}}])}}},f.sender),code('E_REQUEST_CONFLICT'));
+  await assert.rejects(f.authority.controllerOperation({envelope:envelope('CREATE_NOTIFY',{title:'x',content:'x'})},f.sender),code('E_CAPABILITY'));
+  f.setAllowed(false);
+  await assert.rejects(f.authority.controllerOperation({envelope:write},f.sender),code('E_PERMISSION'));
+});
+
+test('controller HTTP uses the admitted target origin and repeats only a saved response', async () => {
+  const f=await fixture(), run=await f.start(await f.commit());
+  const originalFetch=globalThis.fetch; let calls=0;
+  globalThis.fetch=async()=>{calls++;return new Response(JSON.stringify({accepted:false}),{status:200,headers:{'content-type':'application/json'}});};
+  const envelope={requestId:'http-once',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'service',method:'AXIOS_POST',args:controlEncode([{url:'https://a.example/effect',data:{n:0}}])}};
+  try {
+    const first=await f.authority.controllerOperation({envelope},f.sender);
+    assert.deepEqual(await f.authority.controllerOperation({envelope},f.sender),first); assert.equal(calls,1);
+    const row=(await f.rows('commandJournal')).find(r=>r.envelope?.requestId==='http-once');
+    assert.equal(row.state,'durable'); assert.equal(decodeValue(row.valueWire).data.accepted,false);
+    await assert.rejects(f.authority.controllerOperation({envelope:{...envelope,requestId:'cross-origin',operation:{...envelope.operation,
+      args:controlEncode([{url:'https://other.example/effect',data:{}}])}}},f.sender),code('E_PERMISSION'));
+    assert.equal(calls,1);
+  } finally {globalThis.fetch=originalFetch;}
+});
+
+test('saved controller result is retained but is not delivered after target permission revocation', async () => {
+  const f=await fixture(), run=await f.start(await f.commit());
+  const settled=await f.finish(run);
+  assert.equal((await f.authority.snapshotControllerRun({runId:run.runId},f.sender)).results.length,1);
+  f.setAllowed(false);
+  const denied=await f.authority.snapshotControllerRun({runId:run.runId},f.sender);
+  assert.equal(denied.results.length,0); assert.equal(denied.run.state,'completed');
+  assert.deepEqual((await f.rows('results')).find(r=>r.resultId===settled.result.resultId),settled.result);
+});
+
+test('observed HTTP error is durable and never sent twice', async () => {
+  const f=await fixture(),run=await f.start(await f.commit()); const original=globalThis.fetch; let calls=0;
+  globalThis.fetch=async()=>{calls++;return new Response('no',{status:403});};
+  const envelope={requestId:'http-error',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:'https://a.example/error'}])}};
+  try {
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_HTTP'));
+    const saved=await f.authority.controllerOperation({envelope},f.sender);
+    assert.equal(saved.error.code,'E_HTTP');assert.equal(saved.error.cause.status,403);assert.equal(calls,1);
+    assert.equal((await f.rows('commandJournal')).find(row=>row.envelope?.requestId==='http-error').state,'durable');
+  } finally {globalThis.fetch=original;}
+});
+
+test('controller initialization failure plus lost finish response still retires its admitted slot', async () => {
+  const f=await fixture(),revision=await f.commit();
+  const controller=Object.fromEntries(['startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
+    .map(method=>[method,request=>f.authority[method](request,f.sender)]));
+  controller.finishControllerRun=async request=>{await f.authority.finishControllerRun(request,f.sender);throw Object.assign(new Error('response lost'),{code:'E_EFFECT_UNKNOWN'});};
+  const client={ready:Promise.resolve(f.registration),controller,storage:{},pagePort:{},exportBridge:{},entitlement:{},runCommands:{},subscribeRun:()=>()=>{}};
+  const host=createRunHost({api:f.api,client,document:undefined,templateModuleFactory:null,
+    controllerFactory(){throw Object.assign(new Error('realm unavailable'),{code:'E_SANDBOX_CREATION'});}});
+  await assert.rejects(host.start({scriptId:'script',revision:revision.revision,contentHash:revision.contentHash,
+    target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},params:{},deadlineAt:Date.now()+30000}),code('E_SANDBOX_CREATION'));
+  const run=(await f.rows('runs')).find(row=>row.tag==='controller-run');
+  assert.equal(run.state,'failed');assert.equal(run.retirementState,'released');assert.equal(host.currentRun,null);
+  host.dispose();
+});
+
+test('repeating finish after permission revocation cannot bypass result delivery authorization', async () => {
+  const f=await fixture(),run=await f.start(await f.commit());await f.finish(run);
+  f.setAllowed(false);await assert.rejects(f.finish(run),code('E_PERMISSION'));
+  assert.equal((await f.rows('results')).filter(row=>row.tag==='controller-result').length,1);
+});

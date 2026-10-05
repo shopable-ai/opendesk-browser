@@ -1,3 +1,4 @@
+import {requireGrant} from '../target/index.js';
 import { BUDGETS, canonical, invariant, newId, validate } from '../protocol.js';
 import { canReleaseBlob, hashArtifactBytes } from './blob-lifecycle.js';
 import { VALUE_PROTOCOL, base64ToBytes, decodeValue } from '../page-port/codec.js';
@@ -142,6 +143,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     invariant(result?.tag === 'controller-result' && result.resultId === run.resultId && result.runId === run.runId &&
       result.namespace === host.namespace && result.principal === host.principal && JSON.stringify(result.revision) === JSON.stringify(run.revision),
     'E_OWNER', 'Durable controller result binding differs');
+    invariant(!run.resultDeliveryRevoked, 'E_PERMISSION', 'Result delivery permission was revoked');
     invariant(run.state === 'completed' && result.state === 'completed' && result.outcome?.ok === true && Object.hasOwn(result.outcome, 'valueWire'),
       'E_OWNER', 'Only a durable successful controller result can produce an artifact');
     return {run, result};
@@ -169,6 +171,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       const host = await currentGenericHost(tx, auth, sender);
       return controllerResult(tx, request, host);
     });
+    await requireGrant(api,snapshot.run.target.allowedOrigin);
     decodeValue(snapshot.result.outcome.valueWire);
     const sourceJson = JSON.stringify(snapshot.result);
     let chunks, mime;
@@ -348,7 +351,8 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         hostMatches(auth, intent);
         return copy(intent);
       }
-      invariant(run.state === 'completed' || request.partialConfirmed === true, 'E_SEMANTIC', 'Partial export must be confirmed');
+      invariant(!run.resultDeliveryRevoked, 'E_PERMISSION', 'Result delivery permission was revoked');
+    invariant(run.state === 'completed' || request.partialConfirmed === true, 'E_SEMANTIC', 'Partial export must be confirmed');
       const intent = { tag: 'export-intent', exportJobId, runId: run.runId, templateHash: run.templateHash,
         sealWatermark: run.commitSeq, committedCount: run.committedCount, format: request.format, csvMode: request.csvMode,
         partial: run.state !== 'completed', registrationId: auth.registrationId, hostInstanceId: auth.hostInstanceId,
@@ -444,7 +448,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(descriptor.artifact.exportJobId)));
     const auth = await authenticate(sender, intent);
     const readTransaction = generic(descriptor.artifact) ? genericTransaction : transaction;
-    let resultBytes, expectedResultHash;
+    let resultBytes, expectedResultHash, resultOrigin;
     const bytes = await readTransaction('readonly', async tx => {
       await liveRun(tx, intent.runId);
       const currentIntent = await tx.get('commandJournal', intentKey(intent.exportJobId));
@@ -456,6 +460,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
           descriptor.artifact.namespace === currentIntent.namespace && descriptor.artifact.principal === currentIntent.principal,
         'E_OWNER', 'Artifact provenance differs from its export intent');
         const binding = await controllerResult(tx, currentIntent, auth);
+        resultOrigin = binding.run.target.allowedOrigin;
         resultBytes = new TextEncoder().encode(JSON.stringify(binding.result)); expectedResultHash = currentIntent.resultSha256;
       }
       const output = new Uint8Array(descriptor.artifact.bytes);
@@ -471,7 +476,11 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       return output;
     });
     invariant(await hashArtifactBytes(bytes) === descriptor.artifact.sha256, 'E_HASH', 'Artifact bytes changed');
-    if (resultBytes) invariant(await hashArtifactBytes(resultBytes) === expectedResultHash, 'E_HASH', 'Controller result changed after artifact preparation');
+    if (resultBytes) {
+      invariant(await hashArtifactBytes(resultBytes) === expectedResultHash, 'E_HASH', 'Controller result changed after artifact preparation');
+      await requireGrant(api,resultOrigin);
+      await genericTransaction('readonly',async tx=>controllerResult(tx,intent,await currentGenericHost(tx,auth,sender)));
+    }
     return { artifact: descriptor.artifact, bytes };
   }
 
@@ -481,12 +490,17 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     invariant(snapshot?.tag === 'attempt', 'E_SCHEMA', 'Download attempt is missing');
     const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(snapshot.attempt.exportJobId)));
     const auth = await authenticate(sender, intent);
+    if (generic(intent)) {
+      const binding=await genericTransaction('readonly',tx=>controllerResult(tx,intent,auth));
+      await requireGrant(api,binding.run.target.allowedOrigin);
+    }
     const at = now();
     const dispatched = await transaction('readwrite', async tx => {
       const row = await tx.get('downloadReceipts', key('attempt', request.attemptId));
       const storedIntent = await tx.get('commandJournal', intentKey(row.attempt.exportJobId));
       await currentIntentHost(tx, auth, storedIntent, sender);
-      await liveRun(tx, row.attempt.runId);
+      const run=await liveRun(tx, row.attempt.runId);
+      if (generic(storedIntent)) invariant(!run.resultDeliveryRevoked,'E_PERMISSION');
       if (row.attempt.submissionCount === 1) return null;
       invariant(!storedIntent.frozen && row.attempt.state === 'prepared', 'E_OWNER', 'Attempt cannot be submitted');
       invariant(at >= Date.parse(row.attempt.preparedAt), 'E_SEMANTIC', 'Clock moved backwards');
@@ -666,7 +680,32 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
           Date.parse(r.lastObservedAt ?? r.attempt.dispatchAt) < Date.parse(r.attempt.downloadDeadline)))).map(r => r.attempt.attemptId));
     const results = [];
     for (const attemptId of ids) results.push(await reconcileDownload({ attemptId }));
+    await reconcileHostResources();
     return results;
+  }
+
+  async function reconcileHostResources() {
+    if(typeof api.runtime.getContexts!=='function') return;
+    const intents=await transaction('readonly',async tx=>(await tx.all('commandJournal')).filter(row=>generic(row) && row.tag==='export-intent'));
+    for(const intent of intents) {
+      let contexts;
+      try {contexts=await api.runtime.getContexts({documentIds:[intent.hostDocumentId]});} catch {continue;}
+      if(contexts.length) continue;
+      await transaction('readwrite',async tx=>{
+        const current=await tx.get('commandJournal',intentKey(intent.exportJobId));
+        if(!current || current.hostDocumentId!==intent.hostDocumentId) return;
+        const job=await tx.get('exportJobs',intent.exportJobId);
+        if(!job) return;
+        const rows=(await downloadRows(tx)).filter(row=>row.tag==='attempt' && row.attempt.exportJobId===job.exportJobId);
+        const at=iso(now());
+        if(rows.every(row=>row.attempt.submissionCount===0)) await abandonJob(tx,job,at,true);
+        for(const prior of rows) {
+          const row=await tx.get('downloadReceipts',key('attempt',prior.attempt.attemptId));
+          if(canReleaseBlob(row.attempt,now())) {row.attempt.resourceReleasedAt ??= at;await saveAttempt(tx,row,at);}
+        }
+        await tx.put('commandJournal',{...await tx.get('commandJournal',intentKey(job.exportJobId)),hostDocumentGoneAt:at},intentKey(job.exportJobId));
+      });
+    }
   }
 
   // Call only after registry.release(attempt) returned true (or authenticated
@@ -758,6 +797,22 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     if (pin) await tx.put('commandJournal', { ...pin, released: true, releasedAt: Date.parse(at) }, pinKey(job.exportJobId));
   }
 
+  async function retirePreparedArtifact(request, sender) {
+    exact(request, ['artifactId']); id(request.artifactId);
+    const descriptor=await transaction('readonly',tx=>tx.get('artifacts',request.artifactId));
+    invariant(descriptor?.tag==='artifact' && generic(descriptor.artifact),'E_SCHEMA');
+    const intent=await transaction('readonly',tx=>tx.get('commandJournal',intentKey(descriptor.artifact.exportJobId)));
+    const auth=await authenticate(sender,intent);
+    return genericTransaction('readwrite',async tx=>{
+      await currentIntentHost(tx,auth,await tx.get('commandJournal',intentKey(intent.exportJobId)),sender);
+      const job=await tx.get('exportJobs',intent.exportJobId);
+      const attempts=(await downloadRows(tx)).filter(row=>row.tag==='attempt' && row.attempt.exportJobId===job.exportJobId);
+      invariant(attempts.every(row=>row.attempt.submissionCount===0),'E_EFFECT_UNKNOWN','Submitted attempts require native reconciliation');
+      await abandonJob(tx,job,iso(now()),true);
+      return {attemptIds:attempts.map(row=>row.attempt.attemptId)};
+    });
+  }
+
   async function abandonExport(request, sender) {
     exact(request, ['exportJobId', 'explicitUserAction']);
     const { exportJobId, explicitUserAction } = request;
@@ -802,6 +857,6 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     if (failures.length) throw failures.shift();
   }
 
-  return Object.freeze({ prepareArtifact, prepareAttempt, prepareExport, prepareAttempts, readArtifact, dispatchDownload, reconcileDownload,
-    reconcilePending, recordResourceRelease, retryExport, abandonExport, abandonRun, handleCreated, handleChanged, attach, drain });
+  return Object.freeze({ prepareArtifact, prepareAttempt, retirePreparedArtifact, prepareExport, prepareAttempts, readArtifact, dispatchDownload, reconcileDownload,
+    reconcilePending, reconcileHostResources, recordResourceRelease, retryExport, abandonExport, abandonRun, handleCreated, handleChanged, attach, drain });
 }

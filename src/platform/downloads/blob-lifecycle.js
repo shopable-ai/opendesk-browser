@@ -44,5 +44,13 @@ export function createHostBlobRegistry({ url = globalThis.URL, BlobClass = globa
       return true;
     },
     has(blobUrl) { return resources.has(blobUrl); },
+    // The owning caller may use this only before it has called dispatchDownload.
+    // Local revocation is separate from the durable preparation cancellation.
+    releaseUnsubmitted(blobUrl) {
+      const resource=resources.get(blobUrl);
+      if (!resource || resource.pins > 0) return false;
+      url.revokeObjectURL(blobUrl); resources.delete(blobUrl); return true;
+    },
+    resourceSnapshot: () => ({blobs: resources.size}),
   });
 }

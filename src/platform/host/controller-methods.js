@@ -1,6 +1,8 @@
+import {createNetworkService} from '../chrome/network.js';
+import {normalizeMethod, SDK_METHODS} from '../../framework/sdk/registry.js';
 import {FoundationError, invariant, newId, canonical, digest, digestUtf8} from '../protocol.js';
 import {encodeValue, decodeValue} from '../page-port/codec.js';
-import {decodeValue as decodeControlValue} from '../../framework/control/value.js';
+import {decodeValue as decodeControlValue, encodeValue as encodeControlValue} from '../../framework/control/value.js';
 import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} from '../target/index.js';
 import {createControllerDriver} from '../../framework/control/native-driver.js';
 
@@ -154,15 +156,31 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function snapshotControllerRun(request, sender) {
     fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);
     const host = await assertHost(sender);
-    return tx('readonly', async transaction => {
+    const snapshot = await tx('readonly', async transaction => {
       await currentHost(transaction, host, sender);
       const slot = await transaction.get('runs', '@slot');
-      const run = request.runId ? await transaction.get('runs', request.runId) : null;
-      if (request.runId) invariant(run?.tag === 'controller-run' && !run.tombstoned && run.namespace === namespace(host), 'E_OWNER');
-      const results = (await transaction.all('results')).filter(value => value.tag === 'controller-result' &&
-        value.namespace === namespace(host) && (!run || value.runId === run.runId));
-      return {run: project(run), results, slotAvailable: !slot?.currentRunId};
+      const runs = (await transaction.all('runs')).filter(run=>run.tag==='controller-run' && !run.tombstoned && run.namespace===namespace(host));
+      const run = request.runId ? runs.find(run=>run.runId===request.runId) : null;
+      if (request.runId) invariant(run,'E_OWNER');
+      const results = (await transaction.all('results')).filter(value=>value.tag==='controller-result' &&
+        value.namespace===namespace(host) && (!run || value.runId===run.runId));
+      const ids = new Set((run ? [run] : runs).map(row=>row.runId));
+      const downloads = (await transaction.all('downloadReceipts')).filter(row=>row.tag==='attempt' && ids.has(row.attempt.runId))
+        .map(({attempt})=>Object.fromEntries(['attemptId','runId','state','downloadId','submissionCount','artifactHash','resourceReleasedAt'].map(key=>[key,attempt[key]])));
+      return {run, runs, results, downloads, slotAvailable:!slot?.currentRunId};
+    }, [...stores,'downloadReceipts']);
+    const denied = new Set();
+    for (const run of snapshot.runs) {
+      try { invariant(!run.resultDeliveryRevoked,'E_PERMISSION'); await requireGrant(api,run.target?.allowedOrigin || httpUrl(run.startUrl).origin); }
+      catch { denied.add(run.runId); }
+    }
+    // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
+    await tx('readonly',async transaction=>{
+      await currentHost(transaction,host,sender);
+      for (const run of snapshot.runs) if ((await transaction.get('runs',run.runId))?.resultDeliveryRevoked) denied.add(run.runId);
     });
+    return {...snapshot,run:project(snapshot.run),runs:snapshot.runs.map(project),
+      results:snapshot.results.filter(row=>!denied.has(row.runId)),resultDeliveryDenied:[...denied]};
   }
   function selection(target) {
     fields(target, target?.mode === 'owned' ? ['mode', 'url'] : ['mode', 'tabId', 'frameId', 'documentId']);
@@ -317,6 +335,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     id(envelope.identity.runId);
     fields(envelope.operation, ['kind', 'method', 'args'], ['kind', 'method', 'args']);
     invariant(Array.isArray(decodeControlValue(envelope.operation.args, {maxBytes: envelope.operation.method === 'uploadChunk' ? 131072 : 65536})), 'E_SCHEMA');
+    const serviceCall = envelope.operation.kind === 'service';
+    let serviceArgs;
+    if (serviceCall) {
+      const method = envelope.operation.method, args = decodeControlValue(envelope.operation.args);
+      invariant(Object.hasOwn(SDK_METHODS, method) && /^(AXIOS_|APPSTORAGE_|APPLOCAL_|CHROME_LOCAL_)/.test(method), 'E_CAPABILITY');
+      invariant(args.length === 1, 'E_SCHEMA'); serviceArgs = normalizeMethod(method, args[0]);
+    }
     const host = await assertHost(sender), key = opKey(envelope.identity.runId, envelope.requestId), requestDigest = await digest(envelope, wireCanonicalOptions);
     const previous = await tx('readonly', async transaction => {
       await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender);
@@ -324,6 +349,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if (value) invariant(value.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
       return value;
     });
+    if (serviceCall && previous?.state === 'durable' && !previous.reply && Object.hasOwn(previous,'valueWire')) {
+      previous.reply = {requestId:envelope.requestId,value:encodeControlValue(decodeValue(previous.valueWire))};
+    }
     if (previous?.reply) {
       const target = previous.reply.handoff?.to || envelope.target;
       await verifyControllerTarget({api, target});
@@ -349,12 +377,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           await transaction.put('runs', current, current.runId);
         }
         await transaction.put('commandJournal', {tag: navigation ? 'controller-navigation' : 'controller-operation', runId: current.runId,
+          ...(serviceCall ? {lifecycle:'controller',namespace:current.namespace,principal:current.principal,grantIncarnation:current.registrationId,
+            browserSessionIncarnation:session,opId:key,requestId:envelope.requestId,resultId:`${key}:result`,method:envelope.operation.method} : {}),
           requestDigest, envelope, state: 'dispatched', submissionCount: 1, dispatchAt: now()}, key);
         return current;
       });
       if (navigation) navigating.set(run.runId, envelope.requestId);
       const abort = new AbortController(); cancellations.set(key, {runId: run.runId, abort});
-      const driver = createControllerDriver({api, clock, authorize: async (captured, details = {}) => {
+      const authorizeOperation = async (captured, details = {}) => {
         invariant(same(captured, envelope), 'E_OWNER');
         if (details.url !== undefined) {
           invariant(httpUrl(details.url).origin === envelope.target.allowedOrigin, 'E_PERMISSION', 'Cross-origin controller operation denied');
@@ -369,15 +399,42 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         } else await verifyControllerTarget({api, target: envelope.target});
         return tx('readonly', transaction => admittedOperation(transaction, envelope, host, sender,
           {post: details.phase === 'post', handoff: details.handoff}));
-      }});
+      };
+      const driver = createControllerDriver({api, clock, authorize:authorizeOperation});
+      const recordReceipt = async receipt => tx('readwrite', async transaction => {
+        const operation = await transaction.get('commandJournal', key);
+        invariant(operation?.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
+        (operation.nativeReceipts ||= []).push(structuredClone(receipt));
+        await transaction.put('commandJournal', operation, key);
+      }, ['commandJournal']);
+      const recordServiceEffect = async value => {
+        const valueWire = encodeValue(value), reply = {requestId:envelope.requestId,value:encodeControlValue(value)};
+        await tx('readwrite', async transaction => {
+          const operation = await transaction.get('commandJournal', key);
+          invariant(operation?.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
+          await transaction.put('results',{...Object.fromEntries(pinBindingFields.map(field=>[field,operation[field]])),
+            tag:'controller-service-result',opKey:key,requestDigest,state:'durable',valueWire,committedAt:now()},operation.resultId);
+          operation.state='durable'; operation.valueWire=valueWire; operation.reply=reply; operation.receiptAt=now();
+          await transaction.put('commandJournal',operation,key);
+        });
+        return reply;
+      };
+      async function executeService() {
+        const context = {lifecycle:'controller',namespace:run.namespace,principal:run.principal,grantIncarnation:run.registrationId,
+          browserSessionIncarnation:session,runId:run.runId,opId:key,requestId:envelope.requestId,resultId:`${key}:result`,
+          opKey:key,method:envelope.operation.method,requestDigest,deadlineAt:run.deadlineAt,signal:abort.signal,
+          authorize:details=>authorizeOperation(envelope,details),
+          authorizeInTransaction:transaction=>admittedOperation(transaction,envelope,host,sender),
+          assertDispatch(){checkFence(run);invariant(!abort.signal.aborted && now()<run.deadlineAt,'E_CANCELLED');},
+          recordNativeReceipt:recordReceipt,recordEffect:recordServiceEffect};
+        const httpMethod = {AXIOS_GET:'GET',AXIOS_POST:'POST',AXIOS_PUT:'PUT',AXIOS_DELETE:'DELETE'}[context.method];
+        const value = httpMethod
+          ? await createNetworkService({clock,authorize:(details,ctx)=>ctx.authorize(details)}).request({method:httpMethod,...serviceArgs},context)
+          : await storage.executeSdk(context.method,serviceArgs,context);
+        return {requestId:envelope.requestId,value:encodeControlValue(value)};
+      }
       try {
-        const reply = await driver.execute(envelope, {signal: abort.signal, deadlineAt: run.deadlineAt,
-          recordReceipt: async receipt => tx('readwrite', async transaction => {
-            const operation = await transaction.get('commandJournal', key);
-            invariant(operation?.requestDigest === requestDigest && operation.submissionCount === 1, 'E_REQUEST_CONFLICT');
-            (operation.nativeReceipts ||= []).push(structuredClone(receipt));
-            await transaction.put('commandJournal', operation, key);
-          }, ['commandJournal'])});
+        const reply = serviceCall ? await executeService() : await driver.execute(envelope, {signal:abort.signal,deadlineAt:run.deadlineAt,recordReceipt});
         invariant(reply?.requestId === envelope.requestId, 'E_RESULT_FORMAT');
         if (reply.error) throw Object.assign(new Error(reply.error.message), reply.error);
         const valueWire = encodeValue(decodeControlValue(reply.value));
@@ -406,6 +463,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         await tx('readwrite', async transaction => {
           const operation = await transaction.get('commandJournal', key);
           if (!operation || operation.state === 'durable') return;
+          if (serviceCall && error.code==='E_HTTP' && operation.nativeReceipts?.some(receipt=>Number.isInteger(receipt.status))) {
+            operation.state='durable'; operation.effectState='response-observed'; operation.receiptAt=now();
+            operation.reply={requestId:envelope.requestId,error:{...typed(error),cause:{status:error.status,response:error.response}}};
+            operation.failure=typed(error); await transaction.put('commandJournal',operation,key); return;
+          }
           // Missing a receipt cannot prove a rejected native call had no effect.
           // Only the driver's explicit user-script availability failure, before
           // its execute receipt, is a known lookup failure.
@@ -503,6 +565,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       {error: request.error || typed(new FoundationError(request.status === 'timeout' ? 'E_TIMEOUT' : 'E_CANCELLED', request.status))},
       {...request, host, sender, requestDigest: await digest(request, wireCanonicalOptions)});
     abortOperations(request.runId, request.status === 'timeout' ? 'E_TIMEOUT' : 'E_CANCELLED');
+    // Settlement persists even if permission is lost; delivery is separately authorized.
+    const delivery=await snapshotControllerRun({runId:request.runId},sender);
+    invariant(delivery.results.some(result=>result.resultId===answer.result.resultId),'E_PERMISSION','Result delivery is no longer authorized');
     return answer;
   }
   async function retireControllerTarget(request, sender) {
@@ -609,12 +674,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const runs = await tx('readwrite', async transaction => {
       const invalidated = [];
       for (const run of await transaction.all('runs')) {
-        if (run.tag !== 'controller-run' || !live.has(run.state)) continue;
+        if (run.tag !== 'controller-run') continue;
         if (permissionRemoved) {
           const origin = run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin;
           if (!origin || !origins.some(pattern => originMatches(pattern, origin))) continue;
         } else if ((run.target?.tabId !== tabId && run.nativeTabId !== tabId) || !removed && frameId !== 0 &&
           (run.target?.frameId ?? run.selection.frameId ?? 0) !== frameId) continue;
+        if (permissionRemoved) {run.resultDeliveryRevoked=true; await transaction.put('runs',run,run.runId);}
+        if (!live.has(run.state)) continue;
         if (!removed && !permissionRemoved && (run.navigationRequestId || creatingTabs.get(run.runId) === tabId)) continue;
         if (!removed && !permissionRemoved && documentId === run.target?.documentId) continue;
         if (!removed && !permissionRemoved && frameId === 0 && documentId === run.target?.rootDocumentId) continue;
