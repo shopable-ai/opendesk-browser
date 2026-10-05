@@ -55,7 +55,9 @@ export default defineConfig({
           if (Object.keys(bundle).some(path => !allowed.has(path))) throw new Error(`Unregistered WXT resource in ${target}`);
           const budget = entry.type === 'background' && config.mode === 'development'
             ? BUILD_POLICY.developmentBytes : BUILD_POLICY.productionBytes;
-          if (Buffer.byteLength(chunks[0].code) > budget) throw new Error(`WXT entry exceeds unchanged byte budget: ${target}`);
+          const bytes = Buffer.byteLength(chunks[0].code);
+          console.log(`[fixed-entry] ${target}: ${bytes}/${budget} bytes`);
+          if (bytes > budget) throw new Error(`WXT entry exceeds unchanged byte budget: ${target} (${bytes} > ${budget})`);
         }
       });
     }

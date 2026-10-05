@@ -109,9 +109,22 @@ for(const point of ['native','first readonly','second readonly'])test(`readonly 
   const entered=deferred(),release=deferred();let count=0;
   if(point==='native')f.hooks.native=async()=>{if(++count===1){entered.resolve();await release.promise;}};
   else f.hooks.transaction=async(names,mode)=>{if(mode==='readonly'&&++count===(point==='first readonly'?1:2)){entered.resolve();await release.promise;}};
-  const lookup=f.authority.lookupSdkInvocation(payload,f.source);const rejection=assert.rejects(lookup);
-  await entered.promise;await f.authority.revokeSdkGrants({origins:[`${B}/*`]});await f.grant();
-  release.resolve();await rejection;
+  // Before Hello acquires a grant, a fresh grant may be observed, but the old
+  // request lock must yield exactly NO reference. After Hello captures the old
+  // incarnation, revocation must instead reject. Neither outcome is a replay.
+  const lookup=f.authority.lookupSdkInvocation(payload,f.source);
+  const checked=point==='second readonly'
+    ? assert.rejects(lookup,{code:'E_GRANT_REVOKED'})
+    : lookup.then(value=>assert.equal(value,undefined,'Old IDs must never be projected through a new grant'));
+  await entered.promise;await f.authority.revokeSdkGrants({origins:[`${B}/*`]});
+  const fresh=await f.grant();assert.notEqual(fresh.grantIncarnation,old.context.grantIncarnation);
+  const persistedBefore=structuredClone([...f.stores]);
+  release.resolve();await checked;
+  assert.deepEqual([...f.stores],persistedBefore,'Reference continuation is strictly read-only');
+  const operations=[...f.stores.get('commandJournal').values()].filter(row=>row.tag==='sdk-operation');
+  assert.equal(operations.length,1);assert.equal(operations[0].submissionCount,1);
+  assert.equal(operations[0].grantIncarnation,old.context.grantIncarnation);
+  assert.throws(()=>old.context.assertDispatch(),{code:'E_GRANT_REVOKED'});
 });
 
 test('worker recovery never replays dispatched effects or restores cross-origin authority',async()=>{

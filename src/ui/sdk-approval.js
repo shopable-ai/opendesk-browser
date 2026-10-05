@@ -104,8 +104,8 @@ export function createSdkApproval({api, client, permissionPattern, readSelection
       // receipt for its ORIGINAL snapshot, but never paint current inputs green.
       await inspect(snapshot, version);
       publish('installed', receipt.requiresReapprovalAfterWorkerRestart
-        ? 'Authority 已确认此快照；Worker 重启后须重新批准，网页 ready() 核验当前有效性'
-        : 'Authority 已确认此快照；网页 ready() 核验当前有效性', snapshot, receipt);
+        ? 'Authority 已确认此快照；Worker 重启后须重新批准，后续调用仍由 authority 核验；ready 可能复用先前 Hello'
+        : 'Authority 已确认此快照；后续调用仍由 authority 核验；ready 可能复用先前 Hello', snapshot, receipt);
       return receipt;
     } catch (error) {
       const state = error.code === 'E_DOCUMENT_STALE' ? 'stale' : submitted ? 'unknown' : 'denied';

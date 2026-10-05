@@ -9,6 +9,7 @@ on:
       - 'tests/framework/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'wxt.config.mjs'
       - '.github/workflows/p1-2-sdk.yml'
 permissions:
   contents: read
@@ -43,13 +44,14 @@ jobs:
           node --check src/ui/tool-shell.js
           node --check tests/framework/fixtures/sdk-target-origins/client.js
       - name: Full-import SDK regressions and adversarial target/UI/fixture checks
-        run: node --test tests/framework/k2*.test.mjs
+        run: node --test --test-reporter=spec tests/framework/k2*.test.mjs
       - name: Source checks
         if: ${{ !cancelled() }}
         run: npm run check
       - name: Production build
+        id: production
         if: ${{ !cancelled() }}
         run: npm run build
       - name: Production package checks
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.production.outcome == 'success' }}
         run: node scripts/verify-package.mjs dist/production
