@@ -1,4 +1,4 @@
-name: P1.2 focused SDK candidate checks
+name: P1 focused SDK candidate checks
 
 # This workflow never runs on main, deploys, or opens a browser.
 on:
@@ -34,13 +34,22 @@ jobs:
           npm --version
       - name: Install locked dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Syntax checks
+      - name: P1 source syntax
         run: |
           node --check src/platform/host/broker.js
           node --check src/platform/host/sdk-methods.js
           node --check src/framework/sdk/target-origins.js
-      - name: P1.1 full-import focused regressions
-        run: node --test tests/framework/k2-sdk-reference-authority.test.mjs tests/framework/k2-sdk-broker.test.mjs
-      - name: P1.2 exact origin contract
+          node --check src/ui/sdk-approval.js
+          node --check src/ui/tool-shell.js
+          node --check tests/framework/fixtures/sdk-target-origins/client.js
+      - name: Full-import SDK regressions and adversarial target/UI/fixture checks
+        run: node --test tests/framework/k2*.test.mjs
+      - name: Source checks
         if: ${{ !cancelled() }}
-        run: node --test tests/framework/k2-sdk-target-origins.test.mjs
+        run: npm run check
+      - name: Production build
+        if: ${{ !cancelled() }}
+        run: npm run build
+      - name: Production package checks
+        if: ${{ !cancelled() }}
+        run: node scripts/verify-package.mjs dist/production
