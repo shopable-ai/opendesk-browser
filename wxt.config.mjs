@@ -1,3 +1,4 @@
+import {compactSchemaSource} from './scripts/compact-schema.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
@@ -15,7 +16,7 @@ export default defineConfig({
   manifestVersion: 3,
   imports: false,
   manifest,
-  vite: () => ({build: {minify: 'terser', terserOptions: {format: {comments: false}},
+  vite: () => ({build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'entrypoints:resolved'(wxt, entries) {
@@ -47,6 +48,7 @@ export default defineConfig({
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
       config.plugins.push({
         name: `opendesk-fixed-${entry.name}`,
+        transform(code,id) {if(id===resolve('src/platform/schema.js')) return {code:compactSchemaSource(code),map:null};},
         generateBundle(_options, bundle) {
           const chunks = Object.values(bundle).filter(value => value.type === 'chunk');
           if (chunks.length !== 1 || chunks[0].fileName !== target || chunks[0].imports.length || chunks[0].dynamicImports.length)
@@ -55,7 +57,7 @@ export default defineConfig({
           if (Object.keys(bundle).some(path => !allowed.has(path))) throw new Error(`Unregistered WXT resource in ${target}`);
           const budget = entry.type === 'background' && config.mode === 'development'
             ? BUILD_POLICY.developmentBytes : BUILD_POLICY.productionBytes;
-          if (Buffer.byteLength(chunks[0].code) > budget) throw new Error(`WXT entry exceeds unchanged byte budget: ${target}`);
+          if (Buffer.byteLength(chunks[0].code) > budget) throw new Error(`WXT entry exceeds unchanged byte budget: ${target} (${Buffer.byteLength(chunks[0].code)} > ${budget})`);
         }
       });
     }

@@ -156,15 +156,48 @@ async function checkerProject(t) {
   const supplementalCatalog=await save(SUPPLEMENTAL_CATALOG,await readFile(new URL(`../../${SUPPLEMENTAL_CATALOG}`,import.meta.url),'utf8'));
   const raw=await save('raw.json',{fixtureOnly:true});
   const reports=await save('results.json',{results:[]});
-  const paths=['src/source.js','manifest.json','webpack.config.cjs','scripts/build.mjs','scripts/verify-package.mjs','package.json','package-lock.json','docs/contracts/licenses/todo-user-vue-MIT.txt'];
+  const paths=['src/source.js','manifest.json','wxt.config.mjs','scripts/build.mjs','scripts/verify-package.mjs',
+    'scripts/build-contract.mjs','scripts/check-source.mjs','scripts/pack.mjs','scripts/wxt-checkpoint.mjs','scripts/zip-package.py',
+    'package.json','package-lock.json','docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
   const sourceInputs=[];
-  for (const path of paths) {const ref=await save(path,'fixture-only');sourceInputs.push({path,sha256:ref.sha256});}
+  for (const path of paths) {const ref=await save(path,'fixture-only');sourceInputs.push({path,bytes:Buffer.byteLength('fixture-only'),sha256:ref.sha256});}
   const build=await save('build.json',{mode:'production',status:'passed',sourceInputs,sourceDriftDuringBuild:[],report:{packageHash:hash}});
   const candidate={...fixture().candidate,packageDirectory:'dist/development',resultReports:[reports],buildReport:build,reviews:[],raw,supplementalCatalog};
   for (const env of candidate.environments) {env.binary=raw;env.binarySha256=raw.sha256;env.versionEvidence=raw;}
   const candidateRef=await save('candidate.json',candidate);
   return {projectRoot,save,specRef,raw,candidate,candidatePath:candidateRef.path};
 }
+test('WXT build closure accepts all source/tooling inputs without requiring webpack',async t=>{
+  const f=await checkerProject(t), result=await checkAcceptance(f);
+  assert.equal(result.accepted,false); // This isolated fixture has no native evidence.
+  assert.ok(!result.issues.some(i=>['BUILD_SOURCE_CLOSURE_CHANGED','BUILD_NOT_FROZEN','EVIDENCE_HASH_MISMATCH'].includes(i.code)));
+});
+test('WXT build closure rejects omitted, extra or duplicate input paths and reported build drift',async t=>{
+  for (const [name,change,code] of [
+    ['omitted packaging helper',b=>{b.sourceInputs=b.sourceInputs.filter(i=>i.path!=='scripts/zip-package.py');},'BUILD_SOURCE_CLOSURE_CHANGED'],
+    ['extra webpack entry',b=>{b.sourceInputs.push({...b.sourceInputs[0],path:'webpack.config.cjs'});},'BUILD_SOURCE_CLOSURE_CHANGED'],
+    ['duplicate source entry',b=>{b.sourceInputs.push({...b.sourceInputs[0]});},'BUILD_SOURCE_CLOSURE_CHANGED'],
+    ['during-build drift',b=>{b.sourceDriftDuringBuild.push(b.sourceInputs[0]);},'BUILD_NOT_FROZEN']]) {
+    await t.test(name,async t=>{
+      const f=await checkerProject(t), build=JSON.parse(await readFile(f.candidate.buildReport.path,'utf8'));
+      change(build);f.candidate.buildReport=await f.save('build.json',build);
+      await f.save('candidate.json',f.candidate);
+      assert.ok((await checkAcceptance(f)).issues.some(i=>i.code===code));
+    });
+  }
+});
+test('WXT build closure rereads current source, config and packaging bytes against frozen SHA and lengths',async t=>{
+  for (const path of ['src/source.js','wxt.config.mjs','scripts/zip-package.py']) await t.test(path,async t=>{
+    const f=await checkerProject(t);await writeFile(join(f.projectRoot,path),'changed-byte-content');
+    assert.ok((await checkAcceptance(f)).issues.some(i=>i.code==='EVIDENCE_HASH_MISMATCH'&&i.subject===path));
+  });
+  await t.test('declared byte length',async t=>{
+    const f=await checkerProject(t), build=JSON.parse(await readFile(f.candidate.buildReport.path,'utf8'));
+    const input=build.sourceInputs.find(i=>i.path==='scripts/zip-package.py');input.bytes++;
+    f.candidate.buildReport=await f.save('build.json',build);await f.save('candidate.json',f.candidate);
+    assert.ok((await checkAcceptance(f)).issues.some(i=>i.code==='EVIDENCE_HASH_MISMATCH'&&i.subject===input.path));
+  });
+});
 test('read-only filesystem check rejects actual raw evidence and declared source tampering',async t=>{
   const f=await checkerProject(t);
   const before=await checkAcceptance(f);assert.equal(before.accepted,false);

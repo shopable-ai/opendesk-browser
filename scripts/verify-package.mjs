@@ -153,9 +153,16 @@ export function inspectScript(text, file, options = {}) {
     if (/^(?:FunctionDeclaration|FunctionExpression|ArrowFunctionExpression|BlockStatement|CatchClause)$/.test(node.type)) {
       if (node.type === 'FunctionDeclaration' && node.id) scope.names.set(node.id.name, {node});
       scope = {parent: scope, names: new Map(), kind: node.type.includes('Function') ? 'function' : 'block'};
-      for (const param of node.params || []) if (param.type === 'Identifier') scope.names.set(param.name, {node: param});
+      function bindPattern(pattern) {
+        if (pattern?.type === 'Identifier') scope.names.set(pattern.name, {node: pattern});
+        else if (pattern?.type === 'ObjectPattern') for (const item of pattern.properties) bindPattern(item.type === 'RestElement' ? item.argument : item.value);
+        else if (pattern?.type === 'ArrayPattern') for (const item of pattern.elements) bindPattern(item);
+        else if (pattern?.type === 'AssignmentPattern') bindPattern(pattern.left);
+        else if (pattern?.type === 'RestElement') bindPattern(pattern.argument);
+      }
+      for (const param of node.params || []) bindPattern(param);
       if (node.type === 'FunctionExpression' && node.id) scope.names.set(node.id.name, {node});
-      if (node.type === 'CatchClause' && node.param?.type === 'Identifier') scope.names.set(node.param.name, {node});
+      if (node.type === 'CatchClause') bindPattern(node.param);
     }
     scopes.set(node, scope);
     if (node.type === 'VariableDeclaration') for (const d of node.declarations) if (d.id.type === 'Identifier') {
@@ -180,8 +187,8 @@ export function inspectScript(text, file, options = {}) {
     if (node.type === 'Identifier' && !nonReference(node, parent)) {
       if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name}`);
       if (binding && resolveBinding(node) === binding && node !== approved.id) {
-        if (parent?.type !== 'NewExpression' || parent.callee !== node || parent.arguments.length !== 3 ||
-          parent.arguments[0].value !== 'page' || parent.arguments[1].value !== 'params' || property(parent.arguments[2]) !== 'body') throw new Error(`Unapproved dynamic constructor use in ${file}`);
+        if (parent?.type !== 'NewExpression' || parent.callee !== node || parent.arguments.length !== 7 ||
+          ['page','params','axiosx','AppStorage','AppLocal','storage'].some((name,index)=>parent.arguments[index]?.value!==name) || property(parent.arguments[6]) !== 'body') throw new Error(`Unapproved dynamic constructor use in ${file}`);
         uses++;
       }
     }

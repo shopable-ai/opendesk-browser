@@ -272,8 +272,11 @@ export async function checkAcceptance({projectRoot = root, candidatePath} = {}) 
       if (build.mode !== 'production' || build.status !== 'passed' || build.report?.packageHash !== candidate.packageHash ||
           !Array.isArray(build.sourceInputs) || !build.sourceInputs.length || !Array.isArray(build.sourceDriftDuringBuild) || build.sourceDriftDuringBuild.length) add('BUILD_NOT_FROZEN', 'buildReport');
       else {
-        const paths = [...(await filesAt(resolve(projectRoot, 'src'))).map(path => `src/${path}`), 'manifest.json', 'webpack.config.cjs',
-          'scripts/build.mjs', 'scripts/verify-package.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
+        // Match scripts/build.mjs sourceInputs: all source and build tooling,
+        // including nested files and non-JavaScript packaging helpers.
+        const paths = [...(await filesAt(resolve(projectRoot, 'src'))).map(path => `src/${path}`),
+          ...(await filesAt(resolve(projectRoot, 'scripts'))).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs',
+          'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
         if (JSON.stringify(paths) !== JSON.stringify(build.sourceInputs.map(input => input.path).sort())) add('BUILD_SOURCE_CLOSURE_CHANGED', 'sourceInputs');
         for (const input of build.sourceInputs) await reference(input);
       }
