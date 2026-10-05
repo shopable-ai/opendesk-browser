@@ -77,7 +77,7 @@ return { title: await page.title() };
 
 Page 的绑定是浏览器上下文与受控目标，而不是当前活动标签的别名。可信导航可以更新 Page 的当前 document 身份；旧 document 的元素和在途操作不能因此自动得到新文档的权限。
 
-源码：[Page API](../../../../src/framework/ChromePage.js)、[Run context](../../../../src/framework/context.js)、[固定 DOM 操作](../../../../src/scripting/packaged/registry.js)、[旧 ChromePage](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts)。
+源码：[Page API](../../../src/framework/ChromePage.js)、[Run context](../../../src/framework/context.js)、[固定 DOM 操作](../../../src/scripting/packaged/registry.js)、[旧 ChromePage](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts)。
 
 ## 4. 油猴类产品能力：不是只有“能运行一段 JS”
 
@@ -134,7 +134,7 @@ URL 为占位示例，须替换为获准的测试地址。语义是“来源网�
 
 Controller 内也能使用服务外观，但其身份和命名空间由运行上下文决定。页面用户脚本将来可以获得对应的受控服务适配；不能通过把 MAIN 世界的 Page SDK 直接暴露给所有脚本，就宣称完成按脚本隔离。
 
-[SDK entry](../../../../src/framework/sdk/entry.js)、[服务合同](../../../../src/framework/sdk/registry.js)、[Controller Worker](../../../../src/scripting/sandbox/worker-runtime.js)。
+[SDK entry](../../../src/framework/sdk/entry.js)、[服务合同](../../../src/framework/sdk/registry.js)、[Controller Worker](../../../src/scripting/sandbox/worker-runtime.js)。
 
 ## 6. 四个必须独立记录的维度
 
