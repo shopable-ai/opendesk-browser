@@ -1,5 +1,15 @@
 # OpenDesk Browser
 
+## 先理解框架怎么用
+
+**两个核心用法：保存一份自动化脚本，在明确网页上运行；或由网页通过 SDK 请求扩展提供 HTTP、存储等受控服务。**
+
+从 [Browser Framework：使用场景、语义调用与架构入口](docs/architecture/browser-framework/README.md) 开始。它先说明 `page.title()`、网页 `axiosx.get()`、脚本运行按钮与 DevTools 调用的区别，再对应 Legacy / Current / Target、状态与权限 owner、迁移地图和验证矩阵。
+
+> 以下内容保留原 02A 阶段的环境交付记录，不能作为全部当前产品状态。当前已存在的 Controller、Page SDK、authority、IDB 与运行接线，以及 P1 候选的范围，见上述架构入口；源码存在不代表全部浏览器验收通过。该文档更新不改变历史证据或产品完成标志。
+
+## 历史：02A 环境交付范围
+
 独立Chrome MV3工程，当前交付范围为02A基础环境。工具窗口可重复打开/聚焦，固定包内classic健康脚本绑定明确tab/frame/document。采集模块显示“尚未接入”；生产运行、停止、恢复、IDB、下载回执与授权待02B，选区与模板采集待03。
 
 ## 本地构建
