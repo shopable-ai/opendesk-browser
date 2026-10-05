@@ -1,183 +1,188 @@
-# OpenDesk Browser Framework：先理解怎么用，再理解怎样实现
+# OpenDesk Browser：浏览器自动化与网页用户脚本框架
 
-> 文档类型：框架语义与导航入口。更新：2026-10-05。
-> CURRENT 是固定源码的静态事实，不是本轮浏览器验收结果；TARGET 是后续设计建议，不能当成已经存在的公开 API。本文不改变产品权限、owner、兼容合同或测试通过状态。
+> 2026-10-05，架构定位修订。首先解释框架的浏览器能力与运行模型，再解释内部层次。
+> LEGACY 是旧源码事实，CURRENT 是固定版本的实现事实，TARGET 是设计建议。设计写入不等于功能实现、独立审查通过或浏览器验收通过；本文不改变产品授权、执行 owner 或原有测试状态。
 
-## 1. 最重要的框架：两个用法，六个责任
+## 1. 一句话定位
 
-OpenDesk Browser 要解决两种事情：
+**OpenDesk Browser 是以浏览器扩展为运行载体的浏览器自动化与网页用户脚本框架：通过 Puppeteer 风格的 ChromePage API 驱动网页，通过页面用户脚本增强网页，并为这些程序提供受控的浏览器与宿主服务。**
 
-**用法 A：把一份自动化脚本保存起来，在明确的网页上运行，取得本次结果。**
+在产品层，它既可以承载油猴类脚本管理器，也可以承载浏览器自动化工作台。二者不是两个独立底座，也不意味着已经完整兼容 Tampermonkey 或 Puppeteer。
 
-**用法 B：网页里的程序需要 HTTP、扩展存储等能力，通过 SDK 请求扩展提供受控服务。**
+“保存脚本”和“请求一次 HTTP”不是足够完整的框架划分：前者是资产管理动作，后者是共享能力调用；它们没有说明程序如何操作浏览器，也遗漏了页面内用户脚本的运行与生命周期。
 
-两者可以组合，但网页请求一个服务，不等于启动一整份自动化脚本；网页点击按钮，也不等于用户已授予扩展权限。
+## 2. 核心模型：两类脚本运行方式，共享浏览器能力
 
 ```text
-用法 A：保存脚本 → 选择脚本版本、参数、目标网页 → 点击运行
-        → 创建一次受控运行
-        → page 读写网页；axiosx / AppStorage 等请求服务
-        → 返回本次结果，或明确失败、停止、效果未知
-
-用法 B：网页按钮 / 网页 DevTools / 网页业务程序
-        → 调用已安装且获准的 Page SDK
-        → 扩展执行一项服务
-        → 结果回到原来源文档的本次 Promise
+OpenDesk Browser：浏览器自动化 / 网页增强
+│
+├─ 产品与入口
+│   脚本库、编辑/导入、启用/停用、匹配规则、工具栏、页面按钮、调试
+│
+├─ 控制脚本运行方式：从页面之外驱动浏览器
+│   JavaScript 控制程序
+│     → ChromePage / ChromeElement / Keyboard
+│     → 定位、点击、输入、导航、等待、读取、页面计算
+│     → 明确的 tab / frame / document
+│   当前对应：Controller / RunHost / 固定操作与受控 userScripts 执行
+│
+├─ 页面用户脚本运行方式：在网页内部增强网页
+│   已安装、启用并获准的脚本
+│     → 匹配网址与注入时机，或手动触发
+│     → 页面执行环境中的 document / DOM / 事件
+│     → 增加按钮、修改界面、填写表单、监听页面变化
+│   当前只存在部分机制与旧业务注入；完整通用管理闭环尚未证明
+│
+├─ 共享服务能力
+│   HTTP、持久/会话存储、通知、资源、下载与所需浏览器服务
+│   → axiosx / AppStorage / AppLocal 等 API 外观
+│   → Page SDK 也可以供获准的普通网页业务程序调用
+│
+└─ 共同可信底座
+    脚本版本与身份、来源和目标授权、消息协议、平台适配、运行状态与结果
 ```
 
-| 责任 | 用普通话解释 | 不是它的责任 |
-|---|---|---|
-| 脚本资产 | 保存哪份程序、哪个版本、需要什么参数 | 保存成功不是已经执行 |
-| 触发入口 | 用户在哪里选择并启动任务：扩展工具、页面按钮、控制台 | 入口外观不证明执行位置或权限 |
-| 运行管理 | 为本次执行建立身份、固定版本与目标，管理停止和结果 | 不在高权限后台直接 eval 任意外来字符串 |
-| Automation API | `page.title()`、`page.click()`、`page.type()`：操作目标网页 | 不是页面加载 SDK 后自动获得的后台 Page 全局对象 |
-| Page SDK / 服务能力 | `axiosx.get()`、`AppStorage.getItem()`：请求宿主服务 | 不是任意后台函数调用接口 |
-| 共同底座 | 授权、真实调用者、固定目标、通信、状态与执行事实 | 不以 UI 颜色或内存回调表代替事实 |
+这是逻辑职责图，不是要求每条调用按所有方框顺序执行。页面用户脚本可以直接访问其文档的 DOM；不应强迫它绕到后台再通过 ChromePage 操作同一个 DOM。需要扩展特权的请求才进入对应服务准入路径。
 
-这些是逻辑责任，不要求创建六个项目、六个数据库或新的执行引擎。实际文件对应见 [CURRENT / TARGET](current-and-target-framework.md)。
+页面 SDK 是能力入口，不是第三种脚本运行环境。扩展工具、网页按钮、F12 是触发位置，也不是三套运行引擎。脚本不使用 HTTP 或存储时，仍然可以是完整的浏览器自动化或网页增强功能。
 
-## 2. 第一组语义调用：运行一份自动化脚本
+## 3. ChromePage 的准确角色：Puppeteer 风格的浏览器自动化 API
 
-### A1：读取目标网页标题
-
-**需求：** 用户选中一个网页，运行“读取标题”，得到那个网页的标题。
-
-下面是当前 Controller 脚本正文示例，应放在扩展的脚本编辑器中保存并运行，不是直接粘贴到任意网页控制台的初始化代码：
+应保留用户熟悉的 Page / Element / Keyboard 编程模型：
 
 ```js
-const title = await page.title();
-return { title };
-```
-
-| 问题 | 答案 |
-|---|---|
-| 谁触发？ | 用户在扩展工具中运行已保存版本 |
-| 脚本在哪里？ | Controller 脚本资产；运行固定已提交版本 |
-| 程序在哪里执行？ | 受控 Controller Worker；不是目标网页主世界 |
-| 标题在哪里读取？ | 对应固定目标文档内的包内操作执行器 |
-| `page` 是什么？ | 当前运行注入的目标网页代理，不是某个活动标签的别名 |
-| 成功怎么看？ | 本次运行的实际返回值，且来自指定文档 |
-| 失败怎么看？ | 目标过期、撤权、停止等明确拒绝；不能改读另一张活动页 |
-
-[源码：运行入口](../../../src/run-host.js)、[Worker 注入参数](../../../src/scripting/sandbox/worker-runtime.js)、[Page API](../../../src/framework/ChromePage.js)、[固定读取操作](../../../src/scripting/packaged/registry.js)。
-
-### A2：填写搜索条件并读取结果
-
-适用于用户有权操作的测试表单；选择器是示例，测试页面需提供对应元素。
-
-```js
+// 当前 Controller 脚本正文示例；运行前由工具绑定获准目标。
+// 假设测试页具有 #query、#search、#result，且输入框最初为空。
 await page.waitForSelector('#query');
 await page.type('#query', 'OpenDesk');
 await page.click('#search');
 await page.waitForSelector('#result');
-return await page.snapshot('#result');
+return { title: await page.title() };
 ```
 
-语义：等待输入框 → 追加输入文本 → 点击搜索 → 等待结果元素 → 返回可序列化快照。
+语义：等待输入框 → 输入 → 点击 → 等待结果元素 → 读取目标标题。结果元素出现不等于业务查询成功，实际案例还要检查结果新鲜度与业务值。
 
-限制：当前 `type` 是追加而非替换；`click` 是合成 DOM 事件；元素出现不自动证明业务响应新鲜或搜索成功。复杂页面仍需对应业务断言。不能宣传为真实键盘鼠标、完整 Puppeteer 兼容或任意页面通用脚本。
+| 能力族 | 代表接口 | 要保留的语义 |
+|---|---|---|
+| 页面与导航 | title、content、url、goto、reload | 对明确网页读取或导航 |
+| 元素定位与读取 | $、$$、ChromeElement、snapshot | 明确快照与可操作对象的差别 |
+| 交互 | click、type、Keyboard | 动作对象、返回值、等待与失败定义明确 |
+| 等待 | waitForSelector、waitForFunction、waitForTimeout | 明确条件、超时、取消与文档失效 |
+| 页面计算 | evaluate、$eval、$$eval | 在指定页面执行用户定义计算，而非高权限后台任意执行 |
+| 浏览器资源 | screenshot、cookies、uploadFile 等 | 单项声明支持范围、权限和平台限制 |
 
-## 3. 第二组语义调用：网页请求扩展服务
+**基于 Puppeteer 接口模型封装，不等于底层使用 Puppeteer 包或完整复刻其行为。**旧 `ChromePage.ts` 的 `_execute` 直接调用旧 Chrome API 或 WebView；不能仅因接口同名就声称使用 Puppeteer 执行引擎。
 
-### B1：网页请求一个 HTTP 接口
+例如 Puppeteer 的 `Page.content()` 返回含 DOCTYPE 的完整 HTML，旧 OpenDesk `content()` 返回 body.innerHTML；旧 $/$$ 为 DOM 快照而非 Puppeteer live ElementHandle。迁移应记录这些差异，不静默破坏旧消费者。也不能因新 Puppeteer 有 locator 等接口，就默认本项目已有该接口。
 
-**前提：** 扩展已经给来源网页 A 的精确文档安装 SDK，并批准相应能力；访问额外目标 B 还需要应用层目标批准和必要原生权限。
+Page 的绑定是浏览器上下文与受控目标，而不是当前活动标签的别名。可信导航可以更新 Page 的当前 document 身份；旧 document 的元素和在途操作不能因此自动得到新文档的权限。
 
-下面是网页主世界的示例，可放在该网页按钮处理函数中，也可在 DevTools 选中该网页上下文后调用。URL 是说明用占位地址，替换为有权使用的测试接口。
+源码：[Page API](../../../../src/framework/ChromePage.js)、[Run context](../../../../src/framework/context.js)、[固定 DOM 操作](../../../../src/scripting/packaged/registry.js)、[旧 ChromePage](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts)。
+
+## 4. 油猴类产品能力：不是只有“能运行一段 JS”
+
+下面是标准用户脚本风格的**语义示例**。它展示目标产品体验，不代表当前 OpenDesk 已实现该元数据解析或 GM 兼容。
+
+```js
+// ==UserScript==
+// @name         订单页统计按钮
+// @match        https://example.test/orders*
+// @run-at       document-end
+// @grant        none
+// ==/UserScript==
+
+(() => {
+  if (document.getElementById('opendesk-order-count')) return;
+  const button = document.createElement('button');
+  button.id = 'opendesk-order-count';
+  button.textContent = '统计当前订单';
+  button.addEventListener('click', () => {
+    const count = document.querySelectorAll('#orders tbody tr').length;
+    alert(`当前页面有 ${count} 条订单`);
+  });
+  document.body.append(button);
+})();
+```
+
+完整语义是：安装并启用 → 打开匹配网页 → 在指定时机运行 → 网页出现按钮 → 点击时执行本页逻辑。脚本初始函数返回后，按钮和事件仍可存在；不能按一次短 RPC 已完成就认为页面脚本生命周期结束。
+
+油猴类最小产品闭环应明确：脚本安装/保存与版本、启停、URL 匹配/排除、注入时机、frame 范围、执行世界、每文档实例、防重复注入、日志与错误，以及升级和卸载后的行为。
+
+自动匹配执行必须基于预先批准的脚本与站点范围，不要求每次刷新都重新点运行，也不允许匹配规则本身自动授予特权。SPA 路由变化与完整文档导航须分开定义，不能默认每次路由变化重注入。
+
+### 三项不同承诺
+
+- **油猴类使用体验**：安装脚本后在匹配网页运行、增强网页。
+- **用户脚本格式/GM API 兼容**：@match、@run-at、GM.* 等逐项合同与兼容测试。
+- **完整生态兼容**：现有第三方脚本、依赖、更新与执行世界行为的兼容。
+
+第一项可以作为产品目标；第二、三项不能由第一项推导。GM_setValue 的按脚本存储与 AppStorage 的历史命名空间也不能只换函数名。
+
+## 5. 服务语义：为自动化、用户脚本和网页集成提供能力
+
+在当前已安装并获准 Page SDK 的网页主世界中：
 
 ```js
 const sdk = globalThis.OpenDeskSDK;
-if (!sdk) throw new Error('请先在扩展工具中为本网页安装并授权 SDK');
+if (!sdk) throw new Error('请先通过扩展工具安装并授权 SDK');
 await sdk.ready();
 const response = await sdk.axiosx.get('https://api.example.test/status');
 console.log(response.status, response.data);
 ```
 
-语义：网页请扩展代表它访问一个已批准的目标，然后等这次服务结果。`ready()` 可能复用之前的 Hello，不是持续授权证明；每次真实调用仍由后台核验。
+URL 为占位示例，须替换为获准的测试地址。语义是“来源网页 A 请求扩展访问获准接口 B，结果返回 A 的这次调用”。ready 可能复用 Hello，不能代替本次授权检查。
 
-区别：网页自己 `fetch()` 是网页网络调用；`sdk.axiosx.get()` 通过受控扩展服务。不能把后者宣传成无条件绕过网站权限、登录要求或所有网络限制。
+Controller 内也能使用服务外观，但其身份和命名空间由运行上下文决定。页面用户脚本将来可以获得对应的受控服务适配；不能通过把 MAIN 世界的 Page SDK 直接暴露给所有脚本，就宣称完成按脚本隔离。
 
-### B2：网页保存一个设置
+[SDK entry](../../../../src/framework/sdk/entry.js)、[服务合同](../../../../src/framework/sdk/registry.js)、[Controller Worker](../../../../src/scripting/sandbox/worker-runtime.js)。
 
-同样先安装 SDK，并批准 `storage.persistent`：
+## 6. 四个必须独立记录的维度
 
-```js
-await AppStorage.setItem('reportFormat', 'csv');
-const format = await AppStorage.getItem('reportFormat');
-console.log(format);
-```
-
-这不是保存一份可执行脚本，也不是写网站自己的 `window.localStorage`。当前实现是扩展提供的命名空间化持久 KV。`AppLocal` 则表示会话级临时值，不应写成持久保存。
-
-[源码：SDK 安装与公开名称](../../../src/framework/sdk/entry.js)、[HTTP 外观](../../../src/framework/sdk/http.js)、[方法合同](../../../src/framework/sdk/registry.js)、[会话存储](../../../src/platform/storage/session.js)。
-
-## 4. 旧 `executeScript` 必须独立讲清楚
-
-旧网页在 bridge 已成功注入后，具有这样的调用意图：
-
-```js
-// LEGACY ONLY：只用于解释旧语义，不是新框架推荐执行入口。
-executeScript('console.log(await page.title())');
-```
-
-实际含义不是“在这个网页原地执行括号里的代码”，而是：
-
-```text
-网页调用 executeScript
-→ 发 CHROME_PAGE_EXECUTE
-→ content-script relay
-→ 扩展 background 执行传入的控制代码
-→ 控制代码调用后台的 page
-→ page 再去操作目标网页
-```
-
-而且旧网页 `executeScript` 只派发事件，不返回整份脚本的业务结果 Promise。写 `await executeScript(...)` 不能证明脚本执行完成。旧 `page.title()` 自己的 Promise 与“整份脚本完成”是两个层级。
-
-新框架应该继承“方便启动自动化”的需求，而不是继承“任意网页向高权限后台提交任意代码”的实现。CURRENT 的 Page SDK 对原始脚本执行入口明确拒绝。TARGET 若增加页面运行按钮，应引用已经保存、固定版本且获准的脚本，通过可信确认或已有的限定调用许可进入运行管理；不能直接恢复旧 eval 通道。
-
-[旧链与证据](legacy-src-bex-framework.md)。
-
-## 5. 使用场景不是同一件事
-
-| 场景 | 保存/触发/执行的正确区分 | 证据状态 |
+| 维度 | 可选情况 | 不能混淆 |
 |---|---|---|
-| 扩展工具中保存脚本并运行 | 保存版本 → 选目标 → Controller → Page API → 结果 | 当前主线存在实现；本轮未运行验收 |
-| 已安装 SDK 的网页 DevTools 调服务 | 网页上下文 → SDK → 扩展服务 → 原网页 Promise | 旧/新均有对应机制；需安装与授权条件 |
-| 网页按钮调用 HTTP / Storage | 按钮只是 SDK 调用入口，不需要运行一整份 Controller | 候选受控示例已有按钮消费者 |
-| 网页按钮启动已保存自动化脚本 | 按钮请求脚本 ID/固定版本/参数，由框架决定是否准入 | TARGET 场景；不能从已有 SDK 推断已实现 |
-| 旧网页发送原始控制代码给后台 | 旧 executeScript / CHROME_PAGE_EXECUTE | 旧源码路径确认，新 Page SDK 拒绝 |
-| 旧脚本管理 UI 的“运行”按钮 | 已发现本机 HTTP 和服务端设备分发路径 | 不等于已证明扩展本地保存、目标网页按钮闭环 |
-| 页面加载时自动运行 | 需要明确的自动触发注册与撤销合同 | 本轮不新增；不能由注入代码存在推断支持 |
+| 程序来源 | 保存、导入、可信工具临时调试 | 有临时脚本需求不等于普通网页可提交后台任意代码；运行前冻结输入 |
+| 触发方式 | 手动、页面按钮、网址匹配、事件 | 自动匹配不等于自动授权；F12 不额外授予后台权限 |
+| 执行环境 | Controller Worker、页面 USER_SCRIPT、明确批准的 MAIN | 有 document 的页面脚本不能被强制塞入无 DOM 的 Worker |
+| 能力范围 | DOM、ChromePage、HTTP、存储、通知等 | API 存在不等于当前身份有权调用 |
 
-DevTools 不是一种特殊后台权限：网页控制台、扩展 Service Worker 控制台、隔离世界是不同执行上下文。普通网页 DevTools 不会仅因打开 F12 就获得扩展后台 `page`。
+来源文档 A、自动化目标文档 T、网络目标 origin B 也是不同对象。@match 指定脚本适用网页；network target 指定可请求哪里；二者都不代替实际 tab/frame/document 的校验。
 
-## 6. 什么叫“旧框架正确”？
+## 7. 共同底座，不同生命周期与信任边界
 
-必须分开三种判断：**需求模型合理**、**旧实现确实满足语义**、**在当前浏览器上可以安全运行**。第一项成立不自动推出后两项。
-
-每个场景统一用一句话验收：
-
-> 谁，在什么入口，用哪份代码/版本，对哪个目标，请求什么能力，应该获得什么结果；失败、撤销、导航和重试时允许发生什么？
-
-例如 `page.title()`：目标是选择的网页，活动标签变化不能改变读取对象。SDK HTTP：结果必须回到原来源文档，后台 ACK 或网络已发出不能当成页面收到结果。保存脚本：保存后再次运行的是固定版本，不是悄悄换成最新内容。
-
-这些问题先回答清楚，再阅读 authority、journal、transport 等内部实现。
-
-## 7. 四份文档的职责与阅读顺序
-
-| 文档 | 回答的问题 |
+| 对象 | 身份与生命周期 |
 |---|---|
-| 本 README | 框架怎么用？两个用法和关键语义是什么？ |
-| [旧框架模型](legacy-src-bex-framework.md) | 旧调用到底经过哪里？哪些用户描述已证实，哪些尚未证实？ |
-| [当前与目标](current-and-target-framework.md) | 当前已经接了什么？目标职责与验证怎么安排？ |
-| [能力迁移地图](legacy-to-target-map.md) | 旧能力怎样保留、适配、替换、删除或延期？ |
+| Controller 任务 | run + epoch + 固定代码版本 + 目标；成功、失败、停止、未知效果及资源回收 |
+| 页面用户脚本 | 可信 script identity + revision + 文档实例；装载、活动、停用与文档退出 |
+| Page SDK 请求 | 原始来源文档 + grant + request/digest；请求结果与交付检查 |
 
-Architecture 使用本目录作人工入口；Contracts/Invariants 继续归有效合同与源码 schema；Migration/Compatibility 继续使用 [机器账本](../../framework/source-compatibility-ledger.json) 和已批准的差异；Validation 继续使用实际 tests/evidence。本文不覆盖历史 evidence，不把候选文档整份自动批准为产品合同。
+CURRENT Page SDK 使用来源文档/origin 授权，不是脚本级授权。TARGET 用户脚本的可信身份必须由安装/准入与绑定通道证明，不能相信网页消息里的 scriptId；MAIN 世界共享代码也不具有天然的脚本间隔离。
 
-## 8. 审计基线与边界
+统一持久化、协议、authority 和 driver，不意味着所有脚本都占用同一个长任务 slot、使用同一存储键空间或处于同一个执行世界。页面内直接 DOM 修改不经过每次后台准入，不能宣称获得与受控 ChromePage 命令相同的逐动作日志或强制停止能力。
 
-Legacy：`todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5`。Current 主线产品源码：`opendesk-browser@6214b5e9132f58cbe0402a34973b7ee38c851d53`。P1 候选：`38763c78209794bec53c8ca848bfa0789dc4796e`，分支 `codex/p1-2-sdk-target-origins-20261004`。
+禁止高权限扩展上下文任意 eval，不等于禁止用户提供的 JavaScript。用户脚本能力通过符合平台要求的 userScripts 等受控路径承接。unregister 不能被解释为撤销已发生的页面效果；页面脚本停用必须分别描述未来注入、特权服务拒绝和已运行页面逻辑的清理限制。
 
-与上一轮 `dc25c048...` 相比，该候选已增加 `src/ui/sdk-approval.js`、工具接线与受控页面示例。上轮“候选界面未接入”的描述只适用于旧候选，不能继续当现状。本轮只读源码与文档，不构建、不执行真实浏览器用例，不改机器账本完成标志。未能读取大型账本全文，不宣称所有内部符号已完整复核。
+## 8. 当前状态与下一步
 
-官方语义参考：[DevTools 执行上下文](https://developer.chrome.com/docs/devtools/console/reference#context)、[Content scripts / isolated worlds](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)、[userScripts](https://developer.chrome.com/docs/extensions/reference/api/userScripts)。
+| 主线 | 当前证据 | 后续决定 |
+|---|---|---|
+| Puppeteer 风格 Automation | ChromePage、context、Controller、固定操作、页面计算路径已存在 | 保留并按旧语义/目标文档/真实效果验收 |
+| 页面用户脚本 | 旧项目有页面应用脚本注入；新项目有 userScripts 页面计算机制 | 不能算完整管理器；应补设计与独立用户链验证，不隐去此核心范围 |
+| Page SDK / services | 独立 SDK 与后台服务已实现；P1 候选有 A/B 批准 UI | 完成同包真实调用验证，不等于用户脚本产品已完成 |
+| 网页按钮启动完整任务 | 旧 raw executeScript 有启动意图，但没有可靠整段结果协议 | 保留场景，通过受限脚本引用与现有运行管理承接 |
+
+先完成正在推进的 P1 授权/服务链及 ChromePage 对照验证，不与其产品写入竞争。随后以“安装一个只修改 DOM 的脚本 → 匹配网页自动装载 → 刷新与停用”证明页面用户脚本闭环，再验证它使用受控服务和按脚本隔离；不自动开启新阶段产品实现。
+
+## 9. 文档与证据入口
+
+| 文档 | 作用 |
+|---|---|
+| 本 README | 浏览器框架定位、两类脚本运行模型、语义调用 |
+| [Legacy](legacy-src-bex-framework.md) | 旧 ChromePage、服务桥、脚本启动与页面注入事实 |
+| [CURRENT / TARGET](current-and-target-framework.md) | 现有组件、目标边界、状态 owner、验收切片 |
+| [迁移地图](legacy-to-target-map.md) | 旧能力逐项决定；不能把限定拒绝算作正向迁移成功 |
+
+有效 Contracts/Invariants 仍由已批准合同与源码 schema 负责；[机器账本](../../framework/source-compatibility-ledger.json) 保留迁移 ID；tests/evidence 负责真实验证。首页修订不删除来源事实、不将候选自动批准为产品合同。
+
+固定来源：Legacy `todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5`；主线文档修订前 `opendesk-browser@bb2038f992b1ad79311fc8436433a655f76ff735`（产品源码来自此前 6214b5e）；本轮观察到 P1 候选 `426409791a35acb6a6e5eb3f6fcc8b0600f562b5`。38763c7 到该候选的后续差异为构建/测试相关，不能据此增加本轮原生 PASS。本轮未全读大型 ledger，未执行浏览器验收。
+
+官方依据：[Puppeteer Page](https://pptr.dev/api/puppeteer.page)、[Page.content](https://pptr.dev/api/puppeteer.page.content)、[Tampermonkey 文档](https://www.tampermonkey.net/documentation.php?locale=en)、[Chrome userScripts](https://developer.chrome.com/docs/extensions/reference/api/userScripts)、[Content scripts 与执行世界](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)。
