@@ -1,0 +1,46 @@
+name: P1.2 focused SDK candidate checks
+
+# This workflow never runs on main, deploys, or opens a browser.
+on:
+  push:
+    branches: [codex/p1-2-sdk-target-origins-20261004]
+    paths:
+      - 'src/**'
+      - 'tests/framework/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/p1-2-sdk.yml'
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact candidate without retained credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - name: Use Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Record source and runtime identity
+        run: |
+          git rev-parse HEAD
+          git status --short
+          node --version
+          npm --version
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Syntax checks
+        run: |
+          node --check src/platform/host/broker.js
+          node --check src/platform/host/sdk-methods.js
+          node --check src/framework/sdk/target-origins.js
+      - name: P1.1 full-import focused regressions
+        run: node --test tests/framework/k2-sdk-reference-authority.test.mjs tests/framework/k2-sdk-broker.test.mjs
+      - name: P1.2 exact origin contract
+        if: ${{ !cancelled() }}
+        run: node --test tests/framework/k2-sdk-target-origins.test.mjs
