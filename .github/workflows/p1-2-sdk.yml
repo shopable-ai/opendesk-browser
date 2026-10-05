@@ -46,9 +46,9 @@ jobs:
           node --check tests/framework/fixtures/sdk-target-origins/client.js
       - name: Full-import SDK regressions and adversarial target/UI/fixture checks
         run: node --test --test-reporter=spec tests/framework/k2*.test.mjs
-      - name: Existing environment regressions
+      - name: Existing environment logic regressions
         if: ${{ !cancelled() }}
-        run: node --test --test-reporter=spec tests/environment/*.test.mjs
+        run: find tests/environment -maxdepth 1 -name '*.test.mjs' ! -name 'package.test.mjs' -print0 | xargs -0 node --test --test-reporter=spec
       - name: Source checks
         if: ${{ !cancelled() }}
         run: npm run check
@@ -56,6 +56,25 @@ jobs:
         id: production
         if: ${{ !cancelled() }}
         run: npm run build
-      - name: Production package checks
+      - name: Production package and mutation checks
         if: ${{ !cancelled() && steps.production.outcome == 'success' }}
-        run: node scripts/verify-package.mjs dist/production
+        run: |
+          node scripts/verify-package.mjs dist/production
+          node --test --test-reporter=spec tests/environment/package.test.mjs
+      - name: Capture exact failed source and installed dependency closure
+        if: ${{ failure() }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/p1-diagnostic"
+          git rev-parse HEAD > "$RUNNER_TEMP/p1-diagnostic/source-sha.txt"
+          git archive HEAD | gzip > "$RUNNER_TEMP/p1-diagnostic/source.tar.gz"
+          tar -czf "$RUNNER_TEMP/p1-diagnostic/dependencies.tar.gz" node_modules
+          (cd "$RUNNER_TEMP/p1-diagnostic" && sha256sum *.tar.gz > SHA256SUMS)
+      - name: Retain failed-build diagnostic for one day
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p1-diagnostic-${{ github.sha }}
+          path: ${{ runner.temp }}/p1-diagnostic/*
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error

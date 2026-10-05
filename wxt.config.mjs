@@ -60,7 +60,12 @@ export default defineConfig({
             ? BUILD_POLICY.developmentBytes : BUILD_POLICY.productionBytes;
           const bytes = Buffer.byteLength(chunks[0].code);
           console.log(`[fixed-entry] ${target}: ${bytes}/${budget} bytes`);
-          if (bytes > budget) throw new Error(`WXT entry exceeds unchanged byte budget: ${target} (${bytes} > ${budget})`);
+          if (bytes > budget) {
+            console.log('[fixed-entry-module-sizes]', JSON.stringify(Object.entries(chunks[0].modules)
+              .map(([id, module]) => ({id, renderedLength: module.renderedLength}))
+              .sort((a, b) => b.renderedLength - a.renderedLength).slice(0, 20)));
+            throw new Error(`WXT entry exceeds unchanged byte budget: ${target} (${bytes} > ${budget})`);
+          }
         }
       });
     }
