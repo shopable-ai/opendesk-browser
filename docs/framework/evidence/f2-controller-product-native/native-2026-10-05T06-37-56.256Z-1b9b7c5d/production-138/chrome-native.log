@@ -1,0 +1,11 @@
+
+DevTools listening on ws://127.0.0.1:49378/devtools/browser/b7b2612e-b325-4bb2-8211-137b5810b8c9
+[53231:47152597:1005/143759.715980:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[53231:47152597:1005/143827.576786:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[53231:47152597:1005/143859.733675:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:483] ConnectionHandler failed with net error: -2
+[53231:47152597:1005/143914.161166:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[53231:47152597:1005/143959.868669:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:483] ConnectionHandler failed with net error: -2
+[54876:47170752:1005/144056.808019:ERROR:services/on_device_model/ml/gpu_blocklist.cc:120] Unable to get gpu adapter
+[53231:47152501:1005/144056.808298:ERROR:services/on_device_model/public/cpp/service_client.cc:36] Unexpected on_device_model service disconnect: The device's GPU is not supported.
+[53231:47152597:1005/144059.998575:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:483] ConnectionHandler failed with net error: -2
+[53231:47152597:1005/144111.402200:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT

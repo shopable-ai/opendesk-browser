@@ -1,0 +1,26 @@
+ M docs/framework/public-owner.json
+ M docs/framework/wxt-progress.json
+ M docs/framework/wxt-status.md
+ M src/platform/downloads/blob-lifecycle.js
+ M src/platform/host/client.js
+ M src/scripting/sandbox/controller.js
+ M tests/framework/acceptance-evidence.test.mjs
+ M tests/framework/k5-controller-product-native.mjs
+ M tests/framework/k5-sdk-native.mjs
+ M tests/framework/verify-product-acceptance.mjs
+?? docs/framework/evidence/incremental-20261004-01a106d2/received-owner.json
+?? docs/framework/evidence/independent-migration-20261003-01a1021b/final-f3-evidence-contract-20261004.json
+?? docs/framework/evidence/independent-migration-20261003-01a1021b/final-f3-readonly-checklist-20261004.txt
+?? docs/framework/evidence/independent-migration-20261003-01a1021b/final-f3-required-ids-20261004.json
+?? docs/framework/evidence/old-features-20261004-01a1067b/checker-component-raw-commands.json
+?? docs/framework/evidence/old-features-20261004-01a1067b/components.log
+?? docs/framework/evidence/old-features-20261004-01a1067b/controller-campaign-implementation.md
+?? docs/framework/evidence/old-features-20261004-01a1067b/function-implementation.md
+?? docs/framework/evidence/old-features-20261004-01a1067b/handoff-authorization.json
+?? docs/framework/evidence/old-features-20261004-01a1067b/handoff-candidate-identity.json
+?? docs/framework/evidence/old-features-20261004-01a1067b/handoff-package-drift-erratum.json
+?? docs/framework/evidence/old-features-20261004-01a1067b/handoff-process-check.json
+?? docs/framework/evidence/old-features-20261004-01a1067b/handoff-to-01a106d2.md
+?? docs/framework/evidence/old-features-20261004-01a1067b/source-check.log
+?? tests/framework/k5-controller-native-campaigns.mjs
+?? tests/framework/k5-sdk-legacy-consumers.mjs

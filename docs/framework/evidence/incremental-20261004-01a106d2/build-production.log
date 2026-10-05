@@ -1,0 +1,33 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+
+WXT 0.21.4
+ℹ Generating types...
+✔ Finished in 126 ms
+
+WXT 0.21.4
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/11] sw[K⠙ [1/11] sw[K⠹ [1/11] sw[K⠸ [1/11] sw[K⠼ [1/11] sw[K⠴ [1/11] sw[K⠦ [1/11] sw[K⠧ [1/11] sw[K⠇ [1/11] sw[K⠏ [1/11] sw[K⠋ [1/11] sw[K⠙ [1/11] sw[K⠹ [1/11] sw[K⠸ [1/11] sw[K⠼ [1/11] sw[K⠴ [1/11] sw[K⠦ [1/11] sw[K⠧ [1/11] sw[K⠧ [2/11] bootstrap[K⠇ [2/11] bootstrap[K⠇ [3/11] health[K⠏ [3/11] health[K⠏ [4/11] page-agent[K⠋ [4/11] page-agent[K⠙ [4/11] page-agent[K⠹ [4/11] page-agent[K⠹ [5/11] page-relay[K⠸ [5/11] page-relay[K⠼ [5/11] page-relay[K⠼ [6/11] page-session[K⠴ [6/11] page-session[K⠦ [6/11] page-session[K⠧ [6/11] page-session[K⠧ [7/11] sandbox[K⠇ [7/11] sandbox[K⠏ [7/11] sandbox[K⠏ [8/11] sdk-main[K⠋ [8/11] sdk-main[K⠙ [8/11] sdk-main[K⠹ [8/11] sdk-main[K⠹ [9/11] selection-entry[K⠸ [9/11] selection-entry[K⠸ [10/11] tool-shell[K⠼ [10/11] tool-shell[K⠴ [10/11] tool-shell[K⠦ [10/11] tool-shell[K⠧ [10/11] tool-shell[K⠇ [10/11] tool-shell[K⠇ [11/11] worker-runtime[K⠏ [11/11] worker-runtime[K⠋ [11/11] worker-runtime[K⠙ [11/11] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 3.599 s
+  ├─ dist/production/manifest.json                        946 B    
+  ├─ dist/production/scripting/sandbox/sandbox.html       385 B    
+  ├─ dist/production/ui/target-bootstrap.html             200 B    
+  ├─ dist/production/ui/tool.html                         4.96 kB  
+  ├─ dist/production/agents/bootstrap.js                  931 B    
+  ├─ dist/production/agents/health.js                     828 B    
+  ├─ dist/production/agents/page-agent.js                 40.10 kB 
+  ├─ dist/production/agents/page-relay.js                 14.47 kB 
+  ├─ dist/production/agents/selection-entry.js            383 B    
+  ├─ dist/production/framework/sdk-main.js                26.23 kB 
+  ├─ dist/production/scripting/packaged/page-session.js   21.05 kB 
+  ├─ dist/production/scripting/sandbox/sandbox.js         4.01 kB  
+  ├─ dist/production/scripting/sandbox/worker-runtime.js  22.18 kB 
+  ├─ dist/production/sw.js                                253.79 kB
+  ├─ dist/production/ui/tool-shell.js                     59.98 kB 
+  ├─ dist/production/ui/tool-shell.css                    1.33 kB  
+  ├─ dist/production/icons/notification.png               595 B    
+  └─ dist/production/licenses/todo-user-vue-MIT.txt       1.10 kB  
+Σ Total size: 453.46 kB                                 
+✔ Finished in 3.674 s
+{"mode":"production","builder":"wxt","status":"passed","packageHash":"539825650f444ebaf2fa0f442fa846dfc37e0b287769c53e4ed03e045b3ba770","assets":19}

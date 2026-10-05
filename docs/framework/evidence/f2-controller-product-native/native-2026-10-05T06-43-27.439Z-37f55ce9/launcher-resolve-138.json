@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-05T06:43:27.543Z",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "pid": 55169,
+  "executable": "/usr/bin/python3",
+  "args": [
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--resolve-only",
+    "--executable",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+  ],
+  "stdout": "{\"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\"}\n",
+  "stderr": "",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "requestedVersion": "138.0.7204.183",
+  "nativeExecuted": false
+}

@@ -1,0 +1,34 @@
+{
+  "observedAt": "2026-10-04T12:29:36.724886+00:00",
+  "writer": "01a1067b-a17b-7870-8ca4-92af03c934f5",
+  "matchingProjectBuildTestLauncherOperations": [],
+  "writerOwnedBrowser": null,
+  "writerOwnedProfile": null,
+  "writerOwnedServer": null,
+  "writerOwnedPorts": [],
+  "CUAUsedThisRun": false,
+  "globalLauncherUsedThisRun": false,
+  "completedParentSessions": [
+    {
+      "sessionId": 20354,
+      "exitCode": 0,
+      "command": "npm run check"
+    },
+    {
+      "sessionId": 67332,
+      "exitCode": 0,
+      "command": "node --test tests/environment/*.test.mjs tests/foundation/*.test.mjs tests/framework/*.test.mjs"
+    }
+  ],
+  "closedSubagents": [
+    "01a1067f-c1e8-7521-a143-44f4cea97b67",
+    "01a1067f-c327-7d50-8d9f-c9dc746cd834",
+    "01a1068e-7f1c-7291-be25-f1f77f098d16",
+    "01a106a6-a8fc-7273-bc48-15a6272822db",
+    "01a106b6-ad3e-7550-9d3a-0f435450dd7d",
+    "01a106cd-b3f5-7e41-8c8e-c2dd83f92f37"
+  ],
+  "noOtherPIDTerminated": true,
+  "noPersonalChromeTouched": true,
+  "noInFlightOperations": true
+}

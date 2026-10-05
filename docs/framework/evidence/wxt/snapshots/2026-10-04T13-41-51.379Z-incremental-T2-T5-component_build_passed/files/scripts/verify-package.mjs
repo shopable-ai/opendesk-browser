@@ -1,0 +1,270 @@
+import {readdir, readFile, stat} from 'node:fs/promises';
+import {join, resolve, dirname} from 'node:path';
+import {createHash} from 'node:crypto';
+import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
+import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY} from './build-contract.mjs';
+import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
+const require = createRequire(import.meta.url);
+const {parse} = require('acorn');
+export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
+export const BUILD_CONTRACT_SOURCE = 'scripts/build-contract.mjs';
+export const SANDBOX_HTML = 'scripting/sandbox/sandbox.html';
+export const CONTROL_WORKER = 'scripting/sandbox/worker-runtime.js';
+export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
+export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";
+export const SANDBOX_CSP = `sandbox allow-scripts; ${SANDBOX_META_CSP}`;
+export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js'], matches: ['http://*/*', 'https://*/*']}]);
+export const FIXED_ASSETS = Object.freeze({
+  'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},
+  'licenses/todo-user-vue-MIT.txt': {bytes: 1096, sha256: 'e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29'}
+});
+const HTML_REFERENCES = Object.freeze({
+  'ui/tool.html': ['tool-shell.css', 'tool-shell.js'],
+  'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
+  [SANDBOX_HTML]: ['sandbox.js']
+});
+const expectedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
+const required = ['manifest.json', SDK_RESOURCE_MANIFEST, ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+if (!same(BUILD_POLICY, {productionBytes: 256 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
+if (Object.entries(PACKAGE_ENTRIES).some(([name]) => name !== 'sw' && FIXED_OUTPUTS[name.split('/').at(-1)] !== `${name}.js`)) throw new Error('Unexpected fixed output contract');
+if (!Object.isFrozen(SDK_RESOURCE_PATHS) || !same(SDK_RESOURCE_PATHS, ['framework/sdk-main.js', 'agents/page-relay.js']) || SDK_RESOURCE_MANIFEST !== 'framework/sdk-resources.json') throw new Error('Unexpected SDK resource contract');
+export async function filesAt(root, prefix = '') {
+  const list = [];
+  for (const item of await readdir(join(root, prefix), {withFileTypes: true})) {
+    const name = prefix ? `${prefix}/${item.name}` : item.name;
+    if (item.isSymbolicLink()) throw new Error(`Symlink forbidden in artifact: ${name}`);
+    if (item.isDirectory()) list.push(...await filesAt(root, name));
+    else if (item.isFile()) list.push(name);
+    else throw new Error(`Non-file forbidden in artifact: ${name}`);
+  }
+  return list.sort();
+}
+export async function packageFingerprint(root) {
+  const files = [];
+  for (const path of await filesAt(root)) {
+    const bytes = await readFile(join(root, path));
+    files.push({path, bytes: bytes.length, sha256: digest(bytes)});
+  }
+  return {packageHash: digest(JSON.stringify(files)), hashRecipe: 'SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes', files};
+}
+export async function createSdkResourceManifest(directory) {
+  const root = resolve(directory), resources = [];
+  for (const path of SDK_RESOURCE_PATHS) {
+    const bytes = await readFile(join(root, path));
+    resources.push({path, bytes: bytes.length, sha256: digest(bytes)});
+  }
+  return {schemaVersion: 1, resources};
+}
+export async function verifySdkResourceManifest(directory) {
+  const root = resolve(directory);
+  const bytes = await readFile(join(root, SDK_RESOURCE_MANIFEST));
+  if (bytes.length > 8192) throw new Error(`SDK resource manifest exceeds reader size limit: ${SDK_RESOURCE_MANIFEST}`);
+  let manifest;
+  try { manifest = JSON.parse(new TextDecoder('utf-8', {fatal: true}).decode(bytes)); }
+  catch { throw new Error(`Invalid SDK resource manifest JSON: ${SDK_RESOURCE_MANIFEST}`); }
+  const fields = (value, keys) => value && typeof value === 'object' && !Array.isArray(value) &&
+    same(Object.keys(value).sort(), [...keys].sort());
+  if (!fields(manifest, ['schemaVersion', 'resources']) || manifest.schemaVersion !== 1 ||
+      !Array.isArray(manifest.resources) || manifest.resources.length !== SDK_RESOURCE_PATHS.length ||
+      !manifest.resources.every((entry, index) => fields(entry, ['path', 'bytes', 'sha256']) &&
+        entry.path === SDK_RESOURCE_PATHS[index] && Number.isSafeInteger(entry.bytes) && entry.bytes > 0 &&
+        entry.bytes <= BUILD_POLICY.productionBytes && typeof entry.sha256 === 'string' && entry.sha256.length === 64 && /^[a-f0-9]{64}$/.test(entry.sha256)))
+    throw new Error(`Invalid SDK resource manifest schema: ${SDK_RESOURCE_MANIFEST}`);
+  const actual = await createSdkResourceManifest(root);
+  for (const [index, entry] of actual.resources.entries()) {
+    const expected = manifest.resources[index];
+    if (entry.bytes !== expected.bytes || entry.sha256 !== expected.sha256) throw new Error(`SDK resource integrity mismatch in ${entry.path}`);
+  }
+  return actual;
+}
+export function verifyManifest(manifest) {
+  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'optional_host_permissions', 'background', 'action', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
+  if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
+  if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
+  if (!same(manifest.permissions, ['storage', 'scripting', 'activeTab', 'downloads', 'tabs', 'webNavigation', 'userScripts'])) throw new Error('Unexpected permissions');
+  if (!same(manifest.optional_permissions, ['cookies', 'notifications'])) throw new Error('Unexpected optional permissions');
+  if (!same(manifest.optional_host_permissions, ['http://*/*', 'https://*/*'])) throw new Error('Unexpected optional host permissions');
+  if (!same(manifest.content_security_policy, {extension_pages: EXTENSION_CSP, sandbox: SANDBOX_CSP})) throw new Error('Unexpected CSP');
+  if (!same(manifest.sandbox, {pages: [SANDBOX_HTML]})) throw new Error('Unexpected sandbox boundary');
+  if (!same(manifest.background, {service_worker: 'sw.js'})) throw new Error('Unexpected or missing worker entry');
+  if (!same(Object.keys(manifest.action || {}), ['default_title'])) throw new Error('Unexpected action resource/entry');
+  if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
+  if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
+  if (manifest.host_permissions || manifest.content_scripts || manifest.externally_connectable) throw new Error('Unapproved broad exposure');
+  if (!same(Object.keys(manifest).sort(), fields.sort())) throw new Error('Unexpected manifest entry/exposure');
+}
+const property = node => node?.type === 'MemberExpression' ? node.computed ? node.property.value : node.property.name : undefined;
+const isMember = (node, object, name) => node?.type === 'MemberExpression' && node.object.type === 'Identifier' && node.object.name === object && property(node) === name && !node.computed;
+function asyncConstructor(node) {
+  const call = node?.object;
+  return property(node) === 'constructor' && call?.type === 'CallExpression' && isMember(call.callee, 'Object', 'getPrototypeOf') &&
+    call.arguments.length === 1 && call.arguments[0].type === 'FunctionExpression' && call.arguments[0].async &&
+    call.arguments[0].params.length === 0 && call.arguments[0].body.body.length === 0;
+}
+function walk(node, visit, ancestors = []) {
+  if (!node?.type) return;
+  visit(node, ancestors);
+  for (const value of Object.values(node)) {
+    if (Array.isArray(value)) { for (const child of value) if (child?.type) walk(child, visit, [...ancestors, node]); }
+    else if (value?.type) walk(value, visit, [...ancestors, node]);
+  }
+}
+function safeFunctionReference(node, ancestors, file) {
+  const parent = ancestors.at(-1), grandparent = ancestors.at(-2), call = ancestors.at(-3);
+  if (node.name !== 'Function' || parent?.object !== node) return false;
+  // Introspection of an existing function does not compile source.
+  if (property(parent) === 'prototype' && property(grandparent) === 'toString' && grandparent.object === parent && !parent.computed && !grandparent.computed) return true;
+  // Existing Worker binds the native Promise.then helper before user code runs.
+  return file === CONTROL_WORKER && property(parent) === 'call' && property(grandparent) === 'bind' && !parent.computed && !grandparent.computed &&
+    call?.type === 'CallExpression' && call.callee === grandparent && call.arguments.length === 1 &&
+    property(call.arguments[0]) === 'then' && isMember(call.arguments[0].object, 'Promise', 'prototype');
+}
+function nonReference(node, parent) {
+  return ((parent?.type === 'Property' || parent?.type === 'MethodDefinition' || parent?.type === 'PropertyDefinition') && parent.key === node && !parent.computed && !parent.shorthand);
+}
+function parseScript(text, file, sourceType) {
+  try { return parse(text, {ecmaVersion: 'latest', sourceType}); }
+  catch (error) { throw new Error(`Non-classic syntax in ${file}: ${error.message}`); }
+}
+function allowedSourceExport(node, file) {
+  return file === 'scripting/sandbox/sandbox.js' && node.type === 'ExportNamedDeclaration' && !node.source &&
+    node.declaration?.type === 'FunctionDeclaration' && node.declaration.id?.name === 'initSandbox' && node.specifiers.length === 0;
+}
+function assertClassicIIFE(text, file) {
+  const ast = parseScript(text, file, 'script'), declaration = ast.body[0];
+  const call = declaration?.declarations?.[0]?.init;
+  if (ast.body.length !== 1 || declaration?.type !== 'VariableDeclaration' || declaration.kind !== 'var' ||
+      declaration.declarations.length !== 1 || declaration.declarations[0].id.type !== 'Identifier' ||
+      call?.type !== 'CallExpression' || call.arguments.length || call.callee.type !== 'FunctionExpression' ||
+      call.callee.params.length || call.callee.async || call.callee.generator)
+    throw new Error(`Non-classic IIFE output in ${file}`);
+}
+export function inspectScript(text, file, options = {}) {
+  const ast = parseScript(text, file, options.sourceType || 'script');
+  const scopes = new WeakMap(), declarations = [], bindings = new WeakMap();
+  let scope = {parent: null, names: new Map(), kind: 'function'};
+  // Resolve the approved captured constructor lexically; minified local names are not an allowlist.
+  function index(node) {
+    if (!node?.type) return;
+    const previous = scope;
+    if (/^(?:FunctionDeclaration|FunctionExpression|ArrowFunctionExpression|BlockStatement|CatchClause)$/.test(node.type)) {
+      if (node.type === 'FunctionDeclaration' && node.id) scope.names.set(node.id.name, {node});
+      scope = {parent: scope, names: new Map(), kind: node.type.includes('Function') ? 'function' : 'block'};
+      function bindPattern(pattern) {
+        if (pattern?.type === 'Identifier') scope.names.set(pattern.name, {node: pattern});
+        else if (pattern?.type === 'ObjectPattern') for (const item of pattern.properties) bindPattern(item.type === 'RestElement' ? item.argument : item.value);
+        else if (pattern?.type === 'ArrayPattern') for (const item of pattern.elements) bindPattern(item);
+        else if (pattern?.type === 'AssignmentPattern') bindPattern(pattern.left);
+        else if (pattern?.type === 'RestElement') bindPattern(pattern.argument);
+      }
+      for (const param of node.params || []) bindPattern(param);
+      if (node.type === 'FunctionExpression' && node.id) scope.names.set(node.id.name, {node});
+      if (node.type === 'CatchClause') bindPattern(node.param);
+    }
+    scopes.set(node, scope);
+    if (node.type === 'VariableDeclaration') for (const d of node.declarations) if (d.id.type === 'Identifier') {
+      let owner = scope; if (node.kind === 'var') while (owner.parent && owner.kind !== 'function') owner = owner.parent;
+      const binding = {node: d, declaration: node, scope: owner}; owner.names.set(d.id.name, binding); bindings.set(d, binding); declarations.push(d);
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) { for (const child of value) if (child?.type) index(child); }
+      else if (value?.type) index(value);
+    }
+    scope = previous;
+  }
+  index(ast);
+  const captures = declarations.filter(d => asyncConstructor(d.init));
+  if (captures.length !== (file === CONTROL_WORKER ? 1 : 0)) throw new Error(`Unapproved dynamic execution boundary in ${file}`);
+  const approved = captures[0], binding = approved && bindings.get(approved);
+  let uses = 0;
+  function resolveBinding(node) { for (let s = scopes.get(node); s; s = s.parent) if (s.names.has(node.name)) return s.names.get(node.name); }
+  walk(ast, (node, ancestors) => {
+    const parent = ancestors.at(-1);
+    if (node.type === 'ImportExpression' || node.type === 'ImportDeclaration' || (/^Export/.test(node.type) && !allowedSourceExport(node, file))) throw new Error(`Non-classic syntax in ${file}`);
+    if (node.type === 'Identifier' && !nonReference(node, parent)) {
+      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name}`);
+      if (binding && resolveBinding(node) === binding && node !== approved.id) {
+        if (parent?.type !== 'NewExpression' || parent.callee !== node || parent.arguments.length !== 7 ||
+          ['page','params','axiosx','AppStorage','AppLocal','storage'].some((name,index)=>parent.arguments[index]?.value!==name) || property(parent.arguments[6]) !== 'body') throw new Error(`Unapproved dynamic constructor use in ${file}`);
+        uses++;
+      }
+    }
+    if (node.type === 'MemberExpression' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(property(node))) throw new Error(`Dynamic execution in ${file}: ${property(node)}`);
+    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file}`);
+    if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
+  });
+  if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);
+  if (/__webpack_require__\.e\s*\(|https?:\/\/[^\s'"]+\.js(?:[?#][^\s'"]*)?(?=['"\s]|$)|\brequire\(['"](?:node:|fs|net|http)/.test(text)) throw new Error(`Remote/lazy/runtime-host execution in ${file}`);
+  return {approvedAsyncBodyConstructors: uses};
+}
+async function inspectHTML(root, file) {
+  const text = await readFile(join(root, file), 'utf8'), references = [], policies = [];
+  if (/\son[a-z]+\s*=|<script\b(?![^>]*\bsrc\s*=)[^>]*>|(?:src|href)\s*=\s*['"](?:https?:|\/\/|data:|javascript:)/i.test(text)) throw new Error(`Unsafe HTML resources in ${file}`);
+  for (const match of text.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*)>/gi)) {
+    const tag = match[1].toLowerCase(), attributes = new Map();
+    if (['base', 'iframe', 'object', 'embed'].includes(tag)) throw new Error(`Unsafe HTML element in ${file}: ${tag}`);
+    let tail = match[2];
+    while (tail.trim()) {
+      const attr = /^\s+([\w:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/.exec(tail);
+      if (!attr) throw new Error(`Unsafe HTML attributes in ${file}`);
+      const key = attr[1].toLowerCase(), value = attr[2] ?? attr[3] ?? attr[4] ?? '';
+      if (attributes.has(key) || /^on/.test(key) || ['srcdoc', 'srcset', 'style', 'action', 'formaction'].includes(key)) throw new Error(`Unsafe HTML attribute in ${file}: ${key}`);
+      attributes.set(key, value); tail = tail.slice(attr[0].length);
+      if (['src', 'href', 'poster', 'data'].includes(key)) {
+        if (attr[4] !== undefined || !value || /[&%\\?#:]|^\//.test(value)) throw new Error(`Unsafe HTML resources in ${file}: ${value}`);
+        const target = resolve(root, dirname(file), value);
+        if (!target.startsWith(root + '/') || !(await stat(target)).isFile()) throw new Error(`Missing/escaped resource in ${file}: ${value}`);
+        references.push(value);
+      }
+    }
+    if (tag === 'meta' && attributes.get('http-equiv')?.toLowerCase() === 'content-security-policy') policies.push(attributes.get('content'));
+    if (tag === 'script' && (attributes.size !== 1 || !attributes.has('src') || !attributes.get('src').endsWith('.js'))) throw new Error(`Unsafe HTML script in ${file}`);
+    if (attributes.has('href') && (tag !== 'link' || attributes.get('rel') !== 'stylesheet' || !attributes.get('href').endsWith('.css'))) throw new Error(`Unsafe HTML stylesheet in ${file}`);
+    if (attributes.has('src') && tag !== 'script') throw new Error(`Unsafe HTML resource consumer in ${file}`);
+  }
+  for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
+  if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
+  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+}
+export async function verifyPackage(directory) {
+  const root = resolve(directory);
+  const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest);
+  const files = await filesAt(root);
+  for (const file of required) if (!files.includes(file)) throw new Error(`Missing required resource: ${file}`);
+  const js = files.filter(path => path.endsWith('.js'));
+  if (!same(js, expectedJS)) throw new Error(`Unexpected JS/chunks: ${js}`);
+  const allowed = [...required, ...expectedJS.map(path => `${path}.map`)];
+  if (files.some(path => !allowed.includes(path))) throw new Error('Unexpected packaged asset');
+  const mapFiles = files.filter(path => path.endsWith('.map'));
+  if (mapFiles.length && mapFiles.length !== js.length) throw new Error('Incomplete source map asset set');
+  const boundaries = [];
+  for (const file of js) {
+    const text = await readFile(join(root, file), 'utf8');
+    const inspection = inspectScript(text, file);
+    assertClassicIIFE(text, file);
+    if (inspection.approvedAsyncBodyConstructors) boundaries.push({file, ...inspection, execution: 'Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox'});
+    const maps = [...text.matchAll(/\/\/# sourceMappingURL=(.+)/g)];
+    if (maps.length !== (mapFiles.length ? 1 : 0) || maps.some(m => m[1].trim() !== file.split('/').at(-1) + '.map' || !files.includes(file + '.map'))) throw new Error(`Unsafe/missing source map in ${file}`);
+  }
+  for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
+  const css = await readFile(join(root, 'ui/tool-shell.css'), 'utf8');
+  if (/@import\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in ui/tool-shell.css');
+  for (const [file, expected] of Object.entries(FIXED_ASSETS)) {
+    const bytes = await readFile(join(root, file));
+    if (bytes.length !== expected.bytes || digest(bytes) !== expected.sha256) throw new Error(`Asset integrity mismatch in ${file}`);
+  }
+  for (const file of files.filter(path => path.endsWith('.map'))) {
+    const map = JSON.parse(await readFile(join(root, file), 'utf8'));
+    if (map.version !== 3 || !Array.isArray(map.sources) || !Array.isArray(map.sourcesContent)) throw new Error(`Invalid source map: ${file}`);
+  }
+  const sdkResources = await verifySdkResourceManifest(root);
+  return {status: 'passed', manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST], sdkResources,
+    sdkEntries: {MAIN: 'framework/sdk-main.js', ISOLATED: 'agents/page-relay.js'}, privilegedDynamicExecutionFound: false,
+    approvedDynamicExecution: boundaries, sandbox: {pages: [SANDBOX_HTML], csp: SANDBOX_CSP}, ...await packageFingerprint(root)};
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  console.log(JSON.stringify(await verifyPackage(process.argv[2] || 'dist/production')));
+}

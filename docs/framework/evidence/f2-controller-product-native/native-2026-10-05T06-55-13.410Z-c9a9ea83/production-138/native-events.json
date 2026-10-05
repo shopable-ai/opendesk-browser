@@ -1,0 +1,968 @@
+[
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B07FFE953CC310709E041D2734212487",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 911.523334,
+    "observedAt": 1791183314283
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "D89055CC8D206834F3B0A368CC88A3BA",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 912.074125,
+    "observedAt": 1791183314283
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "D89055CC8D206834F3B0A368CC88A3BA",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 958.75975,
+    "observedAt": 1791183314330
+  },
+  {
+    "method": "Runtime.executionContextCreated",
+    "params": {
+      "context": {
+        "id": 1,
+        "origin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "name": "",
+        "uniqueId": "3038896182570724464.-3184304075501350680"
+      }
+    },
+    "observedMonoMs": 966.044125,
+    "observedAt": 1791183314337
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "D89055CC8D206834F3B0A368CC88A3BA",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 975.280959,
+    "observedAt": 1791183314346
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "4D7A703CE9DE04141B66BF4558010B6B",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1014.317042,
+    "observedAt": 1791183314385
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "4D7A703CE9DE04141B66BF4558010B6B",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1035.096625,
+    "observedAt": 1791183314406
+  },
+  {
+    "method": "Page.frameStartedNavigating",
+    "params": {
+      "frameId": "4D7A703CE9DE04141B66BF4558010B6B",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+      "loaderId": "1E3B848FE30033D9416FD75B18FE1749",
+      "navigationType": "differentDocument"
+    },
+    "observedMonoMs": 1035.419167,
+    "observedAt": 1791183314407
+  },
+  {
+    "method": "Page.frameNavigated",
+    "params": {
+      "frame": {
+        "id": "4D7A703CE9DE04141B66BF4558010B6B",
+        "loaderId": "1E3B848FE30033D9416FD75B18FE1749",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "domainAndRegistry": "",
+        "securityOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+        "securityOriginDetails": {
+          "isLocalhost": false
+        },
+        "mimeType": "text/html",
+        "adFrameStatus": {
+          "adFrameType": "none"
+        },
+        "secureContextType": "Secure",
+        "crossOriginIsolatedContextType": "NotIsolated",
+        "gatedAPIFeatures": [
+          "SharedArrayBuffersTransferAllowed"
+        ]
+      },
+      "type": "Navigation"
+    },
+    "observedMonoMs": 1037.586,
+    "observedAt": 1791183314409
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "4D7A703CE9DE04141B66BF4558010B6B",
+        "type": "page",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1041.07125,
+    "observedAt": 1791183314412
+  },
+  {
+    "method": "Page.domContentEventFired",
+    "params": {
+      "timestamp": 3180109.811727
+    },
+    "observedMonoMs": 1066.672667,
+    "observedAt": 1791183314438
+  },
+  {
+    "method": "Page.loadEventFired",
+    "params": {
+      "timestamp": 3180109.81212
+    },
+    "observedMonoMs": 1066.941375,
+    "observedAt": 1791183314438
+  },
+  {
+    "method": "Page.frameStoppedLoading",
+    "params": {
+      "frameId": "4D7A703CE9DE04141B66BF4558010B6B"
+    },
+    "observedMonoMs": 1067.374459,
+    "observedAt": 1791183314439
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "7D8FD473CE8D8EC114C2B51373613A16",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:52215/form?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=borrowed",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1128.338709,
+    "observedAt": 1791183314500
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "7D8FD473CE8D8EC114C2B51373613A16",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:52215/form?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=borrowed",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1143.538625,
+    "observedAt": 1791183314515
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "7D8FD473CE8D8EC114C2B51373613A16",
+        "type": "page",
+        "title": "127.0.0.1:52215/form?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=borrowed",
+        "url": "http://127.0.0.1:52215/form?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=borrowed",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1146.024834,
+    "observedAt": 1791183314517
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "AC0111181CF7FE8EFA64F287A4E1379B",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:52215/form?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=decoy",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1201.370167,
+    "observedAt": 1791183314573
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "AC0111181CF7FE8EFA64F287A4E1379B",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:52215/form?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=decoy",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1221.379167,
+    "observedAt": 1791183314593
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "AC0111181CF7FE8EFA64F287A4E1379B",
+        "type": "page",
+        "title": "127.0.0.1:52215/form?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=decoy",
+        "url": "http://127.0.0.1:52215/form?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=decoy",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1223.479084,
+    "observedAt": 1791183314595
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "BF7BF176FB6B85659FD45C598A6DD8A7",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:52215/frames?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=top",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1276.6215,
+    "observedAt": 1791183314648
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "BF7BF176FB6B85659FD45C598A6DD8A7",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:52215/frames?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=top",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1295.420667,
+    "observedAt": 1791183314667
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "BF7BF176FB6B85659FD45C598A6DD8A7",
+        "type": "page",
+        "title": "127.0.0.1:52215/frames?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=top",
+        "url": "http://127.0.0.1:52215/frames?seed=e648bc98-0797-47a7-b2ea-225b21748fc9&role=top",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 1297.838584,
+    "observedAt": 1791183314669
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "D89055CC8D206834F3B0A368CC88A3BA"
+    },
+    "observedMonoMs": 31474.394875,
+    "observedAt": 1791183344846
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "5A69633E453A959240AF716173BC859C",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 31729.764917,
+    "observedAt": 1791183345101
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "5A69633E453A959240AF716173BC859C"
+    },
+    "observedMonoMs": 61753.667292,
+    "observedAt": 1791183375126
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B9F1573BB55934F6902D11ED5AE4F2B9",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 62008.466959,
+    "observedAt": 1791183375381
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "B9F1573BB55934F6902D11ED5AE4F2B9"
+    },
+    "observedMonoMs": 92032.045,
+    "observedAt": 1791183405405
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "A099A6110E4B40BC69BDD82A55D94461",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 92283.613167,
+    "observedAt": 1791183405656
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "A099A6110E4B40BC69BDD82A55D94461"
+    },
+    "observedMonoMs": 122306.677042,
+    "observedAt": 1791183435680
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "D897320330E9D976A817A9E1C57E6372",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 122555.636792,
+    "observedAt": 1791183435929
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "D897320330E9D976A817A9E1C57E6372"
+    },
+    "observedMonoMs": 152571.059584,
+    "observedAt": 1791183465945
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "2CE4288A51BF46130FA22A044ACA4286",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 152822.831834,
+    "observedAt": 1791183466196
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "2CE4288A51BF46130FA22A044ACA4286"
+    },
+    "observedMonoMs": 182838.770625,
+    "observedAt": 1791183496213
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "7A16B73D84EFC12E501311D7DD4E9693",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 183094.62875,
+    "observedAt": 1791183496469
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "7A16B73D84EFC12E501311D7DD4E9693"
+    },
+    "observedMonoMs": 213109.877167,
+    "observedAt": 1791183526484
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "90AB26BCE0A7C50CB43AAE1C73AD4219",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 213364.532417,
+    "observedAt": 1791183526739
+  },
+  {
+    "method": "Page.frameAttached",
+    "params": {
+      "frameId": "7CB2A2E28D3E9CA4A39D89CB0E42F495",
+      "parentFrameId": "4D7A703CE9DE04141B66BF4558010B6B",
+      "stack": {
+        "callFrames": [
+          {
+            "functionName": "me",
+            "scriptId": "6",
+            "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+            "lineNumber": 0,
+            "columnNumber": 30237
+          },
+          {
+            "functionName": "",
+            "scriptId": "6",
+            "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+            "lineNumber": 0,
+            "columnNumber": 38330
+          }
+        ]
+      }
+    },
+    "observedMonoMs": 240415.61175,
+    "observedAt": 1791183553790
+  },
+  {
+    "method": "Page.frameRequestedNavigation",
+    "params": {
+      "frameId": "7CB2A2E28D3E9CA4A39D89CB0E42F495",
+      "reason": "initialFrameNavigation",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+      "disposition": "currentTab"
+    },
+    "observedMonoMs": 240415.766625,
+    "observedAt": 1791183553791
+  },
+  {
+    "method": "Page.frameStartedNavigating",
+    "params": {
+      "frameId": "7CB2A2E28D3E9CA4A39D89CB0E42F495",
+      "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+      "loaderId": "4C37EC931C302F3015E43DBF7BCECB73",
+      "navigationType": "differentDocument"
+    },
+    "observedMonoMs": 240416.03825,
+    "observedAt": 1791183553791
+  },
+  {
+    "method": "Page.frameStartedLoading",
+    "params": {
+      "frameId": "7CB2A2E28D3E9CA4A39D89CB0E42F495"
+    },
+    "observedMonoMs": 240416.1715,
+    "observedAt": 1791183553791
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "7CB2A2E28D3E9CA4A39D89CB0E42F495",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 240418.7825,
+    "observedAt": 1791183553794
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "7CB2A2E28D3E9CA4A39D89CB0E42F495",
+        "type": "iframe",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/scripting/sandbox/sandbox.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 240463.029959,
+    "observedAt": 1791183553838
+  },
+  {
+    "method": "Page.frameDetached",
+    "params": {
+      "frameId": "7CB2A2E28D3E9CA4A39D89CB0E42F495",
+      "reason": "swap"
+    },
+    "observedMonoMs": 240463.621709,
+    "observedAt": 1791183553838
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "173C7970AF02735D7C64E22B05BF946A",
+        "type": "worker",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 240469.065292,
+    "observedAt": 1791183553844
+  },
+  {
+    "method": "Page.frameSubtreeWillBeDetached",
+    "params": {
+      "frameId": "7CB2A2E28D3E9CA4A39D89CB0E42F495"
+    },
+    "observedMonoMs": 240473.97825,
+    "observedAt": 1791183553849
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "7CB2A2E28D3E9CA4A39D89CB0E42F495"
+    },
+    "observedMonoMs": 240474.038084,
+    "observedAt": 1791183553849
+  },
+  {
+    "method": "Page.frameDetached",
+    "params": {
+      "frameId": "7CB2A2E28D3E9CA4A39D89CB0E42F495",
+      "reason": "remove"
+    },
+    "observedMonoMs": 240474.130167,
+    "observedAt": 1791183553849
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "173C7970AF02735D7C64E22B05BF946A"
+    },
+    "observedMonoMs": 240474.596,
+    "observedAt": 1791183553849
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "4D7A703CE9DE04141B66BF4558010B6B",
+        "type": "other",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 240582.17,
+    "observedAt": 1791183553957
+  },
+  {
+    "method": "Inspector.detached",
+    "params": {
+      "reason": "target_closed"
+    },
+    "observedMonoMs": 240582.321875,
+    "observedAt": 1791183553957
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "4D7A703CE9DE04141B66BF4558010B6B"
+    },
+    "observedMonoMs": 240582.877792,
+    "observedAt": 1791183553958
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "9A7F11D9B822AF8EDBD4E6B3F7F014DA",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 240628.880375,
+    "observedAt": 1791183554004
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "9A7F11D9B822AF8EDBD4E6B3F7F014DA",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 240649.593084,
+    "observedAt": 1791183554024
+  },
+  {
+    "method": "Target.targetInfoChanged",
+    "params": {
+      "targetInfo": {
+        "targetId": "9A7F11D9B822AF8EDBD4E6B3F7F014DA",
+        "type": "page",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 240653.430625,
+    "observedAt": 1791183554028
+  },
+  {
+    "method": "Page.domContentEventFired",
+    "params": {
+      "timestamp": 3180349.403674
+    },
+    "observedMonoMs": 240659.217167,
+    "observedAt": 1791183554034
+  },
+  {
+    "method": "Page.loadEventFired",
+    "params": {
+      "timestamp": 3180349.405493
+    },
+    "observedMonoMs": 240659.407709,
+    "observedAt": 1791183554034
+  },
+  {
+    "method": "Page.frameStoppedLoading",
+    "params": {
+      "frameId": "9A7F11D9B822AF8EDBD4E6B3F7F014DA"
+    },
+    "observedMonoMs": 240659.922292,
+    "observedAt": 1791183554035
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "90AB26BCE0A7C50CB43AAE1C73AD4219"
+    },
+    "observedMonoMs": 270736.845709,
+    "observedAt": 1791183584112
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "8F61E34D4A2E2F45FD8198F8969388ED",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 270991.358834,
+    "observedAt": 1791183584367
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "8F61E34D4A2E2F45FD8198F8969388ED"
+    },
+    "observedMonoMs": 301017.791625,
+    "observedAt": 1791183614393
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "1AB92D9D64B0F2C91CB382F407364656",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 301268.748792,
+    "observedAt": 1791183614644
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "1AB92D9D64B0F2C91CB382F407364656"
+    },
+    "observedMonoMs": 331293.211292,
+    "observedAt": 1791183644669
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "2B1E64A86D40DA24A6CB692DC66FB188",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 331545.811792,
+    "observedAt": 1791183644922
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "2B1E64A86D40DA24A6CB692DC66FB188"
+    },
+    "observedMonoMs": 361571.476584,
+    "observedAt": 1791183674941
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "F352D9B422FF8A4CB5C1153FE4F6F652",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 361822.366209,
+    "observedAt": 1791183675192
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "F352D9B422FF8A4CB5C1153FE4F6F652"
+    },
+    "observedMonoMs": 391844.669709,
+    "observedAt": 1791183705212
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B050EA8D5DE478CA675BCC686B93A631",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 392095.144375,
+    "observedAt": 1791183705462
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "B050EA8D5DE478CA675BCC686B93A631"
+    },
+    "observedMonoMs": 422112.438917,
+    "observedAt": 1791183735479
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "484101C19BA1556282A40A0D710C1341",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 422364.601834,
+    "observedAt": 1791183735731
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "484101C19BA1556282A40A0D710C1341"
+    },
+    "observedMonoMs": 452386.099209,
+    "observedAt": 1791183765753
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "31595F601A27E5F8E7E965358C20C406",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 452640.236417,
+    "observedAt": 1791183766007
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "31595F601A27E5F8E7E965358C20C406"
+    },
+    "observedMonoMs": 482669.279209,
+    "observedAt": 1791183796037
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "4E6FBDC5F6703479EFE5343FC81B64AF",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 482923.033417,
+    "observedAt": 1791183796291
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "4E6FBDC5F6703479EFE5343FC81B64AF"
+    },
+    "observedMonoMs": 512950.6035,
+    "observedAt": 1791183826319
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "1E7081B07A0E3AB6423C31A852BBD525",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "B889E156EC275D95AC18D1926B73110A"
+      }
+    },
+    "observedMonoMs": 513201.776167,
+    "observedAt": 1791183826570
+  }
+]

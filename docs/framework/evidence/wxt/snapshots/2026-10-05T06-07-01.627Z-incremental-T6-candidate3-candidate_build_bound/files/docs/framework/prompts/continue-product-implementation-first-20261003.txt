@@ -1,0 +1,74 @@
+请创建并执行“OpenDesk Browser 通用框架迁移续接 Goal”。本新对话接续实际产品实现，沿用已有计划和唯一账本，完成文件迁移、框架基本功能、现有工程接线及逐项正确性证明，最终通过同一最终production包的F3。
+
+这次纠偏的核心：先把已知缺失的框架功能和真实消费者实现完整，再验证对应产品行为。不要把大量测试、文件数量、符号覆盖或评审分数当作迁移完成。不要再优化这份提示词、重做全库审计、重开阶段0/F1审批、另写一套规划、恢复旧任务或等待旧子代理。
+
+工程根目录：/Users/shopme/Documents/workspace/opendesk-browser。每条工程命令显式指定此cwd；默认cwd可能是scrapyJsChrome，不能选错工程。旧工程/Users/shopme/Documents/workspace/todo-user-vue/src-bex仅供只读迁移比对。当前工程无.git，不初始化、不commit/push、不新增未请求的依赖，不更换构建体系。
+
+一、先核对真实状态，再立即开修
+
+旧产品writer聊天01a1007d-556c-7783-b5dd-c09312a10236收到人类要求“提供新的提示词，新对话中继续”，因此停止新增执行；旧Goal已暂停，不能恢复或标记完成。交接时没有修改四服务产品代码，没有新构建或新浏览器。public-owner.json与product-continuation-checkpoint.json的部分active/历史“当前”字段滞后，不能据此恢复旧运行。
+
+本提示词由人类发到新对话后，授权本新对话接续唯一产品writer。先只读确认旧writer及协作聊天的最新状态和实际构建/浏览器窗口，再明确协调写权与串行窗口；不同时写产品、不抢测试窗口。授权读取及发送工作协调消息给协作聊天01a1021b-a6df-7a63-a9b0-d1049f342b35，它继续负责独立对应表/证据审查和约定的独立验收，不隐式让它接管产品。不要要求人类再次确认普通可逆操作。
+
+完整读取以下实际文件，不只读摘要。v5要求的历史附件按引用完整读取；读取收据只能帮助核验版本，不能替代正文。完整读取合同不等于重审全库。随后只读取当前修复涉及的源码与消费者。
+
+1. docs/framework/prompts/goal-migration-v5.txt、continue-product-migration-20261002.txt及其要求的历史附件。
+2. docs/framework/execution-plan.md、execution-tasks.json、execution-gates.json、source-compatibility-ledger.json、framework-handoff.json、product-continuation-checkpoint.json、public-owner.json；原开发计划/Users/shopme/Documents/Codex/2026-10-02/opendesk-design-audit-continuation-01a0fc85/outputs/file-tasks.md及适用接口合同。
+3. docs/framework/evidence/independent-migration-20261003-01a1021b/actual-code-map.md、actual-code-map.json、four-service-targeted-fix.md、preimplementation-review-receipt.json；reviews/round-2/bounded-review-candidate.json及两份完整独立review正文。冻结快照与可维护对应表分开，冻结证据不得改写。
+4. docs/framework/evidence/independent-basic-20261003-coop/evidence-audit.md及其中三个真实场景的case原文；docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c/summary.json和当前相关原始回执；稳定构建回执与本轮新交接收据。
+5. docs/framework/evidence/implementation-first-handoff-20261003/receipt.json。它记录本次提示词交接的实际包/源码/账本基线，不是完成证书。
+
+已放行与未完成必须分列：
+
+- 阶段0、F1已在同候选独立通过，直接接续F2，不重审。阶段0 manifest SHA256 da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1；F1 manifest a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66。
+- 唯一broker/authority、共享storage/session、原生生命周期、固定SDK注入、RunHost/版本/结果/下载已有实际代码；复用，不重新造骨架或第二身份。工具已有foundationClient=createHostClient(...)，RunHost复用createRunHost({client:foundationClient})。
+- 当前SDK_METHODS仅原18项；entry.js的service仍只有storage。log/getTime/bexUrl/requestResource尚未接入。拟新增background-services.js和framework/sdk-resources.json目前不存在，不能写成已完成。
+- 四服务实施前同候选双独立review已97/96、零方案blocker，已放行开修；候选SHA256 b627dfc35912e0d61530168963cc1e1960faee40a6deb050f8f174ae7b11249f。这是方案放行，不能当作四服务功能PASS，也不要再等评分。
+- 交接时production为18文件，packageHash 552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89；development为29文件，hash 1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60。新包必须重新绑定，不能沿用这些hash为新源码担保。
+- 旧包独立GUI已证明三个场景：保存r1/源码hash/版本和参数；return 7到durable及结果UI；owned goto/title/url到durable及结果UI。三轮重复仍是三个场景，不是九项；文件ID虽含TYPE/CLICK/WAIT，实际源码没有验证这些行为。后续权限/runner阻断保留，不能抹除此前通过，也不能推广为完整主链通过。
+- 原SDK定向四组合为60PASS/4NOT_TESTED；NOT_TESTED是同profile浏览器重开，fresh-only launcher无法证明。不是独立B05完整通过。正式原603账本仍0/603，另保留19项明确增项；F3与frameworkFunctionalMigrationComplete均未完成。
+
+首次回应用一张短表列“产品环节—实际实现—已证明行为—本轮动作”，随后立即修改第一项缺口。以后围绕产品行为更新：改了哪个实际文件/接口、入口怎么调用、观察到什么结果、当前哪个关键环节未闭环。不要主要汇报测试数量、lane活动、读了多少文件或准备了多少文档。
+
+二、第一项实际工作：完成四公共服务及资源/消费者接线
+
+执行已放行four-service-targeted-fix.md，不另造方案。主要实际接点是src/framework/sdk/{registry,service,bridge,entry}.js、src/platform/host/{sdk-broker,sdk-methods}.js、src/ui/tool-shell.js，以及scripts/{build,verify-package}.mjs。新建驱动只是方案中的src/platform/chrome/background-services.js，开修后才登记为实际文件。
+
+1. 保留SDK_METHODS原18项，新增四精确旧名字及能力：log/service.log，getTime/service.time，bexUrl和requestResource/resources.packaged。统一冻结ADMITTED_METHODS供normalize、grant、Hello、admit、bridge.ready、UI能力勾选使用，不能只新增函数而遗漏授权或回程。SDK_VERSION及Hello形状按原合同保持。
+2. 四项复用entry→bridge/transport→固定relay→原生sender→唯一SDK broker/authority→同commandJournal/runs/results→短driver→recordEffect→settleSdkDelivery→valueWire→原Promise。不启动controller，不从页面payload产生身份/namespace/grant，不建第二DB、路由或权限层。
+3. service直接出口及service.bridge.send仅使用上述四名字，兼容旧消费者bridge.send(...).data层；不把legacyResult多包一层，不增加全局bridge。getTime/bexUrl必须把传入args交给empty schema，不能丢掉恶意字段后假称拒绝。旧service ABI缺四项必须E_SDK_GLOBAL_CONFLICT；新ABI同document重注入复用refresh/Hello，旧Hello/timeout不得污染新桥。
+4. log按批准schema/UTF8及codec限额处理，日志sink只输出固定事件名、message的UTF8字节数及data项数，不输出任意正文/secret。明确记录与旧console正文输出的兼容差异。sink前完成同一durable dispatched/submissionCount及fence检查，效果落盘后再交付；重复仅一次sink，unknown不重放，成功保留own undefined。
+5. getTime使用broker可信clock，有限number且0保留；bexUrl使用api.runtime.getURL('/')，不能用页面location/root。requestResource只接受固定包资源及批准的七旧别名，保持{success:true,data:UTF8文本}原回包形状；缺失/hash错误typed失败，远程/越界/编码逃逸/其他扩展/query/hash/vendor拒绝且外部HTTP次数0。
+6. 在实际webpack产物后生成framework/sdk-resources.json，只列framework/sdk-main.js与agents/page-relay.js的实际bytes/SHA256；七个旧core/Env别名按批准静态表映射组合MAIN包，明确不是逐字节复制旧资源。同步strict FIXED_ASSETS/required清单/schema/哈希复算与必要资源读取消费者。注入继续复用broker.installSdk→tabs.injectFixed先ISOLATED再MAIN；不恢复远程文本执行，不重复执行六份别名，不扩大WAR/CSP/预算。
+7. 必要旧文件按职责迁移，逐项记录“旧文件/符号→新实际文件/符号→真实加载消费者→保留/修正/限制”。第三方仅在实际必要消费者无等价实现时携入原版本/文件名并保留许可，不以复制vendor目录算完成。
+8. 正式合同ID保留RESOURCE01.F021.getResourceByUrl，实际符号为requestResourceByBridge；不要改原case ID或新造分母。冻结review快照保持原样，协作方维护的live对应表由其更新。
+
+本阶段完成条件是四项完整调用链已经实际可达，消费者和构建资源存在，授权/ABI/参数/回包/持久化接线没有断点。不是“函数存在”或“node --check通过”。
+
+三、验证服务于当前实现，先相关组件检查，再一次串行production构建
+
+只运行能证明本次改动的有意义检查：四schema/限额与回包层级，旧18项兼容，授权/文档fence，日志一次效果与unknown不重放，0/undefined保真，固定两资源/七别名与hash，恶意路径零外部fetch，旧ABI拒绝/新ABI重注入。组件fixture必须标为组件证据，不能登记原生PASS。
+
+完成这些检查后串行production构建、包校验和打包；验证真实新增资源集合、预算、CSP、许可证、源码输入闭包无漂移，交付实际文件/符号/包hash/资源hash。构建失败就在实现或打包根因处修复，不能放宽预算或先去跑浏览器。此时无需重建development或启动四组合；扩矩阵只在适用门禁阶段执行。
+
+包冻结后由协作方在独占窗口做production+Chrome138四服务独立定点验收，主writer负责具体产品失败修复。修改包后重验受影响环节；旧PASS只属于旧候选，不自动迁移。不给评审者预填PASS，不拿方案评分替验收。
+
+四、再闭环普通JS真实产品主链
+
+继续已有真实工作台和RunHost，先复验新包受影响的三个基础场景，再逐项推进尚未证明的行为：
+
+保存不可变revision/sourceHash/params与明确选择版本 → 唯一admission/精确tab-frame-document → 控制Worker真正执行 → return/throw/rejection/stop/deadline → durable结果及retirement → 工具重开读取同结果 → 真下载complete与磁盘bytes/SHA → 资源回baseline。
+
+重点补：r1在途时保存r2/删除head但pin不失效、新启动按tombstone拒绝且不留下违规run；实际type/click/wait/read；borrowed及child精确document、active decoy不改变目标、borrowed不误关；false/0/undefined/own-undefined的运行结果；死循环Worker按原合同≤3s真正物理终止；工具重开读取与同profile浏览器重开分开记账；下载run/result/artifact关联与Blob清理；无template/采集未注册仍可普通JS运行。
+
+每个环节先一个真实例，再扩相关反例。前置失败则停止依赖测试，保存原始FAIL/BLOCKED/NOT_TESTED并查明runner、权限surface或产品归因；不要级联跑整批用例。优先修产品接线，只有证据显示runner缺陷时才最小修runner。不要弱化断言或写DOM/IDB绕过真实UI。
+
+五、独立页面SDK B05，最后同一最终包F3
+
+普通JS基本主链可用后补无controller的独立页面SDK完整门禁，复用原调用接口、真实installSdk点击/permissions.request、固定入口、Hello、实际sender、同authority/IDB/codec。已有CP1 selector/runner准备可接续，不重造helper；静态切点不是实际事务abort证明。真实100并发/重复冲突/撤权导航/四崩溃点/已有效果但交付失败/unknown不重放按原合同逐项证明，无法取得实际事实明确NOT_TESTED并解决，不伪造身份/权限或mock原生效果。
+
+最后冻结同一最终production包：闭合原603及19明确增项、适用全部能力族/48 API、历史17失败/R1–R8、1000轮混合、10轮host/SW重连、2轮插件禁用、资源baseline与真实下载；独立Architect后Critic顺序审查同一候选和全输入snapshot，最终验收checker accepted=true。按真实原始证据更新唯一账本，不改分母，不改冻结旧失败/审计/F1。F3或适用必需门禁未完成，不标记Goal或frameworkFunctionalMigrationComplete完成。
+
+原生执行前完整读取chrome-testing-keychain技能及当前launcher链：/Users/shopme/.codex/browser-testing/launch.py当前是257byte shim，SHA e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74，转交/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py，已知SHA 1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36。分别重核当前文件，验证actual PID/PPID/binary/SystemInfo/fresh0700profile及mandatory flags。fresh-only不支持same-profile reopen，不能复制profile假证明；寻找合合同路径或保留该缺口。浏览器串行且原包不改key，不操作个人Chrome或历史PID，不对他人浏览器Browser.close；只清理本run已确认归属的进程/profile。权限等待与surface不匹配不能冒判产品失败。
+
+执行报告始终以实际产品行为为主：已交付的入口与功能、当前具体缺口、这一轮改动及证据、下一环节。四服务不是全部迁移完成；组件、工作台局部冒烟和SDK定向证据不能替代最终独立产品验收。不要停在规划、能力说明或“是否继续”的询问。

@@ -1,0 +1,236 @@
+{
+  "capturedAt": "2026-10-01T19:06:04.379902+00:00",
+  "note": "supplement only; no overwrite of initial fixed evidence",
+  "files": [
+    {
+      "path": "assets/js/ai/selector-contract.js",
+      "capturedHash": "95e42bf1bec6ede99eeed509600e254dd9c060b78702a53bf7bf8b672b88b773",
+      "currentHash": "63c6a77a77dd0ad978249f03c9a24ef1e043971e5b9f9917a135aef13f9d47b6",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/assets/js/ai/selector-contract.js",
+      "deltaCapturedHash": "63c6a77a77dd0ad978249f03c9a24ef1e043971e5b9f9917a135aef13f9d47b6",
+      "stillEqualsRecheckHash": true,
+      "bytes": 7584
+    },
+    {
+      "path": "assets/js/plugins/ChromePage.js",
+      "capturedHash": "6d745900dacd5ec5b0a5138148733baba4d83d3418a289931c211c0a36b1a47c",
+      "currentHash": "62b6c3f1b669525668177d14ceb7bf1aeeaa02347ef1db0ad11b088dd093a472",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/assets/js/plugins/ChromePage.js",
+      "deltaCapturedHash": "62b6c3f1b669525668177d14ceb7bf1aeeaa02347ef1db0ad11b088dd093a472",
+      "stillEqualsRecheckHash": true,
+      "bytes": 60664
+    },
+    {
+      "path": "assets/js/plugins/scrapyJs.js",
+      "capturedHash": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+      "currentHash": "f0ca18dcae34b299c6faa31e694a342e6af61a4077f0837448a6aba0fa3c589b",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+      "deltaCapturedHash": "f0ca18dcae34b299c6faa31e694a342e6af61a4077f0837448a6aba0fa3c589b",
+      "stillEqualsRecheckHash": true,
+      "bytes": 1065491
+    },
+    {
+      "path": "assets/js/plugins/scrapyJs.source.json",
+      "capturedHash": "65627307a024644c291e143d38a67ae8f74c2d63a5be3e90570a173f90686b01",
+      "currentHash": "fb8112c8d432299075345a7fc5104e79cc71d4d60cfe7c9294cb026d5607fc04",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/assets/js/plugins/scrapyJs.source.json",
+      "deltaCapturedHash": "fb8112c8d432299075345a7fc5104e79cc71d4d60cfe7c9294cb026d5607fc04",
+      "stillEqualsRecheckHash": true,
+      "bytes": 4531
+    },
+    {
+      "path": "background-sw.js",
+      "capturedHash": "3614284f99cd7766f528c87b3df9549d7a337bc313ae84c753c4057cf20755fd",
+      "currentHash": "7cb5f2679fb3c46a856438eea966b77113d1cd5ea4eff187d4636f9aad882b58",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/background-sw.js",
+      "deltaCapturedHash": "7cb5f2679fb3c46a856438eea966b77113d1cd5ea4eff187d4636f9aad882b58",
+      "stillEqualsRecheckHash": true,
+      "bytes": 14059
+    },
+    {
+      "path": "background.js",
+      "capturedHash": "b9592f01e846a2a324211c8e796414dc9a9092840319540888e96843310e5213",
+      "currentHash": "5055f34ff2b1b3462d9c2da8612e91f55e0c75ad52a735fc4ba36e56968d9449",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/background.js",
+      "deltaCapturedHash": "5055f34ff2b1b3462d9c2da8612e91f55e0c75ad52a735fc4ba36e56968d9449",
+      "stillEqualsRecheckHash": true,
+      "bytes": 683180
+    },
+    {
+      "path": "scripts/extension-check.cjs",
+      "capturedHash": "c5ff804d2ee46e4cae56d36f32613c385bce45fd46d47627bbd97a87eecf20e8",
+      "currentHash": "e75740a90599cce147cee44ffb61c1f731dc5c0f40c130129ee1f3457f180290",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/scripts/extension-check.cjs",
+      "deltaCapturedHash": "e75740a90599cce147cee44ffb61c1f731dc5c0f40c130129ee1f3457f180290",
+      "stillEqualsRecheckHash": true,
+      "bytes": 13648
+    },
+    {
+      "path": "test/devflow-contract.cjs",
+      "capturedHash": "fc63cf079c8a74a5aa97e376e26676234d4bfdcb4493d2318b4657f1ec34506c",
+      "currentHash": "7c7b202700c0e556c232d566a99bb5cc6c70ad6113d969eaf1868e460cafbf77",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/test/devflow-contract.cjs",
+      "deltaCapturedHash": "7c7b202700c0e556c232d566a99bb5cc6c70ad6113d969eaf1868e460cafbf77",
+      "stillEqualsRecheckHash": true,
+      "bytes": 46676
+    },
+    {
+      "path": "test/protocol-regression.js",
+      "capturedHash": "5218ddf5f066aa168ccf50c8013e3d4b99b7c7c0c9bfaad02d36825b9e1a509e",
+      "currentHash": "ca35e6b1d474af710e80d8f674b6c8b30c35ffdef67851c683144bd063749f17",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/test/protocol-regression.js",
+      "deltaCapturedHash": "ca35e6b1d474af710e80d8f674b6c8b30c35ffdef67851c683144bd063749f17",
+      "stillEqualsRecheckHash": true,
+      "bytes": 30836
+    },
+    {
+      "path": "www/popup_crawl.css",
+      "capturedHash": "18d13fe4c8e9aac19adc15e682fe27817ee8286114d1a6d14872ad5f7fb56d2b",
+      "currentHash": "e0112dede4afc55289b759989b34466ff8cf0ef02b8af6ac210f0e354456c963",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/www/popup_crawl.css",
+      "deltaCapturedHash": "e0112dede4afc55289b759989b34466ff8cf0ef02b8af6ac210f0e354456c963",
+      "stillEqualsRecheckHash": true,
+      "bytes": 8001
+    },
+    {
+      "path": "www/popup_crawl.html",
+      "capturedHash": "f169906a494432c771c84bb3f9ecf4e0f49c54953764d98fab61a1e4d371459a",
+      "currentHash": "877785f54875c495eeee319c25f93a736382171fefefb9e1c43912a6188f64fc",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/www/popup_crawl.html",
+      "deltaCapturedHash": "877785f54875c495eeee319c25f93a736382171fefefb9e1c43912a6188f64fc",
+      "stillEqualsRecheckHash": true,
+      "bytes": 25078
+    },
+    {
+      "path": "www/popup_crawl.js",
+      "capturedHash": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+      "currentHash": "61545545a20873c26e370eaec207c9fc9089cb3a9bbeb5cf71c154d2a2860a56",
+      "source": "scrapyJsChrome",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJsChrome/www/popup_crawl.js",
+      "deltaCapturedHash": "61545545a20873c26e370eaec207c9fc9089cb3a9bbeb5cf71c154d2a2860a56",
+      "stillEqualsRecheckHash": true,
+      "bytes": 119395
+    },
+    {
+      "path": "scripts/browser-smoke.cjs",
+      "capturedHash": "96265df7a04fbb3944f728c94b53ad49cfae2ee67e43fce8616610dc225be645",
+      "currentHash": "edb92376b4b381ca620d6427791149816efadd6a87c65ff48a99f1caaed9b11e",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/scripts/browser-smoke.cjs",
+      "deltaCapturedHash": "edb92376b4b381ca620d6427791149816efadd6a87c65ff48a99f1caaed9b11e",
+      "stillEqualsRecheckHash": true,
+      "bytes": 14324
+    },
+    {
+      "path": "scripts/consumer-smoke.cjs",
+      "capturedHash": "0529526ad8a14aaacd7a9e8785204a532e7f55668a0975eac4d890e0ad41ffa0",
+      "currentHash": "6a1e2d37dee76a356c0e4614e217b4bb52119f4f0cae35c01399c491f9b08c20",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/scripts/consumer-smoke.cjs",
+      "deltaCapturedHash": "6a1e2d37dee76a356c0e4614e217b4bb52119f4f0cae35c01399c491f9b08c20",
+      "stillEqualsRecheckHash": true,
+      "bytes": 9770
+    },
+    {
+      "path": "scripts/sdk-sync.cjs",
+      "capturedHash": "67a0555bf2155c4305fb27df40c37803f78564f5ae0e6a88d9577445ac85c819",
+      "currentHash": "bd2d68aff7d1a98c1ed2bfae1f0c361efe4e23a55ed7b1a4a86476295b1f9b89",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/scripts/sdk-sync.cjs",
+      "deltaCapturedHash": "c25d82d7130b472db523544714570d2eed0097c16f118ef365a712d44ddaf71e",
+      "stillEqualsRecheckHash": false,
+      "bytes": 30209
+    },
+    {
+      "path": "src/core/CloseSpider.js",
+      "capturedHash": "01f2c87bf827b406fb8aa6dfc671deb25e6b721f9250eb03a3eeb27c37e4e136",
+      "currentHash": "214d53bbfb676254cc3c0cb91074f90c4d865c4dc8eab0a18a3119de67f51793",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/src/core/CloseSpider.js",
+      "deltaCapturedHash": "214d53bbfb676254cc3c0cb91074f90c4d865c4dc8eab0a18a3119de67f51793",
+      "stillEqualsRecheckHash": true,
+      "bytes": 2024
+    },
+    {
+      "path": "src/core/RunFailure.js",
+      "capturedHash": "e39978bd182a68bf3399157f8fdff33e5ad56dcec190f26e1b313dc5aa0eeb88",
+      "currentHash": "5b63144e31284f59807674496165dd62d022018bd171b86ea9df183b148e9086",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/src/core/RunFailure.js",
+      "deltaCapturedHash": "5b63144e31284f59807674496165dd62d022018bd171b86ea9df183b148e9086",
+      "stillEqualsRecheckHash": true,
+      "bytes": 1068
+    },
+    {
+      "path": "src/core/Scheduler.js",
+      "capturedHash": "3b68ec995cde731f1a2a793024e49b8790953f10a8359fcb3ecf6fef3e335051",
+      "currentHash": "d09d4f4cae9f0ffdb9548bf6c6c38c796f4a0798f48d8d0fb2664f34a7f88113",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/src/core/Scheduler.js",
+      "deltaCapturedHash": "d09d4f4cae9f0ffdb9548bf6c6c38c796f4a0798f48d8d0fb2664f34a7f88113",
+      "stillEqualsRecheckHash": true,
+      "bytes": 17855
+    },
+    {
+      "path": "src/core/Scrapy.js",
+      "capturedHash": "a18211f8b666a07a699761a023de0075dbec2c09152734ab70f0a6a2087d48e4",
+      "currentHash": "f3ca9f44ac68ada3ec7163f80042ee50a9a05264971cde0a4b1ca2e04eb47289",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/src/core/Scrapy.js",
+      "deltaCapturedHash": "f3ca9f44ac68ada3ec7163f80042ee50a9a05264971cde0a4b1ca2e04eb47289",
+      "stillEqualsRecheckHash": true,
+      "bytes": 13445
+    },
+    {
+      "path": "src/exporter/FeedExport.js",
+      "capturedHash": "8844006a1f874c94f1c4de159e95fd58ac03043bde05d5ec4da5229f09cfc461",
+      "currentHash": "203c3c54f63b7f9c4df3870fbe82ee8b5606492052b525bc966fc69cc1ae9453",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/src/exporter/FeedExport.js",
+      "deltaCapturedHash": "203c3c54f63b7f9c4df3870fbe82ee8b5606492052b525bc966fc69cc1ae9453",
+      "stillEqualsRecheckHash": true,
+      "bytes": 10466
+    },
+    {
+      "path": "src/item/ItemLoader.js",
+      "capturedHash": "2a82e774f508274f36e5be140eb096bd0947b198e387d5566b2f3152a98c9df4",
+      "currentHash": "4e4999902bba4afd0690510b5523d6073e7cdb7b2437f67167b941c3e5dbfb68",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/src/item/ItemLoader.js",
+      "deltaCapturedHash": "4e4999902bba4afd0690510b5523d6073e7cdb7b2437f67167b941c3e5dbfb68",
+      "stillEqualsRecheckHash": true,
+      "bytes": 11668
+    },
+    {
+      "path": "test/devflow-sync.test.cjs",
+      "capturedHash": "cbb6d967dac71442f0a567128fb280bc20ac0204700f14d8703529570fb68fd7",
+      "currentHash": "41c6582a510bbe2a45fcc10abb546b7583d162fb254786e43c2d7424f0936a1f",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/test/devflow-sync.test.cjs",
+      "deltaCapturedHash": "41c6582a510bbe2a45fcc10abb546b7583d162fb254786e43c2d7424f0936a1f",
+      "stillEqualsRecheckHash": true,
+      "bytes": 26026
+    },
+    {
+      "path": "webpack.config.js",
+      "capturedHash": "9727710f5c45535cc609076bba3c69973b8e88c8750947a1bbdf43c0ccef4eab",
+      "currentHash": "19692f7621ed631af4da72308a9b740d4f66eda89a4aeb0673ff6974df5d5885",
+      "source": "scrapyJs",
+      "deltaSnapshotPath": "docs/contracts/source-deltas/scrapyJs/webpack.config.js",
+      "deltaCapturedHash": "19692f7621ed631af4da72308a9b740d4f66eda89a4aeb0673ff6974df5d5885",
+      "stillEqualsRecheckHash": true,
+      "bytes": 770
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-10-05T05:56:17Z",
+  "successorThreadId": "01a10a9f-0a6e-76a2-bab3-72a620603c44",
+  "predecessorThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4",
+  "predecessorThreadStatus": "idle after explicit release message",
+  "matchingProjectBuildTestLauncherOperations": [],
+  "writerOwnedBrowser": null,
+  "writerOwnedProfile": null,
+  "writerOwnedServer": null,
+  "writerOwnedPorts": [],
+  "controlledChromeClosedAndProfileRemoved": true,
+  "personalChromeTouched": false,
+  "noInFlightOperations": true,
+  "existingChangesPreserved": true,
+  "cleanupRestrictionsHonored": [
+    "no reset",
+    "no restore",
+    "no clean",
+    "no stash",
+    "no commit",
+    "no push",
+    "no publish",
+    "no deploy"
+  ]
+}

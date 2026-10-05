@@ -1,0 +1,642 @@
+{
+  "contractVersion": "1.0.0",
+  "stage": "01",
+  "status": "design-ready-not-implemented",
+  "nineCategories": [
+    "source-behavior",
+    "engineering-injection-window",
+    "template-compiler-preview-migration",
+    "run-permission-stop-recovery",
+    "idb-stage-seal-quota",
+    "bounded-pagination-data",
+    "artifact-format-download-receipts",
+    "entitlement-retention",
+    "final-package-integration"
+  ],
+  "tasks": [
+    {
+      "id": "WP01",
+      "title": "\u6765\u6e90\u4e0e\u884c\u4e3a\u8bc1\u636e",
+      "ownerStage": "01",
+      "dependsOn": [],
+      "inputs": [
+        "\u4e09\u4e2a\u5f53\u524d\u6765\u6e90\u3001v3/v4\u3001dirty/hash"
+      ],
+      "writeScope": [
+        "docs/contracts/source-*",
+        "docs/contracts/source-snapshots/**"
+      ],
+      "deliverables": [
+        "\u53ea\u8bfb\u5feb\u7167\u3001\u6765\u6e90ledger\u3001license/\u624b\u6539/\u884c\u4e3a\u4fdd\u7559\u8868"
+      ],
+      "testIds": [
+        "M01",
+        "template-falsy-long-notitle"
+      ],
+      "observableAssertions": "\u5feb\u7167\u9010\u6587\u4ef6hash\u4e00\u81f4\uff0c\u4fdd\u7559/\u6539\u9020/\u4e0d\u652f\u6301\u6709\u6765\u6e90\u884c\u53f7\uff1b\u8bb8\u53ef\u7f3a\u53e3\u4f5c\u4e3a\u53d1\u5e03\u95e8\u7981\uff0c\u4e0d\u9ed8\u8ba4\u6574\u5e93\u8fc1\u5165",
+      "readyWhen": "\u5feb\u7167\u9010\u6587\u4ef6hash\u4e00\u81f4\uff0c\u4fdd\u7559/\u6539\u9020/\u4e0d\u652f\u6301\u6709\u6765\u6e90\u884c\u53f7\uff1b\u8bb8\u53ef\u7f3a\u53e3\u4f5c\u4e3a\u53d1\u5e03\u95e8\u7981\uff0c\u4e0d\u9ed8\u8ba4\u6574\u5e93\u8fc1\u5165",
+      "blockers": [
+        "\u6355\u83b7\u671f\u95f4\u6587\u4ef6\u53d8\u5316\u9700\u91cd\u6355\u83b7\u8be5\u6587\u4ef6",
+        "\u6e90\u7801\u6765\u6e90\u94fe\u4e0d\u6e05\u65f6\u4e0d\u8986\u76d6bundle",
+        "stage05 CodeGraph/reuse evidence must be reconciled by actual source hash before stage01 design ready"
+      ],
+      "status": "design-evidence-verified",
+      "productPassed": false
+    },
+    {
+      "id": "WP02",
+      "title": "\u57fa\u7840\u73af\u5883/\u6253\u5305/\u7a97\u53e3/\u5065\u5eb7\u63a2\u9488/\u9759\u6001\u6ce8\u5165\u69fd",
+      "ownerStage": "02A",
+      "dependsOn": [
+        "WP01"
+      ],
+      "inputs": [
+        "01\u5b9e\u9645\u5408\u540chash\u3001\u6846\u67b6\u51b3\u7b56\u3001\u56fa\u5b9a\u9009\u533a\u5feb\u7167",
+        "stage05 reviewed reuse/dynamic-edge/impact-test map merged by01",
+        "\u66f4\u65b0\u540e\u768402A\u63d0\u793a\u8bcd\u4e0e\u8c03\u5ea6registry"
+      ],
+      "writeScope": [
+        "manifest.json",
+        "package*.json",
+        "webpack.config.cjs",
+        "scripts/build*",
+        "scripts/pack*",
+        "src/ui/tool*",
+        "src/sw.js\u73af\u5883\u5165\u53e3\u5360\u4f4d",
+        "src/run-host.js\u9759\u6001\u69fd\u63a5\u53e3\u5360\u4f4d",
+        "src/agents/**\u9759\u6001\u6ce8\u5165\u69fd",
+        "src/features/scraping/index.js\u56fa\u5b9a\u69fd\u5360\u4f4d",
+        "tests/environment/**",
+        "docs/environment/**"
+      ],
+      "deliverables": [
+        "\u53ef\u52a0\u8f7d\u7a7a\u4e1a\u52a1\u5355\u6269\u5c55\u5de5\u7a0b\u3001classic\u9759\u6001\u6ce8\u5165\u69fd\u3001\u7a97\u53e3\u5165\u53e3\u3001\u771f\u5b9e\u6784\u5efa/\u8d44\u6e90/CSP\u62a5\u544a\u4e0e\u72ec\u7acbenvironment handoff"
+      ],
+      "testIds": [
+        "M02",
+        "M09",
+        "ENV-build-package",
+        "ENV-window-singleton",
+        "ENV-health-static-slot"
+      ],
+      "observableAssertions": "\u666e\u901aChrome\u771f\u5b9e\u8f7d\u5165\u65e0CSP/\u8d44\u6e90\u9519\u8bef\uff1b\u4e24\u6b21\u5165\u53e3\u6253\u5f00\u53ea\u590d\u7528\u4e00\u4e2a\u5de5\u5177\u7a97\u53e3\uff1b\u56fa\u5b9a\u9759\u6001\u6a21\u5757\u69fd\u4e0eclassic\u5065\u5eb7\u63a2\u9488\u53ef\u88c5\u8f7d\u5e76\u62a5\u544a\u771f\u5b9etarget/document/origin\uff1bMODULE_NOT_INSTALLED\u660e\u786e\uff1bwindow\u58f3/\u63a2\u9488\u4e0d\u5b9e\u73b0run/IDB/download/entitlement",
+      "readyWhen": "\u666e\u901aChrome\u771f\u5b9e\u8f7d\u5165\u65e0CSP/\u8d44\u6e90\u9519\u8bef\uff1b\u4e24\u6b21\u5165\u53e3\u6253\u5f00\u53ea\u590d\u7528\u4e00\u4e2a\u5de5\u5177\u7a97\u53e3\uff1b\u56fa\u5b9a\u9759\u6001\u6a21\u5757\u69fd\u4e0eclassic\u5065\u5eb7\u63a2\u9488\u53ef\u88c5\u8f7d\u5e76\u62a5\u544a\u771f\u5b9etarget/document/origin\uff1bMODULE_NOT_INSTALLED\u660e\u786e\uff1bwindow\u58f3/\u63a2\u9488\u4e0d\u5b9e\u73b0run/IDB/download/entitlement",
+      "blockers": [
+        "01\u8bbe\u8ba1ready\u548c\u5b9e\u9645\u5408\u540chash\u6838\u9a8c",
+        "\u7ecf\u5178\u4ea7\u7269\u6709\u5206\u5757/\u52a8\u6001fallback\u5219\u963b\u65ad",
+        "\u73af\u5883handoff\u660e\u786e\u6839\u6587\u4ef6\u79fb\u4ea402B\uff0c\u73af\u5883passed\u4e0d\u542f\u52a803\u6216\u66ff\u4ee302B\u9a8c\u6536"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP05",
+      "title": "\u552f\u4e00IDB/\u6574\u9875\u6682\u5b58/seal/\u914d\u989d",
+      "ownerStage": "02B",
+      "dependsOn": [
+        "WP02"
+      ],
+      "inputs": [
+        "schema\u4e0estage/seal\u89c4\u8303\u30013\u6279\u9875\u9762\u5411\u91cf",
+        "02A\u771f\u5b9eenvironment handoff\u4e0e\u2464\u8ba4\u53ef\u8fc1\u79fb\u6620\u5c04"
+      ],
+      "writeScope": [
+        "src/platform/storage/**",
+        "tests/foundation/storage*",
+        "docs/foundation/**"
+      ],
+      "deliverables": [
+        "\u5355\u8fde\u63a5DB1\u3001\u4e0d\u53ef\u53d8\u6a21\u677f\u4ed3\u5e93\u3001\u8bfb\u6e38\u6807pin\u3001\u6574\u9875\u4e8b\u52a1\u3001\u914d\u989d/\u8fc1\u79fb\u4fdd\u62a4"
+      ],
+      "testIds": [
+        "M03",
+        "M06",
+        "M10",
+        "three-batch-last-fails",
+        "stop-before-seal",
+        "seal-before-stop",
+        "stage-duplicate",
+        "stage-digest-conflict",
+        "seal-missing-batch",
+        "seal-duplicate"
+      ],
+      "observableAssertions": "\u771f\u5b9eIDB\u4e8b\u52a1\u4e0b\u53ea\u6709sealed\u53ef\u89c1\uff0ccounts/checkpoint/\u96c6\u5408\u4e00\u81f4\uff1b\u8fc1\u79fb\u5931\u8d25\u4e0d\u6e05\u5e93",
+      "readyWhen": "\u771f\u5b9eIDB\u4e8b\u52a1\u4e0b\u53ea\u6709sealed\u53ef\u89c1\uff0ccounts/checkpoint/\u96c6\u5408\u4e00\u81f4\uff1b\u8fc1\u79fb\u5931\u8d25\u4e0d\u6e05\u5e93",
+      "blockers": [
+        "\u6ca1\u6709\u771f\u5b9eIDB\u6545\u969c\u4e0e\u7ade\u6001\u8bc1\u636e\u53eapartial",
+        "\u4e0d\u5f97\u53e6\u5efa\u9886\u57dfDB"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP04",
+      "title": "RunHost/\u6743\u9650/stop/\u6062\u590d\u4e0e\u9000\u5f79",
+      "ownerStage": "02B",
+      "dependsOn": [
+        "WP02",
+        "WP05"
+      ],
+      "inputs": [
+        "owner/command/target\u89c4\u8303\u3001stop/gap/retirement\u5411\u91cf",
+        "02A\u771f\u5b9eenvironment handoff\u4e0e\u2464\u8ba4\u53ef\u8fc1\u79fb\u6620\u5c04"
+      ],
+      "writeScope": [
+        "src/run-host.js",
+        "src/platform/{host,target,page-port,journal}/**",
+        "src/sw.js",
+        "tests/foundation/runtime*"
+      ],
+      "deliverables": [
+        "\u5355slot CAS\u3001\u771f\u5b9esender+document\u7ed1\u5b9a\u3001\u77edACK\u3001stop\u4e0eeffect_unknown\u3001\u65e7epoch/\u76ee\u6807\u9000\u5f79\u8bc1\u636e"
+      ],
+      "testIds": [
+        "M07",
+        "M09",
+        "stop-first",
+        "dispatch-first",
+        "dispatch-call-gap",
+        "epoch-late-reply",
+        "lease-no-takeover",
+        "retire-unverified",
+        "retire-release",
+        "permissions-senders"
+      ],
+      "observableAssertions": "stop\u5148\u63d0\u4ea40\u65b0\u8c03\u7528\uff1bgap0\u91cd\u653e\uff1b\u65e7tab\u8bc1\u5b9e\u5173\u95ed\u4e14\u65e7epoch\u5c01\u7981\u624d\u65b0run\uff1bSW\u91cd\u542f\u540crun\u4e0d\u53ccloop",
+      "readyWhen": "stop\u5148\u63d0\u4ea40\u65b0\u8c03\u7528\uff1bgap0\u91cd\u653e\uff1b\u65e7tab\u8bc1\u5b9e\u5173\u95ed\u4e14\u65e7epoch\u5c01\u7981\u624d\u65b0run\uff1bSW\u91cd\u542f\u540crun\u4e0d\u53ccloop",
+      "blockers": [
+        "target\u5173\u95ed\u672a\u8bc1\u5b9e\u4fdd\u6301retiring/slot",
+        "natural SW\u884c\u4e3a\u548chost loss\u987b\u65b0Chrome\u8bc1\u636e"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP07A",
+      "title": "Artifact\u4e0e\u4e0b\u8f7dattempt\u5e95\u5ea7",
+      "ownerStage": "02B",
+      "dependsOn": [
+        "WP04",
+        "WP05"
+      ],
+      "inputs": [
+        "\u5bfc\u51fa/\u4e0b\u8f7d\u5408\u540c\u3001\u56fa\u5b9a\u6d4b\u8bd5formatter\u8f93\u5165",
+        "02A\u771f\u5b9eenvironment handoff\u4e0e\u2464\u8ba4\u53ef\u8fc1\u79fb\u6620\u5c04"
+      ],
+      "writeScope": [
+        "src/platform/downloads/**",
+        "tests/foundation/download*",
+        "docs/foundation/**"
+      ],
+      "deliverables": [
+        "Artifact\u4ed3\u5e93\u4e0epin\u3001Blob\u751f\u547d\u5468\u671f\u3001\u4e00\u6b21\u63d0\u4ea4\u3001\u9010attempt\u6620\u5c04/\u56de\u6267/\u91cd\u5bfc"
+      ],
+      "testIds": [
+        "M08",
+        "download-id-start",
+        "download-zero",
+        "download-one",
+        "download-many",
+        "download-deadline-late-complete",
+        "download-reexport-isolation",
+        "download-abandon-tombstone"
+      ],
+      "observableAssertions": "ID\u4ec5\u542f\u52a8\uff0c\u552f\u4e00URL/extension/time\u7ed1\u5b9a\uff1blate\u4ec5\u66f4\u65b0\u539fjob\uff1b\u4e0d\u80fd\u81ea\u52a8\u91cd\u4e0b\uff0c\u91ca\u653e\u5386\u53f2\u4fdd\u7559",
+      "readyWhen": "ID\u4ec5\u542f\u52a8\uff0c\u552f\u4e00URL/extension/time\u7ed1\u5b9a\uff1blate\u4ec5\u66f4\u65b0\u539fjob\uff1b\u4e0d\u80fd\u81ea\u52a8\u91cd\u4e0b\uff0c\u91ca\u653e\u5386\u53f2\u4fdd\u7559",
+      "blockers": [
+        "\u771f\u5b9eBlob/SW gap\u4e0ehost\u5173\u95ed\u672a\u6d4bpending",
+        "\u591a\u5019\u9009\u4e0d\u7ed1\u5b9a"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP08A",
+      "title": "Entitlement\u4e0e\u6570\u636e\u4fdd\u7559\u5e95\u5ea7",
+      "ownerStage": "02B",
+      "dependsOn": [
+        "WP04",
+        "WP05"
+      ],
+      "inputs": [
+        "v3\u514d\u8d39/Pro/\u79bb\u7ebf72h/\u6388\u6743\u5feb\u7167\u3001\u5220\u9664\u534f\u8bae",
+        "02A\u771f\u5b9eenvironment handoff\u4e0e\u2464\u8ba4\u53ef\u8fc1\u79fb\u6620\u5c04"
+      ],
+      "writeScope": [
+        "src/platform/entitlement/**",
+        "src/platform/storage/**",
+        "tests/foundation/policy*",
+        "docs/foundation/**"
+      ],
+      "deliverables": [
+        "\u7b7e\u540d\u9a8c\u8bc1\u63a5\u53e3\u3001\u514d\u8d391\u6a21\u677f100\u884c/Pro50\u6a21\u677f\u3001effective\u9884\u7b97\u3001\u5df2\u6279run\u5feb\u7167\u3001\u4fdd\u7559/\u5220\u9664tombstone"
+      ],
+      "testIds": [
+        "M10",
+        "entitlement-exports",
+        "storage-delete-retention"
+      ],
+      "observableAssertions": "\u65e0\u7f13\u5b58\u4e0dPro\uff0c\u8d85\u79bb\u7ebf\u5bbd\u9650\u964d\u7ea7\u65b0\u4efb\u52a1\uff1b\u672c\u8f6e\u5df2\u6279\u4efb\u52a1\u5230\u671f\u4e0d\u7834\u574f\uff0c\u65e2\u6709\u7ed3\u679c\u53ef\u5bfc\u51fa",
+      "readyWhen": "\u65e0\u7f13\u5b58\u4e0dPro\uff0c\u8d85\u79bb\u7ebf\u5bbd\u9650\u964d\u7ea7\u65b0\u4efb\u52a1\uff1b\u672c\u8f6e\u5df2\u6279\u4efb\u52a1\u5230\u671f\u4e0d\u7834\u574f\uff0c\u65e2\u6709\u7ed3\u679c\u53ef\u5bfc\u51fa",
+      "blockers": [
+        "\u771f\u5b9e\u79c1\u94a5\u4e0d\u5165\u5305",
+        "\u8fd0\u8425\u7b7e\u53d1/\u5546\u4e1a\u8bd5\u70b9\u5355\u5217\u672a\u5c31\u7eea"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP03",
+      "title": "\u6a21\u677f/\u7edf\u4e00\u7f16\u8bd1/\u9884\u89c8/\u8fc1\u79fbUI",
+      "ownerStage": "03",
+      "dependsOn": [
+        "WP04",
+        "WP05",
+        "WP07A",
+        "WP08A"
+      ],
+      "inputs": [
+        "02B\u771f\u5b9efoundation handoff/version/hash\u300102A\u771f\u5b9eenvironment handoff\u3001\u4e09\u5b8c\u6574\u8fc1\u79fb\u5411\u91cf\u548c\u6765\u6e90UI"
+      ],
+      "writeScope": [
+        "src/features/scraping/{compiler,templates,selection,ui}/**",
+        "tests/scraping/**",
+        "docs/scraping/**"
+      ],
+      "deliverables": [
+        "\u4fdd\u7559\u5e03\u5c40\u4e0e\u9009\u533a\u3001\u5b8c\u6574\u4e0d\u53ef\u53d8\u6a21\u677f\u3001\u547d\u540d/\u5217\u8868/\u7f16\u8f91\u3001\u540ccompiler preview/run\u3001\u5907\u4efd\u8865\u5168\u5411\u91cf"
+      ],
+      "testIds": [
+        "M02",
+        "M03",
+        "confirmed-single-page",
+        "next-selector-was-memory-only",
+        "unsupported-config",
+        "template-reject",
+        "template-falsy-long-notitle"
+      ],
+      "observableAssertions": "\u5173\u7a97\u91cd\u5f00hash/\u5217\u5e8f/\u5206\u9875\u4e0d\u53d8\uff1braw/0/false/\u7a7a\u4e32/null/150\u5b57/\u65e0title\u4e00\u81f4\uff1b\u7f3a\u4fe1\u606f\u62d2\u7edd\u4e0d\u731c",
+      "readyWhen": "\u5173\u7a97\u91cd\u5f00hash/\u5217\u5e8f/\u5206\u9875\u4e0d\u53d8\uff1braw/0/false/\u7a7a\u4e32/null/150\u5b57/\u65e0title\u4e00\u81f4\uff1b\u7f3a\u4fe1\u606f\u62d2\u7edd\u4e0d\u731c",
+      "blockers": [
+        "02B\u6b63\u5f0f\u5e95\u5ea7handoff\u5fc5\u987b\u771f\u5b9e\u53ef\u96c6\u6210",
+        "\u6765\u6e90\u65b0dirty/hash\u53d8\u5316\u5148diff\u5feb\u7167"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP06",
+      "title": "\u53d7\u9650\u5206\u9875/pipeline/\u6570\u636e\u6b63\u786e\u6027",
+      "ownerStage": "03",
+      "dependsOn": [
+        "WP03",
+        "WP04",
+        "WP05"
+      ],
+      "inputs": [
+        "\u540cRulePlan\u3001\u4e13\u7528PagePort\u3001\u5206\u9875\u63a7\u5236DOM"
+      ],
+      "writeScope": [
+        "src/features/scraping/runner/**",
+        "tests/scraping/pagination*",
+        "docs/scraping/**"
+      ],
+      "deliverables": [
+        "\u540corigin\u5206\u9875\u3001\u5b8c\u6574signature\u3001\u9884\u7b97/\u9519\u8bef/\u80cc\u538b\u3001\u4e24run\u9694\u79bb\u3001\u6574\u9875stage/seal"
+      ],
+      "testIds": [
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "run-isolation-pagination",
+        "pagination-signature",
+        "budget-plus-one"
+      ],
+      "observableAssertions": "2\u9875\u00d73\u884c\u4e24\u6b21run\u5206\u522b6\u6761\uff1bmaxPages1=3/2=6\u6309\u81ea\u7136\u7ed3\u675f\u4f9d\u636e\uff1b10\u9875\u00d7100=1000\uff1b\u534a\u9875/\u91cd\u590d/\u65b0\u6d3e\u751f\u9519\u8bef\u4e3a0",
+      "readyWhen": "2\u9875\u00d73\u884c\u4e24\u6b21run\u5206\u522b6\u6761\uff1bmaxPages1=3/2=6\u6309\u81ea\u7136\u7ed3\u675f\u4f9d\u636e\uff1b10\u9875\u00d7100=1000\uff1b\u534a\u9875/\u91cd\u590d/\u65b0\u6d3e\u751f\u9519\u8bef\u4e3a0",
+      "blockers": [
+        "\u672a\u77e5\u6548\u679c\u4e0d\u81ea\u52a8\u7ffb\u9875\u91cd\u8bd5",
+        "\u771f\u5b9e\u7ad9\u70b9trusted interaction\u4e0d\u652f\u6301\u9700\u8bf4\u660e"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP07B",
+      "title": "CSV/JSON\u683c\u5f0f\u5316\u4e0e\u4e0b\u8f7dUI",
+      "ownerStage": "03",
+      "dependsOn": [
+        "WP06",
+        "WP07A"
+      ],
+      "inputs": [
+        "sealed\u8bfb\u53d6\u6e38\u6807\u3001columns\u4e0e\u7cbe\u786eJSON/CSV\u5411\u91cf\u3001attempt\u6295\u5f71"
+      ],
+      "writeScope": [
+        "src/features/scraping/formatter/**",
+        "src/features/scraping/ui/**",
+        "tests/scraping/export*"
+      ],
+      "deliverables": [
+        "\u6bcf\u53778MiB\u5185\u5b8c\u6574\u683c\u5f0f/manifest/hash\u3001\u90e8\u5206\u5bfc\u51fa\u786e\u8ba4\u3001\u6309job/\u5377\u4e0b\u8f7d\u53cd\u9988"
+      ],
+      "testIds": [
+        "M08",
+        "download-complete",
+        "download-interrupted",
+        "download-multivolume",
+        "download-host-close-after-complete",
+        "download-host-close-before-terminal"
+      ],
+      "observableAssertions": "\u7cbe\u786e\u4e2d\u6587/\u5f15\u53f7/\u7c7b\u578b/\u5217\u5e8f/\u516c\u5f0f\u5b89\u5168\uff1b\u6240\u6709\u5377complete\u624d\u4ea4\u4ed8\u6210\u529f\uff1bJSON/CSV\u8bb0\u5f55\u96c6\u5408\u4e00\u81f4",
+      "readyWhen": "\u7cbe\u786e\u4e2d\u6587/\u5f15\u53f7/\u7c7b\u578b/\u5217\u5e8f/\u516c\u5f0f\u5b89\u5168\uff1b\u6240\u6709\u5377complete\u624d\u4ea4\u4ed8\u6210\u529f\uff1bJSON/CSV\u8bb0\u5f55\u96c6\u5408\u4e00\u81f4",
+      "blockers": [
+        "\u78c1\u76d8hash\u53ea\u72ec\u7acb\u6d4b\u8bd5\u8bfb\u6587\u4ef6\u8bc1\u636e",
+        "\u672a\u77e5/\u53d6\u6d88\u4e0d\u79f0\u6210\u529f"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP08B",
+      "title": "\u514d\u8d39/Pro\u4e0e\u4fdd\u7559\u7b56\u7565\u4ea7\u54c1\u53cd\u9988",
+      "ownerStage": "03",
+      "dependsOn": [
+        "WP03",
+        "WP08A",
+        "WP07B"
+      ],
+      "inputs": [
+        "\u5e95\u5ea7\u6388\u6743/\u914d\u989d/\u4fdd\u7559/\u5220\u9664\u6295\u5f71"
+      ],
+      "writeScope": [
+        "src/features/scraping/ui/**",
+        "tests/scraping/policy*",
+        "docs/scraping/**"
+      ],
+      "deliverables": [
+        "\u8d85\u9650\u524d\u9884\u7b97\u8bf4\u660e\u3001\u8fc7\u671f/\u5931\u8d25\u63d0\u793a\u3001\u65e7\u7ed3\u679c\u53d6\u56de\u4e0e\u4fdd\u7559\u7b56\u7565\u8bf4\u660e"
+      ],
+      "testIds": [
+        "M10",
+        "entitlement-exports",
+        "storage-delete-retention"
+      ],
+      "observableAssertions": "\u5f00\u59cb\u65b0Pro\u4efb\u52a1\u524d\u5224\u5b9a\u3001\u5df2\u6709\u8bb0\u5f55\u4e0d\u6263\u7559\u3001\u7981\u5bfc\u51fa\u8ffd\u6536\u3001\u4eba\u5de5\u6d4b\u8bd5\u51ed\u636e\u660e\u786e\u6807\u8bb0",
+      "readyWhen": "\u5f00\u59cb\u65b0Pro\u4efb\u52a1\u524d\u5224\u5b9a\u3001\u5df2\u6709\u8bb0\u5f55\u4e0d\u6263\u7559\u3001\u7981\u5bfc\u51fa\u8ffd\u6536\u3001\u4eba\u5de5\u6d4b\u8bd5\u51ed\u636e\u660e\u786e\u6807\u8bb0",
+      "blockers": [
+        "\u4e0d\u63a5\u771f\u5b9e\u6536\u8d39\u6216\u865a\u6784\u5546\u4e1a\u901a\u8fc7"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    },
+    {
+      "id": "WP09",
+      "title": "\u6700\u7ec8\u5355\u4ea7\u54c1\u72ec\u7acb\u96c6\u6210\u9a8c\u6536",
+      "ownerStage": "04",
+      "dependsOn": [
+        "WP02",
+        "WP05",
+        "WP04",
+        "WP07A",
+        "WP08A",
+        "WP03",
+        "WP06",
+        "WP07B",
+        "WP08B"
+      ],
+      "inputs": [
+        "02A/02B/03\u771f\u5b9ehandoff\u3001\u6700\u7ec8\u5355\u6269\u5c55\u5305\u3001\u5b8c\u6574\u6d4b\u8bd5\u8ba1\u5212"
+      ],
+      "writeScope": [
+        "tests/acceptance/**",
+        "docs/acceptance/**",
+        "\u6309\u5f52\u56e0\u4e32\u884c\u4fee\u590d\u524d\u5e8f\u8d23\u4efb\u6587\u4ef6"
+      ],
+      "deliverables": [
+        "\u666e\u901aChrome\u6700\u4f4e/\u5f53\u524d\u77e9\u9635\u3001\u63a7\u5236\u9875+\u6388\u6743\u771f\u5b9e\u7ad9\u70b9\u70df\u6d4b\u3001\u8d44\u6e90/\u5b89\u5168/\u5b8c\u6574\u65c5\u7a0b\u3001\u6700\u7ec8report"
+      ],
+      "testIds": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11"
+      ],
+      "observableAssertions": "\u6700\u7ec8\u5355manifest/\u5355DB/\u5355owner\u5168\u65c5\u7a0b\u53ef\u6838\u5bf9\uff1b\u6bcf\u95e8\u7981\u6709\u7248\u672c/\u547d\u4ee4/\u89c2\u6d4b/\u7ed3\u679c/\u8303\u56f4",
+      "readyWhen": "\u6700\u7ec8\u5355manifest/\u5355DB/\u5355owner\u5168\u65c5\u7a0b\u53ef\u6838\u5bf9\uff1b\u6bcf\u95e8\u7981\u6709\u7248\u672c/\u547d\u4ee4/\u89c2\u6d4b/\u7ed3\u679c/\u8303\u56f4",
+      "blockers": [
+        "\u7f3a\u771f\u5b9eChrome\u6216\u524d\u5e8fpartial\u4e0d\u53ef\u5047passed",
+        "M12\u5546\u4e1a\u72ec\u7acbpending\u4e0d\u4f2a\u79f0\u53ef\u6536\u8d39\u4e0a\u7ebf"
+      ],
+      "status": "designed-not-implemented",
+      "productPassed": false
+    }
+  ],
+  "dependencyGraph": {
+    "nodes": [
+      "WP01",
+      "WP02",
+      "WP05",
+      "WP04",
+      "WP07A",
+      "WP08A",
+      "WP03",
+      "WP06",
+      "WP07B",
+      "WP08B",
+      "WP09"
+    ],
+    "edges": [
+      {
+        "from": "WP01",
+        "to": "WP02"
+      },
+      {
+        "from": "WP02",
+        "to": "WP05"
+      },
+      {
+        "from": "WP02",
+        "to": "WP04"
+      },
+      {
+        "from": "WP05",
+        "to": "WP04"
+      },
+      {
+        "from": "WP04",
+        "to": "WP07A"
+      },
+      {
+        "from": "WP05",
+        "to": "WP07A"
+      },
+      {
+        "from": "WP04",
+        "to": "WP08A"
+      },
+      {
+        "from": "WP05",
+        "to": "WP08A"
+      },
+      {
+        "from": "WP04",
+        "to": "WP03"
+      },
+      {
+        "from": "WP05",
+        "to": "WP03"
+      },
+      {
+        "from": "WP07A",
+        "to": "WP03"
+      },
+      {
+        "from": "WP08A",
+        "to": "WP03"
+      },
+      {
+        "from": "WP03",
+        "to": "WP06"
+      },
+      {
+        "from": "WP04",
+        "to": "WP06"
+      },
+      {
+        "from": "WP05",
+        "to": "WP06"
+      },
+      {
+        "from": "WP06",
+        "to": "WP07B"
+      },
+      {
+        "from": "WP07A",
+        "to": "WP07B"
+      },
+      {
+        "from": "WP03",
+        "to": "WP08B"
+      },
+      {
+        "from": "WP08A",
+        "to": "WP08B"
+      },
+      {
+        "from": "WP07B",
+        "to": "WP08B"
+      },
+      {
+        "from": "WP02",
+        "to": "WP09"
+      },
+      {
+        "from": "WP05",
+        "to": "WP09"
+      },
+      {
+        "from": "WP04",
+        "to": "WP09"
+      },
+      {
+        "from": "WP07A",
+        "to": "WP09"
+      },
+      {
+        "from": "WP08A",
+        "to": "WP09"
+      },
+      {
+        "from": "WP03",
+        "to": "WP09"
+      },
+      {
+        "from": "WP06",
+        "to": "WP09"
+      },
+      {
+        "from": "WP07B",
+        "to": "WP09"
+      },
+      {
+        "from": "WP08B",
+        "to": "WP09"
+      }
+    ]
+  },
+  "ownershipRules": [
+    "02A\u72ec\u5360\u5de5\u7a0b/\u6253\u5305/\u9759\u6001\u7a97\u53e3\u69fd\uff0c\u4ea4\u63a5\u540e02B\u72ec\u5360\u516c\u5171\u6d4f\u89c8\u5668\u80fd\u529b/RunHost/PagePort/stop/IDB/download/Entitlement\u53ca\u5408\u540c",
+    "03\u9886\u57df/UI\u552f\u4e00\u4f5c\u8005\uff0c04\u6700\u7ec8\u9a8c\u6536\u4e0e\u6309\u5f52\u56e0\u4e32\u884c\u4fee\u590d",
+    "02A\u57fa\u7840\u73af\u5883\u300102B\u5173\u952e\u4ee3\u7801\u8fc1\u79fb\u53ef\u9760\u5e95\u5ea7\u53ef\u72ec\u7acb\u9a8c\u6536\uff1b\u73af\u5883\u901a\u8fc7\u4e0d\u7b49\u4e8e\u8fc1\u79fb/\u4ea7\u54c1\u901a\u8fc7",
+    "WP02\u56fa\u5b9ascraping\u69fd\u53ea\u5360\u4f4d\uff0c02B\u4ea4\u63a5\u540e03\u63a5\u7ba1\u8be5\u9886\u57df\u5165\u53e3\uff1b\u4e0d\u5e76\u53d1\u6839\u914d\u7f6e/\u516c\u5171\u6587\u4ef6",
+    "\u7b2c\u4e94\u56fe/\u590d\u7528\u5ba1\u8ba1\u662f01 ready\u8bbe\u8ba1\u524d\u7f6e\uff0c\u5de5\u5177\u7d22\u5f15\u4e0d\u8fdb\u5165\u4ea7\u54c1runtime"
+  ],
+  "externalDesignDependency": {
+    "stage": "05",
+    "status": "reviewed-integrated",
+    "purpose": "CodeGraph/source reuse analysis: old code to new module map, actual hash, dynamic message/injection edges, behavior baseline, impact tests",
+    "mustIntegrateBeforeStage01Ready": true,
+    "writePolicy": "stage05 independent read-only workspace; stage01 integrates its reviewed evidence",
+    "handoffPath": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-codegraph-reuse/outputs/codegraph-reuse/handoff.json",
+    "handoffHash": "20618db3c173f3abfe77f4578f4ea233e4424e1598029b8c0c636fc36e3301fb",
+    "decisionPath": "docs/contracts/reuse-decision.json",
+    "criticalTransferChoicesDefined": true,
+    "independentReview": "docs/contracts/reviews/solution-final.json"
+  },
+  "executionOrder": [
+    "01",
+    "02A",
+    "02B",
+    "03",
+    "04"
+  ],
+  "registryReconciliation": {
+    "status": "verified-v5",
+    "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/goals/v4-thread-dispatch.json",
+    "sha256": "6c2df246ac6caafd296b3cae503836725ba701d3eb481e39e598a58a62652444",
+    "checkedAt": "2026-10-01T19:52:55.650806+00:00",
+    "model": "openai/gpt-6.1-sol",
+    "thinking": "xhigh",
+    "order": [
+      "01",
+      "02A",
+      "02B",
+      "03",
+      "04"
+    ],
+    "threadIds": {
+      "01": "01a0f8b7-b974-7962-a5fc-a77bb0bd6277",
+      "02A": "01a0f8b7-c03d-7460-b3dc-c7f2df804b60",
+      "02B": "01a0f8dd-77cc-7ec2-97a6-71daf39029d4",
+      "03": "01a0f8b7-c8dc-7872-bd30-1d8d1a482ddb",
+      "04": "01a0f8b7-d3ee-7d62-9396-5a78a67a83a2",
+      "05": "01a0f8da-fe55-7910-90f6-dd13992d139e",
+      "06": "01a0f8f9-4a27-7993-aead-4837bb872786"
+    },
+    "releasePolicy": "This registry records initial dispatch, not live stage completion. Later stages require their predecessor's real handoff and explicit start message under verified human authorization.",
+    "parallelSupportStages": [
+      "06"
+    ]
+  },
+  "parallelSupport": {
+    "stage": "06",
+    "scope": "isolated developer browser/controlled fixtures/milestone smoke; no shared product writers",
+    "inputMilestones": [
+      "02A environment build",
+      "02B foundation build",
+      "03 scraping build"
+    ],
+    "acceptanceOwner": "04",
+    "readyDependencyForStage01": false,
+    "handoffPath": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-dev-browser/outputs/dev-browser/handoff.json"
+  }
+}

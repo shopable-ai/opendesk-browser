@@ -1,0 +1,1070 @@
+diff --git a/docs/framework/public-owner.json b/docs/framework/public-owner.json
+index 65dfe5c..d04b214 100644
+--- a/docs/framework/public-owner.json
++++ b/docs/framework/public-owner.json
+@@ -2,10 +2,10 @@
+   "goal": "OpenDesk Browser 旧功能迁移完成与最终可核对验收",
+   "threadId": "01a1067b-a17b-7870-8ca4-92af03c934f5",
+   "scope": "sole-public-foundation-owner:old-features-final-F3",
+-  "status": "active-function-implementation",
++  "status": "released",
+   "createdAt": "2026-10-04T10:56:03.151777+00:00",
+   "authorization": "Human explicit serial transfer; prior writer released; independent browser window withdrawn; no in-flight operations",
+-  "handoff": "docs/framework/evidence/old-features-20261004-01a10654/handoff-to-01a1067b.md",
++  "handoff": "docs/framework/evidence/old-features-20261004-01a1067b/handoff-to-01a106d2.md",
+   "previousOwner": {
+     "goal": "OpenDesk Browser 旧功能迁移与可核对验收",
+     "threadId": "01a10654-4d29-7cc0-8cf3-e491cf07f9bf",
+@@ -142,7 +142,15 @@
+     "releaseEvidence": "docs/framework/evidence/old-features-20261004-01a10654/handoff-to-01a1067b.md",
+     "operations": "none; no build/test/browser in flight; independent browser window withdrawn without launching"
+   },
+-  "productImplementationActive": true,
++  "productImplementationActive": false,
+   "noInFlightOperationsAtTransfer": true,
+-  "browserOwner": null
++  "browserOwner": null,
++  "updatedAt": "2026-10-04T11:54:43.795350+00:00",
++  "successorThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4",
++  "releasedAt": "2026-10-04T12:33:26.255Z",
++  "receivedHandoff": "docs/framework/evidence/old-features-20261004-01a10654/handoff-to-01a1067b.md",
++  "releaseAuthorization": "docs/framework/evidence/old-features-20261004-01a1067b/handoff-authorization.json",
++  "noInFlightOperationsAtRelease": true,
++  "processCheck": "docs/framework/evidence/old-features-20261004-01a1067b/handoff-process-check.json",
++  "goalExecution": "stopped by explicit human serial handoff; objective incomplete; native Goal will be paused after release"
+ }
+diff --git a/docs/framework/wxt-progress.json b/docs/framework/wxt-progress.json
+index e6a084f..2478464 100644
+--- a/docs/framework/wxt-progress.json
++++ b/docs/framework/wxt-progress.json
+@@ -2,7 +2,7 @@
+   "schemaVersion": 1,
+   "target": "WXT; JavaScript; MV3; existing API contracts",
+   "stepId": "F2-old-features",
+-  "state": "writer_released_awaiting_serial_successor",
++  "state": "handoff_released",
+   "lastPassedStep": "P3",
+   "steps": {
+     "P1": "baseline_passed",
+@@ -274,7 +274,7 @@
+   ],
+   "staleCaseIds": [],
+   "firstBlocker": null,
+-  "nextAction": "Complete current concrete JS/legacy SDK/template consumer gaps and B05 observers; then freeze candidate and concentrated original-contract acceptance",
++  "nextAction": "由01a106d2核实交接并登记写权；按该聊天最新人类增量重构指令实施，不恢复旧Goal；六资源快照部分实现和最终WXT原生验收均作为遗留项。",
+   "commands": {
+     "preflight": "node tests/framework/k5-controller-product-native.mjs --contract-check --single --mode=all --chrome=138",
+     "nativeProduction": "node tests/framework/k5-controller-product-native.mjs --native --headed --single --native-ui-assist --mode=production --chrome=138 --rebuild-receipt=<fresh-receipt> --permission-timeout=120000",
+@@ -329,12 +329,14 @@
+     "docs/framework/evidence/old-features-20261004-01a10654/handoff-to-01a1067b.md"
+   ],
+   "ownedRuntime": {
+-    "writer": "01a1067b-a17b-7870-8ca4-92af03c934f5",
++    "writer": null,
++    "previousWriter": "01a1067b-a17b-7870-8ca4-92af03c934f5",
+     "browserOwner": null,
+     "operations": [],
+-    "state": "implementation-no-native-window"
++    "state": "released-for-serial-handoff",
++    "successorThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4"
+   },
+-  "updatedAt": "2026-10-04T10:56:03.151777+00:00",
++  "updatedAt": "2026-10-04T12:31:00.837690+00:00",
+   "ownerThreadId": "01a1067b-a17b-7870-8ca4-92af03c934f5",
+   "zipHashes": {
+     "production": "d9cf788f277517275846094f270bdcf315976a81c879b040bf074177d68c3b5a",
+@@ -367,5 +369,27 @@
+     "bexUrl": "implemented-packaged-native-not-tested",
+     "requestResource": "implemented-packaged-native-not-tested"
+   },
+-  "handoffIdentity": "docs/framework/evidence/old-features-20261004-01a10654/handoff-candidate-identity.json"
++  "handoffIdentity": "docs/framework/evidence/old-features-20261004-01a10654/handoff-candidate-identity.json",
++  "functionImplementation": "implemented-pending-final-candidate-native-acceptance",
++  "componentCheck": {
++    "exitCode": 0,
++    "passed": 476,
++    "failed": 0,
++    "skipped": 0,
++    "sourceCheck": {
++      "path": "docs/framework/evidence/old-features-20261004-01a1067b/source-check.log",
++      "bytes": 232,
++      "sha256": "1320bcbf297796047bad3ed2ec7584eb6f5767cdb122df6a700dc0e1fda0986a"
++    },
++    "evidence": {
++      "path": "docs/framework/evidence/old-features-20261004-01a1067b/components.log",
++      "bytes": 45888,
++      "sha256": "a5300b6a163889326c966e9c71fc6e54010bbda97d85fd758bff4457886c048b"
++    },
++    "currentSourceBinding": "not-a-current-full-source-pass-after-partial-resource-diagnostics"
++  },
++  "finalProductPassed": false,
++  "f3Accepted": false,
++  "successorThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4",
++  "handoffEvidence": "docs/framework/evidence/old-features-20261004-01a1067b/handoff-to-01a106d2.md"
+ }
+diff --git a/docs/framework/wxt-status.md b/docs/framework/wxt-status.md
+index 509eab3..ccc5f9d 100644
+--- a/docs/framework/wxt-status.md
++++ b/docs/framework/wxt-status.md
+@@ -1,6 +1,10 @@
+ # 当前旧功能迁移（唯一writer已交接）
+ 
+-四旧公共服务已实现并进入生产包；原生独立验收未启动，F3尚未通过。01a10654-4d29-7cc0-8cf3-e491cf07f9bf 已按新聊天中的人类指令释放唯一写权，待 01a1067b-a17b-7870-8ca4-92af03c934f5 串行登记，沿WXT/MV3。
++01a1067b-a17b-7870-8ca4-92af03c934f5 已按新聊天中的直接人类授权安全收尾，串行释放写权给 01a106d2-54e6-77a3-823d-c9891df8e0e4，由接续聊天登记自身。无在途构建、测试、浏览器或服务器。当前 Goal 未完成，不恢复旧 Goal 产品执行。
++
++四公共服务沿用交接实现，普通 JS 工作台已解除采集面板强制初始化；旧 SDK 与 B05 原生输入和原合同 campaign 已接入、未运行。此前集中组件 476/476 与源码检查通过，随后 WXT 最终 checker 适配的受影响组件 35/35 通过；六资源只读快照仅部分落盘（client/Blob/controller），未接通工作台总入口，当前源码未完成新的整轮检查与双包构建。正式账本 0/603 原生闭合，19 补充项原生待验，F3 未通过。
++
++本轮逐功能实现、入口、消费者与待验边界见 [当前旧功能记录](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/old-features-20261004-01a1067b/function-implementation.md)。本轮源码已改变，以下包和原生结果均为历史候选证据，不自动继承。
+ 
+ 逐功能原调用、旧→新源码、操作步骤、预期/实际、证据与缺口见 [旧功能验收清单](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/old-features-20261004-01a10654/acceptance-by-old-feature.md)。生产候选 a24b4c7f…，MAIN/relay实际bytes/SHA见 [候选身份](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/old-features-20261004-01a10654/four-service-candidate.json)。此前P1–P3通过保留；下述历史原生结果仅归属于各自旧包，不自动迁移为当前包PASS。
+ 
+diff --git a/src/platform/downloads/blob-lifecycle.js b/src/platform/downloads/blob-lifecycle.js
+index b00d243..d90f6b9 100644
+--- a/src/platform/downloads/blob-lifecycle.js
++++ b/src/platform/downloads/blob-lifecycle.js
+@@ -44,5 +44,6 @@ export function createHostBlobRegistry({ url = globalThis.URL, BlobClass = globa
+       return true;
+     },
+     has(blobUrl) { return resources.has(blobUrl); },
++    resourceSnapshot: () => ({blobs: resources.size}),
+   });
+ }
+diff --git a/src/platform/host/client.js b/src/platform/host/client.js
+index 7d6a457..00f15d3 100644
+--- a/src/platform/host/client.js
++++ b/src/platform/host/client.js
+@@ -4,24 +4,35 @@ export function createHostClient(api = chrome) {
+   const hostInstanceId = newId();
+   const sourceListeners = new Map(), commandListeners = new Map(), runListeners = new Set();
+   const port = api.runtime.connect({name:PROTOCOL});
+-  let registration, disposed = false;
++  const pending = new Set();
++  let registration, disposed = false, connected = true, messageListening = false, disconnectListening = false;
+   async function send(type, payload, registered = true) {
+     if (disposed) throw new FoundationError('E_OWNER', 'RunHost disposed');
+-    if (registered) await ready;
+-    const response = await api.runtime.sendMessage({protocol:PROTOCOL, type, payload,
+-      ...(registration ? {registrationId:registration.registrationId} : {})});
+-    if (!response?.ok) throw new FoundationError(response?.error?.code || 'E_EFFECT_UNKNOWN', response?.error?.message || 'Worker response missing');
+-    return response.data;
++    const request = {}; pending.add(request);
++    try {
++      if (registered) await ready;
++      const response = await api.runtime.sendMessage({protocol:PROTOCOL, type, payload,
++        ...(registration ? {registrationId:registration.registrationId} : {})});
++      if (!response?.ok) throw new FoundationError(response?.error?.code || 'E_EFFECT_UNKNOWN', response?.error?.message || 'Worker response missing');
++      return response.data;
++    } finally { pending.delete(request); }
+   }
+   const ready = send('registerHost', {hostInstanceId, claimedContractVersion:CONTRACT_VERSION, claimedContractHash:CONTRACT_HASH}, false)
+     .then(value => { registration=value; port.postMessage({type:'bind-host',registrationId:value.registrationId}); return value; });
+-  port.onMessage.addListener(message => {
++  const onMessage = message => {
+     if (!registration || message.registrationId !== registration.registrationId) return;
+     const event = message.event;
+     if (event?.selectionId) for (const listener of sourceListeners.get(event.selectionId) || []) listener(event);
+     if (event?.commandId) for (const listener of commandListeners.get(event.commandId) || []) listener(event);
+     if (event?.runId) for (const listener of runListeners) listener(event);
+-  });
++  };
++  const onDisconnect = () => { connected = false; removePortListeners(); };
++  function removePortListeners() {
++    if (messageListening) { port.onMessage.removeListener?.(onMessage); messageListening = false; }
++    if (disconnectListening) { port.onDisconnect.removeListener?.(onDisconnect); disconnectListening = false; }
++  }
++  port.onMessage.addListener(onMessage); messageListening = true;
++  if (port.onDisconnect?.addListener) { port.onDisconnect.addListener(onDisconnect); disconnectListening = true; }
+   const subscribe = (map,key,listener) => { const set=map.get(key)||new Set();set.add(listener);map.set(key,set);return()=>{set.delete(listener);if(!set.size)map.delete(key);}; };
+   const pagePort = {};
+   for (const method of ['openSourceContext','startSourceSelection','cancelSourceSelection','releaseSourceContext','previewSource',
+@@ -50,5 +61,8 @@ export function createHostClient(api = chrome) {
+     runCommands:Object.fromEntries(['claimRun','stopRun','abandonUnknown','retireTarget','snapshotRun','finishRun'].map(method=>[method,request=>send(method,request)])),
+     subscribeRun:listener=>{runListeners.add(listener);return()=>runListeners.delete(listener);},
+     get registration(){return registration;}, get hostInstanceId(){return hostInstanceId;},
+-    dispose(){disposed=true;sourceListeners.clear();commandListeners.clear();runListeners.clear();port.disconnect();}};
++    resourceSnapshot: () => ({pending:pending.size, subscriptions: [...sourceListeners.values(),...commandListeners.values()]
++      .reduce((count,listeners)=>count+listeners.size,runListeners.size) + Number(messageListening) + Number(disconnectListening),
++      ports:Number(connected)}),
++    dispose(){if(disposed)return;disposed=true;sourceListeners.clear();commandListeners.clear();runListeners.clear();removePortListeners();connected=false;port.disconnect();}};
+ }
+diff --git a/src/scripting/sandbox/controller.js b/src/scripting/sandbox/controller.js
+index f5a5c14..7b4a443 100644
+--- a/src/scripting/sandbox/controller.js
++++ b/src/scripting/sandbox/controller.js
+@@ -14,6 +14,11 @@ export function createControlController({context, sandboxURL, workerURL, documen
+   const frame = doc.createElement('iframe'); frame.setAttribute('sandbox', 'allow-scripts'); frame.src = sandboxURL; frame.hidden = true;
+   const win = doc.defaultView;
+   const pending = new Set(); let port, send, active = true, executing = false, lastId = 0, settled = false, readyTimer, retiredTimer, retireResolve;
++  let messageListening = true, abortListening = true, portOpen = false, workerAllocated = false, releaseResolve;
++  const resourceReleased = new Promise(resolve => { releaseResolve = resolve; });
++  const released = () => {
++    if (!frame.isConnected && !pending.size && !readyTimer && !retiredTimer) releaseResolve();
++  };
+   const retired = new Promise(resolve => { retireResolve = resolve; });
+   let readyResolve, readyReject, terminalResolve;
+   const ready = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
+@@ -24,15 +29,16 @@ export function createControlController({context, sandboxURL, workerURL, documen
+   function observe(event) { try { onEvent(frozenCopy(event)); } catch {} }
+   function removeFrame(reason) {
+     // Remove only the controller's owned opaque realm, never an execution tab.
+-    frame.remove(); port?.close(); clearTimeout(retiredTimer); retiredTimer = null;
++    frame.remove(); port?.close(); portOpen = false; workerAllocated = false; clearTimeout(retiredTimer); retiredTimer = null;
+     observe({kind: 'realm-retired', runId: identity.runId, reason, observedAt: Date.now(), observedMonoMs: performance.now()});
++    released();
+   }
+   function finish(status, payload = {}) {
+     if (settled) return; settled = true; active = false;
+     const triggeredMonoMs = performance.now(), triggeredAt = Date.now();
+     context.dispose(status === 'timeout' ? 'E_TIMEOUT' : status === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED');
+-    clearTimeout(readyTimer); win.removeEventListener('message', bind);
+-    context.signal.removeEventListener('abort', abort);
++    clearTimeout(readyTimer); readyTimer = null; win.removeEventListener('message', bind); messageListening = false;
++    context.signal.removeEventListener('abort', abort); abortListening = false;
+     send?.({kind: 'retire', runId: identity.runId, ownerEpoch: identity.ownerEpoch, reason: status});
+     const record = {status, ...payload, identity, revision, triggeredAt, triggeredMonoMs};
+     terminalResolve(record); readyReject(new PageError(status === 'error' ? payload.error?.code || 'E_CONTROL_EXECUTION' : context.signal.reason?.code || 'E_CANCELLED', payload.error?.message));
+@@ -60,22 +66,23 @@ export function createControlController({context, sandboxURL, workerURL, documen
+     } catch (error) {
+       if (active) send({kind: 'reply', runId: identity.runId, ownerEpoch: identity.ownerEpoch, id: data.id,
+         reply: {requestId: captured.requestId, error: {code: error.code || 'E_PAGE_EXECUTION', message: error.message}}});
+-    } finally { pending.delete(data.id); }
++    } finally { pending.delete(data.id); released(); }
+   }
+   function bind(event) {
+     if (!active || event.source !== frame.contentWindow || event.origin !== 'null' || event.data?.kind !== 'sandbox-ready') return;
+     requireValue(event.data.origin === 'null' && !event.data.extensionAPI && !event.data.parentAccess, 'E_SANDBOX_ISOLATION');
+-    win.removeEventListener('message', bind);
+-    const channel = new MessageChannel(); port = channel.port1; send = port.postMessage.bind(port);
++    win.removeEventListener('message', bind); messageListening = false;
++    const channel = new MessageChannel(); port = channel.port1; portOpen = true; send = port.postMessage.bind(port);
+     port.onmessage = ({data}) => {
+       if (data.kind === 'host-bound') {
+         workerSource.then(source => { if (active) send({kind: 'start', identity, revision, target: context.target, workerSource: source, observeResources}); }).catch(() => {}); return;
+       }
+       if (data.runId !== identity.runId || data.ownerEpoch !== identity.ownerEpoch) { observe({kind: 'rejected-peer'}); return; }
++      if (data.kind === 'worker-created') workerAllocated = true;
+       observe(data);
+       if (data.kind === 'retired') { removeFrame(data.reason); retireResolve({...data, acknowledged: true}); return; }
+       if (!active) return;
+-      if (data.kind === 'bound') { clearTimeout(readyTimer); readyResolve(data.identity); return; }
++      if (data.kind === 'bound') { clearTimeout(readyTimer); readyTimer = null; readyResolve(data.identity); return; }
+       if (data.kind === 'operation') { operation(data).catch(error => observe({kind: 'rejected-operation', code: error.code})); return; }
+       if (data.kind === 'result') { try { decodeValue(data.value); finish('succeeded', {value: data.value}); } catch (error) { finish('error', {error: {code: error.code, message: error.message}}); } }
+       if (data.kind === 'error') finish('error', {error: data.error});
+@@ -85,7 +92,7 @@ export function createControlController({context, sandboxURL, workerURL, documen
+   win.addEventListener('message', bind); context.signal.addEventListener('abort', abort, {once: true});
+   readyTimer = setTimeout(() => finish('error', {error: {code: 'E_SANDBOX_TIMEOUT'}}), 10000);
+   doc.body.append(frame); if (context.signal.aborted) abort();
+-  return Object.freeze({ready, result, retired,
++  return Object.freeze({ready, result, retired, resourceReleased,
+     async execute(body, params) {
+       requireValue(typeof body === 'string' && !executing, 'E_ARGUMENT_TYPE'); encodeValue(params); await ready; guard(); executing = true;
+       send({kind: 'execute', runId: identity.runId, ownerEpoch: identity.ownerEpoch, body, params: structuredClone(params)}); return result;
+diff --git a/tests/framework/acceptance-evidence.test.mjs b/tests/framework/acceptance-evidence.test.mjs
+index 28cabc8..91ab8f8 100644
+--- a/tests/framework/acceptance-evidence.test.mjs
++++ b/tests/framework/acceptance-evidence.test.mjs
+@@ -156,15 +156,48 @@ async function checkerProject(t) {
+   const supplementalCatalog=await save(SUPPLEMENTAL_CATALOG,await readFile(new URL(`../../${SUPPLEMENTAL_CATALOG}`,import.meta.url),'utf8'));
+   const raw=await save('raw.json',{fixtureOnly:true});
+   const reports=await save('results.json',{results:[]});
+-  const paths=['src/source.js','manifest.json','webpack.config.cjs','scripts/build.mjs','scripts/verify-package.mjs','package.json','package-lock.json','docs/contracts/licenses/todo-user-vue-MIT.txt'];
++  const paths=['src/source.js','manifest.json','wxt.config.mjs','scripts/build.mjs','scripts/verify-package.mjs',
++    'scripts/build-contract.mjs','scripts/check-source.mjs','scripts/pack.mjs','scripts/wxt-checkpoint.mjs','scripts/zip-package.py',
++    'package.json','package-lock.json','docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
+   const sourceInputs=[];
+-  for (const path of paths) {const ref=await save(path,'fixture-only');sourceInputs.push({path,sha256:ref.sha256});}
++  for (const path of paths) {const ref=await save(path,'fixture-only');sourceInputs.push({path,bytes:Buffer.byteLength('fixture-only'),sha256:ref.sha256});}
+   const build=await save('build.json',{mode:'production',status:'passed',sourceInputs,sourceDriftDuringBuild:[],report:{packageHash:hash}});
+   const candidate={...fixture().candidate,packageDirectory:'dist/development',resultReports:[reports],buildReport:build,reviews:[],raw,supplementalCatalog};
+   for (const env of candidate.environments) {env.binary=raw;env.binarySha256=raw.sha256;env.versionEvidence=raw;}
+   const candidateRef=await save('candidate.json',candidate);
+   return {projectRoot,save,specRef,raw,candidate,candidatePath:candidateRef.path};
+ }
++test('WXT build closure accepts all source/tooling inputs without requiring webpack',async t=>{
++  const f=await checkerProject(t), result=await checkAcceptance(f);
++  assert.equal(result.accepted,false); // This isolated fixture has no native evidence.
++  assert.ok(!result.issues.some(i=>['BUILD_SOURCE_CLOSURE_CHANGED','BUILD_NOT_FROZEN','EVIDENCE_HASH_MISMATCH'].includes(i.code)));
++});
++test('WXT build closure rejects omitted, extra or duplicate input paths and reported build drift',async t=>{
++  for (const [name,change,code] of [
++    ['omitted packaging helper',b=>{b.sourceInputs=b.sourceInputs.filter(i=>i.path!=='scripts/zip-package.py');},'BUILD_SOURCE_CLOSURE_CHANGED'],
++    ['extra webpack entry',b=>{b.sourceInputs.push({...b.sourceInputs[0],path:'webpack.config.cjs'});},'BUILD_SOURCE_CLOSURE_CHANGED'],
++    ['duplicate source entry',b=>{b.sourceInputs.push({...b.sourceInputs[0]});},'BUILD_SOURCE_CLOSURE_CHANGED'],
++    ['during-build drift',b=>{b.sourceDriftDuringBuild.push(b.sourceInputs[0]);},'BUILD_NOT_FROZEN']]) {
++    await t.test(name,async t=>{
++      const f=await checkerProject(t), build=JSON.parse(await readFile(f.candidate.buildReport.path,'utf8'));
++      change(build);f.candidate.buildReport=await f.save('build.json',build);
++      await f.save('candidate.json',f.candidate);
++      assert.ok((await checkAcceptance(f)).issues.some(i=>i.code===code));
++    });
++  }
++});
++test('WXT build closure rereads current source, config and packaging bytes against frozen SHA and lengths',async t=>{
++  for (const path of ['src/source.js','wxt.config.mjs','scripts/zip-package.py']) await t.test(path,async t=>{
++    const f=await checkerProject(t);await writeFile(join(f.projectRoot,path),'changed-byte-content');
++    assert.ok((await checkAcceptance(f)).issues.some(i=>i.code==='EVIDENCE_HASH_MISMATCH'&&i.subject===path));
++  });
++  await t.test('declared byte length',async t=>{
++    const f=await checkerProject(t), build=JSON.parse(await readFile(f.candidate.buildReport.path,'utf8'));
++    const input=build.sourceInputs.find(i=>i.path==='scripts/zip-package.py');input.bytes++;
++    f.candidate.buildReport=await f.save('build.json',build);await f.save('candidate.json',f.candidate);
++    assert.ok((await checkAcceptance(f)).issues.some(i=>i.code==='EVIDENCE_HASH_MISMATCH'&&i.subject===input.path));
++  });
++});
+ test('read-only filesystem check rejects actual raw evidence and declared source tampering',async t=>{
+   const f=await checkerProject(t);
+   const before=await checkAcceptance(f);assert.equal(before.accepted,false);
+diff --git a/tests/framework/k5-controller-product-native.mjs b/tests/framework/k5-controller-product-native.mjs
+index e66ca19..527be4c 100644
+--- a/tests/framework/k5-controller-product-native.mjs
++++ b/tests/framework/k5-controller-product-native.mjs
+@@ -1,6 +1,7 @@
+ import assert from 'node:assert/strict';
+ import {inputIdentity} from '../../scripts/wxt-checkpoint.mjs';
+ import {api48Source} from './p4-api48-native-source.mjs';
++import {runControllerCampaigns, CONTROLLER_CAMPAIGNS} from './k5-controller-native-campaigns.mjs';
+ import {createServer} from 'node:http';
+ import {spawn, execFileSync} from 'node:child_process';
+ import {readFile, writeFile, mkdir, readdir, realpath, stat, open} from 'node:fs/promises';
+@@ -28,6 +29,9 @@ const args = process.argv.slice(2);
+ assert(!(args.includes('--native') && args.includes('--contract-check')), 'Contract-check and native execution are separate commands');
+ const sourceOnly = args.includes('--source-only');
+ const single = args.includes('--single');
++const campaignsRequested = args.includes('--campaigns');
++assert(args.filter(arg => arg.startsWith('--campaigns')).every(arg => arg === '--campaigns'), '--campaigns always runs the original 1000/10/2 counts');
++assert(!campaignsRequested || !single, '--campaigns uses the frozen 27-case runner; --single is a separate diagnostic');
+ assert(!sourceOnly || args.includes('--contract-check') && !args.includes('--native'), '--source-only is a non-native contract-check for Main rebuild in progress');
+ const option = (name, fallback) => args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3) || fallback;
+ const modes = option('mode', 'all') === 'all' ? ['production', 'development'] : [option('mode')];
+@@ -63,7 +67,7 @@ async function sourceFingerprint() {
+   const files = (await fingerprint(path.join(root, 'src'))).files.map(row => ({...row, path: `src/${row.path}`}));
+   for (const relative of ['manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json',
+     ...(await readdir(path.join(root, 'scripts'))).filter(x => /\.(mjs|cjs|js)$/.test(x)).map(x => `scripts/${x}`),
+-    ...(await readdir(path.join(root, 'tests/framework'))).filter(x => x.startsWith('k5-controller-product-native') || x.startsWith('k5-sdk-native')).map(x => `tests/framework/${x}`)]) {
++    ...(await readdir(path.join(root, 'tests/framework'))).filter(x => x.startsWith('k5-controller-product-native') || x === 'k5-controller-native-campaigns.mjs' || x.startsWith('k5-sdk-native')).map(x => `tests/framework/${x}`)]) {
+     const bytes = await readFile(path.join(root, relative)); files.push({path: relative, bytes: bytes.length, sha256: digest(bytes)});
+   }
+   files.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+@@ -410,7 +414,10 @@ async function nativeMain() {
+   const origin = `http://127.0.0.1:${server.address().port}`;
+   log({state: 'native-server-ready', runnerPid: process.pid, origin, output});
+   try {
+-    for (const mode of modes) for (const label of labels) reports.push(await browserRun({mode, label, origin, serverEvents}));
++    nativeEnvironments: for (const mode of modes) for (const label of labels) {
++      const report = await browserRun({mode, label, origin, serverEvents}); reports.push(report);
++      if (campaignsRequested && (report.error || report.campaigns?.status !== 'PASS')) break nativeEnvironments;
++    }
+   } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await json('raw-http-final.json', serverEvents); }
+   const sourceAfter = await sourceFingerprint(); await json('source-manifest-after.json', sourceAfter);
+   const inputAfter = await inputIdentity(); await json('input-bindings-after.json',inputAfter);
+@@ -421,15 +428,37 @@ async function nativeMain() {
+   const inputDrift = inputAfter.productInputsSha256!==inputBindings.productInputsSha256 || inputAfter.verificationInputsSha256!==inputBindings.verificationInputsSha256;
+   const sourceDrift = sourceBefore.sourceHash !== sourceAfter.sourceHash || inputDrift;
+   const summary = {stage: 'F2', reports: reports.map(x => ({mode: x.mode, label: x.label, pid: x.pid, launcherPid: x.launcherPid, launcherSha256: x.launcherSha256,
+-    extensionId: x.extensionId, packageHash: x.packageHash, cases: x.cases, error: x.error, attribution: x.attribution, cleanup: x.cleanup, packageDrift: x.packageDrift, launcherDrift: x.launcherDrift})),
++    extensionId: x.extensionId, packageHash: x.packageHash, cases: x.cases,
++    campaigns: x.campaigns && {status:x.campaigns.status, requested:x.campaigns.requested, campaigns:x.campaigns.campaigns, stoppedAt:x.campaigns.stoppedAt},
++    error: x.error, attribution: x.attribution, cleanup: x.cleanup, packageDrift: x.packageDrift, launcherDrift: x.launcherDrift})),
+     sourceDrift, finalProductPassed: false, f3Accepted: false, original603Closed: false, frameworkFunctionalMigrationComplete: false,
+     classification: sourceDrift || reports.some(x => x.packageDrift || x.launcherDrift) ? 'diagnostic-drift' : 'targeted-native-product-entry',
+-    caseSelection,
+-    notTested: ['Full original603', 'All 48 members', 'Independent SDK B05', 'Four crash barriers', '1000 mixed rounds', '10 reconnect rounds', '2 plugin disable rounds', 'Independent final package review'], serverClosed: true, output};
++    caseSelection, campaignsRequested, campaignRequirements: CONTROLLER_CAMPAIGNS,
++    notTested: ['Full original603', 'All 48 members', 'Independent SDK B05', 'Four crash barriers',
++      ...(!campaignsRequested || reports.some(x => x.campaigns?.status !== 'PASS') ? ['1000 mixed rounds', '10 reconnect rounds', '2 plugin disable rounds'] : []),
++      'Independent final package review'], serverClosed: true, output};
++  // Merge observations only by actual occurrence id across the two real
++  // environments. Development is kept separate from final production evidence.
++  for (const mode of modes) {
++    const byId = new Map();
++    for (const report of reports.filter(row => row.mode === mode)) for (const record of report.campaigns?.records || []) {
++      const actual = {...record, packageDrift: report.packageDrift, sourceDrift,
++        pass: record.pass && !report.packageDrift && !sourceDrift};
++      const previous = byId.get(actual.id);
++      if (previous) {
++        assert.equal(previous.productPackageSha256, actual.productPackageSha256);
++        previous.observations.push(...actual.observations); previous.pass &&= actual.pass;
++      } else byId.set(actual.id, {...actual, observations: [...actual.observations]});
++    }
++    await json(`campaigns-${mode}-results.json`, {mode, records: [...byId.values()],
++      campaigns: reports.find(row => row.mode === mode)?.campaigns?.campaigns || {},
++      allEnvironmentsObserved: reports.filter(row => row.mode === mode).length === labels.length,
++      packageHash: packageBefore[mode].packageHash, sourceDrift, finalAcceptance: false});
++  }
+   await json('summary.json', summary); log({state: 'native-finished', output, sourceDrift});
+   const selectedOrPrereqNotPassed = reports.some(x => x.cases.some(c => (c.selected || c.prerequisite) && c.status !== 'PASS'));
+   if (sourceDrift || reports.some(x => x.error || x.packageDrift || x.launcherDrift || x.cleanup?.pidAlive || x.cleanup?.launcherPidAlive || x.cleanup?.profileRemoved !== true ||
+-    x.cleanup?.nativeLogPreservedAfterLauncherExit !== true || x.cleanup?.exit?.code !== 0) || selectedOrPrereqNotPassed) process.exitCode = 1;
++    x.cleanup?.nativeLogPreservedAfterLauncherExit !== true || x.cleanup?.exit?.code !== 0 || campaignsRequested && x.campaigns?.status !== 'PASS') || selectedOrPrereqNotPassed) process.exitCode = 1;
+ }
+ 
+ async function browserRun({mode, label, origin, serverEvents}) {
+@@ -539,18 +568,20 @@ async function browserRun({mode, label, origin, serverEvents}) {
+       input: 'trusted CDP mousePressed/mouseReleased and keyDown/keyUp'}) + '\n');
+     if (after.value !== desired) throw Object.assign(new Error(`Native selection differs: ${selector}`), {code: 'E_RUNNER_UI_SELECTION', actual: {desired, before, after}});
+   }
+-  async function snapshot(client = tool) {
+-    return evaluate(client, `(async()=>{const databases=await indexedDB.databases();if(!databases.some(d=>d.name==='opendesk-browser'))throw Error('product DB does not exist');
++  async function snapshot(client = tool, filter = null) {
++    return evaluate(client, `(async()=>{const filter=${JSON.stringify(filter)},databases=await indexedDB.databases();if(!databases.some(d=>d.name==='opendesk-browser'))throw Error('product DB does not exist');
+       const rows=await new Promise((resolve,reject)=>{const request=indexedDB.open('opendesk-browser');request.onerror=()=>reject(request.error);request.onsuccess=()=>{
+-      const db=request.result,names=[...db.objectStoreNames],tx=db.transaction(names,'readonly'),data={};for(const name of names){data[name]=[];const cursor=tx.objectStore(name).openCursor();cursor.onsuccess=()=>{const row=cursor.result;if(row){data[name].push({key:row.primaryKey,value:row.value});row.continue();}};}tx.oncomplete=()=>{db.close();resolve(data);};tx.onabort=()=>reject(tx.error);};});return{databases,rows};})()`);
++      const db=request.result,names=filter?.runId?['runs','results','commandJournal']:filter?.scriptId?['scriptRevisions']:[...db.objectStoreNames],tx=db.transaction(names,'readonly'),data={};for(const name of names){data[name]=[];const cursor=tx.objectStore(name).openCursor();cursor.onsuccess=()=>{const row=cursor.result;if(row){
++      const match=!filter || filter.runId && (row.value.runId===filter.runId || name==='runs' && row.primaryKey==='@slot') || filter.scriptId && row.value.scriptId===filter.scriptId;
++      if(match)data[name].push({key:row.primaryKey,value:row.value});row.continue();}};}tx.oncomplete=()=>{db.close();resolve(data);};tx.onabort=()=>reject(tx.error);};});return{databases,rows,...(filter?{filter}: {})};})()`);
+   }
+-  async function commit(source, params, client = tool, id = toolId, scriptId = `native-${randomUUID()}`) {
++  async function commit(source, params, client = tool, id = toolId, scriptId = `native-${randomUUID()}`, snapshotFilter = null) {
+     await fill(client, id, '#script-id', scriptId); await fill(client, id, '#script-source', source); await fill(client, id, '#script-params', JSON.stringify(params));
+     const expectedHash=digest(Buffer.from(source,'utf8'));
+-    const previous=await snapshot(client), previousRevision=Math.max(0,...previous.rows.scriptRevisions.filter(x=>x.value.scriptId===scriptId).map(x=>x.value.revision));
++    const previous=await snapshot(client, snapshotFilter), previousRevision=Math.max(0,...previous.rows.scriptRevisions.filter(x=>x.value.scriptId===scriptId).map(x=>x.value.revision));
+     await click(client, id, '#script-save');
+     const committed=await until(async()=>{
+-      const snap=await snapshot(client),revision=Number(await evaluate(client,'document.querySelector("#script-revision").value'));
++      const snap=await snapshot(client, snapshotFilter),revision=Number(await evaluate(client,'document.querySelector("#script-revision").value'));
+       const row=snap.rows.scriptRevisions.find(x=>x.value.scriptId===scriptId && x.value.revision===revision && revision>previousRevision && x.value.contentHash===expectedHash)?.value;
+       const view=await ui(client);
+       return row && view.version.includes(expectedHash) && {snap,row,revision,view};
+@@ -586,8 +617,8 @@ async function browserRun({mode, label, origin, serverEvents}) {
+       throw error;
+     }
+   }
+-  async function durable(runId, client = tool) {
+-    return until(async () => { const snap = await snapshot(client), result = snap.rows.results.find(x => x.value.runId === runId)?.value;
++  async function durable(runId, client = tool, filtered = false) {
++    return until(async () => { const snap = await snapshot(client, filtered ? {runId} : null), result = snap.rows.results.find(x => x.value.runId === runId)?.value;
+       const run = snap.rows.runs.find(x => x.value.runId === runId)?.value;
+       return result && run?.retirementState === 'released' && {run, result, snapshot: snap};
+     }, `durable terminal and retirement ${runId}`, 40000);
+@@ -605,6 +636,210 @@ async function browserRun({mode, label, origin, serverEvents}) {
+   }
+   const chain = `await page.goto(params.url); const typed=await page.type('#name',params.name); const clicked=await page.click('#submit'); await page.waitForSelector('#result[data-done="true"]'); return {typed,clicked,read:await page.snapshot('#result'),title:await page.title(),url:await page.url(),revision:params.revision,f:false,z:0,u:undefined};`;
+   const typedCases = new Map();
++  async function controllerCampaigns() {
++    const sessionId = randomUUID(), campaignDirectory = `${directory}/campaigns`;
++    await mkdir(path.join(output, campaignDirectory), {recursive: true});
++    const page = await newPage(`${origin}/form?seed=${seed}&role=campaign`);
++    const sdkPage = await newPage(`${origin}/form?seed=${seed}&role=campaign-sdk`);
++    const scriptId = `native-campaign-${sessionId}`;
++    const executedRuns = new Set(), executedResults = new Set(), physicalWorkers = new Set();
++    async function resources() {
++      const lifecycle = await evaluate(tool, `(async()=>{const d=globalThis.OpenDeskResourceDiagnostics;
++        return d && typeof d.snapshot==='function' ? await d.snapshot() : null;})()`);
++      const nativeTargets = await targets(), workers = nativeTargets.filter(row => row.type === 'worker');
++      const counts = lifecycle?.counts || lifecycle;
++      if (counts && Number.isInteger(counts.workers)) assert.equal(counts.workers, workers.length,
++        'Product Worker count must agree with actual native target inventory');
++      return {counts, lifecycle, nativeTargets, hostTargetId: toolId, observedAt: Date.now(),
++        readPath: 'actual tool globalThis.OpenDeskResourceDiagnostics.snapshot()',
++        observationMissing: lifecycle === null ? 'Product six-count lifecycle read is not connected' : null};
++    }
++    async function executeRound(kind, roundId, checkpoint) {
++      const source = kind === 'success' ? 'return {marker:params.roundId,title:await page.title()};' :
++        kind === 'error' ? 'await page.title(); throw new Error(params.roundId);' :
++        kind === 'timeout' ? 'await page.title(); while(true){}' :
++        "await page.waitForSelector('#campaign-never-'+params.roundId); await page.click('#submit'); return params.roundId;";
++      const params = {roundId}, revision = await commit(source, params, tool, toolId, scriptId, {scriptId});
++      const selected = await chooseBorrowed(page), eventStart = nativeEvents.length, httpStart = serverEvents.length;
++      const beforeTargets = await targets(); assert(!beforeTargets.some(row => row.type === 'worker'));
++      const input = {source, params, revision, selected, nativeHostTargetId: toolId};
++      await checkpoint({input, beforeTargets});
++      const runId = await start(); await checkpoint({input, runId, beforeTargets});
++      let trigger;
++      if (['cancel', 'navigation', 'host-close'].includes(kind)) {
++        const pending = await until(async () => (await snapshot(tool, {runId})).rows.commandJournal.find(row =>
++          row.value.runId === runId && row.value.tag === 'controller-operation' && row.value.state === 'dispatched'),
++        'campaign actual dispatched wait before native fence');
++        trigger = {at: Date.now(), monoMs: performance.now(), pending};
++        if (kind === 'cancel') await click(tool, toolId, '#script-stop');
++        else if (kind === 'navigation') {
++          page.url = `${origin}/form?seed=${seed}&role=campaign&round=${roundId}`;
++          trigger.navigation = await page.client.send('Page.navigate', {url: page.url});
++          await until(() => evaluate(page.client, 'document.readyState === "complete"'), 'campaign replaced real document');
++        } else {
++          trigger.closedHostTargetId = toolId;
++          trigger.close = await browserClient.send('Target.closeTarget', {targetId: toolId}); tool = null;
++          await until(async () => !(await targets()).some(row => row.targetId === trigger.closedHostTargetId), 'campaign old host actually absent');
++          await openTool(); trigger.reopenedHostTargetId = toolId;
++          assert.notEqual(trigger.closedHostTargetId, toolId);
++        }
++        await checkpoint({input, runId, beforeTargets, trigger});
++      }
++      const terminal = await durable(runId, tool, true), view = await readUI(runId);
++      assert(!executedRuns.has(runId), 'Every campaign execution has its own actual runId');
++      assert(!executedResults.has(terminal.result.resultId), 'Every campaign execution has its own actual resultId');
++      executedRuns.add(runId); executedResults.add(terminal.result.resultId);
++      assert.equal(terminal.run.runId, runId); assert.equal(terminal.result.runId, runId);
++      assert.equal(terminal.run.revision.sourceHash, revision.sourceHash);
++      assert.equal(terminal.result.revision.sourceHash, revision.sourceHash);
++      assert.equal(terminal.run.target.tabId, selected.tabId);
++      assert.equal(terminal.run.target.frameId, selected.frameId);
++      assert.equal(terminal.run.target.documentId, selected.documentId);
++      assert.deepEqual(decodeValue(terminal.run.paramsWire), params);
++      assert.equal(terminal.snapshot.rows.results.filter(row => row.value.runId === runId).length, 1);
++      assert.equal(terminal.run.retirementState, 'released');
++      assert.equal(terminal.snapshot.rows.runs.find(row => row.key === '@slot')?.value.currentRunId, null);
++      if (kind === 'success') {
++        assert.equal(terminal.result.state, 'completed'); assert.equal(terminal.result.outcome.ok, true);
++        const value = decodeValue(terminal.result.outcome.valueWire); assert.equal(value.marker, roundId);
++        assert.equal(value.title, await evaluate(page.client, 'document.title'));
++      } else {
++        assert.equal(terminal.result.outcome.ok, false);
++        if (kind === 'error') { assert.equal(terminal.result.state, 'failed'); assert(terminal.result.outcome.error.message.includes(roundId)); }
++        else assert.equal(terminal.result.outcome.error.code, {timeout: 'E_TIMEOUT', cancel: 'E_CANCELLED',
++          navigation: 'E_DOCUMENT_REPLACED', 'host-close': 'E_HOST_CLOSED'}[kind]);
++      }
++      const workerCreated = await until(() => {
++        const rows = nativeEvents.slice(eventStart).filter(event => event.method === 'Target.targetCreated' && event.params.targetInfo.type === 'worker');
++        assert(rows.length <= 1, 'One actual campaign run cannot borrow another Worker'); return rows.length === 1 && rows[0];
++      }, 'campaign actual Worker creation');
++      const workerId = workerCreated.params.targetInfo.targetId;
++      assert(!physicalWorkers.has(workerId), 'Physical Worker evidence cannot be borrowed from another execution');
++      physicalWorkers.add(workerId);
++      const workerDestroyed = await until(() => nativeEvents.slice(eventStart).find(event =>
++        event.method === 'Target.targetDestroyed' && event.params.targetId === workerId), 'campaign native physical Worker destruction');
++      const afterTargets = await targets(); assert(!afterTargets.some(row => row.targetId === workerId));
++      assert(afterTargets.some(row => row.targetId === page.id), 'Campaign borrowed native page must survive retirement');
++      if (['cancel', 'navigation', 'host-close'].includes(kind)) assert.equal(terminal.snapshot.rows.commandJournal.filter(row =>
++        row.value.runId === runId && row.value.tag === 'controller-operation').length, 1, 'No late click admitted after fence');
++      const http = serverEvents.slice(httpStart);
++      assert(!http.some(row => row.method === 'POST' && row.url.includes('role=campaign') &&
++        (() => { try { return JSON.parse(row.body).kind === 'click'; } catch { return false; } })()), 'No native late click effect after campaign fence');
++      if (kind === 'timeout') assert(terminal.run.deadlineAt <= Date.now(), 'Use the saved native product deadline without shortening it');
++      const actual = {input, runId, run: terminal.run, result: terminal.result,
++        journal: terminal.snapshot.rows.commandJournal.filter(row => row.value.runId === runId),
++        trigger, view, workerCreated, workerDestroyed, beforeTargets, afterTargets, http};
++      await checkpoint(actual); return actual;
++    }
++    async function reconnect(kind, roundId, checkpoint) {
++      if (kind === 'host') {
++        const closed = await executeRound('host-close', `${roundId}-closed`, checkpoint);
++        const recovered = await executeRound('success', `${roundId}-recovered`, checkpoint);
++        assert.notEqual(closed.runId, recovered.runId);
++        return {closed, recovered, profile: report.profile, pid: report.pid};
++      }
++      const original = await executeRound('success', `${roundId}-before-sw`, checkpoint);
++      const oldHostId = toolId, workerURL = `chrome-extension://${report.extensionId}/sw.js`;
++      const events = []; const serviceWorkerClient = tool;
++      serviceWorkerClient.onEvent(event => events.push(event)); await serviceWorkerClient.send('ServiceWorker.enable');
++      const oldTarget = (await targets()).find(row => row.type === 'service_worker' && row.url === workerURL); assert(oldTarget);
++      const version = await until(() => events.flatMap(event => event.params?.versions || []).find(row =>
++        row.scriptURL === workerURL && row.runningStatus === 'running' && row.targetId === oldTarget.targetId), 'campaign exact native SW version');
++      const eventStart = nativeEvents.length;
++      await checkpoint({original, stopInput: {version, oldTarget, oldHostId}});
++      await serviceWorkerClient.send('ServiceWorker.stopWorker', {versionId: version.versionId});
++      const destroyed = await until(() => nativeEvents.slice(eventStart).find(event => event.method === 'Target.targetDestroyed' &&
++        event.params.targetId === oldTarget.targetId), 'campaign real SW destroyed event');
++      const stoppedTargets = await targets(); assert(!stoppedTargets.some(row => row.targetId === oldTarget.targetId));
++      assert(stoppedTargets.some(row => row.targetId === oldHostId), 'Stopping SW must not close the long-lived host');
++      // The real extension document registers a fresh host and wakes the SW.
++      // No runner message uses a fabricated sender or synthetic registration.
++      await openTool(); const newHostId = toolId;
++      const recoveredWorker = await until(async () => (await targets()).find(row => row.type === 'service_worker' &&
++        row.url === workerURL && row.targetId !== oldTarget.targetId), 'campaign actual new SW target');
++      const recoveredVersions = events.flatMap(event => event.params?.versions || []).filter(row => row.scriptURL === workerURL);
++      await serviceWorkerClient.send('ServiceWorker.disable');
++      await browserClient.send('Target.closeTarget', {targetId: oldHostId});
++      await readUI(original.runId);
++      const persisted = await snapshot(); assert.deepEqual(persisted.rows.results.find(row => row.value.runId === original.runId)?.value.outcome, original.result.outcome);
++      const recovered = await executeRound('success', `${roundId}-after-sw`, checkpoint);
++      assert.notEqual(original.runId, recovered.runId);
++      return {original, version, oldTarget, oldHostId, newHostId, destroyed, stoppedTargets,
++        recoveredWorker, recoveredVersions, recovered, profile: report.profile, pid: report.pid};
++    }
++    async function installCampaignSDK() {
++      const selected = await chooseBorrowed(sdkPage);
++      await click(tool, toolId, '#sdk-refresh');
++      await until(() => evaluate(tool, `!!document.querySelector('#sdk-tab option[value="${selected.tabId}"]')`), 'campaign SDK exact tab');
++      await select(tool, '#sdk-tab', selected.tabId);
++      await until(() => evaluate(tool, `!!document.querySelector('#sdk-document option[value="${selected.documentId}"]')`), 'campaign SDK exact document');
++      await select(tool, '#sdk-document', selected.documentId);
++      const capability = '#sdk-capabilities input[value="storage.session"]';
++      if (!await evaluate(tool, `document.querySelector(${JSON.stringify(capability)}).checked`)) await click(tool, toolId, capability);
++      await click(tool, toolId, '#sdk-install');
++      await until(() => evaluate(tool, 'document.querySelector("#sdk-status").dataset.state === "installed"'), 'campaign real trusted SDK install');
++      const hello = await evaluate(sdkPage.client, 'OpenDeskSDK.ready()'); assert.equal(hello.ready, true);
++      return {selected, hello};
++    }
++    async function pluginDisabled(roundId, checkpoint) {
++      const disabled = await evaluate(tool, `({moduleStatus:document.querySelector('#scraping-panel')?.dataset.moduleStatus,
++        text:document.querySelector('#scraping-panel')?.textContent})`);
++      assert.equal(disabled.moduleStatus, 'MODULE_NOT_INSTALLED', 'Actual tool template module must be unregistered');
++      const before = await snapshot();
++      const {selected} = await installCampaignSDK();
++      // SDK call occurs before ordinary JS starts: no live controller is used.
++      assert(before.rows.runs.filter(row => row.value.tag === 'controller-run').every(row =>
++        ['completed','failed','stopped','interrupted'].includes(row.value.state) && row.value.retirementState === 'released'),
++      'Standalone SDK requires all controllers already retired');
++      const sdk = await evaluate(sdkPage.client, `(async()=>{const hello=await OpenDeskSDK.ready(),key=${JSON.stringify(`campaign-${roundId}`)};
++        const promise=OpenDeskSDK.AppLocal.setItem(key,{marker:${JSON.stringify(roundId)}}),isPromise=promise instanceof Promise;
++        const set=await promise,value=await OpenDeskSDK.AppLocal.getItem(key);await OpenDeskSDK.AppLocal.removeItem(key);
++        return{hello,isPromise,setKind:typeof set,value,diagnostics:OpenDeskSDK.diagnostics()};})()`);
++      assert.equal(sdk.hello.ready, true); assert.equal(sdk.isPromise, true); assert.equal(sdk.value.marker, roundId); assert.equal(sdk.diagnostics.pending, 0);
++      await checkpoint({disabled, selected, sdk});
++      const ordinaryJS = await executeRound('success', roundId, checkpoint), after = await snapshot();
++      for (const store of ['templates','templateRevisions','rows','seals']) {
++        assert(!before.rows[store]?.length); assert(!after.rows[store]?.length);
++      }
++      const beforeKeys = new Set(before.rows.commandJournal.map(row => JSON.stringify(row.key)));
++      const sdkJournal = after.rows.commandJournal.filter(row => row.value.tag === 'sdk-operation' &&
++        !beforeKeys.has(JSON.stringify(row.key)) && row.value.tabId === selected.tabId && row.value.documentId === selected.documentId &&
++        ['APPLOCAL_SETITEM','APPLOCAL_GETITEM','APPLOCAL_REMOVEITEM'].includes(row.value.method));
++      assert.equal(sdkJournal.length, 3, 'Standalone old AppLocal facade must reach three actual broker operations');
++      assert(sdkJournal.every(row => row.value.state === 'durable'));
++      const sdkDurable = sdkJournal.map(({value: operation}) => {
++        const run = after.rows.runs.find(row => row.value.runId === operation.runId)?.value;
++        const result = after.rows.results.find(row => row.value.resultId === operation.resultId)?.value;
++        assert.equal(run?.state, 'completed'); assert.equal(run?.resultId, operation.resultId);
++        assert.equal(result?.runId, operation.runId); assert.equal(result?.opId, operation.opId);
++        if (operation.method === 'APPLOCAL_GETITEM') assert.deepEqual(decodeValue(result.valueWire), sdk.value,
++          'The old facade Promise must equal the original durable SDK receipt value');
++        return {operation, run, result};
++      });
++      return {disabled, selected, sdk, sdkJournal, sdkDurable, ordinaryJS};
++    }
++    // Long-lived SDK relay/grant belongs to the initial numerical baseline.
++    // The two disabled rounds reinject that same document and must not add
++    // another listener/port or leave an old Promise behind.
++    const sdkBootstrap = await installCampaignSDK();
++    return runControllerCampaigns({sessionId, environmentId: `${mode}-chrome-${label}`,
++      bindings: {packageHash: report.packageHash, sourceHash: report.sourceHash, productInputsSha256: report.productInputsSha256,
++        verificationInputsSha256: report.verificationInputsSha256, runnerSha256},
++      preconditions: {pid: report.pid, launcherPid: report.launcherPid, profile: report.profile,
++        extensionId: report.extensionId, browserVersion: version, binarySha256: report.binarySha256,
++        originalProductDeadlineMs: 30000, preciseBorrowedTargets: [page.id, sdkPage.id], sdkBootstrap},
++      observeResources: resources, keepAlive: () => nativeLauncher.keepAlive(), log,
++      execute: ({kind, roundId, checkpoint}) => ['host','sw'].includes(kind) ? reconnect(kind, roundId, checkpoint) :
++        kind === 'plugin-disabled' ? pluginDisabled(roundId, checkpoint) : executeRound(kind, roundId, checkpoint),
++      async saveRound(round) {
++        const relative = `${campaignDirectory}/${round.id}.json`, bytes = JSON.stringify({round}, null, 2) + '\n';
++        await writeFile(path.join(output, relative), bytes);
++        return {path: path.relative(root, path.join(output, relative)), sha256: digest(bytes)};
++      },
++      saveManifest: manifest => json(`${campaignDirectory}/manifest.json`, {...manifest,
++        records: manifest.records.map(row => ({id:row.id, kind:row.kind, pass:row.pass,
++          occurrence:row.observations[0].occurrence, evidence:row.observations[0].evidence}))})});
++  }
+   try {
+     report.launcher = await nativeLauncher.ready(); report.endpoint = report.launcher.endpoint;
+     report.pid = report.launcher.metadata.pid; report.profile = report.launcher.metadata.profile; report.browserArgs = report.launcher.metadata.args;
+@@ -983,6 +1218,11 @@ async function browserRun({mode, label, origin, serverEvents}) {
+       for (const store of ['templates', 'templateRevisions', 'rows', 'seals']) assert(!actual.rows[store]?.length);
+       await json(`${directory}/final-durable-snapshot.json`, actual); return {actual, nativeTargets, iframeCount};
+     });
++    if (campaignsRequested) {
++      assert(report.cases.every(row => !row.selected && !row.prerequisite || row.status === 'PASS'),
++        'Selected original-case prerequisite failure stops dependent campaigns');
++      report.campaigns = await controllerCampaigns();
++    }
+   } catch (error) { report.error = errorView(error); report.attribution = error.code?.startsWith('E_RUNNER') ? 'runner' : error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'permission-wait' : 'product-or-native-contract'; }
+   finally {
+     if (tool) await tool.send('Page.captureScreenshot', {format: 'png'}).then(async ({data}) => writeFile(path.join(absolute, 'final-ui.png'), Buffer.from(data, 'base64'))).catch(() => {});
+diff --git a/tests/framework/k5-sdk-native.mjs b/tests/framework/k5-sdk-native.mjs
+index 025c2a2..85fee92 100644
+--- a/tests/framework/k5-sdk-native.mjs
++++ b/tests/framework/k5-sdk-native.mjs
+@@ -9,7 +9,9 @@ import os from 'node:os';
+ import {fileURLToPath} from 'node:url';
+ import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
+ import {PROTOCOL} from '../../src/platform/protocol.js';
+-import {SDK_METHODS} from '../../src/framework/sdk/registry.js';
++import {SDK_METHODS, ADMITTED_METHODS, SDK_LIMITS} from '../../src/framework/sdk/registry.js';
++import {SDK_RESOURCE_PATHS, SDK_RESOURCE_ALIASES, SDK_RESOURCE_MANIFEST} from '../../src/framework/sdk/resource-contract.js';
++import {observeLegacyStorage, observeLegacyHttp, observeLegacyService, observeLegacyResource, discoverLegacyCompletion} from './k5-sdk-legacy-consumers.mjs';
+ import {launchChrome, LAUNCHER} from './k5-sdk-native-launcher.mjs';
+ 
+ // Load the existing built product verbatim. No generated extension, manifest key,
+@@ -47,7 +49,7 @@ async function fingerprintSource() {
+       for (const item of await readdir(path.join(root, prefix), {withFileTypes: true})) {
+         const relative = `${prefix}/${item.name}`;
+         if (item.isDirectory() && dir === 'src') await walk(relative);
+-        else if (item.isFile() && (dir === 'src' || item.name.startsWith('k5-sdk-native'))) {
++        else if (item.isFile() && (dir === 'src' || item.name.startsWith('k5-sdk-native') || item.name === 'k5-sdk-legacy-consumers.mjs')) {
+           const bytes = await readFile(path.join(root, relative)); sourceFiles.push({path: relative, bytes: bytes.length, sha256: digest(bytes)});
+         }
+       }
+@@ -86,7 +88,9 @@ const server = createServer(async (req, res) => {
+       business: {PageBrigeCode: 9, ok: false, error: 'business-data', message: 'keep-as-data'}})); }
+ });
+ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+-const origin = `http://127.0.0.1:${server.address().port}`, reports = [], capabilities = ['network', 'storage.persistent', 'storage.session'];
++const origin = `http://127.0.0.1:${server.address().port}`, reports = [];
++const initialCapabilities = ['network', 'storage.persistent', 'storage.session', 'service.log', 'service.time', 'resources.packaged'];
++const capabilities = [...initialCapabilities];
+ async function connect(url, label, traffic) {
+   const socket = new WebSocket(url), pending = new Map(), listeners = new Set(); let sequence = 0;
+   await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = reject; });
+@@ -108,7 +112,7 @@ async function connect(url, label, traffic) {
+       traffic.push(entry); appendFileSync(path.join(output, 'raw-cdp-live.jsonl'), JSON.stringify(entry) + '\n');
+       socket.send(JSON.stringify(message));
+     });
+-  }, onEvent: listener => listeners.add(listener), close: () => socket.close()};
++  }, onEvent: listener => { listeners.add(listener); return () => listeners.delete(listener); }, close: () => socket.close()};
+ }
+ async function evaluate(client, expression) {
+   const raw = await client.send('Runtime.evaluate', {expression, returnByValue: true, awaitPromise: true});
+@@ -138,11 +142,25 @@ function sdkCall(method, args) {
+     undefinedResult: value === undefined}), error => ({ok: false, error: {code: error?.code, message: error?.message}}));
+ }
+ const callExpression = (method, args) => `(${sdkCall.toString()})(${JSON.stringify(method)},${JSON.stringify(args)})`;
+-const errorProjection = error => ({code: error.code, message: error.message, stack: error.stack});
++const errorProjection = error => ({code: error.code, message: error.message, stack: error.stack, observation: error.observation});
++const notObserved = (message, observation) => Object.assign(new Error(message), {code: 'E_NATIVE_OBSERVATION_UNAVAILABLE', observation});
++// Native evaluation inputs must keep own undefined keys for schema rejection.
++const pageValueExpression = value => value === undefined ? 'undefined' : Array.isArray(value)
++  ? `[${value.map(pageValueExpression).join(',')}]` : value !== null && typeof value === 'object'
++    ? `({${Object.entries(value).map(([key, item]) => `[${JSON.stringify(key)}]:${pageValueExpression(item)}`).join(',')}})` : JSON.stringify(value);
++const observerExpression = (observer, ...values) => `(${observer.toString()})(${values.map(pageValueExpression).join(',')})`;
+ async function browserRun(mode, label) {
++  capabilities.splice(0, capabilities.length, ...initialCapabilities);
+   const directory = path.join(output, `${mode}-${label}`); await mkdir(directory, {recursive: true});
+   const extension = await realpath(path.join(root, 'dist', mode)), packageBefore = await fingerprint(extension);
+   const manifest = JSON.parse(await readFile(path.join(extension, 'manifest.json'), 'utf8'));
++  const resourceManifest = JSON.parse(await readFile(path.join(extension, SDK_RESOURCE_MANIFEST), 'utf8'));
++  assert.equal(resourceManifest.schemaVersion, 1);
++  assert.deepEqual(resourceManifest.resources.map(row => row.path), SDK_RESOURCE_PATHS);
++  for (const row of resourceManifest.resources) {
++    const bytes = await readFile(path.join(extension, row.path));
++    assert.equal(row.bytes, bytes.length); assert.equal(row.sha256, digest(bytes));
++  }
+   const binary = path.join(root, `tests/.cache/m5-browsers/${label === '138' ? '138.0.7204.183' : '154.0.8037.92'}/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`);
+   const report = {mode, label, extension, packageBefore, productInputsSha256:inputBindings.productInputsSha256,
+     verificationInputsSha256:inputBindings.verificationInputsSha256,packageHashes:bothPackageHashes,zipHashes,zipSha256:zipHashes[mode],unchangedProductPackage: true, alteredManifest: false,
+@@ -150,17 +168,44 @@ async function browserRun(mode, label) {
+     binary, binarySha256: digest(await readFile(binary)), launcher: LAUNCHER,
+     OS: {type: os.type(), release: os.release(), arch: os.arch()}, boundary: 'Targeted native independent SDK through current product UI and broker; not full B05/F3/603 acceptance'};
+   const traffic = [], seed = `sdk-native-${randomUUID()}`, persistentKey = `${seed}-persistent`, sessionKey = `${seed}-session`;
++  let current, owned;
++  async function evidenceForCase(id, record) {
++    const stem = id.replace(/[^a-zA-Z0-9_-]/g, '_'), rawPath = path.join(directory, `${stem}-result.json`);
++    const environment = {mode, label, completeVersion: report.completeVersion, packageSha256: packageBefore.packageHash,
++      productInputsSha256: inputBindings.productInputsSha256, verificationInputsSha256: inputBindings.verificationInputsSha256, zipSha256: zipHashes[mode],
++      targetId: current?.targetId, tabId: current?.tabId, documentId: current?.session?.documentId};
++    const raw = Buffer.from(JSON.stringify({...record, environment}, null, 2) + '\n'); await writeFile(rawPath, raw);
++    const evidence = [{path: path.relative(root, rawPath), bytes: raw.length, sha256: digest(raw), kind: 'native-function-result'}];
++    const rawCdp = Buffer.from(JSON.stringify({id, environment, traffic: traffic.slice(record.trafficStart, record.trafficEnd)}, null, 2) + '\n');
++    const rawCdpPath = path.join(directory, `${stem}-raw-cdp.json`); await writeFile(rawCdpPath, rawCdp);
++    evidence.push({path: path.relative(root, rawCdpPath), bytes: rawCdp.length, sha256: digest(rawCdp), kind: 'native-function-raw-cdp'});
++    if (current?.page) {
++      // Show observed function values, not an installation page or invented
++      // acceptance verdict. Full resource text remains in the hashed raw file.
++      const visible = JSON.stringify(record, (_key, value) => typeof value === 'string' && value.length > 256 ? `${value.slice(0, 256)}… [full value in raw result]` : value, 2);
++      await evaluate(current.page, `(()=>{let pre=document.querySelector('#sdk-native-function-result');if(!pre){pre=document.createElement('pre');pre.id='sdk-native-function-result';pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;background:white;color:black;padding:20px;font:16px monospace;max-height:80vh;overflow:auto';document.body.prepend(pre);}pre.textContent=${JSON.stringify(`${id}\n${visible}`)};pre.scrollIntoView();return{url:location.href,title:document.title};})()`);
++      await current.browserClient.send('Target.activateTarget', {targetId: current.targetId});
++      const capture = await current.page.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false});
++      const image = Buffer.from(capture.data, 'base64'), imagePath = path.join(directory, `${stem}-function-result.png`);
++      await writeFile(imagePath, image);
++      evidence.push({path: path.relative(root, imagePath), bytes: image.length, sha256: digest(image), kind: 'native-function-result-screenshot', targetId: current.targetId, tabId: current.tabId, documentId: current.session.documentId});
++    }
++    return evidence;
++  }
+   const caseRun = async (id, operation) => {
++    const trafficStart = traffic.length; let actual;
+     try {
+-      const actual = await operation(); report.cases.push({id, status: 'PASS', actual});
++      actual = await operation(); const record = {id, status: 'PASS', actual, trafficStart, trafficEnd: traffic.length};
++      record.evidence = await evidenceForCase(id, record); report.cases.push(record);
+       console.log(JSON.stringify({state: 'native-case', mode, label, id, status: 'PASS'})); return actual;
+     } catch (error) {
+-      const status = error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'BLOCKED' : 'FAIL';
+-      report.cases.push({id, status, error: errorProjection(error)});
++      const status = error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'BLOCKED' : error.code === 'E_NATIVE_OBSERVATION_UNAVAILABLE' ? 'NOT_TESTED' : 'FAIL';
++      const record = {id, status, actual, error: errorProjection(error), trafficStart, trafficEnd: traffic.length};
++      try { record.evidence = await evidenceForCase(id, record); } catch (captureError) { record.evidenceError = errorProjection(captureError); }
++      report.cases.push(record);
+       console.log(JSON.stringify({state: 'native-case', mode, label, id, status, error: errorProjection(error)})); return null;
+     }
+   };
+-  let current, owned;
+   async function startSession(number, restarted) {
+     const clients = [], session = {number, launchMethod: 'global Python launcher'};
+     report.sessions.push(session);
+@@ -280,7 +325,8 @@ async function browserRun(mode, label) {
+       session.profileRetainedForRestart = true;
+       return next;
+     }
+-    return {session, tool, page, decoy, browserClient, install, snapshot, stopWorker, restartBrowser, stop, targetId, tabId};
++    current = {session, tool, page, decoy, browserClient, workerClient, install, snapshot, stopWorker, restartBrowser, stop, targetId, tabId};
++    return current;
+   }
+   try {
+     const first = await startSession(1), {tool, page, decoy} = first;
+@@ -291,15 +337,180 @@ async function browserRun(mode, label) {
+     });
+     assert(entry, 'Explicit product UI prerequisite failed');
+     const installed = await caseRun('UI-TRUSTED-GESTURE-EXACT-DOCUMENT-INSTALL', first.install); assert(installed, 'Native product installation prerequisite failed');
+-    await caseRun('NATIVE-HELLO-GRANT-SUBSET-NO-CONTROLLER', async () => {
++    const nativeHello = await caseRun('NATIVE-HELLO-GRANT-SUBSET-NO-CONTROLLER', async () => {
+       const hello = await evaluate(page, 'OpenDeskSDK.ready()');
+       assert.equal(hello.ready, true); assert.equal(hello.sdkVersion, '1.0.0');
+-      assert.deepEqual([...hello.methods].sort(), Object.entries(SDK_METHODS).filter(([, method]) => capabilities.includes(method.capability)).map(([name]) => name).sort());
++      assert.equal(Object.keys(ADMITTED_METHODS).length, 22);
++      assert.deepEqual([...hello.methods].sort(), Object.entries(ADMITTED_METHODS).filter(([, method]) => capabilities.includes(method.capability)).map(([name]) => name).sort());
+       assert.equal(await evaluate(decoy, 'typeof OpenDeskSDK'), 'undefined');
+       const snap = await first.snapshot(); assert(!snap.data.runs.some(row => row.value.tag !== 'sdk-service'));
+       assert(snap.data.commandJournal.some(row => row.value.tag === 'sdk-grant' && row.value.documentId === installed.documentId && row.value.active));
+       return {hello, decoyHasSdk: false, journal: snap.data.commandJournal, controllerRuns: []};
+     });
++    assert(nativeHello, 'Real sender/grant Hello prerequisite failed; dependent SDK cases cannot run');
++    await caseRun('LEGACY-APPSTORAGE-APPLOCAL-REAL-COMPLETION-PROMISES', async () => {
++      const callbacks = [], observerErrors = [], inflight = new Set(); let breakpointId;
++      await page.send('Debugger.enable');
++      try {
++      const script = await until(() => traffic.filter(row => row.endpoint === first.targetId && row.message?.method === 'Debugger.scriptParsed')
++        .map(row => row.message.params).find(row => row.url === `chrome-extension://${report.extensionId}/framework/sdk-main.js`), 'real MAIN SDK script');
++      const {scriptSource} = await page.send('Debugger.getScriptSource', {scriptId: script.scriptId});
++      assert.equal(digest(scriptSource), resourceManifest.resources.find(row => row.path === 'framework/sdk-main.js').sha256);
++      const point = discoverLegacyCompletion(scriptSource);
++      const possible = await page.send('Debugger.getPossibleBreakpoints', {start: {scriptId: script.scriptId, ...point.location}, end: {scriptId: script.scriptId, ...point.endLocation}});
++      const exact = possible.locations.filter(location => location.lineNumber === point.location.lineNumber && location.columnNumber === point.location.columnNumber && location.type === 'call');
++      if (exact.length !== 1) throw notObserved('Exact real completion settlement call breakpoint unavailable', {point, possible});
++      const detach = page.onEvent(event => {
++        if (event.method !== 'Debugger.paused' || !event.params.hitBreakpoints?.includes(breakpointId)) return;
++        const task = (async () => {
++          try {
++            const frame = event.params.callFrames[0];
++            assert.equal(frame.location.scriptId, script.scriptId); assert.equal(frame.location.lineNumber, point.location.lineNumber); assert.equal(frame.location.columnNumber, point.location.columnNumber);
++            const inspected = await page.send('Debugger.evaluateOnCallFrame', {callFrameId: frame.callFrameId, returnByValue: true,
++              expression: `(()=>{const result=${point.resultExpression};const body=typeof result==='string'?JSON.parse(result):result;return{requestId:${point.requestExpression},code:body.PageBrigeCode,ownData:Object.hasOwn(body,'data'),undefinedData:body.data===undefined,valueKind:typeof body.data,data:body.data};})()`});
++            assert(!inspected.exceptionDetails, JSON.stringify(inspected.exceptionDetails));
++            callbacks.push({at: Date.now(), location: frame.location, ...inspected.result.value});
++          } catch (error) { observerErrors.push(errorProjection(error)); }
++          finally { await page.send('Debugger.resume'); }
++        })();
++        inflight.add(task); task.finally(() => inflight.delete(task)).catch(error => observerErrors.push(errorProjection(error)));
++      });
++      try {
++        const set = await page.send('Debugger.setBreakpoint', {location: {scriptId: script.scriptId, ...point.location}}); breakpointId = set.breakpointId;
++        if (set.actualLocation.lineNumber !== point.location.lineNumber || set.actualLocation.columnNumber !== point.location.columnNumber)
++          throw notObserved('Chrome moved the completion breakpoint away from the exact call', {point, actualLocation: set.actualLocation});
++        const actual = await evaluate(page, observerExpression(observeLegacyStorage, `${seed}-legacy`));
++        await Promise.all([...inflight]); assert.deepEqual(observerErrors, []);
++        assert.equal(actual.completionExport, 'function'); assert.equal(actual.pendingBefore, 0); assert.equal(actual.pendingAfter, 0); assert.equal(actual.diagnostics.pending, 0);
++        for (const name of ['persistentIsPromise', 'sessionIsPromise', 'persistentSetUndefined', 'sessionSetUndefined', 'sessionOwnUndefined', 'sessionAfterRemoveUndefined']) assert.equal(actual[name], true);
++        assert.equal(actual.persistent, 'false'); assert.equal(actual.sessionFalse, false); assert.equal(actual.sessionZero, 0); assert.equal(actual.sessionFalseValue, false); assert.equal(actual.sessionZeroValue, 0); assert.equal(actual.persistentAfterRemove, null);
++        assert.equal(callbacks.length, 12); assert(callbacks.every(row => row.code === 0 && row.ownData));
++        assert(callbacks.some(row => row.undefinedData)); assert(callbacks.some(row => row.data === 'false')); assert(callbacks.some(row => row.data === false)); assert(callbacks.some(row => row.data === 0));
++        const nativeEvents = await evaluate(page, '__sdkNativeEvents.filter(row=>row.name==="OPEN_DESK_SDK_RESULT")');
++        for (const callback of callbacks) assert(nativeEvents.some(row => row.message.requestId === callback.requestId && row.message.response?.ok === true), 'Each real completion must correlate with the native relay final response');
++        const snapshot = await first.snapshot(), operations = snapshot.data.commandJournal.filter(row => callbacks.some(callback => callback.requestId === row.value.requestId) && row.value.tag === 'sdk-operation');
++        assert.equal(operations.length, 12); assert(operations.every(row => row.value.state === 'durable'));
++        const receipts = operations.map(operation => snapshot.data.results.find(row => row.value.resultId === operation.value.resultId && row.value.opId === operation.value.opId && row.value.requestDigest === operation.value.requestDigest));
++        assert(receipts.every(row => row?.value.state === 'durable' && row.value.valueWire));
++        for (const receipt of receipts) {
++          const callback = callbacks.find(row => row.requestId === receipt.value.requestId);
++          assert.equal(callback.valueKind, typeof decodeValue(receipt.value.valueWire));
++          assert.equal(callback.undefinedData, decodeValue(receipt.value.valueWire) === undefined);
++        }
++        return {expected: {callbacks: 12, pending: 0, persistent: 'false', sessionFalse: false, sessionZero: 0}, actual, callbacks, point, scriptSha256: digest(scriptSource), nativeEvents, operations, receipts};
++      } finally {
++        try { if (breakpointId) await page.send('Debugger.removeBreakpoint', {breakpointId}); } finally { detach(); }
++      }
++      } finally { await page.send('Debugger.disable'); }
++    });
++    await caseRun('LEGACY-AXIOSX-ORIGINAL-HTTP-PARAMETERS-RESULTS-ERRORS', async () => {
++      const results = [];
++      for (const verb of ['get', 'post', 'put', 'delete']) {
++        const config = {params: {legacy: seed, verb, f: false, z: 0}, headers: {'x-native-legacy': seed}, withCredentials: false};
++        const result = await evaluate(page, observerExpression(observeLegacyHttp, verb, `${origin}/echo`, config));
++        assert(result.ok && result.isPromise, JSON.stringify(result)); assert.equal(result.value.status, 200); assert.equal(result.value.data.method, verb.toUpperCase());
++        assert.equal(result.value.data.business.PageBrigeCode, 9); assert.equal(result.value.data.falseValue, false); assert.equal(result.value.data.zero, 0);
++        assert.deepEqual(result.value.config.params, config.params); assert.equal(result.value.config.headers['x-native-legacy'], seed); assert.equal(result.value.config.method, verb);
++        const hit = serverEvents.find(hit => hit.method === verb.toUpperCase() && hit.url.includes(`legacy=${seed}`) && hit.url.includes(`verb=${verb}`));
++        assert(hit); assert.equal(hit.headers['x-native-legacy'], seed);
++        const query = new URL(hit.url, origin).searchParams; assert.equal(query.get('f'), 'false'); assert.equal(query.get('z'), '0');
++        if (['post', 'put'].includes(verb)) assert.deepEqual(JSON.parse(hit.body), {f: false, z: 0});
++        results.push({verb, config, result, rawServer: hit});
++      }
++      const invalid = await evaluate(page, observerExpression(observeLegacyHttp, 'get', `${origin}/echo?invalid-legacy=${seed}`, {invented: true}));
++      const failure = await evaluate(page, observerExpression(observeLegacyHttp, 'get', `${origin}/error?legacy=${seed}`, {}));
++      assert.equal(invalid.ok, false); assert.equal(invalid.error.code, 'E_CONFIG_UNSUPPORTED'); assert.equal(failure.ok, false); assert.equal(failure.error.code, 'E_HTTP');
++      assert.equal(failure.error.status, 503); assert.equal(failure.error.response.status, 503); assert.equal(failure.error.response.data.business, 'unavailable');
++      assert(!serverEvents.some(hit => hit.url.includes(`invalid-legacy=${seed}`)));
++      return {expected: {verbs: ['GET', 'POST', 'PUT', 'DELETE'], invalid: 'E_CONFIG_UNSUPPORTED', httpError: 'E_HTTP'}, results, invalid, failure};
++    });
++    await caseRun('LEGACY-FOUR-SERVICES-BRIDGE-DATA-AND-DIRECT-PROMISES', async () => {
++      const before = Date.now(), observations = [];
++      for (const direct of [false, true]) {
++        const log = await evaluate(page, observerExpression(observeLegacyService, 'log', {message: '迁移验收', data: [0, false]}, direct));
++        const time = await evaluate(page, observerExpression(observeLegacyService, 'getTime', {}, direct));
++        const bexUrl = await evaluate(page, observerExpression(observeLegacyService, 'bexUrl', {}, direct));
++        assert(log.ok && log.isPromise && log.undefinedValue); assert.equal(log.valueKind, 'undefined');
++        assert(time.ok && time.isPromise); assert.equal(time.valueKind, 'number'); assert(Number.isFinite(time.value)); assert(time.value >= before && time.value <= Date.now());
++        assert(bexUrl.ok && bexUrl.isPromise); assert.deepEqual(bexUrl.value, {url: `chrome-extension://${report.extensionId}/`});
++        if (!direct) for (const result of [log, time, bexUrl]) assert.equal(result.ownData, true);
++        const resource = await evaluate(page, observerExpression(observeLegacyService, 'requestResource', {url: SDK_RESOURCE_PATHS[0]}, direct));
++        assert(resource.ok && resource.isPromise); assert.equal(resource.value.success, true);
++        assert.equal(Buffer.byteLength(resource.value.data), resourceManifest.resources[0].bytes); assert.equal(digest(resource.value.data), resourceManifest.resources[0].sha256);
++        if (!direct) assert.equal(resource.ownData, true);
++        observations.push({direct, log, time, bexUrl, resource});
++      }
++      const helperRoot = await evaluate(page, 'OpenDeskSDK.resources.getBexUrlByBridge()'); assert.equal(helperRoot, `chrome-extension://${report.extensionId}/`);
++      return {expected: {ownUndefined: true, finiteClock: true, runtimeRoot: `chrome-extension://${report.extensionId}/`, resourceManifest}, observations, helperRoot,
++        zeroClockCoverage: {status: 'NOT_TESTED', reason: 'Production trusted Date clock did not return 0; exact zero must be checked with the existing trusted-clock component case, without mutating this native clock'}};
++    });
++    await caseRun('LEGACY-TWO-FIXED-RESOURCES-SEVEN-ALIASES-BYTES-SHA', async () => {
++      const observations = [];
++      await evaluate(page, 'globalThis.__nativeResourceExports={sdk:OpenDeskSDK,service,bridge:service.bridge,storage:AppStorage,local:AppLocal,http:axiosx};true');
++      for (const url of [...SDK_RESOURCE_PATHS, ...Object.keys(SDK_RESOURCE_ALIASES)]) {
++        const expectedPath = SDK_RESOURCE_ALIASES[url] ?? url, expected = resourceManifest.resources.find(row => row.path === expectedPath);
++        const bridge = await evaluate(page, observerExpression(observeLegacyResource, url, false));
++        const consumer = await evaluate(page, observerExpression(observeLegacyResource, `chrome-extension://${report.extensionId}/${url}`, true));
++        for (const observed of [bridge, consumer]) {
++          assert.equal(observed.value.success, true); assert.equal(typeof observed.value.data, 'string'); assert.equal(observed.bytes, expected.bytes); assert.equal(observed.sha256, expected.sha256);
++        }
++        assert.equal(bridge.ownData, true); assert.equal(bridge.value.data, consumer.value.data);
++        observations.push({url, expected, bridge, consumer});
++      }
++      const unchangedInstallation = await evaluate(page, '(()=>{const old=__nativeResourceExports;const unchanged=old.sdk===OpenDeskSDK&&old.service===service&&old.bridge===service.bridge&&old.storage===AppStorage&&old.local===AppLocal&&old.http===axiosx;delete globalThis.__nativeResourceExports;return unchanged;})()');
++      assert.equal(unchangedInstallation, true); assert.equal(observations.length, 9);
++      return {expected: resourceManifest, aliases: SDK_RESOURCE_ALIASES, observations, unchangedInstallation};
++    });
++    await caseRun('LEGACY-SERVICE-SCHEMA-BOUNDS-REMOTE-NO-EXTERNAL-FETCH', async () => {
++      const attempts = [
++        ['log', {message: 'x', discarded: true}, 'E_SCHEMA'], ['log', {message: 'x', data: 'wrong'}, 'E_SCHEMA'],
++        ['log', {message: 'x'.repeat(4097)}, 'E_LIMIT'], ['log', {message: 'x', data: Array(101).fill(0)}, 'E_LIMIT'],
++        ['getTime', {discarded: true}, 'E_SCHEMA'], ['bexUrl', {discarded: true}, 'E_SCHEMA'],
++        ['getTime', {discarded: undefined}, 'E_SCHEMA'],
++        ['requestResource', {url: SDK_RESOURCE_PATHS[0], discarded: true}, 'E_SCHEMA'],
++        ['requestResource', {url: `${origin}/forbidden-resource?seed=${seed}`}, 'E_SCHEMA'],
++        ['requestResource', {url: 'framework/../sdk-main.js'}, 'E_SCHEMA'], ['requestResource', {url: 'framework/%2e%2e/sdk-main.js'}, 'E_SCHEMA'],
++        ['requestResource', {url: '/framework/sdk-main.js'}, 'E_SCHEMA'], ['requestResource', {url: 'framework/sdk-main.js?x=1'}, 'E_SCHEMA'],
++        ['requestResource', {url: 'x'.repeat(1025)}, 'E_SCHEMA'], ['requestResource', {url: 'assets/js/unregistered.js'}, 'E_RESOURCE_UNAVAILABLE']
++      ];
++      await first.workerClient.send('Network.enable'); const start = traffic.length, requests = [], results = [];
++      const detach = first.workerClient.onEvent(event => { if (event.method === 'Network.requestWillBeSent') requests.push(event.params.request); });
++      try {
++        for (const [method, args, expectedCode] of attempts) for (const direct of [false, true]) {
++          const actual = await evaluate(page, observerExpression(observeLegacyService, method, args, direct));
++          assert.equal(actual.ok, false); assert.equal(actual.error.code, expectedCode); results.push({method, args, argsWire: encodeValue(args), direct, expectedCode, actual});
++        }
++        for (const [method, args, expectedCode] of attempts) {
++          const payload = {requestId: `schema-${randomUUID()}`, method, argsWire: encodeValue(args), deadlineAt: Date.now() + 30000};
++          const actual = await evaluate(page, rawExpression(payload));
++          assert.equal(actual.ok, false); assert.equal(actual.error.code, expectedCode);
++          results.push({method, args, boundary: 'real-relay-native-sender-broker-schema', payload, expectedCode, actual});
++        }
++        // Flush the real worker event channel without making a network call.
++        await first.workerClient.send('Runtime.evaluate', {expression: 'true', returnByValue: true});
++        assert(!requests.some(row => /^https?:/.test(row.url)), 'Invalid resource calls must produce zero external worker fetches');
++        assert(!serverEvents.some(hit => hit.url.includes('forbidden-resource')));
++        return {expected: {externalFetches: 0}, results, workerNetworkRequests: requests, trafficStart: start, serverEvents: serverEvents.filter(hit => hit.url.includes('forbidden-resource'))};
++      } finally { detach(); await first.workerClient.send('Network.disable'); }
++    });
++    await caseRun('LEGACY-LOG-REAL-DUPLICATE-CONFLICT-ONE-EFFECT', async () => {
++      const payload = {requestId: `legacy-log-${randomUUID()}`, method: 'log', argsWire: encodeValue({message: '迁移去重', data: [0, false]}), deadlineAt: Date.now() + 30000};
++      const logs = [], detach = first.workerClient.onEvent(event => {
++        if (event.method === 'Runtime.consoleAPICalled' && event.params.args?.[0]?.value === 'opendesk.sdk.log') logs.push(event.params);
++      });
++      try {
++        const original = await evaluate(page, rawExpression(payload)), duplicate = await evaluate(page, rawExpression(payload));
++        const conflict = await evaluate(page, rawExpression({...payload, argsWire: encodeValue({message: 'changed', data: [0, false]})}));
++        assert.equal(original.ok, true); assert.deepEqual(duplicate, original); assert.equal(conflict.error.code, 'E_REQUEST_CONFLICT');
++        const value = decodeValue(original.data.valueWire); assert.equal(value.PageBrigeCode, 0); assert(Object.hasOwn(value, 'data')); assert.equal(value.data, undefined);
++        await first.workerClient.send('Runtime.evaluate', {expression: 'true', returnByValue: true}); assert.equal(logs.length, 1);
++        const snap = await first.snapshot(), operations = snap.data.commandJournal.filter(row => row.value.tag === 'sdk-operation' && row.value.requestId === payload.requestId);
++        assert.equal(operations.length, 1); assert.equal(operations[0].value.state, 'durable'); assert.equal(operations[0].value.submissionCount, 1);
++        const receipt = snap.data.results.find(row => row.value.resultId === operations[0].value.resultId && row.value.opId === operations[0].value.opId && row.value.requestDigest === operations[0].value.requestDigest);
++        assert(receipt?.value.state === 'durable'); assert.equal(decodeValue(receipt.value.valueWire), undefined);
++        return {expected: {logEffects: 1, durableOperations: 1, conflict: 'E_REQUEST_CONFLICT'}, payload, original, duplicate, conflict, logs, operations, receipt};
++      } finally { detach(); }
++    });
+     await caseRun('PERSISTENT-STRING-CONVERSION-AND-UNDEFINED-SETTLEMENT', async () => {
+       const set = await evaluate(page, callExpression('APPSTORAGE_SETITEM', {key: persistentKey, value: false}));
+       const get = await evaluate(page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey}));
+@@ -360,19 +571,41 @@ async function browserRun(mode, label) {
+     });
+     await caseRun('SESSION-AND-PERSISTENT-SURVIVE-SW-RESTART', async () => {
+       const sessionValue = await evaluate(page, callExpression('APPLOCAL_GETITEM', {key: sessionKey})), persistentValue = await evaluate(page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey}));
+-      assert(sessionValue.ok); assert.equal(sessionValue.value.f, false); assert.equal(sessionValue.value.z, 0); assert.equal(persistentValue.value, 'false'); return {sessionValue, persistentValue};
++      assert(sessionValue.ok); assert.equal(sessionValue.value.f, false); assert.equal(sessionValue.value.z, 0); assert.equal(persistentValue.value, 'false');
++      const legacy = await evaluate(page, `(async()=>{const session=await AppLocal.getItem(${JSON.stringify(sessionKey)});return{persistent:await AppStorage.getItem(${JSON.stringify(persistentKey)}),f:session.f,z:session.z,ownUndefined:Object.hasOwn(session,'u')&&session.u===undefined};})()`);
++      assert.equal(legacy.persistent, 'false'); assert.equal(legacy.f, false); assert.equal(legacy.z, 0); assert.equal(legacy.ownUndefined, true);
++      return {sessionValue, persistentValue, legacy};
+     });
++    let revocationPayload, revocationOriginal, revocationOperation;
+     await caseRun('NATIVE-PERMISSION-REMOVAL-REVOKES-GRANT', async () => {
++      // Create the old identity immediately before removal. The earlier
++      // duplicate test's 30s request is already stale after restart diagnostics.
++      revocationPayload = {requestId: `revoke-${randomUUID()}`, method: 'AXIOS_POST',
++        argsWire: encodeValue({url: `${origin}/echo?revocation=${seed}`, data: {f: false, z: 0}}), deadlineAt: Date.now() + SDK_LIMITS.maxTimeoutMs};
++      revocationOriginal = await evaluate(page, rawExpression(revocationPayload)); assert.equal(revocationOriginal.ok, true);
++      const admissionSnapshot = await first.snapshot();
++      revocationOperation = admissionSnapshot.data.commandJournal.find(row => row.value.tag === 'sdk-operation' && row.value.requestId === revocationPayload.requestId)?.value;
++      assert(revocationOperation); assert.equal(revocationOperation.state, 'durable'); assert.equal(revocationOperation.submissionCount, 1);
++      assert.equal(serverEvents.filter(hit => hit.url.includes(`revocation=${seed}`)).length, 1);
+       const removed = await evaluate(tool, 'chrome.permissions.remove({origins:["http://127.0.0.1/*"]})'); assert.equal(removed, true);
+       const value = await evaluate(page, callExpression('APPSTORAGE_SETITEM', {key: `${seed}-forbidden`, value: 'must-not-commit'}));
+       assert.equal(value.ok, false); assert(['E_PERMISSION', 'E_GRANT_REVOKED'].includes(value.error.code));
+-      const snap = await first.snapshot(); assert(!snap.data.frameworkKV.some(row => row.value.key === `${seed}-forbidden`)); return {removed, value, grants: snap.data.commandJournal.filter(row => row.value.tag === 'sdk-grant')};
++      const snap = await first.snapshot(); assert(!snap.data.frameworkKV.some(row => row.value.key === `${seed}-forbidden`)); return {removed, value, revocationPayload, revocationOriginal, revocationOperation, grants: snap.data.commandJournal.filter(row => row.value.tag === 'sdk-grant')};
+     });
+     await caseRun('TRUSTED-UI-REGRANT-DOES-NOT-REPLAY-OLD-REQUEST', async () => {
+-      const install = await first.install(), old = await evaluate(page, rawExpression(duplicatePayload));
+-      assert.equal(old.ok, false); assert(['E_GRANT_REVOKED', 'E_DEADLINE', 'E_TIMEOUT'].includes(old.error.code));
++      const install = await first.install(), replayStartedAt = Date.now();
++      const window = {requestId: revocationPayload?.requestId, requestDeadlineAt: revocationPayload?.deadlineAt,
++        admittedDeadlineAt: revocationOperation?.deadlineAt, replayStartedAt, install};
++      if (!revocationPayload || !revocationOperation || replayStartedAt >= Math.min(revocationPayload.deadlineAt, revocationOperation.deadlineAt))
++        throw notObserved('Regrant missed the original request/admitted deadline window; revocation was not observed with a live old request', window);
++      const old = await evaluate(page, rawExpression(revocationPayload));
++      window.replayObservedAt = Date.now(); window.old = old;
++      if (window.replayObservedAt >= Math.min(revocationPayload.deadlineAt, revocationOperation.deadlineAt))
++        throw notObserved('Old request expired during the observation; deadline rejection cannot prove grant revocation', window);
++      assert.equal(old.ok, false); assert.equal(old.error.code, 'E_GRANT_REVOKED');
+       assert.equal(serverEvents.filter(hit => hit.url.includes(`duplicate=${seed}`)).length, 1);
+-      const fresh = await evaluate(page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey})); assert.equal(fresh.value, 'false'); return {install, old, fresh};
++      assert.equal(serverEvents.filter(hit => hit.url.includes(`revocation=${seed}`)).length, 1);
++      const fresh = await evaluate(page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey})); assert.equal(fresh.value, 'false'); return {install, old, fresh, revocationPayload, revocationOriginal, revocationOperation, window};
+     });
+     await caseRun('NATIVE-NAVIGATION-INVALIDATES-OLD-DOCUMENT', async () => {
+       const previous = first.session.documentId;
+@@ -437,10 +670,13 @@ async function browserRun(mode, label) {
+           session:await (${sdkCall.toString()})('APPLOCAL_GETITEM',{key:${JSON.stringify(sessionKey)}}),hello:await OpenDeskSDK.ready()};})()`);
+       assert(before.persistent.ok && before.session.ok); assert.equal(before.persistent.value, 'false');
+       assert.equal(before.session.value.f, false); assert.equal(before.session.value.z, 0);
++      const legacyPersistentKey = `${persistentKey}-legacy-lifetime`, legacySessionKey = `${sessionKey}-legacy-lifetime`;
++      const legacyBefore = await evaluate(page, `(async()=>{const persistentSet=await AppStorage.setItem(${JSON.stringify(legacyPersistentKey)},0);const sessionSet=await AppLocal.setItem(${JSON.stringify(legacySessionKey)},{f:false,z:0,u:undefined});const session=await AppLocal.getItem(${JSON.stringify(legacySessionKey)});return{persistentSetUndefined:persistentSet===undefined,sessionSetUndefined:sessionSet===undefined,persistent:await AppStorage.getItem(${JSON.stringify(legacyPersistentKey)}),f:session.f,z:session.z,ownUndefined:Object.hasOwn(session,'u')&&session.u===undefined};})()`);
++      assert(legacyBefore.persistentSetUndefined && legacyBefore.sessionSetUndefined && legacyBefore.ownUndefined); assert.equal(legacyBefore.persistent, '0'); assert.equal(legacyBefore.f, false); assert.equal(legacyBefore.z, 0);
+       const snapshotBefore = await first.snapshot();
+       assert(Object.keys(snapshotBefore.sessionStorage).some(key => key.startsWith('framework-session:')));
+       assert.equal(typeof snapshotBefore.sessionStorage.browserSessionIncarnation, 'string');
+-      await writeFile(path.join(directory, 'browser-session-before.json'), JSON.stringify({before, snapshotBefore}, null, 2) + '\n');
++      await writeFile(path.join(directory, 'browser-session-before.json'), JSON.stringify({before, legacyBefore, snapshotBefore}, null, 2) + '\n');
+       const next = await first.restartBrowser(), second = await startSession(2, next);
+       assert.equal(second.session.launcher.profile, first.session.launcher.profile);
+       assert.notEqual(second.session.pid, first.session.pid);
+@@ -457,10 +693,12 @@ async function browserRun(mode, label) {
+       assert.equal(hello.ready, true);
+       const persistent = await evaluate(second.page, callExpression('APPSTORAGE_GETITEM', {key: persistentKey}));
+       const session = await evaluate(second.page, callExpression('APPLOCAL_GETITEM', {key: sessionKey}));
++      const legacyAfter = await evaluate(second.page, `(async()=>{const session=await AppLocal.getItem(${JSON.stringify(legacySessionKey)});return{persistent:await AppStorage.getItem(${JSON.stringify(legacyPersistentKey)}),sessionUndefined:session===undefined,sessionKind:typeof session};})()`);
++      assert.equal(legacyAfter.persistent, '0'); assert.equal(legacyAfter.sessionUndefined, true); assert.equal(legacyAfter.sessionKind, 'undefined');
+       assert(persistent.ok); assert.equal(persistent.value, 'false');
+       assert(session.ok && session.undefinedResult); assert.equal(session.valueKind, 'undefined');
+       const snapshotAfter = await second.snapshot();
+-      const actual = {before, snapshotBefore, restart: next.metadata, snapshotAfterRestart, install, hello, persistent, session, snapshotAfter};
++      const actual = {before, legacyBefore, snapshotBefore, restart: next.metadata, snapshotAfterRestart, install, hello, persistent, session, legacyAfter, snapshotAfter};
+       await writeFile(path.join(directory, 'browser-session-after.json'), JSON.stringify(actual, null, 2) + '\n');
+       return actual;
+     });
+diff --git a/tests/framework/verify-product-acceptance.mjs b/tests/framework/verify-product-acceptance.mjs
+index c926e29..f7b140a 100644
+--- a/tests/framework/verify-product-acceptance.mjs
++++ b/tests/framework/verify-product-acceptance.mjs
+@@ -272,8 +272,11 @@ export async function checkAcceptance({projectRoot = root, candidatePath} = {})
+       if (build.mode !== 'production' || build.status !== 'passed' || build.report?.packageHash !== candidate.packageHash ||
+           !Array.isArray(build.sourceInputs) || !build.sourceInputs.length || !Array.isArray(build.sourceDriftDuringBuild) || build.sourceDriftDuringBuild.length) add('BUILD_NOT_FROZEN', 'buildReport');
+       else {
+-        const paths = [...(await filesAt(resolve(projectRoot, 'src'))).map(path => `src/${path}`), 'manifest.json', 'webpack.config.cjs',
+-          'scripts/build.mjs', 'scripts/verify-package.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
++        // Match scripts/build.mjs sourceInputs: all source and build tooling,
++        // including nested files and non-JavaScript packaging helpers.
++        const paths = [...(await filesAt(resolve(projectRoot, 'src'))).map(path => `src/${path}`),
++          ...(await filesAt(resolve(projectRoot, 'scripts'))).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs',
++          'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
+         if (JSON.stringify(paths) !== JSON.stringify(build.sourceInputs.map(input => input.path).sort())) add('BUILD_SOURCE_CLOSURE_CHANGED', 'sourceInputs');
+         for (const input of build.sourceInputs) await reference(input);
+       }

@@ -1,0 +1,14 @@
+{
+  "observation": "Read-only comparison of received handoff actual package rows and release actual package rows, after ownership release; no new build/test/browser",
+  "productionReceivedAndReleasedTreeSha256": "a24b4c7fff62a9ebbd97f5b2fe4fd20b7fafdd0cb6ab72fc9995babff346270d",
+  "productionDeltaPaths": [],
+  "developmentReceivedTreeSha256": "ea1a596897d713aa861463938cb908f05ad1216695baef9069f6a60e8c51f676",
+  "developmentReleasedTreeSha256": "5ba804a788a1cb407601e6ab3ae079fa8e11d6ce19da94d52cc90f1cd46f4364",
+  "developmentReceivedAndReleasedZipSha256": "439f549fc5b432556e6fd8913377aed257b632c97a975769c745738ed0b3e323",
+  "developmentDeltaPaths": ["agents/page-relay.js", "agents/page-relay.js.map", "framework/sdk-main.js", "framework/sdk-main.js.map", "framework/sdk-resources.json", "scripting/packaged/page-session.js", "scripting/packaged/page-session.js.map", "sw.js", "sw.js.map", "ui/tool-shell.js", "ui/tool-shell.js.map"],
+  "origin": "UNRESOLVED; no cause claimed",
+  "sameCandidateTreeZipClosure": "NOT_PROVEN",
+  "requiredFollowup": "Successor reconciles build provenance, then performs latest-source serial dual build/pack/strict closure before native/F3",
+  "goalStatus": "paused; objective incomplete",
+  "productExecutionAfterPause": false
+}

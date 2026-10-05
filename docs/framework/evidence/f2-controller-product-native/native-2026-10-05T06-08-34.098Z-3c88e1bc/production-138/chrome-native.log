@@ -1,0 +1,6 @@
+
+DevTools listening on ws://127.0.0.1:60319/devtools/browser/f1d77668-59ba-4ef8-91e5-2b365b3e6288
+[41871:47043923:1005/140838.047147:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[41871:47043923:1005/140900.748700:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[41871:47043923:1005/140938.073696:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:483] ConnectionHandler failed with net error: -2
+[41871:47043923:1005/140952.932827:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT

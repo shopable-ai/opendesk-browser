@@ -1,0 +1,470 @@
+{
+  "contractVersion": "1.0.0",
+  "status": "planned-not-executed",
+  "zeroBatchPage": {
+    "template": {
+      "formatVersion": "1.0.0",
+      "templateId": "transaction-fixture",
+      "revision": 1,
+      "parentRevision": null,
+      "selectorDialect": "css",
+      "requiredCapabilities": [
+        "dom.top.v1",
+        "read.text.v1",
+        "transform.safe.v1",
+        "pagination.next-link.v1"
+      ],
+      "allowedOrigin": "https://fixture.example",
+      "startUrl": "https://fixture.example/list?page=1",
+      "list": {
+        "containerSelector": ".rows",
+        "rowSelector": ":scope > .row",
+        "emptyMarkerSelector": ".empty",
+        "allowEmpty": true
+      },
+      "fields": [
+        {
+          "id": "name",
+          "label": "\u540d\u79f0",
+          "selector": ".name",
+          "read": "text",
+          "attribute": null,
+          "type": "string",
+          "required": true,
+          "transforms": []
+        },
+        {
+          "id": "count",
+          "label": "\u6570\u91cf",
+          "selector": ".count",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      ],
+      "pagination": {
+        "mode": "next-link",
+        "selector": "a.next",
+        "endMarkerSelector": ".end",
+        "waitMs": 2000
+      },
+      "columns": [
+        "name",
+        "count"
+      ],
+      "limits": {
+        "maxPages": 50,
+        "maxRecords": 10000,
+        "maxDurationMs": 600000,
+        "maxStoredBytes": 20971520
+      },
+      "detail": null,
+      "contentHash": "1ffb439c83d04be57d5ee8f91fbfd635dcca29bb243a339f36fe7274bd95d75d"
+    },
+    "dom": "<!doctype html><html><body><div class=\"rows\"></div><div class=\"empty\">No records</div></body></html>",
+    "beginPageRequest": {
+      "identity": {
+        "runId": "run-empty",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "1ffb439c83d04be57d5ee8f91fbfd635dcca29bb243a339f36fe7274bd95d75d",
+        "target": {
+          "targetSessionId": "target-empty",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-empty"
+        }
+      },
+      "requestId": "begin-empty",
+      "readCommandId": "read-empty",
+      "pageSequence": 1,
+      "expectedPageIdentity": "https://fixture.example/list?page=1",
+      "expectedCheckpointSnapshotId": null
+    },
+    "openSnapshot": {
+      "snapshotId": "PE",
+      "runId": "run-empty",
+      "ownerEpoch": 1,
+      "pageSequence": 1,
+      "state": "open",
+      "pageIdentity": "https://fixture.example/list?page=1",
+      "batchCount": 0,
+      "stagedRowCount": 0,
+      "stagedBytes": 0,
+      "sealSeq": null,
+      "sealDigest": null,
+      "pageSignature": null,
+      "abortReason": null,
+      "sourceIdentity": {
+        "runId": "run-empty",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "1ffb439c83d04be57d5ee8f91fbfd635dcca29bb243a339f36fe7274bd95d75d",
+        "target": {
+          "targetSessionId": "target-empty",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-empty"
+        }
+      },
+      "readCommandId": "read-empty",
+      "expectedCheckpointSnapshotId": null,
+      "readEnd": null,
+      "sealIdentity": null,
+      "immutableSealAck": null
+    },
+    "end": {
+      "type": "page-end",
+      "identity": {
+        "runId": "run-empty",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "1ffb439c83d04be57d5ee8f91fbfd635dcca29bb243a339f36fe7274bd95d75d",
+        "target": {
+          "targetSessionId": "target-empty",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-empty"
+        }
+      },
+      "commandId": "read-empty",
+      "snapshotId": "PE",
+      "frameCount": 0,
+      "rowCount": 0,
+      "pageIdentity": "https://fixture.example/list?page=1",
+      "documentBaseURI": "https://fixture.example/list?page=1",
+      "emptyEvidence": "empty-marker:.empty",
+      "rawSignature": "c376f3741c7bdec6573898f2222fbfd54b9bfe14203a25208fc41dcccc8fc039"
+    },
+    "expected": {
+      "batchCount": 0,
+      "committedCount": 0,
+      "committedPages": 1,
+      "checkpoint": {
+        "pageNumber": 1,
+        "url": "https://fixture.example/list?page=1",
+        "lastSnapshotId": "PE"
+      },
+      "pageSignature": "fc6d41cb42e4ceed10f26bd60a7f2d2a1185c7b1ca7abd0746a60435a8dc7821"
+    }
+  },
+  "cases": [
+    {
+      "id": "PIC01-history-after-next-and-stop",
+      "steps": [
+        "S1 seal count6 pages1 seq1 checkpointS1 ACK dropped",
+        "S2 seal count12 pages2 seq2 checkpointS2",
+        "stop only changes runRevision; no epoch/target fence yet",
+        "repeat exact S1 request"
+      ],
+      "expected": {
+        "ack": "saved S1 count6/pages1/checkpointS1/sealSeq1 duplicate=true",
+        "currentProjection": "count12/pages2/checkpointS2 unchanged",
+        "newWrites": 0
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC01-history-mutated-identity",
+      "steps": [
+        "repeat S1 changing hostDocumentId/epoch/targetVersion/documentId/templateHash/content"
+      ],
+      "expected": {
+        "result": "E_OWNER/E_TARGET/E_HASH per changed field",
+        "newWrites": 0
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC01-history-after-retirement",
+      "steps": [
+        "retire increments epoch",
+        "original S1 repeat"
+      ],
+      "expected": {
+        "result": "E_OWNER",
+        "newWrites": 0
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC02-empty-page",
+      "steps": [
+        "beginPage reserves read-empty and creates PE open",
+        "prepare reserved read command; dispatch",
+        "receive authenticated fixed agent empty-marker end; 0 stage",
+        "seal 0batch 0row 0byte"
+      ],
+      "expected": {
+        "batchCount": 0,
+        "committedCount": 0,
+        "committedPages": 1,
+        "checkpoint": {
+          "pageNumber": 1,
+          "url": "https://fixture.example/list?page=1",
+          "lastSnapshotId": "PE"
+        },
+        "pageSignature": "fc6d41cb42e4ceed10f26bd60a7f2d2a1185c7b1ca7abd0746a60435a8dc7821"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC02-empty-missing-container",
+      "steps": [
+        "remove .rows DOM container",
+        "attempt allowEmpty seal"
+      ],
+      "expected": {
+        "result": "E_SEMANTIC",
+        "committedPages": 0
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC02-snapshot-not-created",
+      "steps": [
+        "stage/seal unknown snapshotId"
+      ],
+      "expected": {
+        "result": "E_SCHEMA",
+        "committedPages": 0
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC02-mixed-document",
+      "steps": [
+        "begin snapshot under D1/v1",
+        "stage under D2/v2 after navigation"
+      ],
+      "expected": {
+        "result": "E_TARGET",
+        "currentPageVisible": 0
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC02-sequence-checkpoint-CAS",
+      "steps": [
+        "committedPages2 checkpointS2",
+        "begin sequence2 or4, or expectedCheckpointS1"
+      ],
+      "expected": {
+        "result": "E_REVISION",
+        "checkpoint": "S2 unchanged"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC04-old-late-new-job",
+      "steps": [
+        "A unknown deadline; retry creates B",
+        "A late unique complete; B in_progress"
+      ],
+      "expected": {
+        "jobA": "delivery_complete with timeout history",
+        "jobB": "delivering unchanged"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC04-abandon-late",
+      "steps": [
+        "explicit abandon A",
+        "A unique late complete"
+      ],
+      "expected": {
+        "jobA": "abandoned unchanged",
+        "evidence": "audit only"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC06-same-content-different-snapshot",
+      "steps": [
+        "same URL same six raw+values rows in P1/P2",
+        "next-button unchanged signature"
+      ],
+      "expected": {
+        "signatureEqual": true,
+        "secondPageVisible": 0,
+        "newClicks": 0,
+        "state": "paused_unknown"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC06-sixth-row-changed",
+      "steps": [
+        "only sixth row values differs"
+      ],
+      "expected": {
+        "signatureEqual": false
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC07-idle-projection",
+      "steps": [
+        "registerHost on empty DB"
+      ],
+      "expected": {
+        "projection": {
+          "run": null,
+          "pendingCommandIds": [],
+          "exportJobIds": [],
+          "eventSeq": 0,
+          "slotAvailable": true
+        },
+        "businessRunRowsCreated": 0
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC09-quota-third-batch",
+      "steps": [
+        "P0 sealed count2/pages1",
+        "P1 b0/b1 staged",
+        "b2 native quota rejected before commit"
+      ],
+      "expected": {
+        "state": "interrupted",
+        "error": "E_QUOTA",
+        "pageP1": "aborted",
+        "count": 2,
+        "pages": 1,
+        "checkpoint": "P0",
+        "b2ACK": false
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC09-quota-after-stop",
+      "steps": [
+        "cancel commit first",
+        "b2 quota failure"
+      ],
+      "expected": {
+        "state": "stopping then stopped if all effects known; paused_unknown if effect unknown",
+        "checkpoint": "P0"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC10-cancel-before-create",
+      "steps": [
+        "intent prepared submissionCount0",
+        "cancel committed before create dispatched"
+      ],
+      "expected": {
+        "tabsCreateCalls": 0,
+        "absenceEvidence": "cancelled-before-create-dispatch",
+        "releaseAllowedAfterFence": true
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC10-create-gap",
+      "steps": [
+        "create dispatched commit",
+        "tabs.create may apply; callback missing",
+        "target=null then retire"
+      ],
+      "expected": {
+        "tabsCreateReplayCalls": 0,
+        "slotHeld": true,
+        "state": "paused_unknown",
+        "neverCreatedAllowed": false
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC10-late-create-after-fence",
+      "steps": [
+        "create dispatched then old epoch fenced",
+        "late callback exact bootstrap actual sender"
+      ],
+      "expected": {
+        "bindNewRun": false,
+        "action": "register original retirement target, remove exact tab, persist absence then matching release CAS"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC10-creation-zero-or-many",
+      "steps": [
+        "query exact bootstrap nonce returns0 or2 tabs"
+      ],
+      "expected": {
+        "slotHeld": true,
+        "guessOrReplay": false
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC11-old-ID-reused-new-session",
+      "steps": [
+        "old session S1 target numeric42",
+        "new S2 unrelated tab42",
+        "old retirement requests close; unrelated tab removed"
+      ],
+      "expected": {
+        "unrelatedTabRemoveCalls": 0,
+        "oldSlotReleased": false,
+        "identityStatus": "cross-session-unverified"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC11-restored-bootstrap-unique",
+      "steps": [
+        "new session uniquely restored own extension bootstrap nonce",
+        "authenticate actual sender and register retirement-only current target",
+        "remove and prove current owned target absence"
+      ],
+      "expected": {
+        "retirementAllowed": true,
+        "businessResume": false,
+        "release": "matching old slot CAS once"
+      },
+      "productResult": "not-run"
+    },
+    {
+      "id": "PIC12-release-late-duplicate",
+      "steps": [
+        "A release R1 count0\u21921",
+        "R2 claims slot",
+        "B late release R1 duplicate"
+      ],
+      "expected": {
+        "slotOwner": "R2",
+        "R1releaseCount": 1,
+        "R3claim": "rejected",
+        "newSlotWritesByB": 0
+      },
+      "productResult": "not-run"
+    }
+  ]
+}

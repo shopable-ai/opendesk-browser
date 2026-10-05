@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "target": "WXT; JavaScript; MV3; existing API contracts",
-  "stepId": "F2-old-features",
-  "state": "writer_released_awaiting_serial_successor",
+  "stepId": "incremental-T6-candidate3",
+  "state": "in_progress",
   "lastPassedStep": "P3",
   "steps": {
     "P1": "baseline_passed",
@@ -14,11 +14,11 @@
     "P7": "not_tested"
   },
   "ledger": "docs/framework/source-compatibility-ledger.json",
-  "productInputsSha256": "cfc03abbda3c6243d7389478f5794af685f33e26109077e038e574f9b9481d4e",
-  "verificationInputsSha256": "41b5d090b8f7b05872267b6af47ab7e22b4eab8c32f01ba8c5644b76292e4389",
+  "productInputsSha256": "63087cd9f4df120dd63792429c13a15230bb108f28d32616f2d6942f999c18c0",
+  "verificationInputsSha256": "00dc1ceedb022d650291e25a44490ef2afd25483d3f15a9a0d8f5650055f425d",
   "packageHashes": {
-    "production": "a24b4c7fff62a9ebbd97f5b2fe4fd20b7fafdd0cb6ab72fc9995babff346270d",
-    "development": "ea1a596897d713aa861463938cb908f05ad1216695baef9069f6a60e8c51f676"
+    "production": "5893057009280761f80837ba73a7faba07c99684e54efb8debe8d4dabb85359f",
+    "development": "97dabf8d275e9179c41cc11b83c7e40d374712c5c432f313d7e519dbf65e930c"
   },
   "oldPackageHashes": {
     "production": "552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89",
@@ -26,14 +26,16 @@
   },
   "baselinePath": "docs/framework/evidence/wxt/baseline-20261003T194242Z",
   "lastKnownGood": {
-    "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-04T05-51-17.384Z-P3-actual_dual_packages_native_passed",
-    "manifestSha256": "280199efc1571f9cf75378c0112aee295713fd1e40b816ff0aad6276b7d2c906",
+    "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-04T13-44-27.880Z-incremental-T6-candidate2-component_build_passed",
+    "manifestSha256": "98aa22c971549052e2ccf74be552acdee4362ac4794b280cb2e3103df7726fd8",
     "passedAtStep": "P3",
-    "layer": "actual_dual_packages_native_passed"
+    "layer": "component_build_passed"
   },
   "changedPaths": [
+    "docs/framework/execution-tasks.json",
     "docs/framework/product-continuation-checkpoint.json",
     "docs/framework/public-owner.json",
+    "docs/framework/source-compatibility-ledger.json",
     "manifest.json",
     "package-lock.json",
     "package.json",
@@ -46,13 +48,26 @@
     "src/agents/page-agent.js",
     "src/agents/page-relay.js",
     "src/agents/selection-entry.js",
+    "src/framework/context.js",
+    "src/framework/sdk/bridge.js",
     "src/framework/sdk/entry.js",
+    "src/framework/sdk/registry.js",
+    "src/framework/sdk/service.js",
+    "src/framework/sdk/storage.js",
     "src/framework/sdk/transport.js",
+    "src/platform/downloads/blob-lifecycle.js",
+    "src/platform/downloads/index.js",
     "src/platform/host/broker.js",
+    "src/platform/host/client.js",
     "src/platform/host/controller-methods.js",
+    "src/platform/host/sdk-broker.js",
+    "src/platform/host/sdk-methods.js",
     "src/platform/protocol.js",
     "src/platform/storage/repository.js",
+    "src/run-host.js",
     "src/scripting/packaged/page-session.js",
+    "src/scripting/sandbox/controller.js",
+    "src/scripting/sandbox/page-proxy.js",
     "src/scripting/sandbox/sandbox.js",
     "src/scripting/sandbox/worker-runtime.js",
     "src/sw.js",
@@ -60,19 +75,28 @@
     "src/ui/tool-shell.js",
     "src/ui/tool.html",
     "tests/foundation/page-port-service.test.mjs",
+    "tests/foundation/storage.test.mjs",
+    "tests/framework/acceptance-evidence.test.mjs",
     "tests/framework/b05-product-acceptance-20261003.mjs",
+    "tests/framework/k2-generic-download.test.mjs",
     "tests/framework/k2-sdk-broker.test.mjs",
+    "tests/framework/k2-shared-codec.test.mjs",
     "tests/framework/k3-controller-authority.test.mjs",
+    "tests/framework/k4-network.test.mjs",
     "tests/framework/k4-sdk-bundle-reinjection.test.mjs",
     "tests/framework/k4-sdk-hello-races.test.mjs",
+    "tests/framework/k4-sdk.test.mjs",
     "tests/framework/k5-controller-product-native.mjs",
     "tests/framework/k5-package.test.mjs",
+    "tests/framework/k5-sdk-admission-abort-native-selector.mjs",
     "tests/framework/k5-sdk-native-launcher.mjs",
     "tests/framework/k5-sdk-native.mjs",
-    "tests/framework/native-idb-migration-preparation.mjs"
+    "tests/framework/native-idb-migration-preparation.mjs",
+    "tests/framework/verify-product-acceptance.mjs"
   ],
   "newPaths": [
     "scripts/build-contract.mjs",
+    "scripts/compact-schema.mjs",
     "scripts/wxt-checkpoint.mjs",
     "src/entrypoints/background.js",
     "src/entrypoints/bootstrap.js",
@@ -85,6 +109,9 @@
     "src/entrypoints/selection-entry.js",
     "src/entrypoints/tool-shell.js",
     "src/entrypoints/worker-runtime.js",
+    "src/framework/sdk/resource-contract.js",
+    "src/framework/sdk/resources.js",
+    "src/platform/chrome/background-services.js",
     "wxt.config.mjs",
     "contracts/fixtures/canonical.json",
     "contracts/fixtures/download-attempts.json",
@@ -262,10 +289,17 @@
     "contracts/fixtures/transaction-template.json",
     "tests/framework/b05-native-observers.mjs",
     "tests/framework/b05-native-observers.test.mjs",
+    "tests/framework/host-recovery.test.mjs",
+    "tests/framework/k4-background-services.test.mjs",
     "tests/framework/k4-sdk-error-reference.test.mjs",
+    "tests/framework/k5-controller-native-campaigns.mjs",
+    "tests/framework/k5-package-four-service-resources.test.mjs",
+    "tests/framework/k5-sdk-legacy-consumers.mjs",
     "tests/framework/k5-sdk-native-restart.py",
     "tests/framework/native-idb-migration-launcher.mjs",
-    "tests/framework/p4-api48-native-source.mjs"
+    "tests/framework/p4-api48-native-source.mjs",
+    "tests/framework/run-host-recovery.test.mjs",
+    "tests/framework/schema-compaction.test.mjs"
   ],
   "completedCaseIds": [
     "WXT-P1-BASELINE",
@@ -274,7 +308,7 @@
   ],
   "staleCaseIds": [],
   "firstBlocker": null,
-  "nextAction": "Complete current concrete JS/legacy SDK/template consumer gaps and B05 observers; then freeze candidate and concentrated original-contract acceptance",
+  "nextAction": "G1 minimal real entry set using the same frozen source, verification inputs, package tree and ZIP identity; first resolve userScripts native UI precondition.",
   "commands": {
     "preflight": "node tests/framework/k5-controller-product-native.mjs --contract-check --single --mode=all --chrome=138",
     "nativeProduction": "node tests/framework/k5-controller-product-native.mjs --native --headed --single --native-ui-assist --mode=production --chrome=138 --rebuild-receipt=<fresh-receipt> --permission-timeout=120000",
@@ -326,25 +360,38 @@
     "docs/framework/evidence/wxt/p4-p5/handoff-process-check.json",
     "docs/framework/evidence/wxt/snapshots/2026-10-04T10-02-18.109Z-P4-serial_writer_handoff_candidate",
     "docs/framework/evidence/old-features-20261004-01a10654/four-service-candidate.json",
-    "docs/framework/evidence/old-features-20261004-01a10654/handoff-to-01a1067b.md"
+    "docs/framework/evidence/old-features-20261004-01a10654/handoff-to-01a1067b.md",
+    "docs/framework/evidence/incremental-20261004-01a106d2",
+    "docs/framework/evidence/wxt/snapshots/2026-10-04T13-41-51.379Z-incremental-T2-T5-component_build_passed",
+    "docs/framework/evidence/wxt/snapshots/2026-10-04T13-44-27.880Z-incremental-T6-candidate2-component_build_passed",
+    "docs/framework/evidence/incremental-20261004-01a106d2/g0-candidate-check.json",
+    "docs/framework/evidence/incremental-20261004-01a106d2/check-g0.log",
+    "docs/framework/evidence/incremental-20261004-01a106d2/build-production-g0.log",
+    "docs/framework/evidence/incremental-20261004-01a106d2/build-development-g0.log",
+    "docs/framework/evidence/incremental-20261004-01a106d2/pack-production-g0.log",
+    "docs/framework/evidence/incremental-20261004-01a106d2/pack-development-g0.log",
+    "docs/framework/evidence/incremental-20261004-01a106d2/verify-g0.log",
+    "docs/framework/evidence/wxt/snapshots/2026-10-05T06-07-01.627Z-incremental-T6-candidate3-candidate_build_bound"
   ],
   "ownedRuntime": {
-    "writer": "01a1067b-a17b-7870-8ca4-92af03c934f5",
+    "writer": null,
+    "previousWriter": "01a1067b-a17b-7870-8ca4-92af03c934f5",
     "browserOwner": null,
     "operations": [],
-    "state": "implementation-no-native-window"
+    "state": "released-for-serial-handoff",
+    "successorThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4"
   },
-  "updatedAt": "2026-10-04T10:56:03.151777+00:00",
-  "ownerThreadId": "01a1067b-a17b-7870-8ca4-92af03c934f5",
+  "updatedAt": "2026-10-05T06:07:01.746Z",
+  "ownerThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4",
   "zipHashes": {
-    "production": "d9cf788f277517275846094f270bdcf315976a81c879b040bf074177d68c3b5a",
-    "development": "439f549fc5b432556e6fd8913377aed257b632c97a975769c745738ed0b3e323"
+    "production": "365cfb35ac4caccc93651ff92691c2ce6b3560f3f283ad7b4265af3af220ba6a",
+    "development": "01741122375997db691a3a3c03cd1b73c6520e4836de8af029ff5b4bb1219b79"
   },
   "latestSnapshot": {
-    "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-04T10-02-18.109Z-P4-serial_writer_handoff_candidate",
-    "manifestSha256": "7b91aa002ef1ffe6c519e2549f33909c694ef9bb2346680194f0f4fb80d03cb9",
+    "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-05T06-07-01.627Z-incremental-T6-candidate3-candidate_build_bound",
+    "manifestSha256": "a7f23e7c9315220ddbe098ec3fe0981eea071529811e9b0141a5f51a5c3132d4",
     "passedAtStep": "P3",
-    "layer": "serial_writer_handoff_candidate"
+    "layer": "candidate_build_bound"
   },
   "continuationHistory": [
     {
@@ -367,5 +414,28 @@
     "bexUrl": "implemented-packaged-native-not-tested",
     "requestResource": "implemented-packaged-native-not-tested"
   },
-  "handoffIdentity": "docs/framework/evidence/old-features-20261004-01a10654/handoff-candidate-identity.json"
+  "handoffIdentity": "docs/framework/evidence/old-features-20261004-01a10654/handoff-candidate-identity.json",
+  "functionImplementation": "implemented-pending-final-candidate-native-acceptance",
+  "componentCheck": {
+    "exitCode": 0,
+    "passed": 476,
+    "failed": 0,
+    "skipped": 0,
+    "sourceCheck": {
+      "path": "docs/framework/evidence/old-features-20261004-01a1067b/source-check.log",
+      "bytes": 232,
+      "sha256": "1320bcbf297796047bad3ed2ec7584eb6f5767cdb122df6a700dc0e1fda0986a"
+    },
+    "evidence": {
+      "path": "docs/framework/evidence/old-features-20261004-01a1067b/components.log",
+      "bytes": 45888,
+      "sha256": "a5300b6a163889326c966e9c71fc6e54010bbda97d85fd758bff4457886c048b"
+    },
+    "currentSourceBinding": "not-a-current-full-source-pass-after-partial-resource-diagnostics"
+  },
+  "finalProductPassed": false,
+  "f3Accepted": false,
+  "successorThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4",
+  "handoffEvidence": "docs/framework/evidence/old-features-20261004-01a1067b/handoff-to-01a106d2.md",
+  "incrementalEvidence": "docs/framework/evidence/incremental-20261004-01a106d2"
 }

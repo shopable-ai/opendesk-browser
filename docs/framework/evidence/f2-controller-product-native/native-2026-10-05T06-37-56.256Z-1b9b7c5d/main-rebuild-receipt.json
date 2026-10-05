@@ -1,0 +1,18 @@
+{
+  "productInputsSha256": "63087cd9f4df120dd63792429c13a15230bb108f28d32616f2d6942f999c18c0",
+  "verificationInputsSha256": "00dc1ceedb022d650291e25a44490ef2afd25483d3f15a9a0d8f5650055f425d",
+  "runnerSha256": "4936100dc790f1e344c22083a078ddfbec6f1e5470938f4c8de108520f6fc127",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "sourceHash": "f402050208a4759cd8ce7196dc5b5431383cbd79dcf0c4b071f099d42c976941",
+  "packages": {
+    "production": "5893057009280761f80837ba73a7faba07c99684e54efb8debe8d4dabb85359f",
+    "development": "97dabf8d275e9179c41cc11b83c7e40d374712c5c432f313d7e519dbf65e930c"
+  },
+  "readyForControllerNative": true,
+  "executionWindow": {
+    "lane": "controller-product-native",
+    "sdkRunnerIdle": true
+  },
+  "candidateIdentity": "docs/framework/evidence/incremental-20261004-01a106d2/candidate-identity.json",
+  "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-05T06-07-01.627Z-incremental-T6-candidate3-candidate_build_bound"
+}

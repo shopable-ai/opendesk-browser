@@ -1,0 +1,106 @@
+# 规范性语义与决策记录（1.0.0）
+
+本文件、contract.json、schema.json和state-machines.json共同定义设计合同，尚无生产实现。接口JSON结构与枚举由schema定义，结构验证不足以替代以下语义验证；所有未知字段、未知主版本、未知能力、危险对象键、非有限数、过深JSON、未配对代理字符都拒绝。业务字段名来自field id白名单，避免原型污染。字段不做truthiness回退。
+
+## 编译、值与hash
+
+CSS以目标文档querySelector/querySelectorAll原生语法编译，不执行脚本。containerSelector必须匹配唯一列表容器；rowSelector相对容器，空field selector表示当前行本身。field相对行，匹配多于一个元素报E_SEMANTIC；0匹配且optional→raw=null/value=null，required→失败。text读取textContent，attribute读getAttribute；缺attribute同缺元素。文本不截断，150字原值完整持久化；预览可以省略显示但不得改变记录。HTML/label按文本渲染。
+
+转换按transforms数组原序执行。trim按ECMAScript trim；normalize-space把连续Unicode空白压成一个ASCII空格并trim；resolve-url用new URL(value,documentBaseURI)，仅HTTP(S)、不含用户名密码，输出规范化绝对URL（空URL拒绝；可作为数据字段跨origin，执行target仍须单origin）。string保留转换结果包括空串；number接受trim后 `^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?$` 且有限值，整数结果必须在安全整数范围，拒绝空串/NaN/Infinity/溢出；boolean仅trim后精确小写true/false；optional非空非法转换也失败。缺可选字段是null，显式空文本是空串，数值0和false保持类型。不需要title字段，不隐式筛掉无title行。
+
+columns必须是field id的全量唯一排列；至少1最多20字段。revision=1的parentRevision=null，之后parentRevision=revision-1且保存时匹配当前head。requiredCapabilities必须恰好覆盖字段read/transforms/分页所需能力，未知能力拒绝。pagination.none不含其他键；next-link只能同origin HTTP(S)下一页；next-button需要明确userConfirmed和固定page-signature-change postcondition，无通用控制流。detail=null。startUrl与allowedOrigin规范origin一致、不含用户凭据；origin忽略路径但包括scheme/host/有效port。缺URL/row/分页含义不能迁移保存。
+
+模板canonical使用ASCII对象键排序、数组保持次序、UTF-8、无BOM、无空白、无Unicode归一化、JSON标准转义。模板元数据只允许安全整数，-0编码为0。contentHash仅排除顶层自身后SHA-256；RulePlan同理排除planHash。记录值允许有限小数，记录digest需使用ECMAScript JSON.stringify数值编码；本批通过Node独立参考核过12.5等具体小数fixture，不能冒称验证了所有跨语言小数编码。canonical.json是字节级向量；实现阶段增加小数/代理字符测试。
+
+stage digest = SHA256(canonical({snapshotId,batchIndex,records}))，字节数是该canonical envelope的UTF-8字节数，校验请求utf8Bytes恰好相等，不信任客户端申报。batchId=`snapshotId:batchIndex`，snapshotId由底座分配绑定run+pageSequence；重复相同id不同内容拒绝并abort open页。Record默认recordKey=`snapshotId:rowIndex`；rowIndex页内从0连续，列键与模板fields恰好相同。首版无自然键合并，不用URL去重业务行。pageSignature=SHA256(canonical({pageIdentity,records:整页完整raw+values按rowIndex排列}))，不能只取前5行。pageIdentity=origin+规范URL；button同URL时仍由完整signature检测换页。seal digest为完整SealRequest移除identity.runRevision后的canonical hash，identity其余字段固定；同一已sealed的原始owner请求即使stop后来改变runRevision，只允许核完全相同digest并返回历史ACK，不重新写入或推进。旧epoch在新run不能新seal。
+
+## 命令与并发
+
+IDB事务取消提交、dispatched提交、seal提交的顺序是唯一顺序证据。停止CAS递增runRevision与cancelSeq，prepared命令取消；新派生/重试/dispatch/stage/seal均拒绝，已经dispatched的命令仍获准调用一次Chrome API，可能在停止后生效。dispatch提交与Chrome调用之间崩溃也标effect_unknown，不因为“可能没调用”而重放。commandId→不可变digest绑定，result仅真实sender、runId/ownerEpoch/targetSession/tab/frame/document一致可结算。read失败可通过新commandId重试只读观测；不重放原dispatched命令。stop后仅允许只读对账，由SW执行，不恢复core loop。
+
+runRevision是owner控制/stop/终态/围栏的写CAS令牌；stage、seal计数和投影事件只递增eventSeq/commitSeq，不改变runRevision；控制事务修改run投影递增revision，接口返回最新值。ownerEpoch是owner身份围栏，跨退役递增且不复用。单纯revision变动不得把已经获准的Chrome命令误判未获准；结果对账以journal内身份、cancelSeq历史和target绑定判断。UI事件有单调eventSeq，丢事件或间隙须snapshotRun重新读真实投影；事件不是存储事实。自然结束只有无未决效果、完整seal、分页结束依据成立时可completed；与stop先提交者保留终态。
+
+## paused_unknown的放弃、旧owner/tab退役和名额
+
+1. lease/握手失联冻结准入并占用原slot。超时仅得未知状态，不自动换owner，也不启动新任务。
+2. UI展示已确认结果、未知命令和显式“放弃本任务并关闭执行页”。abandonUnknown必须来自真实工具窗口的直接用户请求，requestId幂等。
+3. IDB事务CAS原runRevision，置retiring、ownerEpoch++、撤销旧target capability/host owner权限，prepared取消、open snapshot aborted，已dispatched未知动作保留审计；关闭不能抹去未知效果。
+4. SW关闭精确旧执行tab，禁activeTab查询。Chrome关闭返回成功后必须tabs.get证实不存在或真实onRemoved证据，且撤销注册已落库。若仍存在/查询失败，retiring保持slot，不猜测。host失联无需等待它自己退出，旧owner所有DB写和Chrome请求由token围栏拒绝。
+5. 只有围栏与tab不存在证据一起持久提交，才将旧run置abandoned_unknown并释放slot。新run重新生成runId/targetSession/document/epoch，从起始URL执行。拒绝旧消息，旧download receipt可独立审计原export job。
+6. 正常终态同样先围栏/关闭专用tab/证实不存在再释放slot。正常终态名字不被退役过程覆盖，投影有retirementState。run终态不代表立即可抢占slot。tabs关闭后的旧Chrome调用失败不许可转到新tab；target tabId/documentId固定且每次API调用前重核journal与registration。已获准Chrome外部效果无法原子撤回，所以关闭旧tab并证实消失是释放的必要条件。
+
+## 整页事务、计数与预算
+
+stagePageBatch ACK只表示耐久暂存，row可见性由snapshot.sealed判定。任意3批页，前2批ACK第3批失败则整页aborted，前两批仍占暂存字节但不计committed、不导出、不推进checkpoint。seal验证batchCount、连续索引0..n-1、所有rowIndex连续、每digest、rowCount、byteCount、完整signature与分页checkpoint合法且同origin。runs+pageSnapshots+batches同事务seal；records按sealed标记读取，无需大事务逐行重写。
+
+stop先提交拒seal并abort；seal先提交保留完整该页。重复seal返回同历史ACK，冲突拒绝。seal不允许不完整页因预算而截断成“成功页”。空页必须0批、0行、0字节并有明确empty marker或模板allowEmpty依据；零批次不意味着找不到selector成功。配置找不到容器仍报错。分页模板必须保存非空endMarkerSelector并在预览确认末页依据；next缺失但endMarker未出现→E_SEMANTIC，不能猜测自然结束。实现测试必须区别错误selector和真正末页。
+
+阈值+1为limit_reached并abort当前页，保留先前sealed记录；恰达上限但未证实自然结束亦limit_reached。所有暂存raw/values计入20MiB run/200MiB profile预算，单batch256KiB、最多2待ACK。磁盘quota与profile配额不足为interrupted并标E_QUOTA，保存确认数据；未提交batch不ACK。清理默认7天，active/open export/读游标pin和未决journal不得自动删除，先投影保留策略。
+
+## 导出、attempt与迟到终态
+
+prepareExport固定sealWatermark和数量，持有reader pin；非completed run须explicit partialConfirmed。格式化者读sealed原值，JSON保持类型；CSV null与string空串均为空单元，0/false分别0/false；CSV不保留二者或其他JSON类型区别，不承诺无损恢复。UTF-8无BOM、CRLF、列顺序模板columns、RFC4180引号规则。spreadsheet-safe对字符串在忽略前导Unicode空白后以=,+,-,@开始，或以TAB/CR开始，前置单引号；typed负数不做公式转义。raw模式须显式提示，原值仍单独保存。单Artifact≤8MiB，按完整行分卷、每卷CSV头/JSON独立数组，manifest有run/template/卷号/行数/字节/hash，所有卷complete才job delivery_complete。
+
+Artifact hash是下载前扩展生成字节hash。diskHashVerified始终false，Chrome complete只证明浏览器完成，不代表之后文件存在或扩展读取磁盘。attempt持久保存exportJob/artifact/run/host/epoch、fresh blob URL、字节/hash/数量/filename、dispatch时间、60s mapping窗口及从dispatchAt起10min下载deadline。每attempt最多一次downloads.download；DB与Chrome gap不重放。下载有独立授权：run退役围栏禁止采集写，但不阻止SW按原attempt审计回执。
+
+优先验证callback返回downloadId：search({id})确认url等身份；若ID未保存，缓存onCreated候选并search核完整原始url、byExtensionId、startTime处于dispatchAt-2000ms到mappingDeadline窗口。相同ID重复事件去重；时钟回拨/字段不全/仅filename/最近时间均不是唯一证据。0匹配在60s内有限对账，届满mapping_unknown；1唯一匹配绑定；多于1或callback与候选冲突→conflict，禁止自动重下。60s不是文件完成超时；绑定ID之后按ID核真实终态直到10min，onChanged事件是触发器，查询确证后写receipt。
+
+10min deadline处查询：若已complete记录complete；若interrupted记录真实原因；仍in_progress/无法查询记deadline_unknown与timedOutAt，释放Blob，不虚构interrupted。不无限持Blob，未知候选仍保留元数据。迟到唯一证据可把mapping_unknown/deadline_unknown解析为complete/interrupted，receipt.late=true，保留超时/释放历史；audit不会声称发生前已完成。host关闭相同对账规则，complete永不因为URL释放改failed。用户明确abandon attempt后projection固定abandoned，后续证据只审计，不复活job。
+
+用户“再次导出”创建新exportJobId、新attemptId和绝不复用URL，每卷有自己的attempt。新job只读自身activeAttemptIds；旧attempt迟到complete仅更新旧job。两个job结果并列显示，旧文件可能已下载，UI提示避免用户混淆。旧记录/tombstone至少7天，删除run须先围栏/退役/释放readers/标未决attempt abandoned，再删除数据；迟到callback不能复活已删run。
+
+## Entitlement边界
+
+首版不接真实收费服务。免费最多保存1个模板、单页最多100行；Pro最多50个模板，设计运行预算50页/10000行/10分钟/20MiB。所有任务仍受50页/10000行/10分钟/20MiB产品硬上限。存储模板保持用户原limits，claimRun返回effectiveLimits=min(template, entitlement)，运行前必须展示并确认有效预算，达到限制为limit_reached；不静默称完成。测试使用明确标记的测试签名，不能冒充真实付费。预览/导出/删除已有记录不锁Pro、不扣留数据。
+
+Pro验证采用包内固定信任公钥的ECDSA P-256/SHA-256签名，canonical payload绑定issuer/subject/features/issuedAt/expiresAt/keyId/revocationVersion；接受签名有效且未过期的已知许可证，离线新Pro任务同时须距最后可信验证≤72小时；不以离线生成Pro。时钟回拨冻结Pro新任务。无可信key/过期/签名错误/超过72小时离线宽限降为free并提示；服务器不得加载执行代码。撤销证据需签名且版本单调，刷新后禁止新Pro任务；已获准run使用开始时授权快照，许可证在本轮到期不撤销本轮已批准能力或阻止取回结果。M12付费与签发运营证据pending。
+
+正常结束/达到上限不能自动覆盖stopping。readRecords和格式化处于终态run也可调用，除非已tombstone；需持久读pin与cleanup互斥，不沿用采集owner token作为下载回执的权限。导航命令通过固定agent在精确documentId中执行location.assign或click，禁止以无document绑定的tabs.update重放导航；导航后的新document须重新通过同origin握手绑定并递增targetVersion，旧document只能对账原命令。
+
+每Record raw+values的canonical UTF-8字节上限64KiB，所有schema之外的动态data对象键须恰好来自fieldIds；输入JSON原始重复键必须在解析层拒绝，解析后已不可恢复的重复键不能假称已检测。Runtime消息仅JSON；Artifact字节在同一工具窗口formatter→exportBridge直接传递，不把Blob对象经Chrome消息传输，SW只接受已登记attempt的Blob URL与身份。
+
+## PagePort固定读协议与模块依赖
+
+readPage传固定RulePlan、snapshotId和pageSequence；准入核stored TemplateRevision/hash、compilerVersion与planHash及逐项字段等价，不能自报不同selector计划。page agent只读取包内固定DOM text/attribute，输出PageReadData/PageReadEnd的raw值；类型与transforms由同一领域compiler在RunHost执行，preview/run一致。原页面preview用SourceSelectionContext授权，只读采样展示不截原值；正式run必须Identity。
+
+raw data frame ≤128KiB，消息固定command/snapshot/frameIndex/rowStart，按实际sender.documentId认证；同frame同digest去重，冲突/丢end/count不一致使整页不可seal。PageReadData.digest=SHA256(canonical({snapshotId,frameIndex,rowStart,rawRows}))，PageReadEnd.rawSignature=SHA256(canonical({pageIdentity,rawRows:全页连续行}))，end含frameCount/rowCount及documentBaseURI。RunHost可以把raw frame转换、按完整record重新拆成≤256KiB stage，最多2待ACK；frame的ACK在关联stage耐久后发送，不声称可见。stop后不派生新frame请求，已到数据只能对账/丢弃，未seal页不计入。
+
+next-link/next-button是schema中区分的固定payload。click与location.assign在精确documentId的固定agent执行；普通页面无法发起特权Chrome调用。下一文档需要重新绑定targetVersion，来自旧文档的结果不能把新文档字段当自己的。SelectorUI逻辑在03，02B仅提供批准source-target选区桥与固定raw reader；不得让02A环境占位伪装已经实现模板/采集协议。
+
+command digest=SHA256(canonical({commandId,identity,kind,payload}))，不包含state/时间/resultDigest；同ID不同身份或payload拒绝。RulePlan.planHash只排除自身，运行准入必须核计划与已存模板字段一致。read-command.json是具体完整输入；page-transaction.json和download-attempts.json提供精确ID/数量/byte/digest/time，而scenarios.json提供顺序与状态预期。上述都是待实现输入，不是状态机生产执行结果。
+
+
+## 协议初审闭合规则（PIC-01/02/04/06/07/09/10/11/12）
+
+beginPage是唯一分配入口：runs+pageSnapshots+commandJournal同事务核真实host/当前完整Identity、尚未派发的唯一readCommandId预留（先分配snapshot再prepare命令），pageSequence=committedPages+1，expectedCheckpointSnapshotId等于当前checkpoint.lastSnapshotId（初始null）；每run至多一个open可提交页、[runId,pageSequence]唯一。同requestId完整内容重发返回同snapshot，冲突拒绝。随后prepareCommand只允许该预留readCommandId的payload引用本snapshot和已核RulePlan；未dispatched的read不能stage/seal。PageSnapshot.sourceIdentity/readCommandId从分配后不可更改；stage/seal身份除控制revision外必须与原绑定精确一致，同时新写按当前revision/cancel/epoch准入；不得把D1和D2/v2的批混页。checkpoint始终指已seal页：pageNumber=pageSequence=committedPages，url=该页authenticated normalized document URL，lastSnapshotId=本snapshot；不是下一页地址。seal还核expectedCheckpointSnapshotId CAS，不逆序、不回退。0批空页由beginPage先open，只有绑定readCommandId的真实PageReadEnd具有rowCount0/frameCount0且emptyEvidence由固定agent验证的allowEmpty/empty marker依据，才可seal；缺container不是empty依据。
+
+seal事务同时保存sealIdentity、immutableSealAck（duplicate=false）和完整sealDigest。历史重ACK分支先认证真实注册hostDocumentId仍是该页原host且run非tombstone，再核整个原身份包括epoch/template/target/document/version/session，唯一可忽略字段是原请求identity.runRevision；核排除该revision的完整seal内容摘要与原digest一致，只返回保存ACK拷贝并duplicate=true。当前ownerEpoch/target绑定已改变、host重载、删run分别拒绝E_OWNER/E_TARGET/E_TOMBSTONE；只发生stop的revision变动且尚未退役改变epoch时可重ACK。S1后来S2又stop，S1历史ACK仍是当时count6/pages1/checkpointS1，不是S2当前投影；eventSeq/commitSeq/rows不变。新stage/seal始终按当前围栏拒绝，UI不以历史ACK覆盖更新的Projection。
+
+pageSignature的唯一包络为{pageIdentity,records:[{raw,values}]}，记录按rowIndex全页排列；排除recordKey/snapshotId/run/host/epoch/document。pageIdentity是认证文档的规范化完整URL（HTTP(S)，含query，不含fragment），不是随机session。page-signature.json给精确字节：同URL相同6行而换snapshotId，signature不变；前5行同第6行变化必须改变signature。next-button read后signature仍相同不得seal新页或盲click重试，进入paused_unknown并只读对账；明确自然末页依据可正常结束。
+
+Projection.run允许null，不制造伪run；首次registerHost返回RegisterHostResponse，snapshotRun严格返回嵌套Projection。idle pendingCommandIds为空，slotAvailable取真实slot状态（即使展示run为null也不能猜true）。exportJobIds只限请求主体的可见旧job。quota/profile-quota是interrupted/E_QUOTA专门转移，stop先提交保留stopping，未ACK页aborted，已seal数据可导出。
+
+执行tab创建也是外部效果：SW单个串行协调入口在trusted chrome.storage.session生成随机browserSessionIncarnation，SW重启沿用，浏览器session重新建立时新生成，不接受页面自报。claimRun后createTarget在commandJournal存target-create intent、creationId、exact package bootstrap URL、startUrl、session，dispatched提交与cancel严格排序，获准最多一次tabs.create。bootstrap为包内静态扩展页，URL含不可复用creationId，真实extension sender/tab/document核对后先持久knownTabId/knownDocumentId，才准固定agent导航到同origin startUrl。bootstrap未确认前不导航、不可绑定任意tab。DB→create gap冻结slot；0/多exact bootstrap候选保持unknown，1候选还须真实sender握手而非URL相等猜测。迟到callback或bootstrap只登记原creation；已围栏则加入原retirement关闭/证实absence，不绑定新run。
+
+never-created只由取消发生在持久dispatched之前、submissionCount0且无dispatch历史的意图证明，不由target:null证明。create已获准但未知保持slot。正常/未知退役都在调用数字tabId remove前核当前browserSessionIncarnation及精确creation归属；同session remove后的真实onRemoved/tabs.get-not-found可作absence，事件需该登记的session上下文。跨浏览器session不得依据旧数字tabId关闭/查询认领无关tab。唯一恢复的包内bootstrap nonce经真实当前sender可重新登记为仅退役目标；已导航且没有唯一归属凭据的恢复tab首版不支持自动退役，明确cross-session-unverified、slot冻结并保留导出功能，不执行猜测删除、自动reset或接管。这是确定的首版恢复限制，不留未定义回退。旧数字ID被无关用户tab复用及该tab移除都不能释放旧slot。
+
+retireTarget最后在runs+journal同一事务核slot.currentRunId=旧run、slot.fencedEpoch=本retirement.fencedEpoch、slot.retirementId=本ID且releaseCount0，写持久absence/immutable release result/releaseCount1/retirementState=released并清匹配slot。任一不符或已释放仅返回旧历史结果，绝不写新slot。A释放R1、R2claim、B晚到重复结果不能清R2；onRemoved与query并发只能release一次。
+
+retryExport冻结的是旧artifact/activeAttemptIds及再次提交权，原job的delivery aggregate仍由自身attempt证据更新。同job非abandoned全部卷complete→delivery_complete；显式job放弃→abandoned并原子标记本job未决attempt abandoned；任意attempt abandoned（即使仅单卷）、interrupted或conflict→delivery_failed；任意mapping/deadline_unknown且没有failed→delivery_unknown；否则delivering。attempt+receipt+其原exportJob在原stores同事务聚合，保留timeout/resource history。新job只读新activeAttemptIds，旧late complete不影响新job；explicit abandon/tombstone后仅审计，不复活projection。
+
+Chrome storage.session在扩展disable/reload/update和浏览器重启时清空，因此browserSessionIncarnation实际是保守的扩展加载会话身份围栏：这些变化都视为新incarnation。所有准入先await同一个SW初始化promise，重启SW读取同值；session变化不推断旧tab消失。参见[Chrome Storage API](https://developer.chrome.com/docs/extensions/reference/api/storage)，该设计为基于API边界的推断，实际重启/重载行为仍待普通Chrome测试。
+
+
+## 原页面选区/取消/未保存draft预览（SOL-P1-01）
+
+公共方法在同一PagePort：openSourceContext、startSourceSelection、cancelSourceSelection、releaseSourceContext、previewSource，schema给全部输入/短ACK/结果。02B负责SW权限/真实sender/静态注入/生命周期，03保留包内SelectorUI交互与同Compiler，没有第二桥/owner/DB。原页面action.onClicked产生不可复用gestureTicket，记录真实source tab/权限/时间后才打开工具窗口；30s单次消费票据，host先register。不能靠工具窗口按钮的自报gesture获得source activeTab。固定classic握手核tab/frame0/document/origin，创建10min SourceSelectionContext，actual hostDocumentId/registration/session是权威绑定。source-context/gesture-ticket/cancel记录只在原commandJournal tagged行，绝不制造run或采集records。
+
+每context仅1个current operationId，kind固定select-list/fields/next；请求不接受JS字符串。SelectorUI拥有显式overlay/listener/timer句柄，只清理自身。操作异步返回SourceSelectionResult经真实content sender→SW→原host，不依赖executeScript.files求值结果。cancel先耐久标operation取消再cleanup，重复清理幂等；新操作自动取消旧操作，旧结果只audit不能覆盖新draft。source导航/文档变化、host关闭、超时、incarnation变化令context invalidated并释放资源；旧document/另一host/另一source结果拒绝E_TARGET/E_OWNER。release CAS contextRevision，重复返回旧ACK不改变新context。选区source activeTab变化不改变已绑定source，也不改变正式执行target。
+
+draft为完整有效但尚未save的TemplateRevision（可用draft ID/revision1，name尚在UI metadata），compiler与正式run完全同一个。previewSource核draft.contentHash、planHash、capability、字段/列序/selector/limits逐项绑定draft、当前source origin，不要求stored模板/claimRun/Pro。固定agent只读前10完整raw行（hasMore用于标采样），SourcePreviewData.digest=SHA256(canonical({selectionId,requestId,frameIndex,rowStart,rawRows}))；SourcePreviewEnd.rawSignature=SHA256(canonical({pageIdentity,rawRows:全部采样连续行}))。每frame≤128KiB，最多1个未frameACK；Host收到后同Compiler转换raw→typed，完整record≤64KiB，不截长文本。模块preview返回SourcePreviewResult，persisted=false；不翻页、不stage/seal、不占run slot、不写records。取消preview或context失效丢弃迟到frame/result，UI只显示匹配当前requestId结果。非法draft/CSS/多字段匹配/必填缺失按同正式编译拒绝；可选缺失null，0/false/空串/长文/无title保留。
+
+Source事件在现有pagePort.subscribeSourceSelection({selectionId},localListener)注册，返回unsubscribe；03在start前订阅、dispose时取消，02B仅向实际注册hostDocument投递认证result/cancel/invalidated事件；localListener是包内函数，不把代码序列化送页面。
+
+bootstrap known登记只是创建归属，还不是HTTP(S)正式Target。初次导航在同target-create tagged intent中存navigationState/navigationSubmissionCount/navigationDispatchAt，cancel/epoch/session/grant核后dispatched提交，固定bootstrap文档location.assign(startUrl)最多一次，禁止tabs.update或gap重放。导航后包内agent同origin真实新document握手才bindTarget可读；stop先提交不导航，导航已获准但效果未知保留effect_unknown并可精确退役已知同session创建tab，不推测业务成功。
+
+重复全页签名而无自然末页依据统一paused_unknown（包括旧pagination-signature场景），slot保持且不seal第二页/不盲点击，不能另以failed预期测试同一输入。下载聚合只在已prepare非空attempt集后适用，0attempt准备中保持preparing/ready；单卷abandoned不能归delivering，complete+abandoned和abandoned+unknown均delivery_failed，abandoned卷迟到仅audit，不复活原job或新job。

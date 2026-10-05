@@ -1,7 +1,7 @@
 {
   "mode": "development",
   "compiledEntry": "framework/sdk-main.js",
-  "sha256": "81424bd19540b1c044db1bdaf3d28c9ba26d6202001972827a1f320dba604fa8",
+  "sha256": "a889a647ba0197a222a8564174356e684a0da7ed12f650e84775db0f9f785d00",
   "repeatedFixedBundleEvaluation": true,
   "helloCount": 4,
   "globalsPreserved": true,

@@ -1,0 +1,9 @@
+{
+  "tag": "script-revision",
+  "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+  "scriptId": "native-bf6f76d4-4ada-477e-81ba-40efc4006efc",
+  "revision": 1,
+  "parentRevision": 0,
+  "contentHash": "a2fda27769078f2a04a68f9f25358e8cc15836240685b3992a024872b37962f1",
+  "sourceUtf8": "return await page.$eval('#marker',el=>el.textContent);"
+}

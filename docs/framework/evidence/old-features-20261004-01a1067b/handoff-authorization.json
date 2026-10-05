@@ -1,0 +1,15 @@
+{
+  "sourceThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4",
+  "turnId": "01a106d2-5dbe-7202-917e-48675cecd2f6",
+  "userMessageId": "01a106d2-93af-7f71-9527-d8875c9469fd",
+  "authorRole": "user",
+  "verifiedWith": "mcp__codex_app__read_thread; direct human userMessage",
+  "authorizationLines": [
+    "请执行 OpenDesk Browser 的增量重构与验证。本轮是实施任务，不是继续撰写方案。先核实最新源码和唯一写入者，再按依赖顺序完成实现、回归和真实入口验收。",
+    "3. 本提示词明确授权你与当前唯一写入者所在聊天发送必要的串行交接协调消息：",
+    "   - 请求其完成当前安全步骤后停止新增产品写入、构建和浏览器验收；",
+    "   - 随后登记本聊天为唯一写入者。",
+    "   不授权启动其他聊天的旧 Goal，也不授权并行产品写入。",
+    "- 完成正式串行交接。"
+  ]
+}

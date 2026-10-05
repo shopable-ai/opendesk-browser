@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-02T18:41:17.616811+00:00",
+  "productFilesCompared": 37,
+  "changed": [],
+  "stage0IntegrityTests": {
+    "command": "node --test tests/framework/stage0-ledger.test.mjs",
+    "cases": 5,
+    "pass": 5,
+    "fail": 0,
+    "claim": "mapping/manifest/gate integrity only; no product runtime proof"
+  },
+  "candidateManifestSha256": "9ecdc9fe8297a8032468162f2f9828a51bd223a1de638cf2fc76b650a8671574"
+}

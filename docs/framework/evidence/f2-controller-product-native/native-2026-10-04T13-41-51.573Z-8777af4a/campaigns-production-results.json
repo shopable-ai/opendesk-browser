@@ -1,0 +1,9 @@
+{
+  "mode": "production",
+  "records": [],
+  "campaigns": {},
+  "allEnvironmentsObserved": true,
+  "packageHash": "539825650f444ebaf2fa0f442fa846dfc37e0b287769c53e4ed03e045b3ba770",
+  "sourceDrift": false,
+  "finalAcceptance": false
+}

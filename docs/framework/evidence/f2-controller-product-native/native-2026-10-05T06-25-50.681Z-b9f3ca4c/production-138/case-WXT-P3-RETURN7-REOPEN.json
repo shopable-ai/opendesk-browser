@@ -1,0 +1,44 @@
+{
+  "id": "WXT-P3-RETURN7-REOPEN",
+  "families": "USC03/CTRL03/EX08/RESOURCE",
+  "expected": "Real UI committed return 7; revision, params, exact document, permission, actual Worker, durable released run, reopened tool same runId value7",
+  "phase": "F2",
+  "layer": "actual product entry native Chrome",
+  "status": "FAIL",
+  "selected": true,
+  "productInputsSha256": "63087cd9f4df120dd63792429c13a15230bb108f28d32616f2d6942f999c18c0",
+  "verificationInputsSha256": "00dc1ceedb022d650291e25a44490ef2afd25483d3f15a9a0d8f5650055f425d",
+  "packageSha256": "5893057009280761f80837ba73a7faba07c99684e54efb8debe8d4dabb85359f",
+  "browserVersion": "138.0.7204.183",
+  "startedAt": 1791181552168,
+  "input": {
+    "source": "return 7;",
+    "params": {
+      "caseId": "WXT-P3-RETURN7-REOPEN",
+      "marker": 7
+    },
+    "expected": 7
+  },
+  "evidence": {
+    "cdp": "../raw-cdp.jsonl",
+    "http": "../raw-http.jsonl"
+  },
+  "error": {
+    "code": "E_OBSERVATION_TIMEOUT",
+    "name": "Error",
+    "message": "Observation timed out: native UI exact option #script-target-mode",
+    "stack": "Error: Observation timed out: native UI exact option #script-target-mode\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:254:17)\n    at async select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:549:21)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:596:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:633:92)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:917:24\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:490:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:913:7)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:419:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:248:3"
+  },
+  "attribution": "product-or-native-contract",
+  "ui": {
+    "state": "results",
+    "text": "已读取持久结果",
+    "result": "{\"run\": null, \"runs\": [], \"results\": [], \"downloads\": [], \"resultDeliveryDenied\": []}",
+    "version": "已保存 r1 · 722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+    "runId": "",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": false,
+    "stopDisabled": true
+  },
+  "elapsedMs": 120093.085083
+}

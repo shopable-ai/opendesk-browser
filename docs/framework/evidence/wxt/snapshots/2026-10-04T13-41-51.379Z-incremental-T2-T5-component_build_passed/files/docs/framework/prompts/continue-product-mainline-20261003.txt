@@ -1,0 +1,101 @@
+请创建并执行“OpenDesk Browser 通用框架迁移续接 Goal”，在现有工程继续完成真实产品迁移，本次以产品主链为执行顺序。首要任务是让用户能在工作台保存普通 JS、获得版本、运行脚本、看到结果或错误、停止运行、重新读取持久化结果、下载结果文件。先完成这条产品主链，再完成独立页面 SDK 的剩余原生门禁，最后执行同一最终包的 F3。
+
+目标工程：/Users/shopme/Documents/workspace/opendesk-browser。所有命令显式指定该 cwd。新对话默认 cwd 可能是 scrapyJsChrome，不能据此选工程。当前工程没有 .git，不初始化、不 commit/push、不新增未请求的依赖。
+
+一、纠偏与执行原则
+
+上一对话已经做了实际实现，但基本产品主链尚未通过，却提前扩展了多组原生测试和测试准备，进展说明也未围绕关键产品行为。本次必须先证明一个最小普通脚本成功，再逐环节补齐实际功能。
+
+沿用已批准 T01–T13、K0–K6 和唯一账本。不是重新规划或审计任务，不重做阶段0/F1审批，不继续优化本提示词，不恢复旧任务或等待旧子代理。必要的新子代理只做边界明确、不阻塞主链的独立工作；主代理亲自推进关键接线与第一个真实成功例。
+
+在最小主链通过前，不启动四组合全矩阵、不开展 API48 广泛准备、不执行崩溃矩阵或1000轮压力测试。测试应验证当前正在完成的产品环节；前置环节失败就停止依赖它的后续测试，保留原始结果并区分 runner 阻断、产品失败和未执行。
+
+二、先完整读取，再立即实作
+
+完整读取以下文件，不只读摘要：
+- docs/framework/prompts/goal-migration-v5.txt，以及其中要求的历史附件。
+- docs/framework/prompts/continue-product-migration-20261002.txt。
+- docs/framework/product-continuation-checkpoint.json，包括最新用户纠偏记录。
+- docs/framework/execution-plan.md、execution-tasks.json、execution-gates.json、source-compatibility-ledger.json、framework-handoff.json、public-owner.json、progress.md。
+- 下述真实构建、SDK及控制入口报告，相关实际日志与修复回执。
+
+旧附件中的“当前”可能是历史状态。以带 hash 的最新实际证据核对，不恢复已经通过的旧门禁。完整阅读要求不意味着重新全库审计；只继续读取当前产品环节涉及的合同和源码。
+
+三、已确认的真实状态
+
+1. 阶段0和F1已放行，直接继续F2。
+阶段0 round6 manifest SHA256：da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1。
+F1同候选 manifest SHA256：a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66。
+Architect：c886a6d89b65832ff0019cb214750808a2ddf256296b82f29e38f0c48ca74ea6。
+Critic：7b2f9a86fc730a47804d9b197a4223a2225e8911fddbfe6b7f540a1ca813305f。
+双方对同一候选12/12必需合同通过、无阻断。冻结来源、原始失败、独立报告保持只读。
+
+2. 产品实现已有实际接线，不能重新做目录骨架。
+唯一SDK broker/authority、共享storage、chrome.storage.session、原生权限/导航/文档失效、固定SDK入口、sandbox/Worker/page-session资源、普通脚本版本与RunHost、结果持久化和下载代码已落地。
+工作台以唯一 foundationClient=createHostClient(...) 注册；RunHost使用 createRunHost({client:foundationClient})。页面SDK安装走 foundationClient.request('installSdk',{tabId,frameId,documentId,capabilities})，权限请求在真实用户点击内发生，tab/document明确选择。
+普通JS不依赖TemplateRevision、采集row或seal。默认通用SW不装载完整采集业务；可选业务消费者在feature边界接入。不要重新制造第二client、authority、namespace、DB或Cookie driver。
+
+3. 当前F2双包构建、打包、资源校验已通过，CSP和原预算未放宽。
+证据目录：docs/framework/evidence/f2-shared-integration/stable-rebuild-2026-10-03T08-50-41.030Z/。
+production packageHash：552d3b3fe7cfb8f196142954659702b8440a6acf517e15bde959c7c7beff9f89。
+development packageHash：1527fb90d335e70690aba5035cb933c1ad24a5ec8d3ea5397f57402eeaa6bc60。
+当时组件测试392/392、语法71文件通过，77项构建输入无漂移。它们只证明对应组件和构建，不证明用户产品主链或F3。
+
+4. SDK定向原生四组合已经执行，不要无故重复。
+证据：docs/framework/evidence/f2-sdk-native/native-2026-10-03T08-53-40.016Z-9b6c515c/summary.json、verification-receipt.json及各组合raw。
+production/development × Chrome138/154：各15PASS、0FAIL、0BLOCKED、1NOT_TESTED，总60PASS/4NOT_TESTED。sourceDrift=[]，双包packageDrift=false。
+通过范围包括真实SDK ready、JSON类型、session/persistent、HTTP、重复/冲突、撤权、导航及SW未知效果的定向行为。
+4个NOT_TESTED均为同profile浏览器重开：全局launcher只支持fresh profile，不能复制profile或用组件测试假称寿命通过。
+仅production138有本主线程真实CUA“允许127.0.0.1”点击归因；后续组合grant actor未确认，保留原生权限变化事实，不补造点击归因。
+这些证据不是独立SDK B05完整通过，也不关闭F3/603。
+
+5. 当前最重要缺口：普通脚本产品主链没有通过证据。
+首轮控制入口报告：docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-13-12.403Z-31778dfb/summary.json及各report/raw。
+首轮production138、production154、development138各23FAIL，主要前置错误发生在fill('#script-id')：旧值my-script与新值拼接，尚未完成保存/准入；development154为23NOT_TESTED。原始FAIL保留，不能转PASS，不能当作已经证明产品运行失败。
+runner已修复真实键盘selectAll、焦点/selectionStart/end核对和原生select选择；期望断言未弱化。
+修复runner：tests/framework/k5-controller-product-native.mjs。
+最新已知SHA256：6a67374cb9d121097644afc67873af4e6267032b822540b739d598e33b9f134a。
+准备证据：docs/framework/evidence/f2-controller-product-native/runner-repair-2026-10-03T09-27-31.552936+00-00/repair-ready.json、ready-2026-10-03T09-27-31.732Z-880bd58f/ready.json。
+修复后的原生run目录：docs/framework/evidence/f2-controller-product-native/native-2026-10-03T09-28-25.557Z-b00dcdb8/。最后已核对production138报告为0PASS、0FAIL、1BLOCKED、22NOT_TESTED：真实UI已保存r1，revision/sourceHash核验已触达；运行停在原生权限authorizing，尚无runId/终态，不能判产品运行成功或失败。该组合ownedChrome83222与launcher83221均已退出，profileRemoved=true。切换对话已要求停止新增执行；完整读取最后报告和清理回执，不等待原生旧进程或旧agent。
+原main-rebuild-receipt中的执行窗口授权属于旧运行，不能直接作为新对话继续跑全矩阵的理由。
+
+四、必须按产品环节推进
+
+A. 第一个真实成功例，先只用production + Chrome138。
+先读 src/ui/tool.html、src/ui/tool-shell.js、src/ui/script-editor.js、src/run-host.js及其实际脚本存储/执行依赖，核对“编辑→保存版本→RunHost准入→Worker执行→终态→结果读取”的调用链；发现缺接线直接补实际实现。
+只启动一个自有测试浏览器，加载原production包，通过真实工作台输入唯一scriptId、普通源码 return 7; 和参数，点击保存。字段填写必须原生操作并读回值，不能通过改DOM值或写IDB绕过产品流程。
+依次观察：保存成功；immutable ScriptRevision及源码hash/参数正确；明确选择owned目标或原生tab/frame/document；真实权限返回；点击运行；获得真实runId；sandbox/Worker实际执行；UI读到7；真实results/runs持久终态及retirement完成。
+重新打开工具页面，通过UI按runId重新读取结果，证明不是仅页面内存。不得把“重开工具页”冒称“同profile重启浏览器”。
+保存此单例的输入、UI状态、revision/sourceHash、runId、原生日志、只读durable观察、包hash和清理事实。若失败，停在首个失败环节，分清runner还是产品原因，修根因并重试此单例。
+现runner若没有单例/fail-fast入口，最小改造现runner或直接完成真实UI单例；不能因runner当前默认23项而又跑整批。
+
+B. 成功例成立后补齐基本可用性，每次只扩大到下一相关环节。
+验证false、0、undefined与own-property；throw/Promise reject；停止等待中的脚本和无限CPU脚本（按原合同时限实际终止）；不能取消后继续效果或漏清Worker/端口/lease。
+验证r1运行时保存r2、删除head：运行中的源码/参数保持r1，之后的新启动按墓碑合同拒绝。当前存在“先写preparing run再pin revision，墓碑拒绝后是否留下run行”的未验证风险，按实际准入/原子性合同证明，不能先改断言或凭源码猜PASS。
+验证owned/borrowed精确目标：普通页面goto→type→click→wait→read→return；切换active tab不改变已选择document，borrowed目标不被误关。
+验证结果下载：由工作台点击下载，实际chrome.downloads完成，磁盘文件存在且hash/内容和持久结果一致；同时确认registry/Blob/lease释放回baseline。
+源码有变化时重建主包，重新核对预算/CSP/资源；重验受影响基本环节，不用旧包结果替新源码担保。
+
+C. 基本主链与上述相关控制行为通过后，补独立页面SDK门禁。
+沿用现有18方法、唯一codec和原生sender/精确document/grant合同，页面SDK调用不得创建controller。
+CP1已有双包唯一准入事务断点纯准备：docs/framework/evidence/f2-sdk-admission-abort/stable-selector-2026-10-03T09-13-23.json；tests/framework/k5-sdk-admission-abort-native.mjs及selector/inspect。native仍NOT_TESTED，不重复实现另一CP1 helper。
+核验真正事务/请求/原生SW target并在独占slot执行CP1及B05剩余崩溃点、SDK018 durable-before-receipt等实际门禁。现有 tests/framework/b05-product-acceptance-20261003.mjs可复用，但先读其最新清理逻辑和未执行边界；不要把helper准备或机制审查当作产品通过。
+缺少必要原生事实就记NOT_TESTED并寻找符合合同的可执行路径，不能伪造sender、patch原生API、改包key、写profile权限或mock效果。
+
+D. 最后执行F3，保持原完成标准。
+冻结同一最终production包，逐项闭环唯一账本原始603项及明确19增项、历史17失败、R1–R8；API48、本轮必要扩展与各能力族不遗漏。
+随后执行1000轮混合成功/异常/超时/取消/导航、10轮host/SW重连、2轮插件禁用、资源回baseline、真实下载、独立SDK B05。
+由未参与当前候选编写的独立Architect、Critic顺序审查同一最终包。未完成最终包验收，不标记Goal、frameworkFunctionalMigrationComplete或F3完成。
+
+五、原生浏览器与证据约束
+
+所有独立Chrome测试使用 /usr/bin/python3 /Users/shopme/.codex/browser-testing/launch.py --executable <确切binary> --report <json> ...；完整读取当前launcher。已知SHA256为1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36，该版本会消费leading --，不要继承此前错误的“不支持--”结论。
+验证actual main PID、PPID、binary、fresh0700profile、mock-keychain/password-store及原生SystemInfo；只清理确认属于本run的launcher/Chrome/profile。不要裸启动Chrome、使用个人profile、复制profile、操作旧PID或对其他浏览器Browser.close。旧154 PID73732禁止操作，所有历史PID可能已失效。
+CUA只绑定已核对存活进程的正确surface；surface不匹配不得点击，原生权限等待不直接归为SDK/product FAIL。浏览器串行，产品包运行中冻结。
+原始失败和历史证据保留。组件、syntax、selector、工作台冒烟、机制审查与最终产品证据分别记账，不用计数堆出完成结论。不改原始603分母，不修改冻结审计/F1证据，不覆盖别的作者。
+
+六、首次回应与进度说明
+
+首次用简明几行说明：已实现什么、哪条用户主链尚未通过、当前首个阻断、下一项实际动作。随后立即推进A，不停在计划/能力说明，不再请求常规可逆操作许可。
+每次更新围绕产品环节说明“刚完成的行为、实际观察到的结果、卡在哪里、正在补什么”。不要主要汇报测试数量、准备hash或lane活动。
+最终报告给出用户可实际使用的入口、已证明的行为、证据路径和剩余门禁。没有逐项正确性与同一最终包验收就继续工作，不能用大量测试代替完成产品。

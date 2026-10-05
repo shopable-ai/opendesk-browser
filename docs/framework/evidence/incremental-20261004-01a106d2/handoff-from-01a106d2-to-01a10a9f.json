@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-10-05T05:56:17Z",
+  "sourceThreadId": "01a106d2-54e6-77a3-823d-c9891df8e0e4",
+  "successorThreadId": "01a10a9f-0a6e-76a2-bab3-72a620603c44",
+  "authorization": "User explicitly requested serial handoff when current chat differs from public owner; predecessor explicitly released.",
+  "predecessorRelease": {
+    "status": "released",
+    "message": "当前聊天已完成安全收尾并明确释放串行写权：没有新增产品写入、构建、测试或浏览器验收在途；受控 Chrome 及临时 profile 已关闭清理；没有冲突的在途操作；当前未提交/未跟踪改动已保留，未执行 reset、restore、clean 或 stash。",
+    "verifiedAt": "2026-10-05T05:56:17Z"
+  },
+  "processCheck": "docs/framework/evidence/incremental-20261004-01a106d2/handoff-process-check-20261005.json",
+  "scope": "sole-public-foundation-owner:incremental-T1-T6",
+  "candidateIdentity": "docs/framework/evidence/incremental-20261004-01a106d2/candidate-identity.json",
+  "noParallelProductWriter": true,
+  "noProductMutationBeforeRegistration": true
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "kind": "runtime-derived-proposed-contract-amendment",
+  "currentApproval": "round-4 remains historical; round-5 awaiting independent approval",
+  "changedContract": "F1-CTRL-TRUE-TERMINATE",
+  "previousBoundMilliseconds": 2000,
+  "proposedBoundMilliseconds": 3000,
+  "nativeGraceMilliseconds": 2000,
+  "observationAllowanceMilliseconds": 1000,
+  "upstream": [
+    {
+      "version": "138.0.7204.183",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/138.0.7204.183/third_party/blink/renderer/core/workers/worker_thread.cc",
+      "constantLine": 78,
+      "constant": "kForcibleTerminationDelay",
+      "milliseconds": 2000
+    },
+    {
+      "version": "154.0.8037.92",
+      "url": "https://raw.githubusercontent.com/chromium/chromium/refs/tags/154.0.8037.92/third_party/blink/renderer/core/workers/worker_thread.cc",
+      "constantLine": 80,
+      "constant": "kForcibleTerminationDelay",
+      "milliseconds": 2000
+    }
+  ],
+  "diagnostic": {
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-worker-stop-diagnostic/report-mock-keychain.json",
+    "sha256": "3d88d523b1d9cff33bf13ca05746e5f588d1d6d13da63ed67540be6fbda5c8e3",
+    "driver": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-worker-stop-diagnostic/diagnose.py",
+    "driverSha256": "3d9489923231af46d6188da3dda12f4d133ff386a509ec678375162c73d49262",
+    "sameHarnessSha256": "acef8dd9b9b1e7c5b7fc88eebf42213e150110b71a945d85655d5ca06958ac84",
+    "actualOpaqueOrigin": "null",
+    "cdpConnection": false,
+    "debuggerAttachment": false,
+    "observedCpuStopApproxSeconds": 2.07,
+    "qualifiesF1": false,
+    "initialLaunchFailures": "two no-page launches without use-mock-keychain not functional tests"
+  },
+  "oldFailuresPreserved": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T19-57-31.381Z/report.json",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/prototypes/user-control-v2/evidence/m5-round4-138-headless-2026-10-02T20-06-30.807Z/report.json"
+  ],
+  "unchanged": [
+    "72 source and hashes",
+    "48 API signatures/semantics",
+    "191 required contracts with184 positive",
+    "603 mandatory product cases",
+    "minimum138 and Stable154 actual matrix",
+    "independent SDK acceptance",
+    "selected classic Blob opaque Worker backend",
+    "permissions",
+    "admission immediately closed and no late operation",
+    "no generic MAIN loop termination promise"
+  ],
+  "runtimePass": false,
+  "productCodeModified": false
+}

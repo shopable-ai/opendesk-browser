@@ -1,0 +1,30 @@
+{
+  "state": "native-selection-assist",
+  "mode": "production",
+  "label": "138",
+  "pid": 44923,
+  "launcherPid": 44922,
+  "endpoint": "ws://127.0.0.1:62309/devtools/browser/37c8d312-5873-4a0c-b005-ec0f4af673e9",
+  "targetId": "4C35DFEE2F16FB9F9D5481444964C865",
+  "selector": "#script-target-mode",
+  "desired": "borrowed",
+  "optionIndex": 1,
+  "before": {
+    "selectedIndex": 0,
+    "value": "owned",
+    "focused": false,
+    "options": [
+      {
+        "value": "owned",
+        "text": "创建隔离网页",
+        "disabled": false
+      },
+      {
+        "value": "borrowed",
+        "text": "使用明确选定的现有文档",
+        "disabled": false
+      }
+    ]
+  },
+  "instruction": "Use the bound live native Chrome window to commit this exact option; no DOM assignment or synthetic events"
+}

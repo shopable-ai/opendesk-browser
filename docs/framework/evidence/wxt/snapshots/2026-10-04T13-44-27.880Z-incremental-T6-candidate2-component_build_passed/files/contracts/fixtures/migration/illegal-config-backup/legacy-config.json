@@ -1,0 +1,5 @@
+{
+  "_listContainer": ".rows",
+  "name": "javascript:example()",
+  "extra": {"code": "example()"}
+}

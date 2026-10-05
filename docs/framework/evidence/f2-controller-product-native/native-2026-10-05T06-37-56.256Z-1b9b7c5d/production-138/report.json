@@ -1,0 +1,459 @@
+{
+  "mode": "production",
+  "label": "138",
+  "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "binarySha256": "f33ac0c54d6d277a5f0df5b266d8da3dc595981d78fdbec0577885f2c1b4540f",
+  "requestedVersion": "138.0.7204.183",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "productInputsSha256": "63087cd9f4df120dd63792429c13a15230bb108f28d32616f2d6942f999c18c0",
+  "verificationInputsSha256": "00dc1ceedb022d650291e25a44490ef2afd25483d3f15a9a0d8f5650055f425d",
+  "packageHash": "5893057009280761f80837ba73a7faba07c99684e54efb8debe8d4dabb85359f",
+  "sourceHash": "f402050208a4759cd8ce7196dc5b5431383cbd79dcf0c4b071f099d42c976941",
+  "runnerSha256": "4936100dc790f1e344c22083a078ddfbec6f1e5470938f4c8de108520f6fc127",
+  "stage": "F2",
+  "f3Accepted": false,
+  "original603Closed": false,
+  "OS": {
+    "type": "Darwin",
+    "release": "25.5.0",
+    "arch": "arm64"
+  },
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+  "manifest": {
+    "manifest_version": 3,
+    "name": "OpenDesk Browser",
+    "description": "OpenDesk Browser 浏览器自动化框架。",
+    "version": "0.1.0",
+    "minimum_chrome_version": "138",
+    "permissions": [
+      "storage",
+      "scripting",
+      "activeTab",
+      "downloads",
+      "tabs",
+      "webNavigation",
+      "userScripts"
+    ],
+    "optional_permissions": [
+      "cookies",
+      "notifications"
+    ],
+    "optional_host_permissions": [
+      "http://*/*",
+      "https://*/*"
+    ],
+    "action": {
+      "default_title": "打开 OpenDesk Browser"
+    },
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'",
+      "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+    },
+    "incognito": "not_allowed",
+    "sandbox": {
+      "pages": [
+        "scripting/sandbox/sandbox.html"
+      ]
+    },
+    "web_accessible_resources": [
+      {
+        "resources": [
+          "framework/sdk-main.js"
+        ],
+        "matches": [
+          "http://*/*",
+          "https://*/*"
+        ]
+      }
+    ],
+    "background": {
+      "service_worker": "sw.js"
+    }
+  },
+  "cases": [
+    {
+      "id": "WXT-P3-RETURN7-REOPEN",
+      "families": "USC03/CTRL03/EX08/RESOURCE",
+      "expected": "Real UI committed return 7; revision, params, exact document, permission, actual Worker, durable released run, reopened tool same runId value7",
+      "phase": "F2",
+      "layer": "actual product entry native Chrome",
+      "status": "FAIL",
+      "selected": true,
+      "productInputsSha256": "63087cd9f4df120dd63792429c13a15230bb108f28d32616f2d6942f999c18c0",
+      "verificationInputsSha256": "00dc1ceedb022d650291e25a44490ef2afd25483d3f15a9a0d8f5650055f425d",
+      "packageSha256": "5893057009280761f80837ba73a7faba07c99684e54efb8debe8d4dabb85359f",
+      "browserVersion": "138.0.7204.183",
+      "startedAt": 1791182277636,
+      "input": {
+        "source": "return 7;",
+        "params": {
+          "caseId": "WXT-P3-RETURN7-REOPEN",
+          "marker": 7
+        },
+        "expected": 7
+      },
+      "evidence": {
+        "cdp": "../raw-cdp.jsonl",
+        "http": "../raw-http.jsonl"
+      },
+      "error": {
+        "code": "E_OBSERVATION_TIMEOUT",
+        "name": "Error",
+        "message": "Observation timed out: native UI exact option #script-tab",
+        "stack": "Error: Observation timed out: native UI exact option #script-tab\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:254:17)\n    at async select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:549:21)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:599:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:633:92)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:917:24\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:490:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:913:7)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:419:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:248:3"
+      },
+      "attribution": "product-or-native-contract",
+      "ui": {
+        "state": "results",
+        "text": "已读取持久结果",
+        "result": "{\"run\": null, \"runs\": [], \"results\": [], \"downloads\": [], \"resultDeliveryDenied\": []}",
+        "version": "已保存 r1 · 722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+        "runId": "",
+        "download": "结果下载保留类型信息，包括 undefined。",
+        "runDisabled": false,
+        "stopDisabled": true
+      },
+      "elapsedMs": 213507.10525
+    }
+  ],
+  "caseSelection": {
+    "option": "all",
+    "explicit": [
+      "WXT-P3-RETURN7-REOPEN"
+    ],
+    "prerequisites": [],
+    "selected": [
+      "WXT-P3-RETURN7-REOPEN"
+    ],
+    "allSelected": true
+  },
+  "environment": {
+    "origin": "http://127.0.0.1:49375"
+  },
+  "launcherPid": 53229,
+  "launcher": {
+    "command": {
+      "at": 1791182276375,
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "pid": 53229,
+      "executable": "/usr/bin/python3",
+      "args": [
+        "/Users/shopme/.codex/browser-testing/launch.py",
+        "--executable",
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--report",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/native-2026-10-05T06-37-56.256Z-1b9b7c5d/production-138/launcher-metadata.json",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "chromeArgs": [
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74"
+    },
+    "metadata": {
+      "pid": 53231,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "args": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3",
+        "--enable-automation",
+        "--remote-debugging-port=0",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3/chrome.log"
+    },
+    "profileStat": {
+      "birthtimeMs": 1791182276432.3213,
+      "mode": 448
+    },
+    "actualMainProcess": {
+      "psExecutable": "/bin/ps",
+      "psArgs": [
+        "-p",
+        "53231",
+        "-ww",
+        "-o",
+        "pid=,ppid=,command="
+      ],
+      "stdout": "53231 53229 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3 --enable-automation --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank\n",
+      "pid": 53231,
+      "ppid": 53229
+    },
+    "endpoint": "ws://127.0.0.1:49378/devtools/browser/b7b2612e-b325-4bb2-8211-137b5810b8c9"
+  },
+  "endpoint": "ws://127.0.0.1:49378/devtools/browser/b7b2612e-b325-4bb2-8211-137b5810b8c9",
+  "pid": 53231,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3",
+  "browserArgs": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3",
+    "--enable-automation",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "about:blank"
+  ],
+  "debuggingURL": "http://127.0.0.1:49378",
+  "cdpVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/138.0.7204.183",
+    "revision": "@e90faf484ddbc033fc9bf337621761d3dd5c5289",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "jsVersion": "13.8.258.30"
+  },
+  "completeVersion": "Chrome/138.0.7204.183",
+  "systemInfo": {
+    "gpu": {
+      "devices": [
+        {
+          "vendorId": 4203,
+          "deviceId": 0,
+          "vendorString": "Google Inc. (Apple)",
+          "deviceString": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Version 26.5.1 (Build 25F80))",
+          "driverVendor": "Apple",
+          "driverVersion": "26.5.1"
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_METAL",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_compressed_texture_etc GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_size GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_provoking_vertex GL_ANGLE_request_extension GL_ANGLE_robust_client_memory GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_translated_shader_source GL_APPLE_clip_distance GL_ARM_rgba8 GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_color_buffer_float_rgb GL_CHROMIUM_color_buffer_float_rgba GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_clip_control GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_multisampled_render_to_texture GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_pvrtc_sRGB GL_EXT_read_format_bgra GL_EXT_robustness GL_EXT_sRGB GL_EXT_shader_texture_lod GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_storage GL_IMG_texture_compression_pvrtc GL_KHR_debug GL_KHR_parallel_shader_compile GL_KHR_robustness GL_KHR_texture_compression_astc_hdr GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_NV_fence GL_NV_framebuffer_blit GL_NV_pixel_buffer_object GL_OES_EGL_image GL_OES_EGL_sync GL_OES_compressed_EAC_R11_signed_texture GL_OES_compressed_EAC_R11_unsigned_texture GL_OES_compressed_EAC_RG11_signed_texture GL_OES_compressed_EAC_RG11_unsigned_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_ETC2_RGB8_texture GL_OES_compressed_ETC2_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_sRGB8_alpha_texture GL_OES_compressed_ETC2_sRGB8_alpha8_texture GL_OES_compressed_ETC2_sRGB8_texture GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_vertex_array_object ",
+        "glImplementationParts": "(gl=egl-angle,angle=metal)",
+        "glRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Version 26.5.1 (Build 25F80))",
+        "glResetNotificationStrategy": 33377,
+        "glVendor": "Google Inc. (Apple)",
+        "glVersion": "OpenGL ES 2.0.0 (ANGLE 2.1.25520 git hash: e1dc0a7ab5d1)",
+        "glWsExtensions": "",
+        "glWsVendor": "",
+        "glWsVersion": "",
+        "inProcessGpu": false,
+        "initializationTime": 0.057345,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "4",
+        "optimus": false,
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "1.00",
+        "processCrashCount": 0,
+        "sandboxed": true,
+        "skiaBackendType": "GraphiteDawnMetal",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "1.00",
+        "visibilityCallbackCallCount": 0
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "enabled_on",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgl2": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "disable_2d_canvas_auto_flush",
+        "enable_webgl_timer_query_extensions",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": [],
+      "imageDecoding": []
+    },
+    "modelName": "Mac",
+    "modelVersion": "14.6",
+    "commandLine": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3 --enable-automation --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --flag-switches-begin --flag-switches-end about:blank"
+  },
+  "processInfo": {
+    "processInfo": [
+      {
+        "type": "browser",
+        "id": 53231,
+        "cpuTime": 0.469528
+      },
+      {
+        "type": "renderer",
+        "id": 53244,
+        "cpuTime": 0.048177
+      },
+      {
+        "type": "renderer",
+        "id": 53245,
+        "cpuTime": 0.054404
+      },
+      {
+        "type": "GPU",
+        "id": 53240,
+        "cpuTime": 0.144447
+      },
+      {
+        "type": "network.mojom.NetworkService",
+        "id": 53241,
+        "cpuTime": 0.061846
+      },
+      {
+        "type": "storage.mojom.StorageService",
+        "id": 53242,
+        "cpuTime": 0.035775
+      }
+    ]
+  },
+  "actualBrowserCommandLine": {
+    "arguments": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3",
+      "--enable-automation",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--flag-switches-begin",
+      "--flag-switches-end",
+      "about:blank"
+    ]
+  },
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "actualSW": {
+    "targetId": "05FCC4869246E22FF4464B1DEC6E171F",
+    "id": "efhcmggbgamacpfhhmooelgdkepdcghh",
+    "manifest": {
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
+      },
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "incognito": "not_allowed",
+      "manifest_version": 3,
+      "minimum_chrome_version": "138",
+      "name": "OpenDesk Browser",
+      "optional_host_permissions": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "optional_permissions": [
+        "cookies",
+        "notifications"
+      ],
+      "permissions": [
+        "storage",
+        "scripting",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts"
+      ],
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html"
+        ]
+      },
+      "version": "0.1.0",
+      "web_accessible_resources": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "resources": [
+            "framework/sdk-main.js"
+          ]
+        }
+      ]
+    },
+    "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js"
+  },
+  "userScriptsPrerequisite": {
+    "available": false,
+    "reason": "undefined API"
+  },
+  "error": {
+    "code": "E_OBSERVATION_TIMEOUT",
+    "name": "Error",
+    "message": "Runner prerequisite failed; remaining cases not executed",
+    "stack": "Error: Runner prerequisite failed; remaining cases not executed\n    at caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:497:189)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:913:7)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:419:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:248:3",
+    "actual": {
+      "code": "E_OBSERVATION_TIMEOUT",
+      "name": "Error",
+      "message": "Observation timed out: native UI exact option #script-tab",
+      "stack": "Error: Observation timed out: native UI exact option #script-tab\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:254:17)\n    at async select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:549:21)\n    at async chooseBorrowed (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:599:5)\n    at async run (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:633:92)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:917:24\n    at async caseRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:490:52)\n    at async browserRun (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:913:7)\n    at async nativeMain (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:419:22)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-controller-product-native.mjs:248:3"
+    }
+  },
+  "attribution": "product-or-native-contract",
+  "cleanup": {
+    "exit": {
+      "at": 1791182491395,
+      "code": 0,
+      "signal": null
+    },
+    "pidAlive": false,
+    "launcherPidAlive": false,
+    "launcherPid": 53229,
+    "chromePid": 53231,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ib03u7l3",
+    "profileOwner": "global launcher",
+    "profileRemoved": true,
+    "profileRetainedForRawEvidence": false,
+    "nativeLogBytes": 1416,
+    "nativeLogSha256": "45b09dbdd27914680757885af70a2a4f91909effdfc3aa64683c26c3bbdbf028",
+    "nativeLogPreservedAfterLauncherExit": true,
+    "launcherStdoutBytes": 1085,
+    "launcherStderrBytes": 0,
+    "errors": []
+  },
+  "launcherAfterSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "launcherDrift": false,
+  "packageDrift": false,
+  "summary": {
+    "PASS": 0,
+    "FAIL": 1,
+    "BLOCKED": 0,
+    "NOT_TESTED": 0
+  }
+}
