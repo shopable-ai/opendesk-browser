@@ -1,216 +1,237 @@
-# CURRENT / TARGET：先定义用户合同，再对应内部架构
+# CURRENT / TARGET：浏览器自动化与用户脚本的统一框架
 
-> 主线产品源码基线：`6214b5e9132f58cbe0402a34973b7ee38c851d53`。
-> P1 候选基线：`38763c78209794bec53c8ca848bfa0789dc4796e`，分支 `codex/p1-2-sdk-target-origins-20261004`。
-> 2026-10-05 静态核对。IMPLEMENTED 仅表示源码存在且所述关键接线可追踪，不等于本轮真实浏览器 PASS。两条线不能拼成一个已经交付的包。
+> 定位与语义首页：[README](README.md)。本文件承接首页，不再以“保存脚本 / 请求服务”代替完整框架。
+> 主线文档修订前：`bb2038f992b1ad79311fc8436433a655f76ff735`，产品源码基线 `6214b5e9132f58cbe0402a34973b7ee38c851d53`。
+> P1 候选本轮观察：`426409791a35acb6a6e5eb3f6fcc8b0600f562b5`，分支 `codex/p1-2-sdk-target-origins-20261004`。此前 `38763c7` 已有批准 UI，其后一项提交增加构建/测试相关内容。
+> 2026-10-05 静态分析与文档修订。IMPLEMENTED 表示具体代码与关键接线存在，不表示真实浏览器验收通过。主线、候选和 TARGET 不能合并描述成一个已经交付的版本。
 
-## 1. 框架的语义合同
+## 1. 框架范围与非目标
 
-| 用户操作 | 框架必须答清的问题 | 权威归属 |
-|---|---|---|
-| 保存脚本 | 脚本 ID、版本、内容 hash 是什么？保存是否成功？ | 脚本 repository 与受控写入入口 |
-| 启动运行 | 谁要求运行哪一版、用什么参数、在哪个目标？ | Run admission；不是按钮自身 |
-| 操作网页 | 当前 run 的 Page 绑定哪个 tab/frame/document？ | Authority + target driver |
-| 请求服务 | 谁从哪个文档请求什么能力、允许访问哪里？ | SDK / Controller 对应的 authority 分支 |
-| 取得结果 | 对应哪次调用？只是 ACK、效果已发生，还是结果已保存/允许交付？ | Journal / result repository + delivery check |
-| 停止/撤销 | 哪些后续动作不得发出？已发出的副作用是否仍可能发生？ | Authority 持久状态 + runtime 取消 |
+框架必须同时容纳：
 
-脚本资产不是运行实例；运行实例不是其中的一次 API 操作；操作的实际效果不是响应是否送达。这四层不能再用一个“运行成功”表示。
+1. **浏览器控制**：普通控制脚本通过 Puppeteer 风格 ChromePage / ChromeElement / Keyboard 操作明确的网页。
+2. **网页用户脚本**：脚本在页面执行环境内访问 DOM、增加交互与监听事件，可按网址/时机装载，也可手动触发。
+3. **浏览器服务**：两类脚本及获准的普通网页，通过服务 API 请求 HTTP、存储、通知、资源、下载等能力。
 
-## 2. CURRENT：用户可以怎样接触这些能力
+前两项是不同运行语义；第三项是能力服务，不是另一种运行世界。脚本管理 UI、工具栏与页面按钮是产品层消费者。自动化任务也可以选择不使用服务 SDK；网页用户脚本也可以选择不使用 ChromePage。
 
-### 2.1 扩展工具运行 Controller 脚本
+不为这一模型新建第二个 authority、第二个数据库、平行 Broker 或通用 Workflow。允许在现有框架中增加缺失的页面脚本生命周期适配；不能把“只有一个执行底座”解释成所有程序只能塞入无 DOM 的 Controller Worker。
+
+不是全量 Puppeteer 复刻、不是已完成 GM/Tampermonkey 生态兼容，也不把账号、CSDN、TimeReview、设备远程控制等旧业务自动纳入通用核心。后续 Agent/MCP 或其他客户端只能作为同一能力边界的消费者，本轮不建设新的外部入口。
+
+## 2. CURRENT：已存在的三条关键调用链
+
+### 2.1 Puppeteer 风格控制脚本
 
 ```text
 Script Editor 保存 source
-→ client.commitControllerScript
-→ 持久 scriptHeads / scriptRevisions
-
-用户选择 revision / params / target 后运行
-→ RunHost.startController
-→ client.startControllerRun
-→ Controller Authority 固定脚本与目标
+→ commitControllerScript → scriptHeads / scriptRevisions
+→ 用户选择版本、参数、目标
+→ RunHost.startController → startControllerRun
+→ Controller Authority 固定版本与目标
 → 受控 Worker 执行 async-body
-→ 注入 page、params、axiosx、AppStorage、AppLocal、storage
-→ API 操作或服务调用
-→ 本次完成与结果持久化 / 目标资源退役
+→ page / params / axiosx / AppStorage / AppLocal / storage
+→ Controller operation → 对应 driver
+→ 操作回执与最终 result → 资源退役
 ```
 
-这条能力不能被根 README 的旧“仅 02A 基础环境”描述覆盖。主线已有对应代码，但本轮没有重新证明真实 UI、浏览器和资源回收全链通过。
+脚本正文和页面不在同一执行环境。`page.title()` 通过固定包内 DOM 操作读取目标；`page.evaluate(...)` 通过受控页面计算路径。对受控程序而言 Page 可在可信导航后继续使用；旧元素和文档引用不得静默跟随新页面。
 
-源码：[script-editor.js](../../../src/ui/script-editor.js)、[run-host.js](../../../src/run-host.js)、[worker-runtime.js](../../../src/scripting/sandbox/worker-runtime.js)、[context.js](../../../src/framework/context.js)、[controller-methods.js](../../../src/platform/host/controller-methods.js)。
+源码：[script-editor](../../../../src/ui/script-editor.js)、[RunHost](../../../../src/run-host.js)、[Worker 参数](../../../../src/scripting/sandbox/worker-runtime.js)、[context](../../../../src/framework/context.js)、[ChromePage](../../../../src/framework/ChromePage.js)、[controller-methods](../../../../src/platform/host/controller-methods.js)、[native-driver](../../../../src/framework/control/native-driver.js)。
 
-### 2.2 网页调用 SDK 服务
+### 2.2 独立 Page SDK 服务
 
 ```text
-扩展工具选定 A 文档、能力并批准安装
-→ Broker.installSdk
-→ Authority.grantSdk
+扩展工具选定来源 A 的文档、能力并批准安装
+→ Broker.installSdk → Authority.grantSdk
 → 固定 relay（ISOLATED）+ 固定 SDK（MAIN）
 → 页面 OpenDeskSDK / axiosx / AppStorage 等
-→ Window transport → relay → runtime actual sender
-→ SDK Authority → service executor → platform driver
+→ transport → relay → runtime actual sender
+→ SDK Authority → service executor → driver
 → journal / result → delivery check → A 的原 Promise
 ```
 
-SDK 安装不是授予网页一个后台全局 `page`。CURRENT 的 `executeScript` / `executeInBg` 原始脚本接口明确拒绝；网页调用服务不要求先创建一份 Controller 脚本。
+来源页面可由自己的业务程序、按钮或 DevTools 调用 SDK，不必先保存 Controller 程序。SDK 安装不等于把后台全局 page 注入网页；CURRENT 的原始 executeScript / executeInBg 服务明确拒绝。
 
-源码：[SDK entry](../../../src/framework/sdk/entry.js)、[transport](../../../src/framework/sdk/transport.js)、[relay](../../../src/agents/page-relay.js)、[sdk-broker](../../../src/platform/host/sdk-broker.js)、[sdk-methods](../../../src/platform/host/sdk-methods.js)。
+源码：[SDK entry](../../../../src/framework/sdk/entry.js)、[transport](../../../../src/framework/sdk/transport.js)、[relay](../../../../src/agents/page-relay.js)、[sdk-broker](../../../../src/platform/host/sdk-broker.js)、[sdk-methods](../../../../src/platform/host/sdk-methods.js)。
 
-### 2.3 主线与候选的关键区别
+### 2.3 已有页面执行机制不等于完整用户脚本产品
 
-| 能力 | 主线 6214b5e | 候选 38763c7 | 正确报告方式 |
-|---|---|---|---|
-| Page / Controller 运行 | 已有主要实现 | 已有对应基础，但不能假设包含主线全部后续修复 | 实现存在；验收分列 |
-| 同源 Page SDK / 工具安装 | 已有 | 已有 | 实现存在 |
-| P1.1 reference 核验 | Broker 内仍解释部分持久 SDK 绑定 | 调唯一 authority 的 lookupSdkInvocation | 候选修正方向正确 |
-| P1.2 精确额外 targetOrigins | 主线没有候选的新契约 | parser / grant / dispatch / delivery 检查已有 | 候选后端 IMPLEMENTED |
-| A/B 批准 UI | 主线安装参数未传 targetOrigins | 新 sdk-approval.js + tool-shell + tool.html 已接入 | 候选 UI IMPLEMENTED；不是当前缺失项 |
-| 受控网页按钮示例 | 不包含新 fixture | SDK 消费者、A/B/C 受控站点与相关测试已增加 | 示例存在，不代表原生链已 PASS |
-| 网页启动已保存 Controller 的通用公开接口 | 未在已查入口发现 | SDK 服务按钮不能证明此能力 | NOT_IMPLEMENTED 于已查入口；TARGET 设计 |
+旧 `my-content-script.ts` 已将 app scripts、SDK、公共库和环境放入网页，体现真实网页增强需求，不应只被描述成“HTTP SDK 安装”。新项目已有 `scripting/user-scripts/page-evaluator.js` 和 `userScripts.execute` 对应的页面计算机制。
 
-候选源码：[sdk-approval.js](https://github.com/shopable-ai/opendesk-browser/blob/38763c78209794bec53c8ca848bfa0789dc4796e/src/ui/sdk-approval.js)、[tool-shell.js](https://github.com/shopable-ai/opendesk-browser/blob/38763c78209794bec53c8ca848bfa0789dc4796e/src/ui/tool-shell.js)、[受控页面消费者](https://github.com/shopable-ai/opendesk-browser/blob/38763c78209794bec53c8ca848bfa0789dc4796e/tests/framework/fixtures/sdk-target-origins/client.js)。
+但所核对的当前入口并未证明以下完整闭环：通用用户脚本导入/安装 → 用户启用 → 元数据规则匹配 → 浏览器自动装载 → 每脚本/每文档实例管理 → 停用/升级/清理。CURRENT 只能写成“已有部分机制”，不能计作完整用户脚本管理器；也不能把未闭合的用户需求从 TARGET 中删掉。
 
-上轮 `dc25c048...` 未包含批准 UI 的结论已过时。不要重复提出已经实现的 UI 缺口，也不要因此跳过原生验收。
+源码：[页面计算构造](../../../../src/scripting/user-scripts/page-evaluator.js)、[原生 driver](../../../../src/framework/control/native-driver.js)、[旧注入层](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/my-content-script.ts)。
 
-## 3. TARGET：语义框架与技术层次的对应
+## 3. CURRENT 状态表
+
+| 能力 | 状态 | 不能推断的结论 |
+|---|---|---|
+| ChromePage / context / Controller | IMPLEMENTED，具有明确接口限制 | 不是完整 Puppeteer 实现或所有浏览器行为已 PASS |
+| 固定 DOM 操作与页面 evaluate 机制 | IMPLEMENTED | 有 evaluate 不等于有通用用户脚本管理器 |
+| 网页 SDK 与服务 | IMPLEMENTED，能力逐项受限 | 不自动产生 scriptId 级授权与存储隔离 |
+| P1.1 引用核验收敛 | 候选 IMPLEMENTED | 主线 Broker 的历史内联核验并未因此自动更新 |
+| P1.2 targetOrigins 与批准 UI | 候选 IMPLEMENTED，端到端本轮未验收 | 不能继续说批准 UI 缺失，也不能写原生用户链通过 |
+| 受控 SDK 网页按钮样例 | 候选已有实际消费者与测试文件 | 不证明页面按钮可启动整份已保存 Controller |
+| 完整 URL 匹配/装载/启停用户脚本管理 | PARTIAL（底层机制）；通用管理闭环 NOT_IMPLEMENTED 于已核对入口 | 不宣称全库证明不存在，也不计迁移完成 |
+| GM API 与用户脚本元数据兼容 | 本轮没有完整实现与验证证据；TARGET 中按子集决定 | 不能把 axiosx/AppStorage 直接改名为 GM 接口 |
+| 页面按钮启动已有任务 | TARGET / DESIGNED | 不恢复旧网页任意代码到后台 eval 通道 |
+
+## 4. TARGET：浏览器对象、脚本类型与产品入口
+
+### 4.1 对象模型先于文件布局
+
+浏览器运行上下文包含 tab、frame 和当前 document；元素属于具体 document。URL 是文档地址，不是文档身份。一个 tab 导航后可能仍是同一个 tab，但已经不是同一个 document。
+
+控制脚本使用绑定 Page；页面用户脚本运行实例绑定 script/revision 与文档；服务调用有实际来源、请求和 grant。网络目标 origin B 不等于浏览器自动化目标文档 T，更不等于来源文档 A。
+
+### 4.2 程序描述必须分别表达四个维度
+
+| 维度 | TARGET 合同 |
+|---|---|
+| 来源/版本 | 保存、安装、导入，或可信工具临时调试；运行前固定本次字节与参数，临时调试不必先建长期项目 |
+| 触发 | 手动、匹配网址与时机、声明的事件；入口可为工具、页面按钮或调试控制台 |
+| 执行环境 | Controller Worker、USER_SCRIPT，或经明确风险说明选择的 MAIN |
+| 能力与目标 | Page 控制权限、适用站点/frames、网络目标、存储/通知/下载等分别声明 |
+
+这是设计字段语义，不是已经存在的某个 JSON schema 或新的公开 API 名称。元数据兼容适配只负责解析与规范化；不负责自己授予权限。
+
+### 4.3 技术职责与依赖
 
 ```text
-用户场景 / Feature
-    ├─ 脚本资产与运行入口
-    ├─ 网页 SDK 消费者
-    └─ 编辑器、采集等具体功能
-                ↓
-Public API：Automation API | Page SDK / Service API
-                ↓
-Contracts：调用参数、返回值、错误、支持范围、版本
-                ↓
-Transport：跨上下文传递与相关性
-                ↓
-Authority：实际身份、准入、授权与持久状态迁移
-                ↓
-Runtime：管理长运行或短服务的生命周期
-                ↓
-Drivers：固定 DOM 操作、受控用户脚本、HTTP、Storage、Chrome API
+产品消费者：用户脚本管理器 / 自动化工作台 / 网页集成
+        ↓
+公开合同：ChromePage API / 用户脚本描述与生命周期 / Service SDK
+        ↓
+可信安装与运行准入：识别脚本、版本、来源、目标、批准范围
+        ↓
+执行语义适配：Controller 任务 | 页面用户脚本实例 | 单次服务
+        ↓
+平台适配：包内 DOM 操作 / userScripts / tabs / HTTP / 存储等
 
-Durable State / Journal 在 Authority 与 Runtime 旁记录执行事实。
+跨上下文才使用 Transport；页面脚本本地 DOM 不强制 RPC。
+Authority 与 Durable repositories 横向提供授权、状态和执行事实。
 ```
 
-八类技术职责保留，但不是用户首页的第一张图：Public Surface、Contracts、Transport、Authority、Runtime、Drivers、Durable State、Feature Modules。脚本资产及启动运行分别映射到 Public Surface、Runtime、Durable State，不额外制造一套平行基础设施。
+保留八类技术职责：Public Surface、Contracts、Transport、Authority、Runtime、Drivers、Durable State、Feature Modules。它们是责任边界，不是每条操作都必须走八次，也不要求按名字批量搬文件。
 
-### 两类 API 共用什么，不共用什么
+业务 Feature 调用 Framework；Framework 核心不依赖具体网站业务。公开 SDK 不直接调用 chrome.*；UI 只提交批准意图；Transport 不合成可信主体；Broker 不重新解释一套 grant；Driver 依赖已有 authority 决策；持久状态不能由 UI 颜色替代。
+
+`framework/control/native-driver.js` 逻辑上属于平台适配。迁移可以先落实依赖检查，再决定是否搬路径。
+
+## 5. TARGET：用户脚本生命周期必须补什么
+
+| 环节 | 核心决定与失败规则 |
+|---|---|
+| 安装/导入 | 固定代码与依赖版本；显示来源、适用站点和服务能力；不以安装替代授权 |
+| 启用/注册 | 由同一 authority 批准注册计划，再调用平台；期望状态与实际注册结果要可对账 |
+| 页面匹配 | match/exclude、时机、frame 规则分别定义；匹配本身不是授予网络或其他浏览器特权 |
+| 文档实例 | 按脚本/版本/文档记录或追踪实例；防重复注入；页面 DOM 的直接访问不冒充逐操作 Broker 日志 |
+| 页面存活 | 支持事件监听和页面 UI；初始化函数返回不代表这份增强逻辑已停止 |
+| 停用/卸载 | 区分不再注入、拒绝后续扩展服务、撤销已注册入口和当前页面可清理资源 |
+| 升级 | 新版本不替换在途实例代码；扩权重新批准；原生注册与持久元数据不假定可跨系统原子提交 |
+| SPA/导航 | SPA 路由变更与新 document 分开；不默认每个 URL 变化重跑全部脚本 |
+
+Chrome userScripts 提供 register/execute/unregister、matches、runAt、world 等机制，仍需要产品管理和身份合同；API 自身不是完成的用户脚本管理器。扩展升级后的注册对账也必须按实际平台行为验证。
+
+### 两个不能伪造的安全保证
+
+**脚本隔离。**当前 Page SDK 以来源文档与 origin 派生 principal/namespace。TARGET 用户脚本需要基于可信安装与实例通道的 script/revision 身份；单凭页面消息中的 scriptId、可公开读取的随机值或同世界的约定，不能宣称脚本间隔离。普通网页 Page SDK 保持文档级授权；脚本级与文档级 grant 可以由同一 authority 管，但不能互相冒用。GM 存储适配需独立验证每脚本命名空间与值合同。
+
+**停止。**受控 Controller Worker 的终止与页面内 JS 的清理不是同一承诺。unregister 不等于中断已执行脚本、移除所有 listener 或回滚 DOM/网络效果。通用页面脚本存在无法完整回收的情形，应显示清理限制或要求重载目标文档，不能虚报已完全停止。MAIN 世界还存在页面脚本相互影响；不得作为高权限隔离环境。
+
+所有授权约束必须说明作用边界：SDK authority 控制扩展代办的请求；页面脚本直接 DOM 或网页自身允许的 fetch，不会自动被它逐次检查，另受执行世界与 CSP 等约束。
+
+## 6. 两类 API 与共同底座的复用规则
 
 | 项目 | 决定 |
 |---|---|
-| 能力门面 | 可复用 HTTP/storage 外观，保留 Automation 与 Service 两个公开表面 |
-| 传输 | 共享协议原则与 codec，不强制相同 wire envelope |
-| 授权 | 一个逻辑 authority owner，按 SDK / Controller 组合领域方法 |
-| 身份 | 同一信任原则，但 SDK 来源文档 grant 与 Controller run/revision 是不同身份 |
-| 状态 | 复用 repository 与 journal 基础设施，不强制每条记录相同 schema |
-| 生命周期 | 长 Controller 运行与短 SDK 服务分开；不要求每个 SDK 请求占用长运行 slot |
-| 数据命名空间 | 由 authority 分配；同名 AppStorage 不代表网页与 Controller 必然共享同一键空间 |
+| ChromePage | 保留 Puppeteer Page/Element 认知；任务可用，页面脚本不被强制使用 |
+| HTTP/storage 等 facade | 可以复用服务语义，不直接复制调用身份或命名空间 |
+| Transport/codec | 共享验证和编码规则，可存在不同受控通道；本地 DOM 无需绕行 |
+| Authority | 一个逻辑授权 owner，组合 Controller、Page SDK 和未来用户脚本的不同准入合同 |
+| 持久化 | 复用 repositories/journal，领域记录分开；不强迫所有状态同 schema |
+| 资源预算 | Controller 任务 slot 不自动成为所有用户脚本的全局锁；页面实例和短服务有各自限额 |
+| 目标冲突 | Controller 的目标绑定不等于独占整个 DOM；并发页面逻辑仍可能修改 DOM，需业务断言或明确隔离策略 |
+| 代码执行 | 包内固定操作、受控用户代码与后台特权代码区分；不把所有字符串代码都列为禁用 |
 
-### 必须保持的依赖方向
+同一个基础设施可以支持不同运行模型；这是复用，不是新增第二套 Framework。
 
-Feature 调用 Framework；核心不依赖某个具体网站或账号业务才能启动。SDK 不直接调 chrome.*。UI 提交批准意图但不拥有授权事实。Transport 不合成可信身份。Broker 不另建授权解释。Driver 回调 authority 检查，不自己决定业务授权。Storage 存放持久事实，UI 只是投影。
+## 7. 网页按钮与旧 executeScript 的承接
 
-当前 `src/framework/control/native-driver.js` 逻辑上属于 Platform Driver；先记录职责，再有选择地搬文件。不能为满足图上的目录名称而启动全面重构。
+旧网页 executeScript 发 CHROME_PAGE_EXECUTE，后台 wrapAsync/eval 再调用后台 page。它有“网页触发自动化”的真实需求，但没有可靠整段脚本结果 Promise，也不能把该高权限通道原样迁移。
 
-## 4. 明确的 TARGET 使用场景：在网页按钮启动已保存脚本
-
-下面是语义合同，不是已经存在的 JavaScript API，也不在本轮实施新功能：
+TARGET 组合场景：
 
 ```text
-用户点击页面里的“运行日报脚本”
-→ 提交已保存的脚本引用（ID + 固定版本）、参数、来源文档
-→ 框架确定目标，验证预批准范围，必要时由可信扩展界面确认
-→ 进入现有 Controller admission / RunHost
-→ page 操作目标，服务 API 请求获准能力
-→ 按本次 run 返回结果/状态
+用户脚本给订单页添加“生成日报”按钮
+→ 点击后提交固定脚本引用、参数、来源实例
+→ authority 核验已有有限调用许可，必要时可信工具确认
+→ 复用现有 Controller admission / RunHost
+→ ChromePage 操作明确目标，服务 API 执行获准服务
+→ 展示本次 run 的结果/失败/未知状态
 ```
 
-不允许页面发任意 source 给高权限后台 eval。不能因为按钮由扩展注入 DOM，就把来自页面的数据当可信授权。页面内已有脚本也可访问页面 SDK；授权粒度是文档/主体与限定能力，不能声称只允许“开发者本人从 F12 键入的那段代码”。
+页面 DOM 中的按钮无论由谁创建，都不能单凭事件或按钮 ID 证明高权限用户批准。页面按钮可以只执行本页 DOM 逻辑，也可以请求一项服务，或请求启动完整任务；这三种用途要有不同返回合同，但不是三套引擎。
 
-网页按钮、扩展工具和 DevTools 可以是不同入口，但不能分别创建三套运行引擎。网页 DevTools 调用 SDK 与扩展后台 DevTools 直接调内部代码也必须分开记录，不能把后者作为公开用户链验收捷径。
+## 8. P1.1 / P1.2 的定位保持稳定
 
-## 5. P1.1 / P1.2 的语义定位
+**P1.1：** 原调用效果未知时，由现有 authority 核验 actual sender、document、grant/session、request/digest，提供受限引用。lookup 不写入、不准入、不续期、不重放，不能变成凭任意 ID 读取 payload 的接口。
 
-### P1.1：查的是原调用的合法引用，不是重新执行
+**P1.2：** A 文档允许通过扩展服务访问哪些 B origins。省略/空列表仍同源；更新替换完整集合而不是静默并集；Chrome host permission 不等于应用层 A→B 许可。当前精确范围是 origin，不是接口 path 或方法白名单，也不证明 DNS rebinding 防护。
 
-当调用发生效果未知时，同一个 authority 验证真实 sender、原文档、grant/session、request ID/digest，再提供受限引用。`lookupSdkInvocation` 不是 Page SDK 新增的任意结果读取 API。查引用不能写入、准入、续期、恢复授权或重放副作用。
+候选跨域 grant 与 worker incarnation 绑定；持久记录存在不等于重启后仍有效。ready 可能是缓存 Hello；结果落盘不等于仍允许交付；response_ready 不等于网页已确认接收。
 
-### P1.2：A 页面被允许向哪些 B 请求服务
+P1.2 是浏览器服务授权切片，不是全部 Browser Framework，更不能当作油猴类产品闭环。已经存在的批准 UI 不应重复实现。
 
-来源 A 和目标 B 是不同维度。批准网络能力不等于批准所有目标；Chrome host permission 不等于某个网页拥有这项服务权。候选批准列表省略/空列表保留同源，目标列表更新替换旧集合而非静默并集。
+候选：[sdk-approval](https://github.com/shopable-ai/opendesk-browser/blob/426409791a35acb6a6e5eb3f6fcc8b0600f562b5/src/ui/sdk-approval.js)、[SDK authority](https://github.com/shopable-ai/opendesk-browser/blob/426409791a35acb6a6e5eb3f6fcc8b0600f562b5/src/platform/host/sdk-methods.js)、[目标契约](https://github.com/shopable-ai/opendesk-browser/blob/426409791a35acb6a6e5eb3f6fcc8b0600f562b5/src/framework/sdk/target-origins.js)、[页面消费者](https://github.com/shopable-ai/opendesk-browser/blob/426409791a35acb6a6e5eb3f6fcc8b0600f562b5/tests/framework/fixtures/sdk-target-origins/client.js)。
 
-当前精确范围是 origin（协议、主机、端口），不是单一接口 path 或 HTTP method 白名单。不能把“批准某个 origin”说成“只允许 /status GET”。候选明确不提供 DNS rebinding 证明。
+## 9. 三条黄金链：分别证明，不能互相替代
 
-跨域 grant 与 worker incarnation 绑定，重启后要求重新批准。持久记录仍在，不代表执行权限继续有效。`ready()` 可能是缓存 Hello，每次请求必须独立核验。
-
-执行事实与结果交付分开：撤权后可以保留已经发生的效果事实，但不能继续向失去权限的文档释放结果；`response_ready` 也不证明网页已经接收。
-
-候选源码：[sdk-methods.js](https://github.com/shopable-ai/opendesk-browser/blob/38763c78209794bec53c8ca848bfa0789dc4796e/src/platform/host/sdk-methods.js)、[target-origins.js](https://github.com/shopable-ai/opendesk-browser/blob/38763c78209794bec53c8ca848bfa0789dc4796e/src/framework/sdk/target-origins.js)、[broker.js](https://github.com/shopable-ai/opendesk-browser/blob/38763c78209794bec53c8ca848bfa0789dc4796e/src/platform/host/broker.js)。
-
-## 6. 两条 Golden Vertical Slice
-
-### Slice A：网页 A → axiosx → 扩展 → 目标 B → A
-
-实际步骤：可信工具批准 A 文档和 B origin → 安装固定 SDK/relay → 网页自身按钮或网页 DevTools 调真实 SDK → actual sender 进入后台 → authority 准入 → journal 记录 dispatch → network driver 调 B → 记录响应/效果 → 重新验证交付 → 原页面断言。
-
-期望：B 实际收到请求，C 未批准时收到 0 请求；切活动页不改来源，A 导航/撤销时不能将响应送往新文档。不能用直接调用后台内部函数、伪造 sender 或测试脚本注入替身 SDK 代替本链。
-
-候选 network driver 采用受限配置、credentials omit、manual redirect。它是受控服务而非完整 Axios 替身；特殊配置、任意认证头和自动跨目标跳转不能由同名 facade 推断支持。[network driver](../../../src/platform/chrome/network.js)、[SDK registry](../../../src/framework/sdk/registry.js)。
-
-### Slice B：保存的程序 → page.title() → 固定目标 → 运行结果
-
-实际步骤：Script Editor 保存版本 → 用户选目标 → Controller admission → RunHost/Worker → Page request → Controller authority → native-driver → `scripting/packaged/page-session.js` → registry 的 `document.title` → journal / 对应 Promise → 脚本最终 result。
-
-普通 title 不经过任意页面 evaluate，不需要借用 Page SDK 的 grant。`src/agents/page-agent.js` 是模板采集通道，不是所有 ChromePage 方法的执行器；旧大型 migration-map 中的泛化路径不能代替本调用链。
-
-## 7. 状态、授权和生命周期 owner
-
-| 事实 | 当前存放 / owner |
-|---|---|
-| 当前脚本与不可变版本 | scriptHeads / scriptRevisions；受控 repository |
-| 长运行身份、状态与 slot | runs + authority；RunHost 管实际运行资源 |
-| SDK grant | commandJournal 中的 grant；SDK authority |
-| SDK 请求与未知效果 | commandJournal 中 request lock / sdk-operation |
-| Controller 单次操作回执 | 对应 operation journal；不是所有操作都统一放 results |
-| SDK / Controller 服务与最终运行结果 | results，读取和交付继续受权限约束 |
-| AppStorage | frameworkKV 的授权命名空间 |
-| AppLocal | chrome.storage.session 的命名空间化 typed value |
-| 当前 Promise / timer / Port | 对应 transport/runtime 的临时资源，不是持久真相 |
-
-源码：[authority](../../../src/platform/host/authority.js)、[IDB schema](../../../src/platform/storage/idb.js)、[storage repository](../../../src/platform/storage/repository.js)、[session adapter](../../../src/platform/storage/session.js)。
-
-## 8. 验证：判断语义成立而不是代码相似
-
-| 场景 | 正例 | 必测反例 | 证据 |
+| 黄金链 | 正向证明 | 必测反例/边界 | 当前结论 |
 |---|---|---|---|
-| 保存并运行 | r1 保存、实际执行 r1 | 新存 r2 不改变在途 r1 | revision/hash、run 绑定、返回结果 |
-| title | 读取固定目标标题 | 切活动标签、原文档导航、合法空标题 | 固定身份、实际目标值、错误 |
-| 点击/输入 | 测试表单值和事件序列符合声明 | 不存在元素、只读输入、导航后旧元素 | 页面观察，不只检查 API resolve |
-| SDK 服务 | A→B 实际响应回 A | 未批准 C、scheme/port/subdomain 变化 | B/C 计数、原页面调用、journal/result |
-| 撤销 | 新批准只作用于新合法调用 | 请求中撤销、落盘后交付前撤销 | 时序与执行事实、拒绝交付 |
-| 重复调用 | 相同 ID/digest 合法查询原事实 | ID 相同参数不同、未知效果后重试 | submissionCount 与原始 operation |
-| P1.1 lookup | 合法调用得到受限引用 | 错 sender/grant/digest；并发查询 | 零写入、零副作用、原错误保留 |
-| 生命周期 | 停止、关闭、重启有明确投影 | 未确认回收时不能复用目标/名额 | resources、journal、native observations |
+| 浏览器自动化 | 保存 r1 → 绑定网页 → page.title/type/click → 实际页面变化与本次结果 | 切活动页、导航后旧元素、合法空标题、存 r2 不改变 r1、停止与未知效果 | 有对应实现；本轮未重跑 |
+| 页面用户脚本 | 安装/启用 → 匹配文档自动执行 → 增加一个按钮 → 刷新行为明确 → 停用阻止后续注入 | 不匹配 0 注入、重复安装无重复实例、frames/SPA、初始化结束后监听仍存活、清理限制如实报告 | TARGET 验证，不可用 evaluate 单元测试冒充 |
+| 共享服务 | 原页面 A 的实际 SDK → authority → B → 持久事实 → 原 A Promise | 未批准 C 请求 0 次、撤权、来源导航、重复 digest、重启后原 grant 不复活 | 候选有 UI/fixture/测试；本轮未做原生验收 |
 
-组件测试、真实 IDB、真实浏览器、发布兼容性分别报告。新增 UI/fixture 和 mocked tests 只能证明对应范围，不能自动计入原生产品通过数。
+组合验收在上述基础上增加：页面用户脚本使用受控服务并保有正确 script 身份；两个脚本使用相同 key 不越界；必要时按钮启动同一 Controller 底座。普通网页 SDK 测试不能证明用户脚本隔离。
 
-## 9. 后续顺序与文档归属
+### 状态和回执不能混为“成功”
 
-先明确上述场景与返回合同；在唯一 P1 候选内保留主线有效修复并整合；验证已有 A/B UI 与真实 SDK 用户链；同包运行 title 对照；再逐能力更新 machine ledger。最后才讨论局部目录调整与页面脚本启动新入口。
+脚本资产 ≠ 一次运行；一次运行 ≠ 一次 API；外部效果已发生 ≠ 结果允许释放；允许释放 ≠ 页面已接收；页面增强已装载 ≠ 所有业务目标完成。
 
-不能整文件用候选 broker 覆盖主线 broker：主线有宿主 live/missing/unknown 判断与资源回收更新；候选有 reference-authority 收敛，必须保留两者有效部分。
+保留已有回归：P1.1 零写入与原引用、ID/digest 冲突、目标 scheme/port/subdomain 边界、SDK deadline、权限撤销顺序、journal/result 绑定、资源回收。mock、真实 IDB、浏览器与最终包兼容性分别报告。
 
-| 材料 | 继续拥有的职责 |
+## 10. 当前状态 owner 与 TARGET 扩展点
+
+| 事实 | Owner / repository |
 |---|---|
-| 本目录 | 人工语义、架构与当前/目标视图 |
-| docs/contracts 中的阶段01设计 | 有历史阶段范围的设计/来源支撑，不当成全部当前架构 |
-| 有效协议、schema、已批准 compatibility delta | Contracts / Invariants；只采用明确批准的版本与修订 |
-| source-compatibility-ledger / migration-map-v5 | 原有详细迁移 ID 与机器状态；本轮不改通过标志 |
-| tests / test-spec / gates / evidence | Validation 与绑定版本的证明 |
-| progress / handoff / reviews / prototypes | 有时间与候选范围的进展、交接、历史证据；不是永久状态权威 |
+| 脚本当前版本与不可变版本 | scriptHeads / scriptRevisions；受控 repository |
+| Controller run、epoch、slot | authority + runs；RunHost 管实际任务资源 |
+| Page SDK grant / operation | SDK authority；commandJournal |
+| Controller 单操作回执 | 对应 operation journal；不是一概写入 results |
+| SDK/Controller 服务与最终结果 | results；读取/交付仍受原主体和生命周期核验 |
+| AppStorage / AppLocal | frameworkKV / chrome.storage.session 的授权命名空间 |
+| 页面用户脚本安装计划/实例 | TARGET：复用 storage，在同一 authority 下增加明确领域记录；不能拿 UI enabled 值代替平台注册事实 |
+| 用户脚本的页面 listener/DOM | 对应页面执行实例；不保证所有任意代码资源可强制回收 |
+| transport pending/timer/port | 当前上下文临时协作状态，不是恢复权威 |
 
-本轮仅文档修改；不调整 public-owner、不实现新 P2/P3、不重跑浏览器、不宣称全量 ledger 复核完成。当前候选被其他会话继续推进时，以新 SHA 的源码重新核对变动项。
+[authority](../../../../src/platform/host/authority.js)、[IDB schema](../../../../src/platform/storage/idb.js)、[repository](../../../../src/platform/storage/repository.js)、[session](../../../../src/platform/storage/session.js)。
+
+## 11. 兼容与工程顺序
+
+兼容声明分开：ChromePage 方法/旧消费者语义、Puppeteer 对应行为、用户脚本产品功能、GM/元数据子集、第三方生态脚本。对不支持项明确报错是正确的安全行为，但拒绝不能计为旧正向能力迁移成功。
+
+工程顺序：
+
+1. 固定本模型与三个黄金切片；不先大规模搬目录。
+2. 由现有产品 owner 在唯一 P1 候选完成服务授权链，同时保留主线宿主恢复与资源回收有效修复；禁止整文件旧候选覆盖新主线。
+3. 在同一候选验证 ChromePage 实际浏览器操作，不让 SDK 通过替代 Automation 通过。
+4. 另行获得实施范围后，先证明只用 DOM 的页面用户脚本管理闭环，再接服务与脚本级隔离；不靠不断扩大 P1 定义完成全部产品。
+5. 根据真实旧/目标消费者选取 GM/元数据兼容子集，必要依赖固定版本与来源，扩权重新批准；不照搬任意远程特权执行或声称全生态兼容。
+
+本轮只改两份架构文档，不修改产品、public-owner、machine ledger 或浏览器通过标志，不自动启动新 P2/P3。
+
+文档分工：本目录负责人工 Architecture；有效合同与源码 schema 负责 Contracts/Invariants；source-compatibility-ledger 与详细 map 负责 Migration/Compatibility；tests/test-spec/evidence 负责 Validation。历史 progress/handoff/reviews/prototypes 保持其日期与候选范围，不删除历史失败。
+
+官方参考：[Puppeteer Page](https://pptr.dev/api/puppeteer.page)、[Tampermonkey metadata/APIs](https://www.tampermonkey.net/documentation.php?locale=en)、[Chrome userScripts](https://developer.chrome.com/docs/extensions/reference/api/userScripts)、[Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)。
