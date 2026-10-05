@@ -32,7 +32,7 @@ const event = () => ({addListener() {}, removeListener() {}});
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const code = expected => error => error.code === expected;
 async function fixture() {
-  const storage = serialStore(), calls = [], frames = new Map([[2, [{frameId:0, documentId:'doc-top', url:'https://a.example/page'},
+  const storage = serialStore(), calls = [], frames = new Map([[2, [{frameId:0, documentId:'doc-top', documentLifecycle:'active', errorOccurred:false, url:'https://a.example/page'},
     {frameId:7, documentId:'doc-child', url:'https://b.example/frame', parentFrameId:0}]]]);
   const tabs = new Map([[2, {id:2, incognito:false, url:'https://a.example/page'}]]), clock = {now:() => Date.now()};
   let authority, serial = 0, allowed = true, beforeReply;

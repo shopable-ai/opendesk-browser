@@ -108,7 +108,7 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
   async function native(doc) {
     const frames = await api.webNavigation.getAllFrames({tabId:doc.tabId});
     invariant(frames?.some(frame => frame.frameId === doc.frameId && frame.documentId === doc.documentId &&
-      httpUrl(frame.url).origin === doc.origin), 'E_DOCUMENT_STALE', 'SDK document is no longer current');
+      frame.documentLifecycle === 'active' && !frame.errorOccurred && httpUrl(frame.url).origin === doc.origin), 'E_DOCUMENT_STALE', 'SDK document is no longer current');
     invariant(await api.permissions.contains({origins:[permissionPattern(doc.origin)]}), 'E_PERMISSION', 'SDK site permission was revoked');
   }
   async function activeGrant(tx, doc, incarnation) {
@@ -125,7 +125,8 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       typeof request.documentId === 'string' && Array.isArray(request.capabilities), 'E_SCHEMA', 'Invalid SDK grant');
     const frames = await api.webNavigation.getAllFrames({tabId:request.tabId});
     const frame = frames?.find(frame => frame.frameId === request.frameId && frame.documentId === request.documentId);
-    invariant(frame, 'E_DOCUMENT_STALE', 'Selected SDK document is no longer current');
+    invariant(frame?.documentLifecycle === 'active' && !frame.errorOccurred,
+      'E_DOCUMENT_STALE', 'Selected SDK document is no longer active');
     const origin = httpUrl(frame.url).origin;
     const doc = {tabId:request.tabId, frameId:request.frameId, documentId:request.documentId, origin, principal:`sdk:${origin}`};
     const scope = normalizeSdkTargetScope(origin,request.targetOrigins);
@@ -371,15 +372,26 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     contexts.set(context, captured);
     return {operation:result.operation,receipt:result.receipt,context};
   }
-  async function revokeSdkGrants({tabId, frameId, documentId, origins, permissions, reason = 'revoked'} = {}) {
+  async function revokeSdkGrants({tabId, frameId, documentId, grantIncarnation, origins, permissions, reason = 'revoked'} = {}) {
     // Called synchronously by native listeners: invalidate in-flight closures
     // before an asynchronous IDB transaction or a native permission regrant.
-    if (tabId !== undefined && frameId !== undefined) {
-      const key = canonical([tabId,frameId]); frameRemovals.set(key,(frameRemovals.get(key) || 0) + 1);
-    } else if (tabId !== undefined) tabRemovals.set(tabId,(tabRemovals.get(tabId) || 0) + 1);
-    if (permissions?.includes('notifications')) notificationRemovals++;
-    if (origins?.length) permissionRemovals.push([...origins]);
+    if (grantIncarnation !== undefined) {
+      invariant(typeof grantIncarnation === 'string' && grantIncarnation.length > 0 &&
+        Number.isSafeInteger(tabId) && Number.isSafeInteger(frameId) && typeof documentId === 'string' &&
+        documentId.length > 0 && origins === undefined && permissions === undefined,
+      'E_SCHEMA', 'Installation cleanup requires one exact document and grant incarnation');
+      // Internal installation rollback is NOT a native document/permission
+      // event. Fence its original closures before IDB without aging a new grant.
+      retire(grantIncarnation);
+    } else {
+      if (tabId !== undefined && frameId !== undefined) {
+        const key = canonical([tabId,frameId]); frameRemovals.set(key,(frameRemovals.get(key) || 0) + 1);
+      } else if (tabId !== undefined) tabRemovals.set(tabId,(tabRemovals.get(tabId) || 0) + 1);
+      if (permissions?.includes('notifications')) notificationRemovals++;
+      if (origins?.length) permissionRemovals.push([...origins]);
+    }
     const affected = grant => {
+      if (grantIncarnation !== undefined && grant.grantIncarnation !== grantIncarnation) return false;
       if (tabId !== undefined && grant.tabId !== tabId || frameId !== undefined && grant.frameId !== frameId ||
         documentId !== undefined && grant.documentId !== documentId) return false;
       if (origins || permissions) return Boolean(origins?.some(pattern =>
@@ -388,7 +400,7 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       return true;
     };
     for (const [incarnation,live] of grantControllers)
-      if (affected(live.grant)) retire(incarnation,tabId === undefined ? 'E_GRANT_REVOKED' : 'E_DOCUMENT_STALE');
+      if (affected(live.grant)) retire(incarnation,grantIncarnation !== undefined || tabId === undefined ? 'E_GRANT_REVOKED' : 'E_DOCUMENT_STALE');
     return storage.transaction(['commandJournal'], 'readwrite', async tx => {
       for (const grant of await tx.all('commandJournal')) {
         if (grant.tag !== 'sdk-grant' || !isActive(grant) || !affected(grant)) continue;

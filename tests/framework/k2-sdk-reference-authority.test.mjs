@@ -10,7 +10,7 @@ import {ADMITTED_METHODS, validateSdkRequest} from '../../src/framework/sdk/regi
 // Focused unit fixtures, not native sender/IDB/B05 evidence. Every query must use
 // only readonly commandJournal transactions; all mutation attempts are counted.
 async function fixture({data = {value:0}, state = 'effect_unknown'} = {}) {
-  let time = 1000, allowed = true, frame = {frameId:0,documentId:'page-document',url:'https://fixture.example/page'};
+  let time = 1000, allowed = true, frame = {frameId:0,documentId:'page-document',documentLifecycle:'active',errorOccurred:false,url:'https://fixture.example/page'};
   const calls = {transactions:[],writes:0,sdk:0,frames:0,permissions:0};
   const sender = {id:'extension',url:frame.url,frameId:0,documentId:frame.documentId,
     documentLifecycle:'active',tab:{id:2,incognito:false}};

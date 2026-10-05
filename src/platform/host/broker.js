@@ -33,6 +33,26 @@ export function createSdkRequestHandler({sdk,authority}) {
   };
 }
 
+// Shared by the formal tool route and its deterministic component regressions.
+export function createSdkInstaller({authority,api}) {
+  return async (p,s) => {
+    const grant = await authority.grantSdk(p,s);
+    const driver = createTabsService({api,authorize:() => authority.authorizeSdkInjection(p,s,grant.grantIncarnation)});
+    const target = {tabId:p.tabId,documentIds:[p.documentId]};
+    try {
+      await driver.injectFixed({target,file:SDK_FILES.relay,world:'ISOLATED'});
+      await driver.injectFixed({target,file:SDK_FILES.main,world:'MAIN'});
+      return {...grant,installed:true,files:[SDK_FILES.relay,SDK_FILES.main]};
+    } catch (error) {
+      // A newer approval may have replaced this grant while native injection
+      // was pending. Retire only the failed installation's incarnation.
+      await authority.revokeSdkGrants({tabId:p.tabId,frameId:p.frameId,documentId:p.documentId,
+        grantIncarnation:grant.grantIncarnation,reason:'installation-failed'});
+      throw error;
+    }
+  };
+}
+
 async function disconnectPersistedHost({api, authority, consumer}, registrationId, documentId) {
   const contexts = await api.runtime.getContexts({documentIds:[documentId]});
   const documentGone = contexts.length === 0;
@@ -102,19 +122,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     tombstoneControllerScript:(p,s)=>authority.tombstoneControllerScript(p,s),
     garbageCollectControllerScript:(p,s)=>authority.garbageCollectControllerScript(p,s),
     grantSdk:(p,s)=>authority.grantSdk(p,s),
-    async installSdk(p,s) {
-      const grant = await authority.grantSdk(p,s);
-      const driver = createTabsService({api,authorize:() => authority.authorizeSdkInjection(p,s,grant.grantIncarnation)});
-      const target = {tabId:p.tabId,documentIds:[p.documentId]};
-      try {
-        await driver.injectFixed({target,file:SDK_FILES.relay,world:'ISOLATED'});
-        await driver.injectFixed({target,file:SDK_FILES.main,world:'MAIN'});
-        return {...grant,installed:true,files:[SDK_FILES.relay,SDK_FILES.main]};
-      } catch (error) {
-        await authority.revokeSdkGrants({tabId:p.tabId,frameId:p.frameId,documentId:p.documentId,reason:'installation-failed'});
-        throw error;
-      }
-    },
+    installSdk:createSdkInstaller({authority,api}),
     registerHost:(p,s)=>authority.registerHost(p,s),
     prepareArtifact:(p,s)=>downloads.prepareArtifact(p,s),
     prepareAttempt:(p,s)=>downloads.prepareAttempt(p,s),
