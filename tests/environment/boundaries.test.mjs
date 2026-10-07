@@ -1,21 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createWindowShell, createHealthProbe, isToolSender, PROTOCOL, httpUrl, permissionPattern} from '../../src/environment.js';
+import {configureSidePanel, createHealthProbe, isToolSender, PROTOCOL, httpUrl, permissionPattern} from '../../src/environment.js';
 import {createEnvironmentHost} from '../../src/run-host.js';
 
 const extension = 'fixture-extension';
 const toolUrl = `chrome-extension://${extension}/ui/tool.html`;
-test('concurrent window requests create once; new worker discovers existing window', async () => {
-  const windows = []; let creations = 0; let focused = 0;
-  const api = {runtime: {getURL: () => toolUrl}, windows: {
-    getAll: async () => windows,
-    create: async options => { creations++; await new Promise(done => setTimeout(done, 10)); const window = {id: 42, tabs: [{url: options.url}]}; windows.push(window); return window; },
-    update: async () => { focused++; }
-  }};
-  const shell = createWindowShell(api);
-  const [a, b] = await Promise.all([shell.open(), shell.open()]);
-  assert.equal(a.windowId, b.windowId); assert.equal(creations, 1);
-  assert.equal((await createWindowShell(api).open()).reused, true); assert.equal(focused, 1);
+test('product shell configures the Chrome Side Panel action and never creates a popup', async () => {
+  let configured = 0, popups = 0;
+  const api = {sidePanel:{setPanelBehavior:async options=>{configured++;assert.deepEqual(options,{openPanelOnActionClick:true});}},
+    windows:{create:async()=>{popups++;}}};
+  assert.deepEqual(await configureSidePanel(api), {openPanelOnActionClick:true});
+  assert.equal(configured,1); assert.equal(popups,0);
 });
 test('tool sender rejects foreign id, URL, frame, inactive document and missing document', () => {
   const api = {runtime: {id: extension, getURL: () => toolUrl}};
@@ -94,21 +89,10 @@ test('missing module has no capabilities or runner and can be mounted/disposed',
   assert.equal(host.productionRunHostImplemented, false); host.dispose();
 });
 
-test('focus failure while original exists must not create another tool window', async () => {
-  let created = 0;
-  const api = {runtime:{getURL:()=>toolUrl},windows:{
-    getAll:async()=>[{id:42,tabs:[{url:toolUrl}]}], get:async()=>({id:42}),
-    update:async()=>{throw Error('focus failure');},create:async()=>{created++;return{id:43};}
-  }};
-  await assert.rejects(createWindowShell(api).open(), {code:'E_TARGET'}); assert.equal(created,0);
-});
-test('window API query failure is not evidence that the existing window disappeared', async () => {
-  let created = 0;
-  const api = {runtime:{getURL:()=>toolUrl},windows:{
-    getAll:async()=>[{id:42,tabs:[{url:toolUrl}]}], get:async()=>{throw Error('temporary query failure');},
-    update:async()=>{throw Error('focus failure');},create:async()=>{created++;return{id:43};}
-  }};
-  await assert.rejects(createWindowShell(api).open(), {code:'E_TARGET'}); assert.equal(created,0);
+test('Side Panel configuration failure is surfaced without a popup fallback', async () => {
+  let popups=0;
+  const api={sidePanel:{setPanelBehavior:async()=>{throw Error('configuration failed');}},windows:{create:async()=>{popups++;}}};
+  await assert.rejects(configureSidePanel(api),{code:'E_TARGET'});assert.equal(popups,0);
 });
 test('unknown authorization mode is rejected before another injection', async () => {
   const {probe,state}=fixture(); await probe.bind(3,'https://example.com','optional');

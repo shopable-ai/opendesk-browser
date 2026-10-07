@@ -1,10 +1,10 @@
-import {PROTOCOL, createWindowShell, createHealthProbe, isToolSender, httpUrl, EnvironmentError} from './environment.js';
+import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, httpUrl, EnvironmentError} from './environment.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
 
 export function initServiceWorker() {
 
-const shell = createWindowShell(chrome);
+configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
 const health = createHealthProbe(chrome);
 const hostPorts = new Map();
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts});
@@ -37,7 +37,6 @@ chrome.action.onClicked.addListener(tab => {
       try { await (await foundation).issueGestureTicket(tab); }
       catch (error) { console.error(`[foundation action ${error.code || 'E_VERSION'}] ${error.message}`); }
     }
-    return shell.open();
   }).catch(error => console.error(error.message));
 });
 chrome.tabs.onRemoved.addListener(tabId => {
@@ -59,7 +58,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'AGENT_READY') return health.rememberReady(message, sender);
     if (!isToolSender(chrome, sender)) throw new EnvironmentError('E_TARGET', '仅包内工具窗口可调用环境检查');
     switch (message.type) {
-      case 'OPEN_TOOL': return shell.open();
       case 'CREATE_HEALTH_TARGET': return health.createTarget(message.url);
       case 'CHECK_HEALTH': return health.ping(message.target);
       case 'CHECK_SOURCE': {

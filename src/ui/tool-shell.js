@@ -3,10 +3,12 @@ import {createHostClient} from '../platform/host/client.js';
 import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
 import {createScriptEditor} from './script-editor.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
+import {createCurrentPageTarget} from './current-page-target.js';
 
 export function initToolShell() {
 const foundationClient = createHostClient();
-const scriptEditor = createScriptEditor({client:foundationClient});
+const currentPageTarget = createCurrentPageTarget({api:chrome});
+const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
 const listeners = [];
 let browserListenersAttached = false;
 const listen = (element, event, listener, options) => {
@@ -14,7 +16,7 @@ const listen = (element, event, listener, options) => {
 };
 Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.freeze({
   snapshot: () => snapshotToolResources(scriptEditor.resourceSnapshot(),
-    {subscriptions: listeners.length + 2 * Number(browserListenersAttached)})
+    {subscriptions: listeners.length + 2 * Number(browserListenersAttached) + currentPageTarget.resourceSnapshot().subscriptions})
 })});
 const scrapingPanel = document.querySelector('#scraping-panel');
 scrapingPanel.dataset.moduleStatus = 'MODULE_NOT_INSTALLED';
@@ -52,7 +54,6 @@ listen(document.querySelector('#create-target'), 'click', () => {
 });
 listen(document.querySelector('#check-source'), 'click', () => action(() => request('CHECK_SOURCE')));
 listen(document.querySelector('#check-target'), 'click', () => action(() => request('CHECK_HEALTH', {target})));
-listen(document.querySelector('#open-tool'), 'click', () => action(() => request('OPEN_TOOL')));
 const sdkTab = document.querySelector('#sdk-tab');
 const sdkDocument = document.querySelector('#sdk-document');
 const sdkInstall = document.querySelector('#sdk-install');
@@ -152,7 +153,7 @@ listen(window, 'pagehide', () => {
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  scriptEditor.dispose(); foundationClient.dispose();
+  scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

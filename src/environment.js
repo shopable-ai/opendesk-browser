@@ -31,25 +31,12 @@ export function validTarget(target) {
   return target;
 }
 
-export function createWindowShell(api) {
-  let opening;
-  const url = api.runtime.getURL('ui/tool.html');
-  async function discoverOrCreate() {
-    const windows = await api.windows.getAll({populate: true, windowTypes: ['popup']});
-    const existing = windows.find(win => !win.incognito && win.tabs?.some(tab => tab.url === url));
-    if (existing) {
-      try { await api.windows.update(existing.id, {focused: true}); return {windowId: existing.id, reused: true}; }
-      catch { throw new EnvironmentError('E_TARGET', '现有工具窗口无法聚焦，请重试'); }
-    }
-    const created = await api.windows.create({url, type: 'popup', width: 1020, height: 740, focused: true});
-    return {windowId: created.id, reused: false};
-  }
-  return {
-    open() {
-      if (!opening) opening = discoverOrCreate().finally(() => { opening = undefined; });
-      return opening;
-    }
-  };
+export async function configureSidePanel(api) {
+  if (typeof api?.sidePanel?.setPanelBehavior !== 'function')
+    throw new EnvironmentError('E_TARGET', 'Chrome Side Panel API 不可用');
+  try { await api.sidePanel.setPanelBehavior({openPanelOnActionClick: true}); }
+  catch { throw new EnvironmentError('E_TARGET', '无法配置 Chrome Side Panel 入口'); }
+  return {openPanelOnActionClick: true};
 }
 
 export function createHealthProbe(api, {timeoutMs = 8000} = {}) {

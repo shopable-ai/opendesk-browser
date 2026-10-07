@@ -12,16 +12,18 @@ function printable(value) {
   return JSON.stringify(value);
 }
 
-export function createScriptEditor({client, api = globalThis.chrome, document: doc = globalThis.document}) {
+export function createScriptEditor({client, currentPageTarget, api = globalThis.chrome, document: doc = globalThis.document}) {
   const host = createRunHost({api, client, document: doc, templateModuleFactory: null});
   const find = id => doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
   const tab = find('script-tab'), frame = find('script-document'), mode = find('script-target-mode');
+  const currentPageStatus = find('script-current-page-status'), currentPageDebug = find('script-current-page-debug');
   const revisions = new Map(), documents = new Map();
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
   let downloading = false, projection;
-  let currentRevision, selectionVersion = 0, running = false, disposed = false;
+  let currentRevision, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
+    selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
   let browserListenersAttached = false;
   const listen = (element, event, listener) => {
@@ -33,19 +35,55 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
   }
   const fail = error => display('error', `${error.code || 'E_CONTROL_EXECUTION'}：${error.message || error}`);
   const scriptId = () => find('script-id').value.trim();
+  function renderRevisionState() {
+    const node = find('script-version');
+    if (!currentRevision || currentRevision.scriptId !== scriptId()) {
+      node.dataset.dirty = 'false';
+      node.textContent = currentRevision ? '当前脚本 ID 尚未加载持久版本' : '尚未保存；Run 不会执行编辑区中的未保存源码';
+      return;
+    }
+    if (currentRevision.revision !== Number(find('script-revision').value)) {
+      node.dataset.dirty = 'false';
+      node.textContent = `已加载 r${currentRevision.revision}；请先加载要运行的明确版本`;
+      return;
+    }
+    const dirty = find('script-source').value !== currentRevision.sourceUtf8;
+    node.dataset.dirty = String(dirty);
+    node.textContent = dirty
+      ? `已保存 r${currentRevision.revision} · 存在未保存修改 · 本次 Run：r${currentRevision.revision}`
+      : `已保存 r${currentRevision.revision} · 本次 Run：r${currentRevision.revision} · ${currentRevision.contentHash}`;
+  }
   function update() {
+    renderRevisionState();
     find('script-delete').disabled = !revisions.has(scriptId());
     find('script-run').disabled = running || !projection?.slotAvailable || !!host.currentRun || !currentRevision ||
-      currentRevision.scriptId !== scriptId() || currentRevision.revision !== Number(find('script-revision').value);
+      currentRevision.scriptId !== scriptId() || currentRevision.revision !== Number(find('script-revision').value) ||
+      mode.value === 'current' && currentPageState?.status !== 'available';
     find('script-stop').disabled = !host.currentRun;
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
   }
+  function renderCurrentPage(next) {
+    currentPageState = next;
+    if (next?.status === 'available') {
+      currentPageStatus.dataset.state = 'available';
+      currentPageStatus.textContent = `当前网页：${next.title || next.url}`;
+      currentPageDebug.textContent = JSON.stringify({windowId:next.windowId,tabId:next.tabId,frameId:next.frameId,
+        documentId:next.documentId,url:next.url,origin:next.origin}, null, 2);
+    } else if (next?.status === 'resolving') {
+      currentPageStatus.dataset.state = 'resolving'; currentPageStatus.textContent = '当前网页：正在识别…';
+      currentPageDebug.textContent = next.windowId == null ? '' : JSON.stringify({windowId:next.windowId}, null, 2);
+    } else {
+      currentPageStatus.dataset.state = 'unavailable';
+      currentPageStatus.textContent = `当前网页：不可运行（${next?.message || '未找到活动 HTTP(S) 主文档'}）`;
+      currentPageDebug.textContent = JSON.stringify({windowId:next?.windowId ?? null,reason:next?.reason || 'E_TARGET'}, null, 2);
+    }
+    update();
+  }
   function remember(row) {
     revisions.set(row.scriptId, row.revision); currentRevision = row;
     find('script-revision').value = String(row.revision);
-    find('script-version').textContent = `已保存 r${row.revision} · ${row.contentHash}`;
     update(); return row;
   }
   function clearDocuments() {
@@ -74,6 +112,12 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
     update();
   }
   function selection() {
+    if (mode.value === 'current') {
+      if (!currentPageTarget) throw {code:'E_TARGET',message:'当前网页服务不可用'};
+      const candidate = currentPageTarget.capture();
+      return {target:{mode:'borrowed',tabId:candidate.tabId,frameId:0,documentId:candidate.documentId},
+        url:candidate.url,candidate};
+    }
     if (mode.value === 'owned') {
       const url = find('script-owned-url').value.trim(); permissionPattern(url);
       return {target:{mode:'owned',url},url};
@@ -208,7 +252,8 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
     running = true; update(); display('authorizing','正在授权选定目标…');
     (async () => {
       if (!await permission) throw {code:'E_PERMISSION',message:'授权被拒绝，未启动任务'};
-      if (mode.value === 'borrowed' && version !== selectionVersion)
+      if (chosen.candidate) await currentPageTarget.revalidate(chosen.candidate);
+      else if (chosen.target.mode === 'borrowed' && version !== selectionVersion)
         throw {code:'E_DOCUMENT_STALE',message:'选定文档已变化，请重新选择'};
       const claim = await host.start({scriptId:revision.scriptId, revision:revision.revision, contentHash:revision.contentHash,
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
@@ -234,21 +279,23 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
   on('script-save','click',save); on('script-load','click',load); on('script-read','click',read); on('script-delete','click',remove);
   on('script-download','click',downloadResult); on('script-download-result','change',update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
-  on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update);
+  on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',update);
   listen(find('script-run'), 'click', start);
   on('script-stop','click',async () => {
     if (host.currentRun) {await host.stop({runId:host.currentRun,controller:true}); display('stopping','停止已提交，正在收尾…');}
   });
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
   browserListenersAttached = true;
+  const unsubscribeCurrentPage = currentPageTarget?.subscribe(renderCurrentPage);
+  currentPageTarget?.ready?.catch(fail);
   const recoverView = () => read().catch(error=>{projection=undefined;update();fail(error);});
   const unsubscribeConnection = client.subscribeConnection?.(event=>{if(event.connected) recoverView();});
   client.ready.then(recoverView).catch(fail);
   refreshTabs().catch(fail); update();
   return {host, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length,
-    pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)}}), dispose() {
-    if (disposed) return; disposed = true; unsubscribeConnection?.();
+    pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))}}), dispose() {
+    if (disposed) return; disposed = true; unsubscribeConnection?.(); unsubscribeCurrentPage?.();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
