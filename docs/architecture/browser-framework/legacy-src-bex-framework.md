@@ -1,442 +1,220 @@
-# Legacy src-bex Framework — 旧系统事实地图
+# 旧框架：技术方案、文件职责与真实调用链
 
-> 本文只记录 Legacy，不把 Current/Target 倒灌进来。  
-> 固定事实源：`shopable-ai/todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex`。  
-> 用户指定的本机 `/Users/shopme/Documents/workspace/todo-user-vue/src-bex` 在当前执行环境不可读，因此不能证明本机未提交内容与该 SHA 完全一致。
+> 旧版固定来源：`shopable-ai/todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex`。
+> 本文只写旧源码事实；没有运行旧扩展，也没有读取到用户 Mac 上的未提交源码。场景编号与[功能对照](legacy-to-target-map.md)对应。
 
-## 1. 一句话结论
+## 一、旧框架的整体关系
 
-Legacy `src-bex` 是一个混合浏览器扩展运行时：
-
-1. **后台浏览器自动化主线**：共享 `ChromePage` 单例提供 Puppeteer 风格 Page API，通过 active tab + Chrome API/页面脚本执行；
-2. **页面 SDK/service 主线**：把 `axiosx / AppStorage / AppLocal / utility` 注入网页，借 CustomEvent/content-script/background relay 调用扩展特权；
-3. **脚本启动入口**：网页或后台还能提交一整段控制代码运行，它最终仍消费 `page` 和 service 能力。
-
-它不是一个已发现 `Browser → BrowserContext → Page` 的 Puppeteer 内核。
-
-## 2. Legacy 模块图
+旧系统将三类事情放在同一扩展工程中：用 ChromePage 编写浏览器自动化；向网页注入增强脚本；让网页通过 SDK 请求后台 HTTP、存储和其他服务。
 
 ```text
-src-bex
-│
-├─ ChromePage.ts
-│  ├─ ChromePage
-│  ├─ ChromeElement
-│  ├─ Keyboard
-│  ├─ pendingEvents / operationCompleted
-│  └─ exported shared page singleton
-│
-├─ background.ts
-│  ├─ imports/uses shared page
-│  ├─ bridge/service dispatcher
-│  ├─ HTTP via axios
-│  ├─ storage/resource/notification utilities
-│  └─ raw script/controller execution paths
-│
-├─ my-content-script.ts
-│  └─ page-side environment / SDK asset injection
-│
-├─ assets/js/custom_event.js
-│  └─ DOM CustomEvent ↔ chrome.runtime relay
-│
-├─ assets/js/core/
-│  ├─ axiosx.js       request facade + event correlation
-│  ├─ brige.js        browser/background bridge helpers
-│  ├─ appStorage.js   persistent facade
-│  ├─ appLocal.js     temporary facade
-│  ├─ common.js
-│  ├─ serverUtils.js
-│  └─ utils.js
-│
-├─ chrome-local-storage-api.js
-│  └─ separate chrome.storage.local/BEX helper
-│
-└─ consumers
-   ├─ controller/csdn.ts
-   ├─ assets/js/controller/csdn.js
-   ├─ assets/js/testMonkey.esm.js
-   └─ other injected/business scripts
+控制程序／后台生成的脚本
+  → 后台共享 page → ChromePage → 浏览器 API／页面脚本 → 网页
+
+内容脚本的环境配置
+  → 注入 core SDK、公共库、站点业务脚本 → 网页增强与事件监听
+
+网页业务代码
+  → axiosx / AppStorage / AppLocal
+  → DOM 自定义事件 → 内容脚本转发 → 后台服务 → 网页回调
+
+网页 executeScript(code)
+  → 另一类 DOM 自定义事件 → 后台启动控制代码 → 可再调用 page
 ```
 
-## 3. ChromePage 到底是什么？
+ChromePage 是 Puppeteer 风格的接口封装，不等于 Puppeteer 执行内核。已核对的 `src-bex` 中没有确认到 ChromeContext、BrowserContext、PageProxy 对象或 CDP 会话内核；不能从类名相似反推这些结构存在。`ChromePage.ts` 还保留 CAPACITOR/WebView 分支，是另一宿主路径，不证明当前 Chrome 构建运行过它。
 
-### 3.1 是 Puppeteer 风格 API，不是 Puppeteer 内核
+## 二、技术与文件职责清单
 
-固定源码中可见：
+| 技术／方案 | 具体文件与函数 | 解决什么问题 | 运行位置与边界 |
+|---|---|---|---|
+| Page 接口封装 | `ChromePage.ts`：ChromePage、ChromeElement、Keyboard | 以 page 方法组织页面操作 | 后台／支持的宿主；不是任意网页都自动有 page |
+| 共享页面对象 | `ChromePage.ts` 末尾 `const page = new ChromePage()`；导出并挂全局 | 控制代码访问统一 Page | 共享对象，不是固定 tab/document 会话 |
+| 字符串脚本注入 | `ChromePage._execute` | 把动作送进浏览器页面 | Chrome 分支调用旧 `tabs.executeScript` |
+| 活动标签选择 | `_execute`：`tabs.query({active:true})` 后排除扩展页并取首项 | 动态决定执行页 | 没有 `currentWindow:true`；没有固定 document 身份 |
+| 单操作回调 | `pendingEvents`、`operationCompleted`、`handleMessage` | 跨上下文完成一个 Page 方法的 Promise | 内存 Map；不是持久任务记录 |
+| 页面 MAIN 代码 | `eval → addScriptTag → evaluate` | 访问页面环境变量、插入脚本 | 以 DOM script 元素执行；与注入脚本所在环境不同 |
+| SDK 装载 | `my-content-script.ts`：`appendScript`、`initData` | 向网页放入 core SDK 和业务依赖 | 内容脚本操作 DOM；装载不等于每个依赖已就绪 |
+| 页面服务门面 | `assets/js/core/axiosx.js`：axiosx、callChromeBridgeInterface | 页面发起异步服务请求 | 页面 globals；不是 ChromePage |
+| DOM 事件转发 | `assets/js/custom_event.js`：CustomEventDetector.messager | 页面消息转为扩展消息 | `chrome.runtime.sendMessage`；给事件类型加 `hid_` |
+| 后台服务分发 | `background.ts`：handleChromeBridgeInterface | 方法名路由到 HTTP、KV 等能力 | 后台特权环境 |
+| SDK 回程 | `background.ts`：ChromeBridgeCallBack、executeScriptInCurrentPage；`core/brige.js`：ChromeBridgeOperationCompleted | 把服务结果送回页面 Promise | 再次选择活动页；并非始终回原来源文档 |
+| Quasar BEX 服务桥 | `bexContent`、`bexBackground`、bridge.send/on | 内容脚本／Quasar 应用调用服务 | 与 core SDK 自定义事件链不同 |
+| 整段控制脚本启动 | `core/brige.js`：executeInBg；`background.ts`：handleChromePageExecute、executeScript | 从页面提交控制代码 | 后台 `wrapAsync` 后 `eval`；不等于 Page.evaluate |
 
-- `title/content/url/reload/goto`
-- `$ / $$ / $eval / $$eval`
-- `click/type`
-- `waitFor/waitForTimeout/waitForSelector/waitForFunction`
-- `evaluate/eval`
-- `screenshot`
-- `uploadFile`
-- `cookies/setCookie/deleteCookie`
-- `addScriptTag/addStyleTag`
-- `ChromeElement`
-- `Keyboard`
+## 三、场景01／02：控制程序导航并读取页面
 
-但本轮 Legacy tree/search **没有发现**：
-- `ChromeContext`
-- `BrowserContext`
-- `PageProxy`
-- Puppeteer package 驱动执行
-- CDP session 作为 ChromePage 的底层模型
+### 1. 读标题：单操作完整去回程
 
-所以“ChromePage 是 Puppeteer 风格抽象”是事实；“Legacy 本来就有 Current 的 context/proxy/authority”不是事实。
-
-### 3.2 目标选择是隐式 active tab
-
-Chrome 分支执行页面代码时，`ChromePage._execute` 会查询当前窗口的 active tab，然后把脚本送进去。目标身份不是一个 durable 的 `tabId/frameId/documentId` 契约。
-
-因此旧模型的核心事实是：
+入口可以是后台已有控制代码调用 `await page.title()`。这里只把它作为已存在 API 的使用示例，不将示例冒充已找到的业务脚本。
 
 ```text
-page method
-  ↓
-运行时重新选择 active tab
-  ↓
-向该 tab 执行脚本 / 调 Chrome API
+控制代码调用 page.title()
+→ ChromePage.ts：title()
+→ evaluate(() => document.title)
+→ 生成 eventId，拼接函数、参数和完成回调
+→ _execute(functionString, eventId)
+   → pendingEvents.set(eventId, {resolve,reject})
+   → chrome.tabs.query({active:true})
+   → 排除 chrome-extension:// 页面，取第一个候选
+   → chrome.tabs.executeScript(tab.id, {code:functionString})
+→ 目标页读取 document.title
+→ 注入代码 chrome.runtime.sendMessage({action:'operationCompleted',eventId,result})
+→ ChromePage.handleMessage → operationCompleted
+→ JSON 解析 PageBrigeCode/message/data
+→ 完成本次 Promise，清理该 Page pending 项
 ```
 
-这也是后续 Current 必须显式 target binding 的真实原因之一。
+源码：[Page 与回调](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L24-L152)、[evaluate 与实际执行](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L989-L1066)。
 
-## 4. 一条真实 Browser Automation 调用链
-
-以 `page.title()` 为代表：
+### 2. goto：必须按源码记录，不能写成 tabs.update
 
 ```text
-真实 consumer / background controller
-→ ChromePage.title()
-→ ChromePage.evaluate(() => document.title)
-→ ChromePage._execute(...)
-→ 创建 eventId / pendingEvents[eventId]
-→ chrome.tabs.query({active:true,currentWindow:true})
-→ chrome.tabs.executeScript(... code ...)
-→ 目标页面执行代码
-→ operationCompleted(eventId, result/error)
-→ ChromePage pendingEvents 找到回调
-→ Promise resolve/reject
-→ consumer
+page.goto(url)
+→ ChromePage.goto 创建 navigationPromise
+   → 注册 chrome.tabs.onUpdated 监听与 timeout
+→ 构造 `window.location.href = "...";`
+→ await this.eval(code)
+→ eval 发现代码包含 '='
+→ addScriptTag({content:code})
+→ evaluate(负责创建 script 元素的函数)
+→ _execute → 选择活动页 → tabs.executeScript
+→ 页面 DOM 插入 script → 页面代码设置 window.location.href
+→ tabs.onUpdated 收到 status === 'complete'
+→ navigationPromise resolve；goto 返回该 Promise
 ```
 
-这是 Legacy 自己的 RPC/Promise 机制；不是 Current 的 request identity，也不是 durable transaction。
+准确限制：完成监听没有用本次 tabId/url 做过滤；`waitUntil` 被读取但实际监听判断仍是 complete；传入 timeout=0 会被 `timeout || 30000` 改为默认值。`goto` 还要先等 `eval` 路径返回，因此不能把 navigationPromise 自己的超时简化成整个调用必然可靠结算。
 
-## 5. navigation：page.goto 的真实含义
+源码：[goto 190—225 行](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L190-L225)、[eval 930—986 行](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L930-L986)。
 
-Legacy `goto(url)` 的意图是：
+## 四、场景03／04：点击、输入、等待和执行页面 JS
 
-```text
-consumer
-→ page.goto(url)
-→ 找到当前 active tab
-→ chrome.tabs.update(tabId,{url})
-→ 等待 tab update/complete 类事件
-→ Promise 完成
-```
-
-需要记录的行为风险：
-
-- 目标最初由 active tab 得出；
-- navigation 期间没有 Current 那种 exact old-document → new-document handoff identity；
-- 监听完成与本次 durable request identity 没有绑定；
-- background/SW 中断时没有发现等价的持久恢复合同；
-- “浏览器发生导航”与“调用者确定拿到本次导航最终结果”不是同一事实。
-
-这不意味着 Legacy 架构“错误”；它只是旧行为事实。
-
-## 6. DOM / execute / evaluate
-
-### 6.1 DOM 操作在哪里执行？
-
-ChromePage 的 DOM 读取、click/type、selector evaluation 等最终在目标网页上下文执行页面 JavaScript。宿主端负责拼装脚本、选择 tab、等待回调。
-
-`$ / $$` 的旧语义尤其不能直接等同 Puppeteer live `ElementHandle`：
-- 旧实现倾向序列化 DOM/outerHTML 或返回宿主可表示结果；
-- `ChromeElement` 主要是 `page + selector` 的后续操作代理；
-- 没有发现一个可跨导航继续代表同一 DOM node 的 CDP handle。
-
-### 6.2 evaluate / eval
-
-Legacy 同时存在：
-- function 型 evaluate；
-- string/eval 型执行；
-- background/controller raw script 路径。
-
-这些路径的执行语义并不完全相同。尤其 raw script 可以在后台高权限控制环境里获得 `page`，不能把它和网页 MAIN world 的普通 `eval` 混成一类。
-
-### 6.3 Promise / error
-
-ChromePage 单操作主要依赖：
-- eventId
-- `pendingEvents`
-- callback/operationCompleted
-
-返回值/错误通过脚本和消息序列化跨上下文。没有发现 Current 那样统一的 tagged-value codec、durable operation journal、effect_unknown recovery。
-
-## 7. click / type / wait
-
-### click
-
-旧 click 是页面脚本层面的 DOM/事件模拟，不应自动解释成真实硬件输入或 CDP Input domain。
-
-### type
-
-旧 type 主要是目标输入元素值/事件语义，和完整 Puppeteer 键盘输入不等价。旧 `Keyboard` 也以页面事件模拟为主。
-
-### wait
-
-`waitFor / waitForSelector / waitForFunction / waitForTimeout` 均存在，但超时/停止主要属于当前 Promise/计时器和页面回调；没有发现统一 durable cancellation barrier。
-
-因此 Legacy 行为契约应描述“调用意图和实际实现”，而不是事后给它补 Current 的强取消语义。
-
-## 8. screenshot / upload / cookies
-
-### screenshot
-
-Legacy Chrome 环境使用 Chrome 的页面/可见区域截图能力；另有 WebView/Capacitor 分支。它不是一个 task-linked artifact pipeline。
-
-### upload
-
-`uploadFile` 与辅助路径支持把 Blob/data URL/URL 等转换后赋给 file input。上传动作最终还是目标页面 DOM/file input 效果。
-
-### cookies
-
-`ChromePage.cookies(...urls)`：
-- 若扩展有 cookies permission，则调用 `chrome.cookies.getAll`；
-- 否则 fallback 到页面 `document.cookie`。
-
-`setCookie/deleteCookie`：
-- 构造 `document.cookie` 脚本；
-- 通过 `eval` 在页面执行；
-- `httpOnly` 无法通过页面 JS 设置；
-- 源码中的失败路径以 log 为主，不能自动等价 Current typed error contract。
-
-## 9. Legacy Page SDK 是什么？
-
-页面 SDK 是另一条主线，不是 ChromePage 的别名。
-
-网页侧可见/相关 API 包括：
-
-- `axiosx`
-- `AppStorage`
-- `AppLocal`
-- bridge helpers
-- `log`
-- `getTime`
-- `bexUrl`
-- `requestResource`
-- notification/server utility 等服务
-
-### 9.1 SDK 如何进入页面？
-
-真实链条是：
-
-```text
-my-content-script.ts
-→ 将 SDK/core/app assets 放进目标网页环境
-→ 网页 MAIN-world globals 可调用 axiosx/AppStorage/AppLocal/...
-```
-
-不能只写“content script 通信”：页面业务程序需要拿到 MAIN-world API，而 content script/extension world 再承担跨上下文 relay。
-
-## 10. Legacy SDK 真实调用链
-
-以 `axiosx.get(url)` 为代表：
-
-```text
-网页 MAIN world consumer
-→ axiosx.get(url)
-→ callChromeBridgeInterface('AXIOS_GET', args)
-→ 生成 eventId
-→ 页面保存本次 Promise callback
-→ dispatch CustomEvent('CHROME_BRIDGE_INTERFACE', ...)
-→ assets/js/custom_event.js 监听
-→ chrome.runtime / BEX message
-→ background.ts bridge dispatcher
-→ AXIOS_GET handler
-→ background axios.get(...)
-→ 得到 response / error
-→ background 触发 callback/operation-completed 路径
-→ 页面侧 bridge 找到 eventId
-→ 原 axiosx Promise resolve/reject
-```
-
-这条链与 ChromePage 的共同点只有“跨上下文 + Promise correlation”；其消费者、执行点和权限目的不同。
-
-## 11. axiosx 为什么存在？
-
-事实上的用途是：**让网页业务代码借扩展 background 的能力执行 HTTP，并保持类似 axios 的调用体验。**
-
-它与页面直接 fetch/axios 的区别来自扩展环境：
-- background 执行真正 HTTP；
-- 扩展可以拥有网页没有的 host 权限/CORS 能力；
-- 页面只拿序列化后的结果；
-- 还可以统一走旧 service bridge。
-
-但 Legacy **没有发现** Current P1 那样的应用层模型：
-
-```text
-source document A
-+ capability
-+ exact target origin B
-+ grant incarnation
-+ request digest
-+ durable effect state
-```
-
-所以不能把旧 axiosx 写成“原本就有跨 origin authority”。
-
-## 12. Legacy HTTP 行为模型
-
-### 真正发送者
-
-background 里的 axios/service handler。
-
-### headers / cookie / credentials
-
-旧 HTTP 行为受 axios 默认/config 与扩展权限影响；本轮没有证据支持把它归纳成 Current 的 `credentials: omit` 或 manual redirect。两者必须作为迁移差异单独测试。
-
-### timeout / cancel
-
-旧 axios/config 可能支持部分 timeout，但没有发现统一跨 Page SDK → background → effect journal 的 durable cancel 模型。
-
-### request identity
-
-页面 bridge 有 eventId/callback correlation，但它不是 Current 的：
-- stable requestId
-- request digest conflict detection
-- idempotent replay protection
-- `effect_unknown`
-
-### failure vs unknown effect
-
-Legacy 没发现一个明确的持久状态来区分：
-- 请求确定失败；
-- 请求可能已对服务器产生效果，但结果丢失。
-
-这正是 Current 新增 `effect_unknown / no replay` 有必要的事实依据。
-
-## 13. AppStorage / AppLocal / chrome.storage 是三类事实
-
-不要把它们全部写成“旧 storage”。
-
-| Legacy API | 后台事实 | 生命周期 |
+| 用户动作 | 实际 API 与后续调用 | 旧行为，而非推定行为 |
 |---|---|---|
-| `AppStorage` | background localStorage 风格 KV | 持久，值语义偏 String |
-| `AppLocal` | background `globalThis[key]` 临时 KV | background 进程/运行时级，非 durable |
-| BEX/chrome local helpers | `chrome.storage.local` | 独立存储机制 |
+| 点击 | `click → _execute → 页面 querySelector/dispatchEvent → 完成消息` | 合成 mousedown/up/click 或对应按钮事件；正常返回 `clicked` |
+| 输入 | `type → _execute → element.value += char → 键盘/输入事件` | 逐字符追加，不是默认替换；正常返回 `Typed` |
+| 等待元素 | `waitForSelector → _execute → requestAnimationFrame 检查 → 回调 → new ChromeElement(page,selector)` | 元素包装的是 selector 与 page，不是浏览器 live node handle |
+| 等待函数 | `waitForFunction → _execute → predicate/polling → 回调` | 局部 timeout，未确认通用跨任务取消合同 |
+| 等待时间 | `waitForTimeout → setTimeout` | 在调用宿主等待；不是页面修改 |
+| 读取单／多元素 | `$ / $$ → evaluate(outerHTML) → 宿主 document 解析` | 返回克隆 DOM 快照，不是原页面节点 |
+| 元素上执行函数 | `$eval / $$eval → evaluate → 页面 new Function → 执行用户函数` | 使用函数源码字符串；不能保留宿主闭包 |
+| evaluate(function) | `evaluate → _execute → async IIFE await fn → 完成消息` | 正常返回计算值；没有统一包装所有执行异常的 catch |
+| evaluate(string) | `字符串语句 + 完成回调` | 与函数返回值模式不同；正常完成回调给 true |
+| eval(string) | 含 '=' 时注入脚本；否则借隐藏 chromeextension 元素传值 | 以字符猜测代码用途，有单独页面环境读写路径 |
 
-因此 Current 将 AppStorage 与 AppLocal 分别映射到 durable namespaced KV 和 `chrome.storage.session`，属于“保持用途、替换实现和生命周期合同”，不是 1:1 文件复制。
+源码：[DOM 快照及元素函数](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L228-L339)、[点击输入等待](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L614-L804)。不能从正常回程推导“任何抛错、导航、tab 关闭都保证 Promise 结算”。
 
-## 14. 下载 / artifact
+## 五、场景05：网页请求后台 HTTP
 
-在本轮固定 Legacy `src-bex` 中，没有发现 Current 那种通用：
-
-```text
-run
-→ result
-→ artifact bytes/hash
-→ export job
-→ download attempt
-→ chrome.downloads receipt
-→ reconcile
-→ Blob/resource release
-```
-
-因此不能说“Legacy download lifecycle 已直接迁移”。
-
-如果某个旧业务脚本通过 DOM、HTTP 或浏览器默认下载产生文件，那是业务行为；它不等于存在 framework-level artifact/download state machine。
-
-## 15. Legacy 生命周期事实
-
-| 场景 | Legacy 事实 |
-|---|---|
-| page method pending | 主要依赖内存 pendingEvents/callback |
-| navigation | active tab + Chrome navigation/listener；无 exact document handoff |
-| tab close | 未发现统一 durable operation retirement |
-| stop | 存在业务/脚本停止意图，但未发现 Current 式“先持久 cancel fence，再 abort local wait”的统一机制 |
-| timeout | 各方法/计时器局部处理；不是统一 durable deadline |
-| disconnect | bridge/runtime 中断会影响在途 Promise；未发现统一恢复协议 |
-| background/SW restart | AppLocal/global pending 等内存状态无法视为 durable；未发现通用恢复 |
-| unknown external effect | 未发现显式 `effect_unknown` 状态和“不重放”合同 |
-
-因此这些项目在映射表中不能简单写 ✓；必须逐行为判定。
-
-## 16. 权限模型
-
-Legacy 的权限边界主要来自：
-- extension manifest permissions / host access；
-- content script/injection 是否能进入页面；
-- background 能否调用对应 Chrome API；
-- 页面是否拿到了 bridge SDK。
-
-这与 Current 的应用层 source/capability/target grant 不同。
-
-**Legacy extension permission 是事实；Legacy single authority 不是事实。**
-
-## 17. Legacy 真实消费者
-
-本轮不是只 grep API 名。至少发现：
-
-- `src-bex/controller/csdn.ts`
-- `src-bex/assets/js/controller/csdn.js`
-- `src-bex/assets/js/testMonkey.esm.js`
-- background 中的脚本/controller 入口
-- 页面注入后的 axiosx/AppStorage/AppLocal 调用面
-
-因此 ChromePage 与 Page SDK 都有真实消费场景，不应被 Current 的新 API 外观替换后就宣布兼容完成。
-
-## 18. Legacy 两条主线如何连接？
-
-它们通过“脚本运行时”连接：
+### 1. 请求路径
 
 ```text
-一个控制程序
-  ├─ 可调用 page.* 操作浏览器
-  └─ 可调用 HTTP/storage 等 service
-
-一个网页业务程序
-  ├─ 可直接访问自己页面 DOM
-  └─ 可通过 SDK 请求 background service
+网页代码 axiosx.get(url, config)
+→ core/axiosx.js：get
+→ callChromeBridgeInterface('AXIOS_GET', {BridgeUrl_Inject:url,config})
+→ 生成 eventId，在 ChromeBridgeEvents 保存 resolve/reject
+→ window.dispatchEvent(CustomEvent('CHROME_BRIDGE_INTERFACE', detail))
+→ assets/js/custom_event.js：CustomEventDetector.messager
+→ chrome.runtime.sendMessage({type:'hid_CHROME_BRIDGE_INTERFACE',detail,...})
+→ background.ts 消息分发
+→ handleChromeBridgeInterface
+→ axios.get(api, data.config)
+→ HTTP 由后台 axios 发出
 ```
 
-旧 raw `executeScript` 还允许页面触发后台控制代码，这把两条主线进一步连接起来。
+### 2. 回程不是简单的 sendResponse
 
-Current 是否继续允许“网页提交任意后台脚本”是安全/兼容决策；**不能因为 Current 拒绝 raw background eval，就说 Legacy 没有这个能力。**
+```text
+后台得到 res
+→ ChromeBridgeCallBack(BridgeEventId,res)
+→ 包装 PageBrigeCode/message/data，JSON + Base64
+→ executeScriptInCurrentPage
+→ chrome.tabs.query({active:true})，向 tabs[0] 注入回调脚本
+→ script 元素在页面调用 ChromeBridgeOperationCompleted
+→ core/brige.js 查 ChromeBridgeEvents[eventId]
+→ 解析并 resolve(data) / reject(message)
+```
 
-## 19. Legacy 能力总表
+来源与结果关联依赖事件 ID，但回程重新选活动标签。四类 AXIOS 分支的 `.catch(e => {})` 会吞掉 axios 异常；所以“服务请求失败必定让网页 Promise reject”不是可靠的旧合同。页面回调 Map 与 ChromePage.pendingEvents 是两套对象，不应混为一个。
 
-| 能力 | Legacy |
-|---|---|
-| ChromePage | 有，核心自动化 facade |
-| ChromeContext | 本轮固定源码未发现 |
-| BrowserContext | 本轮固定源码未发现 |
-| PageProxy | 本轮固定源码未发现 |
-| Puppeteer API 风格 | 有 |
-| Puppeteer/CDP 内核 | 未发现 |
-| navigation | 有 |
-| click/type/wait | 有 |
-| evaluate/eval | 有 |
-| screenshot | 有 |
-| upload | 有 |
-| cookies | 有 |
-| frame-aware exact identity | 未发现 Current 等价模型 |
-| axiosx | 有 |
-| AppStorage | 有 |
-| AppLocal | 有 |
-| requestResource / utility | 有 |
-| raw background script execution | 有 |
-| requestId/digest authority | 未发现 |
-| durable cancellation barrier | 未发现 |
-| effect_unknown/no replay | 未发现 |
-| task-linked artifact/download state machine | 未发现 |
+旧源码未展示来源 A、能力、精确目标 B、授权代次、持久请求摘要组成的应用层授权系统。扩展权限与这条服务桥确实存在，但不能把二者解释成更强的安全模型。
 
-## 20. Legacy 证据边界
+源码：[axiosx 与请求封装](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/assets/js/core/axiosx.js)、[事件转发](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/assets/js/custom_event.js)、[后台 HTTP](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/background.ts#L102-L151)、[回程注入](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/background.ts#L704-L737)、[页面结算](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/assets/js/core/brige.js)。
 
-本文结论是**源码事实恢复**，不是“旧扩展在 Chrome 2026 仍能跑”的声明。manifest/API 时代差异、Chrome API deprecation、旧服务端依赖均需要另行运行验证。
+## 六、场景06—08：存储与工具服务
 
-若之后能读取用户本机 `todo-user-vue/src-bex`：
-1. 先对 Git SHA/工作区 diff；
-2. 对本文件涉及的 ChromePage、background、content、core SDK 文件逐项复核；
-3. 有本机差异时，以本机旧源码优先修正本文，而不是强行保持 GitHub 版本。
+| 能力 | 入口／调用关系 | 最终存储或执行点 | 生命周期／值语义 |
+|---|---|---|---|
+| AppStorage | `appStorage.js → callChromeBridgeInterface(APPSTORAGE_*) → handleChromeBridgeInterface` | 后台 localStorage | String 风格；clear 清空该后台存储区 |
+| AppLocal | `appLocal.js → APPLOCAL_* → handleChromeBridgeInterface` | 后台 globalThis[key] | 后台运行时变量；与其他全局属性共用空间 |
+| local helpers | `chrome-local-storage-api.js` 的 get/save/remove | chrome.storage.local | 原生存储回调转 Promise |
+| BEX storage.* | 内容脚本 bridge.send → background 的 bridge.on | chrome.storage.local | 独立于以上 CustomEvent 请求链 |
+| log/getTime | BEX bridge.send/on | console.log / Date.now | 这里是服务事件名；未据此证明网页存在同名 global 函数 |
+| bexUrl | 内容脚本 `initData → bridge.send('bexUrl')` | 后台按 location 得扩展根 URL | 返回 `{url}` |
+| requestResource | `appendScript → requestResourceByBridge → bridge.send` | 后台 fetch(url).text() | 返回 success/data 或 success/error；可供装载远程脚本内容 |
+
+源码：[BEX 服务及资源](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/background.ts#L808-L1003)、[内容脚本消费者](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/my-content-script.ts#L74-L210)。普通页面自己的 localStorage、后台 localStorage、chrome.storage.local 必须分别记账。
+
+## 七、场景09—11：截图、上传、Cookie 和下载
+
+| 能力 | 源码路径 | 行为与限制 |
+|---|---|---|
+| 截图 | `ChromePage.screenshot → screenshotInChrome → tabs.query → captureVisibleTab` | 可见页 data URL；另一分支调用 webView.capturePicture；无统一产物记录 |
+| 上传 | `uploadFile → _uploadFromBlob/_uploadFromDataUrl/_uploadFromUrl → evaluate` | FileReader 或 fetch 获取字节，再用 DataTransfer/File 设置 input.files 并派发 change；固定文件名/type；ArrayBuffer 分支接入 FileReader 的实际兼容仍需验证 |
+| Cookie 读 | `cookies → permissions.contains → chrome.cookies.getAll`，否则 `_getDocumentCookies → evaluate(document.cookie)` | 两种执行机制；源码 getAll 传 `{urls}` 的实际 API 行为未运行验证 |
+| Cookie 写删 | `setCookie/deleteCookie → eval(document.cookie=...)` | httpOnly 写入被忽略；catch 后记录日志；deleteCookie 还修改输入对象 |
+| 业务下载 | 页面 controller 的 `downloadFile → a.href/download → a.click()` | 有下载用途，不等于存在通用任务产物、下载回执状态机 |
+
+源码：[Cookie](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L470-L611)、[截图上传](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L819-L919)、[业务下载辅助函数](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/assets/js/controller/csdn.js#L455-L463)。
+
+## 八、场景12／13：装载页面脚本，或者启动整段控制程序
+
+### 页面增强装载
+
+```text
+my-content-script.ts：bexContent
+→ 等待 document.body → initData
+→ bridge.send('bexUrl')、jQuery(document).ready
+→ appendScript 装入 core SDK、公共库及环境
+→ 读取 assets/env.json
+→ 根据 APP_ENV/isClient 选择 app_script 等业务脚本
+→ 页面脚本可修改 DOM、增加交互
+```
+
+`appendScript` 对扩展 URL 设置 script.src，对远程 URL 请求 BEX requestResource 后写 script.textContent。多个调用顺序不能当作每个脚本 load 已完成。环境分支是实际装载机制，但不能据此宣称具备任意脚本安装、启停、匹配元数据的通用管理器。
+
+### 页面启动控制程序
+
+```text
+网页 executeScript(code)〔别名 executeInBg〕
+→ core/brige.js：executeInBg
+→ CustomEvent('CHROME_PAGE_EXECUTE', {script})
+→ custom_event.js → chrome.runtime.sendMessage
+→ background.ts：handleChromePageExecute
+→ executeScript(str)
+→ wrapAsync(str)
+→ eval(action)
+→ 控制代码可以再调用后台共享 page
+```
+
+页面门面没有返回整段程序结果 Promise。后台虽然函数声明 async，但 `eval(action)` 没有 return/await 其结果；“消息已收到”“包装函数返回”“整个程序结束”不是同一时刻。
+
+源码：[后台启动入口 402—418 行](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/background.ts#L402-L418)、[页面入口 brige.js](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/assets/js/core/brige.js)。
+
+## 九、旧生命周期与实际消费者边界
+
+Page 方法的内存 pendingEvents、网页 SDK 的 ChromeBridgeEvents、后台临时全局值、BEX 服务回调，是不同生命周期对象。已查源码未建立统一的整段任务取消屏障、tab/document 退役、后台重启恢复或“外部效果未知不得重放”记录。没有确认不等于业务从未有过停止需求；不能把 socket disconnect 或业务计时停止当作框架统一 cancel。
+
+消费者记录必须区分：
+
+| 线索 | 可确认的内容 | 不能确认的内容 |
+|---|---|---|
+| background 中生成 page.evaluate 字符串并 executeScript | 存在实际自动化调用意图和启动路径 | 不证明所有 Page 方法都有业务消费者 |
+| my-content-script 的 bexUrl/requestResource 调用 | 已定位真实服务调用者 | 不证明所有服务名都暴露为网页 global |
+| 页面 CSDN controller | 有业务桥与下载函数；某些 axiosx 语句位于提前 return 之后 | 不能直接把不可达 axiosx 语句算有效消费者 |
+| controller/csdn.ts | 有直接 axios 的后台服务 | 不能因文件名是 controller 就算 ChromePage 消费者 |
+| assets/js/testMonkey.esm.js | 有注入路径线索；本次内容读取未返回有效代码 | 不列为已确认可运行的 ChromePage 回归脚本 |
+| 未取得的远端脚本、本机未提交脚本 | 待补来源 | 不由测试样例代替 |
+
+源码中的 manifest 声明、旧 API 和后台环境用法还需要实际构建核验；本文不保证旧扩展在本次浏览器环境可直接运行。
