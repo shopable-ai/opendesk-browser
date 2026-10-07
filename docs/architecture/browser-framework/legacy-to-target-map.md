@@ -1,425 +1,291 @@
-# Legacy → Current → Target Migration Map
+# 功能前后对照与任务调用链：从一件用户任务读懂框架
 
-> 核心迁移账本（人工工程基线）。  
-> Legacy：`todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex`。  
-> Current 产品源码：`01b48dcb49b31844d30c0e6fdeed1756e5046f11`。  
-> 当前候选分支本轮观察 HEAD：`3b7d6a361c05a8f40e26afae1776ed9e3b7b18e6`，其相对 P1 交付 HEAD 的后续提交不修改 `src/`。
+> 旧版：`todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex`。
+> 新版源码观察点：`opendesk-browser@cdef268b861060a84731134088580844b2632994`，src 子树 `38cc631a3d4d792453149788a2c1a620f74d34b6`。
+> 本轮为源码关系与文档核验，没有新的产品测试、构建或原生浏览器 PASS。此前 `01b48dcb…` 的测试数量不得自动填到本版。
 
-## 1. 状态与验证等级
+## 一、先区分三个“任务”
 
-迁移状态：
-`LEGACY ONLY` / `LEGACY + CURRENT` / `CURRENT ONLY` / `MIGRATED` / `PARTIALLY MIGRATED` / `REPLACED` / `NOT YET MIGRATED` / `UNKNOWN`。
+**用户场景**是“网页请求一个接口”“导航后填写表单”等要做的事情；**工程任务**是为这个场景补哪个缺口；**运行任务**是实际程序的一次 runId。三者有关联，但不是同一个对象。
 
-验证等级：
+本页的场景01—14只是中文检索编号，不创建新任务引擎，也不替代原有迁移账本和用例 ID。先沿场景认识新旧框架，再决定工程任务。
 
-| 等级 | 含义 |
-|---|---|
-| L0 | 源码存在 |
-| L1 | API 存在 |
-| L2 | 真实 consumer 已接正式路径 |
-| L3 | component test |
-| L4 | integration / compiled-product / CI |
-| L5 | 历史真实 Chrome 用户链 |
-| L6 | 当前候选源码/包的真实 Chrome 用户链 |
+## 二、功能改变前后：用户实际感受到什么？
 
-## 2. 核心 Legacy → Current 映射表
+下面的“已有”指已查实现或入口，不等于当前版浏览器验收通过。全部条目都需同时看后面的兼容与验证栏。
 
-| Legacy 能力 | Legacy 文件/入口 | Legacy 真实调用链 | Current 对应模块 / 入口 | 状态 | 证据级别 | 关键差异 / Gap |
-|---|---|---|---|---|---|---|
-| ChromePage | `src-bex/ChromePage.ts`；background/global page consumers | consumer → shared page → active tab → script/Chrome API → pending callback | `src/framework/ChromePage.js` + `context.js` + Controller | **MIGRATED** | L4 当前；L5 历史 | 从 active-tab singleton 改为 exact target/context；当前候选 L6 待重验 |
-| ChromeContext | Legacy 固定源码未发现 | 无可证链 | `RunContext` in `src/framework/context.js` | **CURRENT ONLY** | L4 | 不得反写成 Legacy 类；承担 identity/target/request/signal |
-| PageProxy | Legacy 固定源码未发现 | 无可证链 | `src/scripting/sandbox/page-proxy.js` | **CURRENT ONLY** | L4/L5 历史 | 为保存脚本提供受控 page surface |
-| global page | `ChromePage.ts` export + `background.ts` | background/controller → shared page | 每 run 注入/绑定 page | **REPLACED** | L4/L5 | 不再跨运行共享隐式 active target |
-| active-tab targeting | `ChromePage._execute` 等 | 每次 query active tab | authority target `tabId/frameId/documentId/targetVersion` | **REPLACED** | L4/L5 | 焦点变化不改变已准入目标 |
-| navigation | `ChromePage.goto/reload` | active tab → tabs.update/reload → completion listener | ChromePage → RunContext → controller op → native-driver → webNavigation handoff | **MIGRATED** | L4；L5 historical | Current 有 old/new document identity；候选 L6 待重验 |
-| click | `ChromePage.click` | page script/DOM event | packaged/native operation | **MIGRATED** | L4；L5 historical | exact document + cancel；仍是声明的 DOM interaction，不等于硬件 input |
-| type | `ChromePage.type`, Keyboard | page value/key events | packaged type + Keyboard facade | **MIGRATED** | L4；L5 historical | 兼容追加/事件语义需真实旧 consumer 回归 |
-| wait | waitFor* | local timer/page predicate + callback | context/packaged/userScripts waits + signal/deadline | **MIGRATED** | L4；L5 historical | Current 有 cancellation/document fence |
-| evaluate | `evaluate/eval` | injected page JS；function/string 路径 | page-evaluator/userScripts + explicit eval lane | **PARTIALLY MIGRATED** | L4；L5 historical API48 | world/mode 语义改变；需旧 consumer fixtures |
-| DOM $/$$ | `ChromePage.$/$$` | serialize/read DOM → host representation | snapshot/DOM host + Worker restrictions | **PARTIALLY MIGRATED** | L4；L5 historical typed denial/positive eval | Legacy 不是 live ElementHandle；Current 对 Worker snapshot/context 限制更严格 |
-| screenshot | `ChromePage.screenshot*` | capture visible/webview | native Chrome driver | **PARTIALLY MIGRATED** | L4；L5 historical limit tests | fullPage 等受限；当前候选 L6 待重验 |
-| upload | `uploadFile` helpers | URL/data/blob → file input | upload driver/chunk/commit | **MIGRATED** | L4；L5 historical | Current 有预算/target identity |
-| Cookie | `cookies/setCookie/deleteCookie` | chrome.cookies 或 document.cookie/eval | cookie driver + permission/target | **MIGRATED** | L4；L5 historical | Current typed permission/error；Legacy set/delete 会 log-swallow 部分失败 |
-| Frame | 旧执行多依赖当前 tab/page，未发现 durable exact frame identity | 隐式页面上下文 | exact frameId/documentId + frame inventory | **REPLACED** | L4；L5 historical child-frame | Current 显式 frame/document 是新安全合同 |
-| axiosx | `assets/js/core/axiosx.js` → CustomEvent → background axios | webpage → bridge → relay → background HTTP → callback | `framework/sdk/http.js` → relay → sdk-broker/authority → `chrome/network.js` | **MIGRATED** | L4 current；L5 historical 17/17 | credentials/redirect/header/config 与 Legacy 不完全相同；当前 P1 L6 未验 |
-| AppStorage | `appStorage.js` → background localStorage | webpage → bridge → background persistent string KV | SDK storage → namespaced durable frameworkKV | **MIGRATED** | L4；L5 historical | clear 范围、request/durable semantics 改进 |
-| AppLocal | `appLocal.js` → background globalThis | webpage → bridge → process-lifetime temp value | namespaced `chrome.storage.session` | **REPLACED** | L4；L5 historical | SW restart 可保持；browser session end 清空，语义更明确 |
-| chrome.storage helper | `chrome-local-storage-api.js` / BEX storage | separate bridge → chrome.storage.local | SDK storage facade/repository | **PARTIALLY MIGRATED** | L4 | 需按旧 helper consumer 逐项核对 |
-| log/getTime/bexUrl | core/service bridge | webpage → background utility | SDK/background-services | **MIGRATED** | L4；部分 L5 historical SDK 18 | 精确 legacy return/error shape 需 consumer regression |
-| requestResource | bridge/background | 页面请求 background 获取资源，旧用途可加载外部资源 | packaged resource/controlled service | **REPLACED** | L4 | 不恢复“远程资源=可执行代码”的高权限通道 |
-| raw executeScript / executeInBg | `brige.js/background.ts` | webpage → bridge → background eval/wrapAsync → shared page | Page SDK 拒绝 raw script；Controller Worker/RunHost 承接任务 | **REPLACED** | L4/L5 historical controller | 旧能力真实存在，但危险机制不保留；旧网页“启动任务”消费场景尚需正式替代入口 |
-| transport correlation | eventId + page map/pendingEvents | in-memory callback | requestId + codec + transport pending + durable journal | **REPLACED** | L4/L5 | correlation 与 durable identity 分离 |
-| cancel/stop | 分散业务 stop/Promise/timer | 未发现统一 durable fence | authority stop + durable cancel fence → local abort | **CURRENT ONLY / REPLACED** | L4；L5 historical stop cases | Current 更强；需当前候选 L6 |
-| timeout | method/config timers | 局部 timeout | deadline + AbortSignal + driver budget | **REPLACED** | L4/L5 | 超时与 effect state 显式化 |
-| SW/background restart | Legacy 无统一 durable recovery | memory pending/global state 不可靠 | authority recover + journal/session storage | **CURRENT ONLY** | L4；L5 historical | 当前 P1 L6 待重验 |
-| unknown effect | Legacy 未发现显式状态 | 无通用区分 | `effect_unknown/paused_unknown`, no replay | **CURRENT ONLY** | L4；L5 historical | 关键可靠性增强 |
-| authorization | manifest/host permissions + injection/bridge availability | extension-level privilege | native permission + application authority/grant | **REPLACED** | L4；L5 historical | P1.2/P1.3 主体 |
-| artifact/download lifecycle | Legacy 未发现 framework-level task artifact FSM | 业务下载不等同 framework artifact | `platform/downloads` + artifacts/jobs/attempts/receipts | **CURRENT ONLY** | L4；L5 historical | 当前 candidate 同包验收待补 |
-
-## 3. Page SDK 注入与返回链对照
-
-### Legacy
-
-```text
-网页 A MAIN
-→ injected axiosx/AppStorage/AppLocal
-→ DOM CustomEvent
-→ custom_event.js/content relay
-→ runtime/BEX message
-→ background dispatcher
-→ axios/storage/resource/utility
-→ callback code/bridge
-→ eventId
-→ 原网页 Promise
-```
-
-特点：
-- API 真实消费者存在；
-- relay 与 background 具有扩展权限；
-- source/target grant 不是独立 authority；
-- callback identity 主要是 eventId；
-- background 对当前页面/active tab 的依赖较强。
-
-### Current
-
-```text
-tool trusted approval
-→ exact A document + capability + target origins
-→ native permission
-→ authority grant
-→ fixed SDK MAIN + relay ISOLATED
-
-网页 A MAIN
-→ OpenDeskSDK/axiosx/AppStorage/AppLocal
-→ codec + requestId/deadline
-→ CustomEvent
-→ ISOLATED relay
-→ runtime actual sender
-→ single authority
-→ service/platform driver
-→ durable operation/result
-→ delivery authorization
-→ 原 A Promise
-```
-
-状态：**MIGRATED + security/lifecycle REPLACED**。
-
-## 4. 行为契约映射
-
-| 行为 | Legacy | Current | 判断 | 未闭合点 |
+| 场景 | 用户想做什么 | 改变前 | 改变后／当前边界 | 迁移关系 |
 |---|---|---|---|---|
-| navigation resolve | active tab navigation + completion intent | exact target navigation receipt + document handoff | **改变且更强** | 当前候选 L6 |
-| click | page DOM synthetic interaction | exact-doc packaged/native interaction | **主要保持** | 旧业务事件细节 |
-| type | DOM value/key event semantics | packaged type/keyboard | **主要保持，有限制** | 追加/selection/input event 逐 consumer |
-| evaluate(function) | page execution + callback | controlled userScripts/evaluator | **改变** | world/CSP/userScripts availability |
-| eval(string) | string code path，可能和 background raw eval 混用 | explicit expression/statement or denied raw background execution | **改变** | 旧字符串脚本迁移 |
-| wait | local/page wait | signal/deadline/document-bound | **保持意图、强化生命周期** | exact timeout timing |
-| screenshot | visible capture/webview branch | native driver，unsupported options typed reject | **部分保持** | fullPage 等不是正向兼容 |
-| upload | file input injection | bounded typed upload | **主要保持** | 文件类型/URL/network edge |
-| download | 无统一 task artifact contract | durable artifact/download FSM | **新增** | 不应强行找 Legacy 1:1 |
-| HTTP | background axios | authority + fetch driver | **改变** | credential/redirect/error shape |
-| storage persistent | background localStorage String KV | durable namespaced KV | **保持用途、改变边界** | exact legacy string/coercion |
-| AppLocal | background global variable | storage.session namespace | **改变生命周期实现** | 旧 consumer 是否依赖 SW/process 清空 |
-| cookie read | chrome.cookies permission or document.cookie | exact target/permission cookie driver | **保持用途** | fallback/return shape |
-| cancel | 无统一 barrier | durable fence then local abort | **新增/改变** | current candidate L6 |
-| timeout | 局部 | durable deadline + abort | **强化** | consumer-visible exact errors |
-| stop | 业务/运行路径分散 | authority stop/retire + worker abort | **强化** | current candidate L6 |
-| disconnect/tab close | 无统一 durable contract | target invalidation/host close/retirement | **强化** | candidate native |
-| SW restart | 无统一 recovery | journal recovery/session semantics | **新增** | candidate native |
-| unknown effect | 无显式分类 | effect_unknown / no replay | **新增** | candidate native |
+| 01 | 运行一段控制程序 | 后台 wrapAsync/eval，可访问共享 page；整段结果协议不可靠 | 工具保存固定版本，再经 RunHost/Worker 运行并结算结果 | 机制替代；旧全部启动入口不因此兼容 |
+| 02 | 导航并读取目标页 | active tab；goto 经 eval 设置 location；完成事件未绑定目标 | 明确 tab/frame/document；原生导航与文档交接 | 部分迁移：主要用途保留，目标及等待合同改变 |
+| 03 | 点击、输入、等待 | 合成 DOM 事件、追加输入、局部等待 | 固定页面操作＋绑定文档＋取消检查 | 部分迁移：正常用途已接通，旧消费者仍需逐项核验 |
+| 04 | 执行网页 JS／读取网页变量 | evaluate 与 eval 两种机制；eval 按 '=' 猜用途 | USER_SCRIPT 计算与 MAIN 执行分开；eval 明确模式 | 部分迁移：world、模式、异常和值合同需对照 |
+| 05 | 网页请求同源或跨源 HTTP | axiosx 事件桥 → 后台 axios → 页面回调 | 工具批准来源与目标 → 正式 SDK → 统一授权 → fetch | 部分迁移：入口接通；凭据、重定向、错误语义改变 |
+| 06 | 保存持久配置 | AppStorage → 后台 localStorage | AppStorage → 授权命名空间持久 KV | 机制替代；旧数据内容的迁移不能由 API 兼容推导 |
+| 07 | 临时保存变量 | AppLocal → 后台 globalThis | AppLocal → 浏览器 storage.session | 机制替代；生命周期和作用域改变 |
+| 08 | 日志、时间、扩展地址、资源 | BEX 服务；requestResource 可取远程内容装载 | 受控 service 门面与包内资源合同 | 部分迁移；旧远程资源执行用途不原样保留 |
+| 09 | 截图／向页面上传文件 | captureVisibleTab；URL/Blob/data URL → file input | 明确目标截图；有预算的上传分块/提交 | 部分迁移；正向效果必须独立验证 |
+| 10 | Cookie 读写删除 | 原生读取或 document.cookie；写删走页面脚本 | 受限原生 Cookie 服务与范围检查 | 部分迁移；HttpOnly、错误与输入对象行为不同 |
+| 11 | 下载本次运行结果 | 有业务 a.click 下载；未确认统一结果产物流程 | 持久结果 → artifact → attempt → 下载回执 → 资源释放 | 仅新版的通用流程；不等于所有旧业务下载已迁移 |
+| 12 | 打开网页后自动出现增强脚本 | 内容脚本按环境装载站点脚本、SDK、公共库 | 有 SDK 安装与页面计算机制；未确认完整通用管理闭环 | 部分机制／待核实；不能直接标已迁移 |
+| 13 | 不离开网页，点按钮启动整段自动化 | 页面 executeScript → 后台 raw eval | raw 页面入口拒绝；工具 Controller 有实现 | 原机制替代，等价的页面启动入口未确认 |
+| 14 | 停止、关闭页面、后台重启后不串任务 | 分散内存回调与计时器；未确认统一持久合同 | 运行/授权/操作/资源分别失效与恢复，不重放未知效果 | 新版增强；不冒充旧行为原样保留 |
 
-## 5. Consumer 级兼容：不能只对 API 名
+不能把“仅新版新增可靠性”算进“旧功能已迁移数量”，也不能把“拒绝了旧危险通道”算成对应用户需求已经交付。
 
-### ChromePage consumer
+## 三、技术方案对照：以前谁干的活，现在由谁接走？
 
-至少要把 Legacy 中可追溯的：
-- `controller/csdn.ts`
-- `assets/js/controller/csdn.js`
-- `assets/js/testMonkey.esm.js`
+下面路径中，旧版相对 `src-bex/`，新版相对 `src/`。
 
-转换/固定为可运行 fixture，走**正式 Script/Controller/RunHost**入口。
+| 旧技术／文件 | 原来解决的问题 | 新版文件／方案 | 为什么需要变化 | 需要确认的代价 |
+|---|---|---|---|---|
+| ChromePage.ts 共享 page + active tab | 统一页面操作入口 | framework/ChromePage.js + context.js 的绑定 page | 防止切换活动页后操作错误目标 | 不能再依赖任意全局 new ChromePage 即可运行 |
+| _execute 拼字符串 + pendingEvents | 发送动作，等单次结果 | context.request + PageProxy + host/client + 编码 | 分离调用身份、值、目标和结果相关性 | 更多文件，但每个箭头应可追踪 |
+| tabs.executeScript／script DOM 注入 | 执行页面操作和用户代码 | native-driver + packaged/page-session/registry + page-evaluator | 固定操作、用户代码、执行世界分道 | 并非所有旧脚本和变量可见性原样保留 |
+| core/axiosx.js + custom_event.js | 页面请求后台 HTTP | framework/sdk/http/bridge/transport + agents/page-relay | 保留页面便利入口，规范消息 | DOM 事件是载体，不是授权凭证 |
+| background.ts 服务 switch | 后台选择执行能力 | broker + sdk-broker/service + 各 driver | 分发、授权、实际效果分开 | 不能把这些层看成互相替代的同一个类 |
+| 后台直接 axios | 以扩展环境代办 HTTP | platform/chrome/network.js | 统一预算、目标校验与效果记录 | 凭据、重定向、错误和响应对象变化 |
+| localStorage / globalThis | 持久／临时值 | platform/storage/repository.js / session.js | 命名空间、生命周期和操作事实明确 | 必须另核对旧数据与旧跨页共享需求 |
+| background wrapAsync/eval | 启动任意控制代码 | run-host + sandbox/controller + worker-runtime | 在受控环境运行并追踪结算 | 网页原启动入口不自动获得等价替代 |
+| my-content-script 装载业务资源 | 网页增强 | 已有 SDK/页面计算机制；管理闭环待补 | 保留增强需求，同时明确版本与装载范围 | 不能用 SDK 安装替代自动用户脚本管理 |
+| 业务 a.click 下载 | 产生下载动作 | ui/script-editor + platform/downloads | 文件字节、结果身份、原生终态可对账 | 提交、完成、磁盘验证必须分开 |
 
-不能用：
-```text
-test → nativeDriver.execute(...)
-```
-代替：
-```text
-legacy-like consumer source
-→ saved controller
-→ RunHost
-→ PageProxy/ChromePage
-→ authority
-→ native Chrome
-```
+详细旧链见[旧框架](legacy-src-bex-framework.md)，详细新链见[新框架](current-and-target-framework.md)。本页不再把一串英文层次名称当调用链。
 
-### Page SDK consumer
+## 四、场景任务卡：必须有去程、执行点、回程和缺口
 
-必须由实际网页：
-```text
-OpenDeskSDK / axiosx / AppStorage / AppLocal
-```
-发起，而不是测试直接调用 SDK authority/service。
+<a id="scene-02"></a>
+### 场景02：导航到页面，然后读标题
 
-P1 已经满足 L2/L4；当前缺的是同包 L6。
+**用户动作：**在控制程序里调用 `await page.goto(url); return await page.title();`。这是说明用的组合示例；本轮没有把它冒充某份已经取得的旧业务脚本。
 
-## 6. 功能完成度矩阵
-
-符号：
-- ✓ = 有直接事实；
-- H = 历史真实 Chrome 证据（L5），不是当前候选 L6；
-- — = Legacy 不具备对应强合同；
-- ? = 当前证据不足；
-- “当前 native”列只认当前 P1 product/package。
-
-| 能力 | Legacy | Current source/API | 真实 consumer | Component | Integration/compiled | 历史 native | 当前 native | 状态 |
-|---|---:|---:|---:|---:|---:|---:|---:|---|
-| Page navigation | ✓ | ✓ | ✓ Controller | ✓ | ✓ | H | ? | MIGRATED，需 L6 |
-| click | ✓ | ✓ | ✓ | ✓ | ✓ | H | ? | MIGRATED，需 L6 |
-| type | ✓ | ✓ | ✓ | ✓ | ✓ | H | ? | MIGRATED，需 L6 |
-| wait | ✓ | ✓ | ✓ | ✓ | ✓ | H | ? | MIGRATED，需 L6 |
-| evaluate | ✓ | ✓ | ✓ | ✓ | ✓ | H | ? | PARTIAL：world/consumer 语义 |
-| DOM $/$$ | ✓ | ✓/受限 | ✓ | ✓ | ✓ | H | ? | PARTIAL |
-| screenshot | ✓ | ✓/受限 | ✓ Controller | ✓ | ✓ | H | ? | PARTIAL |
-| upload | ✓ | ✓ | ✓ | ✓ | ✓ | H | ? | MIGRATED |
-| Cookie | ✓ | ✓ | ✓ Controller | ✓ | ✓ | H | ? | MIGRATED |
-| axiosx | ✓ | ✓ | ✓ webpage/Controller | ✓ | ✓ | H | **NOT_TESTED for P1 package** | MIGRATED/P1 L4 |
-| cross-origin HTTP target authority | — | ✓ | ✓ webpage | ✓ | ✓ | H older package | **NOT_TESTED** | CURRENT ONLY/P1 |
-| AppStorage | ✓ | ✓ | ✓ | ✓ | ✓ | H | ? | MIGRATED |
-| AppLocal | ✓ | ✓ | ✓ | ✓ | ✓ | H | ? | REPLACED implementation |
-| raw webpage→background execute | ✓ | explicit reject/replacement | Controller consumer exists；same webpage-start need partial | ✓ | ✓ | H Controller | ? | REPLACED |
-| request identity/digest | — | ✓ | ✓ | ✓ | ✓ | H | ? | CURRENT ONLY |
-| durable cancellation | — | ✓ | ✓ | ✓ | ✓ | H | ? | CURRENT ONLY |
-| SW recovery | — | ✓ | ✓ | ✓ | ✓ | H | ? | CURRENT ONLY |
-| unknown-effect no replay | — | ✓ | ✓ | ✓ | ✓ | H | ? | CURRENT ONLY |
-| SDK approval UI | — | ✓ | ✓ tool UI | ✓ | ✓ | H | **NOT_TESTED** | P1.3 current L4 |
-| artifact/download | — | ✓ | ✓ product export/controller | ✓ | ✓ | H | ? | CURRENT ONLY |
-
-## 7. P1 完成度矩阵
-
-### P1.2 — Target authorization
-
-**节点：** Page SDK Authority。
-
-已完成：
-- source document；
-- capability；
-- exact targetOrigins；
-- same-origin default；
-- grant incarnation；
-- native permission + application grant 分离；
-- request/digest/journal integration；
-- revoke/navigation/permission lifecycle code；
-- lookup/reference 与 unknown-effect 规则。
-
-当前最高证据：**L4 + 历史 L5**。
-
-未完成为当前候选 L6：
-- 当前 package 的真实 grant/revoke/navigation/SW race。
-
-### P1.3 — Tool authorization UI
-
-**节点：** UI → native permission → authority。
-
-已完成：
-- exact tab/frame/document picker；
-- capability picker；
-- targetOrigins input/preview；
-- trusted click 内 `permissions.request`；
-- receipt 与原 snapshot 对账；
-- navigation/tab close/permission remove 后 stale。
-
-当前最高证据：**L4 + 历史 L5**。
-
-未完成为当前候选 L6：
-- 当前 package 的真实 Chrome permission prompt/deny/regrant/selection race。
-
-### P1.4 — Formal SDK/axiosx golden path
-
-**纵向链：**
+**旧文件链：**
 
 ```text
-real webpage SDK consumer
-→ MAIN transport
-→ ISOLATED relay
-→ SW broker
-→ authority
-→ network/storage/background driver
-→ result/delivery
+ChromePage.ts：goto
+→ 注册 tabs.onUpdated + timeout
+→ eval('window.location.href=...')
+→ addScriptTag({content})
+→ evaluate(插入 script 的函数)
+→ _execute：pendingEvents + tabs.query({active:true})
+→ tabs.executeScript
+→ 页面 script 设置 location.href
+→ 收到 complete 后 navigationPromise 结算
+→ 下一次 title → evaluate(document.title) → 单操作回调
 ```
 
-已完成：
-- 正式 consumer 接线；
-- loopback A/B/C component/integration；
-- 239 + 237 tests；
-- build/CI；
-- conflict/timeout/target scope/codec 等回归。
-
-当前最高证据：**L4 + 历史 L5**。
-
-未完成：
-- 当前 P1 package 的同包 native A→B/C acceptance。
-
-## 8. “看起来完成但实际没有完成”清单
-
-### 8.1 API48 ≠ 48 个正向功能全部兼容
-
-历史真实 Chrome API48 曾整体 FAIL，只因为 `addScriptTag` 后错误地假设 `page.evaluate` 与 MAIN world 共享 global。后续把 world 合同写正确后才 PASS。
-
-结论：API 名存在不等于语义正确。
-
-### 8.2 typed rejection ≠ Legacy 正向能力迁移
-
-例如：
-- fullPage screenshot 被 `E_FULL_PAGE_UNSUPPORTED` 拒绝；
--某些 `$/$$` context 被 `E_DOM_SNAPSHOT_CONTEXT` 拒绝。
-
-这些可以证明安全边界正确，但不能把“Legacy 支持的正向语义”记成 MIGRATED，除非 Target 明确决定不兼容并记录差异。
-
-### 8.3 历史 native PASS ≠ 当前候选 native PASS
-
-`99d6…` package 的 SDK 17/17 PASS 很强，但当前 P1 production 是 `61ac…`。source/package 改变后必须重新达到 L6。
-
-### 8.4 P1 PASS ≠ Browser Framework PASS
-
-P1 是 SDK authorization/HTTP 的纵向切片。ChromePage、controller、artifact/download、完整 lifecycle 有自己的矩阵。
-
-### 8.5 wrapper/API 存在 ≠ consumer 已迁移
-
-Current 可以有 `page.evaluate`、`axiosx`，但旧 controller/business script 未成为 regression fixture 时，消费者兼容仍是 partial。
-
-### 8.6 cancel() 存在 ≠ lifecycle 完整
-
-真正需要验证：
-- pending native op；
-- navigation；
-- tab close；
-- permission revoke；
-- host close；
-- deadline；
-- SW restart；
-- effect_unknown；
-- no late effect。
-
-Current 代码模型已有这些，但当前候选需要同包 native 证明。
-
-## 9. Legacy → Current 行为差异必须保留的清单
-
-开发中不得“为了兼容”无意删掉以下 Current 增强：
-
-1. exact `tabId/frameId/documentId`；
-2. navigation targetVersion handoff；
-3. one logical authority；
-4. native permission ≠ app grant；
-5. requestId + canonical digest；
-6. duplicate/conflict detection；
-7. durable cancellation fence；
-8. transaction/owner slot/pin；
-9. effect_unknown / paused_unknown；
-10. unknown effect no replay；
-11. AppStorage namespace；
-12. AppLocal session namespace/incarnation；
-13. artifact hash/chunks；
-14. download attempt/receipt/reconcile；
-15. fixed MAIN SDK + ISOLATED relay；
-16. real sender derived from platform, not payload claim。
-
-旧 consumer 兼容应适配这些边界，而不是把框架退回 active-tab/raw-eval 模式。
-
-## 10. Current Completion：按领域结论
-
-| 领域 | 当前状态 | 解释 |
-|---|---|---|
-| Browser automation | **MIGRATED / PARTIAL behavior compatibility** | 主体强，旧 consumer/world 边界和当前 candidate native 待闭合 |
-| Page SDK | **MIGRATED** | formal consumer 已接；raw background execute 被 REPLACED |
-| HTTP | **MIGRATED with semantic changes** | authority/credentials/redirect/error contract 需旧 consumer 验收 |
-| Runtime | **MIGRATED** | MAIN/ISOLATED/SW/codec/transport 明确 |
-| Authority | **CURRENT ONLY, mature core** | P1 扩 target scope；不要另起 authority |
-| UI | **P1.3 IMPLEMENTED at L4** | current P1 native acceptance pending |
-| Storage | **MIGRATED/REPLACED** | persistent/session 都比 Legacy 更明确 |
-| Artifact | **CURRENT ONLY** | durable result/download lifecycle |
-| Lifecycle | **CURRENT ONLY + migration support** | 当前架构优势，但需同包 L6 |
-
-## 11. 下一工程工作：只保留三项
-
-### P0 / 第一优先级 — P1 current-package native closure
-
-**Legacy capability：** axiosx / AppStorage / AppLocal / page SDK injection。  
-**Current gap：** `01b48dcb…` + `61ac…` package 只有 L4，native user chain = NOT_TESTED。  
-**模块：**
-- `src/ui/sdk-approval.js`
-- `src/ui/tool-shell.js`
-- `src/platform/host/sdk-methods.js`
-- `src/platform/host/sdk-broker.js`
-- `src/platform/chrome/network.js`
-- `src/framework/sdk/*`
-- `src/agents/page-relay.js`
-
-**验证：**
-- A exact document install；
-- B same/approved cross-origin success；
-- unapproved C zero network effect；
-- deny/revoke/regrant；
-- source navigation invalidates old grant；
-- 100 concurrent promises；
-- SW restart after server effect → `E_EFFECT_UNKNOWN` and exactly one server hit；
-- old request never resurrects after regrant。
-
-### P1 / 第二优先级 — Legacy consumer compatibility pack
-
-**Legacy capability：** ChromePage, raw controller script, SDK globals。  
-**Current gap：** 当前测试主要证明 framework contracts；旧真实 consumer 未形成系统 fixture。  
-**模块：**
-- `src/framework/ChromePage.js`
-- `src/framework/context.js`
-- `src/scripting/sandbox/page-proxy.js`
-- `src/scripting/sandbox/controller.js`
-- `src/framework/control/native-driver.js`
-
-**验证：**
-- 从 Legacy `controller/csdn.ts`、`assets/js/controller/csdn.js`、`testMonkey.esm.js` 提取最小可重现脚本；
-- 经正式 script save/run 入口执行；
-- 对 goto/click/type/wait/evaluate/$/$$/cookie/upload/screenshot 逐行为标记：保持 / 改变 / 拒绝 / UNKNOWN；
-- error shape、Promise timing、navigation 后旧 element、stop/timeout 一并记录。
-
-### P2 / 第三优先级 — Same-package automation/lifecycle/artifact qualification
-
-**Legacy capability：** page operations + file/user effects。  
-**Current gap：** 强历史 native 证据不是当前 package L6。  
-**模块：**
-- `src/run-host.js`
-- `src/platform/host/authority.js`
-- `src/framework/control/native-driver.js`
-- `src/platform/downloads/index.js`
-- `src/platform/storage/*`
-
-**验证：**
-- owned/borrowed exact document；
-- child frame；
-- navigation handoff；
-- stop/deadline/host close；
-- permission revoke/tab close；
-- SW recovery；
-- screenshot/upload/cookies；
-- durable result reopen；
-- artifact/download bytes/hash/native receipt/blob release；
-- no source/package drift。
-
-## 12. 基线使用规则
-
-今后任何 Goal 如果要宣称某能力“完成”，至少写清：
+**新文件链：**
 
 ```text
-Legacy consumer:
-Legacy behavior:
-Current public entry:
-Current execution point:
-Migration status:
-Behavior delta:
-Component evidence:
-Integration evidence:
-Native evidence package/source:
-Remaining gap:
+ui/script-editor.js：start
+→ run-host.js：start/startController
+→ 已准入 Controller Worker 执行用户代码
+→ framework/ChromePage.js：goto
+→ framework/context.js：request
+→ scripting/sandbox/page-proxy.js 的 MessagePort
+→ 宿主 controller + relayContextRequest
+→ run-host 注入 transport → platform/host/client.js
+→ SW/broker 路由 controllerOperation
+→ platform/host/controller-methods.js
+→ framework/control/native-driver.js：execute/navigate
+→ chrome.tabs.update(明确 tabId)
+→ webNavigation 观察新 documentId 与就绪
+→ handoff + 原 requestId 返回
+→ 上下文更新当前 page 文档
+→ title 走 packaged/page-session.js → registry 的 DOM 读取
 ```
 
-缺任一关键项时，不得用单一“已完成”掩盖不确定性。
+**改变前后：**旧版操作时选活动页，完成监听没有绑定本次目标；新版绑定具体文档并有可信导航交接。旧版 timeout=0 被改默认值；新版参数、期限和错误要按当前合同逐项验证。不能写“只有执行技术变了，使用行为完全没变”。
+
+**消费者证据：**新版工具 `script-editor.start` 已定位；旧版 API 链已定位，实际旧导航业务调用者仍待补；原生 runner 是测试消费者，不等于旧业务消费者。
+
+**验证入口：**现有 `tests/framework/k3-context.test.mjs`、`k3-native-driver.test.mjs`、`k5-controller-product-native.mjs` 为核验线索，本轮未重跑。验收必须从正式工具执行，并观察 A/诱饵 B、新旧 document、标题、错误和旧元素失效。
+
+**任务完成条件：**导航真的作用于选定 A；切活动页不操作 B；返回时达到约定就绪；下一条读取命中新文档；停止/超时/导航失败不被写成成功。
+
+源码：[旧 goto](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L190-L225)、[旧 eval/执行](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L930-L1066)、[新导航](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/framework/control/native-driver.js#L166-L208)、[新真实用户入口](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/ui/script-editor.js#L190-L230)。
+
+<a id="scene-05"></a>
+### 场景05：网页 A 通过扩展请求接口 B
+
+**用户动作：**在已经装好 SDK 的网页按钮中调用 `axiosx.get(B)`。
+
+**旧文件链：**
+
+```text
+core/axiosx.js：get → callChromeBridgeInterface
+→ ChromeBridgeEvents[eventId]
+→ CustomEvent('CHROME_BRIDGE_INTERFACE')
+→ assets/js/custom_event.js：messager
+→ runtime 消息
+→ background.ts：handleChromeBridgeInterface
+→ 后台 axios.get
+→ ChromeBridgeCallBack：JSON/Base64
+→ executeScriptInCurrentPage：重新选活动 tab
+→ 页面 core/brige.js：ChromeBridgeOperationCompleted
+→ 以 eventId 完成原 Promise
+```
+
+**新文件链，先批准：**
+
+```text
+ui/tool-shell.js 点击 sdk-install
+→ ui/sdk-approval.js：approve
+→ 原生 permissions.request + 固定批准快照
+→ client.request('installSdk')
+→ broker.js：createSdkInstaller
+→ authority.grantSdk / authorizeSdkInjection
+→ 固定 page-relay（ISOLATED）+ sdk-main（MAIN）
+```
+
+**新文件链，再请求：**
+
+```text
+fixtures/sdk-target-origins/client.js：按钮 → run → probe
+→ OpenDeskSDK.ready / axiosx.get
+→ sdk/http.js → bridge.call → transport.request
+→ 页面 CustomEvent → agents/page-relay.js
+→ runtime actual sender → sw.js → broker
+→ sdk-broker.requestSdk → authority.admitSdk
+→ sdk/service.execute → chrome/network.request → fetch
+→ 原生响应／效果记录／交付检查
+→ 原消息结果 → 页面结果事件 → 原 requestId Promise
+```
+
+**改变前后：**旧版后台 axios 接收 config，但 catch 会吞异常；新版固定省略 credentials、手动 redirect、有界响应、类型化错误。拥有 B 的原生权限也不等于 A 被应用层批准访问 B。页面 SDK 来源空间不变成目标 B 的空间。
+
+**消费者证据：**新版 client.js 是已确认的正式 SDK 测试页面；它不是旧业务迁移证明。旧调用者仍要从可达语句寻找，不能使用提前 return 后的 axiosx 片段。
+
+**验证：**A→B 正向返回且服务确实观察请求；未批准 C 的服务次数为零；拒绝权限时不扩权；A 导航/撤权后旧结果不交付；服务已发生效果后重启，不自动重发。页面的 parallel 按钮生成两次新调用，不是同 requestId 去重测试。
+
+**当前结论：**正式消费者与执行链接通；行为部分改变；本轮未运行同版浏览器验收。旧测试报告的 PASS 不填成这张卡的新结果。
+
+源码：[真实客户端](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/tests/framework/fixtures/sdk-target-origins/client.js)、[旧 HTTP](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/background.ts#L102-L151)、[新准入与回程](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/host/sdk-broker.js)、[新 HTTP](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/chrome/network.js#L35-L92)。
+
+**不要漏掉同名接口的另一张子卡：**控制程序里的 axiosx 由 `worker-runtime → proxy.services → context.serviceCall(kind:'service') → controllerOperation.executeService → network.request` 执行。它不是页面 SDK 链，应分开验收身份、范围、取消和返回。
+
+<a id="scene-12"></a>
+### 场景12：打开网页后，自动出现增强脚本和按钮
+
+**旧链：**`my-content-script.ts:bexContent → 等待 body → initData → jQuery.ready → appendScript(core/库) → envJson 分支 → 业务脚本 → 页面 DOM/事件`。远程资源路径为 `appendScript → requestResourceByBridge → BEX background fetch → script.textContent`。
+
+**新已有机制：**固定页面 SDK 安装、packaged DOM 操作、`page-evaluator → userScripts.execute`。这些机制分别已存在，但本轮没有确认一个通用的“脚本安装/启用 → URL 匹配 → 指定时机注入 → 每文档实例 → 停用/升级/清理”的正式消费者闭环。
+
+**功能差异：**能手动 evaluate 一段 JS，不等于刷新匹配网页后它会自动回来；脚本初始化函数返回，也不等于它创建的按钮和监听器已经停止。
+
+**目标建议，不是现有 API：**先选一个无特权、只增加按钮的受控脚本，验证匹配页装载、不匹配页零注入、重复刷新/安装不产生重复实例、停用后的行为。再接共享服务和必要身份隔离，不新建第二套数据库或运行平台。
+
+**当前结论：**需求保留；部分机制存在；通用闭环与准确承接模块待核实。本轮不把它悄悄从迁移范围删除，也不启动该功能开发。
+
+源码：[旧页面增强装载](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/my-content-script.ts)、[新页面计算机制](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/scripting/user-scripts/page-evaluator.js)。
+
+<a id="scene-13"></a>
+### 场景13：网页按钮启动一整段自动化
+
+**旧链：**`core/brige.js:executeInBg（executeScript 别名） → CHROME_PAGE_EXECUTE → custom_event.js → background.handleChromePageExecute → executeScript → wrapAsync → eval`。
+
+**新链的已确认部分：**工具的保存/运行入口 → RunHost → 统一任务准入 → Controller Worker；页面 SDK 的 raw executeScript 入口明确拒绝。两者之间不能画一条不存在的“网页按钮自动转工具任务”实线。
+
+**改变前后：**原用途是从网页直接触发控制程序；新工具运行提供更明确结果和生命周期，但使用位置不同。用户是否接受必须单列，不能因为安全改造合理就默认入口差异已批准。
+
+**最小目标候选：**页面请求一个固定脚本引用、受约束参数和已批准目标，由现有任务准入承接；权限必要时在可信工具确认。此处没有定义或声称已经实现新启动 API。
+
+**验收：**网页内真实按钮触发指定程序并显示本次 run 的结果；未批准程序/参数/目标拒绝且无效果；重复点击的语义明确；停止/导航不复活旧任务。
+
+**当前结论：**机制替代已经有对应工具路径，原页面触发需求仍缺等价闭环证据。
+
+源码：[旧启动](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/background.ts#L402-L418)、[新页面 SDK](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/framework/sdk/entry.js)、[新工具运行](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/run-host.js#L45-L114)。
+
+## 五、其余场景的文件入口与必须观察的结果
+
+完整去回程见新旧两篇；此表指向分支，不把所有方法都假装逐个浏览器跑过。
+
+| 场景 | 旧入口 → 执行点 | 新入口 → 执行点 | 必须观察，不只是看内部 PASS |
+|---|---|---|---|
+| 01 程序运行 | background.executeScript → eval | script-editor.start → RunHost → Worker → settleController | 实际 return/throw、版本固定、最终结算与资源退役 |
+| 03 交互等待 | ChromePage.click/type/waitFor* → _execute／计时器 | ChromePage → controllerOperation → native-driver.packaged → page-session → registry | 目标 DOM、事件次数、追加输入、超时、取消、旧文档失效 |
+| 04 页面 JS | evaluate/_execute；eval/addScriptTag | page-evaluator.buildPageEvaluation → native-driver.userScript → userScripts.execute | 指定 world 的值、Promise、异常；MAIN 与 USER_SCRIPT 不串全局变量 |
+| 06 持久值 | appStorage → bridge → 后台 localStorage | SDK/Controller 门面 → repository.executeSdk | 类型、空值、clear 范围、重启、旧数据是否迁移 |
+| 07 临时值 | appLocal → bridge → 后台 globalThis | SDK/Controller 门面 → session.executeSdk | SW 重启、浏览器会话结束、多页面/脚本作用域 |
+| 08 工具资源 | BEX bridge.send/on → log/time/fetch | SDK service → background-services | 真实 return shape；允许资源字节/hash，远程执行不误放行 |
+| 09 截图上传 | screenshotInChrome / uploadFile helpers | native-driver.screenshot / uploadFromURL；packaged uploadChunk/uploadCommit | 正常图片的内容与目标；input.files 的字节、名称、类型与事件 |
+| 10 Cookie | cookies/getAll；set/deleteCookie/eval | native-driver.cookieOperation → chrome/cookies 服务 | 正确 URL/store/path，输入不被意外修改，越界无效果 |
+| 11 下载结果 | 页面 downloadFile → a.click | script-editor.downloadResult → prepare/readArtifact → prepare/dispatchAttempt → observeDownload/reconcile | 原生终态＋实际文件字节/hash＋Blob释放；不是仅下载 ID |
+| 14 停止恢复 | 分散 Map/timer/runtime 消息 | RunHost/authority/controller-methods/sdk-methods + broker.recover + 页面 dispose | 取消先后关系、无晚到效果、未知结果不重放、资源与 slot 是否释放 |
+
+截图与上传是同一“浏览器资源”场景族，但正向验收分别计，不能以一个通过替代另一个。
+
+## 六、行为改变前后必须单独成账
+
+| 行为点 | 旧事实 | 新事实／当前判断 | 应如何验收 |
+|---|---|---|---|
+| 目标选择 | Page 每次查活动标签 | 绑定 tab/frame/document | 切换活动页后的实际效果 |
+| navigation 完成 | 监听任何 complete；先 await eval | 指定目标原生事件与可信文档交接 | 诱饵页 complete 不提前完成 A |
+| 输入 | 逐字符追加并发合成事件 | 仍有追加型固定操作，限制明确 | 初始值、输入类型、事件与最终值 |
+| $/$$ | 宿主解析克隆 DOM | 有 DOM 宿主才支持；Worker 使用可序列化快照 | 不以 Worker 拒绝证明克隆 DOM 正向兼容 |
+| evaluate 返回 | 函数结果与字符串 true 分支不同 | 明确描述、编码、异常与执行世界 | false/0/undefined、嵌套值、抛错、异步返回 |
+| HTTP 错误 | AXIOS 分支 catch 吞错 | 类型化错误、效果事实与交付分离 | HTTP失败、网络失败、超时、响应已知而交付被拒绝分别测 |
+| HTTP 凭据与跳转 | config 交后台 axios；不能默认同新限制 | omit credentials、manual redirect | 不将旧登录接口依赖视为已兼容 |
+| AppStorage | 后台全局存储区 | 授权命名空间 KV | API、旧数据迁移、跨页共享三件事分开 |
+| AppLocal | 后台进程变量 | 浏览器会话存储 | SW 重启不等于浏览器重启 |
+| 页面 raw execute | 可请求后台启动代码，无可靠整段结果返回 | 页面拒绝，工具程序有受控运行 | 保留用户用途与保留危险机制分开判断 |
+| stop/cancel | 未确认通用合同 | 持久取消、操作中止、资源退役分别存在 | 本地 Promise 拒绝不等于服务器效果撤销 |
+| restart/disconnect | 内存 Map 不是恢复依据 | journal/宿主观察/授权代次/未知状态 | 查不到结果不能自动 retry |
+| unknown effect | 未确认显式分类 | 不重放未知效果 | 服务已观察副作用后断链，观察次数不增加 |
+
+“改变”不自动意味着退步或错误；但必须说明影响哪个旧消费者、为什么改变、需要什么适配、谁确认接受。未经用户或既有批准合同确认，不写“已批准不兼容”。
+
+## 七、完成度台账：三栏而不是一个百分比
+
+| 能力族 | 调用是否接通 | 旧行为兼容结论 | 本轮验证状态 |
+|---|---|---|---|
+| 浏览器自动化 | 已定位正式工具、Page、执行器与回程 | 部分迁移；目标、world、参数/错误有变化 | 静态源码已核对；未新增同版浏览器结果 |
+| 页面 SDK / HTTP | 已定位真实 A/B/C 客户端和正式服务链 | 部分迁移；旧业务消费者仍待确认 | 静态源码已核对；本轮未运行 HTTP/Chrome 用例 |
+| Controller 服务 | 已确认 Worker 注入与 service 分支 | 不得套用页面 SDK 的授权合同 | 本轮未重新运行该链 |
+| 持久／会话存储 | 有正式门面与后端分支 | 实现、作用域和生命周期替代；旧数据另核对 | 未完成本版逐项重验 |
+| 截图／上传／Cookie | 有对应 Page 分支和执行器 | 正向能力与限制分别记账 | 未完成本版逐项重验 |
+| 产物／下载 | 真实 UI 消费者与回程存在 | 新通用流程；旧业务下载不自动兼容 | 未新增本版文件/hash证据 |
+| 页面增强管理 | 部分底层机制 | 完整通用闭环未确认 | 待核实正式入口与用户链 |
+| 网页启动完整任务 | 工具启动已接，网页等价入口未确认 | 原机制替代，用户场景仍有缺口 | 不计完成 |
+| 权限／生命周期 | 统一授权、失效、恢复实现存在 | 新增边界与可靠性 | 未将全部历史报告绑定到本版 |
+
+本表不删除历史 PASS，也不声称历史从未跑过。每份历史报告应保留 source/package/test input/status，评估差异后决定能否沿用。当前 `src` 子树与旧 P1 不同，必须先做这个核对。
+
+测试状态使用：未查、仅定位用例、本轮未运行、本轮通过、本轮失败、环境阻塞、历史证据待关联。不要将“仅定位用例”写成“组件通过”。组件、集成、原生浏览器、真实旧消费者是不同证据栏。
+
+## 八、每个后续工程任务的最小交付模板
+
+```text
+用户场景编号／中文任务名：
+用户入口和期望可见结果：
+旧版来源 SHA、真实调用者（未找到就写未找到）：
+旧文件::函数 → 通信/数据 → 最终执行点 → 返回：
+新版来源 SHA、正式调用者：
+新文件::函数 → 通信/数据 → 最终执行点 → 返回：
+改变前后：目标、输入、world、结果、错误、停止/导航/重启：
+变化性质：保留／修复旧缺陷／安全限制／范围缩减／延期；批准依据：
+实现接通情况：
+行为兼容结论：
+测试用例与是否实际运行：
+原生浏览器版本、构建身份、正向和反例观察：
+第一个不一致及具体文件/函数：
+下一项最小工作：
+```
+
+每个箭头注明函数调用、事件、消息、存储读写或平台调用；最终执行点有实线，未实现连接写缺口。不得为了模板好看编造旧消费者、函数或已通过状态。
+
+## 九、下一步只按三个优先级推进
+
+### 第一优先级：固定版本，补足三条高频关系
+
+绑定场景02、05、12/13。先将本机旧源码与固定远端核对，补可达的真实旧消费者；按当前源码追踪正式入口和返回，核对现有测试与实际包。重点文件是旧 ChromePage/background/my-content-script/core，以及新 script-editor/RunHost/context/SDK/broker/native-driver。没有取得旧业务脚本的条目仍标待核实。
+
+### 第二优先级：复用现有入口进行当前同版验收
+
+先运行自动化基本链和 P1 A/B/C 链，再覆盖相应停止、导航、撤权、未知效果；逐条补场景卡，而不是先追求总测试数量。绑定旧 page/axiosx 用途、新正式工具与客户端、实际页面 DOM 和服务端次数。若失败，记录首个不一致，不顺势扩大重构。
+
+### 第三优先级：只实现已经定位的功能缺口
+
+优先处理旧消费者确实依赖、当前缺入口或语义不等价的场景。页面增强和网页触发完整任务先确认产品合同与最小正向链，再复用现有运行、授权和持久化。截图/上传/Cookie/下载/恢复按当前包补横向验收，不重写正确状态机、数据库和执行后端。
+
+以后每次 AI 开发交付都要让维护者回答：**以前这件事在哪几处实现；现在由谁接走；哪个行为变了；哪条证据能证明当前可用；下次出问题先看哪个文件。**答不出来时，应补工程可追踪性，而不是继续叠加新层。
