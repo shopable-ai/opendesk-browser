@@ -17,9 +17,13 @@ export function httpUrl(value) {
 }
 export function permissionPattern(value) { const url = httpUrl(value); return `${url.protocol}//${url.hostname}/*`; }
 export function isToolSender(api, sender) {
+  // Side Panel extension documents are not tab frames, so Chrome may omit
+  // sender.tab and sender.frameId. If a tab is present, require its top frame;
+  // otherwise accept only the packaged top-level extension document.
+  const topLevel = sender?.tab ? sender.frameId === 0 : sender?.frameId === undefined || sender.frameId === 0;
   return sender?.id === api.runtime.id && sender.url === api.runtime.getURL('ui/tool.html') &&
     typeof sender.documentId === 'string' && sender.documentId.length > 0 &&
-    sender.frameId === 0 && (!sender.documentLifecycle || sender.documentLifecycle === 'active') && !sender.tab?.incognito;
+    topLevel && (!sender.documentLifecycle || sender.documentLifecycle === 'active') && !sender.tab?.incognito;
 }
 export function validTarget(target) {
   if (!target || !Number.isInteger(target.tabId) || target.tabId < 0 || target.frameId !== 0 ||

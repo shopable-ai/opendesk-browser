@@ -12,13 +12,19 @@ test('product shell configures the Chrome Side Panel action and never creates a 
   assert.deepEqual(await configureSidePanel(api), {openPanelOnActionClick:true});
   assert.equal(configured,1); assert.equal(popups,0);
 });
-test('tool sender rejects foreign id, URL, frame, inactive document and missing document', () => {
+test('tool sender accepts top-level Side Panel documents and rejects foreign or nested senders', () => {
   const api = {runtime: {id: extension, getURL: () => toolUrl}};
-  const good = {id: extension, url: toolUrl, frameId: 0, documentId: 'd', documentLifecycle: 'active'};
-  assert.equal(isToolSender(api, good), true);
-  for (const changed of [{id: 'evil'}, {url: 'https://example.com'}, {frameId: 1}, {documentId: ''}, {documentLifecycle: 'cached'}, {tab: {incognito: true}}]) {
-    assert.equal(isToolSender(api, {...good, ...changed}), false);
+  const sidePanel = {id: extension, url: toolUrl, documentId: 'side-doc', documentLifecycle: 'active'};
+  const tabTool = {id: extension, url: toolUrl, frameId: 0, documentId: 'tab-doc', documentLifecycle: 'active',
+    tab: {id: 7, incognito: false}};
+  assert.equal(isToolSender(api, sidePanel), true);
+  assert.equal(isToolSender(api, {...sidePanel, frameId: 0}), true);
+  assert.equal(isToolSender(api, tabTool), true);
+  for (const changed of [{id: 'evil'}, {url: 'https://example.com'}, {frameId: 1}, {documentId: ''}, {documentLifecycle: 'cached'}]) {
+    assert.equal(isToolSender(api, {...sidePanel, ...changed}), false);
   }
+  assert.equal(isToolSender(api, {...tabTool, frameId: 1}), false);
+  assert.equal(isToolSender(api, {...tabTool, tab: {id: 7, incognito: true}}), false);
 });
 test('URL policy rejects restricted/file/credentials and preserves exact origin including port', () => {
   for (const value of ['chrome://settings', 'file:///tmp/test', 'javascript:alert(1)', 'https://user:pass@example.com/']) assert.throws(() => httpUrl(value));
