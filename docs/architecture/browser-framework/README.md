@@ -1,254 +1,120 @@
-# OpenDesk Browser — Legacy → Current → Target 工程基线
+# OpenDesk Browser 工程地图：先看功能，再看文件与调用
 
-> 基线日期：2026-10-07  
-> Legacy 事实源：`shopable-ai/todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5` 的 `src-bex`  
-> Current 产品源码：`opendesk-browser@01b48dcb49b31844d30c0e6fdeed1756e5046f11`  
-> 当前候选分支：`codex/p1-2-sdk-target-origins-20261004`；本轮观察 HEAD `3b7d6a361c05a8f40e26afae1776ed9e3b7b18e6`  
-> 注意：候选 HEAD 相对 P1 交付 HEAD `5b265238…` 的后续提交只改文档、测试/证据和根 README，没有改 `src/` 产品代码。
+> 修订日期：2026-10-07。本文是人工阅读入口，不是测试通过证书。
+> 旧版事实源：`shopable-ai/todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5` 的 `src-bex`。
+> 新版源码观察点：`opendesk-browser@cdef268b861060a84731134088580844b2632994`；`src` 子树为 `38cc631a3d4d792453149788a2c1a620f74d34b6`。
+> 本轮只修订本目录文档；没有运行新的产品测试、构建或原生浏览器验收。没有接管产品 owner。
 
-本目录是 OpenDesk Browser 后续重构的长期基准。所有开发 Goal 应先回答：
+## 一、先回答：这个框架让用户做什么？
 
-```text
-LEGACY
-旧项目真实实现
-  ↓
-真实消费者 / 调用链 / 行为契约
-  ↓
-CURRENT
-当前产品真实实现
-  ↓
-迁移状态 / 验证等级 / 差异
-  ↓
-TARGET
-最小必要兼容目标
-```
-
-不得用“文件存在 / API 存在 / 测试文件存在”替代消费者级完成证明。
-
-## 1. 结论先行
-
-### A. Legacy 到底是什么？
-
-**Legacy `src-bex` 是一个“后台单例 ChromePage 自动化外观 + 页面 MAIN-world SDK/service bridge”的浏览器扩展运行时。**
-
-它确实是浏览器自动化框架的一部分，但不是 Puppeteer 本体，也不是完整的 `Browser → BrowserContext → Page` 对象系统。本轮固定源码中：
-
-- 有 `ChromePage`、`ChromeElement`、`Keyboard` 和大量 Puppeteer 风格方法；
-- 没有发现 Legacy `ChromeContext`、`BrowserContext`、`PageProxy` 或 Puppeteer/CDP 执行内核；
-- background 持有共享的 `page` 单例；
-- ChromePage 执行时常重新查询 active tab，再用旧 Chrome tabs/script API、页面脚本、cookies、captureVisibleTab 等完成动作；
-- 另一条 Page SDK 主线把 `axiosx / AppStorage / AppLocal / log / getTime / bexUrl / requestResource` 等 API 注入网页，通过 `CustomEvent → content relay → runtime message → background service` 得到扩展特权。
+OpenDesk Browser 的核心是浏览器自动化与网页增强，不只是一个 HTTP 代理，也不只是一个脚本编辑器。理解它要分清两种程序运行方式，以及共享服务：
 
 ```text
-Legacy src-bex
-│
-├─ Browser automation
-│   consumer / background script
-│       ↓
-│   global page : ChromePage
-│       ↓
-│   active-tab lookup
-│       ↓
-│   tabs.executeScript / tab update / cookies / captureVisibleTab / DOM
-│       ↓
-│   page effect + pendingEvents callback
-│
-└─ Page SDK / service bridge
-    webpage MAIN globals
-        ↓
-    axiosx / AppStorage / AppLocal / utility
-        ↓
-    DOM CustomEvent
-        ↓
-    content relay
-        ↓
-    runtime/BEX message
-        ↓
-    background service
-        ↓
-    axios / storage / resource / notification / utility
-        ↓
-    callback injected/relayed back to webpage Promise
+浏览器自动化：在页面外运行控制程序
+  程序 → page.goto / click / type / evaluate → 操作明确的网页
+
+网页增强：在页面内运行脚本
+  网页打开或手动触发 → 页面脚本 → 增加按钮、修改 DOM、监听事件
+
+共享服务：为程序提供扩展代办能力
+  axiosx / AppStorage / AppLocal / 工具服务 → HTTP、存储、资源等
 ```
 
-完整事实见 [legacy-src-bex-framework.md](legacy-src-bex-framework.md)。
+页面 SDK 是服务入口，不是第三种执行引擎。页面脚本只操作本页 DOM 时，不应被画成每一步都经过后台；使用扩展特权时才进入相应服务链。
 
-### B. Current 到底是什么？
+旧版有 ChromePage 自动化、页面业务脚本注入、服务桥三类事实。新版有明确绑定的自动化、独立页面 SDK 和共享底座；**不能由已有 evaluate 或 SDK 推导出完整的“安装—匹配网址—自动注入—停用—清理”用户脚本管理闭环已经完成**。这项用户需求要保留，但是否实现应单独查证。
 
-**Current 是一个“精确 tab/frame/document 绑定的浏览器自动化运行时 + 正式 Page SDK + 单一 authority/broker + platform drivers + durable state/artifact/download”的 MV3 框架。**
+## 二、推荐阅读顺序
 
-```text
-Public API / Tool / Controller script / Page SDK
-                  ↓
-          ChromePage / OpenDeskSDK
-                  ↓
-             codec / transport
-                  ↓
-          single broker + authority
-      source / capability / target / grant
-       request identity / cancellation fence
-                  ↓
-        runtime / RunHost / controller / SDK
-                  ↓
-             platform drivers
- scripting / userScripts / tabs / webNavigation
- cookies / network / downloads / storage.session
-                  ↓
- durable IndexedDB state + native receipts
-                  ↓
- exact tab/frame/document or authorized HTTP origin
-```
+| 要回答的问题 | 阅读位置 |
+|---|---|
+| 我原来能做的事情，现在怎么做？哪些变了？ | [新旧功能与任务调用链](legacy-to-target-map.md) |
+| 旧框架具体由哪些文件、函数和技术组成？ | [旧框架源码事实](legacy-src-bex-framework.md) |
+| 新版谁负责运行、传话、授权、执行、保存结果？ | [新版实现与最小目标](current-and-target-framework.md) |
+| 为什么不能仅凭测试数量判断完成？ | 本文第三节及任务地图的验收字段 |
 
-Current 不是把 Legacy 文件原样搬家：它保留 API/消费者意图，同时替换 active-tab、任意 background eval、临时 pending 状态和隐式权限模型。
+同一功能使用固定的“场景编号”串联这几份文档。场景编号仅用于文档检索，不新建运行协议、不取代原有迁移账本编号。
 
-完整实现与 Target 理由见 [current-and-target-framework.md](current-and-target-framework.md)。
+## 三、每项功能必须同时回答三个问题
 
-### C. 两者的关系
-
-| 类型 | 代表能力 | 当前判断 |
+| 维度 | 需要写出的事实 | 不能偷换成什么 |
 |---|---|---|
-| API 外观保留、执行重写 | `ChromePage.goto/click/type/wait/evaluate`、`axiosx`、`AppStorage/AppLocal` | MIGRATED 或 PARTIALLY MIGRATED |
-| 旧机制由新机制替代 | active-tab 目标、background raw eval、pendingEvents 作为唯一事实、宽泛服务权限 | REPLACED |
-| Current 新增可靠性/安全模型 | RunContext、PageProxy、single authority、request identity、durable cancel、effect_unknown、artifact/download lifecycle | CURRENT ONLY |
-| 旧消费者仍需兼容验收 | 旧动态 controller 脚本、全部旧业务脚本、部分 evaluate/$/$$/world 语义 | PARTIALLY MIGRATED / UNKNOWN |
+| 实现接通情况 | 真实入口、文件、函数、通信方式、最终执行点、返回路径 | 类名存在不等于用户可调用 |
+| 行为兼容情况 | 输入、目标、执行环境、返回值、错误、生命周期是否保持 | 新机制更安全不等于旧消费者兼容 |
+| 验证情况 | 测试用例、实际结果、源码版本、构建包、未测场景 | 历史报告或组件通过不等于当前浏览器验收 |
 
-**不能把 Current 的 authority / broker / runtime / driver 倒写成 Legacy 原有架构。**
+例如“页面请求另一个站点”可以同时处于：**正式调用链已接通；凭据和重定向行为改变；本次未复验当前构建**。不要再将三个结论压成一个含义不清的“已迁移”。
 
-## 2. 当前 P1 在整个框架中的位置
+迁移术语采用中文为主，保留检索别名：仅旧版（LEGACY ONLY）、新旧都有（LEGACY + CURRENT）、仅新版（CURRENT ONLY）、已迁移（MIGRATED）、部分迁移（PARTIALLY MIGRATED）、机制替代（REPLACED）、尚未迁移（NOT YET MIGRATED）、待核实（UNKNOWN）。“已迁移”必须说明具体行为和证据范围，不能代表整个能力族都已验收。
 
-P1.2 / P1.3 / P1.4 只覆盖完整框架的一条纵向切片：
+证据仍可使用原 L0—L6，但以实际记录为准：源码、接口、入口、组件、集成、历史浏览器、当前同版浏览器。它们不是自动升级的分数；当前浏览器检查也不能替代旧消费者兼容检查。
 
-```text
-Page SDK
-  ↓
-P1.2  source + capability + exact targetOrigins + grant lifecycle
-  ↓
-P1.3  trusted approval UI + native permissions + exact document
-  ↓
-P1.4  real SDK/axiosx consumer → broker → network driver → result
-```
-
-它不等于：
+## 四、文件调用链怎样写才有用？
 
 ```text
-Browser automation 全部完成
-+ 所有 Legacy consumer 已兼容
-+ artifact/download 全部候选验收
-+ 所有 lifecycle/native Chrome 场景均通过
+用户想完成的任务
+→ 从哪个按钮或脚本发起
+→ 哪个文件的哪个函数接收
+→ 通过函数调用、DOM 事件、扩展消息或 MessagePort 传递
+→ 哪个函数检查授权和目标
+→ 哪个函数真正修改网页、发 HTTP 或写存储
+→ 返回如何关联原始调用
+→ 失败、停止、导航、重启时怎样收尾
 ```
 
-P1 候选交付证据明确区分：
+箭头只表示已经追踪的调用或通信。`import` 只能证明依赖；测试绕过正式入口只能证明对应组件；尚无实现的连接要写“缺口”，不能画成实线。
 
-- 239 项 SDK/component 测试 PASS；
-- 237 项 compiled/control/environment 测试 PASS；
-- production/development build 与 CI PASS；
-- 当前 P1 包的 native user-chain acceptance：**NOT_TESTED**。
+任务地图同时保留旧版链和新版链，不强制一个旧文件只对应一个新文件。旧 `background.ts` 的职责分散到多个新模块很正常；必须解释每个模块接走哪项责任，而不是只列目录。
 
-历史真实 Chrome 证据仍有价值，但不能继承为当前候选 L6：
-- 历史 SDK native package `99d6d078…`：17/17 PASS；
-- 历史 ChromePage/API48 package `99d6d078…`：真实 Chrome 后续 run PASS；
-- 当前 P1 production package `61ac11ca…`：不是同一个包哈希。
+## 五、用旧概念理解新版
 
-详见 [legacy-to-target-map.md](legacy-to-target-map.md)。
-
-## 3. “完成”的统一证据等级
-
-```text
-L0 源码存在
- ↓
-L1 API 存在
- ↓
-L2 真实消费者入口已接通
- ↓
-L3 组件测试
- ↓
-L4 集成 / compiled-product 测试
- ↓
-L5 历史真实浏览器用户链
- ↓
-L6 当前候选源码/包的真实浏览器用户链
-```
-
-规则：
-
-- L3/L4 不得写成 Chrome PASS；
-- L5 不得自动继承到新 package；
-- typed rejection 可以证明安全边界，但不能冒充某项 Legacy 正向能力已迁移；
-- wrapper 存在但没有真实执行点，只能算 L0/L1；
-- 内部测试直接调用 authority，但正式 SDK 不经过它，不能算 L2。
-
-## 4. 迁移状态词
-
-本目录统一使用：
-
-- **LEGACY ONLY**
-- **LEGACY + CURRENT**
-- **CURRENT ONLY**
-- **MIGRATED**
-- **PARTIALLY MIGRATED**
-- **REPLACED**
-- **NOT YET MIGRATED**
-- **UNKNOWN**
-
-“IMPLEMENTED”若出现在旧历史文档中，不等同于本目录的“消费者级迁移完成”。
-
-## 5. 当前整体完成度：按能力看，不给虚假总百分比
-
-| 能力域 | 当前结论 | 最高可信证据 |
+| 你熟悉的旧概念 | 新版对应责任 | 先看哪里 |
 |---|---|---|
-| Browser automation | 主体 MIGRATED，若干语义有意改变；当前候选需重验 | 历史 native + 当前源码/组件 |
-| Page SDK | MIGRATED；raw background execute 被 REPLACED | 历史 native + 当前 P1 L4 |
-| HTTP / axiosx | P1 主体 MIGRATED，权限/credential/redirect 语义改变 | 当前 P1 L4；历史 native |
-| Runtime / transport | MIGRATED | 当前 L4；部分历史 native |
-| Authority | CURRENT ONLY，P1 主体完成 | 当前 L4；历史 native |
-| Tool approval UI | P1.3 已接真实入口 | 当前 L4；历史 UI native，不是当前包 |
-| Storage | REPLACED/MIGRATED：persistent + session 语义正式化 | 当前 L4；历史 native |
-| Artifact / download | CURRENT ONLY 的强生命周期模型 | 当前源码/历史 native；当前候选需重验 |
-| Lifecycle / recovery | Current 显著强于 Legacy | 当前 L4 + 历史 native；候选需同包重验 |
+| 后台拿着一个 page 对象运行程序 | 每次运行获得绑定目标的 page；程序运行与授权分开 | `run-host.js`、`framework/context.js`、`framework/ChromePage.js` |
+| 拼一段 JS 送进页面 | 固定 DOM 操作、受控页面计算和 MAIN 代码分别走不同路径 | `framework/control/native-driver.js`、`scripting/packaged/`、`scripting/user-scripts/` |
+| 网页通过事件找后台帮忙 | 页面 SDK 和隔离转发脚本传递请求 | `framework/sdk/`、`agents/page-relay.js` |
+| 后台 switch 调对应服务 | 消息分发与统一授权，再由具体服务执行 | `platform/host/broker.js`、`authority.js`、`sdk-methods.js` |
+| 保存临时变量或配置 | 持久 KV、浏览器会话值、操作记录分别保存 | `platform/storage/` |
+| 脚本结束、用户点停止 | 程序结果、取消记录、执行资源、目标页面分别收尾 | `run-host.js`、`controller-methods.js` |
+| 生成文件并下载 | 结果、产物字节、下载尝试和浏览器回执分别追踪 | `ui/script-editor.js`、`platform/downloads/` |
 
-## 6. 下一工程顺序
+这里是责任解释，不代表所有请求都按表格顺序经过每一层。控制脚本的 axiosx 与普通网页的 axiosx 共用便利接口，但授权身份和调用链不同。
 
-### 第一优先级：当前 P1 候选真实 Chrome A/B/C 验收
+## 六、本次必须纠正的旧文档结论
 
-Legacy 绑定能力：`axiosx / AppStorage / AppLocal / SDK injection`。  
-Current 缺口：`01b48dcb…` 对应 P1 当前包仍没有 L6。  
-重点：`src/ui/sdk-approval.js`、`src/ui/tool-shell.js`、`src/platform/host/sdk-methods.js`、`src/platform/host/sdk-broker.js`、`src/platform/chrome/network.js`、`src/framework/sdk/*`、`src/agents/page-relay.js`。  
-验收：真实 permission gesture、A→B 成功、未授权 C 零效果、撤权、导航换 document、SW effect_unknown 不重放、快速 regrant 不复活旧调用。
+### 1. 不能继续说后续没有产品源码变化
 
-### 第二优先级：Legacy 真实消费者兼容验收
+先前将 `01b48dcb…` 视为当前全部产品源码的说法不准确。直接读取 Git 树可见：
 
-Legacy 绑定能力：background `executeScript`、global `page`、ChromePage API、旧页面 SDK globals。  
-Current 缺口：API/driver 已强，但旧消费者脚本是否在正式 Controller/SDK 入口保持行为还没有逐消费者闭合。  
-重点：`src/framework/ChromePage.js`、`src/framework/context.js`、`src/scripting/sandbox/*`、`src/framework/control/native-driver.js`。  
-验收：选取可追溯 Legacy consumer 作为 fixture，逐项标记保持/改变/拒绝，禁止用内部方法测试代替旧消费者。
+| 源码观察点 | src 子树 |
+|---|---|
+| `01b48dcb…` 对应根树 `8ea3d1d352b41bb75b994f03a03d545993f5295e` | `a3238198acfe19915d9081b5f470a5bff4d153f8` |
+| 本次 `cdef268b…` 对应根树 `ea4eb456853b3a8162995df01167cb8d51796ba8` | `38cc631a3d4d792453149788a2c1a620f74d34b6` |
 
-### 第三优先级：同一候选重验 automation + lifecycle + artifact/download
+二者不同。当前重新读取的 `context.js`、`sdk-broker.js`、`run-host.js`、`script-editor.js` 也显示实质变化。大规模提交比较的返回文件列表可能不完整；不能因为可见部分只有文档就断言没有源码变化。
 
-Legacy 绑定能力：navigation/click/type/evaluate/wait/screenshot/upload/cookie；同时覆盖 Legacy 没有显式建模的 stop/restart/unknown-effect。  
-Current 缺口：有历史 native 证据，但与当前 P1 包哈希不同。  
-重点：`src/run-host.js`、`src/framework/control/native-driver.js`、`src/platform/host/authority.js`、`src/platform/downloads/index.js`、`src/platform/storage/*`。  
-验收：exact document、navigation handoff、tab close、stop/deadline、SW restart、screenshot/upload/cookies、download hash 与资源释放。
+旧 P1 的 239+237 测试和包哈希只绑定旧报告自己的版本。历史浏览器报告仍保留价值，但本轮没有完成所有已有报告到当前源码/构建的重新绑定，不能外推当前完成数量。
 
-## 7. 证据边界
+### 2. 旧 goto 不是 tabs.update 链
 
-用户指定本机路径：
+[旧 ChromePage.goto](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L190-L225) 实际构造 `window.location.href`，交给 `eval`；另用 `tabs.onUpdated` 等待。`tabs.update` 属于本次看到的新版导航执行路径。旧 `_execute` 只传 `{active:true}`，不能擅自补成 `{active:true,currentWindow:true}`。
 
-- `/Users/shopme/Documents/workspace/todo-user-vue/src-bex`
-- `/Users/shopme/Documents/workspace/opendesk-browser`
+### 3. 文件名不能证明旧消费者存在
 
-当前执行环境没有挂载这些路径，因此本轮不能直接读取本机工作区 HEAD。Legacy 使用已连接 GitHub 账户中的私有仓库 `shopable-ai/todo-user`；仓库描述与 `src-bex` 结构对应旧 `todo-user-vue`。
+本次读取 `assets/js/testMonkey.esm.js` 没有返回可用代码，因此不能把它直接列为已确认的 ChromePage 消费者或回归脚本。业务文件也要检查真正可达的调用，排除注释、示例和提前 return 后的代码。
 
-因此：
+## 七、P1 的位置与后续推进
 
-**本轮不能声称 Legacy 远端 SHA 与用户本机未提交工作区完全一致。**
+P1.2 是页面服务的来源、能力、目标授权；P1.3 是可信工具批准与原生权限入口；P1.4 是正式页面 SDK 到 HTTP 执行与结果的用户链。它们不能代替全部浏览器自动化、页面增强、下载与生命周期验收。
 
-未来一旦本机路径可读，应先做本机 SHA/diff 复核；如果有差异，以本机旧源码为 Legacy 优先事实源，再修订本目录。
+**第一优先级：校准版本与三条高频任务链。**用当前源码固定“自动化操作网页”“网页请求扩展服务”“网页触发/装载脚本”，逐条确认旧调用者，绑定已有测试与缺口。
 
-## 8. 文档阅读顺序
+**第二优先级：先验收用户任务，再扩功能。**复用现有 A/B/C 页面、工作台、控制脚本入口；记录网页变化、服务次数、原 Promise、停止/导航/撤权等结果，不只记录内部状态。
 
-1. [legacy-src-bex-framework.md](legacy-src-bex-framework.md)：只记录旧系统真实事实。
-2. [current-and-target-framework.md](current-and-target-framework.md)：记录 Current 以及每个 Target 层为什么必要。
-3. [legacy-to-target-map.md](legacy-to-target-map.md)：核心迁移表、行为契约表、完成度矩阵、P1 覆盖。
-4. 本 README：日常入口和“完成”口径。
+**第三优先级：按任务缺口下发开发目标。**页面增强闭环、网页按钮启动完整任务等未闭合需求，必须明确当前缺哪一环、用户是否接受行为变化、由哪个现有模块承接；不自动启动新的产品重构。
 
-以后新的开发 Goal 应至少引用：Legacy 能力、Current 文件、行为差异、要求关闭的验证等级，以及本次 candidate/source SHA。
+## 八、本机与范围边界
+
+当前容器实际检查后，两个 `/Users/shopme/Documents/workspace/...` 路径均未挂载。本轮使用远端固定版本，未核对 Mac 工作区的未提交变化。取得本机源码后优先补本机差异和真实业务调用者；不要重复猜架构。
+
+本目录负责解释关系，原有 schema/合同负责约束，迁移账本保留原编号，测试和原始证据负责验证。修订文档不修改这些资产的通过标志。
