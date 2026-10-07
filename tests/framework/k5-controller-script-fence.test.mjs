@@ -159,7 +159,11 @@ for (const stage of ['before', 'after']) {
   for (const trigger of ['navigation', 'revocation', 'stop', 'deadline', 'host-close']) {
     test(`oracle accepts ${stage} ${trigger} component evidence but does not report native PASS`, () => {
       const plan = basePlan({stage, trigger});
-      const f = fixture(plan);
+      const f = stage === 'before' && trigger === 'deadline' ? controllerDeadlineFixture().f : fixture(plan);
+      if (stage === 'after' && trigger === 'deadline') {
+        f.admittedRun.deadlineAt = f.run.deadlineAt = f.triggerAt.at = 40;
+        f.result.committedAt = 41;
+      }
       if (stage === 'before') {
         f.pageOperations = [];
         delete f.afterBarrier;
@@ -222,6 +226,52 @@ test('before-stage oracle rejects any page dispatch', () => {
   delete f.aDuring;
   delete f.aAfter;
   assert.throws(() => validateScriptFenceOracle(plan, f), /zero page operations/);
+});
+
+function controllerDeadlineFixture() {
+  const plan = basePlan({stage: 'before', trigger: 'deadline'}), f = fixture(plan);
+  f.pageOperations = [];
+  delete f.afterBarrier; delete f.aDuring; delete f.aAfter;
+  f.admittedRun.deadlineAt = f.run.deadlineAt = f.triggerAt.at = 30010;
+  f.result.committedAt = 30011;
+  f.beforeBarrier.release.at = 20;
+  f.beforeBarrier.completedOperation = {...structuredClone(f.beforeBarrier.pendingOperation),
+    state: 'durable', receiptAt: 22, reply: {requestId: 'request-before'}};
+  return {plan, f};
+}
+
+test('before deadline waits in Worker after HTTP completes, preserving the original controller deadline', () => {
+  const {plan, f} = controllerDeadlineFixture();
+  assert(plan.source.includes('await new Promise(()=>{});'));
+  assert.equal(validateScriptFenceOracle(plan, f).pageDispatches, 0);
+});
+
+test('before deadline rejects a short-service timeout preceding the controller deadline', () => {
+  const {plan, f} = controllerDeadlineFixture();
+  f.result.committedAt = 15011;
+  assert.throws(() => validateScriptFenceOracle(plan, f), /precede the controller deadline/);
+});
+
+test('after deadline accepts actual failed E_TIMEOUT at the admitted deadline with cancelled effect accounting', () => {
+  const plan = basePlan({stage:'after',trigger:'deadline'}), f = fixture(plan);
+  f.admittedRun.deadlineAt = f.run.deadlineAt = f.triggerAt.at = 40;
+  f.result.committedAt = 41; f.result.state = 'failed';
+  assert.equal(validateScriptFenceOracle(plan, f).effectState, 'cancelled');
+});
+
+test('after deadline rejects failed E_TIMEOUT before the admitted deadline', () => {
+  const plan = basePlan({stage:'after',trigger:'deadline'}), f = fixture(plan);
+  f.admittedRun.deadlineAt = f.run.deadlineAt = f.triggerAt.at = 40;
+  f.result.committedAt = 39; f.result.state = 'failed';
+  assert.throws(()=>validateScriptFenceOracle(plan, f), /precede the controller deadline/);
+});
+
+test('host closure permits its actual cancelled native operation while preserving E_HOST_CLOSED result', () => {
+  const plan = basePlan({stage:'after',trigger:'host-close'}), f = fixture(plan);
+  f.pageOperations[0].state = 'cancelled'; f.pageOperations[0].failure.code = 'E_CANCELLED';
+  assert.equal(validateScriptFenceOracle(plan,f).effectState,'cancelled');
+  f.pageOperations[0].failure.code = 'E_TIMEOUT';
+  assert.throws(()=>validateScriptFenceOracle(plan,f));
 });
 
 test('after-stage oracle requires Worker release before trigger and MAIN barrier before trigger', () => {

@@ -7,12 +7,17 @@ import {nativeFailureOutcome} from './k5-controller-product-native-outcome.mjs';
 export async function runScriptFenceOriginal(definition,row,c) {
   const {origin,seed,newPage,browserClient,originalBarriers,chooseBorrowed,click,evaluate,until,snapshot,commit,json,directory,start,durable,readUI,targets,pageObservation,toolResources,getTool,openTool,errorView,catalog}=c;
   row.nativeVariants=[];
+  const allVariants=['before','after'].flatMap(stage=>['navigation','revocation','stop','deadline','host-close'].map(trigger=>`${stage}-${trigger}`));
+  const selectedVariants=c.variantSelection?.split(',')??allVariants;
+  assert(selectedVariants.length&&new Set(selectedVariants).size===selectedVariants.length&&selectedVariants.every(key=>allVariants.includes(key)));
+  row.nativeVariantSelection={required:allVariants,selected:selectedVariants,complete:selectedVariants.length===allVariants.length,formalAccepted:false};
   const release=barrier=>{
     if(!barrier.response||barrier.release)return;
     if(barrier.response.writableEnded||barrier.response.destroyed){barrier.release={at:Date.now(),kind:'response-already-closed',destroyed:barrier.response.destroyed,writableEnded:barrier.response.writableEnded};return;}
     barrier.release={at:Date.now(),kind:'response-ended'};barrier.response.setHeader('content-type','application/json');barrier.response.end(JSON.stringify({released:true}));
   };
   for(const stage of ['before','after'])for(const trigger of ['navigation','revocation','stop','deadline','host-close']) {
+    if(!selectedVariants.includes(`${stage}-${trigger}`))continue;
     const token=randomUUID(),key=`${stage}-${trigger}`,before={token},after={token:token+'-main'};
     const plan=scriptFencePlan(definition,{stage,trigger,token,beforeURL:`${origin}/original-api48-barrier?token=${token}`,afterURL:`${origin}/original-api48-barrier?token=${after.token}`});
     const aPage=await newPage(`${origin}/original-api48?seed=${seed}&role=A&family=selector&fence=${token}#A-fragment`),bPage=await newPage(`${origin}/original-api48?seed=${seed}&role=B&family=selector&fence=${token}#B-fragment`);
@@ -34,6 +39,14 @@ export async function runScriptFenceOriginal(definition,row,c) {
         const activeTab=await evaluate(getTool().client,'chrome.tabs.query({active:true,currentWindow:true}).then(t=>t[0])'),focusedB=await evaluate(bPage.client,'document.hasFocus()');
         return activeTab?.id===bBefore.tabId&&focusedB&&{activeTab,focusedB,at:Date.now()};
       },'Script fence real active B');
+      if(stage==='before'&&trigger==='deadline') {
+        release(before);
+        before.completedOperation=await until(async()=>{
+          const operation=(await snapshot(getTool().client,{runId})).rows.commandJournal.find(r=>r.value.requestId===before.pendingOperation.requestId)?.value;
+          return operation?.state==='durable'&&operation;
+        },'Script before-deadline short service completed before idle Worker waits for controller deadline',12000);
+        assert.equal(before.completedOperation.reply?.error,undefined);
+      }
       let aDuring;
       if(stage==='after'){
         release(before);
@@ -76,10 +89,15 @@ export async function runScriptFenceOriginal(definition,row,c) {
         const operation=pageOperations[0];aAfter.effectDisposition={state:operation?.state,deliveryState:operation?.deliveryState,submissionCount:operation?.submissionCount,terminalError:actual.result.outcome?.error?.code};
         aAfter.conservativeEffectRecorded=pageOperations.length===1&&operation.submissionCount===1&&['effect_unknown','cancelled'].includes(operation.state)&&actual.result.outcome?.ok===false;
       }
-      const o={selected,revision,admittedRun:initialRun,run:actual.run,result:actual.result,beforeResources,afterResources:await toolResources(),bBefore,bAfter:{...await pageObservation(bPage),markerText:await evaluate(bPage.client,'document.querySelector("#marker")?.textContent')},bActive,beforeBarrier:{request:before.request,pendingOperation:before.pendingOperation,pendingArgs:before.pendingArgs,release:before.release},afterBarrier:stage==='after'?{request:after.request,operation:after.operation,release:after.release,documentId:selected.documentId}:undefined,
+      const view=trigger==='revocation'?{resultDeliveryRevoked:actual.run.resultDeliveryRevoked,readSkippedAfterActualRevocation:true}:await readUI(runId,getTool().client,getTool().targetId);
+      const afterResources=await until(async()=>{
+        const resources=await toolResources();
+        return Object.entries(beforeResources.counts).every(([key,value])=>resources.counts[key]===value)&&resources;
+      },'Script fence actual host settlement and six-resource baseline',12000);
+      const o={selected,revision,admittedRun:initialRun,run:actual.run,result:actual.result,beforeResources,afterResources,bBefore,bAfter:{...await pageObservation(bPage),markerText:await evaluate(bPage.client,'document.querySelector("#marker")?.textContent')},bActive,beforeBarrier:{request:before.request,pendingOperation:before.pendingOperation,pendingArgs:before.pendingArgs,release:before.release,...(before.completedOperation?{completedOperation:before.completedOperation}:{})},afterBarrier:stage==='after'?{request:after.request,operation:after.operation,release:after.release,documentId:selected.documentId}:undefined,
         triggerAt:{stage,trigger,runId,at:trigger==='deadline'?initialRun.deadlineAt:triggerAt},aDuring,aAfter,hostReopened,pageOperations,triggerEvidence};
       await json(`${directory}/${variant.raw}-observation.json`,o);
-      const oracle=validateScriptFenceOracle(plan,o);const view=trigger==='revocation'?{resultDeliveryRevoked:actual.run.resultDeliveryRevoked,readSkippedAfterActualRevocation:true}:await readUI(runId,getTool().client,getTool().targetId);
+      const oracle=validateScriptFenceOracle(plan,o);
       Object.assign(variant,{status:'PASS',runId,resultId:actual.result.resultId,oracle,retirement:actual.run.retirementState});
       await json(`${directory}/${variant.raw}-result.json`,{variant,view,formalAccepted:false});
     } catch(error){variant.error=errorView(error);Object.assign(variant,nativeFailureOutcome(error));throw error;}
@@ -96,5 +114,5 @@ export async function runScriptFenceOriginal(definition,row,c) {
       else variant.retainedTargets=[aPage.id,bPage.id];
     }
   }
-  return {originalCaseId:SCRIPT_FENCE_ID,variants:row.nativeVariants,formalAccepted:false};
+  return {originalCaseId:SCRIPT_FENCE_ID,variants:row.nativeVariants,nativeVariantSelection:row.nativeVariantSelection,fullOriginalCaseCovered:row.nativeVariantSelection.complete,formalAccepted:false};
 }

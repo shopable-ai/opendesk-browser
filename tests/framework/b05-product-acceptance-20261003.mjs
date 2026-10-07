@@ -15,6 +15,7 @@ import {discoverAdmissionPoint} from './k5-sdk-admission-abort-native-selector.m
 import {inspectPausedAdmission} from './k5-sdk-admission-abort-native-inspect.mjs';
 import {observeNativeToolResources, composeNativeSdkResources, validateNativeResourceBaseline, validateNativeSdkDisposal} from './k5-sdk-native-resource-observation.mjs';
 import {validateNativeSelectionReceipt} from './k5-sdk-native-selection-receipt.mjs';
+import {armNativeRecoveryGate} from './b05-native-recovery-gate.mjs';
 import {discoverStorageObservations, inspectNativeKvSubmission, readFrame, assertPublicUnknown,
   exactBreakpointLocation, requireFreshWorkerContext} from './b05-native-observers.mjs';
 
@@ -651,6 +652,7 @@ async function runNative(options, packageBefore, barriers) {
           stop.versionStopped=await until(()=>swEvents.slice(swEventStart).flatMap(x=>x.params.versions||[]).find(x=>x.versionId===version.versionId&&x.scriptURL===old.url&&x.runningStatus==='stopped'),'exact native SW version stopped');
           stop.targetAbsent=true;stop.physicalTerminationObserved=true;
           retiredWorkers.add(workerClient);workerClient.close();workerClient=null;session.worker=null;
+          if(recovery)await recovery.afterPhysicalStop(stop);
           // A native Hello wakes recovery without allocating another SDK op.
           const waking=evaluate(page,`chrome.runtime.sendMessage(${JSON.stringify({protocol:PROTOCOL,type:'SDK_HELLO',payload:{sdkVersion:SDK_VERSION}})})`,nativeContext.id);
           const [wake,replacement]=await Promise.all([waking,recovery?recovery.wait():until(worker,'replacement native SW')]);
@@ -659,6 +661,8 @@ async function runNative(options, packageBefore, barriers) {
             const identity=await evaluate(replacement.client,'({id:chrome.runtime.id,manifest:chrome.runtime.getManifest()})');
             assert.equal(identity.id,session.extensionId);assert.equal(identity.manifest.name,manifest.name);assert.equal(identity.manifest.version,manifest.version);
             workerClient=replacement.client;session.worker={...replacement.target,identity,executionContexts:replacement.contexts};
+            recovery.assertCoverage();stop.freshNativeContext=evidence.recoveryStartup.executionContext;
+            stop.targetReused=session.worker.targetId===old.targetId;
           } else assert.notEqual(session.worker.targetId,old.targetId);
           stop.replacementTargetId=session.worker.targetId;
         }
@@ -729,125 +733,11 @@ async function runNative(options, packageBefore, barriers) {
           return {async close(){off();await handling;if(retiredWorkers.has(client))return;try{await client.send('Debugger.removeBreakpoint',{breakpointId:installed.breakpointId});}catch{}}};
         }
         async function gateStorageRecovery(evidence) {
-          const old=session.worker,point=barriers.points['B05.native-kv-submission'],oldContexts=old.executionContexts;
-          if(!point||!oldContexts.length||oldContexts.some(context=>!context.uniqueId))
-            throw new NotObserved('Exact native KV point / old worker context unique IDs unavailable');
-          const filter=[{type:'service_worker',exclude:false},{exclude:true}],owned=[],pending=new Set();
-          const gate=evidence.recoveryStartup={status:'NOT_TESTED',oldTargetId:old.targetId,oldContexts,filter,attachments:[]};
-          let expecting=false,replacement,failure,closing=false,candidate;
-          function childClient(sessionId) {
-            const removals=[];
-            const client={send:(method,params)=>browser.send(method,params,sessionId),on(listener){
-              const off=browser.on(event=>{if(event.sessionId===sessionId)listener(event);});removals.push(off);return off;
-            },close(){for(const off of removals)off();}};
-            clients.push(client);return client;
-          }
-          async function attached(event) {
-            const attachment=event.params,client=childClient(attachment.sessionId),scripts=[],contexts=[],pauses=[],resolved=[];
-            const item={attachment,client,debuggerEnabled:false,tracer:null,breakpointId:null,instrumentation:null,detached:false};owned.push(item);
-            gate.attachments.push(attachment);
-            // Existing sessions can be waiting on auto-attach while the original
-            // F018 cut is paused in its own debugger. Never resume that cut here.
-            if(closing||!expecting||attachment.targetInfo.url!==old.url) {
-              await client.send('Runtime.runIfWaitingForDebugger');return;
-            }
-            if(candidate)throw new NotObserved('Multiple replacement worker startup attachments; coverage is ambiguous');
-            candidate=item;
-            if(attachment.targetInfo.type!=='service_worker'||attachment.waitingForDebugger!==true)
-              throw new NotObserved('Replacement worker did not attach before execution');
-            client.on(message=>{
-              if(message.method==='Debugger.scriptParsed')scripts.push(message.params);
-              if(message.method==='Runtime.executionContextCreated')contexts.push(message.params.context);
-              if(message.method==='Debugger.paused')pauses.push(message.params);
-              if(message.method==='Debugger.breakpointResolved')resolved.push(message.params);
-              if(!closing&&(message.method==='Inspector.targetCrashed'||gate.executionContext&&
-                (message.method==='Runtime.executionContextsCleared'||message.method==='Runtime.executionContextDestroyed'&&
-                  (message.params.executionContextUniqueId===gate.executionContext.uniqueId||message.params.executionContextId===gate.executionContext.id)))) {
-                failure=new NotObserved('Observed replacement worker/context was lost during recovery coverage');
-                gate.status='NOT_TESTED';gate.error=projectError(failure);
-              }
-            });
-            await client.send('Debugger.enable');item.debuggerEnabled=true;
-            await client.send('Runtime.enable');
-            const installed=await client.send('Debugger.setBreakpointByUrl',{url:old.url,...point.location});
-            item.breakpointId=installed.breakpointId;
-            let script=scripts.find(row=>row.url===old.url),startupPause;
-            if(!script) {
-              item.instrumentation=(await client.send('Debugger.setInstrumentationBreakpoint',{instrumentation:'beforeScriptExecution'})).breakpointId;
-              await client.send('Runtime.runIfWaitingForDebugger');
-              startupPause=await until(()=>pauses.find(row=>row.reason==='instrumentation'),'replacement beforeScriptExecution pause',6000);
-              script=scripts.find(row=>row.scriptId===startupPause.callFrames[0].location.scriptId&&row.url===old.url);
-              if(!script)throw new NotObserved('Startup instrumentation did not pause the exact bundled worker script');
-            }
-            const actual=(await client.send('Debugger.getScriptSource',{scriptId:script.scriptId})).scriptSource;
-            if(sha256(actual)!==barriers.sourceHash)throw new NotObserved('Replacement startup bundle SHA differs from the unchanged production package');
-            const executionContext=requireFreshWorkerContext(script,contexts,oldContexts);
-            const resolutions=[...installed.locations,
-              ...resolved.filter(row=>row.breakpointId===installed.breakpointId).map(row=>row.location)]
-              .filter((row,index,rows)=>rows.findIndex(other=>other.scriptId===row.scriptId&&other.lineNumber===row.lineNumber&&other.columnNumber===row.columnNumber)===index);
-            if(resolutions.some(row=>row.scriptId!==script.scriptId||row.lineNumber!==point.location.lineNumber||row.columnNumber!==point.location.columnNumber))
-              throw new NotObserved('Startup URL breakpoint relocated or resolved in another script');
-            const resolution=exactBreakpointLocation(point,resolutions,script.scriptId);
-            // traceKv also requires the exact native getPossibleBreakpoints
-            // codepoint and requested/resolved/paused equality in this session.
-            item.tracer=await traceKv(client,script.scriptId,evidence,{breakpointId:installed.breakpointId,actualLocation:resolution},executionContext);
-            gate.sourceHash=sha256(actual);gate.script=script;gate.executionContext=executionContext;
-            gate.requestedLocation=point.location;gate.actualLocation=resolution;gate.startupPause=startupPause??null;
-            gate.observerInstalledAt=new Date().toISOString();
-            if(failure)throw failure;if(closing)throw new NotObserved('Startup observation ended before validated resume');
-            if(item.instrumentation) {
-              await client.send('Debugger.removeBreakpoint',{breakpointId:item.instrumentation});item.instrumentation=null;
-              await client.send('Debugger.resume');
-            } else await client.send('Runtime.runIfWaitingForDebugger');
-            gate.resumedAt=new Date().toISOString();gate.status='OBSERVED';
-            replacement={target:attachment.targetInfo,client,contexts};
-          }
-          const off=browser.on(event=>{
-            if(event.method==='Target.detachedFromTarget') {
-              const item=owned.find(row=>row.attachment.sessionId===event.params.sessionId);
-              if(item)item.detached=true;
-              if(!closing&&item===candidate) {
-                failure=new NotObserved('Replacement observer session detached during recovery coverage');
-                gate.status='NOT_TESTED';gate.error=projectError(failure);
-              }
-              return;
-            }
-            if(event.method!=='Target.attachedToTarget'||event.params.targetInfo.type!=='service_worker')return;
-            const task=attached(event).catch(error=>{
-              failure=error.code==='E_NATIVE_NOT_OBSERVED'?error:new NotObserved(`Startup observation unavailable: ${error.message}`);
-              gate.status='NOT_TESTED';gate.error=projectError(error);
-            });
-            pending.add(task);task.finally(()=>pending.delete(task));
-          });
-          const recovery={expectReplacement(){expecting=true;},async wait(){
-            try {return await until(()=>{if(failure)throw failure;return replacement;},'gated replacement native SW');}
-            catch(error){gate.status='NOT_TESTED';throw error.code==='E_NATIVE_NOT_OBSERVED'?error:new NotObserved(`Replacement startup gate not observed: ${error.message}`);}
-          },assertCoverage(){if(failure)throw failure;if(gate.status!=='OBSERVED')throw new NotObserved('Recovery startup KV coverage unavailable');},async close(){
-            closing=true;gate.coverageEndedAt=new Date().toISOString();
-            // Release only owned startup waits. Debugger.disable is confined to
-            // the replacement session; old native cut sessions are never resumed.
-            for(const item of owned) {
-              if(item.detached)continue;
-              if(item.tracer)await item.tracer.close();
-              for(const breakpointId of [item.instrumentation,item.tracer?null:item.breakpointId].filter(Boolean))
-                try{await item.client.send('Debugger.removeBreakpoint',{breakpointId});}catch{}
-              try{await item.client.send('Runtime.runIfWaitingForDebugger');}catch{}
-              if(item.debuggerEnabled)try{await item.client.send('Debugger.disable');}catch{}
-            }
-            try{await browser.send('Target.setAutoAttach',{autoAttach:false,waitForDebuggerOnStart:false,flatten:true,filter});}catch{}
-            off();
-            await Promise.allSettled([...pending]);
-            for(const item of owned) {
-              if(!item.detached)try{await browser.send('Target.detachFromTarget',{sessionId:item.attachment.sessionId});}catch{}
-              item.client.close();
-            }
-            if(candidate?.client===workerClient) {retiredWorkers.add(workerClient);workerClient=null;session.worker=null;}
-          }};
-          try {
-            await browser.send('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true,filter});
-            await Promise.allSettled([...pending]);if(failure)throw failure;
-            gate.armedAt=new Date().toISOString();return recovery;
-          } catch(error) {await recovery.close();throw error;}
+          const recovery=await armNativeRecoveryGate({browser,clients,old:session.worker,
+            point:barriers.points['B05.native-kv-submission'],sourceHash:barriers.sourceHash,evidence,until,traceKv,projectError});
+          const close=recovery.close;
+          recovery.close=async()=>{await close();if(workerClient){retiredWorkers.add(workerClient);workerClient=null;session.worker=null;}};
+          return recovery;
         }
         const prerequisite=await caseRun(label,'B05.SDK.no-controller',async evidence=>{
           evidence.before=await evaluate(tool,'({tab:document.querySelector("#sdk-tab").value,document:document.querySelector("#sdk-document").value,disabled:document.querySelector("#sdk-install").disabled,capabilities:[...document.querySelectorAll("[name=sdk-capability]:checked")].map(x=>x.value)})');
@@ -970,9 +860,14 @@ async function runNative(options, packageBefore, barriers) {
             const writes=()=>evidence.nativeKvTrace.submissions.filter(row=>row.value.namespace===op.namespace&&row.value.key===key);
             if(evidence.nativeKvTrace.errors.length)throw new NotObserved('Native KV submission trace incomplete');assert.equal(writes().length,1);
             evidence.barrier.observedState={state:op.state,runState:run.state,resultId:op.resultId,nativeKvSubmissions:writes().length,brokerReceiptPresent:false};
+            // The original post-commit cut remains paused through physical termination.
+            // Remove its native tracer before termination can interrupt a frame read.
+            await tracer.close();tracer=null;
+            evidence.originalCutStillPaused=await readFrame(barrier.client,paused.callFrames[0],point.contextExpression+'.requestId');
+            assert.equal(evidence.originalCutStillPaused,request.requestId);
             recovery=await gateStorageRecovery(evidence);
             await stopWorker(evidence,recovery);recovery.assertCoverage();
-            await tracer.close();tracer=null;await barrier.close();barrier=null;
+            await barrier.close();barrier=null;
             const recovered=await snapshot('storage-recovered',evidence),recoveredOp=operation(recovered,request);
             assert.equal(boundRows(recovered,recoveredOp).runs[0].value.state,'completed');
             evidence.replay=await retryWithinDeadline(request,evidence);assert.equal(evidence.replay.ok,true);

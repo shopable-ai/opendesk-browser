@@ -892,7 +892,7 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
     }
     if(cookieFaultRequested) {await cookieFaults();return;}
     for (const definition of originalDefinitions) await caseRun(definition.id, async row => {
-      if(definition.id===SCRIPT_FENCE_ID)return runScriptFenceOriginal(definition,row,{origin,seed,newPage,toolResources,getTool:()=>({client:tool,targetId:toolId}),openTool,browserClient,originalBarriers,chooseBorrowed,click,evaluate,until,snapshot,commit,json,directory,start,durable,readUI,targets,pageObservation,errorView,catalog:originalCatalog.binding});
+      if(definition.id===SCRIPT_FENCE_ID)return runScriptFenceOriginal(definition,row,{variantSelection:option('script-fence-variants',null),origin,seed,newPage,toolResources,getTool:()=>({client:tool,targetId:toolId}),openTool,browserClient,originalBarriers,chooseBorrowed,click,evaluate,until,snapshot,commit,json,directory,start,durable,readUI,targets,pageObservation,errorView,catalog:originalCatalog.binding});
       if(definition.id===SCRIPT_SDK_ID)return runScriptSdkOriginal(definition,row,{origin,seed,newPage,tool,toolId,browserClient,originalBarriers,chooseBorrowed,click,evaluate,until,select,option,pageObservation,sdkResources,snapshot,commit,json,directory,start,durable,readUI,targets,errorView,catalog:originalCatalog.binding});
       const token = randomUUID(), barrier = {token};
       const fixtureFamily=originalReadFixtureFamily(definition);

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "target": "WXT; JavaScript; MV3; existing API contracts",
-  "stepId": "Browser-core-native-candidate55",
+  "stepId": "Browser-core-native-candidate67",
   "state": "in_progress",
   "lastPassedStep": "P3",
   "steps": {
@@ -14,8 +14,8 @@
     "P7": "not_tested"
   },
   "ledger": "docs/framework/source-compatibility-ledger.json",
-  "productInputsSha256": "091c6defeb15a81b4ba60f6d7d5b693c3a9138c6e40a258396c6597fd364ea91",
-  "verificationInputsSha256": "5c6ec759b2265fe59c6c8e97fd53214139ac3d9cd5ce059612d76566c105aa7c",
+  "productInputsSha256": "bd9e3f83ddec5e3a8f6464cfc11c5f65763b96b5972e6a3e242abe423d131e3e",
+  "verificationInputsSha256": "1cc8b08560ddf3eefe5032d99d3d92588b11874e7e7b0432d51d4ac1151e159d",
   "packageHashes": {
     "production": "e56c7d5ccc331a679b2aa593bca9ec4732ac521c1fb7d9e33318e022aa022d04",
     "development": "983ddde2a9d461239ebd36221706cfacc4a0ed74027b5cff78c4707422e537d7"
@@ -300,6 +300,8 @@
     "tests/framework/b05-authentic-sdk-invocation.test.mjs",
     "tests/framework/b05-native-observers.mjs",
     "tests/framework/b05-native-observers.test.mjs",
+    "tests/framework/b05-native-recovery-gate.mjs",
+    "tests/framework/b05-native-recovery-gate.test.mjs",
     "tests/framework/f3-api48-cases.test.mjs",
     "tests/framework/host-recovery.test.mjs",
     "tests/framework/k3-packaged-resource-error.test.mjs",
@@ -334,6 +336,12 @@
     "tests/framework/k5-sdk-native-restart.py",
     "tests/framework/k5-sdk-native-selection-receipt.mjs",
     "tests/framework/k5-sdk-native-selection-receipt.test.mjs",
+    "tests/framework/k5-sdk-original-authority.mjs",
+    "tests/framework/k5-sdk-original-authority.test.mjs",
+    "tests/framework/k5-sdk-original-storage-native.mjs",
+    "tests/framework/k5-sdk-original-storage-native.test.mjs",
+    "tests/framework/k5-sdk-original-storage.mjs",
+    "tests/framework/k5-sdk-original-storage.test.mjs",
     "tests/framework/native-idb-migration-launcher.mjs",
     "tests/framework/p4-api48-native-source.mjs",
     "tests/framework/run-host-recovery.test.mjs",
@@ -661,7 +669,32 @@
     "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T14-13-24.441Z-5d85d4ae",
     "docs/framework/evidence/wxt/snapshots/2026-10-07T14-13-24.980Z-Browser-core-native-candidate54-candidate_inputs_requalified",
     "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T14-40-53.094Z-a49823a5",
-    "docs/framework/evidence/wxt/snapshots/2026-10-07T14-40-59.314Z-Browser-core-native-candidate55-candidate_inputs_requalified"
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T14-40-59.314Z-Browser-core-native-candidate55-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T15-33-21.638Z-ed2d38c8",
+    "docs/framework/evidence/continuation-20261007-01a116fb",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T15-33-38.973Z-Browser-core-native-candidate56-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T15-47-41.693Z-e6ea3088",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T15-47-54.787Z-Browser-core-native-candidate57-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T15-58-14.320Z-90147819",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T15-58-14.797Z-Browser-core-native-candidate58-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T15-58-35.406Z-67acd2ad",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T15-58-35.875Z-Browser-core-native-candidate59-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T16-04-03.730Z-8819c402",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T16-04-04.204Z-Browser-core-native-candidate60-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T16-24-19.239Z-9e839145",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T16-24-33.400Z-Browser-core-native-candidate61-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T16-29-45.107Z-fb2033e1",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T16-29-45.579Z-Browser-core-native-candidate62-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T16-32-30.212Z-5fb76d68",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T16-32-30.684Z-Browser-core-native-candidate63-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T16-39-25.255Z-605c4eed",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T16-39-25.731Z-Browser-core-native-candidate64-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T16-50-03.714Z-b6edcae3",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T16-50-04.135Z-Browser-core-native-candidate65-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T16-57-13.637Z-9aa57bad",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T16-57-14.108Z-Browser-core-native-candidate66-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T17-02-34.916Z-fdfb9bab",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T17-02-35.361Z-Browser-core-native-candidate67-candidate_inputs_requalified"
   ],
   "ownedRuntime": {
     "writer": "01a10b50-57ff-7e01-8d6e-452dd17c2cdd",
@@ -670,15 +703,15 @@
     "operations": [],
     "state": "serial-handoff-accepted"
   },
-  "updatedAt": "2026-10-07T14:40:59.446Z",
+  "updatedAt": "2026-10-07T17:02:35.491Z",
   "ownerThreadId": "01a10b50-57ff-7e01-8d6e-452dd17c2cdd",
   "zipHashes": {
     "production": "a2f48d4dbf6c1b24b5404fcb93a45e33fb4140e22288a95ead0d78430a3b8dd3",
     "development": "6ef228b9a16b5aed20966238ba12ac57e56e7c8453b97d44d14eb143829a5779"
   },
   "latestSnapshot": {
-    "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-07T14-40-59.314Z-Browser-core-native-candidate55-candidate_inputs_requalified",
-    "manifestSha256": "ae32318d3eba3f5c62e2d105c126a9b672e1d3a8b70740343047469d307638a1",
+    "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-07T17-02-35.361Z-Browser-core-native-candidate67-candidate_inputs_requalified",
+    "manifestSha256": "9ccbb2ed0ad522df97c6f89c76553bc789d369fa9f0709429555128ff8a4a3f2",
     "passedAtStep": "P3",
     "layer": "candidate_inputs_requalified"
   },

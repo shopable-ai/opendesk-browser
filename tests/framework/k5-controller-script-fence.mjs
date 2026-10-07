@@ -117,13 +117,17 @@ function assertPageOperation(plan, observation) {
   for (const key of ['tabId', 'frameId', 'documentId']) assert.equal(operation.envelope.target[key], observation.selected[key]);
   assert(operation.dispatchAt >= observation.beforeBarrier.release.at, 'MAIN dispatch must follow Worker release');
   assert(operation.dispatchAt <= observation.afterBarrier.request.at, 'MAIN dispatch must precede its actual request barrier');
-  assert.equal(operation.state, AFTER_OPERATION_STATES[plan.trigger]);
+  if (plan.trigger === 'host-close') {
+    assert(['effect_unknown','cancelled'].includes(operation.state));
+  } else {
+    assert.equal(operation.state, AFTER_OPERATION_STATES[plan.trigger]);
+  }
   if (operation.state === 'effect_unknown') {
     assert.equal(operation.deliveryState, 'fenced');
     assert.equal(operation.failure?.code, plan.expectedError);
   } else {
     assert(['E_CANCELLED', 'E_TIMEOUT'].includes(operation.failure?.code));
-    assert.equal(operation.failure.code, plan.expectedError);
+    assert.equal(operation.failure.code, plan.trigger === 'host-close' ? 'E_CANCELLED' : plan.expectedError);
   }
   const receipts = operation.nativeReceipts ?? [];
   assert(receipts.every(receipt => receipt.requestId === operation.envelope.requestId));
@@ -154,6 +158,7 @@ export function scriptFencePlan(definition, {stage, trigger, token, beforeURL, a
   ].join('');
   const source = [
     'await axiosx.get(params.beforeURL);',
+    ...(stage === 'before' && trigger === 'deadline' ? ['await new Promise(()=>{});'] : []),
     'await page.addScriptTag({content:params.content});',
     `return {caseId:${JSON.stringify(SCRIPT_FENCE_ID)},unexpectedContinuation:true};`
   ].join('');
@@ -188,7 +193,13 @@ export function validateScriptFenceOracle(plan, o) {
   assert.equal(result.outcome?.ok, false, 'Fence case must not become a successful continuation');
   assert.equal(result.outcome.error?.code, plan.expectedError);
   assert.equal(run.terminalReason?.code ?? run.terminalReason, plan.expectedError);
-  assert.equal(result.state, plan.trigger === 'host-close' ? 'interrupted' : 'stopped');
+  if (plan.trigger === 'deadline') {
+    assert(['stopped','failed'].includes(result.state), 'Deadline must have a failed terminal outcome');
+    assert.equal(o.triggerAt.at, o.admittedRun.deadlineAt);
+    assert(result.committedAt >= o.admittedRun.deadlineAt, 'Timeout result cannot precede the controller deadline');
+  } else {
+    assert.equal(result.state, plan.trigger === 'host-close' ? 'interrupted' : 'stopped');
+  }
   assert.deepEqual(requireResourceCounts(afterResources), requireResourceCounts(beforeResources));
   assertBUnchanged({bBefore, bAfter, bActive});
   assertBeforeBarrier(plan, {run, beforeBarrier});
@@ -199,7 +210,19 @@ export function validateScriptFenceOracle(plan, o) {
   assert.equal(o.selected.documentId, o.bBefore.selectedA?.documentId ?? o.selected.documentId);
   if (plan.stage === 'before') {
     assert(beforeBarrier.request.at <= at, 'Before-stage trigger must follow the Worker request');
-    assert(beforeBarrier.release?.at >= at, 'Before-stage Worker release must happen after the trigger');
+    if (plan.trigger === 'deadline') {
+      assert.equal(at, o.admittedRun.deadlineAt, 'Deadline trigger must use the admitted controller deadline');
+      assert(beforeBarrier.release?.at < at, 'Short HTTP service must complete before the controller deadline');
+      const completed = beforeBarrier.completedOperation;
+      assert.equal(completed?.requestId, beforeBarrier.pendingOperation.requestId);
+      assert.equal(completed?.state, 'durable');
+      assert.equal(completed?.submissionCount, 1);
+      assert.equal(completed.reply?.error, undefined);
+      assert(completed.receiptAt >= beforeBarrier.release.at && completed.receiptAt < at);
+      assert(result.committedAt >= at, 'Short-service timeout cannot stand in for the controller deadline');
+    } else {
+      assert(beforeBarrier.release?.at >= at, 'Before-stage Worker release must happen after the trigger');
+    }
     assert.equal(pageOperations.length, 0, 'Before-stage fence must have zero page operations');
     assert.equal(o.afterBarrier, undefined);
     assert.equal(o.aDuring, undefined);

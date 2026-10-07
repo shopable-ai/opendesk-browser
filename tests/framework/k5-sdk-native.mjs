@@ -15,6 +15,7 @@ import {observeLegacyStorage, observeLegacyHttp, observeLegacyService, observeLe
 import {launchChrome, LAUNCHER} from './k5-sdk-native-launcher.mjs';
 import {observePage, sdkInvocationExpression, observedSdkInvocation, bindPublicSdkPayload} from './b05-product-acceptance-20261003.mjs';
 import {validateNativeSelectionReceipt} from './k5-sdk-native-selection-receipt.mjs';
+import {runOriginalStorageCases} from './k5-sdk-original-storage-native.mjs';
 import {observeNativeToolResources, observeNativeSdkResources, runNativeSdkResourceCase, requireIdleSdkResources, validateNativeSdkDisposal, waitForNativeToolConnection} from './k5-sdk-native-resource-observation.mjs';
 
 // Load the existing built product verbatim. No generated extension, manifest key,
@@ -23,6 +24,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 assert.equal(process.cwd(), root, `Run with cwd=${root}`);
 const args = process.argv.slice(2), option = (name, fallback) => args.find(arg => arg.startsWith(`--${name}=`))?.split('=').slice(1).join('=') || fallback;
 const contractCheck=args.includes('--contract-check'),nativeRequested=args.includes('--native');
+const originalSdkIds=option('original-sdk','').split(',').filter(Boolean);
+const originalStorageRequested=originalSdkIds.length>0;
+assert(new Set(originalSdkIds).size===originalSdkIds.length&&originalSdkIds.every(id=>['F2-K2-SDK-004','F2-K2-SDK-005'].includes(id)), 'Unsupported original SDK storage case');
 assert(contractCheck!==nativeRequested,'Choose exactly one explicit --contract-check or --native SDK lane');
 const rebuildReceiptPath=option('rebuild-receipt',null);
 assert(rebuildReceiptPath,'Current frozen candidate --rebuild-receipt is required before SDK execution');
@@ -120,7 +124,7 @@ const server = createServer(async (req, res) => {
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`, reports = [];
-const initialCapabilities = ['network', 'storage.persistent', 'storage.session', 'service.log', 'service.time', 'resources.packaged'];
+const initialCapabilities = originalStorageRequested ? ['storage.persistent'] : ['network', 'storage.persistent', 'storage.session', 'service.log', 'service.time', 'resources.packaged'];
 const capabilities = [...initialCapabilities];
 async function connect(url, label, traffic) {
   const socket = new WebSocket(url), pending = new Map(), listeners = new Set(); let sequence = 0;
@@ -185,7 +189,7 @@ async function browserRun(mode, label) {
     verificationInputsSha256:inputBindings.verificationInputsSha256,packageHashes:bothPackageHashes,zipHashes,zipSha256:zipHashes[mode],unchangedProductPackage: true, alteredManifest: false,
     finalProductPassed: false, f3Accepted: false, ledgerCasesClosed: [], cases: [], sessions: [], origin,
     binary, binarySha256: digest(await readFile(binary)), launcher: LAUNCHER,candidateBinding,
-    OS: {type: os.type(), release: os.release(), arch: os.arch()}, boundary: 'Targeted native independent SDK through current product UI and broker; not full B05/F3/603 acceptance'};
+    OS: {type: os.type(), release: os.release(), arch: os.arch()}, boundary: 'Targeted native independent SDK through current product UI and broker; not full B05/F3/603 acceptance', originalSdkSelection:originalSdkIds, original19Complete:false};
   const traffic = [], seed = `sdk-native-${randomUUID()}`, persistentKey = `${seed}-persistent`, sessionKey = `${seed}-session`;
   let current, owned;
   async function evidenceForCase(id, record) {
@@ -389,6 +393,24 @@ async function browserRun(mode, label) {
     }
     const native = payload => {assert(nativeContext&&contexts.has(nativeContext.id),'Actual installed relay context is no longer live');
       return evaluate(page,`chrome.runtime.sendMessage(${JSON.stringify({protocol:PROTOCOL,type:'SDK_REQUEST',payload})})`,nativeContext.id);};
+    async function startNativeBurst(payload,count) {
+      assert.equal(count,99);assert(nativeContext&&contexts.has(nativeContext.id));
+      const response=await page.send('Runtime.evaluate',{contextId:nativeContext.id,
+        expression:`Promise.all(Array.from({length:${count}},()=>chrome.runtime.sendMessage(${JSON.stringify({protocol:PROTOCOL,type:'SDK_REQUEST',payload})})))`,
+        awaitPromise:false,returnByValue:false});
+      if(response.exceptionDetails)throw notObserved('Actual relay burst failed',response.exceptionDetails);
+      assert.equal(response.result.subtype,'promise');assert(response.result.objectId);
+      return {objectId:response.result.objectId,issuedAt:Date.now(),count,requestId:payload.requestId};
+    }
+    const releaseNativeBurst=remote=>page.send('Runtime.releaseObject',{objectId:remote.objectId});
+    async function awaitNativeBurst(remote) {
+      try {
+        const response=await page.send('Runtime.awaitPromise',{promiseObjectId:remote.objectId,returnByValue:true});
+        if(response.exceptionDetails)throw notObserved('Actual relay burst rejected',response.exceptionDetails);
+        assert.equal(response.result.value.length,remote.count);
+        return {replies:response.result.value,issuedAt:remote.issuedAt,count:remote.count,requestId:remote.requestId};
+      } finally {await releaseNativeBurst(remote);}
+    }
     async function startPublic(method,args,{allowPreEmissionRejection=false}={}){
       const since=await evaluate(page,'__b05.events.length'),slot=`sdk-native-${randomUUID()}`;
       await evaluate(page,sdkInvocationExpression(method,args,slot));
@@ -434,7 +456,7 @@ async function browserRun(mode, label) {
         evaluateMain:()=>readRealm(mains[0],'globalThis.OpenDeskSDK?.diagnostics?.()'),
         evaluateRelay:()=>readRealm(nativeContext,'globalThis.__openDeskSdkRelayV1?.diagnostics?.()')});
     }
-    current = {session, tool, page, decoy, browserClient, workerClient, install, snapshot, stopWorker, restartBrowser, stop, targetId, tabId,native,startPublic,publicCompletion,publicCall,resourceSnapshot};
+    current = {session, tool, page, decoy, browserClient, workerClient, workerTargetId:worker.targetId, install, snapshot, stopWorker, restartBrowser, stop, targetId, tabId,native,startPublic,publicCompletion,publicCall,startNativeBurst,awaitNativeBurst,releaseNativeBurst,resourceSnapshot};
     return current;
   }
   try {
@@ -458,6 +480,9 @@ async function browserRun(mode, label) {
     });
     assert(nativeHello, 'Real sender/grant Hello prerequisite failed; dependent SDK cases cannot run');
     await caseRun('SDK-ACTUAL-SIX-COUNT-IDLE-BASELINE',async()=>requireIdleSdkResources(await first.resourceSnapshot()));
+    if(originalStorageRequested)await runOriginalStorageCases({first,caseRun,ids:originalSdkIds,seed,traffic,extensionId:report.extensionId,extension,until});
+    // Original storage lane runs only its exact cases and required real SDK setup/disposal.
+    if (!originalStorageRequested) {
     await caseRun('LEGACY-APPSTORAGE-APPLOCAL-REAL-COMPLETION-PROMISES', async () => {
       const callbacks = [], observerErrors = [], inflight = new Set(); let breakpointId;
       await page.send('Debugger.enable');
@@ -836,6 +861,7 @@ async function browserRun(mode, label) {
       await writeFile(path.join(directory, 'browser-session-after.json'), JSON.stringify(actual, null, 2) + '\n');
       return actual;
     });
+    }
     await caseRun('SDK-EXPLICIT-DISPOSE-RELEASES-MAIN-RESOURCES',async()=>{
       await evaluate(current.page,'OpenDeskSDK.ready()');
       const before=requireIdleSdkResources(await current.resourceSnapshot());
