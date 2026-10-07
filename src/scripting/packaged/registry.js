@@ -12,7 +12,7 @@ export function createPackagedPageSession({document: doc = document, window: win
   function element(css) {
     check(); selector(css); let found;
     try { found = doc.querySelector(css); } catch (cause) { throw new PageError('E_SELECTOR_INVALID', cause.message); }
-    requireValue(found, 'E_ELEMENT_NOT_FOUND'); return found;
+    requireValue(found, 'E_SELECTOR_NOT_FOUND'); return found;
   }
   function editable(el) {
     requireValue((el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && ['text', 'search', 'email', 'url', 'tel', 'password'].includes(el.type))) && !el.disabled && !el.readOnly, 'E_INPUT_TARGET_UNSUPPORTED');
@@ -109,7 +109,7 @@ export function createPackagedPageSession({document: doc = document, window: win
         const resource = {cancel: () => finish(new PageError('E_CANCELLED'))};
         function finish(error) { node.onload = null; node.onerror = null; clearTimeout(timer); resources.delete(resource); if (error) { node.remove(); nodes.delete(node); reject(error); } else resolve(); }
         const timer = setTimeout(() => finish(new PageError('E_TIMEOUT')), 30000);
-        node.onload = () => finish(); node.onerror = () => finish(new PageError('E_RESOURCE_LOAD'));
+        node.onload = () => finish(); node.onerror = () => finish(new PageError('E_RESOURCE_UNAVAILABLE'));
         resources.add(resource); check(); parent.append(node);
       });
     } else { node.textContent = value.content; check(); parent.append(node); }

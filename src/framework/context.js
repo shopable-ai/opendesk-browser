@@ -1,7 +1,7 @@
 import {createHttp} from './sdk/http.js';
 import {createStorageFacades} from './sdk/storage.js';
 import {createBoundPage} from './ChromePage.js';
-import {PageError, requireValue, frozenCopy, encodeValue, decodeValue, newPageRequestId} from './control/value.js';
+import {PageError, requireValue, frozenCopy, encodeValue, decodeValue, newPageRequestId, options as validateOptions, selector} from './control/value.js';
 
 const relays = new WeakMap();
 function same(a, b) {
@@ -28,19 +28,19 @@ export function createRunContext({identity, revision, target = identity?.target,
   requireValue(transport && typeof transport.request === 'function', 'E_PAGE_CONTEXT_REQUIRED', 'An owner-bound transport is required');
   requireValue(deadline === null || (Number.isFinite(deadline) && deadline >= 0), 'E_ARGUMENT_TYPE');
   const owner = frozenCopy(identity), pin = frozenCopy(revision);
-  let current = frozenCopy(target), closed;
+  let current = frozenCopy(target), closed, abortListening = false;
   const lifetime = new AbortController(), pending = new Set();
   function dispose(code = 'E_CANCELLED') {
     if (closed) return;
     closed = new PageError(code); lifetime.abort(closed);
-    if (timer !== null) clearTimeout(timer);
-    signal?.removeEventListener('abort', abort);
+    if (timer !== null) { clearTimeout(timer); timer = null; }
+    if (abortListening) { signal.removeEventListener('abort', abort); abortListening = false; }
     for (const reject of pending) reject(closed);
     pending.clear();
   }
   const abort = () => dispose(typeof signal.reason?.code === 'string' ? signal.reason.code : 'E_CANCELLED');
   let timer = null;
-  if (signal?.aborted) abort(); else signal?.addEventListener('abort', abort, {once: true});
+  if (signal?.aborted) abort(); else if (signal) { signal.addEventListener('abort', abort, {once: true}); abortListening = true; }
   if (!closed && deadline !== null) timer = setTimeout(() => dispose('E_TIMEOUT'), Math.max(0, deadline - performance.now()));
   function guard(bound = current) {
     if (closed) throw closed;
@@ -80,14 +80,41 @@ export function createRunContext({identity, revision, target = identity?.target,
     return (await exchange(envelope, navigation)).result;
   }
   const binding = Object.freeze({request, guard, capture: () => current, dom, environment: 'CHROME'});
-  class SessionChromePage {
-    constructor(options) { return createBoundPage(binding, options); }
+  function admittedPage(options) {
+    const page = createBoundPage(binding, options), click = page.click, type = page.type;
+    Object.defineProperty(page, 'click', {writable: true, configurable: true, value(css, opts = {}) {
+      selector(css); validateOptions(opts, ['button', 'clickCount', 'delay']);
+      const {button = 'left', clickCount = 1, delay = 0} = opts;
+      requireValue(['left', 'right', 'middle'].includes(button) && Number.isInteger(clickCount) &&
+        clickCount >= 1 && clickCount <= 100 && typeof delay === 'number' && Number.isFinite(delay) && delay >= 0,
+      'E_OPTION_UNSUPPORTED');
+      return click.call(this, css, {button, clickCount, delay});
+    }});
+    Object.defineProperty(page, 'type', {writable: true, configurable: true, value(css, text, opts = {}) {
+      selector(css); validateOptions(opts, ['delay']);
+      const {delay = 0} = opts;
+      requireValue(typeof delay === 'number' && Number.isFinite(delay) && delay >= 0, 'E_OPTION_UNSUPPORTED');
+      requireValue(text === null || ['undefined', 'string', 'boolean', 'number'].includes(typeof text), 'E_VALUE_SERIALIZATION');
+      return type.call(this, css, text, {delay});
+    }});
+    return page;
   }
-  const page = createBoundPage(binding);
+  class SessionChromePage {
+    constructor(options) {
+      if (options && typeof options === 'object' && !Array.isArray(options)) {
+        const debug = options.debug;
+        requireValue(debug === undefined || typeof debug === 'boolean', 'E_OPTION_UNSUPPORTED');
+      }
+      return admittedPage(options);
+    }
+  }
+  const page = admittedPage();
   const serviceCall = (method, args) => request(method, [args], {kind:'service'});
   const services = Object.freeze({axiosx:createHttp(serviceCall), ...createStorageFacades(serviceCall)});
   const context = Object.freeze({identity: owner, revision: pin, get target() { return current; }, page, services, ChromePage: SessionChromePage,
-    signal: lifetime.signal, dispose, snapshot: () => Object.freeze({closed: closed?.code || null, pending: pending.size, timer: timer === null || closed ? 0 : 1})});
+    signal: lifetime.signal, dispose,
+    resourceSnapshot: () => ({pending: pending.size, timers: Number(timer !== null), subscriptions: Number(abortListening)}),
+    snapshot: () => Object.freeze({closed: closed?.code || null, pending: pending.size, timer: timer === null || closed ? 0 : 1})});
   relays.set(context, async envelope => {
     guard();
     requireValue(envelope && typeof envelope.requestId === 'string' && envelope.requestId && same(envelope.identity, {...owner, target: current}) && same(envelope.revision, pin), 'E_OWNER_CHANGED');

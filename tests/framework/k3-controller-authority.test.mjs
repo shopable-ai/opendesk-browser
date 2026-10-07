@@ -81,6 +81,220 @@ async function fixture() {
     setAllowed:value=>{allowed=value;},beforeReply:fn=>{beforeReply=fn;}};
 }
 
+function packagedFailureReply(f, transform = reply => reply) {
+  const send = f.api.tabs.sendMessage;
+  f.api.tabs.sendMessage = (id, message, options, callback) => {
+    if (message.action !== 'execute' || message.envelope.operation.method !== 'click') return send(id, message, options, callback);
+    f.calls.push({method: 'packaged.failure', id, options});
+    const envelope = message.envelope;
+    const reply = transform({requestId: envelope.requestId, runId: envelope.identity.runId,
+      ownerEpoch: envelope.identity.ownerEpoch, error: {code: 'E_SELECTOR_NOT_FOUND', message: 'Missing #absent'}});
+    queueMicrotask(() => callback(reply));
+  };
+}
+test('cookie input rejection settles zero-dispatch failure once and permits the next admitted call',async()=>{
+  for(const [method,args,expected] of [['setCookie',['invalid-cookie'],'E_COOKIE_FORMAT'],
+    ['setCookie',[{name:'good',value:'x'},'invalid-cookie'],'E_COOKIE_FORMAT'],
+    ['setCookie',[{name:'sid',value:'x',url:'https://b.example/'}],'E_PERMISSION_DENIED'],
+    ['deleteCookie',[{name:'sid',url:'https://b.example/'}],'E_PERMISSION_DENIED'],
+    ['setCookie',[{name:'sid',value:'x',domain:'.example'}],'E_PERMISSION_DENIED'],
+    ['deleteCookie',[{name:'sid',domain:'.example'}],'E_PERMISSION_DENIED']]) {
+    const f=await fixture(),revision=await f.commit(),run=await f.start(revision);
+    const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+      operation:{kind:'browser',method,args:controlEncode(args)}};
+    const reply=await f.authority.controllerOperation({envelope},f.sender);
+    assert.equal(reply.error.code,expected);assert.equal(reply.error.name,'PageError');assert.equal(Object.hasOwn(reply,'value'),false);
+    assert.deepEqual(await f.authority.controllerOperation({envelope},f.sender),reply);
+    const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');
+    assert.equal(operation.state,'durable');assert.equal(operation.effectState,'failure-observed');assert.equal(operation.submissionCount,1);
+    const receipts=operation.nativeReceipts.filter(row=>row.stage==='cookies.preflightFailure');assert.equal(receipts.length,1);
+    assert.deepEqual(receipts[0].receipt,{phase:'input-preflight',method,frameId:run.target.frameId,documentId:run.target.documentId,
+      runId:run.runId,ownerEpoch:run.identity.ownerEpoch,error:reply.error});
+    assert(!operation.nativeReceipts.some(row=>row.stage.startsWith('cookies.')&&row.stage!=='cookies.preflightFailure'));
+    assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).state,run.state);
+    const context=createRunContext({identity:run.identity,revision:run.revision,target:run.target,
+      transport:{request:envelope=>f.authority.controllerOperation({envelope},f.sender)}});
+    try{assert.equal(await context.page.title(),'Top');}finally{context.dispose();}
+  }
+});
+test('corrupted cookie preflight checkpoints stay unknown and never become replayable replies',async()=>{
+  for(const change of [r=>r.requestId='foreign',r=>r.receipt.documentId='foreign',r=>r.receipt.runId='foreign',
+    r=>r.receipt.ownerEpoch++,r=>r.receipt.method='deleteCookie',r=>r.receipt.phase='after-write',
+    r=>r.receipt.error.code='E_COOKIE_OPERATION',(_r,op)=>op.nativeReceipts.find(r=>r.stage==='webNavigation.getAllFrames').requestId='foreign',
+    (_r,op)=>op.nativeReceipts.push(structuredClone(_r)),
+    (_r,op)=>op.nativeReceipts.push({requestId:_r.requestId,stage:'cookies.set',receipt:{name:'sid'}})]) {
+    const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let changed=false;
+    const transaction=f.storage.transaction.bind(f.storage);
+    f.storage.transaction=(names,mode,body)=>transaction(names,mode,tx=>body({...tx,put:async(name,value,key)=>{
+      const receipt=value?.nativeReceipts?.find(r=>r.stage==='cookies.preflightFailure');
+      if(!changed&&receipt){changed=true;change(receipt,value);}return tx.put(name,value,key);
+    }}));
+    const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+      operation:{kind:'browser',method:'setCookie',args:controlEncode(['invalid-cookie'])}};
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_RESULT_FORMAT'));assert.equal(changed,true);
+    const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');assert.equal(operation.state,'effect_unknown');
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));assert.equal(operation.submissionCount,1);
+  }
+});
+
+test('cookie preflight still fences delivery when permission is lost after its checkpoint',async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let revoked=false;
+  const transaction=f.storage.transaction.bind(f.storage);
+  f.storage.transaction=async(...args)=>{const answer=await transaction(...args);
+    if(!revoked&&args[1]==='readwrite'&&f.storage.writes.some(w=>w.value?.nativeReceipts?.some(r=>r.stage==='cookies.preflightFailure'))){revoked=true;f.setAllowed(false);}return answer;};
+  const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'browser',method:'setCookie',args:controlEncode(['invalid-cookie'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_PERMISSION'));assert.equal(revoked,true);
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');assert.equal(operation.state,'effect_unknown');
+  f.setAllowed(true);await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+});
+
+test('cookie input rejection still fences delivery after the selected document changes',async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let changed=false;
+  const transaction=f.storage.transaction.bind(f.storage);
+  f.storage.transaction=async(...args)=>{const answer=await transaction(...args);
+    if(!changed&&args[1]==='readwrite'&&f.storage.writes.some(w=>w.value?.nativeReceipts?.some(r=>r.stage==='cookies.preflightFailure'))){changed=true;f.frames.get(2)[0].documentId='replacement';}return answer;};
+  const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'browser',method:'setCookie',args:controlEncode(['invalid-cookie'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),e=>['E_TARGET','E_DOCUMENT_REPLACED'].includes(e.code));assert.equal(changed,true);
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');assert.equal(operation.state,'effect_unknown');
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+});
+
+test('cookie native callback errors or missing success receipts retain effect-unknown fencing',async()=>{
+  for(const nativeError of [true,false]) {
+    const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let writes=0;
+    f.api.cookies={getAllCookieStores:callback=>callback([{id:'0',tabIds:[2]}]),set(_details,callback){writes++;
+      if(nativeError)f.api.runtime.lastError={message:'Native write rejected'};callback(undefined);delete f.api.runtime.lastError;}};
+    const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+      operation:{kind:'browser',method:'setCookie',args:controlEncode([{name:'sid',value:'x'}])}};
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_COOKIE_OPERATION'));
+    const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');
+    assert.equal(operation.state,'effect_unknown');assert(!operation.nativeReceipts.some(r=>r.stage==='cookies.preflightFailure'));
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));assert.equal(writes,1);
+  }
+});
+
+test('observed packaged failures replay once and allow the next admitted call', async () => {
+  const f = await fixture(), revision = await f.commit(), run = await f.start(revision), exchanges = [];
+  packagedFailureReply(f);
+  const context = createRunContext({identity: run.identity, revision: run.revision, target: run.target,
+    transport: {request: async envelope => {
+      const reply = await f.authority.controllerOperation({envelope}, f.sender);
+      exchanges.push({envelope, reply}); return reply;
+    }}});
+  try {
+    await assert.rejects(context.page.click('#absent'), code('E_SELECTOR_NOT_FOUND'));
+    const {envelope, reply} = exchanges.at(-1);
+    assert.equal(reply.error.name, 'PageError');
+    assert.deepEqual(await f.authority.controllerOperation({envelope}, f.sender), reply);
+    assert.equal(f.calls.filter(row => row.method === 'packaged.failure').length, 1);
+    const operation = (await f.rows('commandJournal')).find(row => row.tag === 'controller-operation' && row.envelope.requestId === envelope.requestId);
+    assert.equal(operation.state, 'durable'); assert.equal(operation.effectState, 'failure-observed'); assert.equal(operation.submissionCount, 1);
+    const receipt = operation.nativeReceipts.find(row => row.stage === 'packaged.finalFailure');
+    assert.deepEqual(receipt.receipt, {frameId: run.target.frameId, documentId: run.target.documentId,
+      runId: run.runId, ownerEpoch: run.identity.ownerEpoch, error: reply.error});
+    assert.equal((await f.rows('runs')).find(row => row.runId === run.runId).state, run.state);
+    assert.equal(await context.page.title(), 'Top'); assert.equal(context.resourceSnapshot().pending, 0);
+  } finally { context.dispose(); }
+});
+for (const [label, transform] of [
+  ['wrong request', reply => ({...reply, requestId: 'another-request'})],
+  ['wrong run', reply => ({...reply, runId: 'another-run'})],
+  ['wrong owner', reply => ({...reply, ownerEpoch: reply.ownerEpoch + 1})],
+  ['malformed error', reply => ({...reply, error: {code: 123, message: 'boom'}})],
+  ['missing final reply', () => undefined],
+  ['replaced document', (reply, f) => { f.frames.get(2)[0].documentId = 'doc-replaced'; return reply; }],
+]) test(`unvalidated packaged ${label} stays unknown and cannot resubmit`, async () => {
+  const f = await fixture(), revision = await f.commit(), run = await f.start(revision);
+  packagedFailureReply(f, reply => transform(reply, f));
+  const envelope = {requestId: crypto.randomUUID(), identity: run.identity, revision: run.revision, target: run.target,
+    operation: {kind: 'packaged', method: 'click', args: controlEncode(['#absent'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope}, f.sender), error => ['E_RESULT_FORMAT', 'E_TARGET', 'E_DOCUMENT_REPLACED'].includes(error.code));
+  const operation = (await f.rows('commandJournal')).find(row => row.tag === 'controller-operation');
+  assert.equal(operation.state, 'effect_unknown'); assert.equal(operation.submissionCount, 1);
+  assert(!operation.nativeReceipts.some(row => row.stage === 'packaged.finalFailure'));
+  await assert.rejects(f.authority.controllerOperation({envelope}, f.sender), code('E_EFFECT_UNKNOWN'));
+  assert.equal(f.calls.filter(row => row.method === 'packaged.failure').length, 1);
+});
+test('packaged final failure still fences delivery after its receipt when permission is lost', async () => {
+  const f = await fixture(), revision = await f.commit(), run = await f.start(revision);
+  packagedFailureReply(f);
+  const transaction = f.storage.transaction.bind(f.storage); let revoked = false;
+  f.storage.transaction = async (...args) => {
+    const answer = await transaction(...args);
+    if (!revoked && args[1] === 'readwrite' && f.storage.writes.some(write => write.value?.nativeReceipts?.some(row => row.stage === 'packaged.finalFailure'))) {
+      revoked = true; f.setAllowed(false);
+    }
+    return answer;
+  };
+  const envelope = {requestId: crypto.randomUUID(), identity: run.identity, revision: run.revision, target: run.target,
+    operation: {kind: 'packaged', method: 'click', args: controlEncode(['#absent'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope}, f.sender), code('E_PERMISSION')); assert.equal(revoked, true);
+  const operation = (await f.rows('commandJournal')).find(row => row.tag === 'controller-operation');
+  assert.equal(operation.state, 'effect_unknown'); assert.equal(operation.submissionCount, 1);
+  assert(operation.nativeReceipts.some(row => row.stage === 'packaged.finalFailure'));
+  f.setAllowed(true);
+  await assert.rejects(f.authority.controllerOperation({envelope}, f.sender), code('E_EFFECT_UNKNOWN'));
+  assert.equal(f.calls.filter(row => row.method === 'packaged.failure').length, 1);
+});
+test('observed final page failures replay once, preserve cause and allow the next admitted call',async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision),exchanges=[];
+  const context=createRunContext({identity:run.identity,revision:run.revision,target:run.target,
+    transport:{request:async envelope=>{const reply=await f.authority.controllerOperation({envelope},f.sender);exchanges.push({envelope,reply});return reply;}}});
+  try{
+    for(const callback of [()=>{throw new TypeError('original-boom');},()=>Promise.reject(new TypeError('original-boom'))]){
+      await assert.rejects(context.page.evaluate(callback),error=>{
+        assert.equal(error.code,'E_PAGE_EXECUTION');assert.equal(error.cause?.name,'TypeError');assert.equal(error.cause?.message,'original-boom');return true;
+      });
+      const last=exchanges.at(-1);assert(last,'Observed failure must return a correlated typed reply');
+      assert.equal(last.reply.requestId,last.envelope.requestId);assert.equal(last.reply.error.code,'E_PAGE_EXECUTION');
+      const count=f.calls.filter(row=>row.method==='userScripts.execute').length;
+      assert.deepEqual(await f.authority.controllerOperation({envelope:last.envelope},f.sender),last.reply);
+      assert.equal(f.calls.filter(row=>row.method==='userScripts.execute').length,count,'Known failure replay must not resubmit the function');
+      const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===last.envelope.requestId);
+      assert.equal(operation.state,'durable');assert.equal(operation.effectState,'failure-observed');assert.equal(operation.submissionCount,1);
+      assert(operation.nativeReceipts.some(receipt=>receipt.stage==='userScripts.finalFailure'&&receipt.receipt.documentId===run.target.documentId));
+      assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).state,run.state,'Known failure must not pause the run');
+      assert.equal(await context.page.title(),'Top');
+    }
+    assert.equal(context.resourceSnapshot().pending,0);
+  }finally{context.dispose();}
+});
+for(const [label,response] of [
+  ['wrong document',{frameId:0,documentId:'other-document',result:{ok:false,error:{code:'E_PAGE_EXECUTION',message:'boom',cause:{name:'Error',message:'boom'}}}}],
+  ['missing final error',{frameId:0,documentId:'doc-top',result:{ok:false}}],
+  ['malformed final code',{frameId:0,documentId:'doc-top',result:{ok:false,error:{code:123,message:'boom',cause:{name:'Error',message:'boom'}}}}]
+])test(`unvalidated ${label} failure stays unknown and cannot resubmit`,async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let submissions=0;
+  f.api.userScripts.execute=async()=>{submissions++;return [structuredClone(response)];};
+  const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'user-script',method:'evaluate',args:controlEncode([{mode:'function',source:'()=>{throw new Error("boom");}'},[]])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),error=>['E_TARGET','E_RESULT_FORMAT'].includes(error.code));
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');
+  assert.equal(operation.state,'effect_unknown');assert.equal(operation.submissionCount,1);
+  assert(!operation.nativeReceipts.some(receipt=>receipt.stage==='userScripts.finalFailure'));
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));assert.equal(submissions,1);
+});
+test('observed final failure still fences delivery when permission is lost after its validated receipt',async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision);
+  const transaction=f.storage.transaction.bind(f.storage);let revoked=false;
+  f.storage.transaction=async(...args)=>{const answer=await transaction(...args);
+    if(!revoked&&args[1]==='readwrite'&&f.storage.writes.some(write=>write.value?.nativeReceipts?.some(receipt=>receipt.stage==='userScripts.finalFailure'))){
+      revoked=true;f.setAllowed(false);
+    }
+    return answer;
+  };
+  const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'user-script',method:'evaluate',args:controlEncode([{mode:'function',source:'()=>{throw new Error("boom");}'},[]])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_PERMISSION'));assert.equal(revoked,true);
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');
+  assert.equal(operation.state,'effect_unknown');assert.equal(operation.submissionCount,1);
+  assert(operation.nativeReceipts.some(receipt=>receipt.stage==='userScripts.finalFailure'));
+  f.setAllowed(true);await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+  assert.equal(f.calls.filter(row=>row.method==='userScripts.execute').length,1);
+});
+
 const nestedValue = depth => { let value=false; for(let i=0;i<depth;i++)value={key:value};return value; };
 for(const depth of [4,5,6,7,8,9,10,11,12]) test(`typed depth ${depth}: params, operation args and immutable result survive wider JSON envelopes`,async()=>{
   const f=await fixture(),revision=await f.commit(),value=nestedValue(depth),paramsWire=encodeValue(value);

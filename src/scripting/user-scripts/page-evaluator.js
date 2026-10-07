@@ -20,7 +20,7 @@ export function buildPageEvaluation(method, args, {operationId, runId} = {}) {
     }
     case '$eval': case '$$eval': {
       const [css, source, values] = args; selector(css); requireValue(typeof source === 'string' && !source.includes('[native code]'), 'E_FUNCTION_SOURCE_UNSUPPORTED');
-      body = method === '$eval' ? `const el=document.querySelector(${JSON.stringify(css)});requireValue(el,'E_ELEMENT_NOT_FOUND');return await (${source})(el,...decodeValue(${serialize(values)}));`
+      body = method === '$eval' ? `const el=document.querySelector(${JSON.stringify(css)});requireValue(el,'E_SELECTOR_NOT_FOUND');return await (${source})(el,...decodeValue(${serialize(values)}));`
         : `return await (${source})(Array.from(document.querySelectorAll(${JSON.stringify(css)})),...decodeValue(${serialize(values)}));`;
       break;
     }

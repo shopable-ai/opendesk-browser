@@ -4,7 +4,7 @@ import {FoundationError, invariant, newId, canonical, digest, digestUtf8} from '
 import {encodeValue, decodeValue} from '../page-port/codec.js';
 import {decodeValue as decodeControlValue, encodeValue as encodeControlValue} from '../../framework/control/value.js';
 import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} from '../target/index.js';
-import {createControllerDriver} from '../../framework/control/native-driver.js';
+import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} from '../../framework/control/native-driver.js';
 
 const stores = ['runs', 'commandJournal', 'results'];
 const live = new Set(['preparing', 'running']);
@@ -436,14 +436,34 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       try {
         const reply = serviceCall ? await executeService() : await driver.execute(envelope, {signal:abort.signal,deadlineAt:run.deadlineAt,recordReceipt});
         invariant(reply?.requestId === envelope.requestId, 'E_RESULT_FORMAT');
-        if (reply.error) throw Object.assign(new Error(reply.error.message), reply.error);
-        const valueWire = encodeValue(decodeControlValue(reply.value));
+        const valueWire = reply.error ? undefined : encodeValue(decodeControlValue(reply.value));
         // Record observed native effect before checking delivery permission.
         // Cancellation cannot erase the receipt or make this request replayable.
         await tx('readwrite', async transaction => {
           const operation = await transaction.get('commandJournal', key);
           invariant(operation?.requestDigest === requestDigest && operation.submissionCount === 1, 'E_REQUEST_CONFLICT');
-          operation.state = 'durable'; operation.valueWire = valueWire; operation.receiptAt = now(); operation.reply = reply;
+          if(reply.error){
+            const kind=envelope.operation.kind;
+            const cookiePreflight=kind==='browser'&&COOKIE_PREFLIGHT_METHODS.includes(envelope.operation.method);
+            const stage=kind==='user-script'?'userScripts.finalFailure':kind==='packaged'?'packaged.finalFailure':cookiePreflight?'cookies.preflightFailure':undefined;
+            const failure=stage&&operation.nativeReceipts?.find(receipt=>receipt.stage===stage&&receipt.requestId===envelope.requestId);
+            invariant(failure?.receipt?.frameId===envelope.target.frameId&&failure.receipt.documentId===envelope.target.documentId&&
+              same(failure.receipt.error,reply.error)&&(kind!=='packaged'||(failure.receipt.runId===envelope.identity.runId&&
+                failure.receipt.ownerEpoch===envelope.identity.ownerEpoch)),'E_RESULT_FORMAT',
+            'A failed native reply requires its validated target-bound completion receipt');
+            if(cookiePreflight) {
+              const receipts=operation.nativeReceipts,results=receipts.filter(receipt=>receipt.stage==='result');
+              invariant(receipts.filter(receipt=>receipt.stage===stage).length===1&&
+                failure.receipt.phase==='input-preflight'&&failure.receipt.method===envelope.operation.method&&
+                failure.receipt.runId===envelope.identity.runId&&failure.receipt.ownerEpoch===envelope.identity.ownerEpoch&&
+                COOKIE_PREFLIGHT_CODES.includes(reply.error.code)&&results.length===1&&
+                results[0].requestId===envelope.requestId&&same(results[0].receipt,reply)&&
+                receipts.every(receipt=>receipt.requestId===envelope.requestId&&['webNavigation.getAllFrames',stage,'result'].includes(receipt.stage)),
+                'E_RESULT_FORMAT','Cookie input failure requires its exact zero-dispatch checkpoint and result');
+            }
+            operation.effectState='failure-observed';operation.failure=structuredClone(reply.error);
+          }else operation.valueWire=valueWire;
+          operation.state = 'durable'; operation.receiptAt = now(); operation.reply = reply;
           if (reply.handoff) operation.targetTransition = {navigationIntentId: envelope.requestId,
             from: structuredClone(reply.handoff.from), to: structuredClone(reply.handoff.to)};
           await transaction.put('commandJournal', operation, key);

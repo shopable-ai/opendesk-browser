@@ -14,6 +14,8 @@ export function createSdkBridge({transport, decodeBase64Json = value => {
   if (!transport || typeof transport.request !== 'function' || typeof transport.hello !== 'function') throw fail('E_SCHEMA', 'Explicit SDK transport required');
   const pending = new Map(), ChromeBridgeEvents = new Map();
   let disposed = false, hello, allowedMethods;
+  const counts = () => Object.freeze({pending: pending.size, timers: pending.size, subscriptions: ChromeBridgeEvents.size, ports: 0, workers: 0, blobs: 0});
+  const resourceDiagnostics = () => Object.freeze({scope: 'bridge', counts: counts(), observationMissing: null});
   const settle = (requestId, failed, value) => {
     const entry = pending.get(requestId);
     if (!entry) return false;
@@ -89,5 +91,6 @@ export function createSdkBridge({transport, decodeBase64Json = value => {
       if (disposed) return; disposed = true;
       for (const requestId of pending.keys()) settle(requestId, true, error);
       transport.dispose?.();
-    }, diagnostics: () => ({pending: pending.size, disposed})});
+    }, diagnostics: () => ({scope: 'bridge', pending: pending.size, disposed, counts: counts(), observationMissing: null, resources: [resourceDiagnostics()]}),
+    resourceDiagnostics});
 }

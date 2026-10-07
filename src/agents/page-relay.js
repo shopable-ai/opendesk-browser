@@ -7,6 +7,8 @@ import {projectFoundationError} from '../platform/protocol.js';
 export function installPageRelay({window = globalThis.window, api = globalThis.chrome, CustomEvent = globalThis.CustomEvent,
   clock = Date, setTimer = setTimeout, clearTimer = clearTimeout} = {}) {
   const pending = new Map(); let disposed = false;
+  const counts = () => Object.freeze({pending: pending.size, timers: pending.size, subscriptions: disposed ? 0 : 5, ports: 0, workers: 0, blobs: 0});
+  const resourceDiagnostics = () => Object.freeze({scope: 'relay.window', counts: counts(), observationMissing: null});
   const projectError = projectFoundationError;
   const publish = (type, requestId, response, helloId) => {
     window.dispatchEvent(new CustomEvent(type, {detail: JSON.stringify({protocol: PROTOCOL,
@@ -94,7 +96,10 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
   };
   events.forEach(type => window.addEventListener(type, messager));
   window.addEventListener('pagehide', removeEventListeners, {once: true});
-  return Object.freeze({messager, removeEventListeners, diagnostics: () => ({pending: pending.size, subscriptions: disposed ? 0 : events.length + 1, disposed})});
+  return Object.freeze({messager, removeEventListeners,
+    diagnostics: () => ({scope: 'relay.window', pending: pending.size, subscriptions: disposed ? 0 : events.length + 1, disposed,
+      counts: counts(), observationMissing: null, resources: [resourceDiagnostics()]}),
+    resourceDiagnostics});
 }
 export function initPageRelay() {
 if (typeof chrome !== 'undefined' && typeof window !== 'undefined') {

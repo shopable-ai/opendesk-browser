@@ -10,6 +10,8 @@ export function createWindowTransport({window = globalThis.window, CustomEvent =
   setTimer = setTimeout, clearTimer = clearTimeout, helloTimeoutMs = SDK_LIMITS.timeoutMs} = {}) {
   if (!window || !CustomEvent) throw fail('E_RESOURCE_UNAVAILABLE', 'SDK window transport unavailable', {stage: 'lookup'});
   const waiting = new Map(), helloSlot = Symbol('sdk-hello'); let disposed = false;
+  const counts = () => Object.freeze({pending: waiting.size, timers: waiting.size, subscriptions: disposed ? 0 : 3, ports: 0, workers: 0, blobs: 0});
+  const resourceDiagnostics = () => Object.freeze({scope: 'transport.window', counts: counts(), observationMissing: null});
   const parse = detail => {
     if (typeof detail !== 'string' || new TextEncoder().encode(detail).byteLength > SDK_LIMITS.responseBytes * 2) throw fail('E_VALUE_SERIALIZATION', 'Invalid SDK response', {stage: 'json'});
     try { return JSON.parse(detail); } catch { throw fail('E_VALUE_SERIALIZATION', 'Invalid SDK response JSON', {stage: 'json'}); }
@@ -70,5 +72,6 @@ export function createWindowTransport({window = globalThis.window, CustomEvent =
     cancel(id) {
       const entry = waiting.get(id); if (!entry) return;
       waiting.delete(id); clearTimer(entry.timer); entry.reject(fail('E_CANCELLED', 'SDK request settled'));
-    }, dispose, diagnostics: () => ({pending: waiting.size, disposed})});
+    }, dispose, diagnostics: () => ({scope: 'transport.window', pending: waiting.size, disposed, counts: counts(), observationMissing: null, resources: [resourceDiagnostics()]}),
+    resourceDiagnostics});
 }

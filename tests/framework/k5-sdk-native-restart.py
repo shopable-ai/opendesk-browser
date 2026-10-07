@@ -6,6 +6,7 @@ spawn. It also guards the skill launcher's rmtree: only the original 0700
 directory inode may be removed, and only after all owned children are confirmed exited.
 Process cleanup deliberately does not depend on profile existence or permissions.
 """
+import base64
 import hashlib
 import json
 import os
@@ -29,23 +30,55 @@ NATIVE_MKDTEMP = tempfile.mkdtemp
 
 
 def inspect_process(child, arguments):
+    reads = []
     def ps(columns):
-        with NATIVE_POPEN(['/bin/ps', '-p', str(child.pid), '-o', columns],
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as inspector:
-            output, error = inspector.communicate(timeout=5)
-            if inspector.returncode != 0:
-                raise RuntimeError('process-inspection-unavailable: ' + error.strip())
-        return output.strip()
-    identity = ps('pid=,ppid=,comm=').split(None, 2)
-    command = ps('command=')
-    if len(identity) != 3 or int(identity[0]) != child.pid or int(identity[1]) != os.getpid() or identity[2] != arguments[0]:
-        raise RuntimeError('Owned child PID/PPID/executable mismatch')
-    for switch in [arg for arg in arguments if arg.startswith('--user-data-dir=')] + ['--use-mock-keychain']:
-        if not re.search(r'(?<!\S)' + re.escape(switch) + r'(?!\S)', command):
-            raise RuntimeError('Owned child arguments mismatch')
-    if re.search(r'(?<!\S)--type(?:=|\s|$)', command):
-        raise RuntimeError('Expected Chrome main process, not subprocess')
-    return dict(pid=child.pid, ppid=int(identity[1]), executable=identity[2], command=command)
+        try:
+            with NATIVE_POPEN(['/bin/ps', '-p', str(child.pid), '-o', columns],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as inspector:
+                try:
+                    output, error = inspector.communicate(timeout=5)
+                except Exception as failure:
+                    partial_out, partial_err = getattr(failure, 'output', None), getattr(failure, 'stderr', None)
+                    observed = dict(columns=columns, stdout=partial_out if isinstance(partial_out, str) else None,
+                                    stderr=partial_err if isinstance(partial_err, str) else None,
+                                    stdoutBase64=base64.b64encode(partial_out).decode('ascii') if isinstance(partial_out, bytes) else None,
+                                    stderrBase64=base64.b64encode(partial_err).decode('ascii') if isinstance(partial_err, bytes) else None,
+                                    returncode=inspector.returncode, observedAt=time.time(),
+                                    exception=dict(type=type(failure).__name__, message=str(failure)))
+                    reads.append(observed)
+                    try:
+                        if inspector.poll() is None:
+                            inspector.kill()
+                        output_after, error_after = inspector.communicate(timeout=5)
+                        observed['inspectorCleanup'] = dict(stdout=output_after, stderr=error_after, returncode=inspector.returncode)
+                    except Exception as cleanup_error:
+                        observed['inspectorCleanupError'] = dict(type=type(cleanup_error).__name__, message=str(cleanup_error))
+                    raise
+                reads.append(dict(columns=columns, stdout=output, stderr=error,
+                                  returncode=inspector.returncode, observedAt=time.time()))
+                if inspector.returncode != 0:
+                    raise RuntimeError('process-inspection-unavailable: ' + error.strip())
+                return output.strip()
+        except Exception as error:
+            if not any(row['columns'] == columns for row in reads):
+                reads.append(dict(columns=columns, stdout=None, stderr=None, returncode=None,
+                                  observedAt=time.time(), exception=dict(type=type(error).__name__, message=str(error))))
+            error.inspection_reads = list(reads)
+            raise
+    try:
+        identity = ps('pid=,ppid=,comm=').split(None, 2)
+        command = ps('command=')
+        if len(identity) != 3 or int(identity[0]) != child.pid or int(identity[1]) != os.getpid() or identity[2] != arguments[0]:
+            raise RuntimeError('Owned child PID/PPID/executable mismatch')
+        for switch in [arg for arg in arguments if arg.startswith('--user-data-dir=')] + ['--use-mock-keychain']:
+            if not re.search(r'(?<!\S)' + re.escape(switch) + r'(?!\S)', command):
+                raise RuntimeError('Owned child arguments mismatch')
+        if re.search(r'(?<!\S)--type(?:=|\s|$)', command):
+            raise RuntimeError('Expected Chrome main process, not subprocess')
+        return dict(pid=child.pid, ppid=int(identity[1]), executable=identity[2], command=command)
+    except Exception as error:
+        error.inspection_reads = list(reads)
+        raise
 
 
 class Lifecycle:
@@ -58,13 +91,15 @@ class Lifecycle:
         self.implementation_hash = implementation_hash or (lambda: hashlib.sha256(IMPLEMENTATION.read_bytes()).hexdigest())
         self.output = output or (lambda value: print(json.dumps(value), flush=True))
         self.children, self.errors, self.events = [], [], []
+        self.inspection_exit_observations = []
         self.profile = None
         self.profile_identity = None
         self.profile_status = 'not-created'
         self.attempts = 0
 
     def error(self, error, stage, kind='cleanup'):
-        entry = dict(kind=kind, stage=stage, type=type(error).__name__, message=str(error))
+        entry = dict(kind=kind, stage=stage, type=type(error).__name__, message=str(error),
+                     inspectionReads=getattr(error, 'inspection_reads', []))
         self.errors.append(entry)
         return entry
 
@@ -100,11 +135,29 @@ class Lifecycle:
     def process_state(self, owner):
         try:
             code = owner.child.poll()  # waitpid on our actual Popen, not ps inference
-            if code is not None:
-                return dict(pid=owner.pid, state='exited', returncode=code)
+        except Exception as error:
+            self.error(error, 'poll-child')
+            return dict(pid=owner.pid, state='unknown', error=str(error))
+        if code is not None:
+            return dict(pid=owner.pid, state='exited', returncode=code)
+        try:
             identity = self.inspect(owner.child, owner.arguments)
             return dict(pid=owner.pid, state='owned-live', identity=identity)
         except Exception as error:
+            failed_at = time.time()
+            try:
+                code = owner.child.poll()
+            except Exception as poll_error:
+                self.error(poll_error, 'poll-after-inspection-failure')
+                code = None
+            if code is not None:
+                observed = dict(pid=owner.pid, returncode=code, inspectionFailedAt=failed_at,
+                                pollAfterInspection=time.time(), error=dict(stage='inspect-child',
+                                type=type(error).__name__, message=str(error),
+                                inspectionReads=getattr(error, 'inspection_reads', [])))
+                self.inspection_exit_observations.append(observed)
+                self.publish(dict(event='inspection-confirmed-exit', **observed))
+                return dict(pid=owner.pid, state='exited', returncode=code, inspectionExitObservation=observed)
             self.error(error, 'inspect-child')
             return dict(pid=owner.pid, state='unknown', error=str(error))
 
@@ -169,7 +222,8 @@ class Lifecycle:
                       profile=str(self.profile) if self.profile else None, profileIdentity=self.profile_identity,
                       profileStatus=self.profile_status, children=states,
                       residual=[row for row in states if row['state'] != 'exited'], errors=self.errors,
-                      events=self.events, attempts=self.attempts)
+                      events=self.events, attempts=self.attempts,
+                      inspectionExitObservations=self.inspection_exit_observations)
         if self.profile_status.startswith('retained'):
             result['residual'].append(dict(profile=str(self.profile), state=self.profile_status))
         try:
@@ -548,6 +602,99 @@ def _selftest():
 
         with_profile(run)
 
+    def inspection_failure_confirmed_exit_preserves_observation():
+        def run(root, profile, manager):
+            child = FakeChild()
+            owner = make_owner(manager, child)
+            failure = RuntimeError('Owned child arguments mismatch')
+            failure.inspection_reads = [dict(columns='command=', stdout='', stderr='', returncode=1)]
+            def exit_during_inspection(*args):
+                child.alive = False
+                child.returncode = 0
+                raise failure
+            manager.inspect = exit_during_inspection
+            state = manager.process_state(owner)
+            assert state['state'] == 'exited' and state['returncode'] == 0
+            assert child.terminated == 0 and child.killed == 0
+            result = manager.finalize()
+            assert result['status'] == 'PASS' and result['profileStatus'] == 'removed'
+            observed = result['inspectionExitObservations'][0]
+            assert observed['pid'] == child.pid and observed['returncode'] == 0
+            assert observed['error']['message'] == str(failure)
+            assert observed['error']['inspectionReads'] == failure.inspection_reads
+            assert observed['pollAfterInspection'] >= observed['inspectionFailedAt']
+            assert result['errors'] == []
+        with_profile(run)
+
+    def live_inspection_mismatch_is_never_excused_by_later_exit():
+        def run(root, profile, manager):
+            child = FakeChild()
+            owner = make_owner(manager, child)
+            def mismatch(*args):
+                error = RuntimeError('Owned child arguments mismatch')
+                error.inspection_reads = [dict(columns='command=', stdout='mismatched live argv', stderr='', returncode=0)]
+                raise error
+            manager.inspect = mismatch
+            assert manager.cleanup_child(owner)['state'] == 'unknown'
+            assert child.terminated == 0 and child.killed == 0
+            child.alive = False
+            child.returncode = 0
+            result = manager.finalize()
+            assert result['status'] == 'FAIL'
+            assert result['inspectionExitObservations'] == []
+            assert any(error['message'] == 'Owned child arguments mismatch' for error in result['errors'])
+            assert result['errors'][0]['inspectionReads'][0]['stdout'] == 'mismatched live argv'
+        with_profile(run)
+
+    def ps_timeout_keeps_completed_and_partial_reads_with_original_type():
+        import base64 as evidence_base64
+        saved_popen = globals()['NATIVE_POPEN']
+        child = FakeChild()
+        arguments = ['/pinned/CFT', '--use-mock-keychain', '--user-data-dir=/owned-profile']
+        timeout = subprocess.TimeoutExpired(['/bin/ps'], 5, output=b'partial\xff', stderr=b'error\xfe')
+        inspectors = []
+        class Inspector:
+            def __init__(self, argv, **options):
+                self.argv, self.calls, self.returncode, self.killed = argv, 0, 0 if not inspectors else None, False
+                inspectors.append(self)
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def communicate(self, timeout=None):
+                self.calls += 1
+                if self is inspectors[0]:
+                    return f'{child.pid} {os.getpid()} /pinned/CFT\n', ''
+                if self.calls == 1:
+                    raise timeout_error
+                return 'partial', 'error'
+            def poll(self):
+                return self.returncode
+            def kill(self):
+                self.killed, self.returncode = True, -9
+        timeout_error = timeout
+        try:
+            globals()['NATIVE_POPEN'] = Inspector
+            try:
+                inspect_process(child, arguments)
+            except subprocess.TimeoutExpired as error:
+                assert error is timeout
+                reads = error.inspection_reads
+                assert len(reads) == 2
+                assert reads[0]['stdout'] == f'{child.pid} {os.getpid()} /pinned/CFT\n'
+                assert reads[1]['returncode'] is None
+                assert evidence_base64.b64decode(reads[1]['stdoutBase64']) == b'partial\xff'
+                assert evidence_base64.b64decode(reads[1]['stderrBase64']) == b'error\xfe'
+                assert reads[1]['exception']['type'] == 'TimeoutExpired'
+                assert inspectors[1].killed
+            else:
+                raise AssertionError('PS timeout must preserve the original exception')
+        finally:
+            globals()['NATIVE_POPEN'] = saved_popen
+
+    check('ps timeout retains completed and byte-exact partial outputs', ps_timeout_keeps_completed_and_partial_reads_with_original_type)
+    check('inspection failure with immediate actual Popen exit retains full observation', inspection_failure_confirmed_exit_preserves_observation)
+    check('live mismatch remains failure even when child exits later', live_inspection_mismatch_is_never_excused_by_later_exit)
     check('hash failure before spawn does not leak child', constructor_hash_failure_does_not_spawn)
     check('spawned child is cleaned when lifecycle write fails', constructor_event_failure_cleans_spawned_child)
     check('replacement profile is retained after owned child cleanup', replaced_profile_retained_after_owned_child_cleanup)

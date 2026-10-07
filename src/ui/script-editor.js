@@ -22,6 +22,11 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
   const resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
   let downloading = false, projection;
   let currentRevision, selectionVersion = 0, running = false, disposed = false;
+  const listeners = [];
+  let browserListenersAttached = false;
+  const listen = (element, event, listener) => {
+    element.addEventListener(event, listener); listeners.push({element, event, listener});
+  };
   function display(state, message, value) {
     status.dataset.state = state; status.textContent = message;
     if (value !== undefined) output.textContent = printable(value);
@@ -199,6 +204,7 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
         ...(find('script-allow-cookies').checked ? {permissions:['cookies']} : {})});
     } catch (error) { fail(error); return; }
     const revision = currentRevision, version = selectionVersion;
+    let startError;
     running = true; update(); display('authorizing','正在授权选定目标…');
     (async () => {
       if (!await permission) throw {code:'E_PERMISSION',message:'授权被拒绝，未启动任务'};
@@ -208,13 +214,15 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
       find('script-run-id').value = claim.runId;
       display('running', `已接受 r${revision.revision}；等待脚本结束及持久结果`, {runId:claim.runId,revision:claim.revision});
+      update();
       const result = await host.completion;
       if (result.error) throw result.error;
       showSnapshot(await host.controller.snapshotControllerRun({runId:claim.runId}));
-    })().catch(fail).finally(async () => {
+    })().catch(error => {startError=error;fail(error);}).finally(async () => {
       running = false;
       try {showSnapshot(await host.controller.snapshotControllerRun(find('script-run-id').value ? {runId:find('script-run-id').value} : {}));}
       catch (error) {projection=undefined;display('unknown',`后台状态待确认：${error.code || 'E_EFFECT_UNKNOWN'}`);}
+      if (startError) fail(startError);
       update();
     });
   }
@@ -222,24 +230,30 @@ export function createScriptEditor({client, api = globalThis.chrome, document: d
     if (String(details.tabId) === tab.value) clearDocuments();
   };
   const onRemoved = tabId => {if (String(tabId) === tab.value) {tab.value = ''; clearDocuments();}};
-  const on = (id, event, operation) => find(id).addEventListener(event, () => Promise.resolve().then(operation).catch(fail));
+  const on = (id, event, operation) => listen(find(id), event, () => Promise.resolve().then(operation).catch(fail));
   on('script-save','click',save); on('script-load','click',load); on('script-read','click',read); on('script-delete','click',remove);
   on('script-download','click',downloadResult); on('script-download-result','change',update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
   on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update);
-  find('script-run').addEventListener('click',start);
+  listen(find('script-run'), 'click', start);
   on('script-stop','click',async () => {
     if (host.currentRun) {await host.stop({runId:host.currentRun,controller:true}); display('stopping','停止已提交，正在收尾…');}
   });
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
+  browserListenersAttached = true;
   const recoverView = () => read().catch(error=>{projection=undefined;update();fail(error);});
   const unsubscribeConnection = client.subscribeConnection?.(event=>{if(event.connected) recoverView();});
   client.ready.then(recoverView).catch(fail);
   refreshTabs().catch(fail); update();
-  return {host, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer).length, pending:Number(downloading)+preparations.size}}), dispose() {
+  return {host, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
+    timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length,
+    pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)}}), dispose() {
     if (disposed) return; disposed = true; unsubscribeConnection?.();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
-    for (const entry of downloads.values()) clearTimeout(entry.timer);
-    for (const entry of preparations.values()) clearTimeout(entry.timer);
+    browserListenersAttached = false;
+    for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
+    listeners.length = 0;
+    for (const entry of downloads.values()) { clearTimeout(entry.timer); entry.timer = null; }
+    for (const entry of preparations.values()) { clearTimeout(entry.timer); entry.timer = null; }
   }};
 }
