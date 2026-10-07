@@ -1,501 +1,259 @@
-# Current + Target Framework — 当前实现与最小目标
+# 新框架：文件怎样协作，以及哪些目标仍未闭合
 
-> Current 产品源码固定为 `01b48dcb49b31844d30c0e6fdeed1756e5046f11`。  
-> 当前候选分支在本轮观察到的 HEAD 为 `3b7d6a361c05a8f40e26afae1776ed9e3b7b18e6`；相对 P1 交付 HEAD `5b265238…` 的后续提交没有修改 `src/`。  
-> TARGET 不是“应该重新设计成什么”，而是由 Legacy 缺陷/行为 + Current 已有结构推导出的最小必要模型。
+> 新版源码观察点：`cdef268b861060a84731134088580844b2632994`，`src` 子树 `38cc631a3d4d792453149788a2c1a620f74d34b6`。
+> 不是旧 P1 源码 `01b48dcb…` 的同一源码树。历史测试和构建结果不能未经核对套用。
+> 当前部分写实现事实，目标部分写建议；本轮没有新增产品运行、构建或浏览器通过记录。
 
-## 1. Current 一句话
+## 一、先把新术语翻译成原来的工作
 
-Current OpenDesk Browser 是一个 MV3 浏览器自动化与 Page SDK 运行时：
+| 责任 | 中文解释 | 当前文件／函数 | 不负责什么 |
+|---|---|---|---|
+| 用户入口 | 用户从哪里保存、运行、批准、下载 | `ui/script-editor.js:createScriptEditor`；`ui/tool-shell.js` | 界面颜色不授予后台能力 |
+| 运行宿主 | 管理这一次控制程序及其执行资源 | `run-host.js:createRunHost/startController/completeController` | 不任意切换操作目标 |
+| 隔离执行 | 真正运行用户控制代码 | `scripting/sandbox/worker-runtime.js:installControlWorker` | 不直接持有 Chrome 特权 API |
+| 页面代理 | 把脚本里的 page 方法转成受控请求 | `scripting/sandbox/page-proxy.js:createWorkerPageProxy` | 不是新的授权中心 |
+| 运行上下文 | 记录本次身份、版本、目标和取消信号 | `framework/context.js:createRunContext/request/exchange` | 不依赖当前活动标签来确定目标 |
+| Page 外观 | 保留熟悉的 goto/click/type 等编程接口 | `framework/ChromePage.js` | 同名不代表全部旧参数和行为兼容 |
+| 编码和传输 | 把值和消息准确送到另一执行环境 | `platform/page-port/codec.js`、`platform/host/client.js`、`framework/sdk/transport.js` | 不凭 payload 自报身份授权 |
+| 消息分发 | 将请求送到对应服务 | `platform/host/broker.js:createFoundationBroker` | 不另建第二套 grant 解释 |
+| 统一授权 | 决定谁可对哪个目标执行何种操作 | `authority.js` 组合 `controller-methods.js`、`sdk-methods.js` | 模块分文件不等于多个独立 authority |
+| 具体执行 | 调浏览器 API、发送 HTTP、操作页面 | `framework/control/native-driver.js`、`platform/chrome/`、`scripting/packaged/` | 不自行扩大授权 |
+| 持久记录 | 保存版本、运行、操作、结果与产物 | `platform/storage/`、`platform/downloads/` | 不把内存 pending 当恢复依据 |
 
-- Controller script 使用 Puppeteer 风格 `ChromePage`；
-- `RunContext` 把 page 操作绑定到 exact target 和 request lifecycle；
-- `PageProxy`/sandbox 让保存脚本获得受控 page surface；
-- 单一 broker/authority 负责主体、目标、授权、request identity、cancel/recovery；
-- platform drivers 负责 Chrome 原生效果；
-- IndexedDB/session storage 保存 durable facts；
-- artifact/download 有独立生命周期；
-- Page SDK 在 MAIN world，relay 在 ISOLATED world，SW 提供 privileged service。
+这是一张责任图，不是强制串行流程。启动一次任务的链、任务中的一次 page 调用、网页 SDK 请求，是三种不同的时序。
 
-## 2. Current 模块地图
+## 二、场景01：从工具运行一段控制程序
+
+### 保存链
 
 ```text
-Product/UI
-│
-├─ Tool shell / Script editor
-│
-├─ Controller program
-│   ↓
-│  RunHost
-│   ↓
-│  sandbox controller / worker
-│   ↓
-│  PageProxy
-│   ↓
-│  ChromePage / ChromeElement / Keyboard
-│   ↓
-│  RunContext
-│   ↓
-│  controller operation envelope
-│
-└─ Page SDK consumer
-    ↓
-   OpenDeskSDK / axiosx / AppStorage / AppLocal
-    ↓
-   MAIN bridge / codec
-    ↓ CustomEvent
-   ISOLATED page-relay
-    ↓ runtime
-                ┌─────────────────────────┐
-                │ single broker/authority │
-                │ identity / grant        │
-                │ target / request        │
-                │ journal / cancel/recover│
-                └────────────┬────────────┘
-                             ↓
-             runtime services / platform drivers
-             ├─ scripting / userScripts
-             ├─ tabs / webNavigation
-             ├─ cookies
-             ├─ network fetch
-             ├─ storage.session
-             ├─ notifications
-             └─ downloads
-                             ↓
-                durable repository / receipts
+用户点击 script-save
+→ ui/script-editor.js：save
+→ host.controller.commitControllerScript
+→ platform/host/client.js：request
+→ 扩展消息 → SW → broker 的 commitControllerScript 路由
+→ controller-methods.js：commitControllerScript
+→ storage.commitScriptRevision
+→ scriptHeads / scriptRevisions
+→ 返回 revision/contentHash → 界面 remember(row)
 ```
 
-## 3. Public API / ChromePage
-
-### 3.1 Current ChromePage 的角色
-
-`src/framework/ChromePage.js` 仍保留 Legacy/Puppeteer 风格编程模型，但它不再自己猜 active tab。
-
-Current page 是**已绑定 RunContext 的 façade**：
-- constructor 需要 context；
-- context 持有 identity/revision/target/transport/signal；
-- 每次操作形成 typed operation；
-- transport 将操作送到 controller authority/native driver；
-- target 是 tab/frame/document 级事实。
-
-这是 Legacy `global page + active tab` 的 REPLACED 实现。
-
-### 3.2 ChromeContext / PageProxy
-
-Current 没有必要假装存在 Legacy `ChromeContext`。当前对应的是：
-- `src/framework/context.js` 的 RunContext；
-- `src/scripting/sandbox/page-proxy.js` 的 PageProxy。
-
-RunContext 解决“这次运行是谁、绑定哪个 target、何时取消、request/deadline 属于谁”；PageProxy 解决“保存脚本拿到怎样的 page surface”。
-
-这两者是 CURRENT ONLY / Target 必要层，不是旧类名迁移。
-
-## 4. Current Browser Automation 真实调用链
-
-以 Controller 中 `await page.goto(url)` 为代表：
+### 启动与结束链
 
 ```text
-保存并准入的 controller source
-→ sandbox Worker
-→ PageProxy / ChromePage.goto(url)
-→ RunContext.request(browser.goto,...)
-→ controller operation envelope
-   (run identity + revision + exact target + requestId/deadline)
-→ broker/authority/controller methods
-→ native-driver
-→ Chrome tabs/webNavigation native action
-→ navigation receipt
-→ authority validates old/new document handoff
-→ targetVersion/documentId update
-→ typed result
-→ RunContext
-→ ChromePage Promise
-→ controller script
-→ durable final result
+用户点击 script-run
+→ script-editor.js：start(event)
+   → 取目标、已保存版本、参数
+   → 在可信点击内请求原生权限
+→ run-host.js：start → startController
+→ controls.startControllerRun → client.request → broker → 统一授权
+→ controller-methods.js：startControllerRun
+   → 准入、固定代码版本、目标和运行身份
+→ 返回 claim
+→ run-host.js：createRunContext + controllerFactory
+→ scripting/sandbox/controller.js 管理隔离页面／Worker
+→ worker-runtime.js：installControlWorker
+→ AsyncBody(page,params,axiosx,AppStorage,AppLocal,storage,...)
+→ 用户代码 return 或 throw
+→ Worker 消息返回结果／错误
+→ run-host.js：completeController
+   → 等待执行资源退役信息
+   → 构造固定 finishRequestId 和结算请求
+   → settleController
+→ finishControllerRun / 持久结果 / 目标退役
+→ script-editor.js：snapshotControllerRun → 展示结果
 ```
 
-与 Legacy 的关键差异：
-- 不在操作时重新找 active tab；
-- navigation 是明确的 old document → new document handoff；
-- request/target 有可核验身份；
-- 在途操作可以受 durable cancellation 和 host/permission/document invalidation 约束。
+“准入返回 claim”不等于“程序执行结束”；“程序返回”不等于“资源收尾完成”；“结果在库里”不等于“仍可向当前调用者交付”。当前 `run-host.js` 已有结算待确认等分支，不能继续照搬旧版本的简化完成链。
 
-## 5. DOM / evaluate / world
+证据：[工具入口](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/ui/script-editor.js#L76-L230)、[宿主](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/run-host.js#L45-L114)、[Worker 实际参数](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/scripting/sandbox/worker-runtime.js)、[准入实现](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/host/controller-methods.js)。
 
-Current 把代码执行分成不同安全 lane：
+## 三、场景02—04：同一次运行怎样操作网页？
 
-### 固定 DOM 操作
-
-title/content/click/type/snapshot 等可走 packaged/fixed operation，不把任意 caller code 交给高权限 background eval。
-
-### 用户定义 evaluate
-
-`src/scripting/user-scripts/page-evaluator.js` 与 native driver 使用 Chrome `userScripts` 能力执行受控页面计算。它和 MAIN world 资源注入不是同一 world。
-
-历史 API48 native 验证曾明确暴露这一差异：
-- `addScriptTag({content})` 写入 MAIN world；
-- `page.eval(..., expression)` 可读该 MAIN-world 值；
-- `page.evaluate` 的受控 user-script world 不应自动共享该 MAIN global。
-
-因此 world 语义的改变必须写入兼容合同，不能只比较函数名。
-
-## 6. Current Page SDK
-
-### 6.1 注入链
+### 共用传话链
 
 ```text
-trusted tool selection
-→ exact tab/frame/document
-→ sdk-approval snapshots source + capabilities + targetOrigins
-→ chrome.permissions.request in trusted click
-→ broker.installSdk
+Worker 内用户代码调用 page 方法
+→ ChromePage 方法校验参数
+→ Worker 侧 RunContext.request
+   → 固定 identity/revision/target/requestId，编码参数
+→ PageProxy 经私有 MessagePort 发 operation
+→ 宿主 controller 接收，relayContextRequest 复核绑定
+→ RunHost 注入的 transport
+→ controls.controllerOperation → client.request
+→ runtime 消息 → SW/broker
+→ controller-methods.js：controllerOperation
+→ 授权、操作记录、执行／结果处理
+```
+
+PageProxy 是 `createWorkerPageProxy` 构造的代理，不是从旧源码迁来的同名类。RunContext 是角色与对象，不应为了图整齐新增一个叫 ChromeContext 的类。
+
+### 导航分支
+
+```text
+ChromePage.goto(url, options)
+→ 上述共用链，operation.kind='browser'
+→ native-driver.js：execute → navigate
+→ 核验原目标，监听 webNavigation 原生事件
+→ chrome.tabs.update(明确 tabId,{url})
+→ onCommitted 取得新 documentId
+→ 等待指定 DOM/complete 事件，复核目标
+→ 返回 result + handoff(from,to)
+→ controller-methods 更新可信目标记录
+→ RunContext.exchange 更新本次 page 的当前文档
+→ goto Promise 返回
+```
+
+旧元素仍绑定旧文档；Page 的可信导航交接不能自动给旧元素新文档权限。
+
+### 点击、输入、等待、读取分支
+
+```text
+ChromePage.click/type/title/waitForSelector 等
+→ 共用链，operation.kind='packaged'
+→ native-driver.js：packaged → pageReady
+   → 必要时 scripting.executeScript 注入固定 page-session（ISOLATED）
+→ tabs.sendMessage，指定 documentId/frameId
+→ scripting/packaged/page-session.js：listener → execute
+→ registry.createPackagedPageSession(...).execute(method,args)
+→ 真正读取／修改目标 DOM
+→ 编码 value 或 error，并带原 requestId/runId/ownerEpoch
+→ 原路返回，执行后再核验 → page Promise
+```
+
+普通 Page 调用不是一概走 `agents/page-agent.js`；后者与采集/选择场景有关，不能因名称像“页面代理”就把所有箭头画到那里。
+
+### 用户页面代码分支
+
+`evaluate/$eval/$$eval/waitForFunction` 进入 `operation.kind='user-script'`；`page-evaluator.js:buildPageEvaluation` 生成代码和 world，再由 `native-driver.js:userScript` 调 `chrome.userScripts.execute`。
+
+当前源码明确：普通 evaluate 默认 `USER_SCRIPT`；`eval` 的明确 expression/statement 模式及 `evaluateExpression` 使用 `MAIN`。MAIN 里的变量不应被假设在 USER_SCRIPT 世界共享。框架等待的取消不等于任意同步页面死循环都可中断。
+
+证据：[上下文](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/framework/context.js)、[原生执行与导航](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/framework/control/native-driver.js#L100-L208)、[页面消息接收与返回](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/scripting/packaged/page-session.js#L17-L83)、[执行世界](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/scripting/user-scripts/page-evaluator.js#L7-L54)。
+
+## 四、场景05：普通网页的 axiosx 请求链
+
+### 先装载，再调用；这是两条链
+
+```text
+装载链：
+工具选来源文档 A、能力、额外目标 B
+→ ui/sdk-approval.js：approve
+→ 原生权限申请 → 校验批准快照
+→ client.request('installSdk')
+→ broker.js：createSdkInstaller
 → authority.grantSdk
-→ fixed relay injected ISOLATED
-→ fixed sdk-main injected MAIN
-→ page sees OpenDeskSDK
+→ createTabsService.injectFixed
+   → 隔离环境 page-relay
+   → 页面环境 sdk-main
+→ 返回本次安装回执
 ```
-
-世界隔离是有意设计：
-- MAIN：网页真正消费 `OpenDeskSDK`；
-- ISOLATED：extension relay；
-- service worker：privileged broker/driver；
-- relay 不因收到 CustomEvent 就信任 payload 中自报身份，真实 sender 由 runtime/channel 派生。
-
-### 6.2 SDK request 链
 
 ```text
-webpage A MAIN
-→ OpenDeskSDK.call / axiosx / storage facade
-→ codec + requestId/deadline
-→ MAIN CustomEvent
-→ ISOLATED relay
-→ chrome.runtime
-→ sdk-broker
-→ authority validates source document + grant
-→ registry maps method → capability/effect
-→ service executor
-→ platform driver
-→ native receipt / durable operation state
-→ post-effect authorization/delivery checks
-→ relay
-→ original A Promise
+请求链：
+A 页面按钮／已有业务程序
+→ OpenDeskSDK.axiosx.get(B)
+→ sdk/http.js：createHttp → sdk/bridge.js：call
+→ sdk/transport.js：request，编码 requestId/args/deadline
+→ DOM CustomEvent
+→ agents/page-relay.js：installPageRelay 内转发
+→ chrome.runtime.sendMessage，实际 sender 来自浏览器
+→ sw.js → broker 的 SDK_REQUEST
+→ createSdkRequestHandler → sdk-broker.js：requestSdk
+→ authority.admitSdk
+→ sdk-broker.js：execute
+→ framework/sdk/service.js：execute
+→ platform/chrome/network.js：request
+→ 授权前检查 + assertDispatch → fetch
+→ 响应处理／原生回执／记录效果
+→ 后检查 → sdk-broker 交付核验
+→ valueWire → 隔离 relay → 页面结果事件
+→ 原 requestId 的 Promise resolve/reject
 ```
 
-这条链已经是真实产品消费者入口，不是测试直接调用 `internalAuthority()`。
+当前 `sdk-broker.execute` 接收服务 `{ok:true,value}`，不是旧版本的 `result.data`。这种内部结果合同变化也是“源码有变化”的具体证据。
 
-## 7. Current HTTP / axiosx
+当前 HTTP 执行点使用 `credentials:'omit'`、`redirect:'manual'`、有界超时和返回体；返回类似 Axios 的 data/status/headers/config 投影，不是完整 Axios 对象。服务器已经看见请求、驱动收到响应、记录效果、允许交付、网页收到结果必须分别看。
 
-### 7.1 谁真正发送 HTTP？
+实际受控消费者：[A/B/C 页面 client.js](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/tests/framework/fixtures/sdk-target-origins/client.js) 的按钮 → `run → probe → sdk.ready → sdk.axiosx.get`。它不是旧业务消费者，但确实走正式 SDK，而非内部 authority。其 parallel 按钮是两次新调用，不能充当“相同 requestId 只执行一次”的验收。
 
-`src/platform/chrome/network.js`。
+证据：[安装及路由](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/host/broker.js#L19-L165)、[SDK 准入与回程](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/host/sdk-broker.js)、[真正 HTTP 执行](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/chrome/network.js#L35-L92)。
 
-### 7.2 为什么仍需要 axiosx？
-
-保留 Legacy consumer 的调用习惯，但实际执行已正式化为：
-- SDK method registry；
-- source/capability/target authority；
-- typed config normalization；
-- Chrome extension network driver；
-- durable request/effect facts。
-
-### 7.3 Current 有意改变的语义
-
-当前 network driver：
-- `fetch` 使用 `credentials: 'omit'`；
-- redirect 采用明确限制/manual 处理；
-- 敏感 headers 有限制；
-- timeout/deadline 与 AbortSignal 有统一预算；
-- requestId + canonical digest 可检测 duplicate/conflict；
-- 发生效果但无法确认结果时可进入 `effect_unknown`；
-- recovery 不自动重放未知外部效果。
-
-这些不能被描述成 Legacy axios 默认行为“原样迁移”。它们属于 ADAPT/REPLACED，需要消费者兼容验收。
-
-## 8. Current Storage
-
-### AppStorage
-
-Current 把它映射到 durable、namespaced `frameworkKV`/repository，并把 request result 与 transaction 事实关联。
-
-相对 Legacy background localStorage：
-- 保留持久 KV 用途；
-- 限制 clear 到授权命名空间；
-- 加 request/durable semantics；
-- 不允许一个网页清掉 background 所有杂项状态。
-
-### AppLocal
-
-Current 使用 `chrome.storage.session` + browser-session incarnation / namespace。
-
-相对 Legacy `globalThis[key]`：
-- 保留“临时会话值”用途；
-- 不再污染 background globals；
-- SW restart 内 session 可保持；
-- 整个 browser session restart 后应该失效。
-
-历史真实 Chrome SDK 证据已经验证过“SW restart 后 session/persistent 保持”和“browser session end 后 persistent 保留、AppLocal 失效”，但当前 P1 包仍需同包 L6。
-
-## 9. Authority：为什么 Target 必须保留
-
-Legacy 真实问题：
-- active tab/bridge payload 是隐式目标；
-- extension permission 与应用授权混在一起；
-- eventId 是 correlation，不是 durable request identity；
-- 没有统一 unknown-effect/no-replay；
-- background restart 后内存 pending 不是恢复事实。
-
-Current 已经用一个逻辑 authority 解决：
-
-- source principal/namespace；
-- controller target；
-- SDK source document；
-- capability grant；
-- exact target origin；
-- grant incarnation；
-- requestId/digest；
-- owner epoch/slot；
-- cancellation fence；
-- navigation/permission/tab invalidation；
-- recover；
-- `effect_unknown` / `paused_unknown`。
-
-因此 TARGET 应**保留单一 authority**，而不是再建第二套 SDK authority 或 browser authority。
-
-## 10. Native permission 与应用 authority 的关系
-
-二者不是同一个概念：
+## 五、同名服务的另一条链：控制程序里的 axiosx
 
 ```text
-Chrome host permission
-= 扩展平台层是否有资格访问某 origin
-
-Application grant
-= 这个 source document / principal
-  是否被允许用某 capability
-  访问哪些 target origins
+已准入 Worker 中调用 axiosx / AppStorage / AppLocal
+→ worker-runtime 注入的 proxy.services
+→ context.js：services → serviceCall
+→ request(method,[args],{kind:'service'})
+→ PageProxy／宿主共用控制通道
+→ controller-methods.js：controllerOperation → executeService
+→ network.request 或 storage.executeSdk
+→ 控制任务自己的操作记录与回执
+→ 返回控制脚本的 Promise
 ```
 
-P1.3 的工具 UI 会：
-1. 选 exact tab/frame/document；
-2. 选 capability；
-3. 输入/规范化 target origins；
-4. 在 trusted click 内调用 `chrome.permissions.request`；
-5. 再把同一个 snapshot 提交 authority；
-6. 校验 authority receipt 与 snapshot 完全一致后才显示 installed。
+这条链没有经过网页 MAIN SDK、DOM CustomEvent 或页面 SDK grant。它共用 HTTP/存储执行实现，但持有的是 Controller 的运行身份、期限和目标边界。**接口复用不等于授权身份复用。**页面 A→B 的 P1 通过，也不能自动证明 Controller 的服务调用行为通过。
 
-这层存在的原因来自真实安全边界，不是为了架构整齐。
+证据：[Worker 注入](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/scripting/sandbox/worker-runtime.js#L18-L37)、[serviceCall](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/framework/context.js)、[executeService](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/host/controller-methods.js#L422-L451)。
 
-## 11. Cancellation / timeout / stop
+## 六、场景06—11：具体执行点与状态在哪里？
 
-Current 的关键规则是：
+| 场景 | 入口与执行点 | 状态／返回 | 不能误读 |
+|---|---|---|---|
+| 06 持久存储 | SDK 或 Controller 的 storage 门面 → `repository.js:executeSdk` | 授权命名空间内 frameworkKV、请求与结果记录 | 不等于把旧后台全部 localStorage 数据自动搬入 |
+| 07 临时存储 | 同上 → `storage/session.js:createSessionTyped` | chrome.storage.session；作用域来自可信上下文 | 不再是后台 globalThis，也不等于页面关闭立即删除 |
+| 08 工具与资源 | 页面 SDK service → `chrome/background-services.js` | log/time/扩展根地址／允许的包内资源 | 旧远程资源装载用途未因此保持 |
+| 09 截图／上传 | ChromePage → native-driver 的 screenshot/uploadFromURL 或 packaged uploadChunk/uploadCommit | 图片值／目标 input 变化／操作回执 | 不能把 fullPage 拒绝算截图正向验收；截图也不自动生成下载文件 |
+| 10 Cookie | ChromePage → native-driver → `chrome/cookies.js` | 原生 Cookie 操作及范围检查 | 不是页面 SDK 获得任意 Cookie 权限 |
+| 11 下载结果 | `script-editor.js:downloadResult → prepareArtifact/readArtifact → prepareAttempt → dispatchDownload` | 产物字节/hash、尝试、回执、资源释放 | 提交成功不等于浏览器完成，更不等于磁盘 hash 已核对 |
 
-```text
-先让 durable cancel fence 赢事务
-→ 再 abort 本地 waits / Worker
-```
+### 下载的回程与失败收尾
 
-`src/run-host.js` 的 stop 路径明确这样实现。
+`script-editor.js:observeDownload` 调 `reconcileDownload`，随后按条件释放本地 Blob、提交 `recordResourceRelease`。当前还存在准备阶段失败的 `releaseUnsubmitted → retirePreparation → retirePreparedArtifact` 路径。它不是旧页面 `a.click()` 的同义替换，而是新建的可追踪结果交付能力。
 
-它解决 Legacy 中“本地 Promise 停了但外部 effect 可能继续”“SW 中断后不知道是否应重放”的问题。
+源码：[下载实际 UI 消费者及回程](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/ui/script-editor.js#L117-L190)、[下载服务](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/downloads/index.js)。除已列关键链外，本轮未逐个重新执行所有截图、Cookie、上传、下载分支。
 
-Target 必须保留：
-- cancellation barrier；
-- deadline；
-- host close；
-- document/navigation invalidation；
-- permission revocation；
-- terminal/unknown state；
-- cleanup/retirement。
+## 七、场景14：停止、页面离开和后台恢复
 
-不能只保留一个 `cancel()` 方法名。
+控制任务停止：工具／RunHost → `stopControllerRun` → 事务写入 cancelSeq、状态、版本与租约 → 中止在途操作 → 尝试清理页面等待；最终结果、Worker 退役与目标释放另行结算。借用页面不应被当作自建页面随便关闭。
 
-## 12. SW restart / unknown effect
+页面服务失效：来源文档离开或撤权 → SDK grant 生命周期核验／失效 → 原请求后续执行和交付受限。不能把本地 Promise 不再等待理解成服务器已经撤销效果。
 
-Current authority recovery 的核心原则：
+后台恢复：`broker.createFoundationBroker` 重新建立服务并调用 `authority.recover`；当前还核对持久宿主是否实际存在。查宿主失败会有 unknown 分支，不能以查询错误证明宿主已经消失。
 
-**未知外部效果不重放。**
+源码：[控制任务停止与结算](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/host/controller-methods.js#L499-L645)、[宿主恢复](https://github.com/shopable-ai/opendesk-browser/blob/cdef268b861060a84731134088580844b2632994/src/platform/host/broker.js#L56-L143)。这些是实现路径，不是本轮原生崩溃测试结果。
 
-如果一个有副作用请求已经 dispatched，但 SW 在 receipt/result 确认前重启：
-- durable journal 仍能观察 request；
-- recovery 不重新 authorize/dispatch 同一个未知 effect；
-- 状态进入 `effect_unknown` 或对应 paused unknown；
-- caller 的后续 duplicate request 能得到 typed unknown，而不是再发一次 POST。
+## 八、源码文件和装载文件不要混写
 
-这不是 Legacy 行为兼容项，而是 CURRENT ONLY 的可靠性增强。
-
-## 13. Artifact / download
-
-Current 有独立 `src/platform/downloads/index.js`，其模型包括：
-
-```text
-durable successful controller result
-→ prepare artifact
-→ bytes/chunks + sha256
-→ export job
-→ reader pin
-→ fresh same-extension Blob URL
-→ download attempt
-→ chrome.downloads native dispatch
-→ map/reconcile downloadId
-→ durable receipt/candidate
-→ release Blob/resource
-```
-
-这层不是 Legacy “页面触发一个下载”的简单 wrapper。它解决：
-- result 与下载文件如何绑定；
-- 文件 hash/bytes 是否还是原结果；
-- SW 重启如何恢复；
-- 是否重复提交下载；
-- 何时能 revoke Blob；
-- 谁拥有 artifact。
-
-TARGET 应保留这套生命周期，不为了“Legacy 没有”而删除。
-
-## 14. Current UI
-
-`src/ui/tool-shell.js` 与 `src/ui/sdk-approval.js` 已经是正式 P1.3 consumer：
-- tab/document inventory；
-- capability checkboxes；
-- target origins；
-- approval preview；
-- trusted install click；
-- permission/navigation/tab close 后 UI 变 stale；
-- 历史 receipt 不被当成当前授权证明。
-
-所以“P1.3 只有内部 API，没有 UI consumer”是错误结论。
-
-但当前 P1 package 的原生手势/popup/真实 A→B acceptance 仍是 L6 缺口。
-
-## 15. P1.2 / P1.3 / P1.4 精确定位
-
-```text
-完整 Browser Framework
-│
-├─ Browser automation
-│  ├─ Context / exact target
-│  ├─ Page
-│  ├─ Navigation
-│  ├─ DOM / JS / wait
-│  ├─ cookie / screenshot / upload
-│  └─ lifecycle
-│
-├─ Page SDK
-│  ├─ axiosx
-│  ├─ storage
-│  ├─ local
-│  └─ utility APIs
-│
-├─ Extension runtime
-│  ├─ MAIN
-│  ├─ ISOLATED relay
-│  ├─ SW
-│  └─ codec/transport
-│
-├─ Authority
-│  ├─ source
-│  ├─ capability
-│  ├─ target
-│  ├─ grant
-│  └─ lifecycle
-│
-├─ HTTP
-├─ Durable state
-├─ Artifact/download
-└─ UI
-```
-
-- **P1.2**：Page SDK + Authority 中的 exact target-origin / grant 纵切；
-- **P1.3**：UI + native permission + exact document approval 入口；
-- **P1.4**：正式 SDK consumer → broker/authority → HTTP driver 的 golden path 与回归。
-
-P1 没有重新完成整个 Browser automation 子树。
-
-## 16. 历史 native 证据与当前候选的关系
-
-### 历史 SDK native
-
-`docs/framework/evidence/f2-sdk-native/native-2026-10-04T09-23-54.100Z-a9793184`
-
-- Chrome 138；
-- production package `99d6d078…`；
-- 17/17 PASS；
-- 覆盖真实 UI install、Hello、HTTP 四动词、storage、100 concurrent promises、SW effect_unknown、permission removal、navigation invalidation、browser-session restart 等。
-
-这是强 L5 证据。
-
-### 历史 Browser automation native
-
-Controller native evidence 包括：
-- `OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN` PASS；
-- API48 曾有一次因 `addScriptTag`/world 预期错误 FAIL；
-- 后续 package `99d6d078…` 的 API48 run 调整为真实 world 合同后 PASS。
-
-这恰好证明：**“48 个 API 有代码”不等于行为合同已正确。**
-
-### 当前 P1
-
-P1 candidate README 记录：
-- product source `01b48dcb…`；
-- source tree `8ea3d1d…`；
-- production `61ac11ca…`；
-- 239 + 237 tests PASS；
-- CI PASS；
-- native user chain NOT_TESTED。
-
-所以当前结论必须写：
-- Current 实现具备很强的历史 native 依据；
-- 但 P1 新 source/package 的 L6 仍要重跑。
-
-## 17. 最小 Target
-
-```text
-Public API
-   ↓
-Codec / Transport
-   ↓
-Single Authority
-   ↓
-Runtime / Host
-   ↓
-Platform Driver
-   ↓
-Durable State
-```
-
-外加横切：
-- native permission；
-- request identity/digest；
-- cancellation barrier；
-- owner slot/transaction pin；
-- artifact/download lifecycle；
-- SDK/axiosx 正式消费者；
-- unknown effect no replay。
-
-### 为什么每层需要？
-
-| 层 | Legacy/Current 证据 | 必要性 |
+| 源码 | 构建入口 | 浏览器装载名 |
 |---|---|---|
-| Public API | Legacy consumer 依赖 page/axiosx/storage | 保持消费者入口，避免重写所有业务脚本 |
-| Codec/Transport | 两边都有跨 world/context Promise | 区分序列化/相关性与授权，不让 relay 成 authority |
-| Single Authority | Legacy 隐式目标/权限；Current 已有可靠 owner | 集中 source/target/grant/request/lifecycle |
-| Runtime/Host | Legacy background shared page；Current RunHost/Worker | 管真实运行资源和脚本生命周期 |
-| Platform Driver | Legacy 直接 Chrome API；Current 已分 driver | 把授权与 native effect 分离，便于测试/恢复 |
-| Durable State | Legacy pending/global state 无恢复保证；Current IDB journals | stop/restart/unknown-effect/result/artifact 的事实来源 |
+| `framework/sdk/entry.js` | `entrypoints/sdk-main.js` | `framework/sdk-main.js`，MAIN |
+| `agents/page-relay.js` | `entrypoints/page-relay.js` | `agents/page-relay.js`，ISOLATED |
+| `scripting/packaged/page-session.js` | `entrypoints/page-session.js` | `scripting/packaged/page-session.js`，ISOLATED |
+| `sw.js` | `entrypoints/background.js` | `sw.js`，后台 Service Worker |
 
-不需要为了图漂亮再拆第二套数据库、第二套 broker 或平行 SDK runtime。
+上表源码相对 `src/`。真实运行必须使用对应构建产物，不把源码路径存在当装载成功。入口和输出规则应与 `scripts/build-contract.mjs`、`wxt.config.mjs` 及实际包清单一起核对。
 
-## 18. 不应重写的 Current 正确资产
+## 九、目标：只补缺的关系，不重写正确底座
 
-除非有行为证据要求，否则应保留：
-- 已有 authority 状态机；
-- request/digest/idempotence；
-- durable repositories；
-- cancellation barrier；
-- navigation target-version handoff；
-- storage session/persistent 分层；
-- network effect journal；
-- artifact/download 状态机；
-- native receipt/recovery；
-- fixed MAIN/ISOLATED SDK injection。
+### 已有职责为什么需要保留
 
-后续开发重点应是**补消费者兼容和当前候选 L6**，而不是再次重构这些正确资产。
+| 要解决的真实问题 | 已有承担者 | 最小演进原则 |
+|---|---|---|
+| 旧活动标签可能漂移 | 绑定上下文、明确 target、导航 handoff | 不退回隐式 active-tab，不为此另造 Browser 对象体系 |
+| 跨环境参数和结果丢失／串线 | codec、requestId、受控 transport | 保留独立编码与通信责任 |
+| 来源、能力、目标混淆 | 单一 authority 的不同准入分支＋原生权限 | 不复制第二套授权账本 |
+| 停止与效果提交竞争 | 事务、cancel 屏障、版本 pin、slot | 保留原状态机，补消费者与异常验收 |
+| 结果与下载不能对账 | durable result、artifact、attempt、receipt | 保留字节/hash 与资源生命周期 |
+| 发生过效果但结果丢失 | 操作日志、未知效果、不重放 | 不用自动 retry 掩盖未知状态 |
+
+### 仍需独立闭合的功能
+
+**场景12：页面增强。**旧版有环境分支和站点脚本装载；新版有 userScripts 页面计算机制，但本轮没有确认完整通用管理闭环。目标应从“装一个只修改 DOM 的脚本 → 匹配网页装载 → 刷新 → 停用”开始。安装版本、触发规则、文档实例、清理限制都需要单列；不将其强塞入没有 DOM 的控制 Worker。
+
+**场景13：网页按钮启动完整任务。**旧 raw executeScript 有这一用途；新版页面 SDK 拒绝 raw 脚本不等于保留了便捷启动入口。可候选为固定脚本引用＋已批准参数范围＋现有任务准入，但这是目标建议，不是已实现公开 API。不能让普通页面按钮本身充当特权批准证明。
+
+当前页面 SDK 的来源文档／origin 身份也不等于将来用户脚本按 scriptId 隔离。界面传一个 scriptId 不足以建立可信脚本身份。
+
+P1.2/P1.3/P1.4 仍分别定位为页面服务目标授权、工具批准入口和实际 SDK 服务用户链；不扩大成全部 Browser Framework 的完成标签。
