@@ -17,7 +17,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const find = id => doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
   const tab = find('script-tab'), frame = find('script-document'), mode = find('script-target-mode');
-  const currentPageStatus = find('script-current-page-status'), currentPageDebug = find('script-current-page-debug');
+  const currentPageStatus = find('script-current-page-status'), currentPageDebug = find('script-current-page-debug'),
+    runningTargetStatus = find('script-running-target');
   const revisions = new Map(), documents = new Map();
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
@@ -80,6 +81,18 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       currentPageDebug.textContent = JSON.stringify({windowId:next?.windowId ?? null,reason:next?.reason || 'E_TARGET'}, null, 2);
     }
     update();
+  }
+  function renderRunningTarget(target, runId) {
+    if (!target) {
+      runningTargetStatus.dataset.state = 'idle';
+      runningTargetStatus.textContent = '运行目标：尚未建立';
+      runningTargetStatus.removeAttribute('title');
+      return;
+    }
+    runningTargetStatus.dataset.state = 'running';
+    runningTargetStatus.textContent = `运行目标：${target.url || target.allowedOrigin || '已冻结文档'}`;
+    runningTargetStatus.title = JSON.stringify({runId,tabId:target.tabId,frameId:target.frameId,
+      documentId:target.documentId,url:target.url,origin:target.allowedOrigin || target.origin});
   }
   function remember(row) {
     revisions.set(row.scriptId, row.revision); currentRevision = row;
@@ -160,6 +173,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
         ...(row.outcome?.ok === true ? {value:decodeValue(row.outcome.valueWire)} : {error:row.outcome?.error})};
     });
     if (downloadable.has(previous)) resultSelect.value = previous;
+    if (snapshot.run?.target) renderRunningTarget(snapshot.run.target, snapshot.run.runId);
     update();
     display('results', snapshot.run ? `任务 ${snapshot.run.runId}：${snapshot.run.state}` : '已读取持久结果',
       {run:snapshot.run, runs:snapshot.runs, results:values, downloads:snapshot.downloads, resultDeliveryDenied:snapshot.resultDeliveryDenied});
@@ -249,7 +263,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     } catch (error) { fail(error); return; }
     const revision = currentRevision, version = selectionVersion;
     let startError;
-    running = true; update(); display('authorizing','正在授权选定目标…');
+    running = true; renderRunningTarget(null); update(); display('authorizing',`正在授权并验证已冻结候选：${chosen.url}`);
     (async () => {
       if (!await permission) throw {code:'E_PERMISSION',message:'授权被拒绝，未启动任务'};
       if (chosen.candidate) await currentPageTarget.revalidate(chosen.candidate);
@@ -258,7 +272,9 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       const claim = await host.start({scriptId:revision.scriptId, revision:revision.revision, contentHash:revision.contentHash,
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
       find('script-run-id').value = claim.runId;
-      display('running', `已接受 r${revision.revision}；等待脚本结束及持久结果`, {runId:claim.runId,revision:claim.revision});
+      renderRunningTarget(claim.target, claim.runId);
+      display('running', `已接受 r${revision.revision}；等待脚本结束及持久结果`,
+        {runId:claim.runId,revision:claim.revision,runningTarget:claim.target});
       update();
       const result = await host.completion;
       if (result.error) throw result.error;

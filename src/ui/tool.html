@@ -7,6 +7,7 @@
   <section aria-labelledby="script-title"><h2 id="script-title">JavaScript 工作台</h2>
     <p>保存脚本版本后运行。默认目标是此 Sidebar 所属窗口当前正在查看的网页；Run 点击后目标立即冻结，切换网页只影响下一次任务。</p>
     <p id="script-current-page-status" role="status" data-state="resolving">当前网页：正在识别…</p>
+    <p id="script-running-target" data-state="idle">运行目标：尚未建立</p>
     <details><summary>高级目标诊断</summary><pre id="script-current-page-debug" aria-label="当前网页精确目标"></pre></details>
     <div class="row"><label for="script-id">脚本 ID</label><input id="script-id" value="my-script"><label for="script-revision">版本</label><input id="script-revision" type="number" min="1" placeholder="留空加载最新版本"><button id="script-load">加载持久版本</button></div>
     <label for="script-source">脚本</label><textarea id="script-source" rows="8" spellcheck="false">return {title: await page.title(), url: await page.url(), value: params.value};</textarea>

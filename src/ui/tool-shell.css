@@ -2,3 +2,4 @@
 textarea{display:block;box-sizing:border-box;width:100%;margin:10px 0 18px;padding:12px;border:1px solid #8993a4;border-radius:6px;font:14px/1.5 ui-monospace,monospace;resize:vertical}select{padding:9px;border:1px solid #8993a4;border-radius:6px;max-width:100%}#script-revision{min-width:80px;max-width:150px}#script-status[data-state=error],#sdk-status[data-state=error]{color:#aa2538}#script-version{font-size:12px;overflow-wrap:anywhere}
 
 #script-current-page-status[data-state=unavailable]{color:#aa2538}#script-version[data-dirty=true]{color:#8a5a00;font-weight:600}@media(max-width:520px){header{padding:16px}main{padding:12px}section{padding:14px}}
+#script-running-target[data-state=running]{font-weight:600}
