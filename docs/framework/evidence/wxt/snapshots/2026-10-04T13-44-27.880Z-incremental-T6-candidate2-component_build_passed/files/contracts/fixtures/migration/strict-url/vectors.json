@@ -1,0 +1,1129 @@
+{
+  "fixtureVersion": "1.0.0",
+  "status": "planned",
+  "productResult": "not-run",
+  "cases": [
+    {
+      "id": "relative-base-uri",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/relative-base-uri.html",
+          "encoding": "utf-8",
+          "byteLength": 237,
+          "sha256": "51036abc03aefd0bf4a962334ea384b9be8d60ae1e5bb10aa31243d2b2b08dca",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iIC4uL2l0ZW0vMT90YWc95Lit5paHICI+6ZO+5o6lPC9hPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\" ../item/1?tag=中文 \">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": " ../item/1?tag=中文 "
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "https://fixture.example/item/1?tag=%E4%B8%AD%E6%96%87"
+          }
+        ],
+        "errors": [],
+        "pageSealable": true,
+        "targetValidationAllowed": false,
+        "resolvedUrl": "https://fixture.example/item/1?tag=%E4%B8%AD%E6%96%87",
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "unicode-trim-cross-https",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/unicode-trim-cross-https.html",
+          "encoding": "utf-8",
+          "byteLength": 263,
+          "sha256": "104f3d4f965ceae664eb48454ff34b91634295aae274b03e1560c113ef12887f",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iwqDvu79odHRwczovL2V4dGVybmFsLmV4YW1wbGUvaXRlbT90YWc95Lit5paH44CAIj7pk77mjqU8L2E+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\" ﻿https://external.example/item?tag=中文　\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": " ﻿https://external.example/item?tag=中文　"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "https://external.example/item?tag=%E4%B8%AD%E6%96%87"
+          }
+        ],
+        "errors": [],
+        "pageSealable": true,
+        "targetValidationAllowed": false,
+        "resolvedUrl": "https://external.example/item?tag=%E4%B8%AD%E6%96%87",
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "cross-http",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/cross-http.html",
+          "encoding": "utf-8",
+          "byteLength": 243,
+          "sha256": "dfc0edc5b66e8ef293eb34e85bb90cc33da279f46e43b51c85ef01a41c80b53d",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cDovL2V4dGVybmFsLmV4YW1wbGUvaXRlbSI+6ZO+5o6lPC9hPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"http://external.example/item\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "http://external.example/item"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "http://external.example/item"
+          }
+        ],
+        "errors": [],
+        "pageSealable": true,
+        "targetValidationAllowed": false,
+        "resolvedUrl": "http://external.example/item",
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "protocol-relative-cross",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/protocol-relative-cross.html",
+          "encoding": "utf-8",
+          "byteLength": 238,
+          "sha256": "be9c83ef75a5f40688eed70544f4ba0e0e2df67a3d1b7d13fa4325f2214c4a58",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iLy9leHRlcm5hbC5leGFtcGxlL2l0ZW0iPumTvuaOpTwvYT48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"//external.example/item\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "//external.example/item"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "https://external.example/item"
+          }
+        ],
+        "errors": [],
+        "pageSealable": true,
+        "targetValidationAllowed": false,
+        "resolvedUrl": "https://external.example/item",
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "username-password",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/username-password.html",
+          "encoding": "utf-8",
+          "byteLength": 257,
+          "sha256": "86a156f0b851bdf74cbc89068554f3eb1760cc6ff8d9e7b3cbdb21631f3dd5b4",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cHM6Ly9hbGljZTpzZWNyZXRAZXh0ZXJuYWwuZXhhbXBsZS9pdGVtIj7pk77mjqU8L2E+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"https://alice:secret@external.example/item\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "https://alice:secret@external.example/item"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_CREDENTIALS",
+            "path": "/rows/0/value",
+            "value": "https://alice:secret@external.example/item",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "username-only",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/username-only.html",
+          "encoding": "utf-8",
+          "byteLength": 249,
+          "sha256": "de66892b63dc93cc3694edf7d1584b544f2de824bb332721f16f55dd84edb935",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cHM6Ly9hbGljZUBmaXh0dXJlLmV4YW1wbGUvaXRlbSI+6ZO+5o6lPC9hPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"https://alice@fixture.example/item\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "https://alice@fixture.example/item"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_CREDENTIALS",
+            "path": "/rows/0/value",
+            "value": "https://alice@fixture.example/item",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "password-only",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/password-only.html",
+          "encoding": "utf-8",
+          "byteLength": 251,
+          "sha256": "fe37b5c5a405059d288707e4bed7165305558618b7c65ae0b11042d59707acc8",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cHM6Ly86c2VjcmV0QGZpeHR1cmUuZXhhbXBsZS9pdGVtIj7pk77mjqU8L2E+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"https://:secret@fixture.example/item\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "https://:secret@fixture.example/item"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_CREDENTIALS",
+            "path": "/rows/0/value",
+            "value": "https://:secret@fixture.example/item",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "encoded-credentials",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/encoded-credentials.html",
+          "encoding": "utf-8",
+          "byteLength": 259,
+          "sha256": "df678fa6a50595c9b2d248580bb81e591390ab39222a540d6609161a32dde50e",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cHM6Ly8lNjFsaWNlOnAlNDBzc0BleHRlcm5hbC5leGFtcGxlL2l0ZW0iPumTvuaOpTwvYT48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"https://%61lice:p%40ss@external.example/item\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "https://%61lice:p%40ss@external.example/item"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_CREDENTIALS",
+            "path": "/rows/0/value",
+            "value": "https://%61lice:p%40ss@external.example/item",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "empty",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/empty.html",
+          "encoding": "utf-8",
+          "byteLength": 215,
+          "sha256": "6e7a3a1449fdddc2b2d7b50eb3aeaa62ea74ac0f7f6748a2a83241fc36c2f252",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iIj7pk77mjqU8L2E+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": ""
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_EMPTY",
+            "path": "/rows/0/value",
+            "value": "",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "unicode-only",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/unicode-only.html",
+          "encoding": "utf-8",
+          "byteLength": 226,
+          "sha256": "a98750a31296bb1f2ef2d44cf24895dba36f0613e4f8e317a3e2c0bef44973f0",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iwqDvu7/igKjjgIAiPumTvuaOpTwvYT48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\" ﻿ 　\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": " ﻿ 　"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_EMPTY",
+            "path": "/rows/0/value",
+            "value": " ﻿ 　",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "javascript-scheme",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/javascript-scheme.html",
+          "encoding": "utf-8",
+          "byteLength": 235,
+          "sha256": "915f383a7c3f3a8ae0a7c8833380cfdb7ad853c64625e9a6a747b448bc5e8c18",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iamF2YXNjcmlwdDpleGFtcGxlKCkiPumTvuaOpTwvYT48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"javascript:example()\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "javascript:example()"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_SCHEME",
+            "path": "/rows/0/value",
+            "value": "javascript:example()",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "ftp-scheme",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/ftp-scheme.html",
+          "encoding": "utf-8",
+          "byteLength": 242,
+          "sha256": "782a46a3bf4d4b90c879846faa9693361ed2b530d820c6c948e3998b204314c4",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iZnRwOi8vZXh0ZXJuYWwuZXhhbXBsZS9pdGVtIj7pk77mjqU8L2E+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"ftp://external.example/item\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "ftp://external.example/item"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_SCHEME",
+            "path": "/rows/0/value",
+            "value": "ftp://external.example/item",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "invalid-host",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/invalid-host.html",
+          "encoding": "utf-8",
+          "byteLength": 223,
+          "sha256": "ab7408bd66ab1cf4998756abaaa254a6e2f92c1e5713d5da7fc046ce1f9b9c09",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cDovL1siPumTvuaOpTwvYT48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"http://[\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "http://["
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_URL_INVALID",
+            "path": "/rows/0/value",
+            "value": "http://[",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "optional-missing",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/optional-missing.html",
+          "encoding": "utf-8",
+          "byteLength": 207,
+          "sha256": "1939c0a1ee72bdb8282d4df6784a028d59197c31d547e3c1e4badef1282864b3",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSI+6ZO+5o6lPC9hPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "data-field"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": null
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": null
+          }
+        ],
+        "errors": [],
+        "pageSealable": true,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "execution-cross-origin",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/execution-cross-origin.html",
+          "encoding": "utf-8",
+          "byteLength": 244,
+          "sha256": "3c0480f25d23964ff859b773de83f044d95886d5cb23bd309d7d4ff293e14653",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cHM6Ly9leHRlcm5hbC5leGFtcGxlL2l0ZW0iPumTvuaOpTwvYT48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"https://external.example/item\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "execution-target"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "https://external.example/item"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_TARGET_ORIGIN",
+            "path": "/targetUrl",
+            "value": "https://external.example/item",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "pagination-cross-origin",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/pagination-cross-origin.html",
+          "encoding": "utf-8",
+          "byteLength": 238,
+          "sha256": "276daef92cf5bcc4cb259bc93deb6d298e189c0dbed988dfe87ca6d498f18805",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iLy9leHRlcm5hbC5leGFtcGxlL25leHQiPumTvuaOpTwvYT48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"//external.example/next\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "pagination-target"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "//external.example/next"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_TARGET_ORIGIN",
+            "path": "/targetUrl",
+            "value": "//external.example/next",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "pagination-same-origin",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/pagination-same-origin.html",
+          "encoding": "utf-8",
+          "byteLength": 229,
+          "sha256": "e13f08777637d7ab7c6787db4d74f6ca84ad5252ae95ec440631cd1e02c06b78",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iLi4vbGlzdD9wYWdlPTIiPumTvuaOpTwvYT48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"../list?page=2\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "pagination-target"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "../list?page=2"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": "https://fixture.example/list?page=2"
+          }
+        ],
+        "errors": [],
+        "pageSealable": false,
+        "targetValidationAllowed": true,
+        "resolvedUrl": "https://fixture.example/list?page=2",
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "execution-credentials",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/execution-credentials.html",
+          "encoding": "utf-8",
+          "byteLength": 249,
+          "sha256": "0311f5343b61598d7301b8e897043aa7ba86a90e6f2182bd29094db626e89c27",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cHM6Ly9hbGljZUBmaXh0dXJlLmV4YW1wbGUvbGlzdCI+6ZO+5o6lPC9hPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"https://alice@fixture.example/list\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "execution-target"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "https://alice@fixture.example/list"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_TARGET_URL_CREDENTIALS",
+            "path": "/targetUrl",
+            "value": "https://alice@fixture.example/list",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    },
+    {
+      "id": "pagination-credentials",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-url/pagination-credentials.html",
+          "encoding": "utf-8",
+          "byteLength": 263,
+          "sha256": "fcd1e7f1006af2a2bed22a39ba1dbd20506bb41bff93508914589152374b28d6",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxiYXNlIGhyZWY9Imh0dHBzOi8vZml4dHVyZS5leGFtcGxlL2NhdGFsb2cvIj48L2hlYWQ+PGJvZHk+PG1haW4gY2xhc3M9InJvd3MiPjxhcnRpY2xlIGNsYXNzPSJyb3ciPjxhIGNsYXNzPSJ2YWx1ZSIgaHJlZj0iaHR0cHM6Ly9hbGljZTpzZWNyZXRAZml4dHVyZS5leGFtcGxlL2xpc3Q/cGFnZT0yIj7pk77mjqU8L2E+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"><base href=\"https://fixture.example/catalog/\"></head><body><main class=\"rows\"><article class=\"row\"><a class=\"value\" href=\"https://alice:secret@fixture.example/list?page=2\">链接</a></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list?page=1",
+          "documentBaseURI": "https://fixture.example/catalog/",
+          "allowedOrigin": "https://fixture.example",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "resolutionScope": "pagination-target"
+        },
+        "field": {
+          "id": "value",
+          "label": "链接",
+          "selector": ".value",
+          "read": "attribute",
+          "attribute": "href",
+          "type": "string",
+          "required": false,
+          "transforms": [
+            "trim",
+            "resolve-url"
+          ]
+        }
+      },
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rawRecords": [
+          {
+            "value": "https://alice:secret@fixture.example/list?page=2"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_TARGET_URL_CREDENTIALS",
+            "path": "/targetUrl",
+            "value": "https://alice:secret@fixture.example/list?page=2",
+            "remediation": "correct-source-url-or-explicit-target-configuration"
+          }
+        ],
+        "pageSealable": false,
+        "targetValidationAllowed": false,
+        "resolvedUrl": null,
+        "networkActionsExpected": 0
+      }
+    }
+  ]
+}

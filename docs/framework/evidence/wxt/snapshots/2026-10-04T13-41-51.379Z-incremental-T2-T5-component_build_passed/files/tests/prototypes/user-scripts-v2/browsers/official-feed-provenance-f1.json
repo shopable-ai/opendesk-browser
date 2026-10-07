@@ -1,0 +1,68 @@
+{
+  "purpose": "OpenDesk F1 userScripts headed browser acquisition; browser and test execution prohibited",
+  "machine_reference_date": "2026-10-02",
+  "machine_observed_utc": "2026-10-02T15:14:34.706603+00:00",
+  "feeds": {
+    "last-known-good-versions-with-downloads": {
+      "url": "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json",
+      "retrieved_at_utc": "2026-10-02T15:14:30.931411+00:00",
+      "timestamp": "2026-10-02T09:24:10.661Z",
+      "sha256": "fe75f2589ceca8e79030135c25d153cd41e79c5a85fef12143f06c2f03036c8c",
+      "bytes": 10431
+    },
+    "latest-versions-per-milestone-with-downloads": {
+      "url": "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone-with-downloads.json",
+      "retrieved_at_utc": "2026-10-02T15:14:31.583784+00:00",
+      "timestamp": "2026-10-02T09:24:10.666Z",
+      "sha256": "ddcea0ae24852024b319851d3cb010a5521b36648f3bb26397031f8e1b72fb01",
+      "bytes": 93572
+    }
+  },
+  "selected": {
+    "cft_stable": {
+      "channel": "Stable",
+      "version": "154.0.8037.92",
+      "revision": "1689415",
+      "platform": "mac-arm64",
+      "download_url": "https://storage.googleapis.com/chrome-for-testing-public/154.0.8037.92/mac-arm64/chrome-mac-arm64.zip",
+      "archive_http_head": {
+        "exit": 0,
+        "headers": {
+          "content-type": "application/zip",
+          "date": "Fri, 02 Oct 2026 15:14:32 GMT",
+          "last-modified": "Mon, 28 Sep 2026 23:26:18 GMT",
+          "etag": "\"beae284e543c4538792c68f39a02d1ef\"",
+          "x-goog-hash": "md5=vq4oTlQ8RTh5LGjzmgLR7w==",
+          "content-length": "191153086"
+        },
+        "error": ""
+      }
+    },
+    "chrome138": {
+      "milestone": "138",
+      "version": "138.0.7204.183",
+      "revision": "1465706",
+      "platform": "mac-arm64",
+      "download_url": "https://storage.googleapis.com/chrome-for-testing-public/138.0.7204.183/mac-arm64/chrome-mac-arm64.zip",
+      "archive_http_head": {
+        "exit": 0,
+        "headers": {
+          "content-type": "application/zip",
+          "date": "Fri, 02 Oct 2026 15:14:33 GMT",
+          "last-modified": "Mon, 28 Jul 2025 22:07:42 GMT",
+          "etag": "\"820cd1f0c00183685231f77baa351af6\"",
+          "x-goog-hash": "md5=ggzR8MABg2hSMfd7qjUa9g==",
+          "content-length": "161386556"
+        },
+        "error": ""
+      }
+    }
+  },
+  "feed_machine_date_discrepancy": false,
+  "feed_machine_date_note": "Both retrieved official feed timestamps have date 2026-10-02, matching machine date; CfT Stable patch 154.0.8037.92 differs from local retail Chrome plist patch 154.0.8037.97. Retail current release validation timed out.",
+  "retrieval_limits": [
+    "Full known-good versions catalog timed out after 45 seconds; milestone138 selection uses official latest-versions-per-milestone-with-downloads feed.",
+    "LAN HTTP proxy 192.168.30.9:7897 refused TCP connection; acquisitions use direct curl."
+  ],
+  "acquisition_status": "selected_and_http_checked"
+}

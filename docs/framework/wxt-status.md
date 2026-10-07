@@ -1,6 +1,10 @@
 # 当前旧功能迁移（唯一writer已交接）
 
-四旧公共服务已实现并进入生产包；原生独立验收未启动，F3尚未通过。01a10654-4d29-7cc0-8cf3-e491cf07f9bf 已按新聊天中的人类指令释放唯一写权，待 01a1067b-a17b-7870-8ca4-92af03c934f5 串行登记，沿WXT/MV3。
+01a1067b-a17b-7870-8ca4-92af03c934f5 已按新聊天中的直接人类授权安全收尾，串行释放写权给 01a106d2-54e6-77a3-823d-c9891df8e0e4，由接续聊天登记自身。无在途构建、测试、浏览器或服务器。当前 Goal 未完成，不恢复旧 Goal 产品执行。
+
+四公共服务沿用交接实现，普通 JS 工作台已解除采集面板强制初始化；旧 SDK 与 B05 原生输入和原合同 campaign 已接入、未运行。此前集中组件 476/476 与源码检查通过，随后 WXT 最终 checker 适配的受影响组件 35/35 通过；六资源只读快照仅部分落盘（client/Blob/controller），未接通工作台总入口，当前源码未完成新的整轮检查与双包构建。正式账本 0/603 原生闭合，19 补充项原生待验，F3 未通过。
+
+本轮逐功能实现、入口、消费者与待验边界见 [当前旧功能记录](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/old-features-20261004-01a1067b/function-implementation.md)。本轮源码已改变，以下包和原生结果均为历史候选证据，不自动继承。
 
 逐功能原调用、旧→新源码、操作步骤、预期/实际、证据与缺口见 [旧功能验收清单](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/old-features-20261004-01a10654/acceptance-by-old-feature.md)。生产候选 a24b4c7f…，MAIN/relay实际bytes/SHA见 [候选身份](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/old-features-20261004-01a10654/four-service-candidate.json)。此前P1–P3通过保留；下述历史原生结果仅归属于各自旧包，不自动迁移为当前包PASS。
 

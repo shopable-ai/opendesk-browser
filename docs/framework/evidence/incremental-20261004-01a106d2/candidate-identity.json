@@ -1,0 +1,16 @@
+{
+  "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-05T06-07-01.627Z-incremental-T6-candidate3-candidate_build_bound",
+  "manifestSha256": "a7f23e7c9315220ddbe098ec3fe0981eea071529811e9b0141a5f51a5c3132d4",
+  "sourceHash": "f402050208a4759cd8ce7196dc5b5431383cbd79dcf0c4b071f099d42c976941",
+  "productInputsSha256": "63087cd9f4df120dd63792429c13a15230bb108f28d32616f2d6942f999c18c0",
+  "verificationInputsSha256": "00dc1ceedb022d650291e25a44490ef2afd25483d3f15a9a0d8f5650055f425d",
+  "packageHashes": {
+    "production": "5893057009280761f80837ba73a7faba07c99684e54efb8debe8d4dabb85359f",
+    "development": "97dabf8d275e9179c41cc11b83c7e40d374712c5c432f313d7e519dbf65e930c"
+  },
+  "zipHashes": {
+    "production": "365cfb35ac4caccc93651ff92691c2ce6b3560f3f283ad7b4265af3af220ba6a",
+    "development": "01741122375997db691a3a3c03cd1b73c6520e4836de8af029ff5b4bb1219b79"
+  },
+  "identityReason": "candidate 3 rebased after serial owner registration; product source and verification inputs otherwise unchanged"
+}

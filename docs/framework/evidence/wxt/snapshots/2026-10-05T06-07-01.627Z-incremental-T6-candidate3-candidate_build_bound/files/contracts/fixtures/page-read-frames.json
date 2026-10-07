@@ -1,0 +1,190 @@
+{
+  "contractVersion": "1.0.0",
+  "status": "planned-not-executed",
+  "beginPageRequest": {
+    "identity": {
+      "runId": "run-transaction-1",
+      "hostInstanceId": "host-1",
+      "hostDocumentId": "host-doc-1",
+      "ownerEpoch": 1,
+      "runRevision": 1,
+      "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+      "target": {
+        "targetSessionId": "target-1",
+        "tabId": 20,
+        "frameId": 0,
+        "documentId": "document-1",
+        "allowedOrigin": "https://fixture.example",
+        "targetVersion": 1,
+        "browserSessionIncarnation": "browser-fixture-1",
+        "creationId": "create-target-1"
+      }
+    },
+    "requestId": "begin-P1",
+    "readCommandId": "read-P1",
+    "pageSequence": 2,
+    "expectedPageIdentity": "https://fixture.example/list?page=2",
+    "expectedCheckpointSnapshotId": "P0"
+  },
+  "frames": [
+    {
+      "type": "page-data",
+      "identity": {
+        "runId": "run-transaction-1",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+        "target": {
+          "targetSessionId": "target-1",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-1"
+        }
+      },
+      "commandId": "read-P1",
+      "snapshotId": "P1",
+      "frameIndex": 0,
+      "rowStart": 0,
+      "rawRows": [
+        {
+          "name": "\u884c0",
+          "count": "0"
+        },
+        {
+          "name": "\u884c1",
+          "count": "1"
+        }
+      ],
+      "digest": "41f2b550ab22903235f574e8887a0174940b6118a921c6be219653b3cccc0b27"
+    },
+    {
+      "type": "page-data",
+      "identity": {
+        "runId": "run-transaction-1",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+        "target": {
+          "targetSessionId": "target-1",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-1"
+        }
+      },
+      "commandId": "read-P1",
+      "snapshotId": "P1",
+      "frameIndex": 1,
+      "rowStart": 2,
+      "rawRows": [
+        {
+          "name": "\u884c2",
+          "count": "2"
+        },
+        {
+          "name": "\u884c3",
+          "count": "3"
+        }
+      ],
+      "digest": "d1304d93ce7044481fa57457635303bd15df4afb41a1117c17eea078ad1ff10c"
+    },
+    {
+      "type": "page-data",
+      "identity": {
+        "runId": "run-transaction-1",
+        "hostInstanceId": "host-1",
+        "hostDocumentId": "host-doc-1",
+        "ownerEpoch": 1,
+        "runRevision": 1,
+        "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+        "target": {
+          "targetSessionId": "target-1",
+          "tabId": 20,
+          "frameId": 0,
+          "documentId": "document-1",
+          "allowedOrigin": "https://fixture.example",
+          "targetVersion": 1,
+          "browserSessionIncarnation": "browser-fixture-1",
+          "creationId": "create-target-1"
+        }
+      },
+      "commandId": "read-P1",
+      "snapshotId": "P1",
+      "frameIndex": 2,
+      "rowStart": 4,
+      "rawRows": [
+        {
+          "name": "\u884c4",
+          "count": "4"
+        },
+        {
+          "name": "\u884c5",
+          "count": "5"
+        }
+      ],
+      "digest": "24d066ec3c4681246b33b1e6b084f268bb7b8db50734f53c7e744e633c4d4084"
+    }
+  ],
+  "end": {
+    "type": "page-end",
+    "identity": {
+      "runId": "run-transaction-1",
+      "hostInstanceId": "host-1",
+      "hostDocumentId": "host-doc-1",
+      "ownerEpoch": 1,
+      "runRevision": 1,
+      "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+      "target": {
+        "targetSessionId": "target-1",
+        "tabId": 20,
+        "frameId": 0,
+        "documentId": "document-1",
+        "allowedOrigin": "https://fixture.example",
+        "targetVersion": 1,
+        "browserSessionIncarnation": "browser-fixture-1",
+        "creationId": "create-target-1"
+      }
+    },
+    "commandId": "read-P1",
+    "snapshotId": "P1",
+    "frameCount": 3,
+    "rowCount": 6,
+    "pageIdentity": "https://fixture.example/list?page=2",
+    "documentBaseURI": "https://fixture.example/list?page=2",
+    "emptyEvidence": null,
+    "rawSignature": "481014bbe5a53298e612d436a7cc75b6045f8ab67fba88961aeddce4930d5b7b"
+  },
+  "negativeCases": [
+    {
+      "id": "frame-sender-forged",
+      "mutation": "actual sender.documentId differs payload target.documentId",
+      "expected": "E_TARGET; 0 accepted; no seal"
+    },
+    {
+      "id": "frame-conflicting-digest",
+      "mutation": "same frameIndex with different raw bytes",
+      "expected": "whole page aborted"
+    },
+    {
+      "id": "frame-missing-end",
+      "mutation": "remove end",
+      "expected": "no seal; no committed count movement"
+    },
+    {
+      "id": "frame-boundary-plus-one",
+      "mutation": "data frame canonical UTF8 131073 bytes",
+      "expected": "reject; no stage ACK; current page aborted"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "pid": 57153,
+  "launcherPid": 57151,
+  "endpoint": "ws://127.0.0.1:52218/devtools/browser/3cee35e5-67ff-40b8-8b68-93f10cf501ec",
+  "toolId": "4D7A703CE9DE04141B66BF4558010B6B",
+  "permissionsBefore": {
+    "origins": [],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "permissions": {
+    "origins": [],
+    "permissions": [
+      "activeTab",
+      "downloads",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "userScripts"
+    ]
+  },
+  "ui": {
+    "state": "results",
+    "text": "已读取持久结果",
+    "result": "{\"run\": null, \"runs\": [], \"results\": [], \"downloads\": [], \"resultDeliveryDenied\": []}",
+    "version": "已保存 r1 · 722b2d2fc48bada3fc8711f5242b324368d50be00f5910f7dbf769a782d84902",
+    "runId": "",
+    "download": "结果下载保留类型信息，包括 undefined。",
+    "runDisabled": true,
+    "stopDisabled": true
+  }
+}

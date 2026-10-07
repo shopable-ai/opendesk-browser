@@ -53,29 +53,56 @@ export function createSdkInstaller({authority,api}) {
   };
 }
 
-async function disconnectPersistedHost({api, authority, consumer}, registrationId, documentId) {
+async function disconnectPersistedHost({api, authority, consumer, downloads}, registrationId, documentId) {
   const contexts = await api.runtime.getContexts({documentIds:[documentId]});
   const documentGone = contexts.length === 0;
   await authority.loseHost(registrationId,{documentGone});
   if (documentGone) {
     await consumer?.invalidateHost(registrationId);
     await consumer?.reconcileRetirements();
+    await downloads?.reconcileHostResources();
   }
   return documentGone;
 }
 
-export async function recoverHostTab({api, storage, session, authority, consumer}, tabId) {
+async function observePersistedHost({api}, documentId) {
+  try { return (await api.runtime.getContexts({documentIds:[documentId]})).length ? 'live' : 'missing'; }
+  catch { return 'unknown'; }
+}
+
+async function recoverPersistedHosts({api, storage, session, authority, consumer}) {
+  if (typeof api.runtime.getContexts !== 'function') return [];
+  const hosts = await storage.transaction(['commandJournal'], 'readonly', async tx => (await tx.all('commandJournal'))
+    .filter(row => row?.tag === 'host' && row.active && row.browserSessionIncarnation === session));
+  const results = [];
+  for (const host of hosts) {
+    const state = await observePersistedHost({api}, host.hostDocumentId);
+    if (state === 'missing') {
+      try {
+        const gone = await disconnectPersistedHost({api, authority, consumer}, host.registrationId, host.hostDocumentId);
+        results.push({registrationId:host.registrationId,state:gone ? 'retired' : 'live'});
+      } catch { results.push({registrationId:host.registrationId,state:'unknown'}); }
+    } else results.push({registrationId:host.registrationId,state});
+  }
+  return results;
+}
+
+export async function recoverHostTab({api, storage, session, authority, consumer, downloads}, tabId) {
   if (!Number.isSafeInteger(tabId) || typeof api.runtime.getContexts !== 'function') return [];
   const hosts = await storage.transaction(['commandJournal'], 'readonly', async tx => (await tx.all('commandJournal'))
     .filter(row => row?.tag === 'host' && row.active && row.hostTabId === tabId && row.browserSessionIncarnation === session));
   const results = [];
   for (const host of hosts) {
-    const contexts = await api.runtime.getContexts({documentIds:[host.hostDocumentId]});
-    if (contexts.length) {
+    const state = await observePersistedHost({api}, host.hostDocumentId);
+    if (state === 'live') {
       results.push({registrationId:host.registrationId,state:'live'});
       continue;
     }
-    const documentGone = await disconnectPersistedHost({api, authority, consumer}, host.registrationId, host.hostDocumentId);
+    if (state === 'unknown') {
+      results.push({registrationId:host.registrationId,state:'unknown'});
+      continue;
+    }
+    const documentGone = await disconnectPersistedHost({api, authority, consumer, downloads}, host.registrationId, host.hostDocumentId);
     results.push({registrationId:host.registrationId,state:documentGone ? 'retired' : 'live'});
   }
   return results;
@@ -108,6 +135,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   await downloads.reconcilePending();
   const background = operation => Promise.resolve(operation).catch(error => console.error(`[foundation ${error.code || 'E_EFFECT_UNKNOWN'}] ${error.message}`));
   const consumer=templateConsumer?.attach({storage,api,session,authority,downloads,entitlement,emitToHost,background});
+  await recoverPersistedHosts({api, storage, session, authority, consumer});
   await consumer?.reconcileRetirements();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
@@ -126,6 +154,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     registerHost:(p,s)=>authority.registerHost(p,s),
     prepareArtifact:(p,s)=>downloads.prepareArtifact(p,s),
     prepareAttempt:(p,s)=>downloads.prepareAttempt(p,s),
+    retirePreparedArtifact:(p,s)=>downloads.retirePreparedArtifact(p,s),
     prepareAttempts:(p,s)=>downloads.prepareAttempts(p,s),
     dispatchDownload:(p,s)=>downloads.dispatchDownload(p,s),
     reconcileDownload:(p,s)=>downloads.reconcileDownload(p,s),
@@ -175,8 +204,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     return gestureTicketId;
   }
   async function disconnectHost(registrationId,documentId) {
-    await disconnectPersistedHost({api, authority, consumer}, registrationId, documentId);
+      await disconnectPersistedHost({api, authority, consumer, downloads}, registrationId, documentId);
   }
-  const recoverHostTabForBroker = tabId => recoverHostTab({api, storage, session, authority, consumer}, tabId);
+  const recoverHostTabForBroker = tabId => recoverHostTab({api, storage, session, authority, consumer, downloads}, tabId);
   return {handle,issueGestureTicket,disconnectHost,recoverHostTab:recoverHostTabForBroker,authority,storage,pagePort:consumer?.pagePort,targets:consumer?.targets,downloads,entitlement,session,emitToHost,sdk};
 }

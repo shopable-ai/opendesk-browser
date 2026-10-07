@@ -1,0 +1,14 @@
+{
+  "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-04T13-44-27.880Z-incremental-T6-candidate2-component_build_passed",
+  "manifestSha256": "98aa22c971549052e2ccf74be552acdee4362ac4794b280cb2e3103df7726fd8",
+  "productInputsSha256": "b232ed923ceda2b91b0af17c273ad46c050aaf87b7d0082f46b2ba9c12f8301d",
+  "verificationInputsSha256": "00dc1ceedb022d650291e25a44490ef2afd25483d3f15a9a0d8f5650055f425d",
+  "packageHashes": {
+    "production": "5893057009280761f80837ba73a7faba07c99684e54efb8debe8d4dabb85359f",
+    "development": "97dabf8d275e9179c41cc11b83c7e40d374712c5c432f313d7e519dbf65e930c"
+  },
+  "zipHashes": {
+    "production": "365cfb35ac4caccc93651ff92691c2ce6b3560f3f283ad7b4265af3af220ba6a",
+    "development": "01741122375997db691a3a3c03cd1b73c6520e4836de8af029ff5b4bb1219b79"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "state": "native-selection-assist",
+  "mode": "production",
+  "label": "138",
+  "pid": 56098,
+  "launcherPid": 56095,
+  "endpoint": "ws://127.0.0.1:51116/devtools/browser/a7278980-2006-4d59-a3fb-8ba7fa9cae80",
+  "targetId": "C6C04C2F3845C11E365018D9AC826F39",
+  "selector": "#script-tab",
+  "desired": "1879090488",
+  "optionIndex": 1,
+  "before": {
+    "selectedIndex": 0,
+    "value": "",
+    "focused": false,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择具体网页",
+        "disabled": false
+      },
+      {
+        "value": "1879090488",
+        "text": "[1879090488] Controller borrowed · http://127.0.0.1:51111/form?seed=e98a8e50-c2f8-4dfd-a3a5-7eab3c2d266c&role=borrowed",
+        "disabled": false
+      },
+      {
+        "value": "1879090489",
+        "text": "[1879090489] Controller decoy · http://127.0.0.1:51111/form?seed=e98a8e50-c2f8-4dfd-a3a5-7eab3c2d266c&role=decoy",
+        "disabled": false
+      },
+      {
+        "value": "1879090490",
+        "text": "[1879090490] Controller top · http://127.0.0.1:51111/frames?seed=e98a8e50-c2f8-4dfd-a3a5-7eab3c2d266c&role=top",
+        "disabled": false
+      }
+    ]
+  },
+  "instruction": "Use the bound live native Chrome window to commit this exact option; no DOM assignment or synthetic events"
+}

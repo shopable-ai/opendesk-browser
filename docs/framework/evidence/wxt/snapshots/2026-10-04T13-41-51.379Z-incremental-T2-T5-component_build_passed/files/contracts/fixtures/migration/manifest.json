@@ -1,0 +1,118 @@
+{
+  "fixtureVersion": "1.0.0",
+  "stage": "01-design-input",
+  "status": "planned",
+  "productResult": "not-run",
+  "productionImplementation": false,
+  "canonicalization": {
+    "name": "restricted-json-v1",
+    "objectKeys": "ascii-code-point-ascending",
+    "arrayOrder": "preserved",
+    "encoding": "utf-8",
+    "whitespace": "none",
+    "strings": "unescaped-unicode-no-normalization",
+    "integers": "finite-safe-integers-only",
+    "excludedTopLevelKeys": [
+      "contentHash"
+    ],
+    "hashAlgorithm": "sha256",
+    "digestFormat": "lowercase-hex"
+  },
+  "cases": [
+    "single-page/vector.json",
+    "pagination-information-lost/vector.json",
+    "illegal-config-backup/vector.json"
+  ],
+  "supplementalCases": [
+    "strict-conversion/vectors.json",
+    "template-rejection-vectors.json",
+    "strict-url/vectors.json",
+    "csv-formula-safety/vectors.json"
+  ],
+  "templateSchema": "template-revision.schema.json",
+  "sources": [
+    {
+      "id": "popup",
+      "path": "docs/contracts/source-snapshots/scrapyJsChrome/www/popup_crawl.js",
+      "sha256": "a2f0b666a8d0e2fda6d9fe039190e662f8ca6791690d1a498fdee5b00609c964",
+      "evidence": [
+        "181-184",
+        "865-940",
+        "981-1007",
+        "1237-1360",
+        "1442-1489",
+        "1682-1706",
+        "1894-1901"
+      ]
+    },
+    {
+      "id": "item-loader",
+      "path": "docs/contracts/source-snapshots/scrapyJs/src/item/ItemLoader.js",
+      "sha256": "2a82e774f508274f36e5be140eb096bd0947b198e387d5566b2f3152a98c9df4",
+      "evidence": [
+        "55-137",
+        "204-247"
+      ]
+    },
+    {
+      "id": "bundled-item-loader",
+      "path": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapyJs.js",
+      "sha256": "a04ca62faf0ae1e9457a3499f40acb107a2452ceafd4d8fe6f59ba8617fa1d52",
+      "evidence": [
+        "2505-2588"
+      ]
+    },
+    {
+      "id": "list-selector",
+      "path": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/listSelectorCore.js",
+      "sha256": "6c58316b20f58b0ad63bb77c080e3007f5fb7c112371b8c4884719960ee00dc4",
+      "evidence": [
+        "9-32",
+        "199-246"
+      ]
+    },
+    {
+      "id": "selector-utils",
+      "path": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/selectorUtils.js",
+      "sha256": "0322b4d7ca6e0cb637d5dff0adf21419d58f9e899c8bd1c00c93353c159fd910",
+      "evidence": [
+        "generateSelector"
+      ]
+    },
+    {
+      "id": "table-extractor",
+      "path": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js",
+      "sha256": "501cd910aa59a6e31aa7c99ab43584265ff91d76515f25cb437b275bfa0d1335",
+      "evidence": [
+        "255-325",
+        "527"
+      ]
+    },
+    {
+      "id": "selector-contract",
+      "path": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/ai/selector-contract.js",
+      "sha256": "95e42bf1bec6ede99eeed509600e254dd9c060b78702a53bf7bf8b672b88b773",
+      "evidence": [
+        "compileProposal"
+      ]
+    },
+    {
+      "id": "architecture-v3",
+      "path": "/Users/shopme/Documents/Codex/2026-10-01/browser-automation-platform/outputs/product-extension-architecture-v3.md",
+      "sha256": "079fbd02bba191ba0f5aeeed5beb568bd830e91a99f801153e777481b59a70d7",
+      "evidence": [
+        "模板与预览合同",
+        "M03",
+        "M04",
+        "M08"
+      ]
+    }
+  ],
+  "verification": {
+    "kind": "fixture-static-integrity-only",
+    "command": "python3 contracts/fixtures/migration/verify.py",
+    "productConverterExecuted": false,
+    "chromeAcceptanceExecuted": false,
+    "referenceCommand": "node contracts/fixtures/migration/reference-check.cjs"
+  }
+}

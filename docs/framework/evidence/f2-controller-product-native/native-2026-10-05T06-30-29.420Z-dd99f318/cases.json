@@ -1,0 +1,11 @@
+[
+  {
+    "id": "WXT-P3-RETURN7-REOPEN",
+    "families": "USC03/CTRL03/EX08/RESOURCE",
+    "expected": "Real UI committed return 7; revision, params, exact document, permission, actual Worker, durable released run, reopened tool same runId value7",
+    "phase": "F2",
+    "layer": "actual product entry native Chrome",
+    "status": "NOT_TESTED",
+    "selected": true
+  }
+]

@@ -1,0 +1,36 @@
+最终F3独立核对清单（只读准备，未开展F3）
+
+用途：沿用原T01–T13/K0–K6/F1–F3；这是集中验收准备，不是方案评分、产品PASS或完成证书。没有浏览器/launcher/构建/原生测试窗口。476项组件通过与观察器修复不继承为原生PASS。
+
+一、集中验收前接收
+1. writer交付实现齐备清单：逐旧功能列旧文件/符号→新文件/符号→实际加载入口→真实消费者→原调用/参数/结果/批准差异。不存在或受限能力明确标明；不以目录或文件存在关闭迁移。
+2. production/development各自完整build/pack/strict verify回执、源输入逐文件字节SHA、验证输入SHA、两包文件树SHA、两ZIP字节SHA及真实内容对应。两包不同身份分别记录，development PASS不能冒充production F3。
+3. 最终production包固定用于全部正式结果；环境含minimum Chrome138与合同所需stable真实版本证据，不凭旧154记录推定当前stable。接收独占浏览器时段、受控launcher及归属规则；当前不运行。
+4. 接收原始失败/未复验、已知观察器修复、历史17及R1–R8闭合映射、清理回执、用户可读验收入口。原PASS来自其他候选时只保留历史。
+
+二、按旧功能独立核对
+A 浏览器API：原48成员及控制上下文、目标/导航/等待/失效、MAIN与USER_SCRIPT行为；原方法、输入和结果语义保持，限制按合同typed拒绝。
+B 普通JS：实际UI保存/读取选定revision与参数；return 7和goto/title/url；r1在途保存r2、pin/delete/tombstone；throw/rejection及false/0/undefined/own undefined；stop/deadline/宿主关闭证明物理Worker终止、CPU停止、资源释放；重开同run/result与实际下载complete、磁盘bytes/SHA及artifact关联。
+C 旧网页SDK：无controller、真实网页授权/精确document、固定relay→MAIN注入、Hello、Chrome真实sender、唯一broker/authority/journal/IDB；AppStorage字符串和持久寿命、AppLocal类型和会话寿命、axiosx四方法/配置/HTTP错误、真实ChromeBridgeOperationCompleted原Promise回程；四公共服务保留service.bridge.send及.data层和固定资源消费者。安装截图不算结果截图。
+D 模板独立性：采集/模板未注册或禁用时，通用工作台、普通JS和独立SDK实际可运行；源码解除初始化只算实现，不算运行证据。
+E B05及恢复：100并发同一调用一次admission/service/op/HTTP写且controllerRuns=0；四原生崩溃点、原ID恢复、unknown不重放、精确事务abort、重启观察无空窗。历史失败保留。
+F 资源/故障/寿命：原合同必选PROV/CMP/RESOURCE/EX/NAV/B01–05/AUTH/USC/CTRL/FIX/PLG/SVC/DLGEN/LEAK，IDB升级blocked/versionchange/abort/CAS/pin、恢复备份、权限撤销、导航及故障矩阵；同最终包混合1000轮、host/SW重连10轮、禁插件2轮，逐次原始记录及真实资源回baseline，不能将聚合计数复制成许多通过。
+
+三、机器证据的实际结构
+沿用 tests/framework/verify-product-acceptance.mjs，不新造checker。原603、补充19、审批requiredCapabilityIds191、历史闭合25不改分母；ID快照见同目录final-f3-required-ids-20261004.json。
+candidate.resultReports引用的JSON必须含results数组；原runner的cases数组不能仅改标签就冒充正式结果。每个required记录有原ID/合同SHA/来源SHA、layer=native-product、同production hash、source/package无漂移、环境观察、input/expected/actual、原始证据文件SHA及真实cleanup。
+每个observation.cleanup的pending/timers/subscriptions/ports/workers/blobs before/after来自实际collection/handle，均非负整数并回原baseline；未观察项用null/NOT_TESTED，禁止臆造0。物理Worker/PID/CPU另有原生证据。
+campaign结果ID与必选用例分开，roundId/sessionId/实际resultId/startMs/endMs及原始JSON pointer唯一；不同原始发生不能复用同一位置。四崩溃点沿原checker CRASH_POINTS，不换名字。
+download证据关联Chrome complete、磁盘文件、artifact记录和payload文件，真正逐文件bytes/SHA匹配。历史receipt.diskHashVerified=false不能改写成原回执已验证。
+工具/前置/产品失败分开记录；未到产品断言记BLOCKED/NOT_TESTED，原始失败不删。记录字段骨架见final-f3-evidence-contract-20261004.json，骨架不是可提交的候选。
+
+四、已发现的准备缺口（交writer处理，本聊天不改）
+1. 正式checker build source closure仍硬编码webpack：verify-product-acceptance.mjs:269–271；实际build.mjs:9为全src+全scripts+wxt.config.mjs等。需适配WXT真实集合并保留逐字节SHA、集合完整性及期间漂移判据，不改冻结合同/降低来源要求。
+2. 当前controller campaign备注提出OpenDeskResourceDiagnostics.snapshot，但本次src查找未见该实现。冻结前必须接真实六类生命周期计数或交付现有等价精确表达式。缺失时不能开展依赖campaign并宣称PASS。
+3. CP1断点必须取新冻结SW内同一runs.put的精确callee.property call位置，不继承旧offset、不接受relocation；原生未完成事务/pending请求及原子回滚证据不可省略。
+4. F018恢复KV观察在旧SW停止前autoAttach并在新SW执行前安装；保留缺失targetDestroyed事件为null；区分真实stopped/目标消失证明与合成事件。旧请求deadline不延期，错过观察窗口如实记前置未达。
+
+五、最后的独立验收顺序
+真实运行证据与正式账本闭合→冻结candidate和原reviewInputSnapshot→独立Architect完成→独立Critic开始，二者各>=95、APPROVE、零阻断，作者与两评审身份分别独立；两评审都绑定同production包及同reviewInputsSHA，Critic绑定Architect报告SHA。
+评审仅针对最终产品及证据，不重评阶段0/F1或旧实施方案。最后由现有正式checker检查完整证据、磁盘文件/ZIP/来源、账本和评审绑定；accepted=true且无适用FAIL/BLOCKED/NOT_TESTED/stale才满足F3。checker完整不替代对原始观察的独立判断。
+当前全部最终项NOT_TESTED；无最终候选、无本轮native结果，不标Goal完成。

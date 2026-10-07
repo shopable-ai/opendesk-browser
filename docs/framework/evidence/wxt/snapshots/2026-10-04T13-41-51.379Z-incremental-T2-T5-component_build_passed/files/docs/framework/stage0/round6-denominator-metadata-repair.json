@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-02T21:35:33.193636+00:00",
+  "kind": "live-ledger denominator metadata repair",
+  "approvedPlanManifestSha256": "da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1",
+  "beforeLiveLedgerSha256": "2accfe5b5e098b93ca11c78f872b7e3cd21b5e31125df386d7968d148cd75b36",
+  "afterLiveLedgerSha256": "1ea02a2ca919d3b020bf4440457d647b8c23f086f9790edc79db8ecd7bd8bde0",
+  "cause": "new revision history entry omitted carry-forward full denominator fields; original full immutable ID sets remained in first entry, while progress verifier consumes latest entry",
+  "repair": "carry forward identical originalSourceCount/memberCount/required/restricted/excluded ID sets; update live approval bookkeeping only",
+  "caseCount": 603,
+  "sourceCount": 72,
+  "memberCount": 48,
+  "requirementsOrExpectedOrResultsChanged": false,
+  "frozenCandidateChanged": false,
+  "backendOrProductReleased": false
+}

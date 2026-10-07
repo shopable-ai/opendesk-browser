@@ -1,0 +1,123 @@
+{
+  "formatVersion": "1.0.0",
+  "templateId": "migration-confirmed-single-page",
+  "revision": 1,
+  "parentRevision": null,
+  "selectorDialect": "css",
+  "requiredCapabilities": [
+    "dom.top.v1",
+    "read.text.v1",
+    "read.attribute.v1",
+    "transform.safe.v1",
+    "pagination.none.v1"
+  ],
+  "allowedOrigin": "https://fixture.example",
+  "startUrl": "https://fixture.example/list?page=1",
+  "list": {
+    "containerSelector": ".rows",
+    "rowSelector": ":scope > .row",
+    "emptyMarkerSelector": null,
+    "allowEmpty": false
+  },
+  "fields": [
+    {
+      "id": "name",
+      "label": "名称",
+      "selector": ".name",
+      "read": "text",
+      "attribute": null,
+      "type": "string",
+      "required": true,
+      "transforms": [
+        "trim"
+      ]
+    },
+    {
+      "id": "name-url",
+      "label": "链接",
+      "selector": ".name",
+      "read": "attribute",
+      "attribute": "href",
+      "type": "string",
+      "required": false,
+      "transforms": [
+        "trim",
+        "resolve-url"
+      ]
+    },
+    {
+      "id": "count",
+      "label": "数量",
+      "selector": ".count",
+      "read": "text",
+      "attribute": null,
+      "type": "number",
+      "required": true,
+      "transforms": [
+        "trim"
+      ]
+    },
+    {
+      "id": "enabled",
+      "label": "启用",
+      "selector": ".enabled",
+      "read": "text",
+      "attribute": null,
+      "type": "boolean",
+      "required": true,
+      "transforms": [
+        "trim"
+      ]
+    },
+    {
+      "id": "empty",
+      "label": "空串",
+      "selector": ".empty",
+      "read": "text",
+      "attribute": null,
+      "type": "string",
+      "required": false,
+      "transforms": []
+    },
+    {
+      "id": "missing",
+      "label": "缺失",
+      "selector": ".missing",
+      "read": "text",
+      "attribute": null,
+      "type": "string",
+      "required": false,
+      "transforms": []
+    },
+    {
+      "id": "note",
+      "label": "备注",
+      "selector": ".note",
+      "read": "text",
+      "attribute": null,
+      "type": "string",
+      "required": false,
+      "transforms": []
+    }
+  ],
+  "pagination": {
+    "mode": "none"
+  },
+  "columns": [
+    "count",
+    "enabled",
+    "name",
+    "name-url",
+    "empty",
+    "missing",
+    "note"
+  ],
+  "limits": {
+    "maxPages": 50,
+    "maxRecords": 10000,
+    "maxDurationMs": 600000,
+    "maxStoredBytes": 20971520
+  },
+  "detail": null,
+  "contentHash": "3475cba7ddc43506711b82a1865ae0228c056f074b45b364706322c057d681fa"
+}

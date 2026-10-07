@@ -1,0 +1,40 @@
+{
+  "state": "native-selection-assist",
+  "mode": "production",
+  "label": "138",
+  "pid": 55171,
+  "launcherPid": 55170,
+  "endpoint": "ws://127.0.0.1:50300/devtools/browser/29c1baad-a70e-4334-9e42-253dcde17450",
+  "targetId": "9EBB20905F4FF8661656EF6DF0A4C131",
+  "selector": "#script-tab",
+  "desired": "1474168515",
+  "optionIndex": 1,
+  "before": {
+    "selectedIndex": 0,
+    "value": "",
+    "focused": false,
+    "options": [
+      {
+        "value": "",
+        "text": "请选择具体网页",
+        "disabled": false
+      },
+      {
+        "value": "1474168515",
+        "text": "[1474168515] Controller borrowed · http://127.0.0.1:50296/form?seed=7de536bd-7b1e-42af-8a90-fcc7900b9c93&role=borrowed",
+        "disabled": false
+      },
+      {
+        "value": "1474168516",
+        "text": "[1474168516] Controller decoy · http://127.0.0.1:50296/form?seed=7de536bd-7b1e-42af-8a90-fcc7900b9c93&role=decoy",
+        "disabled": false
+      },
+      {
+        "value": "1474168517",
+        "text": "[1474168517] Controller top · http://127.0.0.1:50296/frames?seed=7de536bd-7b1e-42af-8a90-fcc7900b9c93&role=top",
+        "disabled": false
+      }
+    ]
+  },
+  "instruction": "Use the bound live native Chrome window to commit this exact option; no DOM assignment or synthetic events"
+}

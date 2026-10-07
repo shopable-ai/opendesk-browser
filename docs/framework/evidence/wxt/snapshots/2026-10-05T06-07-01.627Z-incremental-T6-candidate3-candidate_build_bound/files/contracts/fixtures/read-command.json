@@ -1,0 +1,152 @@
+{
+  "contractVersion": "1.0.0",
+  "status": "planned-not-executed",
+  "plan": {
+    "contractVersion": "1.0.0",
+    "compilerVersion": "1.0.0",
+    "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+    "capabilities": [
+      "dom.top.v1",
+      "read.text.v1",
+      "transform.safe.v1",
+      "pagination.next-link.v1"
+    ],
+    "list": {
+      "containerSelector": ".rows",
+      "rowSelector": ":scope > .row",
+      "emptyMarkerSelector": null,
+      "allowEmpty": false
+    },
+    "fields": [
+      {
+        "id": "name",
+        "label": "\u540d\u79f0",
+        "selector": ".name",
+        "read": "text",
+        "attribute": null,
+        "type": "string",
+        "required": true,
+        "transforms": []
+      },
+      {
+        "id": "count",
+        "label": "\u6570\u91cf",
+        "selector": ".count",
+        "read": "text",
+        "attribute": null,
+        "type": "number",
+        "required": true,
+        "transforms": [
+          "trim"
+        ]
+      }
+    ],
+    "pagination": {
+      "mode": "next-link",
+      "selector": "a.next",
+      "endMarkerSelector": ".end",
+      "waitMs": 2000
+    },
+    "columns": [
+      "name",
+      "count"
+    ],
+    "limits": {
+      "maxPages": 50,
+      "maxRecords": 10000,
+      "maxDurationMs": 600000,
+      "maxStoredBytes": 20971520
+    },
+    "planHash": "cd29cfb899e1b3c4439c737a8f07a3c005a75908bb2705108a4be125714b0f40"
+  },
+  "command": {
+    "commandId": "read-command-1",
+    "identity": {
+      "runId": "run-transaction-1",
+      "hostInstanceId": "host-1",
+      "hostDocumentId": "host-doc-1",
+      "ownerEpoch": 1,
+      "runRevision": 1,
+      "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+      "target": {
+        "targetSessionId": "target-1",
+        "tabId": 20,
+        "frameId": 0,
+        "documentId": "document-1",
+        "allowedOrigin": "https://fixture.example",
+        "targetVersion": 1,
+        "browserSessionIncarnation": "browser-fixture-1",
+        "creationId": "create-target-1"
+      }
+    },
+    "kind": "read-page",
+    "payload": {
+      "plan": {
+        "contractVersion": "1.0.0",
+        "compilerVersion": "1.0.0",
+        "templateHash": "ecca25dbde309a0c9ec8cd27616263e288dda8890b59dc9fbffca8fddf13997f",
+        "capabilities": [
+          "dom.top.v1",
+          "read.text.v1",
+          "transform.safe.v1",
+          "pagination.next-link.v1"
+        ],
+        "list": {
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row",
+          "emptyMarkerSelector": null,
+          "allowEmpty": false
+        },
+        "fields": [
+          {
+            "id": "name",
+            "label": "\u540d\u79f0",
+            "selector": ".name",
+            "read": "text",
+            "attribute": null,
+            "type": "string",
+            "required": true,
+            "transforms": []
+          },
+          {
+            "id": "count",
+            "label": "\u6570\u91cf",
+            "selector": ".count",
+            "read": "text",
+            "attribute": null,
+            "type": "number",
+            "required": true,
+            "transforms": [
+              "trim"
+            ]
+          }
+        ],
+        "pagination": {
+          "mode": "next-link",
+          "selector": "a.next",
+          "endMarkerSelector": ".end",
+          "waitMs": 2000
+        },
+        "columns": [
+          "name",
+          "count"
+        ],
+        "limits": {
+          "maxPages": 50,
+          "maxRecords": 10000,
+          "maxDurationMs": 600000,
+          "maxStoredBytes": 20971520
+        },
+        "planHash": "cd29cfb899e1b3c4439c737a8f07a3c005a75908bb2705108a4be125714b0f40"
+      },
+      "snapshotId": "P1",
+      "pageSequence": 2,
+      "expectedPageIdentity": "https://fixture.example/list?page=2"
+    },
+    "digest": "21014ac7845cd6181159d68f0c969af4cf19e1a4609cacf8ad77daa349bba88e",
+    "state": "prepared",
+    "preparedAt": "2026-10-01T18:00:00Z",
+    "dispatchAt": null,
+    "resultDigest": null
+  }
+}

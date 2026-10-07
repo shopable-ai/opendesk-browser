@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "purpose": "现有正式checker证据字段的只读准备骨架；不得把占位数据作为验收结果",
+  "status": "NOT_TESTED",
+  "nativeStarted": false,
+  "f3Accepted": false,
+  "references": {
+    "goal": "docs/framework/prompts/goal-migration-v5.txt",
+    "checker": "tests/framework/verify-product-acceptance.mjs",
+    "ledger": "docs/framework/source-compatibility-ledger.json",
+    "historical": "docs/framework/historical-failure-mapping.json"
+  },
+  "candidateExample": {
+    "mode": "production",
+    "packageDirectory": "dist/production",
+    "packageHash": null,
+    "buildReport": {
+      "path": null,
+      "sha256": null
+    },
+    "packReport": {
+      "path": null,
+      "sha256": null
+    },
+    "packageArchive": {
+      "path": null,
+      "sha256": null
+    },
+    "supplementalCatalog": {
+      "path": "docs/framework/evidence/continuation-20261003-current/supplemental-sdk-cases.json",
+      "sha256": "5a5c7fc207cf4ef3fac2861a41203dbd86034fe05f87e24fe1e8b3debd36fa61"
+    },
+    "environments": [],
+    "resultReports": [],
+    "campaigns": {
+      "mixed": [],
+      "reconnect": [],
+      "pluginDisabled": [],
+      "sdkConcurrency": [],
+      "sdkCrashes": [],
+      "downloads": [],
+      "workerTermination": []
+    },
+    "historicalClosures": {},
+    "productAuthors": [],
+    "reviews": []
+  },
+  "resultExample": {
+    "id": null,
+    "status": "NOT_TESTED",
+    "layer": "native-product",
+    "pass": null,
+    "productPackageSha256": null,
+    "packageDrift": null,
+    "sourceDrift": null,
+    "contractSha256": null,
+    "sourceHashes": {},
+    "observations": [
+      {
+        "environmentId": null,
+        "preconditions": null,
+        "input": null,
+        "expected": null,
+        "actual": null,
+        "evidence": [],
+        "cleanup": {
+          "before": {
+            "pending": null,
+            "timers": null,
+            "subscriptions": null,
+            "ports": null,
+            "workers": null,
+            "blobs": null
+          },
+          "after": {
+            "pending": null,
+            "timers": null,
+            "subscriptions": null,
+            "ports": null,
+            "workers": null,
+            "blobs": null
+          }
+        }
+      }
+    ]
+  },
+  "environmentExample": {
+    "id": null,
+    "role": null,
+    "chromeVersion": null,
+    "binarySha256": null,
+    "binary": {
+      "path": null,
+      "sha256": null
+    },
+    "os": null,
+    "profile": null,
+    "extensionId": null,
+    "versionEvidence": {
+      "path": null,
+      "sha256": null
+    }
+  },
+  "campaignOccurrenceExample": {
+    "roundId": null,
+    "sessionId": null,
+    "resultId": null,
+    "evidence": {
+      "path": null,
+      "sha256": null
+    },
+    "pointer": null,
+    "startMs": null,
+    "endMs": null
+  },
+  "resourceKeys": [
+    "pending",
+    "timers",
+    "subscriptions",
+    "ports",
+    "workers",
+    "blobs"
+  ],
+  "minimumCampaignCounts": {
+    "mixed": 1000,
+    "reconnect": 10,
+    "pluginDisabled": 2,
+    "sdkConcurrency": 1,
+    "sdkCrashes": 4,
+    "downloads": 1,
+    "workerTermination": 1
+  },
+  "mixedKinds": [
+    "success",
+    "error",
+    "timeout",
+    "cancel",
+    "navigation"
+  ],
+  "crashPoints": [
+    "admission-abort",
+    "commit-before-dispatch",
+    "write-before-receipt",
+    "durable-before-delivery"
+  ],
+  "measurements": {
+    "sdkConcurrency": {
+      "requests": 100,
+      "controllerRuns": 0,
+      "admissions": 1,
+      "serviceRuns": 1,
+      "operations": 1,
+      "httpWrites": 1
+    },
+    "sdkCrashes": "每个环境每个原点均证明物理SW终止、原身份保持、HTTP次数（admission-abort=0，其余=1）；write-before-receipt必须E_EFFECT_UNKNOWN且不重放",
+    "workerTermination": "实际CPU先增长后停止、同Worker身份物理销毁、<=3000ms、存活宿主响应、借用页不关闭；不能合成事件"
+  },
+  "fileReferenceRule": "存在的真实文件path/SHA256，可选bytes也须匹配；含二进制、raw、artifact/payload/disk、各环境和两评审",
+  "reportRule": "引用报告为{results:[正式record...]}; 不把未测原runner cases投影为pass=true",
+  "reviewRule": "最终同包同reviewInputSnapshot；独立Architect后独立Critic，各>=95/APPROVE/无阻断，Critic绑定Architect报告SHA；计划评分不继承",
+  "preparationIssues": [
+    {
+      "kind": "verification-tool",
+      "file": "tests/framework/verify-product-acceptance.mjs",
+      "line": 269,
+      "issue": "build source closure仍是webpack集合，和scripts/build.mjs:9的WXT真实输入不同",
+      "state": "交writer处理；未执行checker"
+    },
+    {
+      "kind": "observation-prerequisite",
+      "file": "docs/framework/evidence/old-features-20261004-01a1067b/controller-campaign-implementation.md",
+      "issue": "六类真实资源观察入口为待接提案；本次src未见OpenDeskResourceDiagnostics",
+      "state": "未测；禁止臆造零"
+    },
+    {
+      "kind": "native-pending",
+      "issue": "CP1/F018/deadline观察器修复未经本候选原生复验",
+      "state": "NOT_TESTED"
+    }
+  ],
+  "completionRule": "原603+19/审批191能力/25历史闭合、同包适用环境和campaign、原始证据/清理/顺序独立终评、正式checker accepted=true；任何适用FAIL/BLOCKED/NOT_TESTED/stale仍不完成"
+}

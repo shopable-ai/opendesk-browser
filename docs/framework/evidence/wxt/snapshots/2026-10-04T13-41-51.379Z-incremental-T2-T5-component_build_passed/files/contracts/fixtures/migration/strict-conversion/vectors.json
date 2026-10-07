@@ -1,0 +1,1456 @@
+{
+  "fixtureVersion": "1.0.0",
+  "status": "planned",
+  "productResult": "not-run",
+  "cases": [
+    {
+      "id": "number-0",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-0.html",
+          "encoding": "utf-8",
+          "byteLength": 162,
+          "sha256": "946603e9f65d7bb9d2e6d8f054a2646c140c852b5aab6bead1c9e81a16613982",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4wPC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">0</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "0"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 0
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "number-1",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-1.html",
+          "encoding": "utf-8",
+          "byteLength": 165,
+          "sha256": "b88f0dae0cf2b885714f320c01c7943d50a4d16d6573c93711f4eecd660b41ee",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4xMi41PC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">12.5</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "12.5"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 12.5
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "number-2",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-2.html",
+          "encoding": "utf-8",
+          "byteLength": 163,
+          "sha256": "f0b234a59671884414249ff23dabacda57a718eab6594570ad30e568bd38b177",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4tMjwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">-2</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "-2"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": -2
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "number-3",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-3.html",
+          "encoding": "utf-8",
+          "byteLength": 164,
+          "sha256": "88c3039fa20e83af9c92fa11ef4a083dd7b44ac21d01ed3fc4d255f96fe542bf",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4xZTI8L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">1e2</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "1e2"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 100
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "number-4",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-4.html",
+          "encoding": "utf-8",
+          "byteLength": 161,
+          "sha256": "79c96894204b2c2a61a92719b3e29f264cc81c97e256e758f63dc0cfb0262407",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj48L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\"></span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": ""
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-5",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-5.html",
+          "encoding": "utf-8",
+          "byteLength": 165,
+          "sha256": "c9d1e93556f64b4698e921c0049958564f3b9f9480c0017cb98f3f32abcf9e78",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4xMnB4PC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">12px</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "12px"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "12px",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-6",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-6.html",
+          "encoding": "utf-8",
+          "byteLength": 165,
+          "sha256": "21a55adb6a0c883322ecbf67668c5dcaea3ee87afa4814fb52a202b042b49959",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4weDEwPC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">0x10</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "0x10"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "0x10",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-7",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-7.html",
+          "encoding": "utf-8",
+          "byteLength": 164,
+          "sha256": "426eb156d77646fc245bfc98b347bf67d1fa5fa3bf301d19b940b4ff6cba7eaa",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj5OYU48L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">NaN</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "NaN"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "NaN",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-8",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-8.html",
+          "encoding": "utf-8",
+          "byteLength": 169,
+          "sha256": "30f4424ab71fdbe998d4cc637b0919e6ec11a2e533139241e434c41b86000faa",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj5JbmZpbml0eTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">Infinity</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "Infinity"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "Infinity",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-9",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-9.html",
+          "encoding": "utf-8",
+          "byteLength": 163,
+          "sha256": "8e5c5ce43130f141381b35ece76b908afc3118fc3b4bd68a5f9c4ba5523e9251",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4wMTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">01</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "01"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "01",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-10",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-10.html",
+          "encoding": "utf-8",
+          "byteLength": 163,
+          "sha256": "34952aa16af6c45d80124d2b598e39effafbf26555ef93f437490159024df5ec",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4rMTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">+1</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "+1"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "+1",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-11",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-11.html",
+          "encoding": "utf-8",
+          "byteLength": 177,
+          "sha256": "60dc14895249217db3f2ac3f91a92838f1fd2df60ec565381f5551562065504f",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj45MDA3MTk5MjU0NzQwOTkyPC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">9007199254740992</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "9007199254740992"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "9007199254740992",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-12",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-12.html",
+          "encoding": "utf-8",
+          "byteLength": 166,
+          "sha256": "1de03b444d8ced40de4b4a8f9fdb48f4c5b5f5c25f9d30a8aee250bdcadd6474",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4xZTMwOTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">1e309</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "1e309"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "1e309",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "boolean-0",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/boolean-0.html",
+          "encoding": "utf-8",
+          "byteLength": 166,
+          "sha256": "8949a55f0011de0f4beda30f417ded98b15a8ab5278394077706fa3341dae04a",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj5mYWxzZTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">false</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "false"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": false
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "boolean-1",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/boolean-1.html",
+          "encoding": "utf-8",
+          "byteLength": 165,
+          "sha256": "548dc3136ef1b0c823b8397b5f4ca9b287aa3fe6add70f4f1e38ad1ff3fc2b5f",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj50cnVlPC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">true</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "true"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": true
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "boolean-2",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/boolean-2.html",
+          "encoding": "utf-8",
+          "byteLength": 161,
+          "sha256": "79c96894204b2c2a61a92719b3e29f264cc81c97e256e758f63dc0cfb0262407",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj48L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\"></span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": ""
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_BOOLEAN",
+            "path": "/rows/0/value",
+            "value": "",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "boolean-3",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/boolean-3.html",
+          "encoding": "utf-8",
+          "byteLength": 166,
+          "sha256": "746e76f4dc721b1d24f1e7ae5c3e1eedfe279c3f4fbf3fbc83fb63c5b865e08d",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj5GQUxTRTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">FALSE</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "FALSE"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_BOOLEAN",
+            "path": "/rows/0/value",
+            "value": "FALSE",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "boolean-4",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/boolean-4.html",
+          "encoding": "utf-8",
+          "byteLength": 162,
+          "sha256": "946603e9f65d7bb9d2e6d8f054a2646c140c852b5aab6bead1c9e81a16613982",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4wPC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">0</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "0"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_BOOLEAN",
+            "path": "/rows/0/value",
+            "value": "0",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "boolean-5",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/boolean-5.html",
+          "encoding": "utf-8",
+          "byteLength": 162,
+          "sha256": "1adcf905b39c0555a1c285da1d6c0be9719e2b404788b1fa2699add2ba522591",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4xPC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">1</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "1"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_BOOLEAN",
+            "path": "/rows/0/value",
+            "value": "1",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "boolean-6",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/boolean-6.html",
+          "encoding": "utf-8",
+          "byteLength": 164,
+          "sha256": "adffced4d7f1e2bb838e4188d71b69f3e9e574ac08b4af298be3bee36096efaa",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj55ZXM8L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">yes</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "yes"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_BOOLEAN",
+            "path": "/rows/0/value",
+            "value": "yes",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "boolean-7",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/boolean-7.html",
+          "encoding": "utf-8",
+          "byteLength": 170,
+          "sha256": "ca6917385d983ce40605c6be8ac4be5d85593182c2b2a4e47d4ec0a4708656a5",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj5mYWxzZWhvb2Q8L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">falsehood</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseUrl": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "boolean",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "falsehood"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_BOOLEAN",
+            "path": "/rows/0/value",
+            "value": "falsehood",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-safe-negative-boundary",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-safe-negative-boundary.html",
+          "encoding": "utf-8",
+          "byteLength": 178,
+          "sha256": "9d8c2ad0bcba24df7667264e2967daece04385c6e0253a03d81c2cd58f41cb31",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4tOTAwNzE5OTI1NDc0MDk5MTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">-9007199254740991</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseURI": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "-9007199254740991"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": -9007199254740991
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "number-unsafe-negative-integer",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-unsafe-negative-integer.html",
+          "encoding": "utf-8",
+          "byteLength": 178,
+          "sha256": "21aca8287c6e2aed1e33694c1ed28c367c361da63d8c1282fbbf0b12fe2d1f82",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4tOTAwNzE5OTI1NDc0MDk5Mjwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">-9007199254740992</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseURI": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "-9007199254740992"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "-9007199254740992",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-unsafe-integral-decimal",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-unsafe-integral-decimal.html",
+          "encoding": "utf-8",
+          "byteLength": 179,
+          "sha256": "38edbf8d864f2baeb5bf74890c93fee74e030b8d0cec4222a2790e68437fb9e1",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj45MDA3MTk5MjU0NzQwOTkyLjA8L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">9007199254740992.0</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseURI": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "9007199254740992.0"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "9007199254740992.0",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-unsafe-negative-exponent",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-unsafe-negative-exponent.html",
+          "encoding": "utf-8",
+          "byteLength": 182,
+          "sha256": "74c1c1bff8d5ece685955aafc0e0081335af98e7f78eab8d8191c0e354ccdb34",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4tOS4wMDcxOTkyNTQ3NDA5OTJlMTU8L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">-9.007199254740992e15</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseURI": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "-9.007199254740992e15"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "-9.007199254740992e15",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    },
+    {
+      "id": "number-fractional-exponent",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-fractional-exponent.html",
+          "encoding": "utf-8",
+          "byteLength": 165,
+          "sha256": "d3fbce31bcde7ef093946e4be8ecd36e57ebb120c13b5318d62b2676bf2a74ac",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4xZS0zPC9zcGFuPjwvYXJ0aWNsZT48L21haW4+PC9ib2R5PjwvaHRtbD4K",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">1e-3</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseURI": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "1e-3"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 0.001
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "number-fractional-negative",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-fractional-negative.html",
+          "encoding": "utf-8",
+          "byteLength": 166,
+          "sha256": "4fda772dd1294b07127d8eee5d65a4d315b74cacf5d6250bcbf07a64b17c6706",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4tMTIuNTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">-12.5</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseURI": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "-12.5"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": -12.5
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "number-integral-exponent",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-integral-exponent.html",
+          "encoding": "utf-8",
+          "byteLength": 166,
+          "sha256": "3ef40f60b2ae970b8137cc659cac53422429b9bcd2eac73582d1fbf4bb044b92",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj4xLjVlMTwvc3Bhbj48L2FydGljbGU+PC9tYWluPjwvYm9keT48L2h0bWw+Cg==",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">1.5e1</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseURI": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "1.5e1"
+          }
+        ],
+        "typedRecords": [
+          {
+            "value": 15
+          }
+        ],
+        "errors": [],
+        "pageSealable": true
+      }
+    },
+    {
+      "id": "number-rounds-to-unsafe-integer",
+      "status": "planned",
+      "productResult": "not-run",
+      "input": {
+        "dom": {
+          "path": "strict-conversion/number-rounds-to-unsafe-integer.html",
+          "encoding": "utf-8",
+          "byteLength": 179,
+          "sha256": "8d69c0aff293383d940b5f5c83f047f044813912b447d48a77e5a0e5382c0aff",
+          "bytesBase64": "PCFkb2N0eXBlIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiPjwvaGVhZD48Ym9keT48bWFpbiBjbGFzcz0icm93cyI+PGFydGljbGUgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9InZhbHVlIj45MDA3MTk5MjU0NzQwOTkxLjU8L3NwYW4+PC9hcnRpY2xlPjwvbWFpbj48L2JvZHk+PC9odG1sPgo=",
+          "text": "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><main class=\"rows\"><article class=\"row\"><span class=\"value\">9007199254740991.5</span></article></main></body></html>\n"
+        },
+        "context": {
+          "documentUrl": "https://fixture.example/list",
+          "documentBaseURI": "https://fixture.example/list",
+          "frame": "top",
+          "containerSelector": ".rows",
+          "rowSelector": ":scope > .row"
+        },
+        "field": {
+          "id": "value",
+          "label": "值",
+          "selector": ".value",
+          "read": "text",
+          "attribute": null,
+          "type": "number",
+          "required": true,
+          "transforms": [
+            "trim"
+          ]
+        }
+      },
+      "expected": {
+        "rawRecords": [
+          {
+            "value": "9007199254740991.5"
+          }
+        ],
+        "typedRecords": [],
+        "errors": [
+          {
+            "code": "E_RECORD_NUMBER",
+            "path": "/rows/0/value",
+            "value": "9007199254740991.5",
+            "remediation": "correct-source-value-or-field-type"
+          }
+        ],
+        "pageSealable": false
+      }
+    }
+  ]
+}

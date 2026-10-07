@@ -1,0 +1,16 @@
+{
+  "productInputsSha256": "14fac8f7bf1f8846d3019694b637f701cf833a7d3f19e90c1574b059f70ab748",
+  "verificationInputsSha256": "c11268f252749dd3f19638080d761c9f30c8aa5a3ae07bb6a88621653189cdc5",
+  "runnerSha256": "05e9956e9bb7c0e5bd7fcec5a47d5558136b8be771110246c2c1679eef95ec94",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "sourceHash": "07fd5d9362977525a4d23afcdbcc20533aead70874ca06c0413d46b5bbdac6cc",
+  "packages": {
+    "production": "539825650f444ebaf2fa0f442fa846dfc37e0b287769c53e4ed03e045b3ba770",
+    "development": "9df15c829b5a80e2450abe349139b2eacd022fe7efbc0232073ff0944e28895f"
+  },
+  "readyForControllerNative": true,
+  "executionWindow": {
+    "lane": "controller-product-native",
+    "sdkRunnerIdle": true
+  }
+}
