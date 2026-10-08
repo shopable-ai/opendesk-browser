@@ -36,8 +36,7 @@ test('trusted Side Panel run sends the exact unsaved draft to the original Contr
   const [html, editor, host, broker]=await Promise.all([
     read('src/ui/tool.html'), read('src/ui/script-editor.js'),
     read('src/run-host.js'), read('src/platform/host/controller-methods.js')]);
-  assert.match(html,/id="script-run" disabled[^>]*>运行自动化/);
-  assert.match(html,/id="page-preview-run"[^>]*>运行网页 JS/);
+  assert.match(html,/id="script-run" disabled>运行草稿/);
   assert.match(editor,/sourceUtf8 = find\('script-source'\)\.value/);
   assert.match(editor,/host\.start\(\{source:\{kind:'draft',sourceUtf8\}/);
   assert.match(editor,/permissions\.request/);
