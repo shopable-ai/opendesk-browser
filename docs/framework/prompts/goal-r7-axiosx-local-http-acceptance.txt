@@ -1,0 +1,117 @@
+# GOAL：OpenDesk Browser R7.2 —— 真实 Chrome 验收已注入 axiosx、跨源权限和单页 HTTP API，按证据修复与集成
+
+角色：Chrome MV3 / MAIN-ISOLATED SDK、Axios 风格 HTTP 门面、Service Worker Broker/Authority、ChromePage / Playwright、浏览器网络/CORS 与可靠性测试专家。
+
+本地工作目录（仅存在且有权限时）：/Users/shopme/Documents/workspace/opendesk-browser
+GitHub：shopable-ai/opendesk-browser
+候选 PR：https://github.com/shopable-ai/opendesk-browser/pull/20
+
+默认中文；本轮是本地真实 Chrome 测试、定位失败并修复，不做新 HTTP 框架和功能平台。直接推进至可验证最远阶段。
+
+## 一、先核对现场，不重复开发
+
+1. 阅读 AGENTS.md、docs/framework/parallel-development.md、examples/tasks/README.zh-CN.md。
+2. 检查最新 main、PR #20、git status 和已有 Worktree；保护所有未提交数据、其他 Agent 分支与历史回执。不得硬 reset、clean、force push。
+3. 如果 PR #20 已合 main，以最新 main 验收；否则只在自己的合规工作区检出该候选进行验收，未经真实验证不要直接推送 main。核对文件与最新提交 SHA，不使用旧截图/旧 receipt 冒充最新版本。
+4. 保留唯一人工演示 HTML：examples/tasks/demo-form.html。禁止重新引入历史临时 /fixture 作为用户测试入口，禁止删除被专用测试运行器依赖的 fixture。
+5. 已有 SDK axiosx：src/framework/sdk/http.js、entry.js、transport.js、src/agents/page-relay.js、src/platform/host/sdk-broker.js、src/platform/chrome/network.js；Controller Worker 也有独立 axiosx。绝不再 npm 安装 axios/cdn，也不新建第二套 HTTP 驱动。
+
+## 二、默认先验证真实本地接口
+
+从仓库根目录，先确认 examples/tasks/request-sample.json 存在且 JSON 可解析，再运行：
+
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+
+实际浏览器唯一 URL：http://127.0.0.1:43111/demo-form.html
+
+GET http://127.0.0.1:43111/request-sample.json => 真 HTTP 200 JSON，source 应为 opendesk-browser-local-fixture。
+GET /__opendesk_expected_404__.json => 真 HTTP 404。
+GET /demo-form.html => 真 HTTP 200 text/html，界面仅显示文本，不执行响应 HTML。
+
+若默认请求 404，先检查 checkout 是否包含 JSON 文件、根目录和服务器端口；不得制造假 PASS 或改用 mock 对付失败。
+
+需要服务端真实延迟、状态码和 POST 才将 Python 服务优雅退出、改用：
+
+node examples/tasks/http-test-server.mjs 43111
+
+真实测试接口：
+GET /__test__/status?code=429 => 429
+GET /__test__/status?code=500 => 500
+GET /__test__/text => text/plain
+GET /__test__/delay?ms=2000 => 延迟后 200
+POST /__test__/echo，JSON {"hello":"OpenDesk"} => 返回包含 received 的 JSON 200
+
+必须先检查端口占用，不能无条件杀死其他程序。
+
+## 三、网页 MAIN OpenDesk SDK axiosx：最高优先级
+
+构建扩展并用隔离 profile 的真实 Chrome / Chrome for Testing 加载 dist/development；不要关闭 Web Security、伪造用户事件、合成 native ack 或模拟通过。
+
+目标网页必须是真实 HTTP 标签页。通过扩展现有「独立网页 SDK」选择当前 tab/frame/documentId、勾选 network、可信用户点击批准并安装；按需批准额外目标 Origin。验证 ISOLATED relay + MAIN SDK 安装在相同精确 document，且 window.OpenDeskSDK.ready() 返回正确 allowed methods。
+
+页面第 06 组默认选择 axiosx，URL 为 ./request-sample.json，点击 #api-send。
+验证真实调用经 SDK -> Relay -> Broker/Authority -> 扩展后台 HTTP Driver -> 返回的 data/status/headers 和 DOM，不是普通 Fetch。检查 HTTP status=200、真实 JSON source、页面耗时、实际 Run/SDK operation 证据。
+
+在 DevTools 的目标网页 MAIN 中可独立验证：
+const sdk=window.OpenDeskSDK;
+await sdk.ready();
+const response=await sdk.axiosx.get('http://127.0.0.1:43111/request-sample.json',{timeout:5000});
+console.log(response.status,response.data,response.headers);
+
+未安装 SDK、没有 network 能力、拒绝站点权限，应明确报 E_SDK_UNAVAILABLE/E_CAPABILITY 或 Broker 实际错误；绝不可自动转为 Fetch 成功。
+
+再验证真实 HTTP 404、429、500；SDK 非 2xx 按当前 E_HTTP 契约检查 status/response，网络失败与超时不可误报 HTTP 200。
+
+## 四、跨 Origin CORS 对照：验证扩展的核心价值
+
+保持 43111 的 Node 服务，在另一个终端运行：
+
+node examples/tasks/http-test-server.mjs 43112
+
+从 43111 网页发起 GET http://127.0.0.1:43112/request-sample.json：
+
+A. #api-channel 选择 fetch：浏览器按标准 CORS 应阻止网页读取；43112 服务器应确实收到请求并返回 200，但不提供 Access-Control-Allow-Origin。检查真实 DevTools Network/Console 而非 Node fetch。
+B. 选择 axiosx，尚未批准 43112 额外目标 Origin：Authority 应拒绝，不能发到未授权目标。
+C. 通过真实用户权限对 43112 Host Permission 和精确目标 Origin 明确批准后，使用网页 SDK axiosx 发同一地址，应可以从扩展后台获取 JSON 200（以真实结果为准）。
+D. 撤销权限、页面导航、扩展 Worker 重启后，旧授权不得继续通行；确实需要重新授权时遵循现有机制。任何不确定副作用不能盲目重试。
+
+不允许无条件授予所有目标 Origin 来图方便。原生权限和 SDK 应用级目标授权必须同时满足。
+
+## 五、POST、超时及取消边界
+
+在 Node 辅助服务模式下，POST /__test__/echo 发送 JSON {"hello":"OpenDesk"}，核实真实回显与后台 HTTP 请求；非法 JSON 不发送。
+使用 /__test__/delay?ms=2000 并设置短 timeout，检查 Fetch AbortController 中止和 axiosx 自身超时错误。
+特别注意：axiosx 当前公开 facade 不接受逐请求 AbortSignal。网页中的「停止显示结果」只是停止向 UI 展示迟到结果，不等于底层 HTTP 被取消；不能把取消 UI 当作网络中止 PASS。
+连续请求、切换 URL、切换通道、重置后，旧结果不得写入当前 DOM。用实际原生浏览器逐次复现，修复真实竞态。
+
+## 六、Controller Worker axiosx 和 OpenDesk Page API 分开验收
+
+在 Sidebar「开发」运行 examples/tasks/http-worker-axiosx-draft.js。
+这条路径是受控 Worker 注入的 axiosx，与网页 window.OpenDeskSDK 无关。使用绝对 URL；核对任务权限、RunHost/Controller、后台网络服务、runId/resultId、真实回执和持久结果。不得把普通网页 Fetch 的成功作为 Worker axiosx PASS。
+
+再在已成功注入 SDK 的 demo-form.html 中运行 examples/tasks/http-axiosx-page-draft.js，通过正式 OpenDesk page.getByLabel().fill、getByRole().click、locator.waitFor、textContent() 等接口执行按钮、读取响应。
+另外运行原签名 form-fill.v1.opendesk-task.json（#name/#submit/#done）与 modern-search-draft.js，确保旧 page.type/page.click 和现代 Locator 行为未回归。不得编辑已签名任务包或其 Hash。
+
+## 七、源码测试、视觉与安全
+
+node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs
+node --test tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-cross-origin-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k3-context.test.mjs
+npm run check
+npm run build:dev
+
+额外测试浏览器 DOM 1280px/390px、键盘可见焦点、JSON/非 JSON 文本的 XSS 安全、同源与跨源预设不自动发公网请求。
+以实际执行结果为准；若 CI 有新增相关 workflow，也检查对应 HEAD 的 PASS。不要反复无意义地执行历史全量原生 F3。
+
+## 八、修复及交付
+
+有真实失败必须直接修复演示页面、测试或已确认有缺陷的已有 SDK（后者需要严格限范围审计），更新 README、定向测试、独立 workstream 证据。不能靠放宽权限、绕过调用链、删断言或伪造 receipt 获得 PASS。
+
+最终按真实 SHA 汇报三条严格分离的能力：
+- 网页原生 Fetch / 浏览器 CORS
+- 网页 MAIN 注入 OpenDeskSDK.axiosx
+- Controller Worker axiosx
+以及 OpenDesk Page API 按钮操作和持久 Run Result，分别标 SOURCE/NODE/BROWSER/NATIVE/NOT_TESTED。
+
+有权限且所有必要门槛真实通过后，由授权集成者按最新 main 安全合并候选 PR 并核对 GitHub 文件 SHA；否则保持 Draft，记录 blocker，不删除他人分支。
+
+成功标准：打开唯一 demo-form.html，默认 JSON 实际存在、axiosx 授权后能真实 GET/POST、跨端口授权前拒绝/后成功、Fetch CORS 对照确实区分，页面有真实状态、耗时、响应和可解释的错误，且不误称普通 Fetch 为 OpenDesk SDK 成功。
