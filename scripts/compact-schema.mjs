@@ -1,10 +1,11 @@
-// Lossless build-time factoring of repeated schema data. Validation rules and
-// property order are unchanged; runtime consumers only read this frozen contract.
-export function compactSchemaSource(source) {
-  const marker = 'export default ';
-  const start = source.indexOf(marker);
-  if (start < 0) throw new Error('Expected generated schema default export');
-  const schema = JSON.parse(source.slice(start + marker.length).trim().replace(/;$/, ''));
+import {Buffer} from 'node:buffer';
+
+// Schema is reviewed JSON data, not executable user code.  The SW bundle has
+// a hard 256 KiB production gate.  Factor repeated objects as before and,
+// when smaller, pack the fixed UTF-8 JSON with a deterministic 16-bit LZW
+// dictionary.  The decoded object retains every key, value and ordering.
+// No runtime eval, dynamic import, network resource or new trust boundary.
+function factorObjects(schema) {
   const counts = new Map(), names = new Map(), declarations = [];
   function count(value) {
     if (!value || typeof value !== 'object') return;
@@ -23,5 +24,58 @@ export function compactSchemaSource(source) {
     declarations.push(`const ${name}=${body};`); return name;
   }
   const body = render(schema);
-  return `${declarations.join('\n')}\nexport default ${body};\n`;
+  return `${declarations.join('\\n')}\\nexport default ${body};\\n`;
+}
+
+function packUtf8(input) {
+  const dictionary = new Map();
+  for (let i = 0; i < 256; i++) dictionary.set(String.fromCharCode(i), i);
+  let next = 256, word = '';
+  const codes = [];
+  for (const byte of input) {
+    const char = String.fromCharCode(byte), joined = word + char;
+    if (dictionary.has(joined)) { word = joined; continue; }
+    codes.push(dictionary.get(word));
+    if (next < 65535) dictionary.set(joined, next++);
+    word = char;
+  }
+  if (word) codes.push(dictionary.get(word));
+  const result = Buffer.allocUnsafe(codes.length * 2);
+  codes.forEach((code, index) => result.writeUInt16BE(code, index * 2));
+  return result.toString('base64');
+}
+
+function packModule(value) {
+  const encoded = packUtf8(Buffer.from(JSON.stringify(value), 'utf8'));
+  return `// Constant reviewed schema; only synchronous data decompression.
+const packed=${JSON.stringify(encoded)};
+function unpackSchema(source) {
+  const bytes=atob(source), dictionary=Array.from({length:256},(_,i)=>String.fromCharCode(i));
+  let offset=0, next=256;
+  const read=()=>bytes.charCodeAt(offset++)*256+bytes.charCodeAt(offset++);
+  let previous=dictionary[read()];
+  if(previous===undefined) throw new Error('Invalid packaged schema');
+  const pieces=[previous];
+  while(offset<bytes.length) {
+    const code=read();
+    const entry=dictionary[code]??(code===next?previous+previous[0]:undefined);
+    if(entry===undefined) throw new Error('Invalid packaged schema');
+    pieces.push(entry);
+    if(next<65535) dictionary[next++]=previous+entry[0];
+    previous=entry;
+  }
+  const raw=Uint8Array.from(pieces.join(''),c=>c.charCodeAt(0));
+  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw));
+}
+export default unpackSchema(packed);
+`;
+}
+
+export function compactSchemaSource(source) {
+  const marker = 'export default ';
+  const start = source.indexOf(marker);
+  if (start < 0) throw new Error('Expected generated schema default export');
+  const schema = JSON.parse(source.slice(start + marker.length).trim().replace(/;$/, ''));
+  const shared = factorObjects(schema), packed = packModule(schema);
+  return packed.length < shared.length ? packed : shared;
 }

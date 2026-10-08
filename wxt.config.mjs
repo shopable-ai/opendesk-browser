@@ -43,14 +43,6 @@ export default defineConfig({
       if (entries.length !== 1) throw new Error('Fixed classic scripts require individual WXT builds');
       const entry = entries[0], target = entry.type === 'background' ? 'sw.js' : FIXED_OUTPUTS[entry.name];
       if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
-      // SW production output must stay within the existing 256 KiB admission
-      // budget. Improve dead-code elimination instead of relaxing the limit.
-      if (entry.type === 'background' && config.mode === 'production') {
-        const options = config.build.terserOptions || {};
-        config.build.terserOptions = {...options, compress: {
-          ...options.compress, passes: 5, toplevel: true, hoist_props: true
-        }};
-      }
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
