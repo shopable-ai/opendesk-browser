@@ -1,6 +1,8 @@
 import {invariant, validate, canonical, newId, sameIdentity, PROTOCOL} from '../protocol.js';
 
-const stores = ['runs', 'commandJournal'];
+const COMMAND_JOURNAL = 'commandJournal';
+const TARGET_CODE = 'E_TARGET';
+const stores = ['runs', COMMAND_JOURNAL];
 const liveStates = new Set(['preparing', 'running']);
 const now = () => new Date().toISOString();
 const key = id => `target-create:${id}`;
@@ -8,21 +10,21 @@ const key = id => `target-create:${id}`;
 export async function sessionIncarnation(session) {
   const value = typeof session === 'function' ? await session() : await session;
   const id = typeof value === 'string' ? value : typeof value?.get === 'function' ? await value.get() : value?.browserSessionIncarnation;
-  invariant(typeof id === 'string' && id.length > 0, 'E_TARGET', 'Trusted browser session is required');
+  invariant(typeof id === 'string' && id.length > 0, TARGET_CODE, 'Trusted browser session is required');
   return id;
 }
 
 export function authenticatedDocument(api, sender) {
   invariant(sender?.id === api.runtime.id && Number.isSafeInteger(sender.tab?.id) && sender.tab.id >= 0 &&
     sender.frameId === 0 && typeof sender.documentId === 'string' && sender.documentId.length > 0,
-  'E_TARGET', 'Actual extension/top-frame/tab/document sender required');
+  TARGET_CODE, 'Actual extension/top-frame/tab/document sender required');
   return {tabId: sender.tab.id, frameId: 0, documentId: sender.documentId};
 }
 
 export function httpUrl(value) {
   let url;
-  try { url = new URL(value); } catch { invariant(false, 'E_TARGET', 'Invalid document URL'); }
-  invariant(['https:', 'http:'].includes(url.protocol) && !url.username && !url.password, 'E_TARGET', 'HTTP(S) URL required');
+  try { url = new URL(value); } catch { invariant(false, TARGET_CODE, 'Invalid document URL'); }
+  invariant(['https:', 'http:'].includes(url.protocol) && !url.username && !url.password, TARGET_CODE, 'HTTP(S) URL required');
   url.hash = '';
   return url;
 }
@@ -35,7 +37,7 @@ export async function requireGrant(api, origin) {
 // Shared native observation for generic controllers. Selection is explicit;
 // neither this helper nor its callers resolve the active tab.
 export async function observeControllerTarget({api, tabId, frameId = 0, documentId, allowExtensionUrl = null, expectedUrl, expectedWindowId}) {
-  invariant(Number.isSafeInteger(tabId) && tabId >= 0 && Number.isSafeInteger(frameId) && frameId >= 0, 'E_TARGET');
+  invariant(Number.isSafeInteger(tabId) && tabId >= 0 && Number.isSafeInteger(frameId) && frameId >= 0, TARGET_CODE);
   const tab = await api.tabs.get(tabId);
   const verifyCandidate = async () => {
     if (expectedWindowId === undefined) return;
@@ -46,7 +48,7 @@ export async function observeControllerTarget({api, tabId, frameId = 0, document
       selected[0].url === expectedUrl, 'E_DOCUMENT_STALE', 'Captured window Current Page changed before admission');
   };
   await verifyCandidate();
-  invariant(tab && tab.incognito === false, 'E_TARGET', 'A normal selected tab is required');
+  invariant(tab && tab.incognito === false, TARGET_CODE, 'A normal selected tab is required');
   const frames = await api.webNavigation.getAllFrames({tabId});
   let frame = frames?.find(value => value.frameId === frameId && (!documentId || value.documentId === documentId));
   // webNavigation does not enumerate every extension bootstrap document.
@@ -61,7 +63,7 @@ export async function observeControllerTarget({api, tabId, frameId = 0, document
   invariant(frame && !frame.errorOccurred && (!frame.documentLifecycle || frame.documentLifecycle === 'active') &&
     typeof frame.documentId === 'string' && frame.documentId, expectedWindowId === undefined ? 'E_DOCUMENT_REPLACED' : 'E_DOCUMENT_STALE', 'Selected frame document is no longer current');
   if (allowExtensionUrl !== null) {
-    invariant(frameId === 0 && frame.url === allowExtensionUrl && tab.url === allowExtensionUrl, 'E_TARGET', 'Owned bootstrap URL differs');
+    invariant(frameId === 0 && frame.url === allowExtensionUrl && tab.url === allowExtensionUrl, TARGET_CODE, 'Owned bootstrap URL differs');
     return {tabId, frameId: 0, documentId: frame.documentId, url: frame.url};
   }
   const url = httpUrl(frame.url);
@@ -79,9 +81,9 @@ export async function observeControllerTarget({api, tabId, frameId = 0, document
 }
 
 export async function verifyControllerTarget({api, target, expectedUrl, expectedWindowId}) {
-  invariant(Number.isSafeInteger(target?.frameId) && target.frameId >= 0, 'E_TARGET');
+  invariant(Number.isSafeInteger(target?.frameId) && target.frameId >= 0, TARGET_CODE);
   const observed = await observeControllerTarget({api, tabId: target.tabId, frameId: target.frameId, documentId: target.documentId, expectedUrl, expectedWindowId});
-  invariant(observed.allowedOrigin === target.allowedOrigin, 'E_TARGET', 'Controller origin differs');
+  invariant(observed.allowedOrigin === target.allowedOrigin, TARGET_CODE, 'Controller origin differs');
   if (target.rootDocumentId) invariant(target.rootDocumentId === observed.rootDocumentId, 'E_DOCUMENT_REPLACED');
   return observed;
 }
@@ -100,7 +102,7 @@ export function createTargetService({storage, api, session, assertHost}) {
   const transaction = (mode, callback) => storage.transaction(stores, mode, callback);
 
   async function currentHost(tx, run, host) {
-    const stored = await tx.get('commandJournal', `host:${host.registrationId}`);
+    const stored = await tx.get(COMMAND_JOURNAL, `host:${host.registrationId}`);
     hostMatches(run, stored);
     invariant(stored.hostDocumentId === host.hostDocumentId, 'E_OWNER');
   }
@@ -108,19 +110,19 @@ export function createTargetService({storage, api, session, assertHost}) {
   async function requireLive(tx, run, incarnation, epoch) {
     const slot = await tx.get('runs', '@slot');
     invariant(run && slot?.currentRunId === run.runId, 'E_OWNER');
-    invariant(run.browserSessionIncarnation === incarnation && (!epoch || run.ownerEpoch === epoch), 'E_TARGET');
+    invariant(run.browserSessionIncarnation === incarnation && (!epoch || run.ownerEpoch === epoch), TARGET_CODE);
     invariant(liveStates.has(run.state) && !run.retirementId && (run.cancelSeq ?? 0) === 0, 'E_CANCELLED');
     return slot;
   }
 
   async function freeze(creationId, reason) {
     return transaction('readwrite', async tx => {
-      const intent = await tx.get('commandJournal', key(creationId));
+      const intent = await tx.get(COMMAND_JOURNAL, key(creationId));
       if (!intent || intent.state === 'retired') return;
       intent.state = 'effect_unknown';
       intent.unknownReason = reason;
       if (intent.navigationState === 'dispatched') intent.navigationState = 'effect_unknown';
-      await tx.put('commandJournal', intent, key(creationId));
+      await tx.put(COMMAND_JOURNAL, intent, key(creationId));
       const run = await tx.get('runs', intent.runId);
       if (run && liveStates.has(run.state)) {
         run.state = 'paused_unknown';
@@ -140,9 +142,9 @@ export function createTargetService({storage, api, session, assertHost}) {
       const run = await tx.get('runs', request.runId);
       await currentHost(tx, run, host);
       if (run.creationId) {
-        const existing = await tx.get('commandJournal', key(run.creationId));
+        const existing = await tx.get(COMMAND_JOURNAL, key(run.creationId));
         if (existing) {
-          invariant(existing.requestId === request.requestId, 'E_TARGET', 'A run has exactly one creation intent');
+          invariant(existing.requestId === request.requestId, TARGET_CODE, 'A run has exactly one creation intent');
           return {intent: existing, run, duplicate: true};
         }
       }
@@ -158,35 +160,35 @@ export function createTargetService({storage, api, session, assertHost}) {
       httpUrl(intent.startUrl);
       run.creationId = id;
       await tx.put('runs', run, run.runId);
-      await tx.put('commandJournal', intent, key(id));
+      await tx.put(COMMAND_JOURNAL, intent, key(id));
       return {intent, run, duplicate: false};
     });
     if (prepared.duplicate && prepared.intent.state !== 'prepared') return creationResponse(prepared.intent, prepared.run);
     await requireGrant(api, httpUrl(prepared.intent.startUrl).origin);
     const intent = await transaction('readwrite', async tx => {
-      const value = await tx.get('commandJournal', key(prepared.intent.creationId));
+      const value = await tx.get(COMMAND_JOURNAL, key(prepared.intent.creationId));
       const run = await tx.get('runs', value.runId);
       await currentHost(tx, run, host);
       await requireLive(tx, run, incarnation, value.ownerEpoch);
-      invariant(value.state === 'prepared' && value.submissionCount === 0, 'E_TARGET');
+      invariant(value.state === 'prepared' && value.submissionCount === 0, TARGET_CODE);
       value.state = 'dispatched'; value.submissionCount = 1; value.dispatchAt = now();
-      await tx.put('commandJournal', value, key(value.creationId));
+      await tx.put(COMMAND_JOURNAL, value, key(value.creationId));
       return value;
     });
     // Only this invocation receives the dispatch authorization. Reconciliation never replays it.
     try {
       const tab = await api.tabs.create({url: intent.bootstrapUrl, active: false});
-      invariant(Number.isSafeInteger(tab?.id), 'E_TARGET');
+      invariant(Number.isSafeInteger(tab?.id), TARGET_CODE);
       await transaction('readwrite', async tx => {
-        const value = await tx.get('commandJournal', key(intent.creationId));
-        invariant(!value.callbackTabId || value.callbackTabId === tab.id, 'E_TARGET');
-        if (value.knownTabId !== null) invariant(value.knownTabId === tab.id, 'E_TARGET');
+        const value = await tx.get(COMMAND_JOURNAL, key(intent.creationId));
+        invariant(!value.callbackTabId || value.callbackTabId === tab.id, TARGET_CODE);
+        if (value.knownTabId !== null) invariant(value.knownTabId === tab.id, TARGET_CODE);
         value.callbackTabId = tab.id;
         if (!value.candidateTabIds.includes(tab.id)) value.candidateTabIds.push(tab.id);
-        await tx.put('commandJournal', value, key(value.creationId));
+        await tx.put(COMMAND_JOURNAL, value, key(value.creationId));
       });
     } catch (error) { await freeze(intent.creationId, `create:${error.code || error.message}`); }
-    return transaction('readonly', async tx => creationResponse(await tx.get('commandJournal', key(intent.creationId)), await tx.get('runs', intent.runId)));
+    return transaction('readonly', async tx => creationResponse(await tx.get(COMMAND_JOURNAL, key(intent.creationId)), await tx.get('runs', intent.runId)));
   }
 
   async function reconcileTargetCreation(request, sender) {
@@ -194,8 +196,8 @@ export function createTargetService({storage, api, session, assertHost}) {
     const host = await assertHost(sender);
     const incarnation = await sessionIncarnation(session);
     const intent = await transaction('readonly', async tx => {
-      const value = await tx.get('commandJournal', key(request.creationId));
-      invariant(value, 'E_TARGET'); await currentHost(tx, await tx.get('runs', value.runId), host); return value;
+      const value = await tx.get(COMMAND_JOURNAL, key(request.creationId));
+      invariant(value, TARGET_CODE); await currentHost(tx, await tx.get('runs', value.runId), host); return value;
     });
     // Exact URL discovery supplies candidates, never document authority.
     let candidates = [];
@@ -204,31 +206,31 @@ export function createTargetService({storage, api, session, assertHost}) {
       catch { /* A failed observation is not evidence of absence. */ }
     }
     await transaction('readwrite', async tx => {
-      const value = await tx.get('commandJournal', key(intent.creationId));
+      const value = await tx.get(COMMAND_JOURNAL, key(intent.creationId));
       value.candidateTabIds = [...new Set([...value.candidateTabIds, ...candidates])];
-      await tx.put('commandJournal', value, key(value.creationId));
+      await tx.put(COMMAND_JOURNAL, value, key(value.creationId));
     });
     if (intent.state === 'dispatched' || (intent.navigationState === 'dispatched' && !intent.knownAgentDocumentId)) await freeze(intent.creationId, 'dispatch-gap');
-    return transaction('readonly', async tx => creationResponse(await tx.get('commandJournal', key(intent.creationId)), await tx.get('runs', intent.runId)));
+    return transaction('readonly', async tx => creationResponse(await tx.get(COMMAND_JOURNAL, key(intent.creationId)), await tx.get('runs', intent.runId)));
   }
 
   async function bootstrapReady(message, sender) {
     message = message.payload || message;
     const document = authenticatedDocument(api, sender);
-    invariant(typeof message.creationId === 'string', 'E_TARGET');
+    invariant(typeof message.creationId === 'string', TARGET_CODE);
     const incarnation = await sessionIncarnation(session);
-    const observed = await transaction('readonly', tx => tx.get('commandJournal', key(message.creationId)));
+    const observed = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, key(message.creationId)));
     if (observed && observed.browserSessionIncarnation !== incarnation) {
       const exact = (await api.tabs.query({})).filter(tab => tab.url === observed.bootstrapUrl);
-      invariant(exact.length === 1 && exact[0].id === document.tabId, 'E_TARGET', 'Restored bootstrap nonce must be unique');
+      invariant(exact.length === 1 && exact[0].id === document.tabId, TARGET_CODE, 'Restored bootstrap nonce must be unique');
     }
     const registered = await transaction('readwrite', async tx => {
-      const intent = await tx.get('commandJournal', key(message.creationId));
-      invariant(intent && sender.url === intent.bootstrapUrl && intent.submissionCount === 1, 'E_TARGET');
-      invariant(intent.knownTabId === null || intent.knownTabId === document.tabId || intent.browserSessionIncarnation !== incarnation, 'E_TARGET');
-      if (intent.browserSessionIncarnation === incarnation && intent.knownDocumentId !== null) invariant(intent.knownDocumentId === document.documentId, 'E_TARGET');
+      const intent = await tx.get(COMMAND_JOURNAL, key(message.creationId));
+      invariant(intent && sender.url === intent.bootstrapUrl && intent.submissionCount === 1, TARGET_CODE);
+      invariant(intent.knownTabId === null || intent.knownTabId === document.tabId || intent.browserSessionIncarnation !== incarnation, TARGET_CODE);
+      if (intent.browserSessionIncarnation === incarnation && intent.knownDocumentId !== null) invariant(intent.knownDocumentId === document.documentId, TARGET_CODE);
       const run = await tx.get('runs', intent.runId);
-      invariant(run, 'E_TARGET');
+      invariant(run, TARGET_CODE);
       const rebound = intent.browserSessionIncarnation !== incarnation;
       if (rebound) {
         // A restored exact nonce grants retirement ownership only, never business execution.
@@ -236,27 +238,27 @@ export function createTargetService({storage, api, session, assertHost}) {
         intent.reboundTabId = document.tabId;
         intent.reboundDocumentId = document.documentId;
       } else {
-        if (intent.callbackTabId !== undefined) invariant(intent.callbackTabId === document.tabId, 'E_TARGET');
+        if (intent.callbackTabId !== undefined) invariant(intent.callbackTabId === document.tabId, TARGET_CODE);
         intent.knownTabId = document.tabId; intent.knownDocumentId = document.documentId;
         if (intent.state !== 'retired') intent.state = 'known';
       }
       if (run.retirementId) intent.retirementId = run.retirementId;
-      await tx.put('commandJournal', intent, key(intent.creationId));
+      await tx.put(COMMAND_JOURNAL, intent, key(intent.creationId));
       return {intent, run, rebound};
     });
     if (message.phase !== 'navigate') return {ok: true, known: true, navigate: false, retirementOnly: registered.rebound || !!registered.run.retirementId};
-    invariant(!registered.rebound, 'E_TARGET', 'Restored nonce only authorizes retirement');
+    invariant(!registered.rebound, TARGET_CODE, 'Restored nonce only authorizes retirement');
     await requireGrant(api, httpUrl(registered.intent.startUrl).origin);
     return transaction('readwrite', async tx => {
-      const intent = await tx.get('commandJournal', key(message.creationId));
+      const intent = await tx.get(COMMAND_JOURNAL, key(message.creationId));
       const run = await tx.get('runs', intent.runId);
       await requireLive(tx, run, incarnation, intent.ownerEpoch);
-      const host = await tx.get('commandJournal', `host:${run.registrationId}`); hostMatches(run, host);
-      invariant(intent.knownTabId === document.tabId && intent.knownDocumentId === document.documentId, 'E_TARGET');
+      const host = await tx.get(COMMAND_JOURNAL, `host:${run.registrationId}`); hostMatches(run, host);
+      invariant(intent.knownTabId === document.tabId && intent.knownDocumentId === document.documentId, TARGET_CODE);
       if (intent.navigationSubmissionCount !== 0) return {ok: true, navigate: false, state: intent.navigationState};
-      invariant(intent.navigationState === 'not-admitted' && intent.state === 'known', 'E_TARGET');
+      invariant(intent.navigationState === 'not-admitted' && intent.state === 'known', TARGET_CODE);
       intent.navigationState = 'dispatched'; intent.navigationSubmissionCount = 1; intent.navigationDispatchAt = now();
-      await tx.put('commandJournal', intent, key(intent.creationId));
+      await tx.put(COMMAND_JOURNAL, intent, key(intent.creationId));
       return {ok: true, navigate: true, creationId: intent.creationId, startUrl: intent.startUrl};
     });
   }
@@ -266,25 +268,25 @@ export function createTargetService({storage, api, session, assertHost}) {
     const url = httpUrl(sender.url);
     const incarnation = await sessionIncarnation(session);
     const candidate = await transaction('readonly', async tx => {
-      const values = await tx.all('commandJournal');
+      const values = await tx.all(COMMAND_JOURNAL);
       const matches = values.filter(value => value.tag === 'target-create' && value.knownTabId === document.tabId && value.browserSessionIncarnation === incarnation && value.state !== 'retired');
-      invariant(matches.length === 1, 'E_TARGET', 'Exact owned creation is required');
+      invariant(matches.length === 1, TARGET_CODE, 'Exact owned creation is required');
       return matches[0];
     });
     await requireGrant(api, url.origin);
     return transaction('readwrite', async tx => {
-      const intent = await tx.get('commandJournal', key(candidate.creationId));
+      const intent = await tx.get(COMMAND_JOURNAL, key(candidate.creationId));
       const run = await tx.get('runs', intent.runId);
       await requireLive(tx, run, incarnation, intent.ownerEpoch);
-      invariant(url.origin === httpUrl(intent.startUrl).origin, 'E_TARGET');
-      invariant(intent.navigationSubmissionCount === 1, 'E_TARGET');
+      invariant(url.origin === httpUrl(intent.startUrl).origin, TARGET_CODE);
+      invariant(intent.navigationSubmissionCount === 1, TARGET_CODE);
       const old = run.target;
       if (old?.documentId === document.documentId) return {ok: true, target: old, identity: run.identity};
       if (old) {
-        const commands = await tx.all('commandJournal');
+        const commands = await tx.all(COMMAND_JOURNAL);
         invariant(commands.some(c => c.identity?.runId === run.runId && ['next-link', 'next-button'].includes(c.kind) &&
-          ['dispatched', 'effect_unknown'].includes(c.state) && sameIdentity(c.identity, run.identity, {ignoreRevision: true})), 'E_TARGET', 'Unadmitted document change');
-      } else invariant(url.href === httpUrl(intent.startUrl).href, 'E_TARGET', 'Initial document must match start URL');
+          ['dispatched', 'effect_unknown'].includes(c.state) && sameIdentity(c.identity, run.identity, {ignoreRevision: true})), TARGET_CODE, 'Unadmitted document change');
+      } else invariant(url.href === httpUrl(intent.startUrl).href, TARGET_CODE, 'Initial document must match start URL');
       const target = {targetSessionId: old?.targetSessionId || newId(), ...document, allowedOrigin: url.origin,
         targetVersion: (old?.targetVersion || 0) + 1, browserSessionIncarnation: incarnation, creationId: intent.creationId};
       validate('Target', target);
@@ -293,7 +295,7 @@ export function createTargetService({storage, api, session, assertHost}) {
         ownerEpoch: run.ownerEpoch, runRevision: run.runRevision, templateHash: run.templateHash, target};
       validate('Identity', run.identity);
       intent.navigationState = 'confirmed'; intent.knownAgentDocumentId = document.documentId;
-      await tx.put('runs', run, run.runId); await tx.put('commandJournal', intent, key(intent.creationId));
+      await tx.put('runs', run, run.runId); await tx.put(COMMAND_JOURNAL, intent, key(intent.creationId));
       return {ok: true, target, identity: run.identity};
     });
   }
@@ -305,15 +307,15 @@ export function createTargetService({storage, api, session, assertHost}) {
       const run = await tx.get('runs', request.runId);
       await currentHost(tx, run, host); await requireLive(tx, run, incarnation);
       invariant(request.expectedRunRevision === undefined || request.expectedRunRevision === run.runRevision, 'E_OWNER');
-      const intent = await tx.get('commandJournal', key(run.creationId));
-      invariant(intent?.knownTabId !== null && intent?.navigationSubmissionCount === 1, 'E_TARGET');
+      const intent = await tx.get(COMMAND_JOURNAL, key(run.creationId));
+      invariant(intent?.knownTabId !== null && intent?.navigationSubmissionCount === 1, TARGET_CODE);
       return {run, intent};
     });
     await requireGrant(api, httpUrl(binding.intent.startUrl).origin);
     if (!binding.run.target) await api.scripting.executeScript({target: {tabId: binding.intent.knownTabId, frameIds: [0]}, world: 'ISOLATED', files: ['agents/page-agent.js']});
     return transaction('readonly', async tx => {
       const run = await tx.get('runs', request.runId); await currentHost(tx, run, host);
-      invariant(run.target && run.browserSessionIncarnation === incarnation, 'E_TARGET', 'Await authenticated agent handshake');
+      invariant(run.target && run.browserSessionIncarnation === incarnation, TARGET_CODE, 'Await authenticated agent handshake');
       return {target: run.target, identity: run.identity, runRevision: run.runRevision};
     });
   }
@@ -324,11 +326,11 @@ export function createTargetService({storage, api, session, assertHost}) {
     const incarnation = await sessionIncarnation(session);
     const url = httpUrl(sender.url);
     invariant(identity.target.browserSessionIncarnation === incarnation && identity.target.tabId === document.tabId &&
-      identity.target.documentId === document.documentId && identity.target.frameId === document.frameId && identity.target.allowedOrigin === url.origin, 'E_TARGET');
+      identity.target.documentId === document.documentId && identity.target.frameId === document.frameId && identity.target.allowedOrigin === url.origin, TARGET_CODE);
     return transaction('readonly', async tx => {
       const run = await tx.get('runs', identity.runId);
-      invariant(run && !run.retirementId && run.ownerEpoch === identity.ownerEpoch && sameIdentity(run.identity, identity, {ignoreRevision: true}), 'E_TARGET');
-      const host = await tx.get('commandJournal', `host:${run.registrationId}`); hostMatches(run, host);
+      invariant(run && !run.retirementId && run.ownerEpoch === identity.ownerEpoch && sameIdentity(run.identity, identity, {ignoreRevision: true}), TARGET_CODE);
+      const host = await tx.get(COMMAND_JOURNAL, `host:${run.registrationId}`); hostMatches(run, host);
       return run;
     });
   }
@@ -341,24 +343,24 @@ export function createTargetService({storage, api, session, assertHost}) {
     const incarnation = await sessionIncarnation(session);
     const retirementKey = `retirement:${retirementId}`;
     const prepared = await transaction('readwrite', async tx => {
-      const old = await tx.get('commandJournal', retirementKey);
+      const old = await tx.get(COMMAND_JOURNAL, retirementKey);
       if (old?.releaseResult) { if (host) invariant(old.registrationId === host.registrationId, 'E_OWNER'); return {old}; }
       const runs = await tx.all('runs');
       const run = runs.find(r => r.runId && r.retirementId === retirementId);
-      invariant(run && !run.tombstoned, 'E_TARGET');
+      invariant(run && !run.tombstoned, TARGET_CODE);
       if (host) await currentHost(tx, run, host);
       else invariant(old?.tag === 'retirement' && old.runId === run.runId && old.registrationId === run.registrationId &&
         old.fencedEpoch === run.fencedEpoch && run.cancelSeq > 0,
         'E_OWNER', 'Internal reconciliation requires an already committed retirement fence');
       const slot = await tx.get('runs', '@slot');
       invariant(slot?.currentRunId === run.runId && slot.retirementId === retirementId && slot.fencedEpoch === run.fencedEpoch && slot.releaseCount === 0, 'E_OWNER');
-      const intent = await tx.get('commandJournal', key(run.creationId));
-      invariant(intent, 'E_TARGET', 'Missing creation intent is not never-created evidence');
+      const intent = await tx.get(COMMAND_JOURNAL, key(run.creationId));
+      invariant(intent, TARGET_CODE, 'Missing creation intent is not never-created evidence');
       const evidence = old || {tag: 'retirement', retirementId, runId: run.runId, fencedEpoch: run.fencedEpoch,
         registrationId: run.registrationId, creationId: intent.creationId, releaseCount: 0, fencedAt: now()};
       intent.retirementId = retirementId;
-      await tx.put('commandJournal', intent, key(intent.creationId));
-      await tx.put('commandJournal', evidence, retirementKey);
+      await tx.put(COMMAND_JOURNAL, intent, key(intent.creationId));
+      await tx.put(COMMAND_JOURNAL, evidence, retirementKey);
       return {run, intent, evidence};
     });
     if (prepared.old) return prepared.old.releaseResult;
@@ -373,19 +375,19 @@ export function createTargetService({storage, api, session, assertHost}) {
       // The registration is fenced before this exact, same-session remove. A remove error alone proves nothing.
       await transaction('readonly', async tx => {
         const current = await tx.get('runs', run.runId);
-        const value = await tx.get('commandJournal', key(intent.creationId));
+        const value = await tx.get(COMMAND_JOURNAL, key(intent.creationId));
         invariant(current.retirementId === retirementId && current.fencedEpoch === run.fencedEpoch &&
-          (value.browserSessionIncarnation === incarnation || value.reboundSession === incarnation), 'E_TARGET');
+          (value.browserSessionIncarnation === incarnation || value.reboundSession === incarnation), TARGET_CODE);
       });
       try { await api.tabs.remove(tabId); } catch { /* Verify absence separately. */ }
       try { await api.tabs.get(tabId); return {retirementId, state: 'pending', reason: 'tab-still-present'}; }
       catch (error) {
-        invariant(/No tab with id|Invalid tab ID|tab not found/i.test(error?.message || ''), 'E_TARGET', 'Query failure is not absence');
+        invariant(/No tab with id|Invalid tab ID|tab not found/i.test(error?.message || ''), TARGET_CODE, 'Query failure is not absence');
         absence = rebound ? 'unique-bootstrap-current-session-removed' : 'tabs.get-not-found';
       }
     }
     return transaction('readwrite', async tx => {
-      const evidence = await tx.get('commandJournal', retirementKey);
+      const evidence = await tx.get(COMMAND_JOURNAL, retirementKey);
       if (evidence.releaseResult) return evidence.releaseResult;
       const current = await tx.get('runs', run.runId);
       const slot = await tx.get('runs', '@slot');
@@ -397,21 +399,21 @@ export function createTargetService({storage, api, session, assertHost}) {
       current.retirementState = 'released';
       if (current.state === 'retiring') current.state = current.finalState || 'abandoned_unknown';
       current.runRevision++; if (current.identity) current.identity.runRevision = current.runRevision;
-      const value = await tx.get('commandJournal', key(intent.creationId)); value.state = 'retired';
-      await tx.put('commandJournal', value, key(intent.creationId));
-      await tx.put('commandJournal', evidence, retirementKey);
+      const value = await tx.get(COMMAND_JOURNAL, key(intent.creationId)); value.state = 'retired';
+      await tx.put(COMMAND_JOURNAL, value, key(intent.creationId));
+      await tx.put(COMMAND_JOURNAL, evidence, retirementKey);
       await tx.put('runs', current, current.runId);
       await tx.put('runs', {...slot, currentRunId: null, state: 'available', releaseCount: 1}, '@slot');
       return evidence.releaseResult;
     });
   }
   async function reconcileRetirements() {
-    const pending = await transaction('readonly', async tx => (await tx.all('commandJournal'))
+    const pending = await transaction('readonly', async tx => (await tx.all(COMMAND_JOURNAL))
       .filter(row => row.tag === 'retirement' && !row.releaseResult));
     const results = [];
     for (const row of pending) {
       try { results.push(await retireOwnedTarget(row.retirementId, null)); }
-      catch (error) { results.push({retirementId:row.retirementId, state:'pending', reason:error.code || 'E_TARGET'}); }
+      catch (error) { results.push({retirementId:row.retirementId, state:'pending', reason:error.code || TARGET_CODE}); }
     }
     return results;
   }
