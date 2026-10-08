@@ -1,0 +1,73 @@
+{
+  "id": "site-access-once-20261008-1647",
+  "branch": "agent/site-access-once-20261008-1647",
+  "baselineMainSha": "50f5f5875250331e7f2fcf9fd390fbd97316220c",
+  "scope": "Sidebar site permission onboarding only; existing SDK/Controller authorization remains unchanged",
+  "changedFiles": [
+    "src/ui/site-access.js",
+    "src/ui/tool-shell.js",
+    "src/ui/tool.html",
+    "src/ui/tool-shell.css",
+    "tests/environment/site-access.test.mjs",
+    "docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md",
+    ".github/workflows/site-access-once.yml",
+    "docs/framework/workstreams/site-access-once-20261008-1647.json",
+    "scripts/dev-chrome-config.mjs",
+    "scripts/dev-chrome.mjs",
+    "tests/environment/dev-chrome-config.test.mjs",
+    "package.json"
+  ],
+  "localNodeTests": "NOT_TESTED (GitHub-only workspace)",
+  "nativeSidePanel": "NOT_TESTED (local Chrome profile unavailable)",
+  "nativePersistence": "NOT_TESTED",
+  "regression": "Targeted GitHub CI green on source+race fix, 46/46; overall merge candidate blocked pending unrelated build-policy contract resolution and actual Chrome native verification",
+  "constraints": [
+    "Chrome native permission is not app-level SDK grant",
+    "Never auto-reapprove on revoked permission",
+    "Do not modify global owner or other workstreams",
+    "Do not merge without verification"
+  ],
+  "evidence": "GitHub PR and commit identifiers once created",
+  "targetedCi": {
+    "status": "PASSED",
+    "workflow": "Site access targeted checks",
+    "runId": 37753263703,
+    "jobId": 113231445699,
+    "syntax": "PASSED",
+    "nodeTests": "46 passed / 0 failed",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37753263703"
+  },
+  "otherCi": {
+    "status": "FAILED_UNRELATED",
+    "workflow": "R3 page-script package and build",
+    "runId": 37752918177,
+    "failedStep": "Source and vendor integrity",
+    "cause": "scripts/build-contract.mjs productionBytes 320KB in latest main while scripts/verify-package.mjs expects 256KB; our branch did not modify either file"
+  },
+  "pr": "https://github.com/shopable-ai/opendesk-browser/pull/7",
+  "reconciliation": {
+    "mainSha": "21b013ec42fc2aa398319017d826f2c7ee075748",
+    "branchSha": "9dba9e73e8464b21791854e428ead8f466499793",
+    "type": "two-parent merge",
+    "preserved": [
+      "src/ui/task-workbench.js",
+      "existing three-page workbench controls and task package UI",
+      "existing global Editor & SDK authority"
+    ],
+    "changes": [
+      "src/ui/tool-shell.js",
+      "src/ui/tool.html",
+      "src/ui/tool-shell.css"
+    ],
+    "native": "NOT_TESTED",
+    "targetedCi": "PENDING on reconciled head"
+  },
+  "followUpDiagnosis": {
+    "at": "2026-10-08",
+    "finding": "Clean native CFT profiles are recreated by k5-sdk-native-launcher and b05; PR7 onboarding not on main until merged",
+    "developerLane": "Dedicated stable per-worktree profile via npm run dev:chrome",
+    "formalAcceptanceLane": "Existing fresh CFT test launchers unchanged",
+    "browserNativePersistence": "NOT_TESTED on user Mac",
+    "devModeUnit": "PENDING GitHub CI"
+  }
+}
