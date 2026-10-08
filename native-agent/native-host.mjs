@@ -102,7 +102,9 @@ export function createNativeHost({installation,origin,input=process.stdin,output
     failPending();
     for (const item of clients) {clearTimeout(item.authTimer);item.socket.destroy();}
     clients.clear();
-    if (server) server.close(unlinkOwned); else unlinkOwned();
+    if (server) {
+      try {server.close(unlinkOwned);}catch {unlinkOwned();}
+    } else unlinkOwned();
   }
   function onNativeData(bytes) {
     try {
