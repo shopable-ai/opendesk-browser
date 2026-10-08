@@ -148,8 +148,10 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   timeout:95000
 },async t=>{
   const binary=chromeBinary();
-  assert.ok(binary,'No installed real Google Chrome or CFT; cannot claim Chrome E2E');
+  assert.ok(binary,'Chrome for Testing is required for automated unpacked MV3 smoke');
   const [executable,browser]=binary,ext=path.resolve('dist/production');
+  assert.equal(browser,'cft',
+    'Official Chrome 137+ ignores --load-extension. Use Chrome for Testing for automation, or manually load dist/production in chrome://extensions');
   assert.ok(fs.existsSync(path.join(ext,'manifest.json')),'Build production package first');
   const home=fs.mkdtempSync('/private/tmp/odbr-');
   const profile=path.join(home,'browser-profile'),env={...process.env,HOME:home};
