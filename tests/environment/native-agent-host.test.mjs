@@ -4,10 +4,10 @@ import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.
 const target={status:'available',windowId:5,tabId:10,frameId:0,documentId:'doc-A',
   url:'https://example.test/item',origin:'https://example.test'};
 function fixture(granted=true){
-  const started=[],saved=[],stopped=[],subscriptions=new Set();
+  const started=[],saved=[],stopped=[],subscriptions=new Set(),replies=[];
   const client={ready:Promise.resolve(),registration:{registrationId:'registration-1'},
     subscribeNativeAgent:cb=>{subscriptions.add(cb);return()=>subscriptions.delete(cb);},
-    replyNativeAgent:()=>{}};
+    replyNativeAgent:reply=>replies.push(reply)};
   const currentPageTarget={ready:Promise.resolve(),refresh:async()=>{},
     capture:()=>({...target}),revalidate:async x=>{if(x.documentId!=='doc-A')throw Error('stale');}};
   const host={currentRun:null,controller:{
@@ -16,7 +16,8 @@ function fixture(granted=true){
   },start:async data=>{started.push(data);return {runId:'run-A',state:'running',sourceKind:data.source.kind,
     revision:{sourceHash:'abc'}};},stop:async data=>{stopped.push(data);return {runId:data.runId,state:'stopped'};}};
   const api={permissions:{contains:async()=>granted,request:()=>{throw Error('Forbidden synthetic permission request');}}};
-  return {host,client,adapter:createNativeAgentHostAdapter({host,client,currentPageTarget,api}),started,saved,stopped};
+  return {host,client,adapter:createNativeAgentHostAdapter({host,client,currentPageTarget,api}),started,saved,stopped,
+    subscriptions,replies};
 }
 test('current target is live Sidebar snapshot, not active tab chosen by CLI',async t=>{
   const f=fixture();t.after(()=>f.adapter.dispose());
@@ -33,6 +34,14 @@ test('external draft uses exact RunHost with frozen borrowed target and controll
   assert.equal(f.started[0].requestId,'agent-123');
   assert.deepEqual(f.started[0].target,{mode:'borrowed',tabId:10,frameId:0,documentId:'doc-A',
     expectedUrl:target.url,expectedWindowId:5});
+});
+test('Host ACK correlation preserves the external Controller admission requestId',async t=>{
+  const f=fixture();t.after(()=>f.adapter.dispose());
+  await [...f.subscriptions][0]({method:'run.start',requestId:'external-admission',dispatchId:'internal-ack',
+    params:{source:{kind:'draft',sourceUtf8:'async function main(){return 3}'},params:{},target:{...target}}});
+  assert.equal(f.started[0].requestId,'external-admission');
+  assert.equal(f.replies[0].requestId,'internal-ack');
+  assert.equal(f.replies[0].result.runId,'run-A');
 });
 test('permissions and document id fail before admission (no Chrome prompt)',async t=>{
   const f=fixture(false);t.after(()=>f.adapter.dispose());
