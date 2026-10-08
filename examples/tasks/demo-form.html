@@ -1,65 +1,288 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser 表单任务演示</title>
-<style>body{font:16px/1.6 system-ui,sans-serif;max-width:560px;margin:10vh auto;padding:16px;color:#172033}
-form{display:grid;gap:10px}input,button{font:inherit;padding:12px;border-radius:8px}
-button{background:#214bc0;color:white;border:0;cursor:pointer}#done{color:#17683b;font-weight:600}section{margin-top:30px;border-top:1px solid #ddd;padding-top:20px}#search-status{color:#17683b}button:disabled{opacity:.55;cursor:wait}</style></head>
-<body><h1>本地任务运行演示</h1>
-<p>演示页不上传数据。启动本地 HTTP 服务后，打开 Sidebar，在本页运行已验证并安装的表单任务。</p>
-<form id="demo-form"><label for="name">姓名</label><input id="name" autocomplete="off" placeholder="输入姓名" required>
-<button type="submit" id="submit">提交</button></form>
-<section aria-labelledby="modern-title">
-<h2 id="modern-title">现代 Page API：搜索任务</h2>
-<form id="search-form">
-<label for="keyword">搜索关键词</label>
-<input id="keyword" name="keyword" type="search" value="旧的预填内容" autocomplete="off">
-<button type="submit" id="search-submit">搜索</button>
-</form>
-<p id="search-status" role="status" hidden></p>
-<div id="results"></div>
-<p id="search-count" aria-live="polite">提交次数：0</p>
-</section>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk Browser · 基础网页交互测试</title>
+<style>
+:root{font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#19283d;background:#f7f9fc;font-synthesis:none}
+*{box-sizing:border-box}
+body{margin:0}
+button,input,select{font:inherit}
+button{min-height:38px;cursor:pointer;border:1px solid #cbd5e1;border-radius:8px;padding:7px 13px;font-weight:600;color:#253854;background:#fff}
+button:hover{background:#f0f4fa}
+button:disabled{opacity:.52;cursor:not-allowed}
+button.primary{color:#fff;border-color:#2855bd;background:#2855bd}
+button.primary:hover{background:#2048a5}
+button.text-button{border:0;background:transparent;color:#51637c;padding-inline:7px}
+:focus-visible{outline:3px solid #86a7ef;outline-offset:2px}
+.topbar{background:white;border-bottom:1px solid #e0e6ee}
+.topbar-inner{max-width:760px;min-height:56px;margin:auto;padding:9px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;gap:9px;align-items:center;font-size:14px;font-weight:760}
+.brand-mark{width:27px;height:27px;display:grid;place-items:center;color:#fff;background:#2855bd;border-radius:8px;font-size:15px}
+.brand-note{font-size:12px;color:#596a82;font-weight:400}
+main{max-width:760px;margin:27px auto 48px;padding:0 22px}
+h1{font-size:24px;letter-spacing:-.03em;line-height:1.3;margin:0 0 5px}
+.intro{margin:0 0 17px;color:#63748a;font-size:13px}
+.sheet{background:#fff;border:1px solid #e0e6ee;border-radius:12px;box-shadow:0 4px 18px #1b355108;overflow:hidden}
+.unit{padding:18px 22px 20px;min-width:0}
+.unit+.unit{border-top:1px solid #e8edf4}
+.unit-heading{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.unit-heading small{font-weight:750;color:#64748b;font-size:11px;font-variant-numeric:tabular-nums}
+h2{margin:0;font-size:14px;letter-spacing:-.01em;color:#203650}
+h3{margin:4px 0;font-size:18px;letter-spacing:-.025em}
+.sample-text{margin:0;color:#52647c}
+.chips{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:12px 0 0;padding:0}
+.chips li{padding:3px 9px;background:#f3f6fa;border:1px solid #e7edf3;border-radius:6px;color:#5a6c83;font-size:12px}
+.controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.result-line{margin:10px 0 0;font-size:13px;color:#516681}
+.result-line output{font-weight:800;color:#2855bd;font-variant-numeric:tabular-nums}
+.expanded{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:#f3f7fc;color:#344d72;font-size:13px}
+label{font-size:12px;color:#445974;font-weight:650}
+select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px}
+#delay{width:118px}
+.status{display:flex;gap:8px;align-items:center;color:#61738b;margin-top:12px;font-size:13px}
+.indicator{width:7px;height:7px;flex:none;border-radius:50%;background:#a5b1c1}
+.status[data-state="loading"] .indicator{background:#ca9137}
+.status[data-state="success"] .indicator{background:#198767}
+.status[data-state="error"] .indicator,.status[data-state="timeout"] .indicator{background:#c24953}
+#async-result{margin:6px 0 0;color:#176546;font-size:13px}
+#async-result:empty{display:none}
+#async-error{color:#a83f4b}
+.fields{display:flex;flex-wrap:wrap;align-items:flex-end;gap:9px}
+.field{display:grid;gap:5px;flex:1;min-width:165px}
+.field input,.field select{width:100%}
+.feedback{margin:12px 0 0}
+#done{display:inline-block;margin:0;padding:8px 11px;border-radius:8px;background:#ecf8f0;color:#1b693c;font-weight:700}
+#form-hint{color:#b63a47;font-size:12px;margin:6px 0 0}
+#form-hint:empty,#form-result:empty{display:none}
+#search-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}
+#search-status{font-size:13px;color:#176546;margin:10px 0 0}
+#results{font-size:13px;color:#344d70;margin-top:5px}
+#search-count{font-size:12px;color:#61728a;margin:6px 0 0}
+.footnote{font-size:12px;color:#5c6e85;margin:12px 0 0}
+@media(max-width:540px){.topbar-inner{padding:9px 15px}main{padding:0 13px;margin-top:23px}h1{font-size:22px}.unit{padding:16px}.field{flex-basis:100%}.controls{gap:7px}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark" aria-hidden="true">O</span>OpenDesk <span class="brand-note">/ 测试网页</span></div><button id="reset-all" type="button" class="text-button">重置页面</button></div></header>
+<main>
+  <h1>网页交互示例</h1>
+  <p class="intro">读取文字、点击按钮、等待异步响应，再填写简单表单。</p>
+  <div class="sheet">
+    <section class="unit" aria-labelledby="text-title">
+      <div class="unit-heading"><small>01</small><h2 id="text-title">文本读取</h2></div>
+      <h3 id="sample-title" data-testid="sample-title">周末阅读清单</h3>
+      <p id="sample-text" class="sample-text" data-testid="sample-text">本周共有 3 项阅读计划，当前状态：等待开始。</p>
+      <ul id="sample-list" class="chips"><li>产品设计</li><li>浏览器技术</li><li>交互体验</li></ul>
+    </section>
+    <section class="unit" aria-labelledby="click-title">
+      <div class="unit-heading"><small>02</small><h2 id="click-title">按钮与 DOM 变化</h2></div>
+      <div class="controls"><button id="click-button" class="primary" type="button">点击一次</button><button id="toggle-button" type="button" aria-expanded="false" aria-controls="extra-text">展开文字</button></div>
+      <p class="result-line">累计点击 <output id="click-count" role="status" aria-live="polite">0</output> 次</p>
+      <p id="extra-text" class="expanded" hidden>这是点击后出现的文字，可用于验证元素显示和文本读取。</p>
+    </section>
+    <section class="unit" aria-labelledby="async-title">
+      <div class="unit-heading"><small>03</small><h2 id="async-title">网络请求与异步等待</h2></div>
+      <div class="controls">
+        <label for="delay">显示延迟</label>
+        <select id="delay"><option value="300">300 毫秒</option><option value="1200" selected>1.2 秒</option><option value="3000">3 秒</option></select>
+        <button id="request-success" type="button" class="primary">请求成功</button>
+        <button id="request-failure" type="button">HTTP 404</button>
+        <button id="request-timeout" type="button">模拟超时</button>
+        <button id="request-cancel" type="button" class="text-button" disabled>取消</button>
+      </div>
+      <div id="async-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="async-status-text">尚未发起请求</span></div>
+      <div id="async-result" aria-live="polite"></div>
+    </section>
+    <section class="unit" aria-labelledby="form-title">
+      <div class="unit-heading"><small>04</small><h2 id="form-title">简单表单</h2></div>
+      <form id="demo-form" class="fields" autocomplete="off">
+        <div class="field"><label for="name">姓名</label><input id="name" name="name" type="text" maxlength="40" placeholder="例如 Alice" required></div>
+        <div class="field"><label for="topic">咨询类型</label><select id="topic" name="topic"><option value="general">一般问题</option><option value="feedback">产品建议</option><option value="support">技术支持</option></select></div>
+        <button id="submit" type="submit" class="primary">提交</button>
+      </form>
+      <div id="form-result" class="feedback" role="status" aria-live="polite"></div>
+      <p id="form-hint" role="alert"></p>
+    </section>
+    <section class="unit" aria-labelledby="modern-title">
+      <div class="unit-heading"><small>05</small><h2 id="modern-title">动态搜索 · Locator 测试</h2></div>
+      <form id="search-form" autocomplete="off">
+        <div class="field"><label for="keyword">搜索关键词</label><input id="keyword" name="keyword" type="search" value="旧的预填内容"></div>
+        <button id="search-submit" type="submit">搜索</button>
+      </form>
+      <p id="search-status" role="status" hidden></p>
+      <div id="results" aria-live="polite"></div>
+      <p id="search-count" aria-live="polite">提交次数：0</p>
+    </section>
+  </div>
+  <p class="footnote">网络成功和 HTTP 404 使用真实同源 fetch；显示延迟、超时由页面控制，非服务器响应延迟。请通过本地 HTTP 服务打开。</p>
+</main>
 <script>
 (() => {
-  const form = document.getElementById('search-form');
-  const input = document.getElementById('keyword');
-  const status = document.getElementById('search-status');
-  const results = document.getElementById('results');
-  const count = document.getElementById('search-count');
-  let submissions = 0, generation = 0;
-  input.addEventListener('input', () => {
-    // Deliberate same-document repaint: a Locator must re-query, not retain a
-    // stale button. The temporary disabled state exercises automatic waiting.
-    const old = document.getElementById('search-submit');
-    const replacement = old.cloneNode(true);
-    replacement.disabled = true;
-    old.replaceWith(replacement);
-    const current = ++generation;
-    setTimeout(() => { if (current === generation) replacement.disabled = false; }, 180);
-    status.hidden = true;
-    results.textContent = '';
+  const get = id => document.getElementById(id);
+  let clicks = 0;
+  const extra = get('extra-text'), toggle = get('toggle-button');
+  get('click-button').addEventListener('click', () => {
+    get('click-count').textContent = String(++clicks);
   });
+  toggle.addEventListener('click', () => {
+    extra.hidden = !extra.hidden;
+    toggle.setAttribute('aria-expanded', String(!extra.hidden));
+    toggle.textContent = extra.hidden ? '展开文字' : '收起文字';
+  });
+
+  // No external API is needed: Python's existing static server provides 200/404.
+  // Client-side display latency allows deterministic waits without server changes.
+  let activeRequest = null;
+  const requestCancel = get('request-cancel');
+  const asyncStatus = get('async-status'), asyncStatusText = get('async-status-text');
+  const asyncResult = get('async-result');
+  function showAsync(state, message, resultId = '', resultText = '') {
+    asyncStatus.dataset.state = state;
+    asyncStatusText.textContent = message;
+    asyncResult.replaceChildren();
+    if (resultId) {
+      const node = document.createElement('p');
+      node.id = resultId;
+      node.textContent = resultText;
+      asyncResult.append(node);
+    }
+  }
+  function abandonRequest() {
+    const previous = activeRequest;
+    activeRequest = null;
+    if (previous) previous.controller.abort();
+    requestCancel.disabled = true;
+  }
+  function sleep(ms, signal) {
+    return new Promise((resolve, reject) => {
+      if (signal.aborted) { reject(new DOMException('已中止', 'AbortError')); return; }
+      const timer = setTimeout(resolve, ms);
+      signal.addEventListener('abort', () => {
+        clearTimeout(timer);
+        reject(new DOMException('已中止', 'AbortError'));
+      }, {once:true});
+    });
+  }
+  async function runRequest(kind) {
+    abandonRequest();
+    const request = {controller: new AbortController(), timeoutTimer: null, reason: ''};
+    activeRequest = request;
+    requestCancel.disabled = false;
+    const selectedDelay = Number(get('delay').value);
+    const displayDelay = kind === 'timeout' ? Math.max(1500, selectedDelay) : selectedDelay;
+    if (kind === 'timeout') {
+      request.timeoutTimer = setTimeout(() => {
+        request.reason = 'timeout';
+        request.controller.abort();
+      }, 700);
+    }
+    showAsync('loading', '请求中…');
+    try {
+      const url = kind === 'error'
+        ? './__opendesk_expected_404__.json'
+        : './demo-form.html?test-response=1';
+      const response = await fetch(url, {cache:'no-store', signal:request.controller.signal});
+      await response.text();
+      await sleep(displayDelay, request.controller.signal);
+      if (activeRequest !== request) return;
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      showAsync('success', '请求成功', 'async-done', 'HTTP ' + response.status + ' · 已读取本地测试页面');
+    } catch (error) {
+      if (activeRequest !== request) return;  // Superseded or reset: no stale update.
+      if (request.reason === 'timeout') {
+        showAsync('timeout', '请求超时', 'async-error', 'E_TIMEOUT：模拟等待超过 700 毫秒');
+      } else if (request.controller.signal.aborted) {
+        showAsync('cancelled', '已取消');
+      } else {
+        showAsync('error', '请求失败', 'async-error', error instanceof Error ? error.message : String(error));
+      }
+    } finally {
+      if (request.timeoutTimer !== null) clearTimeout(request.timeoutTimer);
+      if (activeRequest === request) {
+        activeRequest = null;
+        requestCancel.disabled = true;
+      }
+    }
+  }
+  get('request-success').addEventListener('click', () => runRequest('success'));
+  get('request-failure').addEventListener('click', () => runRequest('error'));
+  get('request-timeout').addEventListener('click', () => runRequest('timeout'));
+  requestCancel.addEventListener('click', () => {
+    if (!activeRequest) return;
+    activeRequest.controller.abort();
+  });
+
+  const form = get('demo-form'), name = get('name');
+  name.addEventListener('input', () => {
+    get('form-hint').textContent = '';
+    get('done')?.remove();  // A new run must not mistake an old success for this submission.
+  });
+  form.addEventListener('invalid', event => {
+    if (event.target === name) get('form-hint').textContent = '请输入姓名';
+  }, true);
   form.addEventListener('submit', event => {
     event.preventDefault();
-    ++submissions;
-    count.textContent = '提交次数：' + submissions;
+    get('done')?.remove();
+    const value = name.value.trim();
+    if (!value) { get('form-hint').textContent = '请输入姓名'; return; }
+    const done = document.createElement('p');
+    done.id = 'done';
+    done.textContent = '已提交：' + value;
+    get('form-result').append(done);
+    get('form-hint').textContent = '';
+  });
+
+  // Preserve the modern Page API example's in-document replacement of #search-submit.
+  // This intentionally requires Locator re-query and disabled-button auto-waiting.
+  const searchForm = get('search-form'), keyword = get('keyword');
+  const searchStatus = get('search-status'), results = get('results');
+  let searchCount = 0, searchGeneration = 0;
+  keyword.addEventListener('input', () => {
+    const old = get('search-submit'), replacement = old.cloneNode(true);
+    replacement.disabled = true;
+    old.replaceWith(replacement);
+    const generation = ++searchGeneration;
+    setTimeout(() => { if (generation === searchGeneration) replacement.disabled = false; }, 180);
+    searchStatus.hidden = true;
+    results.textContent = '';
+  });
+  searchForm.addEventListener('submit', event => {
+    event.preventDefault();
+    get('search-count').textContent = '提交次数：' + ++searchCount;
+    const generation = ++searchGeneration;
+    const term = keyword.value;
     setTimeout(() => {
-      status.textContent = '搜索完成';
-      status.hidden = false;
-      results.textContent = '结果：' + input.value;
+      if (generation !== searchGeneration) return;
+      searchStatus.textContent = '搜索完成';
+      searchStatus.hidden = false;
+      results.textContent = '结果：' + term;
     }, 120);
+  });
+
+  get('reset-all').addEventListener('click', () => {
+    clicks = 0;
+    get('click-count').textContent = '0';
+    extra.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.textContent = '展开文字';
+    abandonRequest();
+    showAsync('idle', '尚未发起请求');
+    get('delay').value = '1200';
+    form.reset();
+    get('done')?.remove();
+    get('form-hint').textContent = '';
+    ++searchGeneration;
+    searchCount = 0;
+    searchForm.reset();
+    get('search-submit').disabled = false;
+    get('search-count').textContent = '提交次数：0';
+    searchStatus.hidden = true;
+    searchStatus.textContent = '';
+    results.textContent = '';
   });
 })();
 </script>
-<script>
-document.getElementById('demo-form').addEventListener('submit', event => {
-  event.preventDefault();
-  const previous = document.getElementById('done');
-  previous?.remove();
-  const done = document.createElement('p');
-  done.id = 'done';
-  done.textContent = '已提交：' + document.getElementById('name').value;
-  document.body.append(done);
-});
-</script></body></html>
+</body>
+</html>
