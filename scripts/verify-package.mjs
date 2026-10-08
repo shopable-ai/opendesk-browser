@@ -22,6 +22,7 @@ export const FIXED_ASSETS = Object.freeze({
 });
 const HTML_REFERENCES = Object.freeze({
   'ui/tool.html': ['tool-shell.css', 'tool-shell.js'],
+  'native-agent/settings.html': ['settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
   [SANDBOX_HTML]: ['sandbox.js']
 });
@@ -84,17 +85,18 @@ export async function verifySdkResourceManifest(directory) {
   return actual;
 }
 export function verifyManifest(manifest) {
-  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'optional_host_permissions', 'background', 'action', 'side_panel', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
+  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'optional_host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
   if (!same(manifest.permissions, ['storage', 'scripting', 'sidePanel', 'activeTab', 'downloads', 'tabs', 'webNavigation', 'userScripts'])) throw new Error('Unexpected permissions');
-  if (!same(manifest.optional_permissions, ['cookies', 'notifications'])) throw new Error('Unexpected optional permissions');
+  if (!same(manifest.optional_permissions, ['cookies', 'notifications', 'nativeMessaging'])) throw new Error('Unexpected optional permissions');
   if (!same(manifest.optional_host_permissions, ['http://*/*', 'https://*/*'])) throw new Error('Unexpected optional host permissions');
   if (!same(manifest.content_security_policy, {extension_pages: EXTENSION_CSP, sandbox: SANDBOX_CSP})) throw new Error('Unexpected CSP');
   if (!same(manifest.sandbox, {pages: [SANDBOX_HTML]})) throw new Error('Unexpected sandbox boundary');
   if (!same(manifest.background, {service_worker: 'sw.js'})) throw new Error('Unexpected or missing worker entry');
   if (!same(Object.keys(manifest.action || {}), ['default_title'])) throw new Error('Unexpected action resource/entry');
   if (!same(manifest.side_panel, {default_path: 'ui/tool.html'})) throw new Error('Unexpected or missing Side Panel entry');
+  if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
   if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
   if (manifest.host_permissions || manifest.content_scripts || manifest.externally_connectable) throw new Error('Unapproved broad exposure');
