@@ -19,7 +19,7 @@ class Element {
 globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const html=await readFile('src/ui/tool.html','utf8');
-const make=({installedInitially=true}={})=>{
+const make=({installedInitially=true,secondTask=false}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
   const doc={getElementById:get,createElement:()=>new Element(),documentElement:{dataset:{}}};
@@ -29,7 +29,10 @@ const make=({installedInitially=true}={})=>{
       properties:{name:{type:'string',title:'姓名',minLength:1,maxLength:30,default:'Alice'}},required:['name'],additionalProperties:false}};
   const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:installedInitially,enabled:true};
   const installed={taskId:row.taskId,version:row.version,scriptId:programId,manifestHash,enabled:true};
-  let installedState=installedInitially?[installed]:[];
+  const other=secondTask?{...row,taskId:'demo.second',
+    manifest:{...manifest,title:'另一个已安装任务',description:'演示切换时保留各自输入'}}:null;
+  const otherInstalled=secondTask?{...installed,taskId:'demo.second',scriptId:'task:demo.second:1.0.0'}:null;
+  let installedState=installedInitially?[installed,...(secondTask?[otherInstalled]:[])]:[];
   const starts=[],permissions=[],stops=[],catalogOpens=[];
   let target={status:'available',url:'https://a.example/',tabId:9,windowId:7,documentId:'doc-9'};
   const page={
@@ -39,7 +42,7 @@ const make=({installedInitially=true}={})=>{
   const client={ready:Promise.resolve(),subscribeConnection:()=>()=>{},
     controller:{snapshotControllerRun:async()=>structuredClone(view)},
     async request(method,payload) {
-      if(method==='listTaskCatalog')return {catalog:[structuredClone(row)],installed:structuredClone(installedState)};
+      if(method==='listTaskCatalog')return {catalog:structuredClone(secondTask?[row,other]:[row]),installed:structuredClone(installedState)};
       if(method==='installTask') {
         installedState=[installed];row.installed=true;return structuredClone(installed);
       }
@@ -254,4 +257,21 @@ test('card view retains original action identities, history and parameter form a
   await f.click('tab-discover');await f.click('tab-develop');await f.click('tab-my-tasks');
   assert.equal(form.children.find(node=>node.dataset.taskParam==='name').value,'unchanged');
   assert.equal(f.get('task-installed-cards').children[0].children[1],f.get('task-selected-workspace'));
+});
+
+test('switching between two installed tasks preserves each independent unsaved parameter input',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  const form=f.get('task-params-form');
+  const field=()=>form.children.find(node=>node.dataset.taskParam==='name');
+  field().value='First';
+  f.get('task-installed-cards').children[1].children[0].fire('click');
+  assert.equal(f.get('task-installed-list').value,'demo.second');
+  field().value='Second';
+  f.get('task-installed-cards').children[0].children[0].fire('click');
+  assert.equal(f.get('task-installed-list').value,'demo.form');
+  assert.equal(field().value,'First');
+  f.get('task-installed-cards').children[1].children[0].fire('click');
+  assert.equal(field().value,'Second');
+  assert.equal(f.starts.length,0,'card selection never executes code');
+  assert.equal(f.permissions.length,0,'card selection never requests permission');
 });
