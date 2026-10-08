@@ -35,7 +35,7 @@
 - **Scheduled Task**：P2 是对可恢复工作单元的 schedule trigger；基于同一身份、Run Journal、输入哈希、租约和效果收据；触发不能提升 script grant。browser closed 下不执行，醒后根据策略补偿。
 - **UserCSS**：可独立 Source+Style Revision 与匹配，不接受 JS/GM API，适配 CSS 注入/卸载。
 - **AI Agent / Skill**：可选外部 UI 或受信 Adapter 调用已有 Controller/Task；不能绕开 Candidate/Verified/Available。Agent 不是 Page Runtime 特权世界。
-- **Native Host / CLI**：R6 已有 PR #11 正在开发但未合并 main；只作为可选 IPC 外部入口，不持有第二调度权威，也不是普通脚本安装的前置条件。
+- **Native Host / CLI**：PR #11 及相关改进已于 `main@189a7037` 完成源码集成；完整本机/原生验收仍未通过。只作为可选 IPC 外部入口，复用活跃 Sidebar 的原 RunHost，不持有第二调度权威，也不是普通脚本安装的前置条件。
 
 ## 3. 最小核心模块与复用线路
 
@@ -132,7 +132,7 @@ Browser SW 通常空闲 30s 即销毁，globals 非持久；Chrome Alarms 最快
 
 **UserCSS** 独立格式：CSS sourceHash/selector/rules/preview/installedStyles，用受控 CSS 注入 API 实施；不进入 JavaScript Sandbox，不获取 @grant。Stylus 的预处理/变量/同步/Preset 待有用户使用证据再做。
 
-**Agent / AI 任务冻结**：参考 [agent-to-task-contract-r1](agent-to-task-contract-r1.zh-CN.md)。AI 生成 ≠ 授权 ≠ 发布；Draft → same-source native Run → Durable Result + page-effect proof → verified Candidate → Available → 用户安装 → Agent 关闭后重复成功。Native PR #11 当前仍 open，不在主干；用户主动选择启用 Bridge。
+**Agent / AI 任务冻结**：参考 [agent-to-task-contract-r1](agent-to-task-contract-r1.zh-CN.md)。AI 生成 ≠ 授权 ≠ 发布；Draft → same-source native Run → Durable Result + page-effect proof → verified Candidate → Available → 用户安装 → Agent 关闭后重复成功。Native/CLI 六方法已随 PR #11 进入主干；用户主动选择启用 Bridge，源码合并不代表上述原生用户链已通过。
 
 **Firefox**：browser.userScripts、事件页/Offscreen、host-permission/更新与消息不同，定义 BrowserUserScriptsDriver、PermissionDriver、ScheduleDriver 的能力探测与测试合同；不假设 Firefox 等同 Chrome。**Safari**：扩展生命周期/用户脚本许可、跨上下文消息更受限，先验证 P4 POC 再声称兼容。代码中的 chrome.* 只能在 adapter/Host 层，不能扩散进 GM facade 核心。
 
@@ -153,7 +153,7 @@ P0 采用门槛：正式 Page 可按规则安装/启停、同文档只执行一�
 - 未认证的 Page 启动即可执行；未经真实 Authority 认可冒充 Available；停用/撤权后允许下一文档运行的竞态无风险说明；
 - 注入了 GM facade 即无条件访问 chrome.*, Cookie/网络/下载；不经 @connect/target grant；
 - 定时器声称永久在线、秒级准点、exactly-once 远程副作用；
-- PR #11 未合仍称 Native Agent main 已完成；UI 增加第四一级页签或重写当前 Controller/TaskDB；
+- 把 Native 源码合并、模拟 Chrome framing 的 Host IPC 或绿色诊断 job 当作完整 Native/Codex 用户验收；UI 增加第四一级页签或重写当前 Controller/TaskDB；
 - 任何未经过真实 Chrome/Codex E2E 的功能被标 CHROME_NATIVE_VERIFIED。
 
 ## 10. R8 Engineering Program R1 增量决策
@@ -196,3 +196,9 @@ P0 采用门槛：正式 Page 可按规则安装/启停、同文档只执行一�
 - **EP-S7**：[Chrome Web Store Policies](https://developer.chrome.com/docs/webstore/program-policies/policies)，最小权限、单一用途和用户提供脚本的受控 API 边界。
 
 以上来源用于确定设计约束，未执行对应跨版本原生测试；引用官方规范不改变功能的 `NOT_TESTED` 状态。
+
+### main74 实施复核：既有 Sidebar UI adapter 与 ADR-14 的边界
+
+并行主线已增加 sidebar-tool.v1 本地 UI 包、opaque sandbox 和三项窄能力桥，三一级页签保留；tasks.open 只定位已安装任务，不执行 Task。该局部 UI 配置尚未接入 ProgramRef、Revision/hash、安装 generation、正式验证和 Authority receipt，不能描述为统一 Plugin SDK 已完成。E39/E40 负责将后续工具能力适配回原身份/权限模型；不删除已有 UI，也不据此创建 GM、Task、Tool 三套自动化权限系统。
+
+在开放任务启动、网络或其他特权前，须补齐关闭/切换后排队消息失效、跨窗口安装/卸载/存储一致性、同 ID 更新来源/扩权差异和回执生命周期。原 Controller sandbox 的 Meta CSP 仍严格，新 UI 有自己的 Meta CSP；共享 manifest sandbox CSP 扩展必须同时接受原生隔离审查。当前只有局部合同/打包/构建证据，真实 Chrome 与完整消息负例没有因此通过。

@@ -1,0 +1,757 @@
+﻿2026-10-08T17:38:30.1743005Z Current runner version: '2.337.0'
+2026-10-08T17:38:30.1770494Z ##[group]Runner Image Provisioner
+2026-10-08T17:38:30.1771734Z Hosted Compute Agent
+2026-10-08T17:38:30.1772415Z Version: 20261002.596
+2026-10-08T17:38:30.1773071Z Commit: c3d12f3313a95f25162a1503be624f3b0617f8c0
+2026-10-08T17:38:30.1773851Z Build Date: 2026-10-02T22:28:27Z
+2026-10-08T17:38:30.1774594Z Worker ID: {b201bef0-0e15-42c5-85a2-2eebd5defa5b}
+2026-10-08T17:38:30.1775296Z Region: eastus
+2026-10-08T17:38:30.1775814Z Cloud: Azure
+2026-10-08T17:38:30.1776405Z ##[endgroup]
+2026-10-08T17:38:30.1777984Z ##[group]Operating System
+2026-10-08T17:38:30.1778755Z Ubuntu
+2026-10-08T17:38:30.1779333Z 24.04.5
+2026-10-08T17:38:30.1779825Z LTS
+2026-10-08T17:38:30.1780403Z ##[endgroup]
+2026-10-08T17:38:30.1780981Z ##[group]Runner Image
+2026-10-08T17:38:30.1781839Z Image: ubuntu-24.04
+2026-10-08T17:38:30.1782436Z Version: 20261004.327.1
+2026-10-08T17:38:30.1783761Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261004.327/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-08T17:38:30.1785478Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261004.327
+2026-10-08T17:38:30.1786495Z ##[endgroup]
+2026-10-08T17:38:30.1787599Z ##[group]GITHUB_TOKEN Permissions
+2026-10-08T17:38:30.1789917Z Contents: read
+2026-10-08T17:38:30.1790591Z Metadata: read
+2026-10-08T17:38:30.1791403Z ##[endgroup]
+2026-10-08T17:38:30.1793950Z Secret source: Actions
+2026-10-08T17:38:30.1794947Z Cache mode: write
+2026-10-08T17:38:30.1795667Z Prepare workflow directory
+2026-10-08T17:38:30.2143219Z Prepare all required actions
+2026-10-08T17:38:30.2193915Z Getting action download info
+2026-10-08T17:38:30.4442213Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-08T17:38:30.5720444Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-08T17:38:30.7690190Z Complete job name: axiosx-http-contract
+2026-10-08T17:38:30.8501433Z ##[group]Run actions/checkout@v4
+2026-10-08T17:38:30.8502469Z with:
+2026-10-08T17:38:30.8503022Z   repository: shopable-ai/opendesk-browser
+2026-10-08T17:38:30.8507188Z   token: ***
+2026-10-08T17:38:30.8507630Z   ssh-strict: true
+2026-10-08T17:38:30.8508070Z   ssh-user: git
+2026-10-08T17:38:30.8508518Z   persist-credentials: true
+2026-10-08T17:38:30.8509007Z   clean: true
+2026-10-08T17:38:30.8509455Z   sparse-checkout-cone-mode: true
+2026-10-08T17:38:30.8509970Z   fetch-depth: 1
+2026-10-08T17:38:30.8510388Z   fetch-tags: false
+2026-10-08T17:38:30.8510837Z   show-progress: true
+2026-10-08T17:38:30.8511484Z   lfs: false
+2026-10-08T17:38:30.8511904Z   submodules: false
+2026-10-08T17:38:30.8512355Z   set-safe-directory: true
+2026-10-08T17:38:30.8512876Z   allow-unsafe-pr-checkout: false
+2026-10-08T17:38:30.8513651Z ##[endgroup]
+2026-10-08T17:38:30.9611931Z Syncing repository: shopable-ai/opendesk-browser
+2026-10-08T17:38:30.9615530Z ##[group]Getting Git version info
+2026-10-08T17:38:30.9617092Z Working directory is '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-08T17:38:30.9618405Z [command]/usr/bin/git version
+2026-10-08T17:38:30.9721435Z git version 2.55.0
+2026-10-08T17:38:30.9756496Z ##[endgroup]
+2026-10-08T17:38:30.9771341Z Temporarily overriding HOME='/home/runner/work/_temp/461fd5eb-ae21-4f5d-92de-c5ef18eee5db' before making global git config changes
+2026-10-08T17:38:30.9774290Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-08T17:38:30.9778626Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T17:38:30.9841995Z Deleting the contents of '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-08T17:38:30.9847436Z ##[group]Initializing the repository
+2026-10-08T17:38:30.9853987Z [command]/usr/bin/git init /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T17:38:30.9978582Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-08T17:38:30.9980781Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-08T17:38:30.9983927Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-08T17:38:30.9985830Z hint: call:
+2026-10-08T17:38:30.9986906Z hint:
+2026-10-08T17:38:30.9988146Z hint: 	git config --global init.defaultBranch <name>
+2026-10-08T17:38:30.9989563Z hint:
+2026-10-08T17:38:30.9990787Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-08T17:38:30.9992950Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-08T17:38:30.9994628Z hint:
+2026-10-08T17:38:30.9995613Z hint: 	git branch -m <name>
+2026-10-08T17:38:30.9996884Z hint:
+2026-10-08T17:38:30.9998295Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-08T17:38:31.0000646Z Initialized empty Git repository in /home/runner/work/opendesk-browser/opendesk-browser/.git/
+2026-10-08T17:38:31.0004694Z [command]/usr/bin/git remote add origin https://github.com/shopable-ai/opendesk-browser
+2026-10-08T17:38:31.0066288Z ##[endgroup]
+2026-10-08T17:38:31.0067499Z ##[group]Disabling automatic garbage collection
+2026-10-08T17:38:31.0070711Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-08T17:38:31.0109338Z ##[endgroup]
+2026-10-08T17:38:31.0110519Z ##[group]Setting up auth
+2026-10-08T17:38:31.0119995Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-08T17:38:31.0163677Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-08T17:38:31.0570545Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-08T17:38:31.0613850Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-08T17:38:31.0857333Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-08T17:38:31.0899429Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-08T17:38:31.1142219Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-08T17:38:31.1189606Z ##[endgroup]
+2026-10-08T17:38:31.1190793Z ##[group]Fetching the repository
+2026-10-08T17:38:31.1201273Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d0f64fc0040dc0afb406db8fa2c33fd5de49e9da:refs/remotes/pull/11/merge
+2026-10-08T17:38:33.5033169Z From https://github.com/shopable-ai/opendesk-browser
+2026-10-08T17:38:33.5036375Z  * [new ref]         d0f64fc0040dc0afb406db8fa2c33fd5de49e9da -> pull/11/merge
+2026-10-08T17:38:33.5041905Z ##[endgroup]
+2026-10-08T17:38:33.5044482Z ##[group]Determining the checkout info
+2026-10-08T17:38:33.5046295Z ##[endgroup]
+2026-10-08T17:38:33.5052641Z [command]/usr/bin/git sparse-checkout disable
+2026-10-08T17:38:33.5149746Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-08T17:38:33.5184045Z ##[group]Checking out the ref
+2026-10-08T17:38:33.5187278Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/11/merge
+2026-10-08T17:38:34.5375539Z Updating files:  69% (9061/12960)
+2026-10-08T17:38:34.5437553Z Updating files:  70% (9072/12960)
+2026-10-08T17:38:34.5493853Z Updating files:  71% (9202/12960)
+2026-10-08T17:38:34.5645851Z Updating files:  72% (9332/12960)
+2026-10-08T17:38:34.5723628Z Updating files:  73% (9461/12960)
+2026-10-08T17:38:34.5770882Z Updating files:  74% (9591/12960)
+2026-10-08T17:38:34.5920671Z Updating files:  75% (9720/12960)
+2026-10-08T17:38:34.6004598Z Updating files:  76% (9850/12960)
+2026-10-08T17:38:34.6061835Z Updating files:  77% (9980/12960)
+2026-10-08T17:38:34.6191295Z Updating files:  78% (10109/12960)
+2026-10-08T17:38:34.6284070Z Updating files:  79% (10239/12960)
+2026-10-08T17:38:34.6353988Z Updating files:  80% (10368/12960)
+2026-10-08T17:38:34.6407427Z Updating files:  81% (10498/12960)
+2026-10-08T17:38:34.6559443Z Updating files:  82% (10628/12960)
+2026-10-08T17:38:34.6640527Z Updating files:  83% (10757/12960)
+2026-10-08T17:38:34.6691463Z Updating files:  84% (10887/12960)
+2026-10-08T17:38:34.6839523Z Updating files:  85% (11016/12960)
+2026-10-08T17:38:34.6912830Z Updating files:  86% (11146/12960)
+2026-10-08T17:38:34.7015593Z Updating files:  87% (11276/12960)
+2026-10-08T17:38:34.7346688Z Updating files:  88% (11405/12960)
+2026-10-08T17:38:34.7693406Z Updating files:  89% (11535/12960)
+2026-10-08T17:38:34.7857106Z Updating files:  90% (11664/12960)
+2026-10-08T17:38:34.7936570Z Updating files:  91% (11794/12960)
+2026-10-08T17:38:34.8027488Z Updating files:  92% (11924/12960)
+2026-10-08T17:38:34.8380667Z Updating files:  93% (12053/12960)
+2026-10-08T17:38:34.9149024Z Updating files:  94% (12183/12960)
+2026-10-08T17:38:34.9474510Z Updating files:  95% (12312/12960)
+2026-10-08T17:38:35.0122947Z Updating files:  96% (12442/12960)
+2026-10-08T17:38:35.0704354Z Updating files:  97% (12572/12960)
+2026-10-08T17:38:35.1447543Z Updating files:  98% (12701/12960)
+2026-10-08T17:38:35.1864852Z Updating files:  99% (12831/12960)
+2026-10-08T17:38:35.1865384Z Updating files: 100% (12960/12960)
+2026-10-08T17:38:35.1865835Z Updating files: 100% (12960/12960), done.
+2026-10-08T17:38:35.2057947Z Note: switching to 'refs/remotes/pull/11/merge'.
+2026-10-08T17:38:35.2058376Z 
+2026-10-08T17:38:35.2058677Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-08T17:38:35.2059464Z changes and commit them, and you can discard any commits you make in this
+2026-10-08T17:38:35.2060099Z state without impacting any branches by switching back to a branch.
+2026-10-08T17:38:35.2060477Z 
+2026-10-08T17:38:35.2061296Z If you want to create a new branch to retain commits you create, you may
+2026-10-08T17:38:35.2062049Z do so (now or later) by using -c with the switch command. Example:
+2026-10-08T17:38:35.2062459Z 
+2026-10-08T17:38:35.2062596Z   git switch -c <new-branch-name>
+2026-10-08T17:38:35.2062839Z 
+2026-10-08T17:38:35.2063007Z Or undo this operation with:
+2026-10-08T17:38:35.2063218Z 
+2026-10-08T17:38:35.2063339Z   git switch -
+2026-10-08T17:38:35.2063493Z 
+2026-10-08T17:38:35.2063770Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-08T17:38:35.2064180Z 
+2026-10-08T17:38:35.2064660Z HEAD is now at d0f64fc Merge f1ca724a52e3190447c9be93ed9b00b8a97b52fd into b8ca308429c8cc1cbffd43e4576d8b586f818159
+2026-10-08T17:38:35.2172034Z ##[endgroup]
+2026-10-08T17:38:35.2582966Z [command]/usr/bin/git log -1 --format=%H
+2026-10-08T17:38:35.2630878Z d0f64fc0040dc0afb406db8fa2c33fd5de49e9da
+2026-10-08T17:38:35.3018265Z ##[group]Run actions/setup-node@v4
+2026-10-08T17:38:35.3018608Z with:
+2026-10-08T17:38:35.3018856Z   node-version: 22
+2026-10-08T17:38:35.3019071Z   cache: npm
+2026-10-08T17:38:35.3019262Z   always-auth: false
+2026-10-08T17:38:35.3019502Z   check-latest: false
+2026-10-08T17:38:35.3022780Z   token: ***
+2026-10-08T17:38:35.3023010Z ##[endgroup]
+2026-10-08T17:38:35.4522812Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-08T17:38:35.4527604Z (node:2273) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-08T17:38:35.4528564Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-08T17:38:35.4531589Z ##[group]Environment details
+2026-10-08T17:38:35.8878302Z node: v22.23.3
+2026-10-08T17:38:35.8908153Z npm: 10.9.9
+2026-10-08T17:38:35.8908482Z yarn: 1.22.22
+2026-10-08T17:38:35.8909432Z ##[endgroup]
+2026-10-08T17:38:35.8909957Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-08T17:38:36.0081961Z /home/runner/.npm
+2026-10-08T17:38:36.0981637Z Cache hit for: node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce
+2026-10-08T17:38:36.1099373Z (node:2273) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-08T17:38:36.3802423Z Received 15714701 of 15714701 (100.0%), 65.7 MBs/sec
+2026-10-08T17:38:36.3803130Z Cache Size: ~15 MB (15714701 B)
+2026-10-08T17:38:36.3830421Z [command]/usr/bin/tar -xf /home/runner/work/_temp/e025e1ff-41aa-4315-910d-1c479a4a30c3/cache.tzst -P -C /home/runner/work/opendesk-browser/opendesk-browser --use-compress-program unzstd
+2026-10-08T17:38:36.4756632Z Cache restored successfully
+2026-10-08T17:38:36.4768147Z Cache restored from key: node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce
+2026-10-08T17:38:36.4933966Z ##[group]Run npm ci --ignore-scripts --no-audit --no-fund
+2026-10-08T17:38:36.4934474Z [36;1mnpm ci --ignore-scripts --no-audit --no-fund[0m
+2026-10-08T17:38:36.5243597Z shell: /usr/bin/bash -e {0}
+2026-10-08T17:38:36.5243996Z ##[endgroup]
+2026-10-08T17:38:38.9745560Z 
+2026-10-08T17:38:38.9755220Z added 240 packages in 2s
+2026-10-08T17:38:39.0272821Z ##[group]Run node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-cross-origin-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k3-context.test.mjs
+2026-10-08T17:38:39.0274948Z [36;1mnode --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-cross-origin-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k3-context.test.mjs[0m
+2026-10-08T17:38:39.0341819Z shell: /usr/bin/bash -e {0}
+2026-10-08T17:38:39.0342109Z ##[endgroup]
+2026-10-08T17:38:39.0989857Z TAP version 13
+2026-10-08T17:38:39.2250080Z # Subtest: real loopback HTTP server serves static JSON, HTML and true 404/non-JSON
+2026-10-08T17:38:39.2280607Z ok 1 - real loopback HTTP server serves static JSON, HTML and true 404/non-JSON
+2026-10-08T17:38:39.2282206Z   ---
+2026-10-08T17:38:39.2282953Z   duration_ms: 64.842494
+2026-10-08T17:38:39.2312071Z   type: 'test'
+2026-10-08T17:38:39.2341666Z   ...
+2026-10-08T17:38:39.4227667Z # Subtest: real loopback HTTP server emits status/POST body and delayed responses
+2026-10-08T17:38:39.4229100Z ok 2 - real loopback HTTP server emits status/POST body and delayed responses
+2026-10-08T17:38:39.4229793Z   ---
+2026-10-08T17:38:39.4230133Z   duration_ms: 201.756796
+2026-10-08T17:38:39.4230556Z   type: 'test'
+2026-10-08T17:38:39.4230906Z   ...
+2026-10-08T17:38:40.6991774Z # Subtest: one ordinary HTML page exposes unique, stable automation targets
+2026-10-08T17:38:40.6993857Z ok 3 - one ordinary HTML page exposes unique, stable automation targets
+2026-10-08T17:38:40.7004944Z   ---
+2026-10-08T17:38:40.7031615Z   duration_ms: 11.983618
+2026-10-08T17:38:40.7032107Z   type: 'test'
+2026-10-08T17:38:40.7032475Z   ...
+2026-10-08T17:38:40.7033639Z # Subtest: the unchanged signed v1 task still targets \#name → \#submit → \#done
+2026-10-08T17:38:40.7034866Z ok 4 - the unchanged signed v1 task still targets \#name → \#submit → \#done
+2026-10-08T17:38:40.7035551Z   ---
+2026-10-08T17:38:40.7035890Z   duration_ms: 2.473681
+2026-10-08T17:38:40.7036124Z   type: 'test'
+2026-10-08T17:38:40.7036325Z   ...
+2026-10-08T17:38:40.7036932Z # Subtest: modern search retains an initially filled field and deliberately replaces its submit button
+2026-10-08T17:38:40.7037753Z ok 5 - modern search retains an initially filled field and deliberately replaces its submit button
+2026-10-08T17:38:40.7038527Z   ---
+2026-10-08T17:38:40.7038740Z   duration_ms: 1.53589
+2026-10-08T17:38:40.7038981Z   type: 'test'
+2026-10-08T17:38:40.7039263Z   ...
+2026-10-08T17:38:40.7039992Z # Subtest: async scene sends only local fetches and distinguishes loading, 404, abort and timeout
+2026-10-08T17:38:40.7040777Z ok 6 - async scene sends only local fetches and distinguishes loading, 404, abort and timeout
+2026-10-08T17:38:40.7042109Z   ---
+2026-10-08T17:38:40.7042479Z   duration_ms: 1.527353
+2026-10-08T17:38:40.7042922Z   type: 'test'
+2026-10-08T17:38:40.7043296Z   ...
+2026-10-08T17:38:40.7044263Z # Subtest: explicit HTTP GET controls expose safe semantics and preserve offline-first operation
+2026-10-08T17:38:40.7045725Z ok 7 - explicit HTTP GET controls expose safe semantics and preserve offline-first operation
+2026-10-08T17:38:40.7046554Z   ---
+2026-10-08T17:38:40.7046899Z   duration_ms: 3.051471
+2026-10-08T17:38:40.7047297Z   type: 'test'
+2026-10-08T17:38:40.7047648Z   ...
+2026-10-08T17:38:40.7048501Z # Subtest: the single canonical page exposes seven navigable groups and honest Locator fixtures
+2026-10-08T17:38:40.7049906Z ok 8 - the single canonical page exposes seven navigable groups and honest Locator fixtures
+2026-10-08T17:38:40.7050780Z   ---
+2026-10-08T17:38:40.7051445Z   duration_ms: 3.071699
+2026-10-08T17:38:40.7051884Z   type: 'test'
+2026-10-08T17:38:40.7052230Z   ...
+2026-10-08T17:38:40.7053043Z # Subtest: Locator fixture actions, late insertion, and reset mutate only observable DOM
+2026-10-08T17:38:40.7054573Z ok 9 - Locator fixture actions, late insertion, and reset mutate only observable DOM
+2026-10-08T17:38:40.7055352Z   ---
+2026-10-08T17:38:40.7055723Z   duration_ms: 1529.931662
+2026-10-08T17:38:40.7056157Z   type: 'test'
+2026-10-08T17:38:40.7056527Z   ...
+2026-10-08T17:38:40.7270350Z # Subtest: HTTP panel sends no request until click and shows real status/content without HTML injection
+2026-10-08T17:38:40.7272478Z ok 10 - HTTP panel sends no request until click and shows real status/content without HTML injection
+2026-10-08T17:38:40.7301966Z   ---
+2026-10-08T17:38:40.7302565Z   duration_ms: 28.067073
+2026-10-08T17:38:40.7303257Z   type: 'test'
+2026-10-08T17:38:40.7303798Z   ...
+2026-10-08T17:38:40.7372991Z # Subtest: HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies
+2026-10-08T17:38:40.7377012Z ok 11 - HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies
+2026-10-08T17:38:40.7378010Z   ---
+2026-10-08T17:38:40.7378379Z   duration_ms: 7.991575
+2026-10-08T17:38:40.7378985Z   type: 'test'
+2026-10-08T17:38:40.7379769Z   ...
+2026-10-08T17:38:40.7416236Z # Subtest: minimal HTTP UI rejects invalid URLs without sending requests
+2026-10-08T17:38:40.7417484Z ok 12 - minimal HTTP UI rejects invalid URLs without sending requests
+2026-10-08T17:38:40.7418326Z   ---
+2026-10-08T17:38:40.7418925Z   duration_ms: 5.328264
+2026-10-08T17:38:40.7419349Z   type: 'test'
+2026-10-08T17:38:40.7419728Z   ...
+2026-10-08T17:38:40.7436870Z # Subtest: inline JavaScript parses without a third-party runtime or external resources
+2026-10-08T17:38:40.7452881Z ok 13 - inline JavaScript parses without a third-party runtime or external resources
+2026-10-08T17:38:40.7458984Z   ---
+2026-10-08T17:38:40.7461646Z   duration_ms: 2.840306
+2026-10-08T17:38:40.7501762Z   type: 'test'
+2026-10-08T17:38:40.7502388Z   ...
+2026-10-08T17:38:40.7503514Z # Subtest: manual browser testing has exactly one canonical HTML and no obsolete advertised URL
+2026-10-08T17:38:40.7504954Z ok 14 - manual browser testing has exactly one canonical HTML and no obsolete advertised URL
+2026-10-08T17:38:40.7528613Z   ---
+2026-10-08T17:38:40.7529231Z   duration_ms: 2.961613
+2026-10-08T17:38:40.7530030Z   type: 'test'
+2026-10-08T17:38:40.7530511Z   ...
+2026-10-08T17:38:40.7650041Z # Subtest: real B HTTP is reached through existing axiosx/broker; native permission alone and unapproved C produce zero requests
+2026-10-08T17:38:40.7681545Z ok 15 - real B HTTP is reached through existing axiosx/broker; native permission alone and unapproved C produce zero requests
+2026-10-08T17:38:40.7702288Z   ---
+2026-10-08T17:38:40.7704898Z   duration_ms: 82.214451
+2026-10-08T17:38:40.7731947Z   type: 'test'
+2026-10-08T17:38:40.7732628Z   ...
+2026-10-08T17:38:40.7734525Z # Subtest: 100 same-ID concurrent actual HTTP requests produce exactly one B observation and no replay after receipt
+2026-10-08T17:38:40.7737267Z ok 16 - 100 same-ID concurrent actual HTTP requests produce exactly one B observation and no replay after receipt
+2026-10-08T17:38:40.7738807Z   ---
+2026-10-08T17:38:40.7746273Z   duration_ms: 198.919451
+2026-10-08T17:38:40.7746922Z   type: 'test'
+2026-10-08T17:38:40.7747539Z   ...
+2026-10-08T17:38:40.7748699Z # Subtest: changed args/deadline conflict without new B HTTP; different request IDs are not merged
+2026-10-08T17:38:40.7750257Z ok 17 - changed args/deadline conflict without new B HTTP; different request IDs are not merged
+2026-10-08T17:38:40.7753489Z   ---
+2026-10-08T17:38:40.7754020Z   duration_ms: 27.723673
+2026-10-08T17:38:40.7754591Z   type: 'test'
+2026-10-08T17:38:40.7755115Z   ...
+2026-10-08T17:38:40.7758877Z # Subtest: observed revocation and immediate regrant cannot deliver or replay an already observed B request
+2026-10-08T17:38:40.7760668Z ok 18 - observed revocation and immediate regrant cannot deliver or replay an already observed B request
+2026-10-08T17:38:40.7762443Z   ---
+2026-10-08T17:38:40.7762980Z   duration_ms: 13.911599
+2026-10-08T17:38:40.7763846Z   type: 'test'
+2026-10-08T17:38:40.7764438Z   ...
+2026-10-08T17:38:40.7776717Z # Subtest: removing target native permission alone blocks B while source A remains authorized
+2026-10-08T17:38:40.7778055Z ok 19 - removing target native permission alone blocks B while source A remains authorized
+2026-10-08T17:38:40.7778833Z   ---
+2026-10-08T17:38:40.7779188Z   duration_ms: 3.463822
+2026-10-08T17:38:40.7779604Z   type: 'test'
+2026-10-08T17:38:40.7779954Z   ...
+2026-10-08T17:38:40.7780905Z # Subtest: RESOURCE01-API16-LIMIT: approved script URL and executable-option refusals never dispatch
+2026-10-08T17:38:40.7782623Z ok 20 - RESOURCE01-API16-LIMIT: approved script URL and executable-option refusals never dispatch
+2026-10-08T17:38:40.7783448Z   ---
+2026-10-08T17:38:40.7783797Z   duration_ms: 3.239802
+2026-10-08T17:38:40.7784185Z   type: 'test'
+2026-10-08T17:38:40.7784522Z   ...
+2026-10-08T17:38:40.7785447Z # Subtest: RESOURCE01-API17: conflicting style inputs and remote resources are refused before dispatch
+2026-10-08T17:38:40.7786906Z ok 21 - RESOURCE01-API17: conflicting style inputs and remote resources are refused before dispatch
+2026-10-08T17:38:40.7787730Z   ---
+2026-10-08T17:38:40.7788079Z   duration_ms: 0.755712
+2026-10-08T17:38:40.7788439Z   type: 'test'
+2026-10-08T17:38:40.7788633Z   ...
+2026-10-08T17:38:40.7789102Z # Subtest: CMP11-API01/02/03/04: bound constructors, immutable pins and independent owners
+2026-10-08T17:38:40.7789967Z ok 22 - CMP11-API01/02/03/04: bound constructors, immutable pins and independent owners
+2026-10-08T17:38:40.7790979Z   ---
+2026-10-08T17:38:40.7791542Z   duration_ms: 2.450578
+2026-10-08T17:38:40.7791867Z   type: 'test'
+2026-10-08T17:38:40.7792068Z   ...
+2026-10-08T17:38:40.7793170Z # Subtest: CMP11-API03-ERR: invalid debug on the admitted constructor is an option error before transport
+2026-10-08T17:38:40.7794041Z ok 23 - CMP11-API03-ERR: invalid debug on the admitted constructor is an option error before transport
+2026-10-08T17:38:40.7795504Z   ---
+2026-10-08T17:38:40.7795845Z   duration_ms: 0.498201
+2026-10-08T17:38:40.7796234Z   type: 'test'
+2026-10-08T17:38:40.7796572Z   ...
+2026-10-08T17:38:40.7797357Z # Subtest: CMP09-API21-ERR: invalid click options are option errors before any dispatch
+2026-10-08T17:38:40.7798524Z ok 24 - CMP09-API21-ERR: invalid click options are option errors before any dispatch
+2026-10-08T17:38:40.7799227Z   ---
+2026-10-08T17:38:40.7799551Z   duration_ms: 1.63747
+2026-10-08T17:38:40.7799920Z   type: 'test'
+2026-10-08T17:38:40.7800250Z   ...
+2026-10-08T17:38:40.7801456Z # Subtest: click normalization reads getters once and retains receiver, disposal and replacement fences
+2026-10-08T17:38:40.7802908Z ok 25 - click normalization reads getters once and retains receiver, disposal and replacement fences
+2026-10-08T17:38:40.7803757Z   ---
+2026-10-08T17:38:40.7804090Z   duration_ms: 2.21079
+2026-10-08T17:38:40.7804473Z   type: 'test'
+2026-10-08T17:38:40.7804802Z   ...
+2026-10-08T17:38:40.7805708Z # Subtest: CMP09-API22-ERR: admitted type rejects invalid delay and nonprimitive text before dispatch
+2026-10-08T17:38:40.7807360Z ok 26 - CMP09-API22-ERR: admitted type rejects invalid delay and nonprimitive text before dispatch
+2026-10-08T17:38:40.7808148Z   ---
+2026-10-08T17:38:40.7808489Z   duration_ms: 2.324442
+2026-10-08T17:38:40.7809058Z   type: 'test'
+2026-10-08T17:38:40.7809410Z   ...
+2026-10-08T17:38:40.7810358Z # Subtest: type delay normalization reads its getter once and keeps receiver and disposal fences
+2026-10-08T17:38:40.7811852Z ok 27 - type delay normalization reads its getter once and keeps receiver and disposal fences
+2026-10-08T17:38:40.7812640Z   ---
+2026-10-08T17:38:40.7812978Z   duration_ms: 0.686572
+2026-10-08T17:38:40.7813363Z   type: 'test'
+2026-10-08T17:38:40.7813719Z   ...
+2026-10-08T17:38:40.7814461Z # Subtest: CMP10-API05/06 and CMP01-API36: raw callbacks and raw execute never dispatch
+2026-10-08T17:38:40.7815564Z ok 28 - CMP10-API05/06 and CMP01-API36: raw callbacks and raw execute never dispatch
+2026-10-08T17:38:40.7816260Z   ---
+2026-10-08T17:38:40.7816578Z   duration_ms: 0.457835
+2026-10-08T17:38:40.7817120Z   type: 'test'
+2026-10-08T17:38:40.7817451Z   ...
+2026-10-08T17:38:40.7818203Z # Subtest: CMP10-API35: typed values and statement ignored args before registration
+2026-10-08T17:38:40.7819341Z ok 29 - CMP10-API35: typed values and statement ignored args before registration
+2026-10-08T17:38:40.7820021Z   ---
+2026-10-08T17:38:40.7820350Z   duration_ms: 1.741513
+2026-10-08T17:38:40.7820711Z   type: 'test'
+2026-10-08T17:38:40.7821006Z   ...
+2026-10-08T17:38:40.7822054Z # Subtest: CMP03-API34 and CORE-EVALUATE-EXPRESSION: explicit modes and no extra parameters
+2026-10-08T17:38:40.7823330Z ok 30 - CMP03-API34 and CORE-EVALUATE-EXPRESSION: explicit modes and no extra parameters
+2026-10-08T17:38:40.7824095Z   ---
+2026-10-08T17:38:40.7824423Z   duration_ms: 0.81905
+2026-10-08T17:38:40.7824805Z   type: 'test'
+2026-10-08T17:38:40.7825149Z   ...
+2026-10-08T17:38:40.7826074Z # Subtest: CMP02-API12/13-LIMIT: Worker DOM snapshots reject; serialized alternatives preserve null/[]
+2026-10-08T17:38:40.7827555Z ok 31 - CMP02-API12/13-LIMIT: Worker DOM snapshots reject; serialized alternatives preserve null/[]
+2026-10-08T17:38:40.7828374Z   ---
+2026-10-08T17:38:40.7828703Z   duration_ms: 0.654292
+2026-10-08T17:38:40.7829088Z   type: 'test'
+2026-10-08T17:38:40.7829423Z   ...
+2026-10-08T17:38:40.7830421Z # Subtest: NAV01 + ChromeElement: only attested navigation advances root; old element/keyboard sequence stay bound
+2026-10-08T17:38:40.7832191Z ok 32 - NAV01 + ChromeElement: only attested navigation advances root; old element/keyboard sequence stay bound
+2026-10-08T17:38:40.7833079Z   ---
+2026-10-08T17:38:40.7834254Z   duration_ms: 0.988337
+2026-10-08T17:38:40.7834656Z   type: 'test'
+2026-10-08T17:38:40.7835485Z   ...
+2026-10-08T17:38:40.7837505Z # Subtest: CTRL owner fencing: stop/deadline/host-close settle pending once; stale request never rebinds new ctx
+2026-10-08T17:38:40.7839074Z ok 33 - CTRL owner fencing: stop/deadline/host-close settle pending once; stale request never rebinds new ctx
+2026-10-08T17:38:40.7840669Z   ---
+2026-10-08T17:38:40.7842351Z   duration_ms: 2.519146
+2026-10-08T17:38:40.7842751Z   type: 'test'
+2026-10-08T17:38:40.7843086Z   ...
+2026-10-08T17:38:40.7843925Z # Subtest: Private Worker port: global fake peer, wrong owner, wrong correlation and reply replay cannot settle
+2026-10-08T17:38:40.7845073Z ok 34 - Private Worker port: global fake peer, wrong owner, wrong correlation and reply replay cannot settle
+2026-10-08T17:38:40.7845662Z   ---
+2026-10-08T17:38:40.7845883Z   duration_ms: 41.786413
+2026-10-08T17:38:40.7846115Z   type: 'test'
+2026-10-08T17:38:40.7846308Z   ...
+2026-10-08T17:38:40.7846958Z # Subtest: Host relay rejects cross-owner/old revision/old target before the shared transport
+2026-10-08T17:38:40.7847799Z ok 35 - Host relay rejects cross-owner/old revision/old target before the shared transport
+2026-10-08T17:38:40.7848301Z   ---
+2026-10-08T17:38:40.7848594Z   duration_ms: 0.707632
+2026-10-08T17:38:40.7849034Z   type: 'test'
+2026-10-08T17:38:40.7849346Z   ...
+2026-10-08T17:38:40.7850160Z # Subtest: CMP13 real loopback four HTTP methods, body and serializable projection
+2026-10-08T17:38:40.7851494Z ok 36 - CMP13 real loopback four HTTP methods, body and serializable projection
+2026-10-08T17:38:40.7852089Z   ---
+2026-10-08T17:38:40.7852405Z   duration_ms: 49.33675
+2026-10-08T17:38:40.7852644Z   type: 'test'
+2026-10-08T17:38:40.7852834Z   ...
+2026-10-08T17:38:40.7853436Z # Subtest: CMP13 real response false retained
+2026-10-08T17:38:40.7854113Z ok 37 - CMP13 real response false retained
+2026-10-08T17:38:40.7854581Z   ---
+2026-10-08T17:38:40.7854932Z   duration_ms: 4.182573
+2026-10-08T17:38:40.7855312Z   type: 'test'
+2026-10-08T17:38:40.7855640Z   ...
+2026-10-08T17:38:40.7856093Z # Subtest: CMP13 real response zero retained
+2026-10-08T17:38:40.7856722Z ok 38 - CMP13 real response zero retained
+2026-10-08T17:38:40.7857272Z   ---
+2026-10-08T17:38:40.7857615Z   duration_ms: 3.65603
+2026-10-08T17:38:40.7858031Z   type: 'test'
+2026-10-08T17:38:40.7858258Z   ...
+2026-10-08T17:38:40.7858702Z # Subtest: CMP13 real response null retained
+2026-10-08T17:38:40.7859083Z ok 39 - CMP13 real response null retained
+2026-10-08T17:38:40.7859351Z   ---
+2026-10-08T17:38:40.7859557Z   duration_ms: 3.870952
+2026-10-08T17:38:40.7859784Z   type: 'test'
+2026-10-08T17:38:40.7859979Z   ...
+2026-10-08T17:38:40.7860418Z # Subtest: HTTP vs network vs bad JSON/UTF8 typed errors and restricted error response
+2026-10-08T17:38:40.7861987Z ok 40 - HTTP vs network vs bad JSON/UTF8 typed errors and restricted error response
+2026-10-08T17:38:40.7862427Z   ---
+2026-10-08T17:38:40.7862632Z   duration_ms: 13.313051
+2026-10-08T17:38:40.7862860Z   type: 'test'
+2026-10-08T17:38:40.7863053Z   ...
+2026-10-08T17:38:40.7863508Z # Subtest: denied URL and config have zero real HTTP; native grant rechecked post response
+2026-10-08T17:38:40.7864203Z ok 41 - denied URL and config have zero real HTTP; native grant rechecked post response
+2026-10-08T17:38:40.7864645Z   ---
+2026-10-08T17:38:40.7864840Z   duration_ms: 4.479849
+2026-10-08T17:38:40.7865072Z   type: 'test'
+2026-10-08T17:38:40.7865275Z   ...
+2026-10-08T17:38:40.7865856Z # Subtest: private native receipt hook persists HTTP fact before post revocation, not normalized checkServer result
+2026-10-08T17:38:40.7867059Z ok 42 - private native receipt hook persists HTTP fact before post revocation, not normalized checkServer result
+2026-10-08T17:38:40.7867738Z   ---
+2026-10-08T17:38:40.7868074Z   duration_ms: 4.697565
+2026-10-08T17:38:40.7868428Z   type: 'test'
+2026-10-08T17:38:40.7868651Z   ...
+2026-10-08T17:38:40.7869012Z # Subtest: manual redirect never follows unauthorized destination
+2026-10-08T17:38:40.7869681Z ok 43 - manual redirect never follows unauthorized destination
+2026-10-08T17:38:40.7870422Z   ---
+2026-10-08T17:38:40.7870738Z   duration_ms: 2.492767
+2026-10-08T17:38:40.7871329Z   type: 'test'
+2026-10-08T17:38:40.7871652Z   ...
+2026-10-08T17:38:40.7873459Z # Subtest: actual abort during stalled body/HTTP, size budget and caller cancellation
+2026-10-08T17:38:40.7874792Z ok 44 - actual abort during stalled body/HTTP, size budget and caller cancellation
+2026-10-08T17:38:40.7875567Z   ---
+2026-10-08T17:38:40.7875919Z   duration_ms: 87.161404
+2026-10-08T17:38:40.7876337Z   type: 'test'
+2026-10-08T17:38:40.7876652Z   ...
+2026-10-08T17:38:40.7877493Z # Subtest: backend 15s budget independent from client timeout and earlier native deadline
+2026-10-08T17:38:40.7878960Z ok 45 - backend 15s budget independent from client timeout and earlier native deadline
+2026-10-08T17:38:40.7879768Z   ---
+2026-10-08T17:38:40.7880082Z   duration_ms: 4.522909
+2026-10-08T17:38:40.7880529Z   type: 'test'
+2026-10-08T17:38:40.7880887Z   ...
+2026-10-08T17:38:40.7882158Z # Subtest: stalled pre/post native permission validation still obeys driver deadline without replay
+2026-10-08T17:38:40.7883656Z ok 46 - stalled pre/post native permission validation still obeys driver deadline without replay
+2026-10-08T17:38:40.7884519Z   ---
+2026-10-08T17:38:40.7885218Z   duration_ms: 41.657973
+2026-10-08T17:38:40.7885637Z   type: 'test'
+2026-10-08T17:38:40.7885971Z   ...
+2026-10-08T17:38:40.7886832Z # Subtest: server checks real observable success/failure and never reports opaque available
+2026-10-08T17:38:40.7888125Z ok 47 - server checks real observable success/failure and never reports opaque available
+2026-10-08T17:38:40.7888931Z   ---
+2026-10-08T17:38:40.7889307Z   duration_ms: 23.242711
+2026-10-08T17:38:40.7889729Z   type: 'test'
+2026-10-08T17:38:40.7890065Z   ...
+2026-10-08T17:38:40.7890984Z # Subtest: external IP info disabled default and never calls original external endpoint in tests
+2026-10-08T17:38:40.7892556Z ok 48 - external IP info disabled default and never calls original external endpoint in tests
+2026-10-08T17:38:40.7893377Z   ---
+2026-10-08T17:38:40.7893693Z   duration_ms: 0.290643
+2026-10-08T17:38:40.7894064Z   type: 'test'
+2026-10-08T17:38:40.7894501Z   ...
+2026-10-08T17:38:40.7895412Z # Subtest: notification true callback wait, lastError refusal and pre/post authorization
+2026-10-08T17:38:40.7897369Z ok 49 - notification true callback wait, lastError refusal and pre/post authorization
+2026-10-08T17:38:40.7898084Z   ---
+2026-10-08T17:38:40.7898398Z   duration_ms: 3.224143
+2026-10-08T17:38:40.7898732Z   type: 'test'
+2026-10-08T17:38:40.7899548Z   ...
+2026-10-08T17:38:40.7900469Z # Subtest: service HTTP result preserves business object inside response.data rather than outer authority
+2026-10-08T17:38:40.7902063Z ok 50 - service HTTP result preserves business object inside response.data rather than outer authority
+2026-10-08T17:38:40.7902862Z   ---
+2026-10-08T17:38:40.7903168Z   duration_ms: 6.904138
+2026-10-08T17:38:40.7903511Z   type: 'test'
+2026-10-08T17:38:40.7903801Z   ...
+2026-10-08T17:38:40.7904471Z # Subtest: HTTP failure response is withheld when post-fetch authorization is revoked
+2026-10-08T17:38:40.7905539Z ok 51 - HTTP failure response is withheld when post-fetch authorization is revoked
+2026-10-08T17:38:40.7906383Z   ---
+2026-10-08T17:38:40.7906710Z   duration_ms: 2.40326
+2026-10-08T17:38:40.7907068Z   type: 'test'
+2026-10-08T17:38:40.7907470Z   ...
+2026-10-08T17:38:40.7907904Z # Subtest: CMP15 callback preserves false
+2026-10-08T17:38:40.7908494Z ok 52 - CMP15 callback preserves false
+2026-10-08T17:38:40.7908932Z   ---
+2026-10-08T17:38:40.7909244Z   duration_ms: 9.060707
+2026-10-08T17:38:40.7909612Z   type: 'test'
+2026-10-08T17:38:40.7909934Z   ...
+2026-10-08T17:38:40.7910351Z # Subtest: CMP15 callback preserves 0
+2026-10-08T17:38:40.7910894Z ok 53 - CMP15 callback preserves 0
+2026-10-08T17:38:40.7939210Z   ---
+2026-10-08T17:38:40.7939697Z   duration_ms: 1.228044
+2026-10-08T17:38:40.7940092Z   type: 'test'
+2026-10-08T17:38:40.7940413Z   ...
+2026-10-08T17:38:40.7940894Z # Subtest: CMP15 callback preserves undefined
+2026-10-08T17:38:40.7942433Z ok 54 - CMP15 callback preserves undefined
+2026-10-08T17:38:40.7942925Z   ---
+2026-10-08T17:38:40.7943242Z   duration_ms: 0.80837
+2026-10-08T17:38:40.7943473Z   type: 'test'
+2026-10-08T17:38:40.7943696Z   ...
+2026-10-08T17:38:40.7944165Z # Subtest: CMP15 callback preserves null
+2026-10-08T17:38:40.7944812Z ok 55 - CMP15 callback preserves null
+2026-10-08T17:38:40.7945286Z   ---
+2026-10-08T17:38:40.7945643Z   duration_ms: 0.651027
+2026-10-08T17:38:40.7945896Z   type: 'test'
+2026-10-08T17:38:40.7946122Z   ...
+2026-10-08T17:38:40.7946391Z # Subtest: CMP15 callback preserves 
+2026-10-08T17:38:40.7946728Z ok 56 - CMP15 callback preserves 
+2026-10-08T17:38:40.7946987Z   ---
+2026-10-08T17:38:40.7947180Z   duration_ms: 0.794474
+2026-10-08T17:38:40.7947405Z   type: 'test'
+2026-10-08T17:38:40.7947603Z   ...
+2026-10-08T17:38:40.7947962Z # Subtest: CMP15 callback preserves 0
+2026-10-08T17:38:40.7948530Z ok 57 - CMP15 callback preserves 0
+2026-10-08T17:38:40.7948967Z   ---
+2026-10-08T17:38:40.7949280Z   duration_ms: 0.637551
+2026-10-08T17:38:40.7949655Z   type: 'test'
+2026-10-08T17:38:40.7949975Z   ...
+2026-10-08T17:38:40.7950380Z # Subtest: CMP15 callback preserves 
+2026-10-08T17:38:40.7950705Z ok 58 - CMP15 callback preserves 
+2026-10-08T17:38:40.7951438Z   ---
+2026-10-08T17:38:40.7951648Z   duration_ms: 0.565596
+2026-10-08T17:38:40.7951898Z   type: 'test'
+2026-10-08T17:38:40.7952100Z   ...
+2026-10-08T17:38:40.7952393Z # Subtest: CMP15 callback preserves [object Object]
+2026-10-08T17:38:40.7952807Z ok 59 - CMP15 callback preserves [object Object]
+2026-10-08T17:38:40.7953124Z   ---
+2026-10-08T17:38:40.7953316Z   duration_ms: 0.644694
+2026-10-08T17:38:40.7953541Z   type: 'test'
+2026-10-08T17:38:40.7953729Z   ...
+2026-10-08T17:38:40.7954140Z # Subtest: CMP15 inner business error business denied remains original rejection
+2026-10-08T17:38:40.7954777Z ok 60 - CMP15 inner business error business denied remains original rejection
+2026-10-08T17:38:40.7955165Z   ---
+2026-10-08T17:38:40.7955366Z   duration_ms: 1.669249
+2026-10-08T17:38:40.7955590Z   type: 'test'
+2026-10-08T17:38:40.7955780Z   ...
+2026-10-08T17:38:40.7956192Z # Subtest: CMP15 inner business error [object Object] remains original rejection
+2026-10-08T17:38:40.7956794Z ok 61 - CMP15 inner business error [object Object] remains original rejection
+2026-10-08T17:38:40.7957326Z   ---
+2026-10-08T17:38:40.7957535Z   duration_ms: 1.069548
+2026-10-08T17:38:40.7957753Z   type: 'test'
+2026-10-08T17:38:40.7957941Z   ...
+2026-10-08T17:38:40.7958607Z # Subtest: CMP15 inner business error null remains original rejection
+2026-10-08T17:38:40.7959160Z ok 62 - CMP15 inner business error null remains original rejection
+2026-10-08T17:38:40.7959634Z   ---
+2026-10-08T17:38:40.7959955Z   duration_ms: 0.678297
+2026-10-08T17:38:40.7960341Z   type: 'test'
+2026-10-08T17:38:40.7960678Z   ...
+2026-10-08T17:38:40.7962478Z # Subtest: CMP15 inner business error undefined remains original rejection
+2026-10-08T17:38:40.7963528Z ok 63 - CMP15 inner business error undefined remains original rejection
+2026-10-08T17:38:40.7964157Z   ---
+2026-10-08T17:38:40.7964491Z   duration_ms: 0.640768
+2026-10-08T17:38:40.7964870Z   type: 'test'
+2026-10-08T17:38:40.7965211Z   ...
+2026-10-08T17:38:40.7965867Z # Subtest: CMP15 inner business error false remains original rejection
+2026-10-08T17:38:40.7966802Z ok 64 - CMP15 inner business error false remains original rejection
+2026-10-08T17:38:40.7967405Z   ---
+2026-10-08T17:38:40.7967726Z   duration_ms: 0.532354
+2026-10-08T17:38:40.7968100Z   type: 'test'
+2026-10-08T17:38:40.7968433Z   ...
+2026-10-08T17:38:40.7969037Z # Subtest: CMP15 inner business error 0 remains original rejection
+2026-10-08T17:38:40.7969906Z ok 65 - CMP15 inner business error 0 remains original rejection
+2026-10-08T17:38:40.7970416Z   ---
+2026-10-08T17:38:40.7970619Z   duration_ms: 0.572109
+2026-10-08T17:38:40.7970845Z   type: 'test'
+2026-10-08T17:38:40.7971279Z   ...
+2026-10-08T17:38:40.7971774Z # Subtest: CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending
+2026-10-08T17:38:40.7972491Z ok 66 - CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending
+2026-10-08T17:38:40.7972922Z   ---
+2026-10-08T17:38:40.7973127Z   duration_ms: 3.492806
+2026-10-08T17:38:40.7973360Z   type: 'test'
+2026-10-08T17:38:40.7973553Z   ...
+2026-10-08T17:38:40.7973961Z # Subtest: CMP15 unicode legacy Base64 callback and ACK never settle early
+2026-10-08T17:38:40.7974535Z ok 67 - CMP15 unicode legacy Base64 callback and ACK never settle early
+2026-10-08T17:38:40.7974899Z   ---
+2026-10-08T17:38:40.7975093Z   duration_ms: 0.676724
+2026-10-08T17:38:40.7975324Z   type: 'test'
+2026-10-08T17:38:40.7975518Z   ...
+2026-10-08T17:38:40.7976038Z # Subtest: CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement
+2026-10-08T17:38:40.7976861Z ok 68 - CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement
+2026-10-08T17:38:40.7977328Z   ---
+2026-10-08T17:38:40.7977522Z   duration_ms: 0.535941
+2026-10-08T17:38:40.7977749Z   type: 'test'
+2026-10-08T17:38:40.7977940Z   ...
+2026-10-08T17:38:40.7978343Z # Subtest: B03 client deadline and document dispose clean original pending once
+2026-10-08T17:38:40.7979088Z ok 69 - B03 client deadline and document dispose clean original pending once
+2026-10-08T17:38:40.7979730Z   ---
+2026-10-08T17:38:40.7979939Z   duration_ms: 10.893441
+2026-10-08T17:38:40.7980176Z   type: 'test'
+2026-10-08T17:38:40.7980382Z   ...
+2026-10-08T17:38:40.7980831Z # Subtest: CMP07 AppStorage String semantics and AppLocal typed presence cross codec
+2026-10-08T17:38:40.7981981Z ok 70 - CMP07 AppStorage String semantics and AppLocal typed presence cross codec
+2026-10-08T17:38:40.7982414Z   ---
+2026-10-08T17:38:40.7982627Z   duration_ms: 1.646395
+2026-10-08T17:38:40.7982930Z   type: 'test'
+2026-10-08T17:38:40.7983274Z   ...
+2026-10-08T17:38:40.7983819Z # Subtest: CMP13 four HTTP facades preserve call shape
+2026-10-08T17:38:40.7984565Z ok 71 - CMP13 four HTTP facades preserve call shape
+2026-10-08T17:38:40.7985094Z   ---
+2026-10-08T17:38:40.7985424Z   duration_ms: 0.381432
+2026-10-08T17:38:40.7985801Z   type: 'test'
+2026-10-08T17:38:40.7986128Z   ...
+2026-10-08T17:38:40.7986709Z # Subtest: schema/config/business refusal dispatches nothing
+2026-10-08T17:38:40.7987541Z ok 72 - schema/config/business refusal dispatches nothing
+2026-10-08T17:38:40.7988255Z   ---
+2026-10-08T17:38:40.7988605Z   duration_ms: 0.908617
+2026-10-08T17:38:40.7988990Z   type: 'test'
+2026-10-08T17:38:40.7989322Z   ...
+2026-10-08T17:38:40.7990043Z # Subtest: CMP14 notifications preserve desc rules with typed null/body errors
+2026-10-08T17:38:40.7991328Z ok 73 - CMP14 notifications preserve desc rules with typed null/body errors
+2026-10-08T17:38:40.7992036Z   ---
+2026-10-08T17:38:40.7992370Z   duration_ms: 0.399706
+2026-10-08T17:38:40.7992761Z   type: 'test'
+2026-10-08T17:38:40.7993026Z   ...
+2026-10-08T17:38:40.7993446Z # Subtest: CMP14 server results use latency order, input ties and all-failed null
+2026-10-08T17:38:40.7994092Z ok 74 - CMP14 server results use latency order, input ties and all-failed null
+2026-10-08T17:38:40.7994520Z   ---
+2026-10-08T17:38:40.7994709Z   duration_ms: 0.652569
+2026-10-08T17:38:40.7994928Z   type: 'test'
+2026-10-08T17:38:40.7995123Z   ...
+2026-10-08T17:38:40.7995601Z # Subtest: CMP08 strict compact JSON never runs code; wrapAsync is only source transformation
+2026-10-08T17:38:40.7996309Z ok 75 - CMP08 strict compact JSON never runs code; wrapAsync is only source transformation
+2026-10-08T17:38:40.7996744Z   ---
+2026-10-08T17:38:40.7996930Z   duration_ms: 0.309498
+2026-10-08T17:38:40.7997149Z   type: 'test'
+2026-10-08T17:38:40.7997347Z   ...
+2026-10-08T17:38:40.7997773Z # Subtest: CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID
+2026-10-08T17:38:40.7998426Z ok 76 - CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID
+2026-10-08T17:38:40.7998834Z   ---
+2026-10-08T17:38:40.7999020Z   duration_ms: 1.201665
+2026-10-08T17:38:40.7999233Z   type: 'test'
+2026-10-08T17:38:40.7999425Z   ...
+2026-10-08T17:38:40.7999826Z # Subtest: CMP08 UtilInfo stays idle until explicit call and keeps original URL
+2026-10-08T17:38:40.8000425Z ok 77 - CMP08 UtilInfo stays idle until explicit call and keeps original URL
+2026-10-08T17:38:40.8000803Z   ---
+2026-10-08T17:38:40.8000994Z   duration_ms: 0.260136
+2026-10-08T17:38:40.8001483Z   type: 'test'
+2026-10-08T17:38:40.8001711Z   ...
+2026-10-08T17:38:40.8002131Z # Subtest: events retain old strings and route lifecycle solely to injected RunHost
+2026-10-08T17:38:40.8002756Z ok 78 - events retain old strings and route lifecycle solely to injected RunHost
+2026-10-08T17:38:40.8003139Z   ---
+2026-10-08T17:38:40.8003330Z   duration_ms: 0.259224
+2026-10-08T17:38:40.8003543Z   type: 'test'
+2026-10-08T17:38:40.8003730Z   ...
+2026-10-08T17:38:40.8004056Z # Subtest: sleep resolves undefined and abort removes timer
+2026-10-08T17:38:40.8004511Z ok 79 - sleep resolves undefined and abort removes timer
+2026-10-08T17:38:40.8004819Z   ---
+2026-10-08T17:38:40.8005012Z   duration_ms: 3.285478
+2026-10-08T17:38:40.8005243Z   type: 'test'
+2026-10-08T17:38:40.8005430Z   ...
+2026-10-08T17:38:40.8005926Z # Subtest: SDK install conflicts never overwrite page functions; same installation is idempotent
+2026-10-08T17:38:40.8006860Z ok 80 - SDK install conflicts never overwrite page functions; same installation is idempotent
+2026-10-08T17:38:40.8007302Z   ---
+2026-10-08T17:38:40.8007492Z   duration_ms: 1.331217
+2026-10-08T17:38:40.8007712Z   type: 'test'
+2026-10-08T17:38:40.8007896Z   ...
+2026-10-08T17:38:40.8008269Z # Subtest: Hello cannot be ready from partial or wrong-version allowlist
+2026-10-08T17:38:40.8008820Z ok 81 - Hello cannot be ready from partial or wrong-version allowlist
+2026-10-08T17:38:40.8009173Z   ---
+2026-10-08T17:38:40.8009461Z   duration_ms: 2.180383
+2026-10-08T17:38:40.8009855Z   type: 'test'
+2026-10-08T17:38:40.8010197Z   ...
+2026-10-08T17:38:40.8010793Z # Subtest: fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority
+2026-10-08T17:38:40.8011814Z ok 82 - fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority
+2026-10-08T17:38:40.8012294Z   ---
+2026-10-08T17:38:40.8012488Z   duration_ms: 4.922396
+2026-10-08T17:38:40.8012717Z   type: 'test'
+2026-10-08T17:38:40.8012913Z   ...
+2026-10-08T17:38:40.8013526Z # Subtest: CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data
+2026-10-08T17:38:40.8014260Z ok 83 - CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data
+2026-10-08T17:38:40.8014693Z   ---
+2026-10-08T17:38:40.8014884Z   duration_ms: 6.123327
+2026-10-08T17:38:40.8015109Z   type: 'test'
+2026-10-08T17:38:40.8015296Z   ...
+2026-10-08T17:38:40.8015770Z # Subtest: Hello grant subset permits its methods and rejects other calls before native request
+2026-10-08T17:38:40.8016487Z ok 84 - Hello grant subset permits its methods and rejects other calls before native request
+2026-10-08T17:38:40.8016918Z   ---
+2026-10-08T17:38:40.8017114Z   duration_ms: 0.489345
+2026-10-08T17:38:40.8017331Z   type: 'test'
+2026-10-08T17:38:40.8017521Z   ...
+2026-10-08T17:38:40.8017960Z # Subtest: fixture 100 concurrent original promises once settle; not native B05 evidence
+2026-10-08T17:38:40.8018654Z ok 85 - fixture 100 concurrent original promises once settle; not native B05 evidence
+2026-10-08T17:38:40.8019076Z   ---
+2026-10-08T17:38:40.8019281Z   duration_ms: 32.011083
+2026-10-08T17:38:40.8019515Z   type: 'test'
+2026-10-08T17:38:40.8019711Z   ...
+2026-10-08T17:38:40.8020107Z # Subtest: relay rejects page claims and raw script without native dispatch
+2026-10-08T17:38:40.8020695Z ok 86 - relay rejects page claims and raw script without native dispatch
+2026-10-08T17:38:40.8021274Z   ---
+2026-10-08T17:38:40.8021486Z   duration_ms: 4.493184
+2026-10-08T17:38:40.8021719Z   type: 'test'
+2026-10-08T17:38:40.8021909Z   ...
+2026-10-08T17:38:40.8022365Z # Subtest: native typed authority/transport failure is outer error; business remains inner
+2026-10-08T17:38:40.8023066Z ok 87 - native typed authority/transport failure is outer error; business remains inner
+2026-10-08T17:38:40.8023484Z   ---
+2026-10-08T17:38:40.8023672Z   duration_ms: 1.574441
+2026-10-08T17:38:40.8023909Z   type: 'test'
+2026-10-08T17:38:40.8024131Z   ...
+2026-10-08T17:38:40.8024641Z # Subtest: service dispatcher delegates storage and atomic device context without namespace from page
+2026-10-08T17:38:40.8025435Z ok 88 - service dispatcher delegates storage and atomic device context without namespace from page
+2026-10-08T17:38:40.8025902Z   ---
+2026-10-08T17:38:40.8026088Z   duration_ms: 0.368278
+2026-10-08T17:38:40.8026302Z   type: 'test'
+2026-10-08T17:38:40.8026494Z   ...
+2026-10-08T17:38:40.8026669Z 1..88
+2026-10-08T17:38:40.8026846Z # tests 88
+2026-10-08T17:38:40.8027039Z # suites 0
+2026-10-08T17:38:40.8027224Z # pass 88
+2026-10-08T17:38:40.8027404Z # fail 0
+2026-10-08T17:38:40.8027588Z # cancelled 0
+2026-10-08T17:38:40.8027791Z # skipped 0
+2026-10-08T17:38:40.8027974Z # todo 0
+2026-10-08T17:38:40.8028179Z # duration_ms 1692.477318
+2026-10-08T17:38:40.8079124Z ##[group]Run npm run check
+2026-10-08T17:38:40.8079583Z [36;1mnpm run check[0m
+2026-10-08T17:38:40.8150095Z shell: /usr/bin/bash -e {0}
+2026-10-08T17:38:40.8150530Z ##[endgroup]
+2026-10-08T17:38:40.9431220Z 
+2026-10-08T17:38:40.9431669Z > opendesk-browser@0.1.0 check
+2026-10-08T17:38:40.9432180Z > node scripts/check-source.mjs
+2026-10-08T17:38:40.9432435Z 
+2026-10-08T17:38:45.0888153Z Syntax checked 160 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked
+2026-10-08T17:38:45.1128716Z Post job cleanup.
+2026-10-08T17:38:45.2391253Z (node:3601) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-08T17:38:45.2392506Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-08T17:38:45.2395431Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce, not saving cache.
+2026-10-08T17:38:45.2555374Z Post job cleanup.
+2026-10-08T17:38:45.3416828Z [command]/usr/bin/git version
+2026-10-08T17:38:45.3463905Z git version 2.55.0
+2026-10-08T17:38:45.3503489Z Temporarily overriding HOME='/home/runner/work/_temp/1a131829-5235-4c46-b586-90523d5419a2' before making global git config changes
+2026-10-08T17:38:45.3505083Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-08T17:38:45.3508577Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T17:38:45.3550970Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-08T17:38:45.3587018Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-08T17:38:45.3857139Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-08T17:38:45.3892443Z http.https://github.com/.extraheader
+2026-10-08T17:38:45.3905516Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-08T17:38:45.3942758Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-08T17:38:45.4339909Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-08T17:38:45.4396471Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-08T17:38:45.4876459Z Cleaning up orphan processes
+2026-10-08T17:38:45.5416831Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

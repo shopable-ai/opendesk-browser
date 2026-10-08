@@ -588,6 +588,296 @@
       "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/source-input-revalidation.json",
       "sha256": "d687870229506c02bf71720572c2131e579213abd812d9efa5fc372aeb7cd65b",
       "bytes": 585
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/published-tree-environment-tests.log",
+      "sha256": "29ded170690b77b5df487633f43dffb5abc51232679ae3b5f358e8f9e7464aec",
+      "bytes": 22288
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113448926961.log",
+      "sha256": "1b5ad6d6cbcbb981faa6c53dd8c26f6e2ba204ad1c77c4167ca7d901d8023e3d",
+      "bytes": 108551
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113448927927.log",
+      "sha256": "c7ec6b31967d07b52e3cb88fbcf46911a73cd2af607c5b9bdb5b93f450d99f97",
+      "bytes": 99305
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113451886488.log",
+      "sha256": "8c8b6a75b214e7911c552f452ffefac341401b3a32ef0eaa59ace535ed20b301",
+      "bytes": 34506
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113451886704.log",
+      "sha256": "4bb8f692907dbe3d64bf352937677cdc1817657347d38006b3a7cea894f5cf4d",
+      "bytes": 204706
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113451915107.log",
+      "sha256": "178d740a81a7656d357159868d70fecf6c31f53cdd6b49f4146addbff8c25917",
+      "bytes": 52135
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113452162750.log",
+      "sha256": "805012ea40c4f8960dad7b93b8e6fd1ccacc481876a45762d4303b74e9fc806f",
+      "bytes": 45116
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113452163009.log",
+      "sha256": "c92cd7234fdc5e2caa78258f4f0eae5ac0ed6f0a2812af6b54fb1454521872d2",
+      "bytes": 100715
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113452164444.log",
+      "sha256": "f4fa1bfb503541e2b65ccf241dbed774bdefcbd2aa81202e991f6df7550caa80",
+      "bytes": 111818
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/http-page-draft-after.log",
+      "sha256": "51bc6747b26672e2cc1d27558457fbe31347cfb4fa165ddb3f8fee1533d3a953",
+      "bytes": 1672
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/http-page-draft-before.log",
+      "sha256": "4b65f0d7f97b8e0cf7e67c256c0026740508c708cb2fe4859eddf42ad1a818a2",
+      "bytes": 2139
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-build-development.json",
+      "sha256": "8cf45d7ee9ae3ff1cf6a3c0113922258aff643f0e4a7ac2c867e5d07f538266e",
+      "bytes": 30489
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-build-development.log",
+      "sha256": "44e974725c7c91f7fe44b0ca7a5f79d12026db6f48b9001a4c1ca5d30cfb84ea",
+      "bytes": 6662
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-build-production.json",
+      "sha256": "c8771b077d26cba6cd3e580492321bdd4034233ee525fb397e9db0d67d9329e1",
+      "bytes": 28245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-build-production.log",
+      "sha256": "aa675e7688f09c81914892aec7d59d22e79073db888a26ad98354c71e0f95764",
+      "bytes": 5792
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-environment-after-build.log",
+      "sha256": "0152ad45d86ea3d60aa2ef7a7b87283a479ff569dd44ac80490b28d5d330d909",
+      "bytes": 36394
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-environment-tests.log",
+      "sha256": "1be7c450b965b75a94f7764e83dbb95b121daf6a0502053830962efd6362e706",
+      "bytes": 38374
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-pack-development.json",
+      "sha256": "6e175727cf11246bed7308a947fe784370731a0caa8332a73bcfc7723bef6f94",
+      "bytes": 238
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-pack-development.log",
+      "sha256": "b36358decd6104ce609c795b103d393c81563f412f34a9401dfbbecc7d30b0ee",
+      "bytes": 388
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-pack-production.json",
+      "sha256": "c512d7c1419f9cdc0b34775cb43003618a564f4bd95b01a0a2eef9744cfb2f64",
+      "bytes": 236
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-pack-production.log",
+      "sha256": "f5e09b7abd41839327f50f3165fd45883f0869f8051d9f050e1308de5cebc877",
+      "bytes": 381
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-source-check.log",
+      "sha256": "27271f5860c585932425f7d35018117219f5d88aa47ffb2001365ccf3666bd20",
+      "bytes": 307
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-verify.log",
+      "sha256": "a25ff9d6fea9c64930e55a446cd94b156910959ad580942256c3b2f1b5db40b7",
+      "bytes": 11312
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-backlog-current.log",
+      "sha256": "5cfa49e3d670929dd47ff4ca544f0f72f852b29a9c0caa2dd5acdab8bb52e1f3",
+      "bytes": 451
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113461221669.log",
+      "bytes": 116018,
+      "sha256": "6aeeb8561940de98a34264ba145c457b290cc117d1846c3001347761331567f8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113461221812.log",
+      "bytes": 213509,
+      "sha256": "58e89764a341011d3b7c5fc21e506f9b5bd5e4445f92198059399118326ae334"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113461222019.log",
+      "bytes": 48446,
+      "sha256": "5823e68b4ef0f9e4e42411a58707101e22b4838e765ca01213dc3100aca74387"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113461222196.log",
+      "bytes": 41118,
+      "sha256": "5aaf47291541b85fac2b9ea75010d96d3b9dec96e4a7ae19a34b55d5c259ad21"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/post-sync-source-check.log",
+      "bytes": 307,
+      "sha256": "ccbe359a55566108e79cdde4ba06c080abe356af7c9a45ee469a6acb943f20bf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/post-sync-targeted.log",
+      "bytes": 4230,
+      "sha256": "cc17ee39c90076b87342b7c257117db64b720eea361fa24939f8f839aad2c7dd"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113463151316.log",
+      "bytes": 115910,
+      "sha256": "85a2e34dbcbbaee3859f31390004573cd3b532ba81f55b37f8770977d485edeb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113463151817.log",
+      "bytes": 216347,
+      "sha256": "d5b09e346d84dce7ed18c297bdc79ef1c8224575b8095ca4ddf0ee6e478ee1df"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113463152074.log",
+      "bytes": 46853,
+      "sha256": "dfec52ecffc041ca06c1a161fc124a639c31efcaeee5d79d110f7a42ce1f8846"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113463152282.log",
+      "bytes": 41203,
+      "sha256": "5d0e3cd3131932cb6f0ba915311aa2c0aee05e48f8cd3181f41f52b32ed4dd52"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-final-source-check.log",
+      "bytes": 307,
+      "sha256": "c22781f42170ee1b6e6dcf7b454a0eaa78e12b690b2893b78c9c39f018a28dd9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-final-targeted.log",
+      "bytes": 7439,
+      "sha256": "2ebb4460263909baaac4a77fd94881e52db1c51dc5bb4b5b9f755588c2247060"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-final-zip-exact.log",
+      "bytes": 247,
+      "sha256": "749a725ea543bf7a84a5b3fd92af7dd6dd04ae1a45159b77de6f902ebe14b281"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-build-development.json",
+      "bytes": 32116,
+      "sha256": "944eb627b9eb2e85c6aac4555dec65543cd0c7a684dcef4ff3e9bab02512fce4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-build-development.log",
+      "bytes": 6589,
+      "sha256": "48446df1c859133fe7a2fdd065dfa5a3075a460d87ca4d6bc67d9f72666f8b87"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-build-production.json",
+      "bytes": 29699,
+      "sha256": "54541ad15fc13bf4353d23937071918f2042cc7499ba6fd35d5230b9733f17e2"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-build-production.log",
+      "bytes": 5439,
+      "sha256": "f454fe0ae7e12ab23b09d4dd97fbe0b73b4d263d9a85d1e5a3028f52670bd635"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-pack-development.json",
+      "bytes": 238,
+      "sha256": "11c1c777bcb9674b4e7391cd93b3609716d3935dad8949eebb188bb2794129a4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-pack-development.log",
+      "bytes": 388,
+      "sha256": "ede284f88cc3d000a1a096de1ff830976e09646de1888ca031b2da91f9357181"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-pack-production.json",
+      "bytes": 236,
+      "sha256": "86922bc7b96fa99f7dcfcc284cb929d7f59bdbd25ec9e495d67ca28c410f0a2d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-pack-production.log",
+      "bytes": 381,
+      "sha256": "4e5458b901d5d84024ad77765657866f36c90c2ad0ec145ddcc4f53900a0caf1"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-integrated-verify.log",
+      "bytes": 12177,
+      "sha256": "b8cc3652869c63aacf75f88c13d2ba259855b68024d0881a2a5f7f1f0c38dd81"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-build-development.json",
+      "bytes": 32449,
+      "sha256": "ffb6227d2bbaf821dfb8d85c3dadd275d5e6f313ce9a15d125fcb1d7f734a1be"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-build-development.log",
+      "bytes": 6738,
+      "sha256": "9e1661cca2412eda85d7479e2aad7c7938fb18719ee71eba7c3e828fdb8ce53e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-build-production.json",
+      "bytes": 30032,
+      "sha256": "231b2f69e3037918fb5e3f21658ff284b09382828349ffad33d776ca15a0eeb9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-build-production.log",
+      "bytes": 5609,
+      "sha256": "5c9b1b8ec4497a93ee25b593243b811fb1523bc50f90ba7882905ad9a6a95bac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-pack-development.json",
+      "bytes": 238,
+      "sha256": "20ccdefbcdd0a96b7a9d7aa250e583302f1da4d7b4459b836cc270f87f09b304"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-pack-development.log",
+      "bytes": 388,
+      "sha256": "99ace6dfe9ab6d1f2c378af1ae8452d4d20ad51dcaf7c107e0d293f4e500b653"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-pack-production.json",
+      "bytes": 236,
+      "sha256": "0dd0f64088175575330f2d86a5cc962cf95c8a0f8ae07eb5793081078c8a2613"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-pack-production.log",
+      "bytes": 381,
+      "sha256": "b9127c68a89969b5936e167fc49aa3d897ff5da1efca3f6916ce69dce4c78e42"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-source-check.log",
+      "bytes": 307,
+      "sha256": "21d2ecf60f98160d9491a85560fb4e6b8009a6cdf0e453c395986a8838c4a0c0"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-targeted.log",
+      "bytes": 5323,
+      "sha256": "98d0d6e9f328569160a240dc782041021b7b71a9651f5f0b68771f2c8af03493"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-verify.log",
+      "bytes": 12177,
+      "sha256": "472ffad8e53aae36fecc27090d7747e93d70e37c56fc8153cf10ae4205b241be"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-zip-exact.log",
+      "bytes": 247,
+      "sha256": "68c4d03c6f9f64256ae2200540558ceb4d0d02e6646384898e57ac2c407b3d24"
     }
   ],
   "finalRelatedPrSnapshot": {
@@ -635,5 +925,671 @@
         "merged_at": "2026-10-08T17:11:02Z"
       }
     ]
+  },
+  "deliveryIntegration": {
+    "recordedAtUtc": "2026-10-08T17:38:25.300128+00:00",
+    "productPullRequest": {
+      "number": 25,
+      "url": "https://github.com/shopable-ai/opendesk-browser/pull/25",
+      "state": "closed",
+      "merged": true,
+      "mergedAtUtc": "2026-10-08T17:31:38Z"
+    },
+    "mainProductIntegrationSha": "70fb3449ae97cfdf69b4fc83f0466e36f8501006",
+    "publishedHeadSha": "a884942e63a82220c4188ca73dbe232b1a48387b",
+    "publishedParentSha": "36cdb638dc755f1be266eac745d09ce2e384a2c1",
+    "reviewedLocalHeadSha": "ab89a84051d8b26233134d1d8df5920e03ac8a1f",
+    "reviewedLocalProductSha": "84dc3c7abe08505ae5e24849315dc8dd5587932d",
+    "exactTreeSha": "b40e454218daa9c19f799cf7d74023ca0a47a128",
+    "allChangedBlobsVerified": 39,
+    "publicationMethod": "Authenticated GitHub Git-data connector created one atomic snapshot commit; local and published complete trees are identical. Original local receipt SHAs remain unchanged and are not required to be remote ancestors.",
+    "localEnvironmentOnExactPublishedTree": {
+      "passed": 201,
+      "failed": 0,
+      "skipped": 0,
+      "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/published-tree-environment-tests.log"
+    },
+    "pullRequestCi": {
+      "actualCheckoutSha": "162e9ab23feb4ea272e167f851584da67de0c974",
+      "sameTreeAsMain": true,
+      "siteAccessRunId": 37816937896,
+      "siteAccessJobId": 113447858695,
+      "siteAccessPassed": 63,
+      "packageRunId": 37816937909,
+      "packageJobId": 113447858036,
+      "conclusion": "success"
+    },
+    "mainCi": [
+      {
+        "runId": 37817254650,
+        "jobId": 113448926961,
+        "actualCheckoutSha": "70fb3449ae97cfdf69b4fc83f0466e36f8501006",
+        "componentGroupsPassed": [
+          121,
+          12,
+          3
+        ],
+        "sourceChecked": 139,
+        "productionBuild": "PASS",
+        "developmentBuild": "PASS",
+        "verify": "PASS",
+        "packageHashesMatchRecordedBuilds": true,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113448926961.log"
+      },
+      {
+        "runId": 37817254841,
+        "jobId": 113448927927,
+        "actualCheckoutSha": "70fb3449ae97cfdf69b4fc83f0466e36f8501006",
+        "componentGroupsPassed": [
+          146,
+          15,
+          34
+        ],
+        "conclusion": "success",
+        "nativeDriverTestsAreNodeComponents": true,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113448927927.log"
+      }
+    ],
+    "nativeChrome": "NOT_TESTED",
+    "userInstallationFlow": "NOT_TESTED",
+    "localCodex": "NOT_TESTED",
+    "finalF3Accepted": false,
+    "relatedNativeCandidateRemainsDraft": "75e4cde417bc885e7bf2117beca8ac66c56fabb7",
+    "postIntegrationMergeAudit": {
+      "mainSha": "70fb3449ae97cfdf69b4fc83f0466e36f8501006",
+      "nativeSha": "75e4cde417bc885e7bf2117beca8ac66c56fabb7",
+      "mergeBaseSha": "0dcc23b6e1a3409a0dc06f2afd2884ed1e74a448",
+      "mergeTreeExitCode": 1,
+      "conflicts": [
+        "examples/tasks/README.zh-CN.md",
+        "examples/tasks/demo-form.html",
+        "tests/environment/basic-browser-page.test.mjs"
+      ],
+      "semanticConflict": {
+        "consumer": "examples/tasks/http-axiosx-page-draft.js",
+        "nativeButton": "发送请求",
+        "mainButton": "发送 GET",
+        "claimedChannel": "page-sdk-axiosx-through-page-api",
+        "mainActualTransport": "Web API fetch",
+        "requiredAction": "Reconcile page, documentation, tests and consumer to the actual transport. Renaming the button alone must not count fetch as SDK axiosx acceptance. Reuse PR #20 HTTP service and requestId evidence."
+      },
+      "newMetadataAdmissionCodeHasTextConflict": false,
+      "futureCombinedCandidateMustRevalidate": true,
+      "worktreeModified": false,
+      "remoteUpdated": false
+    },
+    "cleanup": {
+      "productRemoteBranchDeleted": true,
+      "cleanupWorkflowRunId": 37817254652,
+      "temporaryImplementationWorktreesRemoved": true,
+      "localHistoryTags": [
+        "audit/r8-r1-reviewed-b62cc961",
+        "audit/r8-backlog-b62cc961",
+        "audit/r8-pr22-redundant-b62cc961"
+      ],
+      "pr22LocalDistPreserved": "/workspace/scratch/b62cc961ca59/r8-evidence/pr22-local-fixture-dist",
+      "otherSessionsBranchesModified": false
+    },
+    "nextActions": [
+      "E05/E04/E03: reconcile exact Native/main fixture and HTTP consumer contracts; continue real Chrome/Codex acceptance on a new fixed combined candidate.",
+      "E07.1/E09: implement Page Candidate persistent identity, CAS and type-specific verification; no fabricated Available proof.",
+      "E12 then E10: prove trusted instance/install/document authorization before persistent registration."
+    ]
+  },
+  "currentStatePointer": "prePublicationBaseline; all earlier snapshots retain exact original identities.",
+  "latestMainIntegration": {
+    "recordedAtUtc": "2026-10-08T17:59:37.617554+00:00",
+    "auditedMainSha": "189a7037afce89efe7fef7772e781fd70643143c",
+    "auditedMainTreeSha": "de160da09a533a338c77d711e8722db8683706fc",
+    "integrationPerformedByThisRoot": false,
+    "nativePr": {
+      "number": 11,
+      "state": "closed",
+      "draft": false,
+      "merged": true,
+      "mergedAtUtc": "2026-10-08T17:38:58Z",
+      "headSha": "f1ca724a52e3190447c9be93ed9b00b8a97b52fd",
+      "baseSha": "b8ca308429c8cc1cbffd43e4576d8b586f818159"
+    },
+    "nestedPr20And22AreNowInMain": true,
+    "previousThreeFileTextConflicts": "Resolved by main189, preserving main70 file contents; independent HTTP consumer mismatch repaired in current slice.",
+    "mainContainsOriginalMetadataSlice": true,
+    "currentProductSlice": {
+      "localCommitSha": "35fd8a27c7364a8e5cfe6993ab07324423224e19",
+      "taskIds": [
+        "E04",
+        "E06"
+      ],
+      "files": [
+        "examples/tasks/http-axiosx-page-draft.js",
+        "tests/environment/basic-browser-page.test.mjs"
+      ],
+      "behavior": "Execute the actual canonical GET fetch draft with its real locator/channel; do not claim page fetch as SDK axiosx. Reuse existing HTTP server for 200/503 tests.",
+      "before": {
+        "tests": 2,
+        "pass": 0,
+        "fail": 2,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/http-page-draft-before.log"
+      },
+      "after": {
+        "tests": 16,
+        "pass": 16,
+        "fail": 0,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/http-page-draft-after.log"
+      }
+    },
+    "localValidation": {
+      "environment": {
+        "tests": 278,
+        "pass": 268,
+        "fail": 6,
+        "skip": 4,
+        "exitCode": 1,
+        "status": "PARTIAL",
+        "failure": "All six Native Host socket fixtures fail at listen with EPERM. No test was altered or skipped to hide this result.",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-environment-after-build.log"
+      },
+      "prebuildAttempt": {
+        "status": "FAILED_WITH_STALE_DIST_AND_SOCKET_EPERM",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-environment-tests.log",
+        "oldDistPreserved": "/workspace/scratch/b62cc961ca59/r8-evidence/pre-native-dist"
+      },
+      "sourceCheck": {
+        "files": 160,
+        "exitCode": 0,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integrated-source-check.log"
+      },
+      "buildProduction": "PASS",
+      "buildDevelopment": "PASS",
+      "verify": "PASS",
+      "packProduction": "PASS",
+      "packDevelopment": "PASS",
+      "chromeNative": "NOT_TESTED",
+      "localCodex": "NOT_TESTED",
+      "installedUserTask": "NOT_TESTED",
+      "finalF3Accepted": false
+    },
+    "currentPackages": {
+      "productionPackageHash": "3972c99cbd4367a6e5b1bdb653741c892612408da8bde7aac72d75a25130f3de",
+      "developmentPackageHash": "8de76f8b99610f306951973a400004fab6a10044deb172ac4e378d9f6070566d",
+      "productionZipSha256": "a49aadb7111f2dcd4af0fc4e8800b5e692191cebdd9ddaa0692e62f01dc7deff",
+      "developmentZipSha256": "a5523c49d2d03f45b5eb2dcb2256b92962bc67e86245b57fe2634799726218e3",
+      "productionWorkerBytes": 324976,
+      "productionWorkerBudgetBytes": 327680,
+      "productionWorkerHeadroomBytes": 2704,
+      "samePackageHashAsAuditedMainCi": true,
+      "nativeZipInstall": "NOT_TESTED"
+    },
+    "ciEvidence": [
+      {
+        "runId": 37818199067,
+        "jobId": 113452164444,
+        "checkoutSha": "189a7037afce89efe7fef7772e781fd70643143c",
+        "groupsPassed": [
+          123,
+          12,
+          3
+        ],
+        "sourceCheck": 160,
+        "productionAndDevelopmentBuildAndVerify": "PASS",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113452164444.log"
+      },
+      {
+        "runId": 37818199068,
+        "jobId": 113452162750,
+        "checkoutSha": "189a7037afce89efe7fef7772e781fd70643143c",
+        "groupsPassed": [
+          37
+        ],
+        "sourceCheck": 160,
+        "bothProgramSampleValidateBuild": "PASS",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113452162750.log"
+      },
+      {
+        "runId": 37818199036,
+        "jobId": 113452163009,
+        "checkoutSha": "189a7037afce89efe7fef7772e781fd70643143c",
+        "groupsPassed": [
+          149,
+          15,
+          34
+        ],
+        "allGroupsAreNodeComponents": true,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113452163009.log"
+      },
+      {
+        "runId": 37818118949,
+        "jobId": 113451886704,
+        "checkoutSha": "f1ca724a52e3190447c9be93ed9b00b8a97b52fd",
+        "sameFullTreeAsAuditedMain": true,
+        "groupsPassed": [
+          47,
+          58
+        ],
+        "environment": {
+          "tests": 276,
+          "pass": 272,
+          "fail": 0,
+          "skip": 4
+        },
+        "sourceCheck": 160,
+        "productionAndDevelopmentBuildAndVerify": "PASS",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113451886704.log"
+      },
+      {
+        "runId": 37818127611,
+        "jobId": 113451915107,
+        "checkoutSha": "d0f64fc0040dc0afb406db8fa2c33fd5de49e9da",
+        "sameFullTreeAsAuditedMain": true,
+        "groupsPassed": [
+          88
+        ],
+        "sourceCheck": 160,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113451915107.log"
+      },
+      {
+        "runId": 37818118949,
+        "jobId": 113451886488,
+        "checkoutSha": "f1ca724a52e3190447c9be93ed9b00b8a97b52fd",
+        "sameFullTreeAsAuditedMain": true,
+        "hostCliSimulatedFramingPassed": 3,
+        "chromeVersion": "155.0.8059.39",
+        "chrome": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "error": "real unpacked OpenDesk extension ID timed out",
+          "exitCode": 1
+        },
+        "continueOnError": true,
+        "fullNativeAccepted": false,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113451886488.log"
+      }
+    ],
+    "catalog": {
+      "total": 188,
+      "sourceImplemented": 21,
+      "partial": 78,
+      "missing": 89,
+      "unknown": 0,
+      "statusChanges": [
+        "TRG-011 M→P",
+        "AI-003 M→P",
+        "AI-007 M→P"
+      ],
+      "notACompletionPercentage": true
+    },
+    "nativeBoundary": "Host only authenticates/forwards IPC; execution uses existing active Sidebar RunHost with a 1–120 second deadline. Background long tasks and MCP are not implemented.",
+    "nextActions": [
+      "Obtain Native/MAIN SDK axiosx/Program Source real Chrome and local Codex acceptance on one fixed current candidate; do not reopen merged PR11/20/22.",
+      "Implement E07.1 Page Candidate persistent identity/CAS and E09 type-specific proof admission on existing frameworkKV/Authority.",
+      "Implement E12 install/instance authorization before E10 persistent registration; keep GM/Cron/UserCSS out of this slice."
+    ],
+    "planVerification": {
+      "passed": 3,
+      "failed": 0,
+      "taskCards": 40,
+      "featureIds": 188,
+      "missingOrUnknownOrDuplicateOwners": 0,
+      "dag": "acyclic",
+      "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-backlog-current.log",
+      "review": "backlog_plan independent read-only structural and status review accepted; 3 stale phrasings corrected, scores unchanged."
+    }
+  },
+  "postSyncBaseline": {
+    "recordedAtUtc": "2026-10-08T18:03:48.589293+00:00",
+    "mainSha": "bd47d40c9cf88af6942fe35c7468a92c3042c2d1",
+    "localCombinedSha": "9c9cfaece540a68ec8cb2a0ac5b2e8799d625c3d",
+    "mergeConflicts": [],
+    "runtimeAndBuildInputsUnchangedSinceMain189": true,
+    "originalMetadataFixPresent": true,
+    "httpSliceByteIdenticalTo35fd8a27": true,
+    "targetedTests": {
+      "passed": 44,
+      "failed": 0,
+      "skipped": 0,
+      "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/post-sync-targeted.log"
+    },
+    "sourceCheck": {
+      "files": 161,
+      "exitCode": 0,
+      "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/post-sync-source-check.log"
+    },
+    "fullLocalEnvironmentRerun": false,
+    "fullLocalEnvironmentReason": "The six socket EPERM failures remain recorded against 35fd8a27. No unchanged-condition rerun or new full-pass claim.",
+    "ci": [
+      {
+        "runId": 37820856174,
+        "jobId": 113461221812,
+        "kind": "Native Node",
+        "checkoutSha": "bd47d40c9cf88af6942fe35c7468a92c3042c2d1",
+        "passedGroups": [
+          47,
+          58
+        ],
+        "environment": {
+          "tests": 281,
+          "passed": 276,
+          "failed": 0,
+          "skipped": 5
+        },
+        "sourceCheck": 161,
+        "productionAndDevelopmentBuildAndVerify": "PASS",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113461221812.log"
+      },
+      {
+        "runId": 37820856140,
+        "jobId": 113461221669,
+        "kind": "Page and exact ZIP",
+        "checkoutSha": "bd47d40c9cf88af6942fe35c7468a92c3042c2d1",
+        "passedGroups": [
+          123,
+          12,
+          3
+        ],
+        "sourceCheck": 161,
+        "productionAndDevelopmentBuildAndVerify": "PASS",
+        "zipExactDistBytes": {
+          "production": "PASS",
+          "development": "PASS"
+        },
+        "packageAndZipHashesMatchLatestMainIntegration": true,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113461221669.log"
+      },
+      {
+        "runId": 37820856174,
+        "jobId": 113461222196,
+        "kind": "macos-15 ARM CFT",
+        "checkoutSha": "bd47d40c9cf88af6942fe35c7468a92c3042c2d1",
+        "hostCliSimulatedFramingPassed": 3,
+        "chromeVersion": "155.0.8059.39",
+        "chromeTests": 2,
+        "chromePassed": 0,
+        "chromeFailed": 2,
+        "bareRenderer": "CDP Runtime.evaluate timeout",
+        "extensionDiscovered": true,
+        "options": "CDP Runtime.evaluate timeout",
+        "workflowConclusion": "failure",
+        "continueOnError": false,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113461222196.log"
+      },
+      {
+        "runId": 37820856174,
+        "jobId": 113461222019,
+        "kind": "macos-15 Intel CFT",
+        "checkoutSha": "bd47d40c9cf88af6942fe35c7468a92c3042c2d1",
+        "hostCliSimulatedFramingPassed": 3,
+        "chromeVersion": "155.0.8059.39",
+        "chromeTests": 2,
+        "chromePassed": 0,
+        "chromeFailed": 2,
+        "bareRenderer": "CDP Runtime.evaluate timeout",
+        "extensionDiscovered": true,
+        "options": "CDP Inspector.detached: Render process gone.",
+        "workflowConclusion": "failure",
+        "continueOnError": false,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113461222019.log"
+      }
+    ],
+    "newMainExamples": [
+      "examples/programs/sidebar-page-demo",
+      "examples/programs/sidebar-controller-demo",
+      "examples/programs/sidebar-assets-contract"
+    ],
+    "newMainDocs": [
+      "docs/framework/sidebar-project-api-r1.zh-CN.md",
+      "docs/framework/prompts/goal-sidebar-multifile-native-acceptance-r1.md"
+    ],
+    "reviewResults": [
+      {
+        "reviewer": "backlog_plan",
+        "scope": "40 tasks / 188 primary owners / 160 independent ratings / current Native and source-map status",
+        "result": "ACCEPTED",
+        "changesApplied": "Three residual status phrasings clarified; scores unchanged."
+      },
+      {
+        "reviewer": "chrome_adr_audit",
+        "scope": "35fd8a27 / main189 / f1ca docs and exact evidence receipts; not later bd CI",
+        "result": "ACCEPTED",
+        "verifiedEvidenceFiles": 53,
+        "earlierTruncatedSidebarLogRestoredExactly": true
+      },
+      {
+        "reviewer": "pr_integration_audit",
+        "scope": "35fd8a27 two-file HTTP consumer source and real 200/503 tests; unchanged after bd sync",
+        "result": "ACCEPTED",
+        "nativeSocketFailuresAccountedSeparately": true
+      }
+    ],
+    "nativeAcceptance": "NOT_TESTED for this root local user flow; latest remote CFT diagnostics FAILED as recorded, no full acceptance",
+    "finalF3Accepted": false,
+    "publicationNote": "Local reviewed commit identities remain fixed; authenticated Git-data publication must verify full tree equality and exact PR head before integration. Actual remote PR and merge identity are reported in Git/PR records, not fabricated in this pre-publication receipt."
+  },
+  "finalRuntimeBaseline": {
+    "recordedAtUtc": "2026-10-08T18:10:14.482263+00:00",
+    "mainSha": "74d261b7be865830742c5b3d061ba53d0b41033c",
+    "mainTree": "230baad6919170e97a516d87ef4e27205a6f5871",
+    "localCombinedSha": "52b4da41586ab437eb4c3f389c2868d12f3842fe",
+    "mergeConflicts": [],
+    "parallelSidebarToolsCommit": "59153b6460c453cd2f548cc23586d91a5c2959ef",
+    "sidebarToolsImplementedByThisRoot": false,
+    "runtimeAndBuildInputsChangedSinceMainBd": true,
+    "wxtEntries": 14,
+    "browserPermissionsAdded": false,
+    "sandboxCsp": "Shared manifest sandbox upper bound changed for both documents; existing Controller Meta CSP and new UI Meta CSP separately checked. Native isolation NOT_TESTED.",
+    "localValidation": {
+      "targeted": {
+        "passed": 72,
+        "failed": 0,
+        "skipped": 0,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-final-targeted.log"
+      },
+      "sourceCheck": {
+        "files": 167,
+        "exitCode": 0,
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-final-source-check.log"
+      },
+      "productionBuild": "PASS",
+      "developmentBuild": "PASS",
+      "verify": "PASS",
+      "packProduction": "PASS",
+      "packDevelopment": "PASS",
+      "zipExactDistBytes": "PASS",
+      "zipRaw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/sidebar-final-zip-exact.log",
+      "nativeChrome": "NOT_TESTED",
+      "installedUserTask": "NOT_TESTED",
+      "localCodex": "NOT_TESTED",
+      "fullLocalRerun": false,
+      "knownOldFullEnvironmentFailurePreserved": true
+    },
+    "packages": {
+      "production": {
+        "packageHash": "2633c57189f55e6de43a8f0e9c9aff2035ac1d22291b7879f7fe46312a8d2e6b",
+        "zipSha256": "7e8c6306602b4444ab76c1439fb930e4850183f8012a44dd589c458d1b22ce2e",
+        "zipBytes": 401937,
+        "packageAndZipMatchMain74Ci": true
+      },
+      "development": {
+        "packageHash": "1124f3fa7144396b6fcdafa585cdbc04dd89c57e36a0b36de6f815b9110afe9a",
+        "zipSha256": "d51ed9fe30e1efe339adf49313a77274a529ef885c392e1ed64f5cbdca08e945",
+        "zipBytes": 1059087,
+        "packageAndZipMatchMain74Ci": true
+      }
+    },
+    "productionWorkerBytes": 324976,
+    "productionWorkerBudgetBytes": 327680,
+    "productionWorkerHeadroomBytes": 2704,
+    "ci": [
+      {
+        "runId": 37821428251,
+        "jobId": 113463151316,
+        "kind": "Page/package",
+        "passedGroups": [
+          123,
+          12,
+          3
+        ],
+        "sourceCheck": 167,
+        "bothBuildVerifyPackExactZip": "PASS",
+        "checkoutSha": "74d261b7be865830742c5b3d061ba53d0b41033c",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113463151316.log"
+      },
+      {
+        "runId": 37821428202,
+        "jobId": 113463151817,
+        "kind": "Native Node",
+        "passedGroups": [
+          47,
+          58
+        ],
+        "environment": {
+          "tests": 284,
+          "passed": 279,
+          "failed": 0,
+          "skipped": 5
+        },
+        "sourceCheck": 167,
+        "bothBuildVerify": "PASS",
+        "checkoutSha": "74d261b7be865830742c5b3d061ba53d0b41033c",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113463151817.log"
+      },
+      {
+        "runId": 37821428202,
+        "jobId": 113463152282,
+        "kind": "macos-15 ARM",
+        "hostCliSimulatedFramingPassed": 3,
+        "chromeVersion": "155.0.8059.39",
+        "chrome": {
+          "passed": 0,
+          "failed": 2,
+          "bareRenderer": "CDP Runtime.evaluate timeout",
+          "extensionOptions": "CDP Inspector.detached: Render process gone."
+        },
+        "workflowConclusion": "failure",
+        "continueOnError": false,
+        "checkoutSha": "74d261b7be865830742c5b3d061ba53d0b41033c",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113463152282.log"
+      },
+      {
+        "runId": 37821428202,
+        "jobId": 113463152074,
+        "kind": "macos-15 Intel",
+        "hostCliSimulatedFramingPassed": 3,
+        "chromeVersion": "155.0.8059.39",
+        "chrome": {
+          "passed": 0,
+          "failed": 2,
+          "bareRenderer": "CDP Runtime.evaluate timeout",
+          "extensionOptions": "CDP Inspector.detached: Render process gone."
+        },
+        "workflowConclusion": "failure",
+        "continueOnError": false,
+        "checkoutSha": "74d261b7be865830742c5b3d061ba53d0b41033c",
+        "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113463152074.log"
+      }
+    ],
+    "uiAdapterAudit": {
+      "threePrimaryTabsPreserved": true,
+      "tasksOpenStartsRunHost": false,
+      "allowedCapabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "unifiedProgramRefAuthorityRevisionAndInstallGeneration": false,
+      "hostMessageBehaviorNegativeTests": "MISSING",
+      "nativeIsolation": "NOT_TESTED",
+      "knownNextWork": [
+        "tasks.open destroys iframe before its success response; define terminal navigation contract.",
+        "Reject queued operations again at dispatch after close/switch and prove uninstall behavior.",
+        "Unify cross-window install/update/remove and data CAS, same-ID source identity and permissions before broadening capabilities."
+      ],
+      "reviewer": "pr_integration_audit",
+      "result": "Main capability and risk audit accepted; does not change HTTP source review acceptance."
+    },
+    "catalog": {
+      "total": 188,
+      "sourceImplemented": 21,
+      "partial": 80,
+      "missing": 87,
+      "unknown": 0,
+      "changesSinceMain189": [
+        "ECO-011 M→P (restricted UI adapter only)",
+        "PORT-007 M→P (restricted UI manifest/uninstall only)"
+      ],
+      "notACompletionPercentage": true
+    },
+    "newRuntimeEvidenceReview": {
+      "reviewer": "chrome_adr_audit",
+      "result": "Main74 raw CI/package hashes/CSP reviewed; Native failure explicitly retained."
+    },
+    "finalF3Accepted": false,
+    "nextActions": [
+      "Accept the narrow reviewed HTTP+documentation PR only after its actual changed-scope CI and tree identity are checked; do not claim whole Native approval.",
+      "E07.1/E09 Page Candidate/CAS and type-specific proof on existing services.",
+      "E39/E40: preserve narrow UI adapter; do not add execution/network privileges before unified identity and lifecycle contracts.",
+      "On working local Chrome/CFT: independent original metadata, HTTP fetch/MAIN SDK/Worker, multi-file, Native and UI sandbox acceptance against one new fixed package."
+    ]
+  },
+  "prePublicationBaseline": {
+    "recordedAtUtc": "2026-10-08T18:44:08.781308+00:00",
+    "mainSha": "5769730beb9fddc6fc788a2702409ec06076feac",
+    "localMergedSha": "9555e60864e89565dda2281414fba2d24e22d5f8",
+    "mergeConflicts": [],
+    "parallelChangesPreserved": [
+      "2530b90 Page UI helper/assets",
+      "407ac98 real tool host negatives/storage.onChanged",
+      "5769730 current asset build assertions/CI"
+    ],
+    "ownedHttpSliceUnchanged": true,
+    "localTargeted": {
+      "passed": 49,
+      "failed": 0,
+      "skipped": 0,
+      "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-targeted.log"
+    },
+    "sourceCheck": {
+      "files": 172,
+      "exitCode": 0,
+      "raw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-source-check.log"
+    },
+    "productionBuild": "PASS",
+    "developmentBuild": "PASS",
+    "verify": "PASS",
+    "productionPack": "PASS",
+    "developmentPack": "PASS",
+    "zipExactDistBytes": "PASS",
+    "zipRaw": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-master-zip-exact.log",
+    "packages": {
+      "production": {
+        "packageHash": "75dd897fee5a906dbe5de00b30c98d8c5b3d0ea8a5a7cca756e17660d478e73f",
+        "zipSha256": "f9bb274aefba9f53f1f7cf439f936577f683fddc58c150ea5bdfda6bb484e621",
+        "bytes": 402096
+      },
+      "development": {
+        "packageHash": "e61be2a4604d567e754258f3224058bb84e554a115116d786c0e565076c383f7",
+        "zipSha256": "5cad83e60eb25265f7235fadf5c8d1aab1714e7534a388944374d94061abd7b4",
+        "bytes": 1059857
+      }
+    },
+    "nativeChrome": "NOT_TESTED",
+    "localCodex": "NOT_TESTED",
+    "installedUserTask": "NOT_TESTED",
+    "finalF3Accepted": false,
+    "mainNativeWorkflow": {
+      "runId": 37822085415,
+      "conclusion": "failure",
+      "notReclassifiedAsPass": true
+    },
+    "localFullEnvironmentFailureNotRewritten": true,
+    "catalog": {
+      "total": 188,
+      "tasks": 40,
+      "sourceImplemented": 21,
+      "partial": 80,
+      "missing": 87,
+      "unknown": 0
+    },
+    "reviewScope": "Original HTTP source unchanged and accepted; incoming main retained. New tool host tests and cross-window invalidation are now implemented, while queued dispatch/CAS/task-open terminal response and shared ProgramRef/Authority remain partial."
   }
 }

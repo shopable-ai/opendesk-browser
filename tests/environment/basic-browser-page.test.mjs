@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile, readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {Script} from 'node:vm';
+import {createDemoHttpServer} from '../../examples/tasks/http-test-server.mjs';
 
 const path='examples/tasks/demo-form.html';
 const load=()=>readFile(path,'utf8');
@@ -218,6 +219,66 @@ test('HTTP panel sends no request until click and shows real status/content with
   assert.equal(dom.nodes.get('api-response').textContent,'<h1>HTTP 200</h1>');
   assert.equal(dom.nodes.get('api-debug-data').hidden,true);
   assert.equal(dom.nodes.get('api-send').disabled,false);
+});
+
+for (const scenario of [
+  {name:'200',path:'/request-sample.json?requestId=r8-page-200',status:200,state:'success'},
+  {name:'503',path:'/__test__/status?code=503&requestId=r8-page-503',status:503,state:'error'}
+]) test('the actual HTTP Page draft drives the canonical fetch handler and reports '+scenario.name+' honestly',async(t)=>{
+  const server=createDemoHttpServer(), requests=[];
+  server.on('request',request=>requests.push({method:request.method,url:request.url}));
+  await new Promise((resolve,reject)=>{
+    server.once('error',reject);
+    server.listen(0,'127.0.0.1',resolve);
+  });
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const url='http://127.0.0.1:'+server.address().port+scenario.path;
+  const html=await load(), sent=[];
+  const dom=createApiDomHarness(html,(address,options)=>{
+    sent.push({address,options});
+    return fetch(address,options);
+  });
+  const page={
+    getByLabel(name,options){
+      assert.equal(options.exact,true);
+      const labels=[...html.matchAll(/<label[^>]*for="([^"]+)"[^>]*>([^<]+)<\/label>/g)]
+        .filter(match=>match[2]===name);
+      assert.equal(labels.length,1,'draft must use a real unique label: '+name);
+      const node=dom.nodes.get(labels[0][1]);
+      return {async fill(value){node.value=value;await dom.dispatch(node.id,'input');}};
+    },
+    getByRole(role,options){
+      assert.equal(role,'button');assert.equal(options.exact,true);
+      const buttons=[...html.matchAll(/<button\b[^>]*id="([^"]+)"[^>]*>([^<]+)<\/button>/g)]
+        .filter(match=>match[2]===options.name);
+      assert.equal(buttons.length,1,'draft must use the real accessible button name: '+options.name);
+      return {async click(){await dom.dispatch(buttons[0][1],'click');}};
+    },
+    locator(selector){
+      const match=/^#([a-z-]+)(?:\[data-state="([^"]+)"\])?$/.exec(selector);
+      assert.ok(match,'supported real fixture selector: '+selector);
+      const node=dom.nodes.get(match[1]);assert.ok(node);
+      return {
+        async waitFor(options){
+          assert.equal(options.state,'visible');assert.equal(node.hidden,false);
+          assert.equal(node.dataset.state,match[2],'wait observes the actual HTTP handler state');
+        },
+        async textContent(){return node.textContent;}
+      };
+    }
+  };
+  const source=await readFile('examples/tasks/http-axiosx-page-draft.js','utf8');
+  // Real draft and HTML execute in the existing DOM component harness; this is not Chrome/CORS acceptance.
+  const result=await new Script(source+'\nmain();').runInNewContext({page,params:{url,expected:scenario.state}});
+  assert.deepEqual(requests,[{method:'GET',url:scenario.path}]);
+  assert.equal(sent.length,1);assert.equal(sent[0].address,url);
+  assert.equal(sent[0].options.credentials,'omit');assert.equal(sent[0].options.mode,'cors');
+  assert.equal(result.channel,'page-fetch-through-page-api','fetch must never be labelled as SDK axiosx');
+  assert.equal(result.url,url);
+  assert.match(result.httpStatus,new RegExp('^'+scenario.status+'(?: |$)'));
+  const response=JSON.parse(result.responseText);
+  if(scenario.status===200)assert.equal(response.source,'opendesk-browser-local-fixture');
+  else {assert.equal(response.status,503);assert.match(result.errorText,/HTTP 503/);}
 });
 
 test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies',async()=>{
