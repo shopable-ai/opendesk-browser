@@ -217,8 +217,36 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
   }
   function renderCandidate() {
-    const row=candidate();
-    get('task-catalog-detail').textContent=formatCandidate(row);
+    const row=candidate(),reader=get('task-catalog-detail');
+    reader.replaceChildren();
+    if(!row) {
+      reader.textContent='请选择任务卡片，查看完整用途、来源和所需权限。';
+      update();return;
+    }
+    const heading=doc.createElement('h3');heading.textContent=row.manifest.title;
+    const subtitle=doc.createElement('p');subtitle.className='catalog-reader-desc';
+    subtitle.textContent=row.manifest.description;
+    const meta=doc.createElement('div');meta.className='catalog-reader-facts';
+    for(const [name,value] of [
+      ['版本',row.version],['作者',row.manifest.author],['来源',row.manifest.source],
+      ['适用网站',row.manifest.siteOrigins.join('、')],
+      ['所需权限',row.manifest.permissions.join('、')],
+      ['验证状态',states[row.stage] || row.stage]]){
+      const fact=doc.createElement('div');fact.className='catalog-reader-fact';
+      const key=doc.createElement('span');key.textContent=name;
+      const val=doc.createElement('strong');val.textContent=value;
+      fact.append(key,val);meta.append(fact);
+    }
+    const advanced=doc.createElement('details');
+    const summary=doc.createElement('summary');summary.textContent='高级：版本和源码校验身份';
+    const hashes=doc.createElement('pre');
+    hashes.textContent=`源码 SHA-256：${row.manifest.program.sourceHash}\nManifest SHA-256：${row.manifestHash}`;
+    advanced.append(summary,hashes);
+    const note=doc.createElement('p');note.className='catalog-reader-note';
+    note.textContent=row.stage==='available'
+      ? '只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
+      : '此任务尚未达到本地可安装状态；导入与作者自述不构成可信审核结果。';
+    reader.append(heading,subtitle,meta,advanced,note);
     update();
   }
   async function refresh(preferred) {
