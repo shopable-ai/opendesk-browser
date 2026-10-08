@@ -12,7 +12,7 @@ const health = createHealthProbe(chrome);
 const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
 try{importScripts('native-agent/transport.js');}catch{}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts});
-foundation.catch(error => console.error(`[foundation startup ${error.code || 'E_VERSION'}] ${error.message}`));
+foundation.catch(error => console.error('foundation startup',error));
 function invalidateSdk(reason, selector) {
   foundation.then(broker => Promise.all([
     broker.authority.revokeSdkGrants(reason === 'navigation' && selector.frameId === 0
@@ -23,7 +23,7 @@ function invalidateSdk(reason, selector) {
       : reason === 'tab-removed' ? {tabId:selector.tabId,removed:true}
       : {tabId:selector.tabId,frameId:selector.frameId || 0,documentId:selector.documentId})
   ]))
-    .catch(error => console.error(`[SDK lifecycle ${error.code || 'E_EFFECT_UNKNOWN'}] ${error.message}`));
+    .catch(error => console.error('SDK lifecycle',error));
 }
 chrome.webNavigation.onCommitted.addListener(details => {
   // A top-frame navigation also disposes every child document grant.
@@ -41,7 +41,7 @@ chrome.action.onClicked.addListener(tab => {
   chrome.storage.session.set({environmentSource: source}).then(async () => {
     if (source) {
       try { await (await foundation).issueGestureTicket(tab); }
-      catch (error) { console.error(`[foundation action ${error.code || 'E_VERSION'}] ${error.message}`); }
+      catch (error) { console.error('foundation action',error); }
     }
   }).catch(error => console.error(error.message));
 });
