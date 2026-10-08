@@ -474,3 +474,48 @@ test('receiving a source-only import selects Sidebar Developer without creating 
   assert.equal(f.get('workbench-develop').hidden,false);assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
 });
+
+test('R6.1 task-owned Stop is the sole cross-view action and names the launching task',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('task-run');
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','the owning task view retains its controls');
+  f.get('task-installed-cards').children[1].children[0].fire('click');
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true','a different selected task cannot own Run actions');
+  assert.equal(f.get('task-run').disabled,true);
+  assert.match(f.get('task-stop').attributes['aria-label'],/表单任务/,'Stop names the real launch owner, not selected B');
+  await f.click('tab-discover');
+  assert.equal(f.get('task-dock').hidden,false);
+  assert.equal(f.get('develop-dock').hidden,true);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  await f.click('tab-develop');
+  assert.equal(f.get('task-dock').hidden,false);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  f.host.complete({ok:true});await tick();await tick();await tick();
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','stop-only mode retires with the owning run');
+  await f.click('tab-discover');
+  assert.equal(f.get('workspace-dock').hidden,true,'idle Discover remains completely footer-free');
+});
+
+test('R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.host.start({source:{kind:'draft',sourceUtf8:'return 1;'}});
+  f.ui.navigate('tasks');
+  assert.equal(f.get('task-dock').hidden,true);
+  assert.equal(f.get('develop-dock').hidden,false);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  f.ui.navigate('discover');
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  f.ui.navigate('develop');
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','owner view retains saved-version actions');
+  f.host.complete({ok:true});
+  f.ui.navigate('discover');
+  assert.equal(f.get('workspace-dock').hidden,true);
+});
+
+test('R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop',async()=>{
+  const css=await readFile('src/ui/tool-shell.css','utf8');
+  assert.match(css,/\.workspace-dock\[data-stop-only="true"\] \.dock-buttons > :not\(#task-stop\):not\(#script-stop\)\{display:none\}/);
+  assert.match(css,/\.workspace-dock\[data-stop-only="true"\] \.dock-buttons > #task-stop,/);
+  assert.match(css,/#task-stop:disabled,#script-stop:disabled\{display:none\}/,
+    'an unauthorized or already retired Stop must remain hidden');
+});

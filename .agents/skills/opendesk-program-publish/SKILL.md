@@ -8,7 +8,7 @@ description: Create, edit, review, package, validate or publish OpenDesk Browser
 本 Skill 是开发流程，不是运行器、打包器或安装授权。复杂项目采用 package.json 中的 opendesk 字段和本地 ESM 模块；简单传统油猴脚本继续接受 @require。
 
 ## 读取真实合同
-- 首先阅读 docs/architecture/browser-framework/program-project-authoring-r1.zh-CN.md、schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
+- 首先阅读 **docs/product/program-development-dual-format-and-sidebar.zh-CN.md**（日常操作与 R6 不变性合同）、docs/architecture/browser-framework/program-project-authoring-r1.zh-CN.md、schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
 - 重新获取当前 HEAD、工作区与并行 PR，保护他人的修改。不要覆盖其他 Agent、伪造 Native 测试或以历史 SHA 作为固定基线。
 - 根据程序行为确定 runtimeKind：页面 DOM 增强为 page-userscript；跨标签页自动化为 controller。不要把第三方 UserScript JS 注入 Controller Worker / SW。
 
@@ -29,7 +29,7 @@ description: Create, edit, review, package, validate or publish OpenDesk Browser
     npm run build:program -- examples/programs/page-heading
     npm run build:program -- examples/programs/controller-title
 
-命令会先严格检查源项目，再使用仓库现有 Webpack 将静态依赖图构建为单个 classic JS，计算最终 SHA-256，并在忽略版本控制的 artifacts/programs/ 下写入不可变 program.js 和 artifact.json。Controller 还会生成可导入的 program.opendesk-task.json（Candidate，绝不是 Available）；Page 只生成可由 Sidebar 打开并用 USER_SCRIPT 手动预览的 JS，尚无正式自动安装。css/json/image 当前只验证声明，不注入；构建时明确拒绝未支持的 assets。
+命令会先严格检查源项目，再使用仓库现有 Webpack 将静态依赖图构建为单个 classic JS，计算最终 SHA-256，并在忽略版本控制的 artifacts/programs/ 下写入不可变 program.js 和 artifact.json。Controller 还会生成可导入的 program.opendesk-task.json（Candidate，绝不是 Available）。Page 只能经**原 R6「发现 → 导入」完整目录转交同窗口 Sidebar 草稿**（或粘贴源码），再在「开发」原有「网页用户脚本 · 依赖与试运行」折叠区手动运行；**不得因此新增页签或替换 R6 底栏按钮**。Page 尚无正式自动安装。CSS/JSON/image 当前只验证声明，不注入；构建时明确拒绝未支持的 assets。
 
 ## 发布门槛
 - 本地 JS bundling 与产物哈希已可执行，但 artifact.json 的状态仅为 BUILT_UNVERIFIED；它不是已签名或可安装的正式 Page 发行包。项目源码 JSON 不能自称为发行包，源 npm-lock 也不是最终字节哈希。

@@ -64,7 +64,9 @@ export interface PageObservation {
   root: string;
   nodes: ObservedElement[];
   truncated: boolean;
-  budget: {maxDepth: number; maxNodes: number; maxChars: number};
+  /** Bounded traversal and exact runtime locator validation counters. */
+  budget: {maxDepth: number; maxNodes: number; maxChars: number;
+    maxVisited: number; visited: number; locatorChecks: number; maxLocatorChecks: number};
 }
 export interface ModernPageCapabilities {
   readonly version: '1.0.0-r5.1';
