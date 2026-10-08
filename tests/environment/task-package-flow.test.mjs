@@ -64,7 +64,7 @@ test('candidate cannot install without matching trustworthy native run, then exa
   await f.tx.put('results',result,resultId);
   await assert.rejects(f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId}),errorCode('E_VERIFICATION'));
   await f.tx.put('commandJournal',{tag:'controller-operation',runId,state:'durable',
-    envelope:{operation:{kind:'browser'}},nativeReceipts:[{stage:'result'}]},'op-real');
+    envelope:{operation:{kind:'packaged',method:'click'}},nativeReceipts:[{stage:'result'}]},'op-real');
   assert.equal((await f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId})).stage,'verified');
   assert.equal((await f.send('makeTaskAvailable',{taskId:pkg.manifest.taskId,version:'1.0.0',
     manifestHash:pkg.manifestHash})).stage,'available');
