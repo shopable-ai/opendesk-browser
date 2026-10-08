@@ -18,7 +18,7 @@ test('real loopback HTTP server serves static JSON, HTML and true 404/non-JSON',
   const htmlResponse = await fetch(base + '/demo-form.html');
   assert.equal(htmlResponse.status, 200);
   assert.match(htmlResponse.headers.get('content-type'), /text\/html/);
-  assert.match(await htmlResponse.text(), /id="http-send"/);
+  assert.match(await htmlResponse.text(), /id="api-send"/);
 
   const textResponse = await fetch(base + '/__test__/text');
   assert.equal(textResponse.status, 200);
