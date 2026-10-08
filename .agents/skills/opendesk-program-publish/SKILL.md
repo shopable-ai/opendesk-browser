@@ -10,6 +10,7 @@ description: Create, edit, review, package, validate or publish OpenDesk Browser
 ## 读取真实合同
 - 首先阅读 **docs/product/program-development-dual-format-and-sidebar.zh-CN.md**（日常操作与 R6 不变性合同）、docs/architecture/browser-framework/program-project-authoring-r1.zh-CN.md、schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
 - 重新获取当前 HEAD、工作区与并行 PR，保护他人的修改。不要覆盖其他 Agent、伪造 Native 测试或以历史 SHA 作为固定基线。
+- 有既存验收时，先读 `docs/framework/program-evidence-reuse.zh-CN.md` 并只读核验归档；成功且输入未变的组件用例直接复用，文档/聊天/观察格式变化不触发重测。历史 PASS、当前候选、安装及最终验收分别记录。
 - 根据程序行为确定 runtimeKind：页面 DOM 增强为 page-userscript；跨标签页自动化为 controller。不要把第三方 UserScript JS 注入 Controller Worker / SW。
 
 ## 编辑源项目
