@@ -59,3 +59,7 @@
 ## 续接范围
 
 新聊天只负责 Program R3.1 源码/产物分离的剩余收敛与测试证据复用。已通过的本候选用例先校验哈希并复用；先观察 main/PR 漂移和其它正在工作的聊天，再判断是否有真正缺口。继承本工作区和原始证据须明确完成 writer 交接；不要从 main 共享目录继续写，也不要重开已经释放的 profile 或改写旧 receipt。不得以旧候选验收覆盖更新后的 SDK/入口；必要时形成新候选并仅执行有明确依据的受影响验证。
+
+## 2026-10-09 集成修复：D1 测试文件路径
+
+为遵守主干 `basic-browser-page.test.mjs` 规定的**唯一人工测试入口**，将 D1 只读依赖测试页从 `examples/tasks/d1-userscript.html` 迁入 `tests/fixtures/d1-userscript.html`，原 `demo-form.html` 未变。Native 驱动仍可将 `/d1-userscript.html` 映射到内部 Fixture，但不再在人工示例根目录暴露重复页面。历史证据 JSON 中旧路径/原始 SHA 是旧候选输入身份记录，原样保留，不重新标记为本候选的原生 PASS。

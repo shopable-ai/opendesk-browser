@@ -26,10 +26,12 @@ async function start() {
       requests.at(-1).response={status,body};
       response.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});response.end(body);return;
     }
-    const allowed = {'/demo-form.html':'demo-form.html', '/d1-userscript.html':'d1-userscript.html'};
+    // Only demo-form.html is a public manual example; D1 is an internal fixture.
+    const allowed = {'/demo-form.html':path.resolve('examples/tasks/demo-form.html'),
+      '/d1-userscript.html':path.resolve('tests/fixtures/d1-userscript.html')};
     if (!allowed[name]) {response.writeHead(404); response.end('Not found'); return;}
     response.setHeader('Content-Type','text/html; charset=utf-8');
-    response.end(await readFile(path.resolve('examples/tasks', allowed[name])));
+    response.end(await readFile(allowed[name]));
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
