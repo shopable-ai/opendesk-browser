@@ -24,7 +24,7 @@ function factorObjects(schema) {
     declarations.push(`const ${name}=${body};`); return name;
   }
   const body = render(schema);
-  return `${declarations.join('\\n')}\\nexport default ${body};\\n`;
+  return `${declarations.join('\n')}\nexport default ${body};\n`;
 }
 
 function packUtf8(input) {
