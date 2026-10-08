@@ -36,7 +36,8 @@
     "scripts/build.mjs",
     "scripts/verify-package.mjs",
     "tests/environment/page-program-package.test.mjs",
-    "docs/framework/workstreams/r3-page-dependencies-20261008-1533.json"
+    "docs/framework/workstreams/r3-page-dependencies-20261008-1533.json",
+    "scripts/check-source.mjs"
   ],
   "targetedTest": {
     "command": "node --test tests/environment/page-program-package.test.mjs",
@@ -75,5 +76,8 @@
     "auditAttachmentSha256": "40d1bb9392f4450b26bb030a082fa393fb867d8b41ca0965a41d79d9c171ee72",
     "jqueryUpstream": "jquery/jquery@3.7.1:dist/jquery.min.js",
     "jquerySha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
-  }
+  },
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/5",
+  "nativeChromeStatus": "NOT_TESTED",
+  "buildStatus": "NOT_TESTED"
 }
