@@ -40,23 +40,38 @@ function packUtf8(input) {
     word = char;
   }
   if (word) codes.push(dictionary.get(word));
-  const result = Buffer.allocUnsafe(codes.length * 2);
-  codes.forEach((code, index) => result.writeUInt16BE(code, index * 2));
-  return result.toString('base64');
+  // Fixed-width bit packing (9-16 bits) omits unused high bits of the LZW
+  // code space.  The byte budget must not depend on wasteful 16-bit padding.
+  const width = Math.max(9, Math.ceil(Math.log2(next)));
+  const result = Buffer.alloc(Math.ceil(codes.length * width / 8));
+  let bitOffset = 0;
+  for (const code of codes) for (let bit = width - 1; bit >= 0; bit--) {
+    if (code & (1 << bit)) result[bitOffset >> 3] |= 1 << (7 - (bitOffset & 7));
+    bitOffset++;
+  }
+  return {encoded: result.toString('base64'), width, count: codes.length};
 }
 
 function packModule(value) {
-  const encoded = packUtf8(Buffer.from(JSON.stringify(value), 'utf8'));
+  const {encoded, width, count} = packUtf8(Buffer.from(JSON.stringify(value), 'utf8'));
   return `// Constant reviewed schema; only synchronous data decompression.
-const packed=${JSON.stringify(encoded)};
+const packed=${JSON.stringify(encoded)},width=${width},count=${count};
 function unpackSchema(source) {
   const bytes=atob(source), dictionary=Array.from({length:256},(_,i)=>String.fromCharCode(i));
-  let offset=0, next=256;
-  const read=()=>bytes.charCodeAt(offset++)*256+bytes.charCodeAt(offset++);
+  let bitOffset=0, next=256;
+  const read=()=>{
+    if(bitOffset+width>bytes.length*8) throw new Error('Invalid packaged schema');
+    let code=0;
+    for(let bit=0;bit<width;bit++) {
+      code=(code<<1)|((bytes.charCodeAt(bitOffset>>3)>>(7-(bitOffset&7)))&1);
+      bitOffset++;
+    }
+    return code;
+  };
   let previous=dictionary[read()];
   if(previous===undefined) throw new Error('Invalid packaged schema');
   const pieces=[previous];
-  while(offset<bytes.length) {
+  for(let index=1;index<count;index++) {
     const code=read();
     const entry=dictionary[code]??(code===next?previous+previous[0]:undefined);
     if(entry===undefined) throw new Error('Invalid packaged schema');
