@@ -1,6 +1,6 @@
 {
   "scope": "own R6.2 continuation evidence and driver/workstream inputs; self excluded",
-  "at": "2026-10-08T19:10:10.580570+00:00",
+  "at": "2026-10-08T19:16:07.034864+00:00",
   "productInputCommit": "40d3bf5f93cfa0bf587ec6080a03de3302b27e6f",
   "metadataIntegrationCommit": "07db43ec619860674d0fcccfce94bef48e1a05e8",
   "grade": "component/build plus limited setup diagnostics; no formal native PASS",
@@ -396,6 +396,11 @@
       "sha256": "d493fabe4dfd1d00bbc565544ae27ee5e704ce730d01bcd4d5b593f0471394c5"
     },
     {
+      "path": "docs/framework/evidence/r62-final-20261009-01a11ca3/pr-query-head4aa39c9.json",
+      "bytes": 529,
+      "sha256": "0bec12a9662f5906590e4c148645b2e69a775d8639e1116fb2cc345ea529bbef"
+    },
+    {
       "path": "docs/framework/evidence/r62-final-20261009-01a11ca3/preflight-owned-page/inputs.json",
       "bytes": 4951,
       "sha256": "98344d687aeed979315fc9186b9f278351e98d594b7dcdde68b3e32e75d10397"
@@ -452,8 +457,8 @@
     },
     {
       "path": "docs/framework/workstreams/r62-final-20261009-01a11ca3.json",
-      "bytes": 5320,
-      "sha256": "7b0833896d534a77c3f634e4dfdbf3f72ed56fa5d835d39159dce7d3274cc4fc"
+      "bytes": 5682,
+      "sha256": "f42227fa2e33dbdde14229fd390ad736b034cfc0b7ff267590e18407f7159b1a"
     },
     {
       "path": "tests/framework/r62-native-acceptance.mjs",
