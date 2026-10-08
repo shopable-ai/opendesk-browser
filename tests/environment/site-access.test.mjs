@@ -109,8 +109,10 @@ test('developer site permission controls coexist with the main three-tab workben
   assert.equal(new Set(ids).size,ids.length,'each DOM id remains unique');
   const developStart=html.indexOf('id="workbench-develop"');
   const siteSection=html.indexOf('id="site-access"');
-  assert.ok(developStart>0 && siteSection>developStart && html.indexOf('id="script-title"')>siteSection,
-    'site permission onboarding lives inside the develop tab');
+  const advancedStart=html.indexOf('id="script-advanced"');
+  const diagnosticsStart=html.indexOf('id="tool-diagnostics"');
+  assert.ok(developStart>0 && advancedStart>developStart && siteSection>advancedStart &&
+    siteSection<diagnosticsStart, 'site access stays nested within R5 developer advanced tools');
   assert.match(shell,/createTaskWorkbench/);
   assert.match(shell,/createSiteAccess/);
   assert.match(shell,/siteAccess\.dispose\(\); taskWorkbench\.dispose\(\)/);
