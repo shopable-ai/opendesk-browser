@@ -1,4 +1,4 @@
-name: Sidebar R4 focused UI checks
+name: Sidebar UI product regression
 on:
   pull_request:
     branches: [main]
@@ -6,7 +6,10 @@ on:
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.css'
       - 'src/ui/task-workbench.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/script-editor.js'
       - 'tests/environment/task-workbench.test.mjs'
+      - 'tests/environment/sidebar-product-contract.test.mjs'
       - 'tests/environment/sidebar-ui-preview.test.mjs'
       - 'examples/ui/sidebar-r4-installed-discovery-preview.html'
       - '.github/workflows/sidebar-ui-r4.yml'
@@ -27,3 +30,9 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Focused sidebar actions and UI contract
         run: node --test tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-ui-preview.test.mjs
+      - name: Source and production/development packages
+        run: |
+          npm run check
+          npm run build
+          npm run build:dev
+          npm run verify

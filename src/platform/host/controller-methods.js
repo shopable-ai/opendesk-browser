@@ -40,6 +40,7 @@ function hasNativeEffect(operation) {
 // injected storage transaction; the maps below only correlate live promises.
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost}) {
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
+  const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
   const tx = (mode, work, names = stores) => storage.transaction(names, mode, work);
   const now = () => clock.now();
@@ -486,7 +487,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         return tx('readonly', transaction => admittedOperation(transaction, envelope, host, sender,
           {post: details.phase === 'post', handoff: details.handoff}));
       };
-      const driver = createControllerDriver({api, clock, authorize:authorizeOperation});
+      const withLocatorWrite = async (identity, effect) => {
+        const writeKey = identity.runId;
+        invariant(!locatorWriters.has(writeKey), 'E_WRITE_CONFLICT');
+        locatorWriters.add(writeKey);
+        try { return await effect(); } finally { locatorWriters.delete(writeKey); }
+      };
+      const driver = createControllerDriver({api, clock, authorize:authorizeOperation, withWrite:withLocatorWrite});
       const recordReceipt = async receipt => tx('readwrite', async transaction => {
         const operation = await transaction.get('commandJournal', key);
         invariant(operation?.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
@@ -579,7 +586,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           // its execute receipt, is a known lookup failure.
           const failedWithoutEffect = error.code === 'E_USER_SCRIPTS_UNAVAILABLE' &&
             envelope.operation.kind === 'user-script' && !hasNativeEffect(operation);
-          operation.state = error.code === 'E_CANCELLED' || error.code === 'E_TIMEOUT' ? 'cancelled' :
+          // A dispatched Locator commit may have changed the page even when its
+          // callback was lost or a stop/timeout won the race. Only an explicit
+          // same-document no-effect receipt clears the latest commit intent.
+          const lastLocatorCommit = (operation.nativeReceipts || []).filter(receipt =>
+            receipt.stage === 'locator.commitIntent' || receipt.stage === 'locator.commitNoEffect').at(-1);
+          const uncertainAction = envelope.operation.kind === 'packaged' &&
+            envelope.operation.method === 'locatorAction' && lastLocatorCommit?.stage === 'locator.commitIntent';
+          operation.state = uncertainAction ? 'effect_unknown' :
+            error.code === 'E_CANCELLED' || error.code === 'E_TIMEOUT' ? 'cancelled' :
             failedWithoutEffect ? 'failed' : 'effect_unknown';
           operation.failure = typed(error); operation.deliveryState = 'fenced';
           await transaction.put('commandJournal', operation, key);

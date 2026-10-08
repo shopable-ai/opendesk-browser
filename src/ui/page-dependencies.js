@@ -37,6 +37,10 @@ export function createPageDependencyPanel({client,api,document:doc,getSource,set
     get('page-dependency-refresh').disabled=busy;
     get('page-dependency-add').disabled=busy;
     get('page-preview-jquery').disabled=Boolean(parsed?.requires.length) || mode()!=='async-main';
+    // The review uses the exact choices captured when the user clicked.
+    for (const select of picks.values()) select.disabled=busy;
+    for (const id of ['page-dependency-local-file','page-dependency-local-order','page-dependency-url'])
+      get(id).disabled=busy;
     onState();
   }
   function showAdmission() {
@@ -91,7 +95,7 @@ export function createPageDependencyPanel({client,api,document:doc,getSource,set
       report=result;admission=result.admission;renderSources(result.requires);renderLocks(result.locks,preferred);showAdmission();
       status(admission.status==='unsupported'?'error':get('page-dependency-lock').value?'locked':'needs-review',
         admission.status==='unsupported'?'已理解源码；不支持的执行语义仍会阻断运行。':
-        get('page-dependency-lock').value?'已选择固定依赖，可离线调试；修改函数正文无需重新锁定。':
+        get('page-dependency-lock').value?'已选择依赖锁；运行时仍会校验本地字节。修改正文无需重新锁定。':
         '请确认获取来源，读取资源后再审核并锁定；本步骤不会运行脚本。');
     } catch(error){if(!disposed && version===sequence)fail(error);}
     finally {if(!disposed && version===sequence)controls();}
@@ -169,7 +173,7 @@ export function createPageDependencyPanel({client,api,document:doc,getSource,set
   listen('page-dependency-add','click',add);listen('page-dependency-prepare','click',prepare);listen('page-dependency-approve','click',approve);
   listen('page-dependency-refresh','click',event=>{if(event.isTrusted)inspect(true,get('page-dependency-lock').value);});
   listen('page-dependency-lock','change',()=>{status(get('page-dependency-lock').value?'locked':'needs-review',
-    get('page-dependency-lock').value?'已选择固定版本；调试只读取本机字节。':'请选择已确认版本或读取并锁定新的资源。');controls();});
+    get('page-dependency-lock').value?'已选择固定锁；执行前校验缓存字节，不会重新向 CDN 下载。':'请选择已确认版本或读取并锁定新的资源。');controls();});
   listen('page-preview-entry','change',()=>inspect(true));listen('script-source','input',()=>inspect());
   client.ready.then(()=>inspect()).catch(fail);
   return {capture,get busy(){return busy;},refresh:inspect,dispose(){disposed=true;sequence++;

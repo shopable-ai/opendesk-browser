@@ -1,4 +1,6 @@
 import {PageError, requireValue, functionSource, options, selector, duration, httpURL, VALUE_LIMITS, newPageRequestId} from './control/value.js';
+import {createLocator} from './locator.js';
+import {validateObservationOptions, MODERN_PAGE_CAPABILITIES} from './control/locator-contract.js';
 
 const pages = new WeakMap(), elements = new WeakMap(), keyPages = new WeakMap();
 const secret = Symbol('bound-page');
@@ -65,6 +67,13 @@ export class ChromePage {
   title() { return dispatch(this, 'title', []); }
   content() { return dispatch(this, 'content', []); }
   url() { return dispatch(this, 'url', []); }
+  locator(css) { return createLocator(state(this), 'css', css); }
+  getByRole(role, opts = {}) { return createLocator(state(this), 'role', role, opts); }
+  getByLabel(text, opts = {}) { return createLocator(state(this), 'label', text, opts); }
+  getByText(text, opts = {}) { return createLocator(state(this), 'text', text, opts); }
+  getByTestId(id) { return createLocator(state(this), 'testId', id); }
+  observe(opts = {}) { return dispatch(this, 'locatorObserve', [validateObservationOptions(opts)]); }
+  get modernCapabilities() { return MODERN_PAGE_CAPABILITIES; }
   async reload(opts = {}) { await dispatch(this, 'reload', [navigationOptions(opts)], {kind: 'browser', navigation: true}); }
   async goto(url, opts = {}) { await dispatch(this, 'goto', [httpURL(url), navigationOptions(opts)], {kind: 'browser', navigation: true}); }
   async $(css) { requireValue(state(this).dom?.implementation, 'E_DOM_SNAPSHOT_CONTEXT'); return snapshotNode(this, await this.snapshot(css)); }

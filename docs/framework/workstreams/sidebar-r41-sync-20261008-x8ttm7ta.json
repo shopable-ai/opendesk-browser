@@ -2,11 +2,11 @@
   "workstreamId": "sidebar-r41-sync-20261008-x8ttm7ta",
   "branch": "agent/sidebar-r41-sync-20261008-x8ttm7ta",
   "baseCommit": "66f11874fa27f6de438155124a3f772129386f8b",
-  "status": "DRAFT_PR_OPEN_NATIVE_PENDING",
+  "status": "DRAFT_FOLLOWUP_OPEN_NATIVE_PENDING",
   "authorization": "Current user requested pull, complete the merge, commit and push. Submit on an isolated agent branch under AGENTS.md; main integration remains through reviewed PR.",
   "sourceWorkspace": "/Users/shopme/Documents/workspace/opendesk-browser",
   "isolatedWorkspace": "/Users/shopme/.codex/worktrees/sidebar-r41-integration/opendesk-browser",
-  "scope": "Submit existing R4.1 changes and merge R5 plus dependency-manager main updates. Preserve approved UI, source-only draft handoff and parameter retention; refresh the new dependency UI on imported drafts. No new dependency or authority.",
+  "scope": "The main catalog-to-Sidebar handoff is merged through PR #10. The follow-up refreshes dependency review on catalog imports, adds its regression test and preserves latest main including site-access onboarding.",
   "dependencies": [
     "R4 installed cards, independent catalog, parameter drafts and catalog refresh channel at 66f11874fa27f6de438155124a3f772129386f8b"
   ],
@@ -45,33 +45,33 @@
   "verification": {
     "status": "passed",
     "components": {
-      "passed": 123,
+      "passed": 135,
       "failed": 0,
       "skipped": 0,
-      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/component-tests.log"
+      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-9d600f2/component-tests.log"
     },
     "source": {
-      "syntaxCheckedFiles": 122,
-      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/source-check.log"
+      "syntaxCheckedFiles": 127,
+      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-9d600f2/source-check.log"
     },
     "commands": {
-      "components": "node --test --test-reporter=spec tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/framework/run-host-recovery.test.mjs tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/boundaries.test.mjs",
+      "components": "node --test --test-reporter=spec tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/framework/run-host-recovery.test.mjs tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/boundaries.test.mjs tests/environment/site-access.test.mjs tests/environment/dev-chrome-config.test.mjs",
       "source": "npm run check",
       "observerSyntax": "node --check tests/framework/sidebar-r41-observer.mjs",
-      "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds npm run build",
-      "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds npm run build:dev",
+      "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-9d600f2/builds npm run build",
+      "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-9d600f2/builds npm run build:dev",
       "package": "npm run verify",
       "diff": "git diff --cached --check origin/main"
     },
     "builds": {
       "production": {
-        "packageHash": "a64532763b45ed650c041cf181b73e020a893b78c421d9d7bebab0029a314f3c",
-        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds/build-production.json",
+        "packageHash": "3d242f34b05a92555375ecba5ba1cbfe2d9106cd7136279962bc0ac397524b21",
+        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-9d600f2/builds/build-production.json",
         "sourceDriftDuringBuild": []
       },
       "development": {
-        "packageHash": "27109db4219e692e420c4a368e93e17ca6926e0dd6ba6b69d5ae74fdce3c83db",
-        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds/build-development.json",
+        "packageHash": "b41414de4088682409d743522ed13f0bf0527304bf14b88b0d343a21103ead75",
+        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-9d600f2/builds/build-development.json",
         "sourceDriftDuringBuild": []
       }
     }
@@ -90,7 +90,7 @@
     "ZIP installation consistency": "NOT_TESTED"
   },
   "resourceIsolation": {
-    "dependencies": "Independent copy of existing node_modules; package.json and lockfile unchanged.",
+    "dependencies": "Independent copy of existing node_modules; dependency versions and lockfile unchanged. Upstream adds only the dev:chrome npm script.",
     "dist": "Only this worktree dist was rebuilt.",
     "evidence": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta",
     "browser": "No Chrome/CFT profile, fixed port or shared database acquired.",
@@ -100,13 +100,13 @@
     "base": "main",
     "head": "agent/sidebar-r41-sync-20261008-x8ttm7ta",
     "draft": true,
-    "url": "https://github.com/shopable-ai/opendesk-browser/pull/10"
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/13"
   },
   "remaining": [
     "Native validation for this merged candidate and its own package identity",
     "Formal acceptance and installation evidence remain open"
   ],
-  "updatedAt": "2026-10-08T12:44:15.243165+00:00",
+  "updatedAt": "2026-10-08T12:54:03.901717+00:00",
   "initialSubmissionCommit": "94d8c1f63999c705eee6be8edb058196aad273ce",
   "originalLocalFilesSha256": {
     "docs/architecture/sidebar-product-contract.zh-CN.md": "e0742f38652b1c77563ed6de9d62bf174b90014ed2513171ed16d30bbe79c35c",
@@ -199,9 +199,47 @@
           }
         }
       }
+    },
+    {
+      "againstMain": "37f84193cb7024af6de9ded16db5b70a999f6c61",
+      "sourceEvidence": "Byte-identical runtime/test reconciliation after PR #10 squash; packages built in main-ff81aea.",
+      "verification": {
+        "status": "passed",
+        "components": {
+          "passed": 123,
+          "failed": 0,
+          "skipped": 0,
+          "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/component-tests.log"
+        },
+        "source": {
+          "syntaxCheckedFiles": 122,
+          "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/source-check.log"
+        },
+        "commands": {
+          "components": "node --test --test-reporter=spec tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/framework/run-host-recovery.test.mjs tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/boundaries.test.mjs",
+          "source": "npm run check",
+          "observerSyntax": "node --check tests/framework/sidebar-r41-observer.mjs",
+          "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds npm run build",
+          "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds npm run build:dev",
+          "package": "npm run verify",
+          "diff": "git diff --cached --check origin/main"
+        },
+        "builds": {
+          "production": {
+            "packageHash": "a64532763b45ed650c041cf181b73e020a893b78c421d9d7bebab0029a314f3c",
+            "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds/build-production.json",
+            "sourceDriftDuringBuild": []
+          },
+          "development": {
+            "packageHash": "27109db4219e692e420c4a368e93e17ca6926e0dd6ba6b69d5ae74fdce3c83db",
+            "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds/build-development.json",
+            "sourceDriftDuringBuild": []
+          }
+        }
+      }
     }
   ],
-  "latestIntegratedMain": "ff81aeabd3f1e0fe79198c5b2cc3928102c39295",
+  "latestIntegratedMain": "9d600f2eec2900f96da7757143d81b25245165e5",
   "subsequentMainMerge": {
     "reason": "Remote main advanced to R5 via PR #9 after the first push; PR #10 became conflicted.",
     "resolvedFiles": [
@@ -225,5 +263,28 @@
       "beforeLog": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/import-dependency-regression-before.log",
       "afterLog": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/import-dependency-regression-after.log"
     }
-  }
+  },
+  "mergedPullRequests": [
+    {
+      "url": "https://github.com/shopable-ai/opendesk-browser/pull/10",
+      "mergeCommit": "37f84193cb7024af6de9ded16db5b70a999f6c61",
+      "headCommit": "3a60543c59680aa7f20c7f2c98e75da40e42ef0f",
+      "mergedBy": "parallel authorized integrator; observed through GitHub, not performed by this branch"
+    }
+  ],
+  "postSquashReconciliation": {
+    "reason": "PR #10 was merged at its earlier R5 candidate while dependency compatibility repair was being verified. Preserve the separately verified refresh repair for a follow-up PR.",
+    "sourceAndTests": "Byte-identical to the candidate with 123 passing tests and the main-ff81aea build receipts; no further runtime edit.",
+    "conflicts": "Retain validated follow-up hunks in script-editor.js, its tests and this dedicated record; current main functionality retained."
+  },
+  "siteAccessMainMerge": {
+    "reason": "Current main includes trusted one-time site grants and independent dev-Chrome setup.",
+    "merge": "No conflicts; existing trusted draft sender checks and imported dependency refresh retained.",
+    "dependencyChanges": "Upstream package.json adds dev:chrome; dependency declarations and package-lock.json remain unchanged."
+  },
+  "followUpFiles": [
+    "src/ui/script-editor.js",
+    "tests/environment/script-editor.test.mjs",
+    "docs/framework/workstreams/sidebar-r41-sync-20261008-x8ttm7ta.json"
+  ]
 }

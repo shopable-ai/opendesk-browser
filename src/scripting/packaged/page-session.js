@@ -4,7 +4,8 @@ import {SDK_FILES} from '../../framework/sdk/registry.js';
 
 export const PAGE_SESSION_MESSAGE = 'OPENDESK_CONTROLLER_PAGE_SESSION_V1';
 const methods = new Set(['title', 'content', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
-  'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag']);
+  'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag',
+  'locatorRead', 'locatorPrepare', 'locatorCommit', 'locatorObserve']);
 const installations = new WeakMap();
 const ownerKey = run => JSON.stringify([run.runId, run.ownerEpoch]);
 function owner(run) {
@@ -52,7 +53,8 @@ export function installPackagedPageSession({api = globalThis.chrome, document: d
     if (previous) { requireValue(previous.fingerprint === fingerprint, 'E_OPERATION_REPLAY'); return previous.result; }
     const result = Promise.resolve().then(async () => {
       requireValue(!disposed && !retired.has(key), 'E_CANCELLED');
-      const value = await session.registry.execute(envelope.operation.method, args);
+      const value = await session.registry.execute(envelope.operation.method, args,
+        {documentId:envelope.target.documentId, targetVersion:envelope.target.targetVersion});
       requireValue(!disposed && !retired.has(key), 'E_CANCELLED');
       return {requestId: envelope.requestId, runId: envelope.identity.runId, ownerEpoch: envelope.identity.ownerEpoch, value: encodeValue(value)};
     });

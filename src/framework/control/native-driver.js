@@ -1,6 +1,7 @@
 import {PageError, requireValue, frozenCopy, encodeValue as controlEncodeValue, decodeValue as controlDecodeValue,
   httpURL, options, duration, selector, VALUE_LIMITS, newPageRequestId} from './value.js';
 import {chromeCall} from '../../platform/chrome/tabs.js';
+import {validateLocatorDescriptor, validateLocatorOperation, validateObservationOptions} from './locator-contract.js';
 import {createCookieService} from '../../platform/chrome/cookies.js';
 import {buildPageEvaluation, readPageEvaluationResult, buildCancelPageWaits} from '../../scripting/user-scripts/page-evaluator.js';
 
@@ -9,7 +10,8 @@ const MESSAGE = 'OPENDESK_CONTROLLER_PAGE_SESSION_V1';
 const unavailableByAPI = new WeakMap();
 const methods = Object.freeze({
   packaged: new Set(['title', 'content', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
-    'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag']),
+    'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag',
+    'locatorRead', 'locatorWait', 'locatorAction', 'locatorObserve']),
   browser: new Set(['goto', 'reload', 'cookies', 'setCookie', 'deleteCookie', 'screenshot', 'uploadFromUrl']),
   'user-script': new Set(['evaluate', '$eval', '$$eval', 'evaluateExpression', 'eval', 'waitForFunction'])
 });
@@ -42,8 +44,8 @@ export function validateControllerEnvelope(envelope) {
 // result persistence. This driver only observes and dispatches exact native APIs.
 export const COOKIE_PREFLIGHT_METHODS=Object.freeze(['cookies','setCookie','deleteCookie']);
 export const COOKIE_PREFLIGHT_CODES=Object.freeze(['E_COOKIE_FORMAT','E_COOKIE_SCOPE','E_COOKIE_PARTITION_UNSUPPORTED','E_PERMISSION_DENIED']);
-export function createControllerDriver({api = globalThis.chrome, authorize, clock = Date} = {}) {
-  requireValue(api && typeof authorize === 'function' && typeof clock.now === 'function', 'E_PAGE_CONTEXT_REQUIRED');
+export function createControllerDriver({api = globalThis.chrome, authorize, clock = Date, withWrite = async (_owner, fn) => fn()} = {}) {
+  requireValue(api && typeof authorize === 'function' && typeof clock.now === 'function' && typeof withWrite === 'function', 'E_PAGE_CONTEXT_REQUIRED');
   const runs = new Map(), retired = new Set();
   const finalFailures = new WeakMap();
   if (!unavailableByAPI.has(api)) unavailableByAPI.set(api, new Set());
@@ -460,11 +462,77 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       catch (cause) { unavailable.add(ownerKey(envelope.identity)); throw cause; }
     });
   }
+  // Prepare is always read-only. Every loop iteration re-enters native target
+  // validation and the authority; only the short commit window holds a write
+  // gate. No prepare response can itself authorize a later click/fill.
+  async function locatorStages(state) {
+    const {method} = state.envelope.operation, [description, raw] = state.args;
+    requireValue(state.args.length === 2, 'E_ARGUMENT_TYPE');
+    const descriptor = validateLocatorDescriptor(description), op = validateLocatorOperation(raw);
+    requireValue(method === 'locatorWait' ? op.action === 'waitFor' :
+      method === 'locatorAction' && ['click','fill'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
+    const expiry = Math.min(state.deadlineAt ?? Infinity, clock.now() + (op.timeout ?? 30000));
+    let submitted = false, lastReason = 'E_SELECTOR_NOT_FOUND';
+    try {
+      for (;;) {
+        guard(state);
+        if (clock.now() >= expiry) throw new PageError('E_TIMEOUT', 'Locator ' + op.action + ' timed out (' + lastReason + ')');
+        if (method === 'locatorWait') {
+          const reply = await packaged(state, 'locatorRead', [descriptor, {action:'waitFor',state:op.state}]);
+          if (reply?.ready) return undefined;
+          lastReason = 'E_WAIT_CONDITION';
+        } else {
+          const prepared = await packaged(state, 'locatorPrepare', [descriptor, op]);
+          requireValue(prepared && typeof prepared.ready === 'boolean', 'E_RESULT_FORMAT');
+          if (prepared.ready) {
+            requireValue(typeof prepared.token === 'string', 'E_RESULT_FORMAT');
+            const outcome = await withWrite(state.envelope.identity, async () => {
+              await permission(state, 'pre'); await verifyTarget(state);
+              // Persist the uncertainty boundary before sending a page effect.
+              await saveReceipt(state, 'locator.commitIntent', {documentId:state.envelope.target.documentId});
+              submitted = true;
+              return packaged(state, 'locatorCommit', [descriptor, op, prepared.token]);
+            });
+            requireValue(outcome && typeof outcome.committed === 'boolean', 'E_RESULT_FORMAT');
+            if (outcome.committed) return undefined;
+            // The selected document explicitly confirmed no focus, scroll,
+            // setter or click happened. A fresh prepare is safe.
+            await saveReceipt(state, 'locator.commitNoEffect', {documentId:state.envelope.target.documentId});
+            submitted = false; lastReason = outcome.reason || 'E_ELEMENT_DETACHED';
+          } else lastReason = prepared.reason || 'E_WAIT_CONDITION';
+        }
+        const remaining = expiry - clock.now();
+        if (remaining <= 0) continue;
+        await wait(state, new Promise(resolve => setTimeout(resolve, Math.min(40, remaining))));
+      }
+    } catch (cause) {
+      // A clear read-only rejection can be persisted as a target-bound, final
+      // failure rather than incorrectly poisoning the run as effect-unknown.
+      // No such proof exists after a commit was dispatched.
+      if (submitted || !['E_TIMEOUT','E_STRICT_MODE_VIOLATION','E_SELECTOR_INVALID','E_SELECTOR_NOT_FOUND',
+        'E_INPUT_TARGET_UNSUPPORTED','E_WRITE_CONFLICT'].includes(cause.code)) throw cause;
+      await permission(state, 'pre'); await verifyTarget(state);
+      const projected = {code:cause.code,name:'PageError',message:cause.message};
+      await saveReceipt(state, 'packaged.finalFailure', {frameId:state.envelope.target.frameId,
+        documentId:state.envelope.target.documentId,runId:state.envelope.identity.runId,
+        ownerEpoch:state.envelope.identity.ownerEpoch,error:projected});
+      const marker = {}; finalFailures.set(marker, projected); return marker;
+    }
+  }
   async function execute(input, {signal, deadlineAt = null, recordReceipt} = {}) {
     const envelope = frozenCopy(input), args = validateControllerEnvelope(envelope), {kind, method} = envelope.operation;
     requireValue(deadlineAt === null || Number.isFinite(deadlineAt), 'E_ARGUMENT_TYPE');
     requireValue(recordReceipt === undefined || typeof recordReceipt === 'function', 'E_ARGUMENT_TYPE');
     let descriptor;
+    if (kind === 'packaged' && method.startsWith('locator')) {
+      if (method === 'locatorObserve') { requireValue(args.length === 1, 'E_ARGUMENT_TYPE'); validateObservationOptions(args[0]); }
+      else {
+        requireValue(args.length === 2, 'E_ARGUMENT_TYPE'); validateLocatorDescriptor(args[0]);
+        const op = validateLocatorOperation(args[1]);
+        requireValue(method === 'locatorAction' ? ['click','fill'].includes(op.action) :
+          method === 'locatorWait' ? op.action === 'waitFor' : ['count','textContent','getAttribute'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
+      }
+    }
     if (kind === 'user-script') descriptor = buildPageEvaluation(method, args,
       {operationId: envelope.requestId, runId: ownerKey(envelope.identity)});
     if (kind === 'browser' && ['goto', 'reload'].includes(method)) {
@@ -498,7 +566,8 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     try {
       await permission(state, 'pre'); await verifyTarget(state);
       let result;
-      if (kind === 'packaged') result = await packaged(state);
+      if (kind === 'packaged') result = method === 'locatorAction' || method === 'locatorWait' ?
+        await locatorStages(state) : await packaged(state);
       else if (kind === 'user-script') result = await userScript(state);
       else if (['goto', 'reload'].includes(method)) result = await navigate(state);
       else if (method === 'screenshot') result = await screenshot(state);

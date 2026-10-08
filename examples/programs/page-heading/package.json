@@ -1,0 +1,24 @@
+{
+  "name": "@opendesk-examples/page-heading",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "多文件 ESM 网页标题增强的源码项目示例（尚不是可安装包）",
+  "author": "OpenDesk examples",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-heading",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "https://example.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

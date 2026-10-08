@@ -208,3 +208,20 @@ test('closing or changing source while permission/file reading is pending cancel
   ready.panel.dispose();oldHandler({isTrusted:true});await settle();
   assert.equal(ready.requests.filter(row=>row.method==='approvePageDependencies').length,0);
 });
+
+test('review freezes dependency source selectors and lock status does not claim cache verification',async t=>{
+  const f=await fixture({cached:true,locked:true});
+  t.after(()=>f.panel.dispose());
+  const select=f.sourceSelect();
+  assert.equal(select.disabled,false);
+  assert.match(f.get('page-dependency-status').textContent,/运行时仍会校验本地字节/);
+  const pending=f.gate('preparePageDependencies');
+  f.click('page-dependency-prepare');await settle();
+  assert.equal(f.panel.busy,true);
+  for(const node of [select,f.get('page-dependency-local-file'),f.get('page-dependency-local-order'),
+    f.get('page-dependency-url')])assert.equal(node.disabled,true);
+  pending.resolve();await settle();
+  assert.equal(f.panel.busy,false);
+  assert.equal(select.disabled,false);
+  assert.equal(f.get('page-dependency-local-file').disabled,false);
+});

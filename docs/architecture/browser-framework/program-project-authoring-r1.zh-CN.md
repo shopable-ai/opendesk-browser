@@ -1,0 +1,78 @@
+# OpenDesk Browser R2：多文件 ESM、JSON 包与 AI 发布的最终方向
+
+> 决策日：2026-10-08。本文区分**当前已实现的源码校验**与**未来构建/正式安装**。不重释已有 Controller Task v1，不创建第二套浏览器执行器。
+
+## 1. 一句话原则
+
+**复杂项目按 npm/VS Code 扩展风格开发，采用多文件 ESM；最终运行依旧使用现有 Page USER_SCRIPT 或 Controller。** 油猴 @require 继续作为传统单文件脚本的导入兼容层。
+
+| 方案 | 主要用途 | 结论 |
+| --- | --- | --- |
+| 单文件 .user.js + @require | 导入 Tampermonkey/Violentmonkey 小脚本 | 保留；不强迫迁移 |
+| package.json + ESM src/*.js | AI / Codex 开发复杂任务、多模块、npm、资源 | **主开发方式** |
+| runtime HTTPS import / CDN 动态代码 | 网页打开时临时获取 JS | 不采用 |
+| 新的第四种脚本执行引擎 | 为多文件单独执行 | 不需要 |
+
+## 2. 项目结构
+
+    example-program/
+      package.json           # OpenDesk 配置、程序 ID、版本、入口和网站权限
+      package-lock.json      # 只有 npm 依赖时需要
+      src/
+        main.js              # export default async function main()
+        dom.js
+        utils.js
+      assets/
+        panel.css            # 未来 bundle 资产；源声明不等于浏览器已注入
+      README.md
+
+默认只维护一个**开发者手写的描述入口**：package.json 中的 opendesk 对象。不要重复维护 opendesk.json 和另一份手写 manifest。未来发行 manifest 必须由受信构建器从源码 + 最终 JS/资源字节生成。
+
+当前项目描述格式是 opendesk.project.v1，注意它是“可编辑源码项目”，**不是** opendesk.task-package.v1 或可直接安装的 Page 包。示例在 examples/programs/page-heading；机器校验和 JSON schema 在 scripts/validate-program-project.mjs、schemas/opendesk-program-project.v1.schema.json。
+
+## 3. 两个独立维度不能混淆
+
+**源代码写法：** UserScript metadata 或现代 ESM 多文件。
+
+**执行环境：** Page USER_SCRIPT 负责 DOM；Controller / RunHost / ChromePage 负责自动化。
+
+编译适配器要把 ESM 源码依赖图编译为运行环境允许的固定 JS 字节。ESM 写法不代表浏览器运行阶段需要支持远程模块解析，也不应向 Controller Worker 注入页面 UserScript 依赖。
+
+    package.json + src/main.js + src/dom.js
+                  │
+        静态检查（已实现）
+                  │
+        本地 Webpack 单文件 bundler（R2 已实现，尚缺 Chrome 原生回执）
+                  │
+        SHA-256 冻结后的本地 JS（已实现；CSS/图片资源未接通）
+             ┌────┴────┐
+        Page USER_SCRIPT    Controller RunHost
+             │                 │
+       Page 类型正式安装待做   已有 Task v1 合同（适配器待做）
+
+允许本地 import './dom.js'。npm 裸包导入必须在依赖声明中且有 package-lock.json。直接 import 'https://cdn.example/lib.js' 和未受控动态 import() 不作为第一阶段默认方案；若将来允许 URL 来源，必须在构建时经用户授权、下载、哈希固定并消除运行期网络依赖。
+
+## 4. 编辑和发布怎么操作
+
+1. **创建/编辑**：AI 在本地多文件源码中开发；不要让 Sidebar 变成大型 IDE。保留单文件立即调试入口。
+2. **静态校验（当前可执行）**：运行 node scripts/validate-program-project.mjs examples/programs/page-heading。它核对源码目录、相对模块图、权限声明、npm lock 一致性和源文件哈希，返回 AUTHORING_VALID_NOT_PACKAGED。它不会触发网络、执行第三方代码或发放权限。
+3. **构建冻结（已实现源码 + CI 部件验收）**：运行 `npm run build:program -- examples/programs/page-heading` 或 `npm run build:program -- examples/programs/controller-title`。复用仓库已有 Webpack，不加载项目自定义配置；静态 ESM 编译成单个 classic JS、校验其语法与大小，生成 SHA-256、`artifact.json` 和 `program.js`。若是 Controller，再生成合法 `program.opendesk-task.json`。CSS/JSON/图片声明在当前阶段会阻断构建，不会伪装成已打包资产。
+4. **直接调试或导入 Candidate**：Page 构建结果 `program.js` 可在 Sidebar「开发」选择「打开本地 JS」并点击「运行网页 JS」；不保存也能调用现有预览链。Controller 同样可以在开发页以「运行自动化」运行编译 JS，或在完整任务目录导入生成的 Task v1 JSON 为待验证 Candidate。Page 正式自动安装仍须建立类型专用的 Revision/Candidate/Verification/Available/Installed，不得把 Page 改称为 Controller Task。
+5. **显式安装**：只有真实 Verification 和 Authority 确认 Available 后，用户才在独立任务目录选择安装。Page 将来使用 chrome.userScripts.register/unregister/update 以及重启、撤权、扩展更新对账。
+6. **发布给他人**：先支持离线本地包，随后可选 GitHub Release / 目录源；在线插件市场不是当前默认依赖。Git 提交、构建、包生成、安装、在线发布是五个不同动作。不能拿 commit 或 JSON 文件冒充“已发布”。
+
+## 5. 为什么需要 Skill + 机器工具
+
+Skill 指导 AI 按相同顺序读合同、组织源码、运行检查与发布；**机器校验器**拦截不可接受的格式和路径；**Trusted Broker/Authority** 判定实际网页权限和正式安装。三个环节缺一不可。只写提示词无法证明代码可运行，也不能代替真实浏览器回执。
+
+本轮仓库 Skill：.agents/skills/opendesk-program-publish/SKILL.md。它可以让 Codex 在后续对话按同一规则开发，不必每次复制数千字说明。
+
+## 6. 本轮可证明与仍然缺少的
+
+**当前源码已实现**：项目 manifest 静态校验、模块依赖图、npm lock 声明核对、单文件 JS bundler 和最终 SHA-256 构建记录；Controller 可以生成实际 Task v1 Candidate JSON，Page 可以通过现有 USER_SCRIPT 预览 JS 产物。Sidebar 三页签保留且直接运行按钮常驻开发底栏，导入已编译 JS 不保存也不自动执行。最终用户原生体验仍需受控 Chrome 验收。
+
+**尚未实现**：CSS/JSON/图片资产编译、公开发行包签名/自动升级、Page 类型正式安装与恢复对账；Chrome 原生端到端验收仍缺。当前 artifact 明确 `status: BUILT_UNVERIFIED` 且 `installable:false`；Controller Task JSON 仍必须独立走原有核对证据后才能 Available。
+
+下一阶段的首个**原生验收闭环**：用同一构建产物，在受控真实 Chrome 通过 Sidebar「打开本地 JS → 运行网页 JS」取得可信回执，再验证离线重跑与权限撤销。之后再接 Page 正式安装；不以 Node/VM 测试代替真实用户操作。不要先扩展脚本市场，也不要继续堆新的任务入口。
+
+官方参考：[npm package.json](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/)、[VS Code 扩展 manifest](https://code.visualstudio.com/api/references/extension-manifest)、[VSIX 打包与发布](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)、[esbuild bundling](https://esbuild.github.io/api/)、[Chrome User Scripts API](https://developer.chrome.com/docs/extensions/reference/api/userScripts)、[MV3 远程代码政策](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)。

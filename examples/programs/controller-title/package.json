@@ -1,0 +1,27 @@
+{
+  "name": "@opendesk-examples/controller-title",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "通过受控 ChromePage 读取网页标题的多文件 Controller 示例",
+  "author": "local-developer",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.controller-title",
+    "runtimeKind": "controller",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "siteOrigins": [
+      "https://example.com"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "paramsSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}
