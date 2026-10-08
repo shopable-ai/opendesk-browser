@@ -22,5 +22,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test draft/saved transport, editor, controller authority and run recovery
         run: node --test tests/environment/sidebar-draft-runhost.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/task-workbench.test.mjs tests/environment/script-editor.test.mjs tests/framework/draft-native-envelope.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/run-host-recovery.test.mjs
-      - name: R5.1 semantic Locator, staged actions and observation component contract
+      - name: R5.2 semantic Locator, deadlines, staged actions and observation component contract
         run: node --test tests/framework/r5-modern-page-api.test.mjs
+      - name: Original native driver, worker Page injection and lifecycle regressions
+        run: node --test tests/framework/k3-native-driver.test.mjs tests/framework/k3-worker-context-entry.test.mjs
