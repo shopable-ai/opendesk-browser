@@ -14,3 +14,11 @@ export const PACKAGE_ENTRIES = Object.freeze({
 
 export const BUILD_POLICY = Object.freeze({productionBytes: 256 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 export const FIXED_OUTPUTS = Object.freeze(Object.fromEntries(Object.keys(PACKAGE_ENTRIES).filter(name => name !== 'sw').map(name => [name.split('/').at(-1), name + '.js'])));
+
+// Deliberately not a WXT executable entry or web-accessible MAIN resource.
+// It is only passed as verified text to approved chrome.userScripts USER_SCRIPT worlds.
+export const PINNED_USER_SCRIPT_LIBRARIES = Object.freeze({
+  jquery: Object.freeze({id:'jquery',version:'3.7.1',output:'vendor/jquery-3.7.1.min.js',bytes:87533,
+    sha256:'fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a',
+    licenseOutput:'licenses/jquery-MIT.txt',licenseSha256:'d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'})
+});
