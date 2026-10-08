@@ -55,8 +55,8 @@
       "npm run verify"
     ],
     "localRuntime": "NOT_TESTED",
-    "githubActions": "PENDING",
-    "build": "NOT_TESTED"
+    "githubActions": "PASS on commit 31887ab7ea2bdc1784a8f4d081941aa9ec2b7606 (13/13 bridge, 37/37 shared, source/production/development build/verify); final 425b26b recheck PENDING",
+    "build": "CI_VERIFIED on 31887ab7ea2bdc1784a8f4d081941aa9ec2b7606"
   },
   "nativeEvidence": {
     "chromeExtension": "NOT_TESTED",
@@ -77,6 +77,12 @@
   "oldDemoUnmodified": true,
   "nativeHostNotRequiredForAvailableTasks": true,
   "rollback": "Close or revert only dedicated PR, retain historical run receipts and independent modules",
-  "pr": "PENDING",
-  "updatedAt": "2026-10-08"
+  "pr": "https://github.com/shopable-ai/opendesk-browser/pull/11",
+  "updatedAt": "2026-10-08",
+  "currentMainObserved": "37f84193cb7024af6de9ded16db5b70a999f6c61",
+  "integrationNotes": [
+    "Main advanced after candidate branched (new Sidebar R5, user-scripts D1 and R4.1 handoff). GitHub PR #11 currently needs explicit conflict review before integration.",
+    "do not overwrite main/new shared src/sw.js, src/ui/tool-shell.js or scripts/build.mjs; rebase in isolated local Codex worktree",
+    "Native Host file remains missing, so all macOS/Chrome/Codex statuses are NOT_TESTED regardless of CI green"
+  ]
 }
