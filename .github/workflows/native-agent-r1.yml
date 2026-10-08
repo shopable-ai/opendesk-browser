@@ -2,6 +2,7 @@ name: Native Agent R1 components and package
 on:
   push:
     branches:
+      - main
       - agent/native-agent-bridge-r1-20261008
       - agent/program-r31-continue-01a11c55
   pull_request:
@@ -19,6 +20,7 @@ on:
       - 'wxt.config.mjs'
       - 'tests/environment/native-agent-*.test.mjs'
       - '.github/workflows/native-agent-r1.yml'
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -60,11 +62,9 @@ jobs:
       - name: Install Chrome for Testing for real unpacked MV3 diagnostic
         id: cft
         uses: browser-actions/setup-chrome@v2
-        continue-on-error: true
         with:
           chrome-version: stable
       - name: Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)
-        continue-on-error: true
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.cft.outputs.chrome-path }}
         run: |

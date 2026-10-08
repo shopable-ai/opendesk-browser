@@ -40,11 +40,17 @@ function connectCDP(url) {
     const ws=new WebSocket(url),pending=new Map();let seq=0;
     const timer=setTimeout(()=>{ws.close();reject(Error('CDP socket timed out'));},7000);
     ws.addEventListener('error',e=>{clearTimeout(timer);reject(Error('CDP socket error: '+e.message));});
-    let received=0;
+    let received=0,detachedReason=null;
     ws.addEventListener('message',e=>{
       if(received++<5)console.log('REAL_CHROME_CDP_FRAME='+String(e.data).slice(0,280));
       let value;try {value=JSON.parse(e.data);}catch(error){
         console.log('REAL_CHROME_CDP_BAD_FRAME='+error.message);
+        return;
+      }
+      if(value.method==='Inspector.detached') {
+        detachedReason='CDP Inspector.detached: '+(value.params?.reason||'unknown');
+        for(const entry of pending.values())entry.reject(Error(detachedReason));
+        pending.clear();
         return;
       }
       if(!value.id||!pending.has(value.id))return;
@@ -52,6 +58,7 @@ function connectCDP(url) {
       if(value.error)entry.reject(Error(value.error.message));else entry.resolve(value.result);
     });
     ws.addEventListener('close',event=>{
+      detachedReason ||= 'CDP socket closed';
       console.log('REAL_CHROME_CDP_CLOSED='+JSON.stringify({code:event.code,reason:event.reason,pending:pending.size}));
       for(const entry of pending.values())entry.reject(Error('CDP socket closed'));
       pending.clear();
@@ -62,6 +69,7 @@ function connectCDP(url) {
       resolve({
         close:()=>ws.close(),
         call(method,params={}) {
+          if(detachedReason)return Promise.reject(Error(detachedReason));
           const id=++seq;
           return new Promise((resolve,reject)=>{
             const timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP '+method+' timeout'));},10000);
@@ -97,10 +105,9 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
   child=spawn(executable,[
     '--headless=new','--no-first-run','--no-default-browser-check',
-    // CI macOS can kill renderers before JS contexts initialize unless
-    // GPU/sandbox/shared-memory use is minimized. These flags are ONLY
-    // for this isolated diagnostic profile, not the shipped extension.
-    '--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+    // Keep the normal macOS sandbox for realistic renderer behavior.
+    // GPU/shared-memory flags affect only this isolated diagnostic profile.
+    '--disable-gpu','--disable-dev-shm-usage',
     '--disable-background-networking','--disable-sync',
     '--remote-allow-origins=*','--remote-debugging-port=0',
     '--disable-extensions-except='+ext,'--load-extension='+ext,
@@ -108,6 +115,9 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   ],{env,stdio:['ignore','ignore','pipe']});
   child.stderr.on('data',bytes=>{debug=(debug+bytes.toString()).slice(-4000);});
   child.on('error',error=>{debug=String(error);});
+  child.on('exit',(code,signal)=>{
+    console.log('REAL_CHROME_PROCESS_EXIT='+JSON.stringify({code,signal,stderr:debug.slice(-1200)}));
+  });
   const port=await eventually(()=>{
     const file=path.join(profile,'DevToolsActivePort');
     if(!fs.existsSync(file))return null;
@@ -126,7 +136,8 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     return result.result?.value;
   };
   assert.ok(fs.existsSync(path.join(ext,'native-agent','settings.html')),'Built Native Options HTML missing');
-  const extensionId=await eventually(async()=>{
+  let extensionId;
+  try {extensionId=await eventually(async()=>{
     // Never select the first random chrome-extension:// target: Chrome has
     // built-in extension targets not owned by OpenDesk.
     const preferences=path.join(profile,'Default','Preferences');
@@ -141,7 +152,16 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     const worker=targets.find(item=>item.type==='service_worker'&&
       /^chrome-extension:\/\/[a-p]{32}\/sw\.js(?:$|[?#])/.test(item.url||''));
     return worker?.url?.match(/^chrome-extension:\/\/([a-p]{32})\//)?.[1]||null;
-  },{timeout:24000,label:'real unpacked OpenDesk extension ID'});
+  },{timeout:24000,label:'real unpacked OpenDesk extension ID'});}catch(error){
+    let targets;
+    try {targets=(await (await fetch(base+'/json/list')).json()).map(t=>({type:t.type,url:t.url})).slice(0,20);}
+    catch(e){targets={error:e.message};}
+    console.log('REAL_CHROME_EXTENSION_DISCOVERY_DIAGNOSTIC='+JSON.stringify({
+      error:error.message,preferencesExists:fs.existsSync(path.join(profile,'Default','Preferences')),
+      targets,stderr:debug.slice(-1600)
+    }));
+    throw error;
+  }
   assert.match(extensionId,/^[a-p]{32}$/);
   console.log('REAL_CHROME_EXTENSION_LOADED=PASS id='+extensionId);
   const setup=cli(['setup','--extension-id',extensionId,...(browser==='cft'?['--browser','cft']:[])],env);
