@@ -8,8 +8,8 @@
 </header>
 <nav class="workbench-nav" aria-label="工作台">
   <button type="button" id="tab-my-tasks" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
+  <button type="button" id="tab-discover" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>
   <button type="button" id="tab-develop" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
-  <button type="button" id="tab-discover" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-discover" hidden>发现（完整页面）</button>
 </nav>
 <main id="workspace-content">
   <div id="workbench-tasks" data-workbench-page="tasks">
@@ -31,7 +31,30 @@
       </details>
     </section>
   </div>
-  <div id="workbench-discover" data-workbench-page="discover" hidden>
+  <div id="workbench-local-discover" data-workbench-page="local-discover" hidden>
+    <section class="local-discovery-section" aria-labelledby="local-discover-heading">
+      <div class="local-discovery-intro">
+        <h2 id="local-discover-heading">发现已安装任务</h2>
+        <p class="hint">从本机已有任务中，找到适合当前网页的操作。不会联网搜索或自动安装脚本。</p>
+      </div>
+      <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
+      <input type="search" id="local-discover-search" placeholder="搜索名称、用途或网站…" autocomplete="off">
+      <div id="local-discover-filters" class="local-discovery-filters" role="group" aria-label="本地任务筛选">
+        <button type="button" id="local-filter-current" data-local-filter="current" aria-pressed="true">当前网页</button>
+        <button type="button" id="local-filter-all" data-local-filter="all" aria-pressed="false">全部已安装</button>
+        <button type="button" id="local-filter-disabled" data-local-filter="disabled" aria-pressed="false">已停用</button>
+      </div>
+      <p id="local-discover-count" class="hint" aria-live="polite"></p>
+      <div id="local-discover-cards" class="local-discovery-list" aria-label="发现的本机任务"></div>
+      <p id="local-discover-status" class="hint" role="status"></p>
+      <div class="local-discovery-footer">
+        <span>需要导入或安装新任务？</span>
+        <button type="button" id="local-discover-open-catalog">打开完整任务目录 ↗</button>
+      </div>
+    </section>
+  </div>
+  <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->
+  <div id="workbench-discover" data-workbench-page="catalog" hidden>
     <section aria-labelledby="discover-heading" class="catalog-section">
       <div class="catalog-intro"><p class="eyebrow">LOCAL TASK CATALOG</p><h2 id="discover-heading">发现本地任务</h2>
       <p class="hint">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p></div>
