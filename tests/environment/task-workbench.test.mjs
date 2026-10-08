@@ -19,7 +19,7 @@ class Element {
 globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const html=await readFile('src/ui/tool.html','utf8');
-const make=({installedInitially=true,secondTask=false}={})=>{
+const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
   const doc={getElementById:get,createElement:()=>new Element(),documentElement:{dataset:{}}};
@@ -33,6 +33,11 @@ const make=({installedInitially=true,secondTask=false}={})=>{
     manifest:{...manifest,title:'另一个已安装任务',description:'演示切换时保留各自输入'}}:null;
   const otherInstalled=secondTask?{...installed,taskId:'demo.second',scriptId:'task:demo.second:1.0.0'}:null;
   let installedState=installedInitially?[installed,...(secondTask?[otherInstalled]:[])]:[];
+  if(sharedStore && !sharedStore.catalog){
+    sharedStore.catalog=structuredClone(secondTask?[row,other]:[row]);
+    sharedStore.installed=structuredClone(installedState);
+  }
+  const state=sharedStore || {catalog:secondTask?[row,other]:[row],installed:installedState};
   const starts=[],permissions=[],stops=[],catalogOpens=[];
   let target={status:'available',url:'https://a.example/',tabId:9,windowId:7,documentId:'doc-9'};
   const page={
@@ -42,9 +47,11 @@ const make=({installedInitially=true,secondTask=false}={})=>{
   const client={ready:Promise.resolve(),subscribeConnection:()=>()=>{},
     controller:{snapshotControllerRun:async()=>structuredClone(view)},
     async request(method,payload) {
-      if(method==='listTaskCatalog')return {catalog:structuredClone(secondTask?[row,other]:[row]),installed:structuredClone(installedState)};
+      if(method==='listTaskCatalog')return {catalog:structuredClone(state.catalog),installed:structuredClone(state.installed)};
       if(method==='installTask') {
-        installedState=[installed];row.installed=true;return structuredClone(installed);
+        installedState=[installed];state.installed=structuredClone(installedState);
+        state.catalog=state.catalog.map(item=>item.taskId===row.taskId?{...item,installed:true}:item);
+        row.installed=true;return structuredClone(installed);
       }
       if(method==='resolveInstalledTask')return {taskId:row.taskId,version:row.version,scriptId:programId,
         revision:1,contentHash:hash,manifestHash,manifest};
@@ -274,4 +281,23 @@ test('switching between two installed tasks preserves each independent unsaved p
   assert.equal(field().value,'Second');
   assert.equal(f.starts.length,0,'card selection never executes code');
   assert.equal(f.permissions.length,0,'card selection never requests permission');
+});
+
+test('two extension documents share only a refresh hint and re-read authoritative installed state',async t=>{
+  const store={};
+  const sidebar=make({installedInitially:false,sharedStore:store});
+  const catalog=make({installedInitially:false,sharedStore:store});
+  t.after(()=>{sidebar.ui.dispose();catalog.ui.dispose();});
+  await tick();await tick();
+  assert.equal(sidebar.get('task-installed-cards').children[0].textContent.includes('尚未安装'),true);
+  catalog.ui.showCatalogPage();
+  catalog.get('task-catalog-list').value='demo.form@1.0.0';
+  catalog.get('task-catalog-list').fire('change');
+  await catalog.click('task-install');
+  await tick();await tick();await tick();
+  assert.equal(sidebar.get('task-installed-cards').children[0].children[0].dataset.taskId,'demo.form',
+    'Sidebar discovers the same installed version via a fresh Catalog request');
+  assert.equal(sidebar.get('task-run').disabled,false);
+  assert.equal(sidebar.starts.length,0,'catalog notification never runs a task');
+  assert.equal(sidebar.permissions.length,0,'catalog notification never requests permission');
 });
