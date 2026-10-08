@@ -31,6 +31,7 @@ node scripts/validate-program-project.mjs examples/programs/sidebar-assets-contr
 npm run build:program -- examples/programs/sidebar-page-demo
 npm run build:program -- examples/programs/sidebar-controller-demo
 npm run check
+npm run build
 npm run build:dev
 npm run verify
 ```
