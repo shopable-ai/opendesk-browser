@@ -135,16 +135,24 @@ test('development source map maps final generated throw position back to local a
   assert.equal(mapped.line,2);
 });
 
-test('an unbundled asset is rejected rather than included in a supposedly complete project',async t=>{
+test('a declared Page stylesheet enters the immutable program artifact rather than failing closed',async t=>{
   const out=await temp();t.after(()=>rm(out,{recursive:true,force:true}));
   const root=join(out,'project');await mkdir(join(root,'src'),{recursive:true});
   await mkdir(join(root,'assets'));
   const pkg=JSON.parse(await readFile('examples/programs/page-heading/package.json','utf8'));
   pkg.opendesk.assets=[{path:'assets/panel.css',kind:'css'}];
   await writeFile(join(root,'package.json'),JSON.stringify(pkg));
-  await writeFile(join(root,'src/main.js'),'export default function main(){return 1;}');
-  await writeFile(join(root,'assets/panel.css'),'body{color:red}');
-  await assert.rejects(buildProgramProject(root,{outputDirectory:join(out,'dist')}),errorCode('E_PROJECT_ASSET_BUILD'));
+  await writeFile(join(root,'src/main.js'),
+    "export default function main({assets}){return assets['assets/panel.css'].text;}");
+  await writeFile(join(root,'assets/panel.css'),'.local{color:red}');
+  const compiled=await buildProgramProject(root,{outputDirectory:join(out,'dist')});
+  const code=await readFile(join(out,'dist','program.js'),'utf8');
+  assert.equal(compiled.status,'BUILT_UNVERIFIED');
+  assert.equal(compiled.assets.length,1);
+  assert.equal(compiled.assets[0].kind,'css');
+  assert.equal(digest(code),compiled.sourceHash);
+  assert.match(code,/\.local\{color:red\}/);
+  assert.equal(compiled.installable,false);
 });
 
 test('webpack dependency failures report project, phase and importing source location',async t=>{

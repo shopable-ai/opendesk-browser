@@ -8,6 +8,7 @@ import {parse} from 'acorn';
 import {validatePageProgramRules} from '../src/scripting/user-scripts/page-program-contract.js';
 import {parseUserScriptDependencies} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {checkParamsSchema} from '../src/platform/tasks/contract.js';
+import {buildAssetRecords,ASSET_LIMITS} from './program-assets.mjs';
 
 const FORMAT='opendesk.project.v1';
 const IDENTIFIER=/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/;
@@ -211,6 +212,12 @@ export async function validateProgramProject(input){
           context(projectLabel,'validate',location));
         await scan(relative(projectRoot,target));
       }else{
+        if(spec==='@opendesk/ui'){
+          ensure(p.runtimeKind==='page-userscript'&&!Object.hasOwn(rootDependencies,spec),
+            'E_PROJECT_IMPORT','@opendesk/ui is the built-in Page UI helper, not an npm dependency',
+            context(projectLabel,'validate',location));
+          continue;
+        }
         const name=dependencyName(spec,context(projectLabel,'validate',location));
         ensure(Object.hasOwn(rootDependencies,name),'E_PROJECT_IMPORT',
           'Bare import must be declared in package.json dependencies',
@@ -241,14 +248,17 @@ export async function validateProgramProject(input){
   }
 
   const assets=[];
+  const assetContents=new Map();
   for(const item of p.assets||[]){
     const path=declaredPath(item.path,context(projectLabel,'validate','package.json#opendesk.assets'));
     const allowed={css:['.css'],json:['.json'],image:['.png','.jpg','.jpeg','.webp']};
     ensure(allowed[item.kind].includes(extname(path).toLowerCase()),'E_PROJECT_ASSET',
       'Unsupported asset file extension',context(projectLabel,'validate',path));
-    const bytes=await checkedFile(projectRoot,path,1024*1024,context(projectLabel,'validate',path));
+    const bytes=await checkedFile(projectRoot,path,ASSET_LIMITS[item.kind],context(projectLabel,'validate',path));
+    assetContents.set(path,bytes);
     assets.push({path,kind:item.kind,sha256:sha(bytes),bytes:bytes.length});
   }
+  buildAssetRecords(assets,assetContents);
 
   const sourceFiles=[...graph.values()].sort((a,b)=>a.path.localeCompare(b.path));
   const sources=sourceFiles.map(({path,bytes,sha256})=>({path,bytes,sha256}));

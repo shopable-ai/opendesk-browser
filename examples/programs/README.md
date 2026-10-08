@@ -20,3 +20,5 @@ npm run build:program -- examples/programs/sidebar-controller-demo
 ```
 
 上面两种 JS 构建还输出 `program.opendesk-draft.json`：在现有完整任务目录导入，可保留多文件只读源码快照与固定执行字节。开发模式可使用 `--mode development` 生成可读 JS 与本地 Source Map。构建结果为 `BUILT_UNVERIFIED`，不是 `Installed`；资源样例构建目前应返回 `E_PROJECT_ASSET_BUILD`，不可将其计为安装成功。
+
+- [page-ui-basic](page-ui-basic/README.md)：R1 原生 Shadow DOM 页面工具；独立 CSS、JSON 与 PNG 固定内嵌，按需 UI 样式与关闭/重新打开（仅手动 USER_SCRIPT 试运行，Chrome 待验收）。

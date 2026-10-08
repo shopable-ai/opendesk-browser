@@ -114,7 +114,7 @@ npm run build:program -- examples/programs/controller-title
 | 原 R6 Sidebar 三页签/主要交互 | 源码与回归测试；R3/R4/R5 历史原型未删 |
 | 单文件 Controller 草稿和页面 USER_SCRIPT 预览 | 已有源码消费者及组件测试；仍需真实 Chrome 全流程验收 |
 | 多文件 ESM 静态校验/构建，Controller Candidate JSON | 已实现、CI 通过；输出 `BUILT_UNVERIFIED` |
-| CSS/JSON/图片打包与完整外部 npm 生态 | 不是通用发布器；未实现的类型明确拒绝 |
+| CSS/JSON/图片打包与完整外部 npm 生态 | R1 小型 Page CSS/JSON/图片 SOURCE_IMPLEMENTED（[UI API](../framework/ui-api.zh-CN.md)），Chrome NOT_TESTED；不是通用资源/npm 发布器，未实现类型仍拒绝 |
 | Page Program 自动匹配安装、重启与撤权对账 | 尚未完成，不将编译器或页面预览冒充正式安装 |
 
 下一步应先验证：**同一程序构建 → 原 R6 独立目录导入 .js → Sidebar 原编辑器 → 明确用户点击 → Chrome 原生返回 → 断网重用、换页/撤权失败关闭**。再完善 Page 类型正式安装，不为了这条路径大改 Sidebar。
@@ -128,8 +128,8 @@ npm run build:program -- examples/programs/controller-title
 - 不使用框架仍是正式路径。简单任务继续使用现成参数表单，复杂网页小工具才需要自定义 UI。
 - React/Vue 属于项目的渲染选择；Tailwind 是可选的构建期样式工具，可以与原生、React、Vue 分别组合。
 - 基础 CSS 按 UI 容器启用，网页内 UI 优先独立 ShadowRoot。选择启用不等于已经隔离；不得向网站全局注入完整 Tailwind reset。
-- 当前校验/构建入口只直接处理 `.js/.mjs`；CSS/图片资产未贯通，JSX/TSX/Vue 单文件组件没有正式编译适配。现有文件选择器也不等于目录导入入口。
+- 当前入口只直接处理 `.js/.mjs`；R1 已支持 Page 项目显式声明的小型 CSS/JSON/图片固定打包，JSX/TSX/Vue 单文件组件仍无正式编译适配。现有文件选择器也不等于目录导入入口。
 - 用户任意 UI 代码不能直接作为特权 Sidebar 组件运行；简单表单继续由宿主渲染，复杂侧栏应用另行实现独立展示文档。
-- 下一批先完成原生网页 UI 的资产、挂载、交互与清理，再在同一链路接 React/Vue/Tailwind。无需因该需求等待完整 UserCSS 管理器，也不扩展 Sidebar 一级页签。
+- R1 原生 UI 容器、受管资源、Demo 已有源码实现，真实 Chrome/CSP 验收仍待本地完成；之后才在同一链路接 React/Vue/Tailwind。无需因该需求等待完整 UserCSS 管理器，也不扩展 Sidebar 一级页签。
 
-本节是新需求的设计补充；UI 资源通道、框架适配和真实 Chrome 支持状态仍以实际代码与验收证据为准。
+公共接口参见 [R1 Page UI API](../framework/ui-api.zh-CN.md)；真实 Chrome 支持状态仍以同一候选的实际运行证据为准。

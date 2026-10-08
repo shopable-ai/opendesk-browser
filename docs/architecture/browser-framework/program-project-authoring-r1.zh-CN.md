@@ -23,7 +23,7 @@
         dom.js
         utils.js
       assets/
-        panel.css            # 未来 bundle 资产；源声明不等于浏览器已注入
+        panel.css            # R1 小型 Page 资源可打包；真正应用样式仍需 UI 显式调用
       README.md
 
 默认只维护一个**开发者手写的描述入口**：package.json 中的 opendesk 对象。不要重复维护 opendesk.json 和另一份手写 manifest。未来发行 manifest 必须由受信构建器从源码 + 最终 JS/资源字节生成。
@@ -46,7 +46,7 @@ Controller 侧现代浏览器自动化默认参考 [Page API 文档](../../frame
                   │
         本地 Webpack 单文件 bundler（R2 已实现，尚缺 Chrome 原生回执）
                   │
-        SHA-256 冻结后的本地 JS（已实现；CSS/图片资源未接通）
+        SHA-256 冻结后的本地 JS（R1 小型 Page CSS/JSON/图片随固定 JS 内嵌）
              ┌────┴────┐
         Page USER_SCRIPT    Controller RunHost
              │                 │
@@ -58,7 +58,7 @@ Controller 侧现代浏览器自动化默认参考 [Page API 文档](../../frame
 
 1. **创建/编辑**：AI 在本地多文件源码中开发；不要让 Sidebar 变成大型 IDE。保留单文件立即调试入口。
 2. **静态校验（当前可执行）**：运行 node scripts/validate-program-project.mjs examples/programs/page-heading。它核对源码目录、相对模块图、权限声明、npm lock 一致性和源文件哈希，返回 AUTHORING_VALID_NOT_PACKAGED。它不会触发网络、执行第三方代码或发放权限。
-3. **构建冻结（已实现源码 + CI 部件验收）**：运行 `npm run build:program -- examples/programs/page-heading` 或 `npm run build:program -- examples/programs/controller-title`。复用仓库已有 Webpack，不加载项目自定义配置；静态 ESM 编译成单个 classic JS、校验其语法与大小，生成 SHA-256、`artifact.json` 和 `program.js`。若是 Controller，再生成合法 `program.opendesk-task.json`。CSS/JSON/图片声明在当前阶段会阻断构建，不会伪装成已打包资产。
+3. **构建冻结（已实现源码 + CI 部件验收）**：运行 `npm run build:program -- examples/programs/page-heading` 或 `npm run build:program -- examples/programs/controller-title`。复用仓库已有 Webpack，不加载项目自定义配置；静态 ESM 编译成单个 classic JS、校验其语法与大小，生成 SHA-256、`artifact.json` 和 `program.js`。若是 Controller，再生成合法 `program.opendesk-task.json`。R1 对 Page 项目的小型 CSS/JSON/PNG/JPEG/WebP 声明进行校验和固定内嵌（详见 [Page UI API](../../framework/ui-api.zh-CN.md)）；Controller 带资源构建仍拒绝，不改变 Task v1。
 4. **沿用原 R6 试运行或导入 Candidate**：Page 构建结果 `program.js` 可直接复制到 Sidebar「开发」原编辑器；或者在「发现 → 导入」进入**已有完整任务目录**，把 `.js` 导入同窗口 Sidebar 的未保存草稿。随后在「开发」展开「网页用户脚本 · 依赖与试运行」，使用原有的 **「在当前网页试运行 DOM 脚本」**按钮。Controller 编译 JS 用原底栏 **「运行草稿」**；完整任务目录也能导入生成的 Task v1 JSON 为待验证 Candidate。不得因为增加多文件项目而改动 R6 底栏和三个一级页签。Page 正式安装仍须实现类型专用 Revision/Candidate/Verification/Available/Installed。
 5. **显式安装**：只有真实 Verification 和 Authority 确认 Available 后，用户才在独立任务目录选择安装。Page 将来使用 chrome.userScripts.register/unregister/update 以及重启、撤权、扩展更新对账。
 6. **发布给他人**：先支持离线本地包，随后可选 GitHub Release / 目录源；在线插件市场不是当前默认依赖。Git 提交、构建、包生成、安装、在线发布是五个不同动作。不能拿 commit 或 JSON 文件冒充“已发布”。
@@ -79,7 +79,7 @@ Skill 指导 AI 按相同顺序读合同、组织源码、运行检查与发布�
 
 **当前源码已实现**：项目 manifest 静态校验、模块依赖图、npm lock 声明核对、单文件 JS bundler 和最终 SHA-256 构建记录；Controller 可以生成真实 Task v1 Candidate JSON，Page 可经现有 USER_SCRIPT 预览编译 JS。**Sidebar R6 三页签、原底栏「运行草稿」和折叠的页面脚本试运行入口保持不变**；`.js` 草稿通过现有独立任务目录导入或粘贴，不保存、不自动执行。最终用户原生体验仍需受控 Chrome 验收。
 
-**尚未实现**：CSS/JSON/图片资产编译、公开发行包签名/自动升级、Page 类型正式安装与恢复对账；Chrome 原生端到端验收仍缺。当前 artifact 明确 `status: BUILT_UNVERIFIED` 且 `installable:false`；Controller Task JSON 仍必须独立走原有核对证据后才能 Available。
+**R1 已有源码**：Page 小型 CSS/JSON/图片资源打包、固定输出 SHA-256 与 [原生 UI Demo](../../../examples/programs/page-ui-basic/README.md)；**尚未实现或验收**：通用资源平台、公开发行包签名/自动升级、Page 正式安装与恢复对账、真实 Chrome 内原生 UI/CSP 端到端验收。当前 artifact 明确 `status: BUILT_UNVERIFIED` 且 `installable:false`；Controller Task JSON 仍必须独立走原有核对证据后才能 Available。
 
 下一阶段的首个**原生验收闭环**：用同一构建产物，在受控真实 Chrome 经原完整任务目录导入 `program.js`、回到 Sidebar「开发」原页面脚本折叠区点击试运行，取得可信回执，再验证离线重跑与权限撤销。之后再接 Page 正式安装；不以 Node/VM 测试代替真实用户操作。不要先扩展脚本市场，也不要继续堆新的任务入口。
 
@@ -87,6 +87,6 @@ Skill 指导 AI 按相同顺序读合同、组织源码、运行检查与发布�
 
 ## UI 与样式资源的后续扩展
 
-[UI 开发与样式隔离 R1](ui-development-and-style-isolation-r1.zh-CN.md)补齐本项目的界面开发决策：原生 UI 默认、React/Vue 按项目可选、Tailwind 在构建期生成 CSS；资源只进入其所属界面容器。已有 `assets` 的声明和校验不等于资源构建完成；当前 `.js/.mjs` 入口也不代表 JSX/TSX 或 Vue 单文件组件已经支持。
+[UI 开发与样式隔离 R1](ui-development-and-style-isolation-r1.zh-CN.md)补齐本项目的界面开发决策：原生 UI 默认、React/Vue 按项目可选、Tailwind 在构建期生成 CSS；资源只进入其所属界面容器。R1 已贯通小型 Page 资源构建，但未完成真实 Chrome 验收；当前 `.js/.mjs` 入口和 R1 原生 UI 也不代表 JSX/TSX 或 Vue 单文件组件已经支持。
 
 下一批先完成原生网页 UI 的 CSS/图片资产、挂载与清理闭环，再接框架编译。扩展项目/产物合同前需定义向后兼容，不能直接向现行 v1 增加未被接受的 UI 字段，也不能为加入完整框架随意取消脚本/通信容量上限。本文既有构建命令和状态在相应实现及验收完成前保持原义。
