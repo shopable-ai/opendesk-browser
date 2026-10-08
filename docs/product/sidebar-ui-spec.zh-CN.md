@@ -76,3 +76,18 @@
 验收层级严格区分：**原型交互（UI_SIMULATION）≠ Node/静态（COMPONENT_TESTED）≠ 真实受控 Chrome（NATIVE_TESTED）**。真实 Chrome 侧栏、用户触发权限、扩展重开、跨页授权与 Stop 未验证时必须标注 `NATIVE_NOT_TESTED`；不虚构截图或 95 分以上得分。
 
 六维独立审计：视觉排版、信息密度、交互效率、开发体验、普通使用体验、无障碍与状态正确性。任一项未通过真实验证，不以“95/100”自动认定交付。R5 通过检查与安全集成后方可取代 R4 作为产品现行视觉验收基线。
+
+## 9. R5 静态 HTML Chrome 浏览器视觉基线（非正式扩展验收）
+
+GitHub Actions [Sidebar R5 static visual comparison](https://github.com/shopable-ai/opendesk-browser/actions/runs/37775599740) 使用独立无头 Chrome，以统一 700px 高度打开仓库真实 R4/R5 HTML，激活“发现”后截屏。Artifacts 中留存 R4 360px / R5 300、360、420、520px PNG 与 `metrics.json`。
+
+| 指标（静态 HTML 原型 Chrome 实测） | R4 · 360×700 | R5 · 360×700 |
+| --- | ---: | ---: |
+| 品牌栏 | 58px | 47px |
+| 导航栏 | 45px | 41px |
+| 搜索框距视口顶部 | 202px | 98px |
+| 发现页空闲底栏 | 88px | 0px |
+| 当前筛选条目数 / 完整可见 | 1 / 1 | 4 / 4 |
+| 横向溢出 | 无 | 无 |
+
+R5 在 300/360/420/520×700px 下均无横向溢出且 4 项完整可见。R4/R5 使用不同数量的演示任务，因此条目数量不能直接代表正式扩展的数据或用户负载。该结果证明**原型的 Chrome 布局和脚本交互能渲染**，不证明正式扩展用户权限、任务结果、Stop 或浏览器重开。原生 Chrome Side Panel 验收仍为 `NATIVE_NOT_TESTED`。
