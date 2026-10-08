@@ -9,7 +9,7 @@ import {createStorageMethods} from '../../src/platform/storage/repository.js';
 import {createHostClient} from '../../src/platform/host/client.js';
 import {createRunHost} from '../../src/run-host.js';
 import {createRunContext} from '../../src/framework/context.js';
-import {CONTRACT_VERSION, CONTRACT_HASH, canonical, digest} from '../../src/platform/protocol.js';
+import {CONTRACT_VERSION, CONTRACT_HASH, canonical, digest, digestUtf8} from '../../src/platform/protocol.js';
 import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
 import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
 
@@ -811,4 +811,40 @@ test('native target changes after final candidate query reject admission and rel
     assert.ok((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').every(row=>row.released));
     assert.equal(listeners.size,0);assert.equal(candidate.listeners.size,0);assert.equal(f.calls.length,0);
   }
+});
+
+
+test('draft source is bound to one durable run, not saved as a script head, and erased only after retirement',async()=>{
+  const f=await fixture(), sourceUtf8='return {value:params.value};';
+  const request={requestId:crypto.randomUUID(),source:{kind:'draft',sourceUtf8},
+    paramsWire:encodeValue({value:5}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},
+    deadlineAt:Date.now()+30000};
+  const claim=await f.authority.startControllerRun(request,f.sender);
+  const expectedHash=await digestUtf8(sourceUtf8);
+  assert.equal(claim.sourceKind,'draft');assert.equal(claim.sourceUtf8,sourceUtf8);
+  assert.equal(claim.revision.sourceHash,expectedHash);
+  assert.equal((await f.rows('scriptHeads')).length,0);
+  assert.equal((await f.rows('scriptRevisions')).length,0);
+  const admitted=(await f.rows('runs')).find(row=>row.runId===claim.runId);
+  assert.equal(admitted.draftSourceUtf8,sourceUtf8);
+  const duplicate=await f.authority.startControllerRun(request,f.sender);
+  assert.equal(duplicate.duplicate,true);assert.equal(duplicate.runId,claim.runId);
+  await assert.rejects(f.authority.startControllerRun({...request,source:{kind:'draft',sourceUtf8:'return 999;'}},f.sender),{code:'E_REQUEST_CONFLICT'});
+  const finished=await f.finish(claim);
+  assert.equal(finished.result.sourceKind,'draft');assert.equal(finished.result.revision.sourceHash,expectedHash);
+  await f.authority.retireControllerTarget({runId:claim.runId},f.sender);
+  const retired=(await f.rows('runs')).find(row=>row.runId===claim.runId);
+  assert.equal(retired.retirementState,'released');assert.equal(retired.draftSourceUtf8,undefined);
+  assert.equal(retired.revision.sourceHash,expectedHash);
+  assert.equal((await f.rows('scriptRevisions')).length,0);
+});
+
+test('controller never trusts draft callers to assert their own saved hash or unrecognized source format',async()=>{
+  const f=await fixture();
+  const base={requestId:crypto.randomUUID(),paramsWire:encodeValue({}),
+    target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:Date.now()+30000};
+  await assert.rejects(f.authority.startControllerRun({...base,source:{kind:'draft',sourceUtf8:'return 1;',contentHash:'a'.repeat(64)}},f.sender),{code:'E_SCHEMA'});
+  await assert.rejects(f.authority.startControllerRun({...base,source:{kind:'main-v1',sourceUtf8:'return 1;'}},f.sender),{code:'E_SCHEMA'});
+  assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);
+  assert.equal((await f.rows('scriptHeads')).length,0);
 });
