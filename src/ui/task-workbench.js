@@ -103,7 +103,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     get('task-current-site').textContent=origin?`当前网站：${origin}${siteAvailable?' · 适用':' · 此任务不适用'}`:'当前网页不可运行';
     get('task-run').disabled=working||running||!!host.currentRun||!available||!siteAvailable;
-    get('task-stop').disabled=!host.currentRun;
+    get('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
     get('task-fork-draft').disabled=!row||working;
     get('task-toggle').disabled=!row||working;
     get('task-toggle').textContent=row?.enabled?'停用任务':'启用任务';
@@ -187,9 +187,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const id=get('script-id').value.trim(),revision=Number(get('script-revision').value);
     if(!id || id.startsWith('task:') || !Number.isSafeInteger(revision)||revision<1)
       throw {code:'E_REVISION',message:'请先保存普通程序版本'};
+    const captured=currentPageTarget.capture(); // Freeze site before first await.
     const saved=await client.controller.getControllerScript({scriptId:id,revision});
-    if(saved.sourceUtf8!==get('script-source').value) throw {code:'E_REVISION',message:'存在未保存修改，请先保存版本'};
-    const captured=currentPageTarget.capture();
+    if(get('script-id').value.trim()!==id || Number(get('script-revision').value)!==revision ||
+       saved.sourceUtf8!==get('script-source').value)
+      throw {code:'E_REVISION',message:'脚本版本或编辑内容已变化，请重新确认并保存'};
     const manifest={format:'opendesk.task.v1',taskId:get('task-dev-id').value.trim(),
       version:get('task-dev-version').value.trim(),title:get('task-dev-title').value.trim(),
       description:get('task-dev-description').value.trim(),author:get('task-dev-author').value.trim(),
@@ -198,6 +200,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       program:{revision:saved.revision,sourceHash:await digestUtf8(saved.sourceUtf8)},
       paramsSchema:JSON.parse(get('task-dev-schema').value)};
     const pkg=await createTaskPackage(manifest,saved.sourceUtf8);
+    await currentPageTarget.revalidate(captured); // Reject wrong-site candidate after async work.
     const value=await client.request('importTaskPackage',{package:pkg});
     await refresh(identity(value));
     get('task-dev-status').textContent=`已创建待验证候选 ${identity(value)}；请先运行相同源码并提供真实 runId`;
@@ -243,7 +246,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
       await currentPageTarget.revalidate(captured);
       const resolved=await client.request('resolveInstalledTask',{taskId:chosen.taskId});
-      if(resolved.version!==chosen.version || resolved.manifestHash!==chosen.manifestHash)
+      await currentPageTarget.revalidate(captured); // Close resolve -> start document race.
+      if(resolved.taskId!==chosen.taskId || resolved.version!==chosen.version || resolved.manifestHash!==chosen.manifestHash)
         throw {code:'E_REVISION',message:'安装的任务版本已改变，请重新选择'};
       if(!resolved.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'安装网站权限不匹配'};
       const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,
@@ -311,11 +315,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   };
   for(const [tab,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']])
     listen(get(id),'click',()=>navigate(tab));
+  listen(get('task-params-form'),'submit',event=>event.preventDefault());
   listen(get('task-installed-list'),'change',renderInstalledSelection);
   listen(get('task-catalog-list'),'change',renderCandidate);
   listen(get('task-run'),'click',run);
-  listen(get('task-stop'),'click',asyncAction(()=>host.currentRun?
-    host.stop({runId:host.currentRun,controller:true}):Promise.resolve()));
+  listen(get('task-stop'),'click',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
+    host.stop({runId:activeRunId,controller:true}):Promise.resolve()));
   listen(get('task-refresh'),'click',asyncAction(()=>refresh()));
   listen(get('task-catalog-refresh'),'click',asyncAction(()=>refresh()));
   listen(get('task-create-candidate'),'click',asyncAction(createCandidate));

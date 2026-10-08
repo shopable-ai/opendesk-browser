@@ -96,3 +96,32 @@ test('installed task can be explicitly forked into an independent unsaved editor
   assert.equal(f.get('script-revision').value,'');
   assert.match(f.get('script-source').value,/async function main/);
 });
+
+/* task-owned-stop-and-document-race-r3: focused UI regressions; this is not native Chrome evidence. */
+test('task Stop cannot cancel another view\u0027s in-flight draft; parameter form never navigates',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  let prevented=false;
+  f.get('task-params-form').fire('submit',{preventDefault(){prevented=true;}});
+  assert.equal(prevented,true,'native form submit must be cancelled');
+  await f.host.start({source:{kind:'draft',sourceUtf8:'return 1;'}});
+  await f.ui.refresh();
+  assert.equal(f.get('task-stop').disabled,true,'another view owns the active run');
+  await f.click('task-stop');
+  assert.equal(f.stops.length,0,'must not forward stop for an unrelated run');
+  assert.equal(f.host.currentRun,'run-task-1');
+  f.host.complete({ok:true});
+});
+
+test('installed task refuses stale target after async installed-version lookup',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  let checks=0;
+  f.page.revalidate=async()=>{
+    checks++;
+    if(checks===2)throw Object.assign(new Error('Document changed during version lookup'),{code:'E_DOCUMENT_STALE'});
+  };
+  await f.click('task-run');
+  await tick();await tick();
+  assert.equal(checks,2,'must fence before and after async resolve');
+  assert.equal(f.starts.length,0,'no Controller admission for a stale document');
+  assert.match(f.get('task-status').textContent,/E_DOCUMENT_STALE/);
+});
