@@ -44,13 +44,6 @@ export default defineConfig({
       const entry = entries[0], target = entry.type === 'background' ? 'sw.js' : FIXED_OUTPUTS[entry.name];
       if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
       config.build.lib.formats = ['iife'];
-      // Local-only SW IIFE has no public top-level symbols; mangle and fold its
-      // lexical declarations without changing the 320 KiB budget or other entrypoints.
-      if (entry.type === 'background') config.build.terserOptions = {
-        ...config.build.terserOptions,
-        compress: {...config.build.terserOptions?.compress, toplevel: true},
-        mangle: {toplevel: true}
-      };
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
       config.plugins.push({
