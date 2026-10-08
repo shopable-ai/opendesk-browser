@@ -21,7 +21,7 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const html=await readFile('src/ui/tool.html','utf8');
 const make=()=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
-  const get=id=>nodes.get(id);
+  const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
   const doc={getElementById:get,createElement:()=>new Element()};
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
