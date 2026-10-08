@@ -6,6 +6,7 @@ import {createSdkApproval, snapshotSdkApproval} from './sdk-approval.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
+import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {createSiteAccess, siteAccessSatisfies} from './site-access.js';
 
 // A source-only UI handoff. It never grants permissions, saves or starts a run.
@@ -38,6 +39,7 @@ const currentPageTarget = createCurrentPageTarget({api:chrome});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource});
+const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
 let sidebarSurface=false, draftImportAttached=false;
 const draftImportListener=(message,sender,sendResponse)=>{
   const response=receiveSidebarDraft({message,sender,windowId:currentPageTarget.snapshot.windowId,sidebarSurface,
@@ -234,7 +236,7 @@ listen(window, 'pagehide', () => {
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

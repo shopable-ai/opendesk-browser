@@ -1,0 +1,128 @@
+{
+  "candidateHead": "ac9f188203bf65fbf42312f5ef44aef4e1fd1ee4",
+  "createdUtc": "2026-10-08T16:19:14.674276+00:00",
+  "commands": [
+    {
+      "name": "requested-tests",
+      "command": [
+        "node",
+        "--test",
+        "tests/environment/native-agent-bridge.test.mjs",
+        "tests/environment/native-agent-host.test.mjs",
+        "tests/environment/agent-to-task-fixtures.test.mjs",
+        "tests/environment/task-package-flow.test.mjs",
+        "tests/framework/r5-modern-page-api.test.mjs"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:17:49.912459+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/requested-tests.log"
+    },
+    {
+      "name": "component-tests",
+      "command": [
+        "node",
+        "--test",
+        "tests/environment/agent-to-task-contract.test.mjs",
+        "tests/environment/agent-to-task-fixtures.test.mjs",
+        "tests/environment/basic-browser-page.test.mjs",
+        "tests/environment/boundaries.test.mjs",
+        "tests/environment/compact-schema.test.mjs",
+        "tests/environment/controller-main-entry.test.mjs",
+        "tests/environment/current-page-target.test.mjs",
+        "tests/environment/dependency-manager.test.mjs",
+        "tests/environment/dependency-metadata.test.mjs",
+        "tests/environment/dev-chrome-config.test.mjs",
+        "tests/environment/native-agent-bridge.test.mjs",
+        "tests/environment/native-agent-host.test.mjs",
+        "tests/environment/native-agent-macos-install.test.mjs",
+        "tests/environment/native-agent-native-host.test.mjs",
+        "tests/environment/native-agent-package.test.mjs",
+        "tests/environment/native-agent-wire.test.mjs",
+        "tests/environment/package.test.mjs",
+        "tests/environment/page-dependencies-ui.test.mjs",
+        "tests/environment/page-program-package.test.mjs",
+        "tests/environment/page-script-preview.test.mjs",
+        "tests/environment/permission-gate.test.mjs",
+        "tests/environment/program-build.test.mjs",
+        "tests/environment/program-project.test.mjs",
+        "tests/environment/script-editor.test.mjs",
+        "tests/environment/sidebar-draft-import.test.mjs",
+        "tests/environment/sidebar-draft-runhost.test.mjs",
+        "tests/environment/sidebar-product-contract.test.mjs",
+        "tests/environment/sidebar-ui-preview.test.mjs",
+        "tests/environment/site-access.test.mjs",
+        "tests/environment/task-package-flow.test.mjs",
+        "tests/environment/task-workbench.test.mjs",
+        "tests/environment/user-script-dependency-flow.test.mjs"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:17:50.801558+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/component-tests.log"
+    },
+    {
+      "name": "check",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:17:54.606202+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/check.log"
+    },
+    {
+      "name": "build-production",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:18:04.243799+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/build-production.log"
+    },
+    {
+      "name": "build-development",
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:18:10.646147+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/build-development.log"
+    },
+    {
+      "name": "verify",
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:18:17.056101+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/verify.log"
+    }
+  ],
+  "excludedTests": {
+    "tests/environment/native-agent-chrome-real.test.mjs": "NOT_TESTED: real Chrome Native resource handoff is pending"
+  },
+  "nativeRunId": null,
+  "nativeResultId": null,
+  "workerRetirement": null,
+  "nativeReceipt": null,
+  "production": {
+    "packageHash": "729c2bfe9b572e1d58d5e1f147e8d99d7f6118bbe6e3fdd7009429b5e05b12b7",
+    "swBytes": 324759,
+    "sourceInputCount": 130,
+    "sourceDriftDuringBuild": [],
+    "rawReceipt": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/build-production.json"
+  },
+  "development": {
+    "packageHash": "1ab55f14fd63bcc34899dc58ad92ff006aa81cc9a9fa54fa62626876c145bb6b",
+    "swBytes": 324931,
+    "sourceInputCount": 130,
+    "sourceDriftDuringBuild": [],
+    "rawReceipt": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/build-development.json"
+  }
+}

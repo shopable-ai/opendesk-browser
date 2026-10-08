@@ -1,0 +1,48 @@
+{
+  "workstreamId": "r7-1-http-page-20261008-2250",
+  "branch": "agent/r7-1-http-page-20261008-2250",
+  "baseMainSha": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+  "intent": "以既有 SDK axiosx 为主的单页真实 HTTP 验收：网页 MAIN/ISOLATED/后台与 Controller Worker 分层，原生 Fetch 仅 CORS 对照；保留旧任务/Locator",
+  "files": [
+    ".github/workflows/r7-axiosx-http-lab.yml",
+    "docs/framework/prompts/goal-r7-axiosx-local-http-acceptance.txt",
+    "examples/tasks/demo-form.html",
+    "examples/tasks/request-sample.json",
+    "examples/tasks/http-test-server.mjs",
+    "examples/tasks/http-worker-axiosx-draft.js",
+    "examples/tasks/http-axiosx-page-draft.js",
+    "examples/tasks/README.zh-CN.md",
+    "tests/environment/basic-browser-page.test.mjs",
+    "tests/environment/basic-browser-http.test.mjs",
+    "docs/framework/workstreams/r7-1-http-page-20261008-2250.json"
+  ],
+  "collisionRisk": "通过 merge commit 40cfaaa22f383d00a9a27cbd23d890a61b350ab4 收敛最新 main 与旧 PR #20，使用 main 已有 #api-* DOM，未将过时 #http-* 页面覆盖 main；不涉及 Native PR #11。最终合并前继续核对 main 漂移。",
+  "validation": {
+    "sourceContract": "PASS — R7 candidate head ed09ec94... GitHub Actions axiosx-http-contract: node --test across 6 files, 89/89 pass, 0 fail (含 SDK 权限/HTTP broker/页面 UI VM/签名兼容/Worker 草稿静态契约)。此结果是 Node 组件与真实 loopback 服务测试，并非原生 MV3。",
+    "isolatedNodeHttp": "PASS — Node HTTP 真实 TCP：200 JSON、200 HTML、text/plain、404、429、POST echo、错误 JSON、延迟和 AbortError (CI same HEAD)。",
+    "staticPythonHttp": "HISTORICAL_PASS — prior fixture/HTML tested with Python on earlier R7 HEAD；本候选 HTML 的 Python 静态服务仍需本机真实打开复核。",
+    "currentChromiumDom": "NOT_TESTED — 本候选 ed09ec 的真实 Chromium DOM/390px 页面未在本次环境导航验收。此前旧版本 screenshot 不能归属本候选。",
+    "isolatedChromiumHttpCors": "NOT_TESTED — 当前工具执行环境未提供可用受控 Chrome/CFT 与扩展网络观测；浏览器 Fetch/CORS 对照待本机验收。",
+    "externalPublicApi": "NOT_TESTED — 公网 IP 仅显式可选，未声称实时调用成功。",
+    "macNativeChromeExtension": "NOT_TESTED — 无用户 Mac Chrome Extension 可信点击/授权/原生回执/完整 Run Result。",
+    "signedV1Task": "SOURCE_CONTRACT_PASS — 签名 JSON SHA 未改，旧 #name/#submit/#done 保留；实际本机原生运行 NOT_TESTED。",
+    "modernPageApiDraft": "SOURCE_CONTRACT_PASS — 新 http-axiosx-page-draft.js 与 old modern-search-draft.js DOM契约保留；Page API Chrome 原生 NOT_TESTED。",
+    "pageMainAxiosx": "SOURCE_AND_VM_CONTRACT_PASS — MAIN SDK ready/get/post、缺注入和缺 grant不走 Fetch、非2xx/迟到结果组件校验；真实 HTML 注入及实际服务调用仍 NOT_TESTED。",
+    "workerAxiosx": "SOURCE_CONTRACT_PASS — Worker 草稿使用自身 axiosx，不调用 window SDK；实际 Controller run/get durable record NOT_TESTED。",
+    "packageBuild": "PASS (GitHub Actions r3-package at ed09ec94... production/development build/verify)；site-access PASS；不代表 Mac 本机 ZIP/F3。",
+    "integrationMain": "NOT_MERGED — PR #20 仍 Draft；origin/main fa8e3fba... 已作为第二父提交合入候选，无旧 #http-* 重复页面，但真实 Chrome 验收前不合 main。"
+  },
+  "evidenceNote": "最新候选 CI 89/89、r3-package、site-access 通过；Node HTTP 发出真实 loopback 请求，浏览器 SDK/Fetch/CORS 仍需本地真实 Chrome。Python/Chromium 截图旧证据不得冒充本候选。旧模拟延迟按钮保持与真实 HTTP 区域区分。",
+  "nativeReceiptPaths": [],
+  "browserScreenshotPaths": [],
+  "blocking": [
+    "当前候选未在用户 Mac 真实 Chrome/CFT 通过 sdk network 授权与 MAIN/ISOLATED 安装；页面 axiosx GET/POST 和跨 origin CORS 仍 NOT_TESTED。",
+    "Worker axiosx/Sidebar Page API 原生执行、签名任务、Run/Result durable receipt、390px 截图需独立验收。",
+    "在授权集成者检查 main、PR 完整测试和真实回执前保持 Draft，不合并、不清理他人分支。"
+  ],
+  "prUrl": "https://github.com/shopable-ai/opendesk-browser/pull/20",
+  "historicalBrowserScreenshotPaths": [
+    "/mnt/data/opendesk-r71-1280-actual-dom.png (旧 HEAD, NOT current R7 candidate)",
+    "/mnt/data/opendesk-r71-390-actual-dom.png (旧 HEAD, NOT current R7 candidate)"
+  ]
+}

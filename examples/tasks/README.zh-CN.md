@@ -108,3 +108,109 @@ node --test tests/environment/basic-browser-page.test.mjs
 完整的合并策略、场景矩阵、失败用例和独立专家质量评分门槛参阅 [Browser Test Lab R8 规格](../../docs/framework/browser-test-lab-r8.zh-CN.md)。
 
 **另一个端口的 `locator-acceptance.html`**：该文件不在当前仓库 `main` 的 Git 树中；它可能是用户本机专项运行器生成的临时页面。尚未取得源文件或其引用关系时，不要擅自删除相关服务、测试产物或脚本。等在本地核对真实依赖后再确认是否取消重复人工入口。
+
+## R7.2 集成说明：第 06 组已升级为 axiosx / Fetch 双通道
+
+> **以本节为准。** 上文 R7.1 的「只能发送 GET、默认 HTML 地址、8 秒固定超时」是历史阶段说明；现行第 06 组默认使用 `OpenDeskSDK.axiosx`，支持 GET/POST、显式通道选择和自定义超时。原始 Fetch 可通过下拉切换作为 CORS 对照，取消语义不能与 SDK 混淆。第 07 组 Locator 实验室、页面单入口、原任务包的源码与 SHA 均保留。
+
+## R7.1 / R7.2：OpenDesk axiosx 优先的单页 HTTP 测试
+
+**唯一人工浏览器测试入口**：`http://127.0.0.1:43111/demo-form.html`。保持一个 HTML；已有历史测试运行器的内部 fixture 不能当作人工入口，但也不能擅自删除。原签名 `form-fill.v1.opendesk-task.json` 不变。
+
+### 1. 稳定本地测试接口（无需公网）
+
+从仓库根目录执行：
+
+```bash
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+```
+
+必须保证本地 checkout 存在 `examples/tasks/request-sample.json`。默认 URL 为 `./request-sample.json`，真实目标：
+
+- `GET http://127.0.0.1:43111/request-sample.json` → 200 JSON，正文包含 `"source":"opendesk-browser-local-fixture"`。
+- `GET ./__opendesk_expected_404__.json` → 真实 404。
+- `GET ./demo-form.html` → 200 HTML 文本，仅文本展示，不作为页面代码执行。
+
+如果默认 JSON 404，先核对当前检出是否包含本轮 PR 新增的文件，不要错误归因于 axiosx。
+
+### 2. 网页注入 SDK axiosx（**本轮主要验收对象**）
+
+第 06 组 `#api-channel` 默认是 `axiosx`，网页 Fetch 仅用于 CORS 对照。安装扩展后，在扩展的「独立网页 SDK」区域选择当前真实 tab/frame/documentId，勾选 `network`，使用可信用户点击授权并安装。跨源 HTTP 还须明确批准目标 Origin，不可仅依据扩展全站权限推断应用层已经批准。
+
+授权完成后，从实际网页 MAIN 中调用：
+
+```javascript
+const sdk = window.OpenDeskSDK;
+await sdk.ready();
+const response = await sdk.axiosx.get(
+  new URL('./request-sample.json', location.href).href,
+  {timeout:5000}
+);
+console.log(response.status, response.data, response.headers);
+```
+
+SDK 是本仓库 `src/framework/sdk/http.js` 定义的 Axios 风格 facade，不是 npm Axios。调用链必须经过 MAIN → ISOLATED Relay → SDK Broker/Authority → 扩展后台 Network Driver → 真实 HTTP。若未注入，网页显示 `E_SDK_UNAVAILABLE`，拒权/缺能力必须显示实际错误码；**绝不静默回退为普通 Fetch**。默认不会请求公网 API，公网 IP 选项仅用户明确发送后才调用，并会向第三方共享出口 IP。
+
+支持 GET/POST、5 秒默认超时、HTTP status/耗时/响应体/错误提示。POST 文本首先解析为 JSON；无效 JSON 不发送。HTTP 非 2xx 时 SDK 通常拒绝 `E_HTTP`；若返回对象包含 status 和 data，原样展示。SDK HTTP driver 默认不携带 Cookie，不跟随跳转，不支持完整 Axios 配置。
+
+**取消语义必须区分**：Fetch 的取消通过 AbortController 中止；SDK axiosx 当前不提供单次调用级 AbortSignal，`#api-cancel` 对 SDK 只停止展示迟到结果，不声称后台网络请求已被取消。真实 SDK timeout/导航/撤权另需独立验收。
+
+### 3. 可选本地 Node 服务：POST、真实延迟、精确状态、CORS
+
+需要以上场景时，先停止 Python 服务，再运行零 npm 依赖的 Node 服务（不要抢占已有的 43111 端口）：
+
+```bash
+node examples/tasks/http-test-server.mjs 43111
+```
+
+| HTTP 场景 | URL 与操作 | 预期 |
+| --- | --- | --- |
+| JSON | GET `./request-sample.json` | HTTP 200 JSON |
+| 不存在资源 | GET `./__opendesk_expected_404__.json` | HTTP 404 |
+| 限流样例 | GET `./__test__/status?code=429` | HTTP 429 |
+| 服务端错误 | GET `./__test__/status?code=500` | HTTP 500 |
+| 真实延迟 | GET `./__test__/delay?ms=2000` | 服务端等待约 2 秒 |
+| 文本 | GET `./__test__/text` | 200 text/plain |
+| POST | POST `./__test__/echo` | 200 JSON，回显 received |
+
+Python 静态服务器并没有 JSON POST echo 功能，不能将其 POST 返回的 501 当作成功。
+
+**跨源对照**：第二终端运行 `node examples/tasks/http-test-server.mjs 43112`，从 43111 页面请求 `http://127.0.0.1:43112/request-sample.json`。该服务刻意不添加 Access-Control-Allow-Origin：
+
+1. 网页 Fetch：应被 Chrome CORS 阻止读取；DevTools Network 可核对 HTTP 端点确实返回了数据。
+2. axiosx 未批准 43112 目标 Origin：必须由扩展 Authority 拒绝，不能借由 Host Permission 跳过应用级限制。
+3. axiosx 用户明确批准 43112 目标 Origin 和 Chrome Host Permission 后：后台请求预期可读取 JSON 200，不再受到来源网页 CORS 读取限制（以真实 Chrome 证据为准）。
+4. 再验证撤权、导航、超时、再次执行与旧请求迟到结果不回写。
+
+Node 本身的 fetch 不执行浏览器 CORS，不能用 Node 成功替代浏览器验收。
+
+### 4. 两条 axiosx 通道必须分开验收
+
+- **网页 MAIN SDK**：上述 HTML 第 06 组直接使用 `window.OpenDeskSDK.axiosx`。
+- **Controller Worker**：Sidebar「开发」运行 `examples/tasks/http-worker-axiosx-draft.js`，使用 Worker 注入的 `axiosx.get`；与网页 SDK 不是同一授权身份。
+- **OpenDesk Page API 操作 HTML**：Sidebar「开发」运行 `examples/tasks/http-axiosx-page-draft.js`，用 `page.getByLabel().fill` 和 `getByRole().click` 操作按钮、等候 DOM 响应。它不能代替后台 SDK 的原生回执。
+
+关键选择器固定：
+
+| 作用 | 选择器 |
+| --- | --- |
+| 通道、URL、Method | `#api-channel`、`#api-url`、`#api-method` |
+| 超时、POST 正文 | `#api-timeout`、`#api-post-body` |
+| 发送、停止/取消 | `#api-send`、`#api-cancel` |
+| 真实 HTTP、耗时、类型 | `#api-http-status`、`#api-duration`、`#api-content-type` |
+| 响应、错误、状态 | `#api-response`、`#api-error`、`#api-status[data-state="..."]` |
+
+DOM 响应只写入 textContent，最多显示 4096 字符，不执行不可信 HTML。完整验收命令和本机真实 Chrome/SDK/CDP 回执步骤见 `docs/framework/prompts/goal-r7-axiosx-local-http-acceptance.txt`。没有真实 Chrome 原生证据时分别标记 `NOT_TESTED`，不要以静态/组件测试伪称原生 PASS。
+
+## R6.2 Agent → Task：两个草稿，一个未验证 Candidate
+
+新增两个可复用阶段样本，**无需更改**本页面、R6 Sidebar 三页签或已有旧版 Task 包：
+
+- `agent-observe-draft.js`：只读 `page.observe({root:'#search-form'})`；可由 Sidebar「开发」直接运行，也可由现有 Native Agent `run.start` 以 `source.kind='draft'` 执行。返回有限的语义观察结果，**不会**自动点击、申请权限或发布任务。观察文本均按不可信页面内容处理。
+- `modern-search-draft.js`：既有的 Label/Role Locator 表单自动化；真实 Chrome 运行需使用同一 RunHost、正确网站 grant 和当前 `documentId`，并记录唯一提交效果及 Durable Result。
+- `modern-search.v1.opendesk-task.json`：使用上面**完整相同** `modern-search-draft.js` 执行源码字节和 SHA-256 的 Task v1 **Candidate**。在完整任务目录「导入」后必须仍为待验证；只有同源码、同 origin 的真实 `runId/resultId`、原生页面效果回执和 released Worker 才能 Verified → Available → 明确安装。不能把只读观察运行当作这项验证。
+- `tests/environment/agent-to-task-fixtures.test.mjs`：验证观察草稿可独立执行但无页面操作，以及现代 Task 包哈希确实对应现有 JS；**仅组件层证据**。
+
+本地端到端的顺序：打开本 HTTP 页面并取得权限 → 运行只读观察 → 编写/试运行现代 JS → 检查真实原生页面与持久结果 → 保存不可变版本 → 在完整目录导入 Candidate 并人工核对 → 用户设为 Available、安装 → 关闭 Codex/Native 再由 Sidebar「我的任务」重复运行。完整协议、安全与失败边界以 [Agent → Task R1 唯一合同](../../docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md) 为准；Native 原生验收前不得声明整个流程 PASS。
+
+**并行候选说明：** 主干的 `agent-modern-search.v1.opendesk-task.json` 与 Native 候选的 `modern-search.v1.opendesk-task.json` 为不同 Task ID 的待验证包；均不得自动设为 Available/Installed。网页 Fetch、网页 SDK `axiosx` 和 Worker `axiosx` 的浏览器网络效果必须分别验收。

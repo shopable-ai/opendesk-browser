@@ -1,0 +1,231 @@
+{
+  "workstreamId": "r62-local-acceptance-01a11c24",
+  "branch": "agent/r62-acceptance-01a11c24",
+  "baseMain": "61dc5a4b1c897fc2502111b368b61fce7849ba11",
+  "prHead": "daaf0cc7383a5745d407d82e12c56b91252193fc",
+  "pr": "https://github.com/shopable-ai/opendesk-browser/pull/11",
+  "scope": "R6.2 local merge and acceptance; existing UI/Core only",
+  "conflicts": [
+    "agent-to-task-contract",
+    "ai-browser-agent-ecosystem",
+    "tasks README",
+    "agent observe draft",
+    "verify-package"
+  ],
+  "decisions": [
+    "Preserve current main and PR shared contract, all-site grant, R7 HTTP and Sidebar",
+    "Native Messaging remains optional; exact Options and SW safety checks retained",
+    "Keep both independent immutable Candidate package identities",
+    "Use latest main observation return contract; keep original candidate evidence intact"
+  ],
+  "evidence": "docs/framework/evidence/r62-local-01a11c24",
+  "status": {
+    "SOURCE_CONFIRMED": "YES",
+    "COMPONENT_TESTED": "PASS",
+    "BUILD_VERIFIED": "PASS",
+    "NATIVE_CHROME_VERIFIED": "BLOCKED",
+    "AI_AGENT_E2E_VERIFIED": "NOT_TESTED",
+    "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
+    "FINAL_FRAMEWORK_ACCEPTED": "NO"
+  },
+  "updatedUtc": "2026-10-08T16:24:01.207528+00:00",
+  "candidateHead": "ac9f188203bf65fbf42312f5ef44aef4e1fd1ee4",
+  "native": {
+    "extensionId": "ommbmilbbgcbffacjphkonfcagdhbigg",
+    "installError": "E_EXTENSION_ID_CONFLICT",
+    "existingHostExtensionId": "oihfjkbnkhgcdeheabnnacjkjjjmiapf",
+    "bridgeStatus": "E_NATIVE_NOT_READY",
+    "targetCurrent": "E_NATIVE_NOT_READY",
+    "runId": null,
+    "resultId": null,
+    "receipt": null,
+    "workerRetirement": null,
+    "nativeUiBinding": "CFT154/155 getApp selected other windows on 43220/43112; no actions performed"
+  },
+  "commands": [
+    {
+      "name": "requested-tests",
+      "command": [
+        "node",
+        "--test",
+        "tests/environment/native-agent-bridge.test.mjs",
+        "tests/environment/native-agent-host.test.mjs",
+        "tests/environment/agent-to-task-fixtures.test.mjs",
+        "tests/environment/task-package-flow.test.mjs",
+        "tests/framework/r5-modern-page-api.test.mjs"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:17:49.912459+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/requested-tests.log"
+    },
+    {
+      "name": "component-tests",
+      "command": [
+        "node",
+        "--test",
+        "tests/environment/agent-to-task-contract.test.mjs",
+        "tests/environment/agent-to-task-fixtures.test.mjs",
+        "tests/environment/basic-browser-page.test.mjs",
+        "tests/environment/boundaries.test.mjs",
+        "tests/environment/compact-schema.test.mjs",
+        "tests/environment/controller-main-entry.test.mjs",
+        "tests/environment/current-page-target.test.mjs",
+        "tests/environment/dependency-manager.test.mjs",
+        "tests/environment/dependency-metadata.test.mjs",
+        "tests/environment/dev-chrome-config.test.mjs",
+        "tests/environment/native-agent-bridge.test.mjs",
+        "tests/environment/native-agent-host.test.mjs",
+        "tests/environment/native-agent-macos-install.test.mjs",
+        "tests/environment/native-agent-native-host.test.mjs",
+        "tests/environment/native-agent-package.test.mjs",
+        "tests/environment/native-agent-wire.test.mjs",
+        "tests/environment/package.test.mjs",
+        "tests/environment/page-dependencies-ui.test.mjs",
+        "tests/environment/page-program-package.test.mjs",
+        "tests/environment/page-script-preview.test.mjs",
+        "tests/environment/permission-gate.test.mjs",
+        "tests/environment/program-build.test.mjs",
+        "tests/environment/program-project.test.mjs",
+        "tests/environment/script-editor.test.mjs",
+        "tests/environment/sidebar-draft-import.test.mjs",
+        "tests/environment/sidebar-draft-runhost.test.mjs",
+        "tests/environment/sidebar-product-contract.test.mjs",
+        "tests/environment/sidebar-ui-preview.test.mjs",
+        "tests/environment/site-access.test.mjs",
+        "tests/environment/task-package-flow.test.mjs",
+        "tests/environment/task-workbench.test.mjs",
+        "tests/environment/user-script-dependency-flow.test.mjs"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:17:50.801558+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/component-tests.log"
+    },
+    {
+      "name": "check",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:17:54.606202+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/check.log"
+    },
+    {
+      "name": "build-production",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:18:04.243799+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/build-production.log"
+    },
+    {
+      "name": "build-development",
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:18:10.646147+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/build-development.log"
+    },
+    {
+      "name": "verify",
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "startedUtc": "2026-10-08T16:18:17.056101+00:00",
+      "log": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/verify.log"
+    }
+  ],
+  "additionalTests": {
+    "command": "node --test script-editor sidebar-draft-runhost task-workbench sidebar-product-contract site-access",
+    "exitCode": 0,
+    "tests": 63,
+    "log": "docs/framework/evidence/r62-local-01a11c24/sidebar-regressions.log"
+  },
+  "remoteUpdate": {
+    "prHead": "dc7afd49b2f8a027e5e080ff0d879eab00c2a06f",
+    "main": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+    "decision": "Adopt newer PR/main observation snapshot contract and documentation; retain local optional-Native regression test; original evidence remains bound to 0a30fd68"
+  },
+  "latestIntegratedMain": "c93ee36700171114ff38a5e705ce177fc55251df",
+  "latestIntegratedPrHead": "d061d1394c3f11bceb5df7127c5c287f1429f4aa",
+  "finalProductDiffFromPr": [
+    "src/native-agent/service-worker.js",
+    "src/native-agent/host-adapter.js",
+    "tests/environment/native-agent-bridge.test.mjs",
+    "tests/environment/native-agent-host.test.mjs",
+    "tests/environment/native-agent-package.test.mjs"
+  ],
+  "ownedNativeResourcesReleased": true,
+  "evidenceCurrent": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/acceptance-summary.json",
+  "remaining": [
+    "Coordinate exclusive existing Native Host and exact native window binding",
+    "Resolve meaning of trusted-input constraint without changing product contract",
+    "Real CLI target/Run/Result/Stop/CAS negative tests and Task lifecycle",
+    "Independent final F3, original framework contracts and ZIP installation acceptance"
+  ],
+  "securityFix": {
+    "symptom": "Mutation reserved before disable/revoke/reconnect could first dispatch afterward",
+    "files": [
+      "src/native-agent/service-worker.js",
+      "tests/environment/native-agent-bridge.test.mjs"
+    ],
+    "before": "docs/framework/evidence/r62-local-01a11c24/native-dispatch-fix/before.log",
+    "beforeObservedExit": 130,
+    "beforeFailingRegressions": 7,
+    "after": "docs/framework/evidence/r62-local-01a11c24/native-dispatch-fix/after.log",
+    "afterExit": 0,
+    "followup": {
+      "symptoms": [
+        "Delayed enable/initialization can reopen after disable or revoke",
+        "Old Host ACK can match reused external read requestId"
+      ],
+      "decision": "Serialize enable persistence and fence lifecycle intents; independent dispatchId only for ACK, retaining external Controller requestId",
+      "regressions": 27,
+      "before": "docs/framework/evidence/r62-local-01a11c24/native-dispatch-fix/lifecycle-before.log",
+      "beforeExit": 1,
+      "after": "docs/framework/evidence/r62-local-01a11c24/native-dispatch-fix/lifecycle-final.log",
+      "afterExit": 0,
+      "independentReview": "docs/framework/evidence/r62-local-01a11c24/native-dispatch-fix/review-final.json"
+    }
+  },
+  "productionPackageHash": "729c2bfe9b572e1d58d5e1f147e8d99d7f6118bbe6e3fdd7009429b5e05b12b7",
+  "developmentPackageHash": "1ab55f14fd63bcc34899dc58ad92ff006aa81cc9a9fa54fa62626876c145bb6b",
+  "latestRemotePrObserved": "d061d1394c3f11bceb5df7127c5c287f1429f4aa",
+  "remoteDiffAfterIntegratedHead": {
+    "runtimeProductDiff": [],
+    "diagnosticNativeTest": "Preserved; NOT_TESTED; native resource handoff pending"
+  },
+  "sourceInputsHead": "ac9f188203bf65fbf42312f5ef44aef4e1fd1ee4",
+  "latestRemoteMainObserved": "c93ee36700171114ff38a5e705ce177fc55251df",
+  "verification": {
+    "requestedTests": 50,
+    "componentTests": 240,
+    "excludedNativeTests": {
+      "tests/environment/native-agent-chrome-real.test.mjs": "NOT_TESTED: real Chrome Native resource handoff is pending"
+    },
+    "allRecordedExitCodes": 0,
+    "productionSwBytes": 324759,
+    "productionSwBudget": 327680,
+    "developmentSwBytes": 324931,
+    "scope": "Component/build evidence only; no native, task lifecycle, F3 or ZIP acceptance claim"
+  },
+  "resourceStatus": "docs/framework/evidence/r62-local-01a11c24/resource-status.json",
+  "delivery": {
+    "pr11DraftRequired": true,
+    "mainMerge": "NOT_AUTHORIZED_BY_ACCEPTANCE: native gates unmet",
+    "release": "NOT_ATTEMPTED",
+    "branchCleanup": "NOT_ATTEMPTED: active candidate and parallel work must be retained"
+  },
+  "fixPr": "https://github.com/shopable-ai/opendesk-browser/pull/21",
+  "buildInputIdentityAfterDocumentationMerge": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/post-doc-merge-inputs.json"
+}
