@@ -93,6 +93,11 @@ test('malformed CSS strings cannot hide runtime URL tokens',async t=>{
     await writeFile(join(root,'assets/tool.css'),'.icon{--a:"'+newline+';background:url(https://assets.example/x.png);--b:"'+newline+';}');
     await assert.rejects(validateProgramProject(root),e=>e.code==='E_PROJECT_ASSET_URL');
   }
+  for(const css of ['.note::before{content:"a/*\n*/b"}',String.raw`.note::before{content:"a/*\
+*/b"}`]){
+    await writeFile(join(root,'assets/tool.css'),css);
+    await assert.rejects(validateProgramProject(root),e=>e.code==='E_PROJECT_ASSET_URL');
+  }
 });
 
 test('Controller resource declarations fail before packaging',async t=>{

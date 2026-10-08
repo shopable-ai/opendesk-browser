@@ -33,9 +33,29 @@ export function checkAssetBytes(asset,bytes) {
 }
 function rewriteCss(css,sourcePath,images) {
   // Fail closed on runtime stylesheet imports and unsupported URL grammars.
-  const strings=/"(?:\\[^\r\n\f]|[^"\\\r\n\f])*"|'(?:\\[^\r\n\f]|[^'\\\r\n\f])*'/g;
-  const comments=new RegExp('('+strings.source+')|/\\*[\\s\\S]*?\\*/','g');
-  const withoutComments=css.replace(comments,(_match,quoted)=>quoted||' ');
+  // Validate strings before removing comments; cleaning cannot repair bad input.
+  let withoutComments='';
+  for(let i=0;i<css.length;){
+    if(css.startsWith('/*',i)){
+      const end=css.indexOf('*/',i+2);
+      if(end<0)fail('E_PROJECT_ASSET_URL','Unterminated CSS comment: '+sourcePath,sourcePath);
+      withoutComments+=' ';i=end+2;continue;
+    }
+    const char=css[i];
+    if(char==='"'||char==="'"){
+      let end=i+1;
+      while(end<css.length&&css[end]!==char){
+        if(/[\\\r\n\f]/.test(css[end]))
+          fail('E_PROJECT_ASSET_URL','Unsupported CSS string escape or newline: '+sourcePath,sourcePath);
+        end++;
+      }
+      if(end===css.length)fail('E_PROJECT_ASSET_URL','Unterminated CSS string: '+sourcePath,sourcePath);
+      withoutComments+=css.slice(i,end+1);i=end+1;continue;
+    }
+    if(char==='\\')fail('E_PROJECT_ASSET_URL','CSS escapes are not supported: '+sourcePath,sourcePath);
+    withoutComments+=char;i++;
+  }
+  const strings=/"[^"\r\n\f]*"|'[^'\r\n\f]*'/g;
   const tokens=withoutComments.replace(strings,quoted=>' '.repeat(quoted.length));
   if(/\\/.test(withoutComments)||/["']|@import\b|\b(?:image(?:-set)?|src)\s*\(/i.test(tokens))
     fail('E_PROJECT_ASSET_URL','CSS escapes, malformed strings, string image sources and remote/data/import references are not supported: '+sourcePath,sourcePath);
