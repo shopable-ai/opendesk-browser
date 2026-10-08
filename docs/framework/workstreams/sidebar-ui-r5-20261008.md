@@ -24,6 +24,7 @@ PR：`https://github.com/shopable-ai/opendesk-browser/pull/9`
 | 源码/生产/开发构建与双包校验 | Actions `37774223217` SUCCESS | BUILD_VERIFIED |
 | 最新额外结果/预览断言 | Actions `37775004200` SUCCESS；39/39 定向测试通过（0 失败） | COMPONENT_TESTED |
 | R3/R4/R5 HTML 语义 | 原型属于 UI_SIMULATION；不能当真实扩展证据 | PROTOTYPE |
+| R4/R5 HTML 的 Chrome 等宽截图 | Actions `37775599740` SUCCESS：R4/R5 360×700 搜索位置、底栏与布局已截图；R5 同时检测 300/420/520px，无横向溢出 | STATIC_PREVIEW_CHROME |
 | 300/360/420/520px 原生侧栏、缩放、键盘和真实权限/Stop | 尚未取得真实截图、浏览器回执；不得按 PASS 处理 | NATIVE_NOT_TESTED |
 | PR #7 一次性授权兼容 | 与 R5 共享 `src/ui/tool.html` 和 `src/ui/tool-shell.css`；未来必须做差异整合 | INTEGRATION_PENDING |
 | main 合入 | 等待可核验原生验收、并行冲突处置，不擅自绕过保护 | NOT_MERGED |
@@ -45,7 +46,25 @@ CI 记录：
 | 发现底部 | 独立固定说明和两个导航按钮 | 空闲时不显示；运行期间仅所有者 Stop |
 | 编辑器 | 多级状态说明、先表单再内容；深/浅背景覆盖 | 当前网页摘要后直接代码；初始 260px，结果按需 |
 
-这些是 CSS 级对照，尚未获得真实像素截图，不能报告精确节省的 px 或宣称 4 行无需滚动已通过。不得从原型套算真实 Side Panel。视觉质量评分仅能作为待原生验收的初步自评。
+以上是设计名义尺寸，不代表浏览器实际排版。现在已经有**静态 HTML 原型的真实 Chrome 360×700 截图证据**，但这不等于正式扩展的 Side Panel：
+
+| Chrome 浏览器原型实测 | R4 360×700 | R5 360×700 |
+| --- | ---: | ---: |
+| 品牌栏高度 | 58px | 47px |
+| 导航栏高度 | 45px | 41px |
+| 搜索框起始 Y 坐标 | 202px | 98px |
+| 空闲发现底栏高度 | 88px | 0px |
+| 当前筛选演示任务 / 可见项 | 1 / 1 | 4 / 4 |
+| 是否发生横向溢出 | 否 | 否 |
+
+注意：R4 和 R5 的原型**使用不同数量的本机演示数据**（R4 当前页 1 项；R5 当前页 4 项），故不可据此断言正式扩展安装的数据也相同。R5 的 300、360、420、520×700 均无横向溢出，4 个模拟匹配项均可在内容区看到。
+
+静态截图证据（GitHub Actions 产物含 R4/R5 PNG 和 `metrics.json`）：
+- 工作流：`https://github.com/shopable-ai/opendesk-browser/actions/runs/37775599740`
+- 产物名：`sidebar-r5-static-html-visual-evidence`（Artifact ID `11549742654`）
+- **证据等级：STATIC_PREVIEW_CHROME；原生扩展仍为 NATIVE_NOT_TESTED。**
+
+必须在真实 Side Panel 重做同样分辨率和交互验收，不能把静态截图充当原生截图。
 
 ## 关闭条件
 
