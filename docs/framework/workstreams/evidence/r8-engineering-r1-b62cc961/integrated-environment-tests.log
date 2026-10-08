@@ -1,0 +1,453 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 test
+> node --test tests/environment/*.test.mjs
+
+✔ AI-to-Task sample is a valid immutable Task v1 Candidate with exact checked-in source (12.161247ms)
+✔ tampering cannot grant publication state or replace the source hash (3.780216ms)
+✔ modern candidate only uses implemented Locator actions with an explicit business-result wait (1.504295ms)
+✔ observation draft is bounded, read-only and valid Controller async main (1.411428ms)
+✔ AI-to-Task samples target the original HTML fixture rather than inventing a second page (1.096905ms)
+✔ read-only Agent observation draft retains the main R6.2 bounded snapshot contract (7.72192ms)
+✔ modern Locator Task candidate is exact and immutable, never pre-verified (9.134891ms)
+✔ real loopback HTTP server serves static JSON, HTML and true 404/non-JSON (45.241346ms)
+✔ real loopback HTTP server emits status/POST body and delayed responses (192.954927ms)
+✔ one ordinary HTML page exposes unique, stable automation targets (8.93057ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (2.193751ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (1.885006ms)
+✔ async scene sends only local fetches and distinguishes loading, 404, abort and timeout (3.366307ms)
+✔ explicit HTTP GET controls expose safe semantics and preserve offline-first operation (2.055426ms)
+✔ the single canonical page exposes seven navigable groups and honest Locator fixtures (2.553661ms)
+✔ Locator fixture actions, late insertion, and reset mutate only observable DOM (1527.802902ms)
+✔ HTTP panel sends no request until click and shows real status/content without HTML injection (8.539528ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 200 honestly (31.820294ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 503 honestly (17.03914ms)
+✔ HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies (8.406248ms)
+✔ minimal HTTP UI rejects invalid URLs without sending requests (2.303181ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (2.666907ms)
+✔ manual browser testing has exactly one canonical HTML and no obsolete advertised URL (6.153771ms)
+✔ product shell configures the Chrome Side Panel action and never creates a popup (1.58889ms)
+✔ tool sender accepts top-level Side Panel documents and rejects foreign or nested senders (0.951551ms)
+✔ URL policy rejects restricted/file/credentials and preserves exact origin including port (0.636517ms)
+✔ health waits for sender readiness and binds Chrome document metadata, not file result (5.614377ms)
+✔ revoked permission blocks even previously installed agent (6.038066ms)
+✔ reload, cross-origin and closed tab reject bound target without automatic reinjection (9.619384ms)
+✔ forged health nonce and fake sender cannot satisfy exact target (2.681348ms)
+✔ missing module has no capabilities or runner and can be mounted/disposed (1.936802ms)
+✔ Side Panel configuration failure is surfaced without a popup fallback (0.366199ms)
+✔ unknown authorization mode is rejected before another injection (3.004825ms)
+✔ permission revoke reports permission failure even when Chrome hides tab URL (1.963296ms)
+✔ permission revoked during tabs.get is diagnosed before inspecting its hidden URL (1.967401ms)
+✔ repeated agent ready preserves optional authorization and cannot bypass revoke (1.927007ms)
+✔ same-document concurrent binding resolves all readiness waiters (1.318812ms)
+✔ document invalidation and revoke while awaiting reply reject late health success (1.226857ms)
+✔ missing Side Panel sender documentId resolves only unique native instance context (1.837856ms)
+✔ fixed production protocol Schema uses variable-width LZW and decodes byte-for-byte to the audited object (101.815119ms)
+✔ small and non-ASCII schemas still round-trip through existing smaller-of-two-formats selection (1.056796ms)
+✔ async main receives page/params lexically without platform arguments (1.906287ms)
+✔ main return preserves falsy values including undefined (0.493216ms)
+✔ prior async-body scripts still execute and return correctly (0.267514ms)
+✔ main faults are errors rather than silent empty results (0.762523ms)
+✔ worker fault preserves a bounded raw generated stack without claiming a source mapping (10.436016ms)
+✔ navigation starts invalidate the visible old document before tabs updates and recover after failure or commit (10.87319ms)
+✔ loading and unloaded tabs never expose their still-visible old document as a runnable candidate (1.210382ms)
+✔ a tab becoming loading after frame observation fails the final candidate confirmation (0.398497ms)
+✔ Sidebar binds to its own browser window and exposes only the active HTTP(S) main document (1.285573ms)
+✔ same-URL tab switch cannot replace the captured run candidate (0.500798ms)
+✔ SPA URL change before admission is stale even when documentId is unchanged (0.433779ms)
+✔ reload/full navigation invalidates the old candidate instead of matching by URL (0.369254ms)
+✔ Current Page follows activation events but never falls back to a previous valid page (2.645806ms)
+✔ two Sidebar instances bind independently to their containing browser windows (0.767941ms)
+✔ dispose releases all browser event subscriptions (0.52325ms)
+✔ a late revalidation cannot overwrite a newer Current Page observation (2.976523ms)
+✔ a disposed Sidebar cannot capture or finish an in-flight candidate validation (2.032543ms)
+✔ inspection only parses and lists download permissions; explicit actions and post-download hash review are separate (34.359162ms)
+✔ packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit (20.837031ms)
+✔ approved locks run offline after a new manager instance and draft edits; source/mode changes require a new lock (9.737308ms)
+✔ duplicate declarations preserve execution order, shared bytes do not share another namespace approval (17.923051ms)
+✔ a local file adapter preserves declared URL and original file bytes without claiming a network download (7.866203ms)
+✔ same URL updates produce new immutable locks; selecting approved old bytes stays offline and deterministic (23.616995ms)
+✔ SRI validates original bytes with SHA-256/384/512 and does not silently approve a mismatch (14.903605ms)
+✔ downloader rejects redirects, HTML/JSON, malformed UTF-8, private IPs and excess streaming bytes (14.780974ms)
+✔ permission revocation and stale host during network/hash work never commit an approvable review or lock (6.978115ms)
+✔ asset, review provenance and lock tampering fail closed; quota failure atomically rolls back prepared assets (20.594034ms)
+✔ ordinary JS and metadata-looking strings remain source; real BOM/blank-prefixed CRLF header is preserved (2.821405ms)
+✔ leading copyright comments do not hide real dependencies or privileges; malformed markers fail closed (1.685112ms)
+✔ standard unpinned @require is importable and reviewable, including duplicate execution order (0.599854ms)
+✔ TM hex/Base64, SRI tokens, percent-encoded fragments and multiple strong hashes canonicalize without losing plus signs (2.947069ms)
+✔ malformed or conflicting integrity is preserved for diagnosis and cannot be admitted (1.143674ms)
+✔ weak integrity does not masquerade as verified SRI; mixed declarations keep strong requirements (0.431575ms)
+✔ relative dependencies use actual importer provenance, never a page URL or @downloadURL (0.804945ms)
+✔ unsupported grants/resources/directives do not prevent import or hide later dependencies (0.759668ms)
+✔ entry modes remain explicit and native match/frame/timing mappings are inspectable (2.941491ms)
+✔ large valid headers no longer fail at 64 lines or 8 dependencies; real bounds fail closed with import diagnostics (3.658106ms)
+✔ daily development profile is deterministic per worktree, not fresh every invocation (1.389085ms)
+✔ profile path rejects relative, unsafe or ambiguous names (0.469952ms)
+✔ interactive CFT flags preserve a single stable profile and extension location without bypasses (2.367506ms)
+✔ the formal native launcher remains isolated and unmodified (8.760039ms)
+✔ startup permission check cannot reconnect after permission-removed (13.18192ms)
+✔ startup permission check cannot reconnect after dispose (1.035224ms)
+✔ reserved mutation never dispatches across disable (9.284021ms)
+✔ reserved mutation never dispatches across permission-removed (6.501734ms)
+✔ reserved mutation never dispatches across disconnect-reconnect (6.659156ms)
+✔ reserved mutation never dispatches across disable-enable (6.14654ms)
+✔ reserved mutation never dispatches across dispose (6.250974ms)
+✔ Native permission is rechecked immediately before dispatch (5.305752ms)
+✔ a late disconnect from an old Native port cannot cancel a new connection request (13.518755ms)
+✔ a pending enable permission check cannot overwrite disable (3.250236ms)
+✔ a pending enable permission check cannot overwrite permission-removed (0.961986ms)
+✔ a pending enable storage write cannot persist over a newer disable (1.899768ms)
+✔ an old Host ACK cannot match a new connection read with the same external requestId (16.042222ms)
+✔ enabled Native handshake sends version and correct extension identity (1.81376ms)
+✔ default-off requires a packaged Settings sender and real granted Native permission (0.7065ms)
+✔ request hash journal deduplicates after real Host admission; conflicting bytes fail (10.702539ms)
+✔ dispatched but unanswered calls are never retried, even if same id reappears (8.466807ms)
+✔ no live registered Host means no run reservation or Worker execution (2.460023ms)
+✔ run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records (1.905376ms)
+✔ ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays (16.59142ms)
+✔ run.get and run.stop remain pinned to the original authenticated Host registration (22.01042ms)
+﹣ real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake (1.355246ms) # SKIP
+✔ current target is live Sidebar snapshot, not active tab chosen by CLI (2.421326ms)
+✔ external draft uses exact RunHost with frozen borrowed target and controller requestId (0.710987ms)
+✔ Host ACK correlation preserves the external Controller admission requestId (0.580245ms)
+✔ permissions and document id fail before admission (no Chrome prompt) (1.114441ms)
+✔ saved requires pinned exact revision and source hash (4.063734ms)
+✔ run.get removes unrelated Sidebar run history from Controller snapshot projection (1.599445ms)
+﹣ macOS isolated Native Host install, private socket, real wrapper and authenticated CLI IPC (1.913808ms) # SKIP
+﹣ macOS Chrome for Testing uses its own manifest and cannot replace Google Chrome registration (0.222587ms) # SKIP
+﹣ macOS Chrome for Testing manifest is isolated from regular Chrome and launches the real native host (0.193314ms) # SKIP
+✔ identity is pinned; invalid origin cannot launch a server (1.609961ms)
+✖ framed Chrome welcome, authenticated local IPC, request and exact response (4.075781ms)
+✖ duplicate inflight request ID is rejected, not dispatched again (1.297521ms)
+✖ unacknowledged dispatched effects become unknown on native shutdown (0.895489ms)
+✖ wrong credential is rejected without local API access (0.813828ms)
+✖ handshake timeout closes the private socket without stale reuse (3.223467ms)
+✖ native response timeout preserves unknown-effect outcome (0.71933ms)
+✔ existing socket is never unlinked or replaced by a second host (1.001885ms)
+✔ Native remains optional after merging the current permission catalog (4.686751ms)
+✔ strict production SW budget and fixed packaged Native transport entry (0.297849ms)
+✔ single exact same-extension static import allowed in SW only (6.803568ms)
+✔ fixed transport registers listeners on the original SW APIs; default-off does not connect (0.774871ms)
+✔ native framing uses UTF-8 byte length and handles split multibyte boundaries (1.726131ms)
+✔ private CLI line framing has bounded buffer and independent messages (1.67727ms)
+✔ reject unsupported transport operations and malformed browser requests (0.453408ms)
+✔ stable digest pins equivalent JSON key order and rejects prototype pollution (8.582077ms)
+✖ final classic scanner rejects eval alias and function-constructor references (8.653702ms)
+✖ final package cannot omit a referenced local asset (2.678394ms)
+✖ remote script and unexpected lazy chunk fail final package verification (1.768505ms)
+✖ final package requires tool HTML/CSS and manifest worker references (1.296318ms)
+✔ pasting @require only inspects; trusted acquisition requests permission synchronously and full-hash approval unlocks unsaved edits (43.401758ms)
+✔ changing declarations clears an old lock and a late old review cannot replace the current source or become approvable (5.055223ms)
+✔ approved cached bytes can be locked for explicitly selected classic mode without a CDN permission prompt (7.901725ms)
+✔ permission refusal stops acquisition and local files preserve their original bytes without a CDN request (8.123522ms)
+✔ add dependency edits only the true metadata block, leaves examples intact and refuses to hide an incomplete header (4.717947ms)
+✔ closing or changing source while permission/file reading is pending cancels acquisition and old approval handlers (13.696037ms)
+✔ review freezes dependency source selectors and lock status does not claim cache verification (2.04445ms)
+✔ a late dependency inspection cannot replace the admission of current metadata with the old source policy (7.405904ms)
+✔ repairing metadata during inspection uses current admission and retains a dependency-only lock (2.054265ms)
+✔ a newly unsupported policy cancels acquisition after the permission await even when dependencies are unchanged (2.343131ms)
+✔ approval revalidates current source even when an importer did not dispatch an input event (6.265732ms)
+✔ declared antifeatures remain visible as untrusted plain text through inspection and source edits (1.984252ms)
+✔ explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors (9.160117ms)
+✔ new pinned revision obtains different world and old revision unchanged (2.375979ms)
+✔ fails closed without existing broker Available+install grant or with altered script hash (3.629003ms)
+✔ dependency version/sha/world lock enforced, library failure blocks injection (2.432532ms)
+✔ D1 Page contract consumes actual manager locks and preserves generic classic globals without a wrapper (28.385947ms)
+✔ async-main Page revisions share immutable dependencies while registration identities remain isolated (20.630257ms)
+✔ full Page authority proof binds kind, entry, revision, dependency identity and every rule, not only matches (38.026437ms)
+✔ Page source/metadata/asset tampering is blocked and old Controller/R3 formats require an explicit path (18.338963ms)
+✔ named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration (12.505284ms)
+✔ no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in (7.115557ms)
+✔ incorrect browser document receipt and native script errors cannot claim success (10.96143ms)
+✔ source, site and requested execution world cannot be forged through preview protocol (1.058348ms)
+✔ verified pinned jQuery bytes precede preview main, without Service Worker evaluation (8.438455ms)
+✔ manifest and build verifier accept broad required sites and a finite API permission catalog (6.709579ms)
+✔ declared optional plugin permission requests reject unknown, required and duplicate names (0.47515ms)
+✔ API grant starts synchronously inside trusted UI click and verifies the native state (0.86947ms)
+✔ a plugin cannot silently escalate permissions on deny or an untrusted event (0.280533ms)
+✔ three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler (898.134978ms)
+✔ Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim (187.699359ms)
+✔ development mode emits readable program JS, draft metadata and a separate local source map only (58.515041ms)
+✔ development source map maps final generated throw position back to local authoring module (25.335395ms)
+✔ an unbundled asset is rejected rather than included in a supposedly complete project (4.694733ms)
+✔ webpack dependency failures report project, phase and importing source location (153.957871ms)
+✔ untrusted remote and dynamic ESM imports are rejected before Webpack (4.294954ms)
+✔ a frozen output directory rejects replacement without quietly publishing new bytes (279.280503ms)
+✔ matching archive reuses only recorded component scope and retains untested/failed cases (71.758862ms)
+✔ documentation and observer changes alone do not invalidate product inputs (78.289493ms)
+✔ changed source, dependency, manifest and fixture are reported without rewriting old PASS (63.314618ms)
+✔ unknown or different package identity cannot authorize reuse (83.901571ms)
+✔ trusted index hash rejects edited index (49.46824ms)
+✔ missing, changed and duplicate raw evidence prevents reuse (116.940118ms)
+✔ archive paths reject traversal and symlink escape (99.029362ms)
+✔ service results, wrong revision/document and incomplete retirement cannot replace controller result (108.821665ms)
+✔ the observed package must match the indexed package (48.462158ms)
+✔ Page preview reuse requires its indexed exact-document native receipt (79.539859ms)
+✔ saved revision identity must match complete source bytes (66.905079ms)
+✔ same bytes cannot hide a changed product file mode or symbolic-link target closure (106.704392ms)
+✔ contradictory or missing success outcome is rejected; explicit expected errors retain their scope (92.507844ms)
+✔ multi-file ESM authoring project is a source contract, not an installed program (24.920174ms)
+✔ imports cannot escape project or load remote modules at browser runtime (15.077541ms)
+✔ entry diagnostics distinguish missing and non-function defaults with source location (8.721662ms)
+✔ dynamic import is not quietly kept as an unlocked runtime dependency (7.691596ms)
+✔ npm imports require declared dependencies and a committed matching npm lock (10.055436ms)
+✔ Page/Controller source contracts remain discriminated without changing Task v1 (13.218274ms)
+✔ assets can be listed and hashed but never silently injected (8.689965ms)
+✔ source snapshots and executable hashes are independently checked before import (13.362245ms)
+✔ project file selection only changes the read-only viewer; execution uses exact frozen build (2.769027ms)
+✔ R8 catalog has 188 single-owner capabilities, 40 complete tasks and an acyclic phased plan (5.028955ms)
+✔ omitted deferred capability, duplicate primary ownership and invented capability fail the coverage gate (10.954901ms)
+✔ invalid prerequisite, circular work ordering and duplicate catalog identity are rejected (12.09568ms)
+✔ importing a JS draft leaves saved versions and running source independent (16.751476ms)
+✔ draft import rejects empty/oversized sources and active saves without overwriting the editor (5.437356ms)
+✔ catalog draft import updates dependency review from the new source without saving or running (6.795266ms)
+✔ Save persists revision/hash without requesting permission, creating a Run, or executing code (3.92559ms)
+✔ reopened editor lists saved scripts without running and loads the selected latest head explicitly (4.840377ms)
+✔ loading a historical revision does not turn it into the latest Save CAS head (6.076818ms)
+✔ Delete tombstones the latest head and refreshes the saved-script selector (6.452001ms)
+✔ saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B (10.13288ms)
+✔ a brand-new unsaved draft runs with an empty script ID and never creates a saved revision (4.972892ms)
+✔ permission preparation rejects a switched page; closing the editor during permission never admits a run (14.366244ms)
+✔ Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin (10.64278ms)
+✔ pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result (7.18534ms)
+✔ late Save/Load replies do not overwrite another script selection or edits made during loading (11.448507ms)
+✔ late saved-script selector load cannot overwrite edits made during loading (5.780631ms)
+✔ an older snapshot reply cannot disable Run after a newer durable observation (7.031284ms)
+✔ an older snapshot error cannot overwrite a newer successful durable view (7.513152ms)
+✔ the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing (6.72303ms)
+✔ DOM preview binds frozen source, dependency choice and exact current document from trusted click (5.389671ms)
+✔ DOM preview refuses to inject when the active document changes while permission is pending (5.262273ms)
+✔ Developer Stop cannot cancel the formal Task or another view using the shared RunHost (5.112352ms)
+✔ project import displays source while Save and Run freeze compiled bytes and the original hash (28.228145ms)
+✔ invalid project envelope leaves the previous editor source and no execution or saved revision (6.51956ms)
+✔ same-window catalog hands off exact source without invoking a runner (1.497064ms)
+✔ draft handoff refuses other windows, senders, content pages, private tabs and catalog recipients (0.35319ms)
+✔ editor rejection is returned explicitly without claiming import success (0.279381ms)
+✔ RunHost freezes a draft source variant and parameters before awaiting the host connection (5.211243ms)
+✔ saved script API retains explicit scriptId/revision/contentHash admission (0.737946ms)
+✔ manifest exposes tool.html as a global Chrome Side Panel (7.563627ms)
+✔ product shell has no popup-window fallback (2.912097ms)
+✔ default Run freezes Current Page then revalidates before existing RunHost (1.669087ms)
+✔ trusted Side Panel run sends the exact unsaved draft to the original Controller authority (2.416058ms)
+✔ R6 uses valid tab roles with labelled content panels (1.030288ms)
+✔ R4 Sidebar sections preserve consumer controls and keep engineering tools folded (2.491809ms)
+✔ Sidebar starts at its three tabs without repeating Chrome extension identity (3.386296ms)
+✔ R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog (6.554931ms)
+✔ R5 official sidebar preserves three views, privileged controls, compact discovery and task history (10.26847ms)
+✔ R5 keeps one derived interactive prototype with installed-only compact discovery (1.986716ms)
+✔ required all-url host is the single source of truth; no optional host prompts at startup (2.150957ms)
+✔ a trusted click can re-request withheld required host access without options (0.862681ms)
+✔ untrusted events cannot change permission; native denial never fabricates approval (0.799347ms)
+✔ Chrome site access restrictions invalidate status and never auto-regrant (0.340571ms)
+✔ Chrome onAdded event cannot erase actual approved status during raced refresh (1.359342ms)
+✔ core API status is separately queried; it never grants applications automatically (0.479997ms)
+✔ developer site controls remain nested in the original three-tab workbench (9.39263ms)
+✔ package hashes and closed schema reject forged status, altered source, extra permissions and invalid params (20.182093ms)
+✔ candidate cannot install without matching trustworthy native run, then exact Available version can install (29.307259ms)
+✔ same task version cannot replace even a correctly hashed package (4.958361ms)
+✔ the checked-in sample is an authentic v1 package with exact manifest and source hashes (2.096997ms)
+✔ formal verification refuses altered admission identity, failed effects and mismatched receipts (16.22096ms)
+✔ invalid task schema and origin return typed errors instead of generic exceptions (1.170864ms)
+✔ entering Sidebar task views reads external installations without executing and preserves unchanged form inputs (24.615085ms)
+✔ installed tasks default page, render schema form and freeze the exact saved version/params/target (23.633734ms)
+✔ installed task can be explicitly forked into an independent unsaved editor draft (6.154332ms)
+✔ task Stop cannot cancel another view's in-flight draft; parameter form never navigates (7.288572ms)
+✔ installed task refuses stale target after async installed-version lookup (9.888617ms)
+✔ task cards retain readable selection and do not surface raw IDs as the main UI (4.293812ms)
+✔ Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog (7.759556ms)
+✔ Discover filter controls are real view filters and cannot start another run (11.237537ms)
+✔ opening the separate full-size catalog preserves its import and management view (5.18197ms)
+✔ full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state (7.634983ms)
+✔ idle Discover has no fixed footer and inline import still opens the authenticated catalog (13.416074ms)
+✔ R5 result/history stay out of sight until a task has runs (7.200663ms)
+✔ card view retains original action identities, history and parameter form across tab changes (9.663438ms)
+✔ switching between two installed tasks preserves each independent unsaved parameter input (2.552498ms)
+✔ R6 accessible roving tabs support Arrow and Home/End (3.595094ms)
+✔ R6 task card refresh, keyboard selection and Discover handoff restore focus (6.309731ms)
+✔ R6 late run start/result cannot become the newly selected task status (12.789932ms)
+✔ R6 previous-version notices and results do not leak after installed upgrade (8.068711ms)
+✔ two extension documents share only a refresh hint and re-read authoritative installed state (9.844796ms)
+✔ catalog installation stays in the complete directory and directs running back to Sidebar (5.660985ms)
+✔ catalog JS import hands source to Sidebar and never enters a view with a hidden runner (4.928026ms)
+✔ missing Sidebar refuses import with an actionable message, without losing the directory (10.210284ms)
+✔ catalog draft transport errors retain their cause instead of claiming Sidebar is missing (5.611382ms)
+✔ receiving a source-only import selects Sidebar Developer without creating a run (2.352745ms)
+✔ R6.1 task-owned Stop is the sole cross-view action and names the launching task (15.599249ms)
+✔ R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover (2.322791ms)
+✔ R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop (1.301056ms)
+✔ real manager → approval → preview executes two ordered sources, reuses draft locks offline, and rechecks new GM grants (41.406399ms)
+✔ classic top-level const runs repeatedly in fresh worlds; trailing comments and ASI do not consume the next source (14.056558ms)
+✔ a synchronous dependency failure prevents later libraries and the consumer from executing (19.500814ms)
+✔ an absent user main cannot fall back to a dependency global main or an async-main-looking comment (6.797979ms)
+✔ simulated Chromium named-world exhaustion falls back to default, fails the isolation probe, and injects no user code (9.543763ms)
+✔ document budget survives service restart and navigation cleanup; closing a tab releases the ledger even when the API is disabled (33.203491ms)
+ℹ tests 278
+ℹ suites 0
+ℹ pass 264
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 4
+ℹ todo 0
+ℹ duration_ms 2306.103514
+
+✖ failing tests:
+
+test at tests/environment/native-agent-native-host.test.mjs:50:1
+✖ framed Chrome welcome, authenticated local IPC, request and exact response (4.075781ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-KATDyU/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:180:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:176:13)
+      at fixture (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:51:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-KATDyU/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:67:1
+✖ duplicate inflight request ID is rejected, not dispatched again (1.297521ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-et3PHF/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:180:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:176:13)
+      at fixture (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:68:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-et3PHF/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:80:1
+✖ unacknowledged dispatched effects become unknown on native shutdown (0.895489ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-j1jhrP/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:180:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:176:13)
+      at fixture (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:81:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-j1jhrP/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:94:1
+✖ wrong credential is rejected without local API access (0.813828ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-1VbVzg/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:180:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:176:13)
+      at fixture (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:95:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-1VbVzg/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:104:1
+✖ handshake timeout closes the private socket without stale reuse (3.223467ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-tnTL2Q/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:180:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:176:13)
+      at fixture (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:105:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-tnTL2Q/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:110:1
+✖ native response timeout preserves unknown-effect outcome (0.71933ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-xSvsiL/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:180:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/b62cc961ca59/opendesk-browser/native-agent/native-host.mjs:176:13)
+      at fixture (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:111:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-xSvsiL/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/package.test.mjs:17:1
+✖ final classic scanner rejects eval alias and function-constructor references (8.653702ms)
+  Error: Unexpected Native Agent settings exposure
+      at verifyManifest (file:///workspace/scratch/b62cc961ca59/opendesk-browser/scripts/verify-package.mjs:100:95)
+      at verifyPackage (file:///workspace/scratch/b62cc961ca59/opendesk-browser/scripts/verify-package.mjs:250:85)
+      at async mutatedPackage (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/package.test.mjs:9:3)
+      at async TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/package.test.mjs:19:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests/environment/package.test.mjs:24:1
+✖ final package cannot omit a referenced local asset (2.678394ms)
+  Error: Unexpected Native Agent settings exposure
+      at verifyManifest (file:///workspace/scratch/b62cc961ca59/opendesk-browser/scripts/verify-package.mjs:100:95)
+      at verifyPackage (file:///workspace/scratch/b62cc961ca59/opendesk-browser/scripts/verify-package.mjs:250:85)
+      at async mutatedPackage (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/package.test.mjs:9:3)
+      at async TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/package.test.mjs:25:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/environment/package.test.mjs:27:1
+✖ remote script and unexpected lazy chunk fail final package verification (1.768505ms)
+  Error: Unexpected Native Agent settings exposure
+      at verifyManifest (file:///workspace/scratch/b62cc961ca59/opendesk-browser/scripts/verify-package.mjs:100:95)
+      at verifyPackage (file:///workspace/scratch/b62cc961ca59/opendesk-browser/scripts/verify-package.mjs:250:85)
+      at async mutatedPackage (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/package.test.mjs:9:3)
+      at async TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/package.test.mjs:28:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/environment/package.test.mjs:33:1
+✖ final package requires tool HTML/CSS and manifest worker references (1.296318ms)
+  Error: Unexpected Native Agent settings exposure
+      at verifyManifest (file:///workspace/scratch/b62cc961ca59/opendesk-browser/scripts/verify-package.mjs:100:95)
+      at verifyPackage (file:///workspace/scratch/b62cc961ca59/opendesk-browser/scripts/verify-package.mjs:250:85)
+      at async mutatedPackage (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/package.test.mjs:9:3)
+      at async TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/package.test.mjs:34:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

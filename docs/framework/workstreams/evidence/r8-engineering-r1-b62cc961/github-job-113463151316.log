@@ -1,0 +1,1476 @@
+﻿2026-10-08T18:04:14.9878254Z Current runner version: '2.337.0'
+2026-10-08T18:04:14.9896740Z ##[group]Runner Image Provisioner
+2026-10-08T18:04:14.9897492Z Hosted Compute Agent
+2026-10-08T18:04:14.9897959Z Version: 20261002.596
+2026-10-08T18:04:14.9898514Z Commit: c3d12f3313a95f25162a1503be624f3b0617f8c0
+2026-10-08T18:04:14.9899107Z Build Date: 2026-10-02T22:28:27Z
+2026-10-08T18:04:14.9899678Z Worker ID: {8fef8126-d65c-4ae6-99e7-10963b622bca}
+2026-10-08T18:04:14.9900292Z Region: westus3
+2026-10-08T18:04:14.9900742Z Cloud: Azure
+2026-10-08T18:04:14.9901195Z ##[endgroup]
+2026-10-08T18:04:14.9902546Z ##[group]Operating System
+2026-10-08T18:04:14.9903076Z Ubuntu
+2026-10-08T18:04:14.9903545Z 24.04.5
+2026-10-08T18:04:14.9903980Z LTS
+2026-10-08T18:04:14.9904703Z ##[endgroup]
+2026-10-08T18:04:14.9905163Z ##[group]Runner Image
+2026-10-08T18:04:14.9905641Z Image: ubuntu-24.04
+2026-10-08T18:04:14.9906145Z Version: 20261004.327.1
+2026-10-08T18:04:14.9907146Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261004.327/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-08T18:04:14.9908403Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261004.327
+2026-10-08T18:04:14.9909166Z ##[endgroup]
+2026-10-08T18:04:14.9910119Z ##[group]GITHUB_TOKEN Permissions
+2026-10-08T18:04:14.9912038Z Contents: read
+2026-10-08T18:04:14.9912570Z Metadata: read
+2026-10-08T18:04:14.9913040Z ##[endgroup]
+2026-10-08T18:04:14.9914730Z Secret source: Actions
+2026-10-08T18:04:14.9915456Z Cache mode: write
+2026-10-08T18:04:14.9916022Z Prepare workflow directory
+2026-10-08T18:04:15.0836567Z Prepare all required actions
+2026-10-08T18:04:15.0892714Z Getting action download info
+2026-10-08T18:04:15.3871400Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-08T18:04:16.0494881Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-08T18:04:16.3866974Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-08T18:04:16.6374442Z Complete job name: r3-package
+2026-10-08T18:04:16.7111593Z ##[group]Run actions/checkout@v4
+2026-10-08T18:04:16.7112984Z with:
+2026-10-08T18:04:16.7113911Z   repository: shopable-ai/opendesk-browser
+2026-10-08T18:04:16.7121145Z   token: ***
+2026-10-08T18:04:16.7122205Z   ssh-strict: true
+2026-10-08T18:04:16.7123079Z   ssh-user: git
+2026-10-08T18:04:16.7123919Z   persist-credentials: true
+2026-10-08T18:04:16.7124865Z   clean: true
+2026-10-08T18:04:16.7125719Z   sparse-checkout-cone-mode: true
+2026-10-08T18:04:16.7126675Z   fetch-depth: 1
+2026-10-08T18:04:16.7127553Z   fetch-tags: false
+2026-10-08T18:04:16.7128394Z   show-progress: true
+2026-10-08T18:04:16.7129253Z   lfs: false
+2026-10-08T18:04:16.7130060Z   submodules: false
+2026-10-08T18:04:16.7130889Z   set-safe-directory: true
+2026-10-08T18:04:16.7132012Z   allow-unsafe-pr-checkout: false
+2026-10-08T18:04:16.7133190Z ##[endgroup]
+2026-10-08T18:04:16.8029359Z Syncing repository: shopable-ai/opendesk-browser
+2026-10-08T18:04:16.8032871Z ##[group]Getting Git version info
+2026-10-08T18:04:16.8034542Z Working directory is '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-08T18:04:16.8036753Z [command]/usr/bin/git version
+2026-10-08T18:04:16.8106931Z git version 2.55.0
+2026-10-08T18:04:16.8135246Z ##[endgroup]
+2026-10-08T18:04:16.8142264Z Temporarily overriding HOME='/home/runner/work/_temp/634c2cf5-c721-4fe5-a423-7546557bd4c0' before making global git config changes
+2026-10-08T18:04:16.8144855Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-08T18:04:16.8147281Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T18:04:16.8191126Z Deleting the contents of '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-08T18:04:16.8195685Z ##[group]Initializing the repository
+2026-10-08T18:04:16.8199675Z [command]/usr/bin/git init /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T18:04:16.8299796Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-08T18:04:16.8301597Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-08T18:04:16.8303415Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-08T18:04:16.8304815Z hint: call:
+2026-10-08T18:04:16.8305861Z hint:
+2026-10-08T18:04:16.8307189Z hint: 	git config --global init.defaultBranch <name>
+2026-10-08T18:04:16.8308586Z hint:
+2026-10-08T18:04:16.8309669Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-08T18:04:16.8311330Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-08T18:04:16.8312949Z hint:
+2026-10-08T18:04:16.8313964Z hint: 	git branch -m <name>
+2026-10-08T18:04:16.8314977Z hint:
+2026-10-08T18:04:16.8316094Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-08T18:04:16.8318445Z Initialized empty Git repository in /home/runner/work/opendesk-browser/opendesk-browser/.git/
+2026-10-08T18:04:16.8325421Z [command]/usr/bin/git remote add origin https://github.com/shopable-ai/opendesk-browser
+2026-10-08T18:04:16.8358377Z ##[endgroup]
+2026-10-08T18:04:16.8360425Z ##[group]Disabling automatic garbage collection
+2026-10-08T18:04:16.8362443Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-08T18:04:16.8389912Z ##[endgroup]
+2026-10-08T18:04:16.8392003Z ##[group]Setting up auth
+2026-10-08T18:04:16.8394262Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-08T18:04:16.8420495Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-08T18:04:16.8743427Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-08T18:04:16.8770725Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-08T18:04:16.8930153Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-08T18:04:16.8955063Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-08T18:04:16.9107210Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-08T18:04:16.9135787Z ##[endgroup]
+2026-10-08T18:04:16.9137502Z ##[group]Fetching the repository
+2026-10-08T18:04:16.9143962Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +74d261b7be865830742c5b3d061ba53d0b41033c:refs/remotes/origin/main
+2026-10-08T18:04:20.2416398Z From https://github.com/shopable-ai/opendesk-browser
+2026-10-08T18:04:20.2417297Z  * [new ref]         74d261b7be865830742c5b3d061ba53d0b41033c -> origin/main
+2026-10-08T18:04:20.2419903Z ##[endgroup]
+2026-10-08T18:04:20.2420852Z ##[group]Determining the checkout info
+2026-10-08T18:04:20.2422318Z ##[endgroup]
+2026-10-08T18:04:20.2428212Z [command]/usr/bin/git sparse-checkout disable
+2026-10-08T18:04:20.2469623Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-08T18:04:20.2493907Z ##[group]Checking out the ref
+2026-10-08T18:04:20.2504079Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-08T18:04:21.3204743Z Updating files:  94% (12295/12997)
+2026-10-08T18:04:21.3544938Z Updating files:  95% (12348/12997)
+2026-10-08T18:04:21.4212335Z Updating files:  96% (12478/12997)
+2026-10-08T18:04:21.4790784Z Updating files:  97% (12608/12997)
+2026-10-08T18:04:21.5511059Z Updating files:  98% (12738/12997)
+2026-10-08T18:04:21.7309304Z Updating files:  99% (12868/12997)
+2026-10-08T18:04:21.7309812Z Updating files: 100% (12997/12997)
+2026-10-08T18:04:21.7310300Z Updating files: 100% (12997/12997), done.
+2026-10-08T18:04:21.8600287Z Switched to a new branch 'main'
+2026-10-08T18:04:21.8608472Z branch 'main' set up to track 'origin/main'.
+2026-10-08T18:04:21.8649071Z ##[endgroup]
+2026-10-08T18:04:21.8688889Z [command]/usr/bin/git log -1 --format=%H
+2026-10-08T18:04:21.8709294Z 74d261b7be865830742c5b3d061ba53d0b41033c
+2026-10-08T18:04:21.8935889Z ##[group]Run actions/setup-node@v4
+2026-10-08T18:04:21.8936250Z with:
+2026-10-08T18:04:21.8936527Z   node-version: 22
+2026-10-08T18:04:21.8936788Z   cache: npm
+2026-10-08T18:04:21.8937068Z   always-auth: false
+2026-10-08T18:04:21.8937336Z   check-latest: false
+2026-10-08T18:04:21.8939353Z   token: ***
+2026-10-08T18:04:21.8939686Z ##[endgroup]
+2026-10-08T18:04:22.0118076Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-08T18:04:22.0120623Z (node:2076) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-08T18:04:22.0121236Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-08T18:04:22.0123207Z ##[group]Environment details
+2026-10-08T18:04:22.6733038Z node: v22.23.3
+2026-10-08T18:04:22.6733529Z npm: 10.9.9
+2026-10-08T18:04:22.6733765Z yarn: 1.22.22
+2026-10-08T18:04:22.6734567Z ##[endgroup]
+2026-10-08T18:04:22.6789671Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-08T18:04:22.7715667Z /home/runner/.npm
+2026-10-08T18:04:22.9955996Z Cache hit for: node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce
+2026-10-08T18:04:23.0032466Z (node:2076) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-08T18:04:24.2214601Z Received 11520397 of 15714701 (73.3%), 11.0 MBs/sec
+2026-10-08T18:04:24.6219406Z Received 15714701 of 15714701 (100.0%), 10.7 MBs/sec
+2026-10-08T18:04:24.6220396Z Cache Size: ~15 MB (15714701 B)
+2026-10-08T18:04:24.6242676Z [command]/usr/bin/tar -xf /home/runner/work/_temp/fb45b545-99f8-40b9-a2ab-1dd2162b9c08/cache.tzst -P -C /home/runner/work/opendesk-browser/opendesk-browser --use-compress-program unzstd
+2026-10-08T18:04:24.6608827Z Cache restored successfully
+2026-10-08T18:04:24.6616001Z Cache restored from key: node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce
+2026-10-08T18:04:24.6738248Z ##[group]Run npm ci --ignore-scripts --no-audit --no-fund
+2026-10-08T18:04:24.6738788Z [36;1mnpm ci --ignore-scripts --no-audit --no-fund[0m
+2026-10-08T18:04:24.6919324Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:24.6919672Z ##[endgroup]
+2026-10-08T18:04:26.3112095Z 
+2026-10-08T18:04:26.3118176Z added 240 packages in 2s
+2026-10-08T18:04:26.3663302Z ##[group]Run node --test tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/boundaries.test.mjs
+2026-10-08T18:04:26.3666184Z [36;1mnode --test tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/boundaries.test.mjs[0m
+2026-10-08T18:04:26.3701659Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:26.3702084Z ##[endgroup]
+2026-10-08T18:04:26.6341565Z TAP version 13
+2026-10-08T18:04:26.6763153Z # Subtest: product shell configures the Chrome Side Panel action and never creates a popup
+2026-10-08T18:04:26.6783263Z ok 1 - product shell configures the Chrome Side Panel action and never creates a popup
+2026-10-08T18:04:26.6784376Z   ---
+2026-10-08T18:04:26.6784934Z   duration_ms: 1.252227
+2026-10-08T18:04:26.6785530Z   type: 'test'
+2026-10-08T18:04:26.6786079Z   ...
+2026-10-08T18:04:26.6786922Z # Subtest: tool sender accepts top-level Side Panel documents and rejects foreign or nested senders
+2026-10-08T18:04:26.6788116Z ok 2 - tool sender accepts top-level Side Panel documents and rejects foreign or nested senders
+2026-10-08T18:04:26.6788927Z   ---
+2026-10-08T18:04:26.6789693Z   duration_ms: 0.320748
+2026-10-08T18:04:26.6790190Z   type: 'test'
+2026-10-08T18:04:26.6790708Z   ...
+2026-10-08T18:04:26.6791597Z # Subtest: URL policy rejects restricted/file/credentials and preserves exact origin including port
+2026-10-08T18:04:26.6802575Z ok 3 - URL policy rejects restricted/file/credentials and preserves exact origin including port
+2026-10-08T18:04:26.6803606Z   ---
+2026-10-08T18:04:26.6804163Z   duration_ms: 0.333884
+2026-10-08T18:04:26.6804813Z   type: 'test'
+2026-10-08T18:04:26.6805291Z   ...
+2026-10-08T18:04:26.6806196Z # Subtest: health waits for sender readiness and binds Chrome document metadata, not file result
+2026-10-08T18:04:26.6807405Z ok 4 - health waits for sender readiness and binds Chrome document metadata, not file result
+2026-10-08T18:04:26.6808164Z   ---
+2026-10-08T18:04:26.6808628Z   duration_ms: 6.285661
+2026-10-08T18:04:26.6809050Z   type: 'test'
+2026-10-08T18:04:26.6809585Z   ...
+2026-10-08T18:04:26.6810351Z # Subtest: revoked permission blocks even previously installed agent
+2026-10-08T18:04:26.6811223Z ok 5 - revoked permission blocks even previously installed agent
+2026-10-08T18:04:26.6817601Z   ---
+2026-10-08T18:04:26.6818249Z   duration_ms: 1.57554
+2026-10-08T18:04:26.6818749Z   type: 'test'
+2026-10-08T18:04:26.6819091Z   ...
+2026-10-08T18:04:26.6869681Z # Subtest: reload, cross-origin and closed tab reject bound target without automatic reinjection
+2026-10-08T18:04:26.6871065Z ok 6 - reload, cross-origin and closed tab reject bound target without automatic reinjection
+2026-10-08T18:04:26.6872093Z   ---
+2026-10-08T18:04:26.6872728Z   duration_ms: 5.338662
+2026-10-08T18:04:26.6873272Z   type: 'test'
+2026-10-08T18:04:26.6873759Z   ...
+2026-10-08T18:04:26.6879756Z # Subtest: forged health nonce and fake sender cannot satisfy exact target
+2026-10-08T18:04:26.6880824Z ok 7 - forged health nonce and fake sender cannot satisfy exact target
+2026-10-08T18:04:26.6881443Z   ---
+2026-10-08T18:04:26.6882137Z   duration_ms: 0.973336
+2026-10-08T18:04:26.6882561Z   type: 'test'
+2026-10-08T18:04:26.6882895Z   ...
+2026-10-08T18:04:26.6883457Z # Subtest: missing module has no capabilities or runner and can be mounted/disposed
+2026-10-08T18:04:26.6884334Z ok 8 - missing module has no capabilities or runner and can be mounted/disposed
+2026-10-08T18:04:26.6884830Z   ---
+2026-10-08T18:04:26.6885171Z   duration_ms: 0.47822
+2026-10-08T18:04:26.6885521Z   type: 'test'
+2026-10-08T18:04:26.6885945Z   ...
+2026-10-08T18:04:26.6886474Z # Subtest: Side Panel configuration failure is surfaced without a popup fallback
+2026-10-08T18:04:26.6887111Z ok 9 - Side Panel configuration failure is surfaced without a popup fallback
+2026-10-08T18:04:26.6887592Z   ---
+2026-10-08T18:04:26.6887914Z   duration_ms: 0.476299
+2026-10-08T18:04:26.6888381Z   type: 'test'
+2026-10-08T18:04:26.6888760Z   ...
+2026-10-08T18:04:26.6948480Z # Subtest: unknown authorization mode is rejected before another injection
+2026-10-08T18:04:26.6949387Z ok 10 - unknown authorization mode is rejected before another injection
+2026-10-08T18:04:26.6950255Z   ---
+2026-10-08T18:04:26.6950874Z   duration_ms: 2.593008
+2026-10-08T18:04:26.6992755Z   type: 'test'
+2026-10-08T18:04:26.6993381Z   ...
+2026-10-08T18:04:26.6994339Z # Subtest: permission revoke reports permission failure even when Chrome hides tab URL
+2026-10-08T18:04:26.6995495Z ok 11 - permission revoke reports permission failure even when Chrome hides tab URL
+2026-10-08T18:04:26.6996248Z   ---
+2026-10-08T18:04:26.6996962Z   duration_ms: 1.924583
+2026-10-08T18:04:26.6997729Z   type: 'test'
+2026-10-08T18:04:26.6998244Z   ...
+2026-10-08T18:04:26.6999126Z # Subtest: permission revoked during tabs.get is diagnosed before inspecting its hidden URL
+2026-10-08T18:04:26.7000302Z ok 12 - permission revoked during tabs.get is diagnosed before inspecting its hidden URL
+2026-10-08T18:04:26.7001095Z   ---
+2026-10-08T18:04:26.7001573Z   duration_ms: 1.910972
+2026-10-08T18:04:26.7002382Z   type: 'test'
+2026-10-08T18:04:26.7002980Z   ...
+2026-10-08T18:04:26.7003876Z # Subtest: repeated agent ready preserves optional authorization and cannot bypass revoke
+2026-10-08T18:04:26.7005074Z ok 13 - repeated agent ready preserves optional authorization and cannot bypass revoke
+2026-10-08T18:04:26.7005824Z   ---
+2026-10-08T18:04:26.7006271Z   duration_ms: 1.82694
+2026-10-08T18:04:26.7019069Z   type: 'test'
+2026-10-08T18:04:26.7019594Z   ...
+2026-10-08T18:04:26.7020431Z # Subtest: same-document concurrent binding resolves all readiness waiters
+2026-10-08T18:04:26.7022019Z ok 14 - same-document concurrent binding resolves all readiness waiters
+2026-10-08T18:04:26.7022751Z   ---
+2026-10-08T18:04:26.7023240Z   duration_ms: 2.160534
+2026-10-08T18:04:26.7023754Z   type: 'test'
+2026-10-08T18:04:26.7024275Z   ...
+2026-10-08T18:04:26.7025059Z # Subtest: document invalidation and revoke while awaiting reply reject late health success
+2026-10-08T18:04:26.7026204Z ok 15 - document invalidation and revoke while awaiting reply reject late health success
+2026-10-08T18:04:26.7030791Z   ---
+2026-10-08T18:04:26.7031403Z   duration_ms: 1.272219
+2026-10-08T18:04:26.7032116Z   type: 'test'
+2026-10-08T18:04:26.7032589Z   ...
+2026-10-08T18:04:26.7033510Z # Subtest: missing Side Panel sender documentId resolves only unique native instance context
+2026-10-08T18:04:26.7034641Z ok 16 - missing Side Panel sender documentId resolves only unique native instance context
+2026-10-08T18:04:26.7035384Z   ---
+2026-10-08T18:04:26.7035881Z   duration_ms: 1.501268
+2026-10-08T18:04:26.7036365Z   type: 'test'
+2026-10-08T18:04:26.7036858Z   ...
+2026-10-08T18:04:26.7515851Z # Subtest: inspection only parses and lists download permissions; explicit actions and post-download hash review are separate
+2026-10-08T18:04:26.7563179Z ok 17 - inspection only parses and lists download permissions; explicit actions and post-download hash review are separate
+2026-10-08T18:04:26.7564290Z   ---
+2026-10-08T18:04:26.7586190Z   duration_ms: 69.253316
+2026-10-08T18:04:26.7586796Z   type: 'test'
+2026-10-08T18:04:26.7587325Z   ...
+2026-10-08T18:04:26.7673161Z # Subtest: packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit
+2026-10-08T18:04:26.7703348Z ok 18 - packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit
+2026-10-08T18:04:26.7704627Z   ---
+2026-10-08T18:04:26.7732556Z   duration_ms: 15.787178
+2026-10-08T18:04:26.7757076Z   type: 'test'
+2026-10-08T18:04:26.7782418Z   ...
+2026-10-08T18:04:26.7792119Z # Subtest: approved locks run offline after a new manager instance and draft edits; source/mode changes require a new lock
+2026-10-08T18:04:26.7815214Z ok 19 - approved locks run offline after a new manager instance and draft edits; source/mode changes require a new lock
+2026-10-08T18:04:26.7842480Z   ---
+2026-10-08T18:04:26.7861874Z   duration_ms: 6.937109
+2026-10-08T18:04:26.7862504Z   type: 'test'
+2026-10-08T18:04:26.7863081Z   ...
+2026-10-08T18:04:26.7864043Z # Subtest: duplicate declarations preserve execution order, shared bytes do not share another namespace approval
+2026-10-08T18:04:26.7866717Z ok 20 - duplicate declarations preserve execution order, shared bytes do not share another namespace approval
+2026-10-08T18:04:26.7867627Z   ---
+2026-10-08T18:04:26.7868086Z   duration_ms: 9.031539
+2026-10-08T18:04:26.7868629Z   type: 'test'
+2026-10-08T18:04:26.7869074Z   ...
+2026-10-08T18:04:26.7942488Z # Subtest: a local file adapter preserves declared URL and original file bytes without claiming a network download
+2026-10-08T18:04:26.7963019Z ok 21 - a local file adapter preserves declared URL and original file bytes without claiming a network download
+2026-10-08T18:04:26.7992386Z   ---
+2026-10-08T18:04:26.8007388Z   duration_ms: 12.123628
+2026-10-08T18:04:26.8007837Z   type: 'test'
+2026-10-08T18:04:26.8008259Z   ...
+2026-10-08T18:04:26.8172932Z # Subtest: same URL updates produce new immutable locks; selecting approved old bytes stays offline and deterministic
+2026-10-08T18:04:26.8193109Z ok 22 - same URL updates produce new immutable locks; selecting approved old bytes stays offline and deterministic
+2026-10-08T18:04:26.8202649Z   ---
+2026-10-08T18:04:26.8212416Z   duration_ms: 20.964987
+2026-10-08T18:04:26.8213083Z   type: 'test'
+2026-10-08T18:04:26.8213523Z   ...
+2026-10-08T18:04:26.8412744Z # Subtest: SRI validates original bytes with SHA-256/384/512 and does not silently approve a mismatch
+2026-10-08T18:04:26.8413811Z ok 23 - SRI validates original bytes with SHA-256/384/512 and does not silently approve a mismatch
+2026-10-08T18:04:26.8442356Z   ---
+2026-10-08T18:04:26.8502361Z   duration_ms: 16.5728
+2026-10-08T18:04:26.8522700Z   type: 'test'
+2026-10-08T18:04:26.8523762Z   ...
+2026-10-08T18:04:26.8526193Z # Subtest: downloader rejects redirects, HTML/JSON, malformed UTF-8, private IPs and excess streaming bytes
+2026-10-08T18:04:26.8528205Z ok 24 - downloader rejects redirects, HTML/JSON, malformed UTF-8, private IPs and excess streaming bytes
+2026-10-08T18:04:26.8530274Z   ---
+2026-10-08T18:04:26.8531057Z   duration_ms: 9.600135
+2026-10-08T18:04:26.8531604Z   type: 'test'
+2026-10-08T18:04:26.8532546Z   ...
+2026-10-08T18:04:26.8534041Z # Subtest: permission revocation and stale host during network/hash work never commit an approvable review or lock
+2026-10-08T18:04:26.8539201Z ok 25 - permission revocation and stale host during network/hash work never commit an approvable review or lock
+2026-10-08T18:04:26.8540369Z   ---
+2026-10-08T18:04:26.8540994Z   duration_ms: 6.723756
+2026-10-08T18:04:26.8546508Z   type: 'test'
+2026-10-08T18:04:26.8547164Z   ...
+2026-10-08T18:04:26.8653102Z # Subtest: asset, review provenance and lock tampering fail closed; quota failure atomically rolls back prepared assets
+2026-10-08T18:04:26.8663141Z ok 26 - asset, review provenance and lock tampering fail closed; quota failure atomically rolls back prepared assets
+2026-10-08T18:04:26.8685153Z   ---
+2026-10-08T18:04:26.8695943Z   duration_ms: 16.041421
+2026-10-08T18:04:26.8696564Z   type: 'test'
+2026-10-08T18:04:26.8697292Z   ...
+2026-10-08T18:04:26.8850358Z # Subtest: ordinary JS and metadata-looking strings remain source; real BOM/blank-prefixed CRLF header is preserved
+2026-10-08T18:04:26.8893248Z ok 27 - ordinary JS and metadata-looking strings remain source; real BOM/blank-prefixed CRLF header is preserved
+2026-10-08T18:04:26.8912464Z   ---
+2026-10-08T18:04:26.8942555Z   duration_ms: 3.597509
+2026-10-08T18:04:26.8982408Z   type: 'test'
+2026-10-08T18:04:26.9002376Z   ...
+2026-10-08T18:04:26.9071377Z # Subtest: leading copyright comments do not hide real dependencies or privileges; malformed markers fail closed
+2026-10-08T18:04:26.9083599Z ok 28 - leading copyright comments do not hide real dependencies or privileges; malformed markers fail closed
+2026-10-08T18:04:26.9084637Z   ---
+2026-10-08T18:04:26.9085123Z   duration_ms: 2.409363
+2026-10-08T18:04:26.9085650Z   type: 'test'
+2026-10-08T18:04:26.9086157Z   ...
+2026-10-08T18:04:26.9086952Z # Subtest: standard unpinned @require is importable and reviewable, including duplicate execution order
+2026-10-08T18:04:26.9088142Z ok 29 - standard unpinned @require is importable and reviewable, including duplicate execution order
+2026-10-08T18:04:26.9088971Z   ---
+2026-10-08T18:04:26.9089390Z   duration_ms: 2.05411
+2026-10-08T18:04:26.9089916Z   type: 'test'
+2026-10-08T18:04:26.9090376Z   ...
+2026-10-08T18:04:26.9091424Z # Subtest: TM hex/Base64, SRI tokens, percent-encoded fragments and multiple strong hashes canonicalize without losing plus signs
+2026-10-08T18:04:26.9093379Z ok 30 - TM hex/Base64, SRI tokens, percent-encoded fragments and multiple strong hashes canonicalize without losing plus signs
+2026-10-08T18:04:26.9094587Z   ---
+2026-10-08T18:04:26.9095066Z   duration_ms: 2.554947
+2026-10-08T18:04:26.9095562Z   type: 'test'
+2026-10-08T18:04:26.9096133Z   ...
+2026-10-08T18:04:26.9096962Z # Subtest: malformed or conflicting integrity is preserved for diagnosis and cannot be admitted
+2026-10-08T18:04:26.9098117Z ok 31 - malformed or conflicting integrity is preserved for diagnosis and cannot be admitted
+2026-10-08T18:04:26.9098885Z   ---
+2026-10-08T18:04:26.9099370Z   duration_ms: 1.549652
+2026-10-08T18:04:26.9099945Z   type: 'test'
+2026-10-08T18:04:26.9100365Z   ...
+2026-10-08T18:04:26.9101283Z # Subtest: weak integrity does not masquerade as verified SRI; mixed declarations keep strong requirements
+2026-10-08T18:04:26.9102748Z ok 32 - weak integrity does not masquerade as verified SRI; mixed declarations keep strong requirements
+2026-10-08T18:04:26.9103637Z   ---
+2026-10-08T18:04:26.9104112Z   duration_ms: 2.631584
+2026-10-08T18:04:26.9104612Z   type: 'test'
+2026-10-08T18:04:26.9105064Z   ...
+2026-10-08T18:04:26.9105905Z # Subtest: relative dependencies use actual importer provenance, never a page URL or @downloadURL
+2026-10-08T18:04:26.9107090Z ok 33 - relative dependencies use actual importer provenance, never a page URL or @downloadURL
+2026-10-08T18:04:26.9107858Z   ---
+2026-10-08T18:04:26.9108392Z   duration_ms: 1.770419
+2026-10-08T18:04:26.9108886Z   type: 'test'
+2026-10-08T18:04:26.9109320Z   ...
+2026-10-08T18:04:26.9110277Z # Subtest: unsupported grants/resources/directives do not prevent import or hide later dependencies
+2026-10-08T18:04:26.9111430Z ok 34 - unsupported grants/resources/directives do not prevent import or hide later dependencies
+2026-10-08T18:04:26.9112505Z   ---
+2026-10-08T18:04:26.9112949Z   duration_ms: 0.825506
+2026-10-08T18:04:26.9113464Z   type: 'test'
+2026-10-08T18:04:26.9113971Z   ...
+2026-10-08T18:04:26.9114727Z # Subtest: entry modes remain explicit and native match/frame/timing mappings are inspectable
+2026-10-08T18:04:26.9115894Z ok 35 - entry modes remain explicit and native match/frame/timing mappings are inspectable
+2026-10-08T18:04:26.9116662Z   ---
+2026-10-08T18:04:26.9117155Z   duration_ms: 2.76898
+2026-10-08T18:04:26.9117631Z   type: 'test'
+2026-10-08T18:04:26.9118107Z   ...
+2026-10-08T18:04:26.9119038Z # Subtest: large valid headers no longer fail at 64 lines or 8 dependencies; real bounds fail closed with import diagnostics
+2026-10-08T18:04:26.9120387Z ok 36 - large valid headers no longer fail at 64 lines or 8 dependencies; real bounds fail closed with import diagnostics
+2026-10-08T18:04:26.9121249Z   ---
+2026-10-08T18:04:26.9121851Z   duration_ms: 9.137942
+2026-10-08T18:04:26.9122640Z   type: 'test'
+2026-10-08T18:04:26.9123098Z   ...
+2026-10-08T18:04:26.9124194Z # Subtest: pasting @require only inspects; trusted acquisition requests permission synchronously and full-hash approval unlocks unsaved edits
+2026-10-08T18:04:26.9125836Z ok 37 - pasting @require only inspects; trusted acquisition requests permission synchronously and full-hash approval unlocks unsaved edits
+2026-10-08T18:04:26.9126836Z   ---
+2026-10-08T18:04:26.9127548Z   duration_ms: 92.23137
+2026-10-08T18:04:26.9128066Z   type: 'test'
+2026-10-08T18:04:26.9128506Z   ...
+2026-10-08T18:04:26.9129620Z # Subtest: changing declarations clears an old lock and a late old review cannot replace the current source or become approvable
+2026-10-08T18:04:26.9131029Z ok 38 - changing declarations clears an old lock and a late old review cannot replace the current source or become approvable
+2026-10-08T18:04:26.9132261Z   ---
+2026-10-08T18:04:26.9132785Z   duration_ms: 6.38933
+2026-10-08T18:04:26.9133301Z   type: 'test'
+2026-10-08T18:04:26.9133758Z   ...
+2026-10-08T18:04:26.9134796Z # Subtest: approved cached bytes can be locked for explicitly selected classic mode without a CDN permission prompt
+2026-10-08T18:04:26.9136194Z ok 39 - approved cached bytes can be locked for explicitly selected classic mode without a CDN permission prompt
+2026-10-08T18:04:26.9137490Z   ---
+2026-10-08T18:04:26.9137953Z   duration_ms: 11.668148
+2026-10-08T18:04:26.9138446Z   type: 'test'
+2026-10-08T18:04:26.9138999Z   ...
+2026-10-08T18:04:26.9139880Z # Subtest: permission refusal stops acquisition and local files preserve their original bytes without a CDN request
+2026-10-08T18:04:26.9141314Z ok 40 - permission refusal stops acquisition and local files preserve their original bytes without a CDN request
+2026-10-08T18:04:26.9142501Z   ---
+2026-10-08T18:04:26.9143015Z   duration_ms: 6.626786
+2026-10-08T18:04:26.9143602Z   type: 'test'
+2026-10-08T18:04:26.9144141Z   ...
+2026-10-08T18:04:26.9145367Z # Subtest: add dependency edits only the true metadata block, leaves examples intact and refuses to hide an incomplete header
+2026-10-08T18:04:26.9146780Z ok 41 - add dependency edits only the true metadata block, leaves examples intact and refuses to hide an incomplete header
+2026-10-08T18:04:26.9147628Z   ---
+2026-10-08T18:04:26.9148109Z   duration_ms: 4.77375
+2026-10-08T18:04:26.9148628Z   type: 'test'
+2026-10-08T18:04:26.9149104Z   ...
+2026-10-08T18:04:26.9150046Z # Subtest: closing or changing source while permission/file reading is pending cancels acquisition and old approval handlers
+2026-10-08T18:04:26.9151457Z ok 42 - closing or changing source while permission/file reading is pending cancels acquisition and old approval handlers
+2026-10-08T18:04:26.9152430Z   ---
+2026-10-08T18:04:26.9152857Z   duration_ms: 8.993098
+2026-10-08T18:04:26.9153421Z   type: 'test'
+2026-10-08T18:04:26.9153863Z   ...
+2026-10-08T18:04:26.9154737Z # Subtest: review freezes dependency source selectors and lock status does not claim cache verification
+2026-10-08T18:04:26.9155906Z ok 43 - review freezes dependency source selectors and lock status does not claim cache verification
+2026-10-08T18:04:26.9156695Z   ---
+2026-10-08T18:04:26.9157190Z   duration_ms: 4.980065
+2026-10-08T18:04:26.9157644Z   type: 'test'
+2026-10-08T18:04:26.9158171Z   ...
+2026-10-08T18:04:26.9167785Z # Subtest: a late dependency inspection cannot replace the admission of current metadata with the old source policy
+2026-10-08T18:04:26.9169570Z ok 44 - a late dependency inspection cannot replace the admission of current metadata with the old source policy
+2026-10-08T18:04:26.9170539Z   ---
+2026-10-08T18:04:26.9171135Z   duration_ms: 9.457014
+2026-10-08T18:04:26.9171830Z   type: 'test'
+2026-10-08T18:04:26.9172293Z   ...
+2026-10-08T18:04:26.9196486Z # Subtest: repairing metadata during inspection uses current admission and retains a dependency-only lock
+2026-10-08T18:04:26.9197983Z ok 45 - repairing metadata during inspection uses current admission and retains a dependency-only lock
+2026-10-08T18:04:26.9198944Z   ---
+2026-10-08T18:04:26.9199655Z   duration_ms: 2.79029
+2026-10-08T18:04:26.9200225Z   type: 'test'
+2026-10-08T18:04:26.9200709Z   ...
+2026-10-08T18:04:26.9255480Z # Subtest: a newly unsupported policy cancels acquisition after the permission await even when dependencies are unchanged
+2026-10-08T18:04:26.9279590Z ok 46 - a newly unsupported policy cancels acquisition after the permission await even when dependencies are unchanged
+2026-10-08T18:04:26.9280574Z   ---
+2026-10-08T18:04:26.9281188Z   duration_ms: 4.775427
+2026-10-08T18:04:26.9281826Z   type: 'test'
+2026-10-08T18:04:26.9282426Z   ...
+2026-10-08T18:04:26.9298596Z # Subtest: approval revalidates current source even when an importer did not dispatch an input event
+2026-10-08T18:04:26.9302764Z ok 47 - approval revalidates current source even when an importer did not dispatch an input event
+2026-10-08T18:04:26.9303707Z   ---
+2026-10-08T18:04:26.9304133Z   duration_ms: 3.860365
+2026-10-08T18:04:26.9304650Z   type: 'test'
+2026-10-08T18:04:26.9305124Z   ...
+2026-10-08T18:04:26.9306977Z # Subtest: declared antifeatures remain visible as untrusted plain text through inspection and source edits
+2026-10-08T18:04:26.9312987Z ok 48 - declared antifeatures remain visible as untrusted plain text through inspection and source edits
+2026-10-08T18:04:26.9314111Z   ---
+2026-10-08T18:04:26.9315025Z   duration_ms: 3.73876
+2026-10-08T18:04:26.9315589Z   type: 'test'
+2026-10-08T18:04:26.9316081Z   ...
+2026-10-08T18:04:26.9533009Z # Subtest: explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors
+2026-10-08T18:04:26.9534103Z ok 49 - explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors
+2026-10-08T18:04:26.9534901Z   ---
+2026-10-08T18:04:26.9535291Z   duration_ms: 10.406437
+2026-10-08T18:04:26.9535831Z   type: 'test'
+2026-10-08T18:04:26.9536263Z   ...
+2026-10-08T18:04:26.9537006Z # Subtest: new pinned revision obtains different world and old revision unchanged
+2026-10-08T18:04:26.9537980Z ok 50 - new pinned revision obtains different world and old revision unchanged
+2026-10-08T18:04:26.9538859Z   ---
+2026-10-08T18:04:26.9539302Z   duration_ms: 2.592648
+2026-10-08T18:04:26.9539732Z   type: 'test'
+2026-10-08T18:04:26.9540147Z   ...
+2026-10-08T18:04:26.9540961Z # Subtest: fails closed without existing broker Available+install grant or with altered script hash
+2026-10-08T18:04:26.9542193Z ok 51 - fails closed without existing broker Available+install grant or with altered script hash
+2026-10-08T18:04:26.9542961Z   ---
+2026-10-08T18:04:26.9543362Z   duration_ms: 4.260655
+2026-10-08T18:04:26.9543838Z   type: 'test'
+2026-10-08T18:04:26.9544215Z   ...
+2026-10-08T18:04:26.9545021Z # Subtest: dependency version/sha/world lock enforced, library failure blocks injection
+2026-10-08T18:04:26.9546031Z ok 52 - dependency version/sha/world lock enforced, library failure blocks injection
+2026-10-08T18:04:26.9546664Z   ---
+2026-10-08T18:04:26.9547133Z   duration_ms: 2.002527
+2026-10-08T18:04:26.9547556Z   type: 'test'
+2026-10-08T18:04:26.9547973Z   ...
+2026-10-08T18:04:26.9548905Z # Subtest: D1 Page contract consumes actual manager locks and preserves generic classic globals without a wrapper
+2026-10-08T18:04:26.9573498Z ok 53 - D1 Page contract consumes actual manager locks and preserves generic classic globals without a wrapper
+2026-10-08T18:04:26.9582818Z   ---
+2026-10-08T18:04:26.9583467Z   duration_ms: 52.154191
+2026-10-08T18:04:26.9597757Z   type: 'test'
+2026-10-08T18:04:26.9598280Z   ...
+2026-10-08T18:04:26.9599826Z # Subtest: async-main Page revisions share immutable dependencies while registration identities remain isolated
+2026-10-08T18:04:26.9601346Z ok 54 - async-main Page revisions share immutable dependencies while registration identities remain isolated
+2026-10-08T18:04:26.9602467Z   ---
+2026-10-08T18:04:26.9603049Z   duration_ms: 23.062842
+2026-10-08T18:04:26.9603578Z   type: 'test'
+2026-10-08T18:04:26.9604117Z   ...
+2026-10-08T18:04:26.9605220Z # Subtest: full Page authority proof binds kind, entry, revision, dependency identity and every rule, not only matches
+2026-10-08T18:04:26.9606952Z ok 55 - full Page authority proof binds kind, entry, revision, dependency identity and every rule, not only matches
+2026-10-08T18:04:26.9614629Z   ---
+2026-10-08T18:04:26.9615459Z   duration_ms: 26.915495
+2026-10-08T18:04:26.9636525Z   type: 'test'
+2026-10-08T18:04:26.9637254Z   ...
+2026-10-08T18:04:26.9638269Z # Subtest: Page source/metadata/asset tampering is blocked and old Controller/R3 formats require an explicit path
+2026-10-08T18:04:26.9639713Z ok 56 - Page source/metadata/asset tampering is blocked and old Controller/R3 formats require an explicit path
+2026-10-08T18:04:26.9640696Z   ---
+2026-10-08T18:04:26.9641208Z   duration_ms: 21.824877
+2026-10-08T18:04:26.9641908Z   type: 'test'
+2026-10-08T18:04:26.9642414Z   ...
+2026-10-08T18:04:26.9775939Z # Subtest: named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration
+2026-10-08T18:04:26.9777506Z ok 57 - named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration
+2026-10-08T18:04:26.9778359Z   ---
+2026-10-08T18:04:26.9778962Z   duration_ms: 8.841318
+2026-10-08T18:04:26.9779431Z   type: 'test'
+2026-10-08T18:04:26.9779875Z   ...
+2026-10-08T18:04:26.9855882Z # Subtest: no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in
+2026-10-08T18:04:26.9869794Z ok 58 - no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in
+2026-10-08T18:04:26.9871137Z   ---
+2026-10-08T18:04:26.9871651Z   duration_ms: 6.215615
+2026-10-08T18:04:26.9872385Z   type: 'test'
+2026-10-08T18:04:26.9872858Z   ...
+2026-10-08T18:04:26.9948699Z # Subtest: incorrect browser document receipt and native script errors cannot claim success
+2026-10-08T18:04:26.9956326Z ok 59 - incorrect browser document receipt and native script errors cannot claim success
+2026-10-08T18:04:26.9957180Z   ---
+2026-10-08T18:04:26.9957764Z   duration_ms: 10.383173
+2026-10-08T18:04:26.9958241Z   type: 'test'
+2026-10-08T18:04:26.9958782Z   ...
+2026-10-08T18:04:26.9959607Z # Subtest: source, site and requested execution world cannot be forged through preview protocol
+2026-10-08T18:04:26.9960757Z ok 60 - source, site and requested execution world cannot be forged through preview protocol
+2026-10-08T18:04:26.9961544Z   ---
+2026-10-08T18:04:26.9962204Z   duration_ms: 0.866247
+2026-10-08T18:04:26.9962775Z   type: 'test'
+2026-10-08T18:04:26.9963272Z   ...
+2026-10-08T18:04:27.0070336Z # Subtest: verified pinned jQuery bytes precede preview main, without Service Worker evaluation
+2026-10-08T18:04:27.0074933Z ok 61 - verified pinned jQuery bytes precede preview main, without Service Worker evaluation
+2026-10-08T18:04:27.0075474Z   ---
+2026-10-08T18:04:27.0075795Z   duration_ms: 12.404756
+2026-10-08T18:04:27.0076106Z   type: 'test'
+2026-10-08T18:04:27.0076395Z   ...
+2026-10-08T18:04:27.0468954Z # Subtest: importing a JS draft leaves saved versions and running source independent
+2026-10-08T18:04:27.0492930Z ok 62 - importing a JS draft leaves saved versions and running source independent
+2026-10-08T18:04:27.0512473Z   ---
+2026-10-08T18:04:27.0515425Z   duration_ms: 21.037177
+2026-10-08T18:04:27.0543062Z   type: 'test'
+2026-10-08T18:04:27.0572463Z   ...
+2026-10-08T18:04:27.0592950Z # Subtest: draft import rejects empty/oversized sources and active saves without overwriting the editor
+2026-10-08T18:04:27.0598667Z ok 63 - draft import rejects empty/oversized sources and active saves without overwriting the editor
+2026-10-08T18:04:27.0599564Z   ---
+2026-10-08T18:04:27.0600097Z   duration_ms: 6.846208
+2026-10-08T18:04:27.0600583Z   type: 'test'
+2026-10-08T18:04:27.0601099Z   ...
+2026-10-08T18:04:27.0613458Z # Subtest: catalog draft import updates dependency review from the new source without saving or running
+2026-10-08T18:04:27.0614672Z ok 64 - catalog draft import updates dependency review from the new source without saving or running
+2026-10-08T18:04:27.0615323Z   ---
+2026-10-08T18:04:27.0615740Z   duration_ms: 6.671131
+2026-10-08T18:04:27.0616181Z   type: 'test'
+2026-10-08T18:04:27.0616752Z   ...
+2026-10-08T18:04:27.0662906Z # Subtest: Save persists revision/hash without requesting permission, creating a Run, or executing code
+2026-10-08T18:04:27.0693107Z ok 65 - Save persists revision/hash without requesting permission, creating a Run, or executing code
+2026-10-08T18:04:27.0702799Z   ---
+2026-10-08T18:04:27.0742449Z   duration_ms: 4.528637
+2026-10-08T18:04:27.0752638Z   type: 'test'
+2026-10-08T18:04:27.0777749Z   ...
+2026-10-08T18:04:27.0793229Z # Subtest: reopened editor lists saved scripts without running and loads the selected latest head explicitly
+2026-10-08T18:04:27.0794650Z ok 66 - reopened editor lists saved scripts without running and loads the selected latest head explicitly
+2026-10-08T18:04:27.0795502Z   ---
+2026-10-08T18:04:27.0795996Z   duration_ms: 5.310904
+2026-10-08T18:04:27.0796531Z   type: 'test'
+2026-10-08T18:04:27.0797041Z   ...
+2026-10-08T18:04:27.0797853Z # Subtest: loading a historical revision does not turn it into the latest Save CAS head
+2026-10-08T18:04:27.0798913Z ok 67 - loading a historical revision does not turn it into the latest Save CAS head
+2026-10-08T18:04:27.0799692Z   ---
+2026-10-08T18:04:27.0800137Z   duration_ms: 7.195937
+2026-10-08T18:04:27.0800621Z   type: 'test'
+2026-10-08T18:04:27.0801106Z   ...
+2026-10-08T18:04:27.0833097Z # Subtest: Delete tombstones the latest head and refreshes the saved-script selector
+2026-10-08T18:04:27.0834602Z ok 68 - Delete tombstones the latest head and refreshes the saved-script selector
+2026-10-08T18:04:27.0835196Z   ---
+2026-10-08T18:04:27.0835607Z   duration_ms: 5.494589
+2026-10-08T18:04:27.0836069Z   type: 'test'
+2026-10-08T18:04:27.0836440Z   ...
+2026-10-08T18:04:27.0930421Z # Subtest: saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+2026-10-08T18:04:27.0932555Z ok 69 - saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+2026-10-08T18:04:27.0933416Z   ---
+2026-10-08T18:04:27.0933788Z   duration_ms: 9.343564
+2026-10-08T18:04:27.0934270Z   type: 'test'
+2026-10-08T18:04:27.0934633Z   ...
+2026-10-08T18:04:27.0990196Z # Subtest: a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+2026-10-08T18:04:27.0996555Z ok 70 - a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+2026-10-08T18:04:27.0997391Z   ---
+2026-10-08T18:04:27.0997947Z   duration_ms: 6.206129
+2026-10-08T18:04:27.0998422Z   type: 'test'
+2026-10-08T18:04:27.0998780Z   ...
+2026-10-08T18:04:27.1136711Z # Subtest: permission preparation rejects a switched page; closing the editor during permission never admits a run
+2026-10-08T18:04:27.1140525Z ok 71 - permission preparation rejects a switched page; closing the editor during permission never admits a run
+2026-10-08T18:04:27.1141571Z   ---
+2026-10-08T18:04:27.1142257Z   duration_ms: 14.823058
+2026-10-08T18:04:27.1142939Z   type: 'test'
+2026-10-08T18:04:27.1143414Z   ...
+2026-10-08T18:04:27.1233244Z # Subtest: Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+2026-10-08T18:04:27.1263791Z ok 72 - Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+2026-10-08T18:04:27.1284708Z   ---
+2026-10-08T18:04:27.1308418Z   duration_ms: 8.88614
+2026-10-08T18:04:27.1342478Z   type: 'test'
+2026-10-08T18:04:27.1353522Z   ...
+2026-10-08T18:04:27.1383519Z # Subtest: pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+2026-10-08T18:04:27.1384549Z ok 73 - pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+2026-10-08T18:04:27.1385344Z   ---
+2026-10-08T18:04:27.1385788Z   duration_ms: 7.01362
+2026-10-08T18:04:27.1386272Z   type: 'test'
+2026-10-08T18:04:27.1386784Z   ...
+2026-10-08T18:04:27.1387569Z # Subtest: late Save/Load replies do not overwrite another script selection or edits made during loading
+2026-10-08T18:04:27.1388828Z ok 74 - late Save/Load replies do not overwrite another script selection or edits made during loading
+2026-10-08T18:04:27.1389616Z   ---
+2026-10-08T18:04:27.1390056Z   duration_ms: 6.341702
+2026-10-08T18:04:27.1390652Z   type: 'test'
+2026-10-08T18:04:27.1391116Z   ...
+2026-10-08T18:04:27.1451343Z # Subtest: late saved-script selector load cannot overwrite edits made during loading
+2026-10-08T18:04:27.1452521Z ok 75 - late saved-script selector load cannot overwrite edits made during loading
+2026-10-08T18:04:27.1467466Z   ---
+2026-10-08T18:04:27.1468013Z   duration_ms: 4.601
+2026-10-08T18:04:27.1468472Z   type: 'test'
+2026-10-08T18:04:27.1468742Z   ...
+2026-10-08T18:04:27.1574870Z # Subtest: an older snapshot reply cannot disable Run after a newer durable observation
+2026-10-08T18:04:27.1640638Z ok 76 - an older snapshot reply cannot disable Run after a newer durable observation
+2026-10-08T18:04:27.1649598Z   ---
+2026-10-08T18:04:27.1663542Z   duration_ms: 10.794323
+2026-10-08T18:04:27.1682903Z   type: 'test'
+2026-10-08T18:04:27.1683643Z   ...
+2026-10-08T18:04:27.1684655Z # Subtest: an older snapshot error cannot overwrite a newer successful durable view
+2026-10-08T18:04:27.1685767Z ok 77 - an older snapshot error cannot overwrite a newer successful durable view
+2026-10-08T18:04:27.1686318Z   ---
+2026-10-08T18:04:27.1686691Z   duration_ms: 11.173429
+2026-10-08T18:04:27.1692753Z   type: 'test'
+2026-10-08T18:04:27.1693320Z   ...
+2026-10-08T18:04:27.1747791Z # Subtest: the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing
+2026-10-08T18:04:27.1749150Z ok 78 - the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing
+2026-10-08T18:04:27.1749889Z   ---
+2026-10-08T18:04:27.1750394Z   duration_ms: 9.202557
+2026-10-08T18:04:27.1750941Z   type: 'test'
+2026-10-08T18:04:27.1751358Z   ...
+2026-10-08T18:04:27.1796431Z # Subtest: DOM preview binds frozen source, dependency choice and exact current document from trusted click
+2026-10-08T18:04:27.1797599Z ok 79 - DOM preview binds frozen source, dependency choice and exact current document from trusted click
+2026-10-08T18:04:27.1798564Z   ---
+2026-10-08T18:04:27.1798895Z   duration_ms: 3.849529
+2026-10-08T18:04:27.1799343Z   type: 'test'
+2026-10-08T18:04:27.1799718Z   ...
+2026-10-08T18:04:27.1845603Z # Subtest: DOM preview refuses to inject when the active document changes while permission is pending
+2026-10-08T18:04:27.1862829Z ok 80 - DOM preview refuses to inject when the active document changes while permission is pending
+2026-10-08T18:04:27.1864055Z   ---
+2026-10-08T18:04:27.1864548Z   duration_ms: 6.692001
+2026-10-08T18:04:27.1865064Z   type: 'test'
+2026-10-08T18:04:27.1865634Z   ...
+2026-10-08T18:04:27.1920100Z # Subtest: Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+2026-10-08T18:04:27.1920938Z ok 81 - Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+2026-10-08T18:04:27.1921410Z   ---
+2026-10-08T18:04:27.1921789Z   duration_ms: 5.7419
+2026-10-08T18:04:27.1922130Z   type: 'test'
+2026-10-08T18:04:27.1922436Z   ...
+2026-10-08T18:04:27.2068988Z # Subtest: project import displays source while Save and Run freeze compiled bytes and the original hash
+2026-10-08T18:04:27.2076025Z ok 82 - project import displays source while Save and Run freeze compiled bytes and the original hash
+2026-10-08T18:04:27.2083821Z   ---
+2026-10-08T18:04:27.2087287Z   duration_ms: 15.377018
+2026-10-08T18:04:27.2087884Z   type: 'test'
+2026-10-08T18:04:27.2088511Z   ...
+2026-10-08T18:04:27.2096541Z # Subtest: invalid project envelope leaves the previous editor source and no execution or saved revision
+2026-10-08T18:04:27.2103399Z ok 83 - invalid project envelope leaves the previous editor source and no execution or saved revision
+2026-10-08T18:04:27.2128806Z   ---
+2026-10-08T18:04:27.2129423Z   duration_ms: 4.243953
+2026-10-08T18:04:27.2129963Z   type: 'test'
+2026-10-08T18:04:27.2130359Z   ...
+2026-10-08T18:04:27.2224219Z # Subtest: manifest exposes tool.html as a global Chrome Side Panel
+2026-10-08T18:04:27.2232274Z ok 84 - manifest exposes tool.html as a global Chrome Side Panel
+2026-10-08T18:04:27.2232891Z   ---
+2026-10-08T18:04:27.2233282Z   duration_ms: 8.94432
+2026-10-08T18:04:27.2233758Z   type: 'test'
+2026-10-08T18:04:27.2234123Z   ...
+2026-10-08T18:04:27.2234622Z # Subtest: product shell has no popup-window fallback
+2026-10-08T18:04:27.2235231Z ok 85 - product shell has no popup-window fallback
+2026-10-08T18:04:27.2235662Z   ---
+2026-10-08T18:04:27.2236080Z   duration_ms: 1.742879
+2026-10-08T18:04:27.2236496Z   type: 'test'
+2026-10-08T18:04:27.2236860Z   ...
+2026-10-08T18:04:27.2237597Z # Subtest: default Run freezes Current Page then revalidates before existing RunHost
+2026-10-08T18:04:27.2238782Z ok 86 - default Run freezes Current Page then revalidates before existing RunHost
+2026-10-08T18:04:27.2239537Z   ---
+2026-10-08T18:04:27.2239970Z   duration_ms: 5.029856
+2026-10-08T18:04:27.2240431Z   type: 'test'
+2026-10-08T18:04:27.2240824Z   ...
+2026-10-08T18:04:27.2241824Z # Subtest: trusted Side Panel run sends the exact unsaved draft to the original Controller authority
+2026-10-08T18:04:27.2242976Z ok 87 - trusted Side Panel run sends the exact unsaved draft to the original Controller authority
+2026-10-08T18:04:27.2243721Z   ---
+2026-10-08T18:04:27.2244223Z   duration_ms: 2.075695
+2026-10-08T18:04:27.2244918Z   type: 'test'
+2026-10-08T18:04:27.2245347Z   ...
+2026-10-08T18:04:27.2245946Z # Subtest: R6 uses valid tab roles with labelled content panels
+2026-10-08T18:04:27.2246750Z ok 88 - R6 uses valid tab roles with labelled content panels
+2026-10-08T18:04:27.2247376Z   ---
+2026-10-08T18:04:27.2247765Z   duration_ms: 1.364689
+2026-10-08T18:04:27.2248231Z   type: 'test'
+2026-10-08T18:04:27.2248659Z   ...
+2026-10-08T18:04:27.2249401Z # Subtest: R4 Sidebar sections preserve consumer controls and keep engineering tools folded
+2026-10-08T18:04:27.2250460Z ok 89 - R4 Sidebar sections preserve consumer controls and keep engineering tools folded
+2026-10-08T18:04:27.2251204Z   ---
+2026-10-08T18:04:27.2251641Z   duration_ms: 3.238276
+2026-10-08T18:04:27.2252533Z   type: 'test'
+2026-10-08T18:04:27.2253013Z   ...
+2026-10-08T18:04:27.2253761Z # Subtest: Sidebar starts at its three tabs without repeating Chrome extension identity
+2026-10-08T18:04:27.2254751Z ok 90 - Sidebar starts at its three tabs without repeating Chrome extension identity
+2026-10-08T18:04:27.2255480Z   ---
+2026-10-08T18:04:27.2255863Z   duration_ms: 1.687147
+2026-10-08T18:04:27.2256411Z   type: 'test'
+2026-10-08T18:04:27.2256844Z   ...
+2026-10-08T18:04:27.2284320Z # Subtest: entering Sidebar task views reads external installations without executing and preserves unchanged form inputs
+2026-10-08T18:04:27.2285881Z ok 91 - entering Sidebar task views reads external installations without executing and preserves unchanged form inputs
+2026-10-08T18:04:27.2286809Z   ---
+2026-10-08T18:04:27.2287397Z   duration_ms: 27.092832
+2026-10-08T18:04:27.2287917Z   type: 'test'
+2026-10-08T18:04:27.2288336Z   ...
+2026-10-08T18:04:27.2313039Z # Subtest: installed tasks default page, render schema form and freeze the exact saved version/params/target
+2026-10-08T18:04:27.2317636Z ok 92 - installed tasks default page, render schema form and freeze the exact saved version/params/target
+2026-10-08T18:04:27.2318571Z   ---
+2026-10-08T18:04:27.2319044Z   duration_ms: 23.550603
+2026-10-08T18:04:27.2319650Z   type: 'test'
+2026-10-08T18:04:27.2320154Z   ...
+2026-10-08T18:04:27.2321007Z # Subtest: installed task can be explicitly forked into an independent unsaved editor draft
+2026-10-08T18:04:27.2322286Z ok 93 - installed task can be explicitly forked into an independent unsaved editor draft
+2026-10-08T18:04:27.2323100Z   ---
+2026-10-08T18:04:27.2323618Z   duration_ms: 8.073018
+2026-10-08T18:04:27.2324087Z   type: 'test'
+2026-10-08T18:04:27.2324567Z   ...
+2026-10-08T18:04:27.2325353Z # Subtest: task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+2026-10-08T18:04:27.2326419Z ok 94 - task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+2026-10-08T18:04:27.2326959Z   ---
+2026-10-08T18:04:27.2327293Z   duration_ms: 7.681627
+2026-10-08T18:04:27.2327680Z   type: 'test'
+2026-10-08T18:04:27.2327990Z   ...
+2026-10-08T18:04:27.2328542Z # Subtest: installed task refuses stale target after async installed-version lookup
+2026-10-08T18:04:27.2329233Z ok 95 - installed task refuses stale target after async installed-version lookup
+2026-10-08T18:04:27.2329709Z   ---
+2026-10-08T18:04:27.2330031Z   duration_ms: 7.598502
+2026-10-08T18:04:27.2330619Z   type: 'test'
+2026-10-08T18:04:27.2331063Z   ...
+2026-10-08T18:04:27.2331966Z # Subtest: task cards retain readable selection and do not surface raw IDs as the main UI
+2026-10-08T18:04:27.2333104Z ok 96 - task cards retain readable selection and do not surface raw IDs as the main UI
+2026-10-08T18:04:27.2333791Z   ---
+2026-10-08T18:04:27.2334323Z   duration_ms: 4.638421
+2026-10-08T18:04:27.2334800Z   type: 'test'
+2026-10-08T18:04:27.2335222Z   ...
+2026-10-08T18:04:27.2336206Z # Subtest: Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog
+2026-10-08T18:04:27.2337540Z ok 97 - Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog
+2026-10-08T18:04:27.2338650Z   ---
+2026-10-08T18:04:27.2339170Z   duration_ms: 9.416303
+2026-10-08T18:04:27.2356096Z   type: 'test'
+2026-10-08T18:04:27.2356715Z   ...
+2026-10-08T18:04:27.2357624Z # Subtest: Discover filter controls are real view filters and cannot start another run
+2026-10-08T18:04:27.2358534Z ok 98 - Discover filter controls are real view filters and cannot start another run
+2026-10-08T18:04:27.2359150Z   ---
+2026-10-08T18:04:27.2359664Z   duration_ms: 14.988837
+2026-10-08T18:04:27.2360112Z   type: 'test'
+2026-10-08T18:04:27.2360423Z   ...
+2026-10-08T18:04:27.2360897Z # Subtest: opening the separate full-size catalog preserves its import and management view
+2026-10-08T18:04:27.2361532Z ok 99 - opening the separate full-size catalog preserves its import and management view
+2026-10-08T18:04:27.2362266Z   ---
+2026-10-08T18:04:27.2362630Z   duration_ms: 3.225241
+2026-10-08T18:04:27.2363010Z   type: 'test'
+2026-10-08T18:04:27.2363367Z   ...
+2026-10-08T18:04:27.2364174Z # Subtest: full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+2026-10-08T18:04:27.2365761Z ok 100 - full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+2026-10-08T18:04:27.2366652Z   ---
+2026-10-08T18:04:27.2367025Z   duration_ms: 7.671118
+2026-10-08T18:04:27.2367527Z   type: 'test'
+2026-10-08T18:04:27.2367951Z   ...
+2026-10-08T18:04:27.2368862Z # Subtest: idle Discover has no fixed footer and inline import still opens the authenticated catalog
+2026-10-08T18:04:27.2370047Z ok 101 - idle Discover has no fixed footer and inline import still opens the authenticated catalog
+2026-10-08T18:04:27.2370897Z   ---
+2026-10-08T18:04:27.2371425Z   duration_ms: 17.766282
+2026-10-08T18:04:27.2372004Z   type: 'test'
+2026-10-08T18:04:27.2372623Z   ...
+2026-10-08T18:04:27.2373655Z # Subtest: R5 result/history stay out of sight until a task has runs
+2026-10-08T18:04:27.2374506Z ok 102 - R5 result/history stay out of sight until a task has runs
+2026-10-08T18:04:27.2375111Z   ---
+2026-10-08T18:04:27.2375520Z   duration_ms: 10.136296
+2026-10-08T18:04:27.2375987Z   type: 'test'
+2026-10-08T18:04:27.2376338Z   ...
+2026-10-08T18:04:27.2377235Z # Subtest: card view retains original action identities, history and parameter form across tab changes
+2026-10-08T18:04:27.2378272Z ok 103 - card view retains original action identities, history and parameter form across tab changes
+2026-10-08T18:04:27.2378905Z   ---
+2026-10-08T18:04:27.2379329Z   duration_ms: 13.111278
+2026-10-08T18:04:27.2379706Z   type: 'test'
+2026-10-08T18:04:27.2380092Z   ...
+2026-10-08T18:04:27.2380822Z # Subtest: switching between two installed tasks preserves each independent unsaved parameter input
+2026-10-08T18:04:27.2382176Z ok 104 - switching between two installed tasks preserves each independent unsaved parameter input
+2026-10-08T18:04:27.2382851Z   ---
+2026-10-08T18:04:27.2383199Z   duration_ms: 6.084642
+2026-10-08T18:04:27.2383627Z   type: 'test'
+2026-10-08T18:04:27.2383956Z   ...
+2026-10-08T18:04:27.2431654Z # Subtest: R6 accessible roving tabs support Arrow and Home/End
+2026-10-08T18:04:27.2432824Z ok 105 - R6 accessible roving tabs support Arrow and Home/End
+2026-10-08T18:04:27.2433383Z   ---
+2026-10-08T18:04:27.2433839Z   duration_ms: 6.666233
+2026-10-08T18:04:27.2434249Z   type: 'test'
+2026-10-08T18:04:27.2434641Z   ...
+2026-10-08T18:04:27.2472766Z # Subtest: R6 task card refresh, keyboard selection and Discover handoff restore focus
+2026-10-08T18:04:27.2489303Z ok 106 - R6 task card refresh, keyboard selection and Discover handoff restore focus
+2026-10-08T18:04:27.2489971Z   ---
+2026-10-08T18:04:27.2490554Z   duration_ms: 5.869032
+2026-10-08T18:04:27.2490964Z   type: 'test'
+2026-10-08T18:04:27.2491226Z   ...
+2026-10-08T18:04:27.2588366Z # Subtest: R6 late run start/result cannot become the newly selected task status
+2026-10-08T18:04:27.2589693Z ok 107 - R6 late run start/result cannot become the newly selected task status
+2026-10-08T18:04:27.2590453Z   ---
+2026-10-08T18:04:27.2591030Z   duration_ms: 12.121425
+2026-10-08T18:04:27.2591877Z   type: 'test'
+2026-10-08T18:04:27.2592389Z   ...
+2026-10-08T18:04:27.2728594Z # Subtest: R6 previous-version notices and results do not leak after installed upgrade
+2026-10-08T18:04:27.2729599Z ok 108 - R6 previous-version notices and results do not leak after installed upgrade
+2026-10-08T18:04:27.2730379Z   ---
+2026-10-08T18:04:27.2730767Z   duration_ms: 13.664563
+2026-10-08T18:04:27.2731191Z   type: 'test'
+2026-10-08T18:04:27.2731514Z   ...
+2026-10-08T18:04:27.2982844Z # Subtest: two extension documents share only a refresh hint and re-read authoritative installed state
+2026-10-08T18:04:27.2983714Z ok 109 - two extension documents share only a refresh hint and re-read authoritative installed state
+2026-10-08T18:04:27.2984199Z   ---
+2026-10-08T18:04:27.2984485Z   duration_ms: 24.575299
+2026-10-08T18:04:27.2984770Z   type: 'test'
+2026-10-08T18:04:27.2985055Z   ...
+2026-10-08T18:04:27.3030788Z # Subtest: catalog installation stays in the complete directory and directs running back to Sidebar
+2026-10-08T18:04:27.3032282Z ok 110 - catalog installation stays in the complete directory and directs running back to Sidebar
+2026-10-08T18:04:27.3033201Z   ---
+2026-10-08T18:04:27.3033597Z   duration_ms: 6.13155
+2026-10-08T18:04:27.3034011Z   type: 'test'
+2026-10-08T18:04:27.3034585Z   ...
+2026-10-08T18:04:27.3103586Z # Subtest: catalog JS import hands source to Sidebar and never enters a view with a hidden runner
+2026-10-08T18:04:27.3112682Z ok 111 - catalog JS import hands source to Sidebar and never enters a view with a hidden runner
+2026-10-08T18:04:27.3113351Z   ---
+2026-10-08T18:04:27.3113694Z   duration_ms: 5.736722
+2026-10-08T18:04:27.3113983Z   type: 'test'
+2026-10-08T18:04:27.3114284Z   ...
+2026-10-08T18:04:27.3155494Z # Subtest: missing Sidebar refuses import with an actionable message, without losing the directory
+2026-10-08T18:04:27.3156634Z ok 112 - missing Sidebar refuses import with an actionable message, without losing the directory
+2026-10-08T18:04:27.3157397Z   ---
+2026-10-08T18:04:27.3157770Z   duration_ms: 6.230437
+2026-10-08T18:04:27.3158166Z   type: 'test'
+2026-10-08T18:04:27.3158599Z   ...
+2026-10-08T18:04:27.3198125Z # Subtest: catalog draft transport errors retain their cause instead of claiming Sidebar is missing
+2026-10-08T18:04:27.3201313Z ok 113 - catalog draft transport errors retain their cause instead of claiming Sidebar is missing
+2026-10-08T18:04:27.3202119Z   ---
+2026-10-08T18:04:27.3202559Z   duration_ms: 4.797978
+2026-10-08T18:04:27.3202927Z   type: 'test'
+2026-10-08T18:04:27.3203291Z   ...
+2026-10-08T18:04:27.3252958Z # Subtest: receiving a source-only import selects Sidebar Developer without creating a run
+2026-10-08T18:04:27.3259482Z ok 114 - receiving a source-only import selects Sidebar Developer without creating a run
+2026-10-08T18:04:27.3260415Z   ---
+2026-10-08T18:04:27.3261385Z   duration_ms: 3.031748
+2026-10-08T18:04:27.3262061Z   type: 'test'
+2026-10-08T18:04:27.3262411Z   ...
+2026-10-08T18:04:27.3390266Z # Subtest: R6.1 task-owned Stop is the sole cross-view action and names the launching task
+2026-10-08T18:04:27.3391421Z ok 115 - R6.1 task-owned Stop is the sole cross-view action and names the launching task
+2026-10-08T18:04:27.3392294Z   ---
+2026-10-08T18:04:27.3392812Z   duration_ms: 16.017423
+2026-10-08T18:04:27.3393358Z   type: 'test'
+2026-10-08T18:04:27.3393814Z   ...
+2026-10-08T18:04:27.3417453Z # Subtest: R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover
+2026-10-08T18:04:27.3418527Z ok 116 - R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover
+2026-10-08T18:04:27.3419145Z   ---
+2026-10-08T18:04:27.3419539Z   duration_ms: 3.047047
+2026-10-08T18:04:27.3419982Z   type: 'test'
+2026-10-08T18:04:27.3420320Z   ...
+2026-10-08T18:04:27.3453492Z # Subtest: R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop
+2026-10-08T18:04:27.3454403Z ok 117 - R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop
+2026-10-08T18:04:27.3455099Z   ---
+2026-10-08T18:04:27.3455491Z   duration_ms: 3.393326
+2026-10-08T18:04:27.3456073Z   type: 'test'
+2026-10-08T18:04:27.3456499Z   ...
+2026-10-08T18:04:27.3598248Z # Subtest: real manager → approval → preview executes two ordered sources, reuses draft locks offline, and rechecks new GM grants
+2026-10-08T18:04:27.3599432Z ok 118 - real manager → approval → preview executes two ordered sources, reuses draft locks offline, and rechecks new GM grants
+2026-10-08T18:04:27.3599924Z   ---
+2026-10-08T18:04:27.3600210Z   duration_ms: 84.421536
+2026-10-08T18:04:27.3600580Z   type: 'test'
+2026-10-08T18:04:27.3600843Z   ...
+2026-10-08T18:04:27.3601483Z # Subtest: classic top-level const runs repeatedly in fresh worlds; trailing comments and ASI do not consume the next source
+2026-10-08T18:04:27.3602588Z ok 119 - classic top-level const runs repeatedly in fresh worlds; trailing comments and ASI do not consume the next source
+2026-10-08T18:04:27.3603079Z   ---
+2026-10-08T18:04:27.3603379Z   duration_ms: 18.992324
+2026-10-08T18:04:27.3603746Z   type: 'test'
+2026-10-08T18:04:27.3604040Z   ...
+2026-10-08T18:04:27.3613239Z # Subtest: a synchronous dependency failure prevents later libraries and the consumer from executing
+2026-10-08T18:04:27.3624714Z ok 120 - a synchronous dependency failure prevents later libraries and the consumer from executing
+2026-10-08T18:04:27.3625671Z   ---
+2026-10-08T18:04:27.3626201Z   duration_ms: 31.694187
+2026-10-08T18:04:27.3626713Z   type: 'test'
+2026-10-08T18:04:27.3627178Z   ...
+2026-10-08T18:04:27.3628561Z # Subtest: an absent user main cannot fall back to a dependency global main or an async-main-looking comment
+2026-10-08T18:04:27.3643630Z ok 121 - an absent user main cannot fall back to a dependency global main or an async-main-looking comment
+2026-10-08T18:04:27.3644363Z   ---
+2026-10-08T18:04:27.3644809Z   duration_ms: 18.472845
+2026-10-08T18:04:27.3649700Z   type: 'test'
+2026-10-08T18:04:27.3650478Z   ...
+2026-10-08T18:04:27.3651588Z # Subtest: simulated Chromium named-world exhaustion falls back to default, fails the isolation probe, and injects no user code
+2026-10-08T18:04:27.3653561Z ok 122 - simulated Chromium named-world exhaustion falls back to default, fails the isolation probe, and injects no user code
+2026-10-08T18:04:27.3654969Z   ---
+2026-10-08T18:04:27.3655318Z   duration_ms: 7.756921
+2026-10-08T18:04:27.3655689Z   type: 'test'
+2026-10-08T18:04:27.3656094Z   ...
+2026-10-08T18:04:27.3656864Z # Subtest: document budget survives service restart and navigation cleanup; closing a tab releases the ledger even when the API is disabled
+2026-10-08T18:04:27.3657941Z ok 123 - document budget survives service restart and navigation cleanup; closing a tab releases the ledger even when the API is disabled
+2026-10-08T18:04:27.3658767Z   ---
+2026-10-08T18:04:27.3659252Z   duration_ms: 33.1425
+2026-10-08T18:04:27.3659670Z   type: 'test'
+2026-10-08T18:04:27.3660016Z   ...
+2026-10-08T18:04:27.3660396Z 1..123
+2026-10-08T18:04:27.3660730Z # tests 123
+2026-10-08T18:04:27.3661034Z # suites 0
+2026-10-08T18:04:27.3661438Z # pass 123
+2026-10-08T18:04:27.3661862Z # fail 0
+2026-10-08T18:04:27.3662235Z # cancelled 0
+2026-10-08T18:04:27.3662616Z # skipped 0
+2026-10-08T18:04:27.3662974Z # todo 0
+2026-10-08T18:04:27.3663675Z # duration_ms 745.547231
+2026-10-08T18:04:27.4354643Z ##[group]Run node --test tests/environment/basic-browser-page.test.mjs
+2026-10-08T18:04:27.4355283Z [36;1mnode --test tests/environment/basic-browser-page.test.mjs[0m
+2026-10-08T18:04:27.4390595Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:27.4390974Z ##[endgroup]
+2026-10-08T18:04:27.4786304Z TAP version 13
+2026-10-08T18:04:27.5156880Z # Subtest: one ordinary HTML page exposes unique, stable automation targets
+2026-10-08T18:04:27.5162704Z ok 1 - one ordinary HTML page exposes unique, stable automation targets
+2026-10-08T18:04:27.5163603Z   ---
+2026-10-08T18:04:27.5164285Z   duration_ms: 4.97822
+2026-10-08T18:04:27.5164870Z   type: 'test'
+2026-10-08T18:04:27.5165467Z   ...
+2026-10-08T18:04:27.5173034Z # Subtest: the unchanged signed v1 task still targets \#name → \#submit → \#done
+2026-10-08T18:04:27.5174279Z ok 2 - the unchanged signed v1 task still targets \#name → \#submit → \#done
+2026-10-08T18:04:27.5174996Z   ---
+2026-10-08T18:04:27.5175324Z   duration_ms: 1.604911
+2026-10-08T18:04:27.5175754Z   type: 'test'
+2026-10-08T18:04:27.5176014Z   ...
+2026-10-08T18:04:27.5180303Z # Subtest: modern search retains an initially filled field and deliberately replaces its submit button
+2026-10-08T18:04:27.5181554Z ok 3 - modern search retains an initially filled field and deliberately replaces its submit button
+2026-10-08T18:04:27.5182825Z   ---
+2026-10-08T18:04:27.5183478Z   duration_ms: 0.902394
+2026-10-08T18:04:27.5183868Z   type: 'test'
+2026-10-08T18:04:27.5184141Z   ...
+2026-10-08T18:04:27.5189343Z # Subtest: async scene sends only local fetches and distinguishes loading, 404, abort and timeout
+2026-10-08T18:04:27.5190605Z ok 4 - async scene sends only local fetches and distinguishes loading, 404, abort and timeout
+2026-10-08T18:04:27.5191206Z   ---
+2026-10-08T18:04:27.5191584Z   duration_ms: 0.784243
+2026-10-08T18:04:27.5192168Z   type: 'test'
+2026-10-08T18:04:27.5192466Z   ...
+2026-10-08T18:04:27.5207453Z # Subtest: explicit HTTP GET controls expose safe semantics and preserve offline-first operation
+2026-10-08T18:04:27.5208491Z ok 5 - explicit HTTP GET controls expose safe semantics and preserve offline-first operation
+2026-10-08T18:04:27.5209204Z   ---
+2026-10-08T18:04:27.5209553Z   duration_ms: 1.728094
+2026-10-08T18:04:27.5210017Z   type: 'test'
+2026-10-08T18:04:27.5210382Z   ...
+2026-10-08T18:04:27.5226885Z # Subtest: the single canonical page exposes seven navigable groups and honest Locator fixtures
+2026-10-08T18:04:27.5228123Z ok 6 - the single canonical page exposes seven navigable groups and honest Locator fixtures
+2026-10-08T18:04:27.5228561Z   ---
+2026-10-08T18:04:27.5228909Z   duration_ms: 1.859318
+2026-10-08T18:04:27.5229195Z   type: 'test'
+2026-10-08T18:04:27.5229446Z   ...
+2026-10-08T18:04:29.0460165Z # Subtest: Locator fixture actions, late insertion, and reset mutate only observable DOM
+2026-10-08T18:04:29.0461107Z ok 7 - Locator fixture actions, late insertion, and reset mutate only observable DOM
+2026-10-08T18:04:29.0461590Z   ---
+2026-10-08T18:04:29.0462228Z   duration_ms: 1522.854365
+2026-10-08T18:04:29.0462517Z   type: 'test'
+2026-10-08T18:04:29.0462818Z   ...
+2026-10-08T18:04:29.0645887Z # Subtest: HTTP panel sends no request until click and shows real status/content without HTML injection
+2026-10-08T18:04:29.0646889Z ok 8 - HTTP panel sends no request until click and shows real status/content without HTML injection
+2026-10-08T18:04:29.0647572Z   ---
+2026-10-08T18:04:29.0647946Z   duration_ms: 18.593151
+2026-10-08T18:04:29.0648376Z   type: 'test'
+2026-10-08T18:04:29.0648788Z   ...
+2026-10-08T18:04:29.0707312Z # Subtest: HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies
+2026-10-08T18:04:29.0712378Z ok 9 - HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies
+2026-10-08T18:04:29.0713218Z   ---
+2026-10-08T18:04:29.0713734Z   duration_ms: 5.865387
+2026-10-08T18:04:29.0714420Z   type: 'test'
+2026-10-08T18:04:29.0714895Z   ...
+2026-10-08T18:04:29.0741295Z # Subtest: minimal HTTP UI rejects invalid URLs without sending requests
+2026-10-08T18:04:29.0742925Z ok 10 - minimal HTTP UI rejects invalid URLs without sending requests
+2026-10-08T18:04:29.0743882Z   ---
+2026-10-08T18:04:29.0744506Z   duration_ms: 3.344265
+2026-10-08T18:04:29.0745132Z   type: 'test'
+2026-10-08T18:04:29.0745741Z   ...
+2026-10-08T18:04:29.0767751Z # Subtest: inline JavaScript parses without a third-party runtime or external resources
+2026-10-08T18:04:29.0768988Z ok 11 - inline JavaScript parses without a third-party runtime or external resources
+2026-10-08T18:04:29.0769798Z   ---
+2026-10-08T18:04:29.0770295Z   duration_ms: 1.201373
+2026-10-08T18:04:29.0770874Z   type: 'test'
+2026-10-08T18:04:29.0771435Z   ...
+2026-10-08T18:04:29.0780288Z # Subtest: manual browser testing has exactly one canonical HTML and no obsolete advertised URL
+2026-10-08T18:04:29.0782032Z ok 12 - manual browser testing has exactly one canonical HTML and no obsolete advertised URL
+2026-10-08T18:04:29.0783277Z   ---
+2026-10-08T18:04:29.0783758Z   duration_ms: 2.539688
+2026-10-08T18:04:29.0784256Z   type: 'test'
+2026-10-08T18:04:29.0785232Z   ...
+2026-10-08T18:04:29.0895864Z 1..12
+2026-10-08T18:04:29.0909911Z # tests 12
+2026-10-08T18:04:29.0910366Z # suites 0
+2026-10-08T18:04:29.0910719Z # pass 12
+2026-10-08T18:04:29.0911005Z # fail 0
+2026-10-08T18:04:29.0911310Z # cancelled 0
+2026-10-08T18:04:29.0911630Z # skipped 0
+2026-10-08T18:04:29.0923949Z # todo 0
+2026-10-08T18:04:29.0924244Z # duration_ms 1619.330679
+2026-10-08T18:04:29.1050825Z ##[group]Run node --test tests/environment/r8-backlog-contract.test.mjs
+2026-10-08T18:04:29.1051357Z [36;1mnode --test tests/environment/r8-backlog-contract.test.mjs[0m
+2026-10-08T18:04:29.1086219Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:29.1086587Z ##[endgroup]
+2026-10-08T18:04:29.1502159Z TAP version 13
+2026-10-08T18:04:29.1967078Z # Subtest: R8 catalog has 188 single-owner capabilities, 40 complete tasks and an acyclic phased plan
+2026-10-08T18:04:29.1971242Z ok 1 - R8 catalog has 188 single-owner capabilities, 40 complete tasks and an acyclic phased plan
+2026-10-08T18:04:29.1982891Z   ---
+2026-10-08T18:04:29.1983790Z   duration_ms: 3.852838
+2026-10-08T18:04:29.1984404Z   type: 'test'
+2026-10-08T18:04:29.1985065Z   ...
+2026-10-08T18:04:29.1986036Z # Subtest: omitted deferred capability, duplicate primary ownership and invented capability fail the coverage gate
+2026-10-08T18:04:29.1987501Z ok 2 - omitted deferred capability, duplicate primary ownership and invented capability fail the coverage gate
+2026-10-08T18:04:29.1988452Z   ---
+2026-10-08T18:04:29.1989151Z   duration_ms: 3.996422
+2026-10-08T18:04:29.1989786Z   type: 'test'
+2026-10-08T18:04:29.1990389Z   ...
+2026-10-08T18:04:29.1991483Z # Subtest: invalid prerequisite, circular work ordering and duplicate catalog identity are rejected
+2026-10-08T18:04:29.1993076Z ok 3 - invalid prerequisite, circular work ordering and duplicate catalog identity are rejected
+2026-10-08T18:04:29.1994118Z   ---
+2026-10-08T18:04:29.1994709Z   duration_ms: 8.099578
+2026-10-08T18:04:29.1995321Z   type: 'test'
+2026-10-08T18:04:29.1996034Z   ...
+2026-10-08T18:04:29.2033683Z 1..3
+2026-10-08T18:04:29.2034212Z # tests 3
+2026-10-08T18:04:29.2034599Z # suites 0
+2026-10-08T18:04:29.2034990Z # pass 3
+2026-10-08T18:04:29.2035328Z # fail 0
+2026-10-08T18:04:29.2035812Z # cancelled 0
+2026-10-08T18:04:29.2036203Z # skipped 0
+2026-10-08T18:04:29.2036547Z # todo 0
+2026-10-08T18:04:29.2036944Z # duration_ms 61.967302
+2026-10-08T18:04:29.2551001Z ##[group]Run npm run check
+2026-10-08T18:04:29.2551338Z [36;1mnpm run check[0m
+2026-10-08T18:04:29.2584222Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:29.2584567Z ##[endgroup]
+2026-10-08T18:04:29.3628761Z 
+2026-10-08T18:04:29.3629371Z > opendesk-browser@0.1.0 check
+2026-10-08T18:04:29.3629954Z > node scripts/check-source.mjs
+2026-10-08T18:04:29.3630230Z 
+2026-10-08T18:04:32.6307982Z Syntax checked 167 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked
+2026-10-08T18:04:32.6428199Z ##[group]Run npm run build
+2026-10-08T18:04:32.6428641Z [36;1mnpm run build[0m
+2026-10-08T18:04:32.6468786Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:32.6469114Z ##[endgroup]
+2026-10-08T18:04:32.7214885Z 
+2026-10-08T18:04:32.7215469Z > opendesk-browser@0.1.0 build
+2026-10-08T18:04:32.7215991Z > node scripts/build.mjs production
+2026-10-08T18:04:32.7216214Z 
+2026-10-08T18:04:33.0576165Z [log] 
+2026-10-08T18:04:33.0576752Z WXT 0.21.4
+2026-10-08T18:04:33.1539697Z [info] Generating types...
+2026-10-08T18:04:33.2677411Z [success] Finished in 211 ms
+2026-10-08T18:04:33.5959577Z [log] 
+2026-10-08T18:04:33.5960169Z WXT 0.21.4
+2026-10-08T18:04:33.6929426Z [info] Building chrome-mv3 for production with Vite 7.3.6
+2026-10-08T18:04:33.8074983Z [?25l
+2026-10-08T18:04:33.8115697Z ⠋ Preparing...[K
+2026-10-08T18:04:33.8963057Z ⠋ [1/14] sw[K
+2026-10-08T18:04:34.0175301Z ⠙ [1/14] sw[K
+2026-10-08T18:04:34.1271122Z ⠹ [1/14] sw[K
+2026-10-08T18:04:34.2064762Z ⠸ [1/14] sw[K
+2026-10-08T18:04:34.6101650Z ⠼ [1/14] sw[K
+2026-10-08T18:04:34.6899280Z ⠴ [1/14] sw[K
+2026-10-08T18:04:34.7733727Z ⠦ [1/14] sw[K
+2026-10-08T18:04:34.8530067Z ⠧ [1/14] sw[K
+2026-10-08T18:04:34.9332291Z ⠇ [1/14] sw[K
+2026-10-08T18:04:35.0190588Z ⠏ [1/14] sw[K
+2026-10-08T18:04:35.0980119Z ⠋ [1/14] sw[K
+2026-10-08T18:04:35.1768828Z ⠙ [1/14] sw[K
+2026-10-08T18:04:35.2571177Z ⠹ [1/14] sw[K
+2026-10-08T18:04:35.3390738Z ⠸ [1/14] sw[K
+2026-10-08T18:04:35.4165513Z ⠼ [1/14] sw[K
+2026-10-08T18:04:35.4968071Z ⠴ [1/14] sw[K
+2026-10-08T18:04:35.5772953Z ⠦ [1/14] sw[K
+2026-10-08T18:04:35.6572620Z ⠧ [1/14] sw[K
+2026-10-08T18:04:35.7374199Z ⠇ [1/14] sw[K
+2026-10-08T18:04:35.8176951Z ⠏ [1/14] sw[K
+2026-10-08T18:04:35.8981196Z ⠋ [1/14] sw[K
+2026-10-08T18:04:35.9783553Z ⠙ [1/14] sw[K
+2026-10-08T18:04:36.0575607Z ⠹ [1/14] sw[K
+2026-10-08T18:04:36.1377746Z ⠸ [1/14] sw[K
+2026-10-08T18:04:36.2179811Z ⠼ [1/14] sw[K
+2026-10-08T18:04:36.2981416Z ⠴ [1/14] sw[K
+2026-10-08T18:04:36.3784314Z ⠦ [1/14] sw[K
+2026-10-08T18:04:36.4603232Z ⠧ [1/14] sw[K
+2026-10-08T18:04:36.5402200Z ⠇ [1/14] sw[K
+2026-10-08T18:04:36.6204186Z ⠏ [1/14] sw[K
+2026-10-08T18:04:36.6996448Z ⠋ [1/14] sw[K
+2026-10-08T18:04:36.7819149Z ⠙ [1/14] sw[K
+2026-10-08T18:04:36.8613691Z ⠹ [1/14] sw[K
+2026-10-08T18:04:36.9406307Z ⠸ [1/14] sw[K
+2026-10-08T18:04:37.0208494Z ⠼ [1/14] sw[K
+2026-10-08T18:04:37.1056390Z ⠴ [1/14] sw[K
+2026-10-08T18:04:37.1446714Z ⠦ [1/14] sw[K
+2026-10-08T18:04:37.1815974Z ⠦ [2/14] bootstrap[K
+2026-10-08T18:04:37.2618213Z ⠧ [2/14] bootstrap[K
+2026-10-08T18:04:37.3107589Z ⠇ [2/14] bootstrap[K
+2026-10-08T18:04:37.3418027Z ⠇ [3/14] bridge[K
+2026-10-08T18:04:37.4226236Z ⠏ [3/14] bridge[K
+2026-10-08T18:04:37.4905813Z ⠋ [3/14] bridge[K
+2026-10-08T18:04:37.5027081Z ⠋ [4/14] health[K
+2026-10-08T18:04:37.5833539Z ⠙ [4/14] health[K
+2026-10-08T18:04:37.6107322Z ⠹ [4/14] health[K
+2026-10-08T18:04:37.6628409Z ⠹ [5/14] page-agent[K
+2026-10-08T18:04:37.7425121Z ⠸ [5/14] page-agent[K
+2026-10-08T18:04:37.8252825Z ⠼ [5/14] page-agent[K
+2026-10-08T18:04:37.9027352Z ⠴ [5/14] page-agent[K
+2026-10-08T18:04:37.9843209Z ⠦ [5/14] page-agent[K
+2026-10-08T18:04:38.0301863Z ⠧ [5/14] page-agent[K
+2026-10-08T18:04:38.0769005Z ⠧ [6/14] page-relay[K
+2026-10-08T18:04:38.1557972Z ⠇ [6/14] page-relay[K
+2026-10-08T18:04:38.2363488Z ⠏ [6/14] page-relay[K
+2026-10-08T18:04:38.3173551Z ⠋ [6/14] page-relay[K
+2026-10-08T18:04:38.3974028Z ⠙ [6/14] page-relay[K
+2026-10-08T18:04:38.4256533Z ⠹ [6/14] page-relay[K
+2026-10-08T18:04:38.5012597Z ⠹ [7/14] page-session[K
+2026-10-08T18:04:38.5804886Z ⠸ [7/14] page-session[K
+2026-10-08T18:04:38.6620125Z ⠼ [7/14] page-session[K
+2026-10-08T18:04:38.7423005Z ⠴ [7/14] page-session[K
+2026-10-08T18:04:38.8223293Z ⠦ [7/14] page-session[K
+2026-10-08T18:04:38.9025535Z ⠧ [7/14] page-session[K
+2026-10-08T18:04:38.9853164Z ⠇ [7/14] page-session[K
+2026-10-08T18:04:39.0626385Z ⠏ [7/14] page-session[K
+2026-10-08T18:04:39.1006234Z ⠋ [7/14] page-session[K
+2026-10-08T18:04:39.1429261Z ⠋ [8/14] sandbox[K
+2026-10-08T18:04:39.2253589Z ⠙ [8/14] sandbox[K
+2026-10-08T18:04:39.3042947Z ⠹ [8/14] sandbox[K
+2026-10-08T18:04:39.3115777Z ⠸ [8/14] sandbox[K
+2026-10-08T18:04:39.3870180Z ⠸ [9/14] sdk-main[K
+2026-10-08T18:04:39.4669907Z ⠼ [9/14] sdk-main[K
+2026-10-08T18:04:39.5472353Z ⠴ [9/14] sdk-main[K
+2026-10-08T18:04:39.6322922Z ⠦ [9/14] sdk-main[K
+2026-10-08T18:04:39.7101939Z ⠧ [9/14] sdk-main[K
+2026-10-08T18:04:39.7906763Z ⠇ [9/14] sdk-main[K
+2026-10-08T18:04:39.8708192Z ⠏ [9/14] sdk-main[K
+2026-10-08T18:04:39.8929343Z ⠋ [9/14] sdk-main[K
+2026-10-08T18:04:39.9506625Z ⠋ [10/14] selection-entry[K
+2026-10-08T18:04:39.9947881Z ⠙ [10/14] selection-entry[K
+2026-10-08T18:04:40.0313717Z ⠙ [11/14] settings[K
+2026-10-08T18:04:40.1119535Z ⠹ [11/14] settings[K
+2026-10-08T18:04:40.1742902Z ⠸ [11/14] settings[K
+2026-10-08T18:04:40.1966240Z ⠸ [12/14] tool-shell[K
+2026-10-08T18:04:40.4320076Z ⠼ [12/14] tool-shell[K
+2026-10-08T18:04:40.5117352Z ⠴ [12/14] tool-shell[K
+2026-10-08T18:04:40.5923542Z ⠦ [12/14] tool-shell[K
+2026-10-08T18:04:40.6803288Z ⠧ [12/14] tool-shell[K
+2026-10-08T18:04:40.7593587Z ⠇ [12/14] tool-shell[K
+2026-10-08T18:04:40.8367621Z ⠏ [12/14] tool-shell[K
+2026-10-08T18:04:40.9167875Z ⠋ [12/14] tool-shell[K
+2026-10-08T18:04:40.9976665Z ⠙ [12/14] tool-shell[K
+2026-10-08T18:04:41.0783806Z ⠹ [12/14] tool-shell[K
+2026-10-08T18:04:41.1592977Z ⠸ [12/14] tool-shell[K
+2026-10-08T18:04:41.2383602Z ⠼ [12/14] tool-shell[K
+2026-10-08T18:04:41.3175865Z ⠴ [12/14] tool-shell[K
+2026-10-08T18:04:41.3984594Z ⠦ [12/14] tool-shell[K
+2026-10-08T18:04:41.4786886Z ⠧ [12/14] tool-shell[K
+2026-10-08T18:04:41.5589273Z ⠇ [12/14] tool-shell[K
+2026-10-08T18:04:41.6391107Z ⠏ [12/14] tool-shell[K
+2026-10-08T18:04:41.7193525Z ⠋ [12/14] tool-shell[K
+2026-10-08T18:04:41.7987414Z ⠙ [12/14] tool-shell[K
+2026-10-08T18:04:41.8644823Z ⠹ [12/14] tool-shell[K
+2026-10-08T18:04:41.8898199Z ⠹ [13/14] transport[K
+2026-10-08T18:04:41.9698608Z ⠸ [13/14] transport[K
+2026-10-08T18:04:42.0524078Z ⠼ [13/14] transport[K
+2026-10-08T18:04:42.1325684Z ⠴ [13/14] transport[K
+2026-10-08T18:04:42.1731113Z ⠦ [13/14] transport[K
+2026-10-08T18:04:42.2420852Z ⠦ [14/14] worker-runtime[K
+2026-10-08T18:04:42.3212806Z ⠧ [14/14] worker-runtime[K
+2026-10-08T18:04:42.4045751Z ⠇ [14/14] worker-runtime[K
+2026-10-08T18:04:42.4846032Z ⠏ [14/14] worker-runtime[K
+2026-10-08T18:04:42.5648588Z ⠋ [14/14] worker-runtime[K
+2026-10-08T18:04:42.6450135Z ⠙ [14/14] worker-runtime[K
+2026-10-08T18:04:42.7262999Z ⠹ [14/14] worker-runtime[K
+2026-10-08T18:04:42.8054094Z ⠸ [14/14] worker-runtime[K
+2026-10-08T18:04:42.8246488Z ⠼ [14/14] worker-runtime[K
+2026-10-08T18:04:42.8247212Z [K[?25h
+2026-10-08T18:04:42.8274707Z [K[?25h[success] Built extension in 9.132 s
+2026-10-08T18:04:42.8275872Z   ├─ dist/production/manifest.json                        1.26 kB  
+2026-10-08T18:04:42.8276989Z   ├─ dist/production/native-agent/settings.html           1.83 kB  
+2026-10-08T18:04:42.8278019Z   ├─ dist/production/scripting/sandbox/sandbox.html       385 B    
+2026-10-08T18:04:42.8279133Z   ├─ dist/production/sidebar-tools/sandbox.html           560 B    
+2026-10-08T18:04:42.8280024Z   ├─ dist/production/ui/target-bootstrap.html             200 B    
+2026-10-08T18:04:42.8281036Z   ├─ dist/production/ui/tool.html                         22.54 kB 
+2026-10-08T18:04:42.8282284Z   ├─ dist/production/agents/bootstrap.js                  21.47 kB 
+2026-10-08T18:04:42.8283515Z   ├─ dist/production/agents/health.js                     828 B    
+2026-10-08T18:04:42.8284626Z   ├─ dist/production/agents/page-agent.js                 34.35 kB 
+2026-10-08T18:04:42.8285770Z   ├─ dist/production/agents/page-relay.js                 35.28 kB 
+2026-10-08T18:04:42.8286858Z   ├─ dist/production/agents/selection-entry.js            383 B    
+2026-10-08T18:04:42.8288095Z   ├─ dist/production/framework/sdk-main.js                49.54 kB 
+2026-10-08T18:04:42.8289195Z   ├─ dist/production/native-agent/settings.js             22.16 kB 
+2026-10-08T18:04:42.8290399Z   ├─ dist/production/native-agent/transport.js            29.30 kB 
+2026-10-08T18:04:42.8291794Z   ├─ dist/production/scripting/packaged/page-session.js   55.08 kB 
+2026-10-08T18:04:42.8292938Z   ├─ dist/production/scripting/sandbox/sandbox.js         4.01 kB  
+2026-10-08T18:04:42.8294171Z   ├─ dist/production/scripting/sandbox/worker-runtime.js  49.68 kB 
+2026-10-08T18:04:42.8295311Z   ├─ dist/production/sidebar-tools/bridge.js              2.60 kB  
+2026-10-08T18:04:42.8296430Z   ├─ dist/production/sw.js                                324.98 kB
+2026-10-08T18:04:42.8297511Z   ├─ dist/production/ui/tool-shell.js                     186.03 kB
+2026-10-08T18:04:42.8298571Z   ├─ dist/production/vendor/jquery-3.7.1.min.js           87.53 kB 
+2026-10-08T18:04:42.8299816Z   ├─ dist/production/ui/tool-shell.css                    21.21 kB 
+2026-10-08T18:04:42.8300924Z   ├─ dist/production/icons/notification.png               595 B    
+2026-10-08T18:04:42.8302188Z   ├─ dist/production/licenses/jquery-MIT.txt              1.10 kB  
+2026-10-08T18:04:42.8303481Z   └─ dist/production/licenses/todo-user-vue-MIT.txt       1.10 kB  
+2026-10-08T18:04:42.8304666Z Σ Total size: 953.98 kB                                 
+2026-10-08T18:04:42.8305548Z [success] Finished in 9.232 s
+2026-10-08T18:04:43.4184903Z {"mode":"production","builder":"wxt","status":"passed","packageHash":"2633c57189f55e6de43a8f0e9c9aff2035ac1d22291b7879f7fe46312a8d2e6b","assets":26}
+2026-10-08T18:04:43.4323330Z ##[group]Run npm run build:dev
+2026-10-08T18:04:43.4323734Z [36;1mnpm run build:dev[0m
+2026-10-08T18:04:43.4358485Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:43.4358823Z ##[endgroup]
+2026-10-08T18:04:43.5131156Z 
+2026-10-08T18:04:43.5132119Z > opendesk-browser@0.1.0 build:dev
+2026-10-08T18:04:43.5132879Z > node scripts/build.mjs development
+2026-10-08T18:04:43.5133199Z 
+2026-10-08T18:04:43.8798938Z [log] 
+2026-10-08T18:04:43.8799551Z WXT 0.21.4
+2026-10-08T18:04:43.9638427Z [info] Generating types...
+2026-10-08T18:04:44.0800896Z [success] Finished in 200 ms
+2026-10-08T18:04:44.4388707Z [log] 
+2026-10-08T18:04:44.4389427Z WXT 0.21.4
+2026-10-08T18:04:44.5418661Z [info] Building chrome-mv3 for development with Vite 7.3.6
+2026-10-08T18:04:44.6563801Z [?25l
+2026-10-08T18:04:44.6624477Z ⠋ Preparing...[K
+2026-10-08T18:04:44.7367492Z ⠋ [1/14] sw[K
+2026-10-08T18:04:44.8983111Z ⠙ [1/14] sw[K
+2026-10-08T18:04:45.0201586Z ⠹ [1/14] sw[K
+2026-10-08T18:04:45.1027813Z ⠸ [1/14] sw[K
+2026-10-08T18:04:45.5790887Z ⠼ [1/14] sw[K
+2026-10-08T18:04:45.6592807Z ⠴ [1/14] sw[K
+2026-10-08T18:04:45.7393205Z ⠦ [1/14] sw[K
+2026-10-08T18:04:45.8193636Z ⠧ [1/14] sw[K
+2026-10-08T18:04:45.9009047Z ⠇ [1/14] sw[K
+2026-10-08T18:04:45.9840344Z ⠏ [1/14] sw[K
+2026-10-08T18:04:46.0604883Z ⠋ [1/14] sw[K
+2026-10-08T18:04:46.1432958Z ⠙ [1/14] sw[K
+2026-10-08T18:04:46.2234513Z ⠹ [1/14] sw[K
+2026-10-08T18:04:46.3054973Z ⠸ [1/14] sw[K
+2026-10-08T18:04:46.3851920Z ⠼ [1/14] sw[K
+2026-10-08T18:04:46.4645461Z ⠴ [1/14] sw[K
+2026-10-08T18:04:46.5448298Z ⠦ [1/14] sw[K
+2026-10-08T18:04:46.6254483Z ⠧ [1/14] sw[K
+2026-10-08T18:04:46.7056796Z ⠇ [1/14] sw[K
+2026-10-08T18:04:46.7860773Z ⠏ [1/14] sw[K
+2026-10-08T18:04:46.8693093Z ⠋ [1/14] sw[K
+2026-10-08T18:04:46.9455945Z ⠙ [1/14] sw[K
+2026-10-08T18:04:47.0258321Z ⠹ [1/14] sw[K
+2026-10-08T18:04:47.1064511Z ⠸ [1/14] sw[K
+2026-10-08T18:04:47.1863655Z ⠼ [1/14] sw[K
+2026-10-08T18:04:47.2665221Z ⠴ [1/14] sw[K
+2026-10-08T18:04:47.3467618Z ⠦ [1/14] sw[K
+2026-10-08T18:04:47.4270625Z ⠧ [1/14] sw[K
+2026-10-08T18:04:47.5103228Z ⠇ [1/14] sw[K
+2026-10-08T18:04:47.5884909Z ⠏ [1/14] sw[K
+2026-10-08T18:04:47.6700676Z ⠋ [1/14] sw[K
+2026-10-08T18:04:47.7493186Z ⠙ [1/14] sw[K
+2026-10-08T18:04:47.8295150Z ⠹ [1/14] sw[K
+2026-10-08T18:04:47.9097085Z ⠸ [1/14] sw[K
+2026-10-08T18:04:47.9899443Z ⠼ [1/14] sw[K
+2026-10-08T18:04:48.0738666Z ⠴ [1/14] sw[K
+2026-10-08T18:04:48.1506404Z ⠦ [1/14] sw[K
+2026-10-08T18:04:48.3034915Z ⠧ [1/14] sw[K
+2026-10-08T18:04:48.3064522Z ⠇ [1/14] sw[K
+2026-10-08T18:04:48.3843191Z ⠇ [2/14] bootstrap[K
+2026-10-08T18:04:48.4644346Z ⠏ [2/14] bootstrap[K
+2026-10-08T18:04:48.4788665Z ⠋ [2/14] bootstrap[K
+2026-10-08T18:04:48.5451242Z ⠋ [3/14] bridge[K
+2026-10-08T18:04:48.6257828Z ⠙ [3/14] bridge[K
+2026-10-08T18:04:48.6544053Z ⠹ [3/14] bridge[K
+2026-10-08T18:04:48.7052382Z ⠹ [4/14] health[K
+2026-10-08T18:04:48.7853636Z ⠸ [4/14] health[K
+2026-10-08T18:04:48.7908729Z ⠼ [4/14] health[K
+2026-10-08T18:04:48.8646269Z ⠼ [5/14] page-agent[K
+2026-10-08T18:04:48.9459196Z ⠴ [5/14] page-agent[K
+2026-10-08T18:04:49.0282192Z ⠦ [5/14] page-agent[K
+2026-10-08T18:04:49.1073798Z ⠧ [5/14] page-agent[K
+2026-10-08T18:04:49.1869271Z ⠇ [5/14] page-agent[K
+2026-10-08T18:04:49.2071427Z ⠏ [5/14] page-agent[K
+2026-10-08T18:04:49.2670524Z ⠏ [6/14] page-relay[K
+2026-10-08T18:04:49.3468101Z ⠋ [6/14] page-relay[K
+2026-10-08T18:04:49.4292697Z ⠙ [6/14] page-relay[K
+2026-10-08T18:04:49.5102723Z ⠹ [6/14] page-relay[K
+2026-10-08T18:04:49.5883788Z ⠸ [6/14] page-relay[K
+2026-10-08T18:04:49.6085245Z ⠼ [6/14] page-relay[K
+2026-10-08T18:04:49.6814442Z ⠼ [7/14] page-session[K
+2026-10-08T18:04:49.7623383Z ⠴ [7/14] page-session[K
+2026-10-08T18:04:49.8417491Z ⠦ [7/14] page-session[K
+2026-10-08T18:04:49.9242768Z ⠧ [7/14] page-session[K
+2026-10-08T18:04:50.0032709Z ⠇ [7/14] page-session[K
+2026-10-08T18:04:50.0825644Z ⠏ [7/14] page-session[K
+2026-10-08T18:04:50.1627798Z ⠋ [7/14] page-session[K
+2026-10-08T18:04:50.2429658Z ⠙ [7/14] page-session[K
+2026-10-08T18:04:50.2993051Z ⠹ [7/14] page-session[K
+2026-10-08T18:04:50.3258865Z ⠹ [8/14] sandbox[K
+2026-10-08T18:04:50.4052889Z ⠸ [8/14] sandbox[K
+2026-10-08T18:04:50.4872593Z ⠼ [8/14] sandbox[K
+2026-10-08T18:04:50.5302601Z ⠴ [8/14] sandbox[K
+2026-10-08T18:04:50.5731871Z ⠴ [9/14] sdk-main[K
+2026-10-08T18:04:50.6530982Z ⠦ [9/14] sdk-main[K
+2026-10-08T18:04:50.7375640Z ⠧ [9/14] sdk-main[K
+2026-10-08T18:04:50.8182573Z ⠇ [9/14] sdk-main[K
+2026-10-08T18:04:50.8946684Z ⠏ [9/14] sdk-main[K
+2026-10-08T18:04:50.9748985Z ⠋ [9/14] sdk-main[K
+2026-10-08T18:04:51.0563212Z ⠙ [9/14] sdk-main[K
+2026-10-08T18:04:51.1372616Z ⠹ [9/14] sdk-main[K
+2026-10-08T18:04:51.1503605Z ⠸ [9/14] sdk-main[K
+2026-10-08T18:04:51.2153691Z ⠸ [10/14] selection-entry[K
+2026-10-08T18:04:51.2588810Z ⠼ [10/14] selection-entry[K
+2026-10-08T18:04:51.2962296Z ⠼ [11/14] settings[K
+2026-10-08T18:04:51.3762838Z ⠴ [11/14] settings[K
+2026-10-08T18:04:51.4423140Z ⠦ [11/14] settings[K
+2026-10-08T18:04:51.4714842Z ⠦ [12/14] tool-shell[K
+2026-10-08T18:04:51.7056302Z ⠧ [12/14] tool-shell[K
+2026-10-08T18:04:51.7863870Z ⠇ [12/14] tool-shell[K
+2026-10-08T18:04:51.8658184Z ⠏ [12/14] tool-shell[K
+2026-10-08T18:04:51.9461479Z ⠋ [12/14] tool-shell[K
+2026-10-08T18:04:52.0274375Z ⠙ [12/14] tool-shell[K
+2026-10-08T18:04:52.1083024Z ⠹ [12/14] tool-shell[K
+2026-10-08T18:04:52.1884101Z ⠸ [12/14] tool-shell[K
+2026-10-08T18:04:52.2686085Z ⠼ [12/14] tool-shell[K
+2026-10-08T18:04:52.3533186Z ⠴ [12/14] tool-shell[K
+2026-10-08T18:04:52.4342737Z ⠦ [12/14] tool-shell[K
+2026-10-08T18:04:52.5118535Z ⠧ [12/14] tool-shell[K
+2026-10-08T18:04:52.5921013Z ⠇ [12/14] tool-shell[K
+2026-10-08T18:04:52.6715567Z ⠏ [12/14] tool-shell[K
+2026-10-08T18:04:52.7518636Z ⠋ [12/14] tool-shell[K
+2026-10-08T18:04:52.8320572Z ⠙ [12/14] tool-shell[K
+2026-10-08T18:04:52.9122892Z ⠹ [12/14] tool-shell[K
+2026-10-08T18:04:52.9915126Z ⠸ [12/14] tool-shell[K
+2026-10-08T18:04:53.0717257Z ⠼ [12/14] tool-shell[K
+2026-10-08T18:04:53.1519460Z ⠴ [12/14] tool-shell[K
+2026-10-08T18:04:53.2228862Z ⠦ [12/14] tool-shell[K
+2026-10-08T18:04:53.2325152Z ⠦ [13/14] transport[K
+2026-10-08T18:04:53.3133984Z ⠧ [13/14] transport[K
+2026-10-08T18:04:53.3935705Z ⠇ [13/14] transport[K
+2026-10-08T18:04:53.4737054Z ⠏ [13/14] transport[K
+2026-10-08T18:04:53.5342870Z ⠋ [13/14] transport[K
+2026-10-08T18:04:53.5537195Z ⠋ [14/14] worker-runtime[K
+2026-10-08T18:04:53.6340224Z ⠙ [14/14] worker-runtime[K
+2026-10-08T18:04:53.7139970Z ⠹ [14/14] worker-runtime[K
+2026-10-08T18:04:53.7978933Z ⠸ [14/14] worker-runtime[K
+2026-10-08T18:04:53.8744370Z ⠼ [14/14] worker-runtime[K
+2026-10-08T18:04:53.9581618Z ⠴ [14/14] worker-runtime[K
+2026-10-08T18:04:54.0356573Z ⠦ [14/14] worker-runtime[K
+2026-10-08T18:04:54.1158732Z ⠧ [14/14] worker-runtime[K
+2026-10-08T18:04:54.1529126Z ⠇ [14/14] worker-runtime[K
+2026-10-08T18:04:54.1529460Z [K[?25h
+2026-10-08T18:04:54.1550250Z [K[?25h[success] Built extension in 9.611 s
+2026-10-08T18:04:54.1550830Z   ├─ dist/development/manifest.json                            1.59 kB  
+2026-10-08T18:04:54.1551335Z   ├─ dist/development/native-agent/settings.html               1.83 kB  
+2026-10-08T18:04:54.1551958Z   ├─ dist/development/scripting/sandbox/sandbox.html           385 B    
+2026-10-08T18:04:54.1552439Z   ├─ dist/development/sidebar-tools/sandbox.html               560 B    
+2026-10-08T18:04:54.1552894Z   ├─ dist/development/ui/target-bootstrap.html                 200 B    
+2026-10-08T18:04:54.1553338Z   ├─ dist/development/ui/tool.html                             22.54 kB 
+2026-10-08T18:04:54.1553783Z   ├─ dist/development/agents/bootstrap.js                      21.70 kB 
+2026-10-08T18:04:54.1554477Z   ├─ dist/development/agents/bootstrap.js.map                  65.33 kB 
+2026-10-08T18:04:54.1554930Z   ├─ dist/development/agents/health.js                         1.06 kB  
+2026-10-08T18:04:54.1555360Z   ├─ dist/development/agents/health.js.map                     15.04 kB 
+2026-10-08T18:04:54.1555792Z   ├─ dist/development/agents/page-agent.js                     34.59 kB 
+2026-10-08T18:04:54.1556324Z   ├─ dist/development/agents/page-agent.js.map                 95.31 kB 
+2026-10-08T18:04:54.1556764Z   ├─ dist/development/agents/page-relay.js                     35.52 kB 
+2026-10-08T18:04:54.1557201Z   ├─ dist/development/agents/page-relay.js.map                 113.01 kB
+2026-10-08T18:04:54.1557646Z   ├─ dist/development/agents/selection-entry.js                638 B    
+2026-10-08T18:04:54.1558087Z   ├─ dist/development/agents/selection-entry.js.map            968 B    
+2026-10-08T18:04:54.1558520Z   ├─ dist/development/framework/sdk-main.js                    49.77 kB 
+2026-10-08T18:04:54.1558972Z   ├─ dist/development/framework/sdk-main.js.map                152.75 kB
+2026-10-08T18:04:54.1559409Z   ├─ dist/development/native-agent/settings.js                 22.39 kB 
+2026-10-08T18:04:54.1559843Z   ├─ dist/development/native-agent/settings.js.map             58.37 kB 
+2026-10-08T18:04:54.1560286Z   ├─ dist/development/native-agent/transport.js                29.53 kB 
+2026-10-08T18:04:54.1560730Z   ├─ dist/development/native-agent/transport.js.map            89.73 kB 
+2026-10-08T18:04:54.1561172Z   ├─ dist/development/scripting/packaged/page-session.js       55.33 kB 
+2026-10-08T18:04:54.1561629Z   ├─ dist/development/scripting/packaged/page-session.js.map   174.29 kB
+2026-10-08T18:04:54.1562251Z   ├─ dist/development/scripting/sandbox/sandbox.js             4.24 kB  
+2026-10-08T18:04:54.1562703Z   ├─ dist/development/scripting/sandbox/sandbox.js.map         11.64 kB 
+2026-10-08T18:04:54.1563161Z   ├─ dist/development/scripting/sandbox/worker-runtime.js      49.94 kB 
+2026-10-08T18:04:54.1563625Z   ├─ dist/development/scripting/sandbox/worker-runtime.js.map  156.91 kB
+2026-10-08T18:04:54.1564070Z   ├─ dist/development/sidebar-tools/bridge.js                  2.83 kB  
+2026-10-08T18:04:54.1564502Z   ├─ dist/development/sidebar-tools/bridge.js.map              10.57 kB 
+2026-10-08T18:04:54.1564930Z   ├─ dist/development/sw.js                                    325.15 kB
+2026-10-08T18:04:54.1565361Z   ├─ dist/development/sw.js.map                                963.02 kB
+2026-10-08T18:04:54.1565787Z   ├─ dist/development/ui/tool-shell.js                         186.27 kB
+2026-10-08T18:04:54.1566214Z   ├─ dist/development/ui/tool-shell.js.map                     552.99 kB
+2026-10-08T18:04:54.1566653Z   ├─ dist/development/vendor/jquery-3.7.1.min.js               87.53 kB 
+2026-10-08T18:04:54.1567077Z   ├─ dist/development/ui/tool-shell.css                        21.21 kB 
+2026-10-08T18:04:54.1567505Z   ├─ dist/development/icons/notification.png                   595 B    
+2026-10-08T18:04:54.1567946Z   ├─ dist/development/licenses/jquery-MIT.txt                  1.10 kB  
+2026-10-08T18:04:54.1568381Z   └─ dist/development/licenses/todo-user-vue-MIT.txt           1.10 kB  
+2026-10-08T18:04:54.1568821Z Σ Total size: 3.42 MB                                        
+2026-10-08T18:04:54.1569123Z [success] Finished in 9.716 s
+2026-10-08T18:04:54.6772096Z {"mode":"development","builder":"wxt","status":"passed","packageHash":"1124f3fa7144396b6fcdafa585cdbc04dd89c57e36a0b36de6f815b9110afe9a","assets":40}
+2026-10-08T18:04:54.6907422Z ##[group]Run npm run verify
+2026-10-08T18:04:54.6907680Z [36;1mnpm run verify[0m
+2026-10-08T18:04:54.6942502Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:54.6942758Z ##[endgroup]
+2026-10-08T18:04:54.7710530Z 
+2026-10-08T18:04:54.7711018Z > opendesk-browser@0.1.0 verify
+2026-10-08T18:04:54.7711863Z > node scripts/verify-package.mjs dist/production && node scripts/verify-package.mjs dist/development
+2026-10-08T18:04:54.7712245Z 
+2026-10-08T18:04:55.2433833Z {"status":"passed","manifestVersion":3,"classicEntries":["agents/bootstrap.js","agents/health.js","agents/page-agent.js","agents/page-relay.js","agents/selection-entry.js","framework/sdk-main.js","native-agent/settings.js","native-agent/transport.js","scripting/packaged/page-session.js","scripting/sandbox/sandbox.js","scripting/sandbox/worker-runtime.js","sidebar-tools/bridge.js","sw.js","ui/tool-shell.js","vendor/jquery-3.7.1.min.js"],"htmlChecked":["ui/tool.html","native-agent/settings.html","ui/target-bootstrap.html","scripting/sandbox/sandbox.html","sidebar-tools/sandbox.html"],"assetsChecked":["icons/notification.png","licenses/todo-user-vue-MIT.txt","licenses/jquery-MIT.txt","framework/sdk-resources.json"],"sdkResources":{"schemaVersion":1,"resources":[{"path":"framework/sdk-main.js","bytes":49539,"sha256":"432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"},{"path":"agents/page-relay.js","bytes":35276,"sha256":"cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"}]},"sdkEntries":{"MAIN":"framework/sdk-main.js","ISOLATED":"agents/page-relay.js"},"privilegedDynamicExecutionFound":false,"approvedDynamicExecution":[{"file":"scripting/sandbox/worker-runtime.js","approvedAsyncBodyConstructors":1,"execution":"Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox"}],"sandbox":{"pages":["scripting/sandbox/sandbox.html","sidebar-tools/sandbox.html"],"csp":"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"},"packageHash":"2633c57189f55e6de43a8f0e9c9aff2035ac1d22291b7879f7fe46312a8d2e6b","hashRecipe":"SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes","files":[{"path":"agents/bootstrap.js","bytes":21466,"sha256":"1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"},{"path":"agents/health.js","bytes":828,"sha256":"48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"},{"path":"agents/page-agent.js","bytes":34347,"sha256":"35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"},{"path":"agents/page-relay.js","bytes":35276,"sha256":"cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"},{"path":"agents/selection-entry.js","bytes":383,"sha256":"0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"},{"path":"framework/sdk-main.js","bytes":49539,"sha256":"432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"},{"path":"framework/sdk-resources.json","bytes":359,"sha256":"747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"},{"path":"icons/notification.png","bytes":595,"sha256":"efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"},{"path":"licenses/jquery-MIT.txt","bytes":1097,"sha256":"d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"},{"path":"licenses/todo-user-vue-MIT.txt","bytes":1096,"sha256":"e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"},{"path":"manifest.json","bytes":1264,"sha256":"a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6"},{"path":"native-agent/settings.html","bytes":1826,"sha256":"8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"},{"path":"native-agent/settings.js","bytes":22157,"sha256":"7018e9e3e7a0dcf7392e270f8512b4d4b815d8db5940da26587ad938d13b971d"},{"path":"native-agent/transport.js","bytes":29297,"sha256":"112dff86a490ece497668e4420053ce0d48121e2de12360da177add825b30421"},{"path":"scripting/packaged/page-session.js","bytes":55082,"sha256":"bd346556fa4a137b804a6255fefc6617ce1bcd01719dd0637bb6a54e9b90b377"},{"path":"scripting/sandbox/sandbox.html","bytes":385,"sha256":"aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"},{"path":"scripting/sandbox/sandbox.js","bytes":4010,"sha256":"4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"},{"path":"scripting/sandbox/worker-runtime.js","bytes":49683,"sha256":"406de1f7b5ebffc7ce4a67696d5e35d24e27e9bae3b93cacec10cae6100c19f1"},{"path":"sidebar-tools/bridge.js","bytes":2603,"sha256":"47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"},{"path":"sidebar-tools/sandbox.html","bytes":560,"sha256":"5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"},{"path":"sw.js","bytes":324976,"sha256":"2c5145ba65ce9d41f1a03c7abcb10eba6f3cb2110a30965d6a2069d7799ea214"},{"path":"ui/target-bootstrap.html","bytes":200,"sha256":"b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"},{"path":"ui/tool-shell.css","bytes":21206,"sha256":"50cfd5ed94d4d83e7ebbbb27cf5f623805bf26989f39d5df7d801baf81abda7b"},{"path":"ui/tool-shell.js","bytes":186030,"sha256":"b7ae9bf8f2ea1575e69b2dcf4ba4ff0c210dbd8b35b1f2ca0741b8be14f81f33"},{"path":"ui/tool.html","bytes":22542,"sha256":"e7188a4828631a490a4bc14c90353ba7685461bb4edeea79a38505205907e0cb"},{"path":"vendor/jquery-3.7.1.min.js","bytes":87533,"sha256":"fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"}]}
+2026-10-08T18:04:55.7463881Z {"status":"passed","manifestVersion":3,"classicEntries":["agents/bootstrap.js","agents/health.js","agents/page-agent.js","agents/page-relay.js","agents/selection-entry.js","framework/sdk-main.js","native-agent/settings.js","native-agent/transport.js","scripting/packaged/page-session.js","scripting/sandbox/sandbox.js","scripting/sandbox/worker-runtime.js","sidebar-tools/bridge.js","sw.js","ui/tool-shell.js","vendor/jquery-3.7.1.min.js"],"htmlChecked":["ui/tool.html","native-agent/settings.html","ui/target-bootstrap.html","scripting/sandbox/sandbox.html","sidebar-tools/sandbox.html"],"assetsChecked":["icons/notification.png","licenses/todo-user-vue-MIT.txt","licenses/jquery-MIT.txt","framework/sdk-resources.json"],"sdkResources":{"schemaVersion":1,"resources":[{"path":"framework/sdk-main.js","bytes":49773,"sha256":"903bb9d0bbd1a48a92db218934aa730fd817dc8c211017d61b65b8a27ac25bb8"},{"path":"agents/page-relay.js","bytes":35516,"sha256":"1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"}]},"sdkEntries":{"MAIN":"framework/sdk-main.js","ISOLATED":"agents/page-relay.js"},"privilegedDynamicExecutionFound":false,"approvedDynamicExecution":[{"file":"scripting/sandbox/worker-runtime.js","approvedAsyncBodyConstructors":1,"execution":"Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox"}],"sandbox":{"pages":["scripting/sandbox/sandbox.html","sidebar-tools/sandbox.html"],"csp":"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"},"packageHash":"1124f3fa7144396b6fcdafa585cdbc04dd89c57e36a0b36de6f815b9110afe9a","hashRecipe":"SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes","files":[{"path":"agents/bootstrap.js","bytes":21703,"sha256":"9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"},{"path":"agents/bootstrap.js.map","bytes":65334,"sha256":"72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"},{"path":"agents/health.js","bytes":1056,"sha256":"0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"},{"path":"agents/health.js.map","bytes":15038,"sha256":"13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"},{"path":"agents/page-agent.js","bytes":34587,"sha256":"23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"},{"path":"agents/page-agent.js.map","bytes":95306,"sha256":"ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"},{"path":"agents/page-relay.js","bytes":35516,"sha256":"1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"},{"path":"agents/page-relay.js.map","bytes":113008,"sha256":"e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"},{"path":"agents/selection-entry.js","bytes":638,"sha256":"b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"},{"path":"agents/selection-entry.js.map","bytes":968,"sha256":"f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"},{"path":"framework/sdk-main.js","bytes":49773,"sha256":"903bb9d0bbd1a48a92db218934aa730fd817dc8c211017d61b65b8a27ac25bb8"},{"path":"framework/sdk-main.js.map","bytes":152746,"sha256":"a3ac2c7cfa6a0cc3d74f8bee60a8e7b3bf35f4fea4316b599b3b4d35b2a52b03"},{"path":"framework/sdk-resources.json","bytes":359,"sha256":"6f6597ecccf98b85cf1889e8c413a64b712f6cf44976b8ab778d836e14a5f5a6"},{"path":"icons/notification.png","bytes":595,"sha256":"efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"},{"path":"licenses/jquery-MIT.txt","bytes":1097,"sha256":"d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"},{"path":"licenses/todo-user-vue-MIT.txt","bytes":1096,"sha256":"e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"},{"path":"manifest.json","bytes":1593,"sha256":"ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e"},{"path":"native-agent/settings.html","bytes":1826,"sha256":"8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"},{"path":"native-agent/settings.js","bytes":22391,"sha256":"606318ea6d225e92a72dc13e700f015dbd9a6d148f896eea09114205024fedd6"},{"path":"native-agent/settings.js.map","bytes":58367,"sha256":"4aef7296f6663d8a5d72a623f7f604ae7e9d0eb1d28f881b0a88ce748c2fb58e"},{"path":"native-agent/transport.js","bytes":29534,"sha256":"9541f51d2800df30bd69f7c6ac94e33cf496aea4b0287bf7d5989aacd50e6706"},{"path":"native-agent/transport.js.map","bytes":89731,"sha256":"bd60a744b5bf89e94ad2b485b9f19aff9a73e9daab184a5092ac4094459c1838"},{"path":"scripting/packaged/page-session.js","bytes":55328,"sha256":"fbc94b97dde28dd1a5ac99db3ecf861aa9b6374c85474b05e1d722f6520f3343"},{"path":"scripting/packaged/page-session.js.map","bytes":174289,"sha256":"954210c4f3cf3aeefc1422e4ff51980b3d2b3643485c7d55ae80dfce25d0f5f5"},{"path":"scripting/sandbox/sandbox.html","bytes":385,"sha256":"aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"},{"path":"scripting/sandbox/sandbox.js","bytes":4241,"sha256":"e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"},{"path":"scripting/sandbox/sandbox.js.map","bytes":11636,"sha256":"2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"},{"path":"scripting/sandbox/worker-runtime.js","bytes":49935,"sha256":"91865c2b35e45a17f18866368c7fa0d2cffcddc86a5deaefef8a746747a5d889"},{"path":"scripting/sandbox/worker-runtime.js.map","bytes":156913,"sha256":"2477b61c175dac272fe8f9afa65fe42d28959bf1b7b5d1c434fe936e3439d270"},{"path":"sidebar-tools/bridge.js","bytes":2831,"sha256":"cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"},{"path":"sidebar-tools/bridge.js.map","bytes":10568,"sha256":"853420ac756f38ce7e18baa97bbf0c756c8573bfabbecdef56a30906ea5699a5"},{"path":"sidebar-tools/sandbox.html","bytes":560,"sha256":"5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"},{"path":"sw.js","bytes":325148,"sha256":"4fd630a423ff96f91c69823f1e650986739d13da7cc74fe47e1b550df1631104"},{"path":"sw.js.map","bytes":963024,"sha256":"a8500335913be166399f573b5fef8ae95de1884c3af960be2cd7dbcc048ff1ff"},{"path":"ui/target-bootstrap.html","bytes":200,"sha256":"b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"},{"path":"ui/tool-shell.css","bytes":21206,"sha256":"50cfd5ed94d4d83e7ebbbb27cf5f623805bf26989f39d5df7d801baf81abda7b"},{"path":"ui/tool-shell.js","bytes":186270,"sha256":"42d445fa350fa6edc174060f6e3d79ec1d472f6a7afbedc0dcbf2f9054a89d4e"},{"path":"ui/tool-shell.js.map","bytes":552988,"sha256":"60de05815bc15f4eb94d941cae82510e864ae522741e586892a338ab17bea437"},{"path":"ui/tool.html","bytes":22542,"sha256":"e7188a4828631a490a4bc14c90353ba7685461bb4edeea79a38505205907e0cb"},{"path":"vendor/jquery-3.7.1.min.js","bytes":87533,"sha256":"fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"}]}
+2026-10-08T18:04:55.7574470Z ##[group]Run npm run pack
+2026-10-08T18:04:55.7574767Z [36;1mnpm run pack[0m
+2026-10-08T18:04:55.7574977Z [36;1mnpm run pack:dev[0m
+2026-10-08T18:04:55.7575200Z [36;1mpython3 - <<'PY'[0m
+2026-10-08T18:04:55.7575438Z [36;1mimport hashlib, json, zipfile[0m
+2026-10-08T18:04:55.7575795Z [36;1mfrom pathlib import Path[0m
+2026-10-08T18:04:55.7576065Z [36;1mfor mode in ('production', 'development'):[0m
+2026-10-08T18:04:55.7576344Z [36;1m    root = Path('dist') / mode[0m
+2026-10-08T18:04:55.7576764Z [36;1m    build = json.loads((Path('docs/framework/evidence/wxt/builds') / f'build-{mode}.json').read_text())[0m
+2026-10-08T18:04:55.7577343Z [36;1m    receipt = json.loads((Path('docs/framework/evidence/wxt/packages') / f'pack-{mode}.json').read_text())[0m
+2026-10-08T18:04:55.7577826Z [36;1m    archive = Path('artifacts') / f'opendesk-browser-{mode}.zip'[0m
+2026-10-08T18:04:55.7578159Z [36;1m    raw = archive.read_bytes()[0m
+2026-10-08T18:04:55.7578520Z [36;1m    assert receipt['status'] == 'passed' and receipt['mode'] == mode[0m
+2026-10-08T18:04:55.7578915Z [36;1m    assert receipt['packageHash'] == build['report']['packageHash'][0m
+2026-10-08T18:04:55.7579255Z [36;1m    assert receipt['bytes'] == len(raw)[0m
+2026-10-08T18:04:55.7579588Z [36;1m    assert receipt['zipSha256'] == hashlib.sha256(raw).hexdigest()[0m
+2026-10-08T18:04:55.7579995Z [36;1m    expected = {file.relative_to(root).as_posix(): file.read_bytes()[0m
+2026-10-08T18:04:55.7580382Z [36;1m                for file in root.rglob('*') if file.is_file()}[0m
+2026-10-08T18:04:55.7580738Z [36;1m    with zipfile.ZipFile(archive) as compressed:[0m
+2026-10-08T18:04:55.7581058Z [36;1m        assert compressed.testzip() is None[0m
+2026-10-08T18:04:55.7581370Z [36;1m        assert len(compressed.namelist()) == len(expected)[0m
+2026-10-08T18:04:55.7582079Z [36;1m        assert set(compressed.namelist()) == set(expected)[0m
+2026-10-08T18:04:55.7582453Z [36;1m        for name, content in expected.items():[0m
+2026-10-08T18:04:55.7582818Z [36;1m            assert compressed.read(name) == content, f'{mode}/{name}'[0m
+2026-10-08T18:04:55.7583302Z [36;1m    print(f'ZIP_EXACT_DIST_BYTES=PASS mode={mode} files={len(expected)} sha256={receipt["zipSha256"]}')[0m
+2026-10-08T18:04:55.7583692Z [36;1mPY[0m
+2026-10-08T18:04:55.7622061Z shell: /usr/bin/bash -e {0}
+2026-10-08T18:04:55.7622360Z ##[endgroup]
+2026-10-08T18:04:55.8421011Z 
+2026-10-08T18:04:55.8421539Z > opendesk-browser@0.1.0 pack
+2026-10-08T18:04:55.8422213Z > node scripts/pack.mjs production
+2026-10-08T18:04:55.8422473Z 
+2026-10-08T18:04:56.3782765Z {"status":"passed","mode":"production","packageHash":"2633c57189f55e6de43a8f0e9c9aff2035ac1d22291b7879f7fe46312a8d2e6b","zipSha256":"7e8c6306602b4444ab76c1439fb930e4850183f8012a44dd589c458d1b22ce2e","bytes":401937}
+2026-10-08T18:04:56.4616092Z 
+2026-10-08T18:04:56.4616739Z > opendesk-browser@0.1.0 pack:dev
+2026-10-08T18:04:56.4617090Z > node scripts/pack.mjs development
+2026-10-08T18:04:56.4617254Z 
+2026-10-08T18:04:57.1112951Z {"status":"passed","mode":"development","packageHash":"1124f3fa7144396b6fcdafa585cdbc04dd89c57e36a0b36de6f815b9110afe9a","zipSha256":"d51ed9fe30e1efe339adf49313a77274a529ef885c392e1ed64f5cbdca08e945","bytes":1059087}
+2026-10-08T18:04:57.1898165Z ZIP_EXACT_DIST_BYTES=PASS mode=production files=26 sha256=7e8c6306602b4444ab76c1439fb930e4850183f8012a44dd589c458d1b22ce2e
+2026-10-08T18:04:57.1899427Z ZIP_EXACT_DIST_BYTES=PASS mode=development files=40 sha256=d51ed9fe30e1efe339adf49313a77274a529ef885c392e1ed64f5cbdca08e945
+2026-10-08T18:04:57.2018320Z ##[group]Run actions/upload-artifact@v4
+2026-10-08T18:04:57.2018572Z with:
+2026-10-08T18:04:57.2018841Z   name: opendesk-wxt-zips-74d261b7be865830742c5b3d061ba53d0b41033c
+2026-10-08T18:04:57.2019152Z   retention-days: 7
+2026-10-08T18:04:57.2019360Z   if-no-files-found: error
+2026-10-08T18:04:57.2020338Z   path: artifacts/opendesk-browser-production.zip
+artifacts/opendesk-browser-development.zip
+docs/framework/evidence/wxt/packages/pack-production.json
+docs/framework/evidence/wxt/packages/pack-development.json
+docs/framework/evidence/wxt/builds/build-production.json
+docs/framework/evidence/wxt/builds/build-development.json
+
+2026-10-08T18:04:57.2021344Z   compression-level: 6
+2026-10-08T18:04:57.2021542Z   overwrite: false
+2026-10-08T18:04:57.2022041Z   include-hidden-files: false
+2026-10-08T18:04:57.2022398Z ##[endgroup]
+2026-10-08T18:04:57.3408369Z (node:3788) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-08T18:04:57.3409410Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-08T18:04:57.3487276Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-08T18:04:57.3489506Z The least common ancestor is /home/runner/work/opendesk-browser/opendesk-browser. This will be the root directory of the artifact
+2026-10-08T18:04:57.3490256Z With the provided path, there will be 6 files uploaded
+2026-10-08T18:04:57.3490870Z Artifact name is valid!
+2026-10-08T18:04:57.3491115Z Root directory input is valid!
+2026-10-08T18:04:57.6806205Z Beginning upload of artifact content to blob storage
+2026-10-08T18:04:57.7423913Z (node:3788) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-08T18:04:58.2491536Z Uploaded bytes 1478656
+2026-10-08T18:04:58.3065574Z Finished uploading artifact content to blob storage!
+2026-10-08T18:04:58.3066553Z SHA256 digest of uploaded artifact zip is 896b7d0109d90ca8e4cc2ec0f72aadc129c91d82da35c82b9bd2e9e9db96ebdd
+2026-10-08T18:04:58.3067570Z Finalizing artifact upload
+2026-10-08T18:04:58.7572741Z Artifact opendesk-wxt-zips-74d261b7be865830742c5b3d061ba53d0b41033c.zip successfully finalized. Artifact ID 11569402318
+2026-10-08T18:04:58.7573964Z Artifact opendesk-wxt-zips-74d261b7be865830742c5b3d061ba53d0b41033c has been successfully uploaded! Final size is 1478656 bytes. Artifact ID is 11569402318
+2026-10-08T18:04:58.7579171Z Artifact download URL: https://github.com/shopable-ai/opendesk-browser/actions/runs/37821428251/artifacts/11569402318
+2026-10-08T18:04:58.7721330Z Post job cleanup.
+2026-10-08T18:04:58.8761391Z (node:3800) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-08T18:04:58.8762193Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-08T18:04:58.8764877Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce, not saving cache.
+2026-10-08T18:04:58.8855252Z Post job cleanup.
+2026-10-08T18:04:58.9649883Z [command]/usr/bin/git version
+2026-10-08T18:04:58.9691486Z git version 2.55.0
+2026-10-08T18:04:58.9728251Z Temporarily overriding HOME='/home/runner/work/_temp/7dd45ccd-5ffe-4300-b862-223833f3f5e5' before making global git config changes
+2026-10-08T18:04:58.9729149Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-08T18:04:58.9734443Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T18:04:58.9770521Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-08T18:04:58.9800102Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-08T18:04:58.9997556Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-08T18:04:59.0017905Z http.https://github.com/.extraheader
+2026-10-08T18:04:59.0027420Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-08T18:04:59.0059731Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-08T18:04:59.0257438Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-08T18:04:59.0283382Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-08T18:04:59.0619222Z Cleaning up orphan processes
+2026-10-08T18:04:59.0865032Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
