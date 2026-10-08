@@ -1,7 +1,7 @@
 import {PROTOCOL, CONTRACT_VERSION, CONTRACT_HASH, FoundationError, newId} from '../protocol.js';
 
 export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconnectDelayMs = 250, hostInstanceId = newId()} = {}) {
-  const sourceListeners = new Map(), commandListeners = new Map(), runListeners = new Set(), connectionListeners = new Set();
+  const sourceListeners = new Map(), commandListeners = new Map(), runListeners = new Set(), connectionListeners = new Set(), nativeAgentListeners = new Set();
   const pending = new Set(), requestTimers = new Set(), runDeadlines = new Map();
   let registration, port, disposed = false, connected = false, connecting, reconnectTimer = null;
   let messageListening = false, disconnectListening = false;
@@ -25,6 +25,10 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
   }
   function onMessage(message) {
     if (!registration || message.registrationId !== registration.registrationId) return;
+    if (message.type === 'native-agent.request') {
+      for (const listener of nativeAgentListeners) Promise.resolve().then(() => listener(message.request)).catch(() => {});
+      return;
+    }
     const event = message.event;
     if (event?.selectionId) for (const listener of sourceListeners.get(event.selectionId) || []) listener(event);
     if (event?.commandId) for (const listener of commandListeners.get(event.commandId) || []) listener(event);
@@ -87,14 +91,18 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
     'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
     .map(method => [method, request => send(method, request)]));
   return {get ready(){return connect();}, request:send, reconnect:connect,
-    subscribeConnection: listener => {connectionListeners.add(listener); return () => connectionListeners.delete(listener);}, pagePort, storage, exportBridge,
+    subscribeConnection: listener => {connectionListeners.add(listener); return () => connectionListeners.delete(listener);},
+    subscribeNativeAgent: listener => {nativeAgentListeners.add(listener);return () => nativeAgentListeners.delete(listener);},
+    replyNativeAgent: reply => {if (!connected || !port || !registration) throw new FoundationError('E_HOST_CLOSED');
+      port.postMessage({type:'native-agent.response',registrationId:registration.registrationId,...reply});},
+    pagePort, storage, exportBridge,
     controller,
     entitlement:{getSnapshot:()=>send('getEntitlementSnapshot',{}), install:request=>send('installEntitlement',request)},
     runCommands:Object.fromEntries(['claimRun','stopRun','abandonUnknown','retireTarget','snapshotRun','finishRun'].map(method=>[method,request=>send(method,request)])),
     subscribeRun:listener=>{runListeners.add(listener);return()=>runListeners.delete(listener);},
     get registration(){return registration;}, get hostInstanceId(){return hostInstanceId;},
     resourceSnapshot: () => ({pending:pending.size, subscriptions: [...sourceListeners.values(),...commandListeners.values()]
-      .reduce((count,listeners)=>count+listeners.size,runListeners.size+connectionListeners.size) + Number(messageListening) + Number(disconnectListening),
+      .reduce((count,listeners)=>count+listeners.size,runListeners.size+connectionListeners.size+nativeAgentListeners.size) + Number(messageListening) + Number(disconnectListening),
       timers:requestTimers.size + Number(reconnectTimer !== null), ports:Number(connected)}),
-    dispose(){if(disposed)return;disposed=true;clearTimeout(reconnectTimer);reconnectTimer=null;connectionListeners.clear();sourceListeners.clear();commandListeners.clear();runListeners.clear();removePortListeners();connected=false;port?.disconnect();port=undefined;}};
+    dispose(){if(disposed)return;disposed=true;clearTimeout(reconnectTimer);reconnectTimer=null;connectionListeners.clear();sourceListeners.clear();commandListeners.clear();runListeners.clear();nativeAgentListeners.clear();removePortListeners();connected=false;port?.disconnect();port=undefined;}};
 }

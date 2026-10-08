@@ -1,0 +1,8 @@
+{
+  "status": {
+    "01a11c33-8b29-7812-9a74-f9e389109e4d": {
+      "completed": "本轮定向复核未发现新的可修复问题；此前 P2 已修复。\n\n- `dispatchId` 仅用于 Host ACK；RunHost 的 start/stop、Controller、ledger 和 CLI 保留外部 `requestId`。调用方传入的 dispatchId 也会被 SW 覆盖。\n- 实际 adapter＋受控 Host 桩复核：ACK 持久化失败仍返回 `OUTCOME_UNKNOWN`，相同请求不重放，且可用外部 ID 对账。\n- settings 写入顺序、旧 ACK 隔离，以及 startup 撤权／dispose 的世代检查均未见新增回归。"
+    }
+  },
+  "timed_out": false
+}

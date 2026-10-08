@@ -234,3 +234,7 @@ browser_toolset_20260801：单一声明默认展开 27 项、可额外开启 4 �
 - 真实 Chrome Native 端到端、用户授权、Codex 调用及 Installed 无 AI 重播尚未完成，保留 PR #11 和 PR #20 的独立验收/合并门槛。记录：`docs/framework/workstreams/r6-2-agent-to-task-20261008.json`。
 
 近期取舍保持**先使已存在 Native 方案闭环**；除非原生实验证明不可行，不以新的 HTTP/WS/MCP 替换它。以上是源码/组件与最新 CI 的分层状态更新，不宣称已完成原生验收。
+
+### R6.2 Native 分支安全合同补充（候选、尚未经真实浏览器验证）
+
+Native PR #11 在现有 Controller/RunHost 基础上收紧了 `run.get/run.stop` 的 Host 注册归属，以及 ACK 写入 `chrome.storage.local` 失败时的 `OUTCOME_UNKNOWN` 判定。固定 `native-agent/transport.js` 仍通过唯一受审计的包内 `importScripts` 接线，不新增任意特权执行入口。Native CI 所证实的 macOS Host/Unix Socket 属于使用模拟 Chrome 帧的受控测试，不能代替真实 Chrome/Codex 验收；同一最终候选的原生证据缺失时继续保留 Draft。
