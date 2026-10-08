@@ -97,6 +97,9 @@ function createApiDomHarness(html, handleFetch) {
       if (!this.listeners.has(type)) this.listeners.set(type,[]);
       this.listeners.get(type).push(listener);
     }
+    reset() {}
+    replaceChildren() { this.textContent=''; }
+    setAttribute(name, value) { this[name]=String(value); }
     dispatch(type) {
       return Promise.all((this.listeners.get(type)||[]).map(listener=>listener({
         target:this, preventDefault() {}
