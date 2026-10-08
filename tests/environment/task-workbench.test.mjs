@@ -21,7 +21,7 @@ class Element {
     walk(this);return found;
   }
   removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
-  fire(name,data={}){for(const fn of this.listeners.get(name)||[])fn(data);}
+  fire(name,data={}){return Promise.all([...this.listeners.get(name)||[]].map(fn=>fn(data)));}
   setAttribute(name,value){this.attributes[name]=String(value);}
   append(...items){this.children.push(...items);}
   replaceChildren(...items){this.children=items;this.value=items[0]?.value??'';this.textContent='';}
@@ -436,7 +436,7 @@ test('catalog JS import hands source to Sidebar and never enters a view with a h
   const source='async function main() { return "file draft"; }';
   f.get('task-package-file').value='draft.js';
   f.get('task-package-file').files=[{name:'draft.js',size:source.length,text:async()=>source}];
-  f.get('task-package-file').fire('change');await tick();await tick();
+  await f.get('task-package-file').fire('change');
   assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',sourceUtf8:source}]);
   assert.equal(f.get('workbench-discover').hidden,false);
   assert.equal(f.get('workbench-develop').hidden,true);
@@ -450,7 +450,7 @@ test('missing Sidebar refuses import with an actionable message, without losing 
   f.api.runtime.sendMessage=async()=>{throw Error('Receiving end does not exist');};
   f.get('task-package-file').value='draft.js';
   f.get('task-package-file').files=[{name:'draft.js',size:1,text:async()=>'x'}];
-  f.get('task-package-file').fire('change');await tick();await tick();
+  await f.get('task-package-file').fire('change');
   assert.match(f.get('task-catalog-status').textContent,/同一窗口打开 Sidebar/);
   assert.equal(f.get('workbench-discover').hidden,false);assert.equal(f.starts.length,0);
   assert.equal(f.get('task-package-file').value,'','retrying after opening Sidebar must fire change again');

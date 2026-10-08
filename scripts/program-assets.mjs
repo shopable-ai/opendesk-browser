@@ -33,12 +33,12 @@ export function checkAssetBytes(asset,bytes) {
 }
 function rewriteCss(css,sourcePath,images) {
   // Fail closed on runtime stylesheet imports and unsupported URL grammars.
-  const strings=/"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'/g;
+  const strings=/"(?:\\[^\r\n\f]|[^"\\\r\n\f])*"|'(?:\\[^\r\n\f]|[^'\\\r\n\f])*'/g;
   const comments=new RegExp('('+strings.source+')|/\\*[\\s\\S]*?\\*/','g');
   const withoutComments=css.replace(comments,(_match,quoted)=>quoted||' ');
   const tokens=withoutComments.replace(strings,quoted=>' '.repeat(quoted.length));
-  if(/\\/.test(withoutComments)||/@import\b|\b(?:image(?:-set)?|src)\s*\(/i.test(tokens))
-    fail('E_PROJECT_ASSET_URL','CSS escapes, string image sources and remote/data/import references are not supported: '+sourcePath,sourcePath);
+  if(/\\/.test(withoutComments)||/["']|@import\b|\b(?:image(?:-set)?|src)\s*\(/i.test(tokens))
+    fail('E_PROJECT_ASSET_URL','CSS escapes, malformed strings, string image sources and remote/data/import references are not supported: '+sourcePath,sourcePath);
   const urlPattern=/url\s*\(\s*(?:(["'])([^"']+)\1|([^'")\s]+))\s*\)/gi;
   const references=new Set([...tokens.matchAll(/\burl\s*\(/gi)].map(match=>match.index));
   const found=[...withoutComments.matchAll(urlPattern)].filter(match=>references.has(match.index));

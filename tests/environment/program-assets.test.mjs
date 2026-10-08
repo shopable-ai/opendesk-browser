@@ -87,6 +87,43 @@ test('reject CSS escaped tokens and unsupported string image URLs',async t=>{
   }
 });
 
+test('malformed CSS strings cannot hide runtime URL tokens',async t=>{
+  const {root}=await fixture(t);
+  for(const newline of ['\n','\r','\f']){
+    await writeFile(join(root,'assets/tool.css'),'.icon{--a:"'+newline+';background:url(https://assets.example/x.png);--b:"'+newline+';}');
+    await assert.rejects(validateProgramProject(root),e=>e.code==='E_PROJECT_ASSET_URL');
+  }
+});
+
+test('Controller resource declarations fail before packaging',async t=>{
+  const {root,pkg}=await fixture(t);
+  const controller=JSON.parse(await readFile('examples/programs/sidebar-controller-demo/package.json','utf8'));
+  controller.opendesk.assets=pkg.opendesk.assets;
+  controller.opendesk.entry='src/main.js';
+  await writeFile(join(root,'package.json'),JSON.stringify(controller));
+  await assert.rejects(buildProgramProject(root,{outputDirectory:join(root,'built')}),e=>e.code==='E_PROJECT_ASSET_ENV');
+});
+
+test('invalid JSON, UTF-8 and per-file/aggregate resource budgets fail closed',async t=>{
+  const {root,pkg}=await fixture(t);
+  const json=join(root,'assets/config.json'),css=join(root,'assets/tool.css');
+  await writeFile(json,'{invalid}');
+  await assert.rejects(validateProgramProject(root),e=>e.code==='E_PROJECT_ASSET_JSON');
+  await writeFile(json,'{}');
+  await writeFile(css,Buffer.from([0xff]));
+  await assert.rejects(validateProgramProject(root),e=>e.code==='E_PROJECT_ASSET_ENCODING');
+  await writeFile(css,'x'.repeat(24*1024+1));
+  await assert.rejects(validateProgramProject(root),e=>e.code==='E_PROJECT_LIMIT');
+  pkg.opendesk.assets=[];
+  for(const [name,bytes] of [['first',24*1024],['second',24*1024],['third',16*1024]]){
+    const path='assets/'+name+'.css';
+    pkg.opendesk.assets.push({path,kind:'css'});
+    await writeFile(join(root,path),'/*'+'x'.repeat(bytes-4)+'*/');
+  }
+  await writeFile(join(root,'package.json'),JSON.stringify(pkg));
+  await assert.rejects(validateProgramProject(root),e=>e.code==='E_PROJECT_ASSET_LIMIT');
+});
+
 test('original JavaScript-only program keeps its output without adding base CSS',async t=>{
   const dir=await mkdtemp(join(tmpdir(),'od-no-ui-'));
   t.after(()=>rm(dir,{recursive:true,force:true}));
