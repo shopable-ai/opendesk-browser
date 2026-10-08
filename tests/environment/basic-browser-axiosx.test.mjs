@@ -248,10 +248,10 @@ test('SDK channel without injection fails closed with E_SDK_NOT_INSTALLED and ne
   }
 });
 
-test('SDK HTTP errors project details.response while preserving code and message',async()=>{
+test('SDK HTTP errors project response while preserving code and message',async()=>{
   const error=Object.assign(new Error('Request failed with status code 418'),{
     code:'E_HTTP_TEAPOT',
-    details:{response:{status:418,data:{error:'teapot'},headers:{'content-type':'application/json','x-test':'r72'}}}
+    response:{status:418,data:{error:'teapot'},headers:{'content-type':'application/json','x-test':'r72'}}
   });
   const {sdk}=sdkHarness({get:async()=>{throw error;}});
   const dom=createApiDomHarness(await load(),{sdk});

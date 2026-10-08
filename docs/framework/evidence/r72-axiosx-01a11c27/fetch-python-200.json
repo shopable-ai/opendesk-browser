@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-08T15:59:04.699Z",
+  "targetId": "E7FEBAD8C823E6EF14895C1B50B61A01",
+  "launchPid": 91159,
+  "method": "snapshot",
+  "result": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "sdk": "undefined",
+    "view": {
+      "api-channel": {
+        "text": "网页 FetchOpenDesk SDK axiosx",
+        "value": "fetch"
+      },
+      "api-method": {
+        "text": "GETPOST",
+        "value": "GET"
+      },
+      "api-url": {
+        "text": "",
+        "value": "./request-sample.json"
+      },
+      "api-status": {
+        "text": "HTTP 请求完成",
+        "state": "success"
+      },
+      "api-status-text": {
+        "text": "HTTP 请求完成"
+      },
+      "api-http-status": {
+        "text": "200 OK"
+      },
+      "api-duration": {
+        "text": "2 ms"
+      },
+      "api-content-type": {
+        "text": "application/json"
+      },
+      "api-response": {
+        "text": "{\n  \"ok\": true,\n  \"source\": \"opendesk-browser-local-fixture\",\n  \"message\": \"本地 HTTP JSON 请求成功\",\n  \"items\": [\n    {\"id\": 1, \"label\": \"文本读取\"},\n    {\"id\": 2, \"label\": \"点击与 DOM 更新\"},\n    {\"id\": 3, \"label\": \"真实 HTTP 响应\"}\n  ]\n}\n"
+      },
+      "api-error": {
+        "text": ""
+      },
+      "api-headers": {
+        "text": "{\n  \"content-length\": \"260\",\n  \"content-type\": \"application/json\",\n  \"date\": \"Thu, 08 Oct 2026 15:57:48 GMT\",\n  \"last-modified\": \"Thu, 08 Oct 2026 15:40:56 GMT\",\n  \"server\": \"SimpleHTTP/0.6 Python/3.14.6\"\n}"
+      }
+    },
+    "width": 814,
+    "scrollWidth": 814
+  }
+}

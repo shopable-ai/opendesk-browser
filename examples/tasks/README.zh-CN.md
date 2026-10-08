@@ -60,27 +60,29 @@
 
 定向静态/兼容契约检查：`node --test tests/environment/basic-browser-page.test.mjs`。
 
-## R7.1 HTTP API 验证与旧 fixture 边界
+## R7.2 HTTP 通道与独立 Worker
 
-**人工验收以 `http://127.0.0.1:43111/demo-form.html` 为唯一推荐入口**，上方启动命令保持不变。`http://127.0.0.1:49375/fixture` 是另一个测试服务的历史入口；其端口和路由不由本示例提供，不能当作本演示 HTML 的替代 URL。已有专用框架或回归测试依赖的 fixture 不应仅因为迁移人工验收而删除。
+第 06 组保留 `#api-*` 元素，只使用一个 URL、Method、发送按钮和响应区域。默认 Fetch；可选择 OpenDesk SDK axiosx。页面打开或选择示例不会发送请求。URL 按当前网页地址解析为绝对 HTTP(S) 地址；POST 正文必须是 JSON。响应正文最多预览 4096 UTF-8 字节，以文本显示，headers 单独展示。
 
-在页面第 06 组，保持默认 `./demo-form.html?test-response=1`，点击「发送 GET」：应看到 `#api-status[data-state="success"]`、实际 `#api-http-status` 为 200、响应类型含 `text/html`，且 `#api-response` 可读取页面 HTML 前段。改填 `./__opendesk_expected_404__.json` 再发送，应看到 404、`data-state="error"` 及服务器返回正文。切换示例地址只填入，不自动发请求。
+先用 Python 检查 `/request-sample.json` 200 JSON、`/demo-form.html` 200 HTML 和缺失文件 404。需要 POST、真实延迟和精确状态时，用本目录无依赖辅助服务替换同端口的自有 Python 服务：
 
-需要验证外部真实 JSON 时，在下拉框选择「公网 IP JSON」，明确点击发送：成功时响应正文会显示 `ip` 字段；该示例会访问第三方服务，受网络与 CORS 条件影响，失败不能直接归因于 OpenDesk Page API。也可以手工输入自己的 HTTP(S) URL，页面只发 GET、不携带 Cookie，最多显示前 4096 字节；不支持在这个单页里假装静态 Python 服务能够处理 POST。8 秒超时会中止请求；取消、重新发送、修改 URL、页面重置都不能让旧响应覆盖新状态。
-
-可通过以下 **现代 Page API 草稿**验证真实页面 DOM 回执（不需要新增脚本文件）：
-
-```javascript
-async function main() {
-  await page.getByLabel('请求 URL', {exact:true}).fill('./demo-form.html?test-response=1');
-  await page.getByRole('button', {name:'发送 GET', exact:true}).click();
-  await page.locator('#api-status[data-state="success"]').waitFor({state:'visible',timeout:10000});
-  return {
-    status:await page.locator('#api-http-status').textContent(),
-    contentType:await page.locator('#api-content-type').textContent(),
-    preview:await page.getByTestId('api-response').textContent()
-  };
-}
+```sh
+node examples/tasks/http-test-server.mjs 43111
 ```
 
-表单和现代搜索依旧分别使用 `#name/#submit/#done`、`#keyword/#search-submit/#results`，旧版任务包及 SHA 不变。运行 `node --test tests/environment/basic-browser-page.test.mjs` 验证页面契约和轻量 DOM 行为；该检查 **不等于** 完整 Chrome MV3 → RunHost → Controller → Durable Result 原生验收。真正的 Chrome 结果需由 Sidebar 记录运行 ID、结果 ID 和操作回执；没有时记 `NATIVE_NOT_VERIFIED`。
+辅助路由：`POST /__test__/echo`、`GET /__test__/status?code=429` 或 `500`、`GET /__test__/delay?ms=1200`、`GET /__test__/text`。Python 不提供这些动态路由。
+
+网页 SDK 通道须通过真实扩展「开发 → Advanced / Diagnostics → 独立网页 SDK」刷新列表，选择当前 tab 和精确 document，勾选 network，并点击明确批准安装。未注入显示 `E_SDK_NOT_INSTALLED`，不会回退 Fetch。现有 MAIN `OpenDeskSDK.ready()` 和 `axiosx.get/post()` 提供结果。非2xx 的 `E_HTTP` 响应位于现有顶层 `error.response`，页面保留真实 status/data/headers；权限、超时和网络错误保留原错误码。
+
+Fetch 的取消使用 AbortController。SDK 公共 facade 没有此页面所用的 AbortSignal 接口，因此 SDK 通道禁用取消按钮。更改输入或重置仅让旧响应失去显示资格，不宣称底层 SDK 请求已停止。
+
+跨源测试用另一端口的同一辅助服务。服务不提供 Access-Control-Allow-Origin；普通网页 Fetch 应因 CORS 失败，未批准 SDK 应拒绝。SDK 额外目标 Origin 必须在精确批准快照中明确列出。跨源授权在扩展 Worker 重启后须重新批准；页面导航需要选择新 document。
+
+`http-fetch-draft.js` 用正式 Page API 驱动同一 DOM 表单；`worker-http-draft.js` 在 Sidebar 草稿 Runtime 内使用注入的 axiosx，与网页 MAIN SDK 的授权身份独立。原表单和现代搜索的 ID、签名任务包不变。
+
+```sh
+node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-axiosx.test.mjs tests/environment/basic-browser-http.test.mjs
+node --test tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-cross-origin-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k3-context.test.mjs
+```
+
+本分支已保留独立CFT的网页SDK与Worker真实证据；正式关闭情况见 `docs/framework/workstreams/r72-axiosx-01a11c27.json`。组件测试、浏览器HTTP、原生持久回执分别记账；尚未完成的原生Page API、撤权、390px及最终PR20候选验收均为 NOT_TESTED，不将本分支回执冒充PR20最终PASS。
