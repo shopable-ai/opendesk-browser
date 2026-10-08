@@ -1,6 +1,6 @@
 # OpenDesk Browser · Agent → JavaScript Task 最小闭环合同 R1
 
-> 2026-10-08。**实施候选 / 不代表原生验收或正式发布**。依赖现有 `main` 的 Modern Page API R5.1/R5.2、RunHost/Controller Authority、不可变 Task v1 和 PR #11 的可选 Native Agent Bridge。源码合同可独立执行，真实 Mac Chrome / Codex E2E 仍需同一最终候选实证。本文是唯一 Agent→Task 生命周期合同；不另造 Browser MCP、发布器、Controller 或任务数据库。
+> 2026-10-08。**实施候选 / 不代表原生验收或正式发布**。依赖现有 `main` 的 Modern Page API R5.1/R5.2、RunHost/Controller Authority、不可变 Task v1 和 PR #11 的可选 Native Agent Bridge。观察示例保留 main 的 maxDepth=5/maxNodes=32/maxChars=4200 边界，并返回带 URL 的只读观察封装。演示 HTML 保留 R7.1 HTTP GET 与旧签名，源码合同可独立执行，真实 Mac Chrome / Codex E2E 仍需同一最终候选实证。本文是唯一 Agent→Task 生命周期合同；不另造 Browser MCP、发布器、Controller 或任务数据库。
 
 ## 1. 边界与明确选择
 
@@ -42,11 +42,11 @@
 
 固定本地页面：`python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，浏览器打开 `http://127.0.0.1:43111/demo-form.html`。
 
-1. **只读观察草稿**：`examples/tasks/agent-observe-draft.js`。在 Sidebar「开发」直接粘贴，或由 Codex 读取该 UTF-8 文件，用 `run.start` 的 `source:{kind:'draft',sourceUtf8}` 执行。其 `page.observe({root:'#search-form',maxNodes:32,maxDepth:4,maxChars:4000})` 仅返回有限语义摘要，不触发页面写操作。检查 `truncated` 和 `observation.nodes`，不要虚构不可见元素。**此步有 durable read result ≠ 真实页面动作/Task 验证。**
+1. **只读观察草稿**：`examples/tasks/agent-observe-draft.js`。在 Sidebar「开发」直接粘贴，或由 Codex 读取该 UTF-8 文件，用 `run.start` 的 `source:{kind:'draft',sourceUtf8}` 执行。其 `page.observe({root:'#search-form',maxNodes:32,maxDepth:5,maxChars:4200})` 仅返回有限语义摘要，不触发页面写操作。检查 `truncated` 和 `observation.nodes`，不要虚构不可见元素。**此步有 durable read result ≠ 真实页面动作/Task 验证。**
 2. **生成/修订可独立运行的 JS**：参考 `examples/tasks/modern-search-draft.js`，参数 `{"keyword":"OpenDesk"}`，先 `getByLabel('搜索关键词',{exact:true}).fill(...)`，再 `getByRole('button',{name:'搜索',exact:true}).click()`，等待 `getByText('搜索完成')`，读 `#results`。查看页面提交次数；每轮应仅增加一次。失败后先分类 `E_STRICT_MODE_VIOLATION`、权限/导航、`E_EFFECT_UNKNOWN`，不得无条件再次点击。
 3. **使用旧 RunHost 实际执行**：Native CLI 新请求包含刚取的 `registrationId`/完整 `target`/`sourceUtf8`/`params`；记录 `run.start` 的 runId，随后用 `run.get` 查询终态、结果、原执行回执与资源释放。若 Chrome/Native 不可用，代码仅为准备状态，不能臆造真实 runId/resultId。
 4. **冻结 Revision**：若用 `script.save`，必须提供 `expectedRevision`，使用返回的准确 revision/contentHash；下轮 `run.start` 可明确选择该 `saved` 来源。更新源码产生新 Revision，不得把不同源字节伪装为同一版本。此 Save **不会**自动创建 Task。
-5. **导入真正 Task Candidate**：`examples/tasks/modern-search.v1.opendesk-task.json` 是已计算准确 `sourceHash`/`manifestHash` 的**未验证示例包**，其 `sourceUtf8` 必须等于 `modern-search-draft.js` 的全部原始字节。完整目录「导入」后是 Candidate，不是已验证或已安装；用户/Agent 更改源码、参数 Schema、origin 或标题，须重新计算 hashes 并形成**新的不可变 taskId/version**，不能覆写已经存在的版本。
+5. **导入真正 Task Candidate**：`examples/tasks/modern-search.v1.opendesk-task.json` 是已计算准确 `sourceHash`/`manifestHash` 的**未验证示例包**，其 `sourceUtf8` 必须等于 `modern-search-draft.js` 的全部原始字节。完整目录「导入」后是 Candidate，不是已验证或已安装；main 的 `agent-modern-search.v1.opendesk-task.json` 保留为另一个独立 taskId/version，不能覆盖或混用其 manifestHash；用户/Agent 更改源码、参数 Schema、origin 或标题，须重新计算 hashes 并形成**新的不可变 taskId/version**，不能覆写已经存在的版本。
 6. **正式验证和安装**：完整任务目录输入与 Candidate **完全相同源码哈希及站点**的真实 runId，调用现有 `verifyTaskCandidate`。后台必须校验持久 completed、结果成功、worker retired/released、相同源哈希/目标、真实原生 page-effect receipt；没有这些就不得 `Verified`。随后用户显式设为 `Available` 并**明确安装**确切版本；在「我的任务」输入参数重新运行。Agent 没有 `makeTaskAvailable/installTask` Native RPC，不能绕过目录。
 7. **独立复用**：关闭 Codex 和 Native Host，禁用 Native Bridge；普通 Sidebar 仍能读取已安装版本、参数、Stop/Result 并重复执行。验证关闭 Chrome/重开及相同 ZIP 安装，保留真实证据。若站点权限被撤销或文档变更应拒绝而不是借旧授权重放。
 

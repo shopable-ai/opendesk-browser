@@ -16,7 +16,7 @@ test('read-only Agent observation draft returns a bounded semantic snapshot with
   assert.equal(result.kind,'opendesk.agent-observation.v1');
   assert.equal(result.url,'http://127.0.0.1:43111/demo-form.html');
   assert.equal(result.observation,snapshot);
-  assert.deepEqual(observed,[{root:'#search-form',maxDepth:4,maxNodes:32,maxChars:4000}]);
+  assert.deepEqual(observed,[{root:'#search-form',maxDepth:5,maxNodes:32,maxChars:4200}]);
 });
 
 test('modern Locator Task candidate is exact and immutable, never pre-verified',async()=>{

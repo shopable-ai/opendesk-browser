@@ -70,3 +70,16 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
   for(const id of ['sdk-install','check-source','check-target','scraping-panel'])assert(advanced.includes(`id="${id}"`));
   assert.match(css,/min-width:0/);assert.match(css,/overflow-wrap:anywhere/);
 });
+
+test('Sidebar starts at its three tabs without repeating Chrome extension identity',async()=>{
+  const [manifest,html,css]=await Promise.all([
+    read('manifest.json').then(JSON.parse),read('src/ui/tool.html'),read('src/ui/tool-shell.css')
+  ]);
+  assert.equal(manifest.name,'OpenDesk Browser','retain Chrome-hosted extension name');
+  assert.match(html,/<title>OpenDesk Browser<\/title>/,'retain document metadata title');
+  assert.match(html,/<body>\s*<nav class="workbench-nav" role="tablist"/,'tabs should be the first visible row');
+  assert.doesNotMatch(html,/class="workspace-(?:header|brand|logo)"/,'no duplicate in-page brand');
+  assert.doesNotMatch(css,/\.workspace-(?:header|brand|logo)\b/,'remove orphaned header styles');
+  for(const id of ['tab-my-tasks','tab-discover','tab-develop','workspace-content','workspace-dock'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+});

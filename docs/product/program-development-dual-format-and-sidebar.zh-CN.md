@@ -43,6 +43,8 @@ async function main() {
 }
 ~~~
 
+对表单、按钮和动态页面的**新自动化任务**，不要继续把旧 `page.type()` 当作首选填写方式；使用 `page.getByLabel(...).fill(...)`、`page.getByRole(...).click()`、`page.getByText(...).waitFor(...)`，并在需要时先用 `page.observe()` 提取有限语义摘要。明确的接口、类型和错误语义见 [R5.1 接口 / R5.2 可靠性文档](../framework/modern-page-api.zh-CN.md)。这套 Locator 只属于受控 Controller 环境，**不**自动注入下面的 USER_SCRIPT 页面运行方式。
+
 **B. 网页 DOM 用户脚本：** 同一个编辑器改为下面代码 → 展开 **「网页用户脚本 · 依赖与试运行」** → 入口选 `OpenDesk · async function main()` → 点击 **「在当前网页试运行 DOM 脚本」**。需要 Chrome 用户脚本开关和网站权限；不能把 DOM 脚本当成 Controller 的 page API 脚本。
 
 ~~~javascript

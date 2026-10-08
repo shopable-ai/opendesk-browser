@@ -4,9 +4,9 @@
 async function main() {
   const observation = await page.observe({
     root:'#search-form',
-    maxDepth:4,
+    maxDepth:5,
     maxNodes:32,
-    maxChars:4000
+    maxChars:4200
   });
   return {
     kind:'opendesk.agent-observation.v1',

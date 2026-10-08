@@ -37,11 +37,7 @@ details>section{margin-top:10px}
 #script-version{font-size:11px;overflow-wrap:anywhere}
 .row input,.row select{flex:1 1 120px;width:auto;max-width:100%}
 
-/* Shared chrome stays small; discover has no bottom dock when idle. */
-.workspace-header{flex:none;display:flex;align-items:center;min-height:47px;padding:8px 12px;background:#fff;color:var(--ink);border-bottom:1px solid var(--line)}
-.workspace-brand{display:flex;align-items:center;gap:9px;min-width:0}
-.workspace-logo{display:grid;place-items:center;flex:none;width:27px;height:27px;background:#e7edff;border-radius:8px;color:#3456a6;font-size:15px;font-weight:800}
-.workspace-header h1{font-size:14px;font-weight:750;line-height:1.25}
+/* Chrome owns the extension identity; the three Sidebar tabs are the first in-page row. */
 .workbench-nav{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}
 .workbench-nav button{min-width:0;min-height:40px;padding:10px 4px 9px;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
 .workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
@@ -190,7 +186,6 @@ details>section{margin-top:10px}
 @media(max-width:500px){
 #workspace-content{padding:10px 11px}
 #workspace-content .catalog-section{padding:12px}
-.workspace-header{padding:11px 12px}
 .workspace-dock{padding:9px 12px 12px}
 .catalog-card-grid{grid-template-columns:1fr}
 .catalog-open{padding:8px 9px}
@@ -222,7 +217,6 @@ details>section{margin-top:10px}
 #workbench-discover .catalog-reader-facts strong{color:#233b5a}
 #workbench-discover .catalog-card{min-height:150px}
 @media(max-width:340px){
-  .workspace-header{padding:7px 10px}
   #workspace-content{padding:8px 9px}
   .workspace-dock{padding:8px 9px}
   .workbench-nav{padding:0 8px}
