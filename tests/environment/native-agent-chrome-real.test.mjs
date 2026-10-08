@@ -108,15 +108,25 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     if(result.exceptionDetails)throw Error('Chrome Runtime.evaluate failed');
     return result.result?.value;
   };
+  assert.ok(fs.existsSync(path.join(ext,'native-agent','settings.html')),'Built Native Options HTML missing');
   const extensionId=await eventually(async()=>{
-    const targets=await (await fetch(base+'/json/list')).json();
-    for(const target of targets){
-      const match=/^chrome-extension:\/\/([a-p]{32})\//.exec(target.url||'');
-      if(match)return match[1];
+    // Never select the first random chrome-extension:// target: Chrome has
+    // built-in extension targets not owned by OpenDesk.
+    const preferences=path.join(profile,'Default','Preferences');
+    if(fs.existsSync(preferences)){
+      const config=JSON.parse(fs.readFileSync(preferences,'utf8'));
+      const entries=Object.entries(config.extensions?.settings||{});
+      const own=entries.find(([,value])=>value.manifest?.name==='OpenDesk Browser'||
+        (typeof value.path==='string'&&path.resolve(value.path)===ext));
+      if(own)return own[0];
     }
     const items=await evaluated("(()=>{const manager=document.querySelector('extensions-manager');const list=manager?.shadowRoot?.querySelector('extensions-item-list');return [...(list?.shadowRoot?.querySelectorAll('extensions-item')||[])].map(x=>({id:x.id,name:x.shadowRoot?.querySelector('#name')?.textContent}));})()");
-    const match=items?.find(item=>/OpenDesk Browser/.test(item.name||''))||items?.find(item=>/^[a-p]{32}$/.test(item.id||''));
-    return match?.id||null;
+    const named=items?.find(item=>/OpenDesk Browser/.test(item.name||''));
+    if(named&&/^[a-p]{32}$/.test(named.id||''))return named.id;
+    const targets=await (await fetch(base+'/json/list')).json();
+    const worker=targets.find(item=>item.type==='service_worker'&&
+      /^chrome-extension:\/\/[a-p]{32}\/sw\.js(?:$|[?#])/.test(item.url||''));
+    return worker?.url?.match(/^chrome-extension:\/\/([a-p]{32})\//)?.[1]||null;
   },{timeout:24000,label:'real unpacked OpenDesk extension ID'});
   assert.match(extensionId,/^[a-p]{32}$/);
   console.log('REAL_CHROME_EXTENSION_LOADED=PASS id='+extensionId);
