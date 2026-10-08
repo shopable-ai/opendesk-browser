@@ -71,4 +71,4 @@ macOS R1 源码安装目录预定 \`~/.opendesk-browser/native-agent-r1\`，使�
 2. 无 SW 持久监听 Host ACK 的情况下，极小窗口内回包丢失仍可能只有关联日志 \`OUTCOME_UNKNOWN\` 而无 runId；不能因此再执行。可在受控 Controller read-only run journal 内用 requestId 对账，但不能建立新的执行旁路。
 3. \`chrome.storage.local\` 相关日志需要显式人工备份、清理策略和原生重启核对；容量达到上限应 fail closed。
 4. 必须在同一真实版本 Chrome 和 CI 对齐所有打包文件 SHA、Manifest options 页、Native Host 脚本快照，不将 source check 作为运行证据。
-5. PR #7（集中站点授权）与 PR #9（Sidebar 紧凑 UI）均属独立工作流，合并时检查共享 Manifest/build 及 tool-shell Host 生命周期；绝不能跳过差异比对。
+5. PR #9（Sidebar R5）已经合并；PR #7 已关闭但未以原 PR 合并。新的 main 已有集中站点授权代码，候选已逐项保留 `siteAccess` 初始化、权限检查和生命周期清理。下一轮必须核对现行站点授权 UI 与 Agent `permissions.contains` 的一致性，不把 Native 接入当网站授权。
