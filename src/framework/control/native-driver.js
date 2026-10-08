@@ -488,6 +488,10 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
             requireValue(typeof prepared.token === 'string', 'E_RESULT_FORMAT');
             const outcome = await withWrite(state.envelope.identity, async () => {
               await permission(state, 'pre'); await verifyTarget(state);
+              // Persist the uncertainty boundary before sending a page effect.
+              await saveReceipt(state, 'locator.commitIntent', {documentId:state.envelope.target.documentId,
+                frameId:state.envelope.target.frameId,runId:state.envelope.identity.runId,
+                ownerEpoch:state.envelope.identity.ownerEpoch});
               submitted = true;
               return packaged(state, 'locatorCommit', [descriptor, op, prepared.token]);
             });
@@ -495,6 +499,9 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
             if (outcome.committed) return undefined;
             // The selected document explicitly confirmed no focus, scroll,
             // setter or click happened. A fresh prepare is safe.
+            await saveReceipt(state, 'locator.commitNoEffect', {documentId:state.envelope.target.documentId,
+              frameId:state.envelope.target.frameId,runId:state.envelope.identity.runId,
+              ownerEpoch:state.envelope.identity.ownerEpoch});
             submitted = false; lastReason = outcome.reason || 'E_ELEMENT_DETACHED';
           } else lastReason = prepared.reason || 'E_WAIT_CONDITION';
         }
