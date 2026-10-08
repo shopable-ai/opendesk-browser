@@ -16,12 +16,29 @@
   "localNodeTests": "NOT_TESTED (GitHub-only workspace)",
   "nativeSidePanel": "NOT_TESTED (local Chrome profile unavailable)",
   "nativePersistence": "NOT_TESTED",
-  "regression": "Targeted GitHub Actions required before integration",
+  "regression": "Targeted GitHub CI green; overall merge candidate blocked pending unrelated build-policy contract resolution and actual Chrome native verification",
   "constraints": [
     "Chrome native permission is not app-level SDK grant",
     "Never auto-reapprove on revoked permission",
     "Do not modify global owner or other workstreams",
     "Do not merge without verification"
   ],
-  "evidence": "GitHub PR and commit identifiers once created"
+  "evidence": "GitHub PR and commit identifiers once created",
+  "targetedCi": {
+    "status": "PASSED",
+    "workflow": "Site access targeted checks",
+    "runId": 37752918198,
+    "jobId": 113230267602,
+    "syntax": "PASSED",
+    "nodeTests": "45 passed / 0 failed",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37752918198"
+  },
+  "otherCi": {
+    "status": "FAILED_UNRELATED",
+    "workflow": "R3 page-script package and build",
+    "runId": 37752918177,
+    "failedStep": "Source and vendor integrity",
+    "cause": "scripts/build-contract.mjs productionBytes 320KB in latest main while scripts/verify-package.mjs expects 256KB; our branch did not modify either file"
+  },
+  "pr": "https://github.com/shopable-ai/opendesk-browser/pull/7"
 }
