@@ -12,7 +12,7 @@ function fixture(granted=true){
     capture:()=>({...target}),revalidate:async x=>{if(x.documentId!=='doc-A')throw Error('stale');}};
   const host={currentRun:null,controller:{
     commitControllerScript:async data=>{saved.push(data);return {revision:1,contentHash:'h'};},
-    snapshotControllerRun:async data=>({run:{runId:data.runId},results:[]})
+    snapshotControllerRun:async data=>({run:{runId:data.runId},results:[],runs:[{runId:'unrelated-user-run'}],slotAvailable:true})
   },start:async data=>{started.push(data);return {runId:'run-A',state:'running',sourceKind:data.source.kind,
     revision:{sourceHash:'abc'}};},stop:async data=>{stopped.push(data);return {runId:data.runId,state:'stopped'};}};
   const api={permissions:{contains:async()=>granted,request:()=>{throw Error('Forbidden synthetic permission request');}}};
@@ -52,4 +52,12 @@ test('saved requires pinned exact revision and source hash',async t=>{
     contentHash:'a'.repeat(64)},params:{},target:{...target}}});
   assert.equal(f.started[0].source.kind,'saved');
   assert.equal(f.started[0].source.revision,2);
+});
+
+test('run.get removes unrelated Sidebar run history from Controller snapshot projection',async t=>{
+  const f=fixture();t.after(()=>f.adapter.dispose());
+  const reply=await f.adapter.handle({method:'run.get',params:{runId:'agent-owned-1'}});
+  assert.equal(reply.run.runId,'agent-owned-1');
+  assert.equal(Object.hasOwn(reply,'runs'),false,'external caller must not enumerate other UI runs');
+  assert.equal(reply.slotAvailable,true);
 });
