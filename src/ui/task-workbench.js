@@ -65,8 +65,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const draftOwns=Boolean(host.currentRun && !taskOwns);
     get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks');
     get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || view!=='develop');
+    // The dock follows the real RunHost owner, not the selected task or visible tab.
+    // On another view (or another task), expose only that owner's Stop control.
+    const selected=installedRow();
+    const stopOnly=taskOwns && (view!=='tasks' || runOwnerKey!== (selected && identity(selected))) ||
+      draftOwns && view!=='develop';
+    get('workspace-dock').dataset.stopOnly=String(Boolean(stopOnly));
+    get('task-stop').setAttribute('aria-label',taskOwns
+      ? `停止「${runOwnerTitle || '当前任务'}」` : '停止当前任务');
     // Idle Discover is a search view, not a second permanent action bar.
-    // An existing task/draft run still exposes only its actual owner's Stop.
+    // Never expose an unrelated Run/Save action in a cross-view Stop dock.
     get('workspace-dock').hidden=get('task-dock').hidden && get('develop-dock').hidden;
   }
   function showCatalogPage() {

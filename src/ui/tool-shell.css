@@ -52,6 +52,10 @@ details>section{margin-top:10px}
 .dock-actions[hidden]{display:none!important}
 .dock-buttons{display:flex;align-items:stretch;gap:8px}
 .dock-buttons button{min-height:38px;padding:8px 10px;border-radius:9px;font-size:12px;font-weight:700}
+/* Cross-view running actions belong only to the active RunHost owner. */
+.workspace-dock[data-stop-only="true"] .dock-buttons > :not(#task-stop):not(#script-stop){display:none}
+.workspace-dock[data-stop-only="true"] .dock-buttons > #task-stop,
+.workspace-dock[data-stop-only="true"] .dock-buttons > #script-stop{flex:1 1 auto}
 #task-run,#script-run{background:var(--blue);color:#fff;flex:1;border:1px solid var(--blue)}
 #task-stop,#script-stop,#script-save{flex:none;background:#f7f9fd;color:#435873;border:1px solid #d6dfed}
 #task-stop:disabled,#script-stop:disabled{display:none}
