@@ -58,7 +58,16 @@ export function installPackagedPageSession({api = globalThis.chrome, document: d
       requireValue(!disposed && !retired.has(key), 'E_CANCELLED');
       return {requestId: envelope.requestId, runId: envelope.identity.runId, ownerEpoch: envelope.identity.ownerEpoch, value: encodeValue(value)};
     });
-    session.requests.set(envelope.requestId, {fingerprint, result}); return result;
+    session.requests.set(envelope.requestId, {fingerprint, result});
+    // Completed read-only Locator requests can be replayed by re-reading the
+    // document. Retain all commit and legacy effect IDs for exactly-once.
+    if (['locatorRead','locatorPrepare','locatorObserve'].includes(envelope.operation.method)) {
+      const release = () => {
+        if (session.requests.get(envelope.requestId)?.result === result) session.requests.delete(envelope.requestId);
+      };
+      result.then(release, release);
+    }
+    return result;
   }
   function listener(message, sender, respond) {
     if (disposed || message?.type !== PAGE_SESSION_MESSAGE || !trusted(sender)) return false;
@@ -84,7 +93,8 @@ export function installPackagedPageSession({api = globalThis.chrome, document: d
   }
   const installation = Object.freeze({dispose, snapshot: () => ({disposed, sessions: sessions.size,
     waits: [...sessions.values()].reduce((n, session) => n + session.registry.snapshot().waits, 0),
-    uploads: [...sessions.values()].reduce((n, session) => n + session.registry.snapshot().uploads, 0)})});
+    uploads: [...sessions.values()].reduce((n, session) => n + session.registry.snapshot().uploads, 0),
+    requests: [...sessions.values()].reduce((n, session) => n + session.requests.size, 0)})});
   api.runtime.onMessage.addListener(listener); win.addEventListener('pagehide', dispose, {once: true});
   installations.set(doc, installation); return installation;
 }
