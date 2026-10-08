@@ -26,6 +26,9 @@
 | [PR #11](https://github.com/shopable-ai/opendesk-browser/pull/11) | Draft/Open；Native Agent Host/CLI，缺同最终候选真实 Chrome+Codex E2E | E05 独立验收，R8.1 Page 安装不依赖 Native |
 | GM_*/GM.*、@background、@crontab、UserCSS | 在已抽查 main 未发现完整的正式产品闭环 | 进入后续批次，实际开发前重新查代码；不能因有 chrome API 声称已兼容 |
 
+
+> **R8 Engineering Program R1 · 2026-10-09 增量审计快照**：GitHub main@ca3e7655f8054494b024ccca3e2d7aab50ce8638；PR #11（Native）、#20（HTTP/axiosx）、#22（多文件源码）仍为 Draft、尚未合入；受限环境未接入 Mac 工作区或真实 Chrome/Codex，以上 PR 原生端到端项保持 NOT_TESTED。R8 目录初次与 E01～E40 对账时有 35 个功能 ID 未显式归属，下面“追溯补充”只指定责任和处置，不增加新执行引擎或声称功能已完成。新增源代码层自动检查：node --test tests/environment/r8-backlog-contract.test.mjs；其通过也不是 Chrome 原生验收。
+
 当前 main 已声明 MV3、最低 Chrome 138、<all_urls> 与部分敏感命名权限；这不等于用户脚本有全部权限，也不证明 Chrome Web Store 公开发布已经满足最小权限政策。PR 状态可能随其它工作流变化，请在执行当日更新。
 
 ## 三、架构实施边界
@@ -131,6 +134,36 @@
 ### 全程 E40 安全、隐私与发布约束
 
 功能 ID：SEC-013,SEC-014,SEC-015,ECO-004,SEC-009；复杂度/风险：4/5；审计对象：manifest.json、permission-gate.js、官方 CWS 规范与引用许可。完成条件：审查 Cookie/all_urls 默认声明、远程代码隔离、第三方 GPL 和敏感日志，关键安全问题不能用高平均分抵消。不因为其它功能高分或 CI 通过就跳过此关口。
+
+
+### 188 项功能 ID 追溯补充：遗漏的 35 项（不新建第二份功能清单）
+
+逐项总目录仍以 browser-automation-feature-catalog-r8.zh-CN.md 为准。**责任 E ID** 表示归属现有 40 项工程任务，不表示源码已实施；**保留回归** 表示已有实现或边界需要回归，**延期评估** 表示不进入近期 P0/P1 的正式交付，**不实现** 表示不作为普通用户脚本兼容能力提供。所有状态在相应 E 任务完成前均不得自动提升为 CHROME_NATIVE_VERIFIED。
+
+| 责任任务 | 原功能 ID（仅补足追溯） | 处置 | 必须遵守的边界 |
+| --- | --- | --- | --- |
+| E02,E06,E14 | INS-003,DEV-001,DEV-002,TRG-001,TRG-002,UX-001,UX-002,UX-004,UX-005 | 保留回归 | 草稿即时运行、Controller 手动运行与三页签，不因 R8.1 安装改造而退化；原生状态未补测 |
+| E06,E07,E08 | DEV-005,SEC-007,META-011 | 保留回归 | 复用 D1 锁、拒绝未知特权元数据；@grant none 不等于 MAIN 世界 |
+| E08,E14 | INS-004 | 延期评估 | 发现网页 user.js 链接只生成待审核候选，不能静默安装 |
+| E14,E33 | META-019,UX-012 | 延期评估 | 多语言展示及高级 GM 调试先放独立管理页，不改 Sidebar 一级导航 |
+| E12,E15 | LIFE-013 | 保留回归 | 撤权/停用保证未来注入栅栏，不承诺撤销已经发生的 DOM 副作用 |
+| E11,E27 | LIFE-014 | 延期评估 | 锁定依赖顺序与诊断优先，跨脚本冲突分析待真实案例 |
+| E22,E40 | META-017 | 延期评估 | @run-in/@sandbox/@unwrap 不自动转换成 MAIN 或新特权 |
+| E25,E40 | GM-017,GM-018 | 延期评估 | 剪贴板/高敏 Cookie 必须重新审核真实权限与用户意图，默认不可用 |
+| E39,E40 | GM-019 | 延期评估 | 不提供跨脚本标签枚举，需求与隔离证明不足时不实现 |
+| E40 | GM-020,GM-021 | 不实现 | 不把 GM_audio 和 GM_webRequest 宣称为常规兼容功能 |
+| E16,E40 | GM-022 | 延期评估 | unsafeWindow/MAIN 必须经独立世界与风险评审，默认不开放 |
+| E33 | AUTO-007,AUTO-009 | 延期评估 | 优先 JavaScript/Locator 组合；多 Tab/frame 范围逐项验证，不重建图形工作流引擎 |
+| E35,E40 | AUTO-010 | 延期评估 | OCR/截图需要单独用户授权、隐私与性能验收 |
+| E40 | AUTO-013 | 延期评估 | 网络拦截/改写不等于受控 axiosx，不自动扩大 debugger/DNR 权限 |
+| E27 | AUTO-014,ECO-007 | 延期评估 | 文件资产/备份含敏感配置的导出范围、编码和恢复校验独立评审 |
+| E31,E40 | TRG-010 | 延期评估 | 网页 CustomEvent 不得当成可信手势或任务授权 |
+| E05,E29 | BG-010 | 延期评估 | 长任务 Native Host 独立显式授权，不使 Agent 成为普通任务必需 |
+| E37,E39 | CSS-005,CSS-006 | 延期评估 | CSS 预处理与同步不进入最小 UserCSS 基础闭环 |
+| E27,E39 | ECO-006 | 延期评估 | 批量分组管理先等待本地安装规模与真实 UX 证据 |
+
+**可执行门禁**：tests/environment/r8-backlog-contract.test.mjs 以 Node 内建测试库校验 188 个功能 ID 唯一、E01～E40 按序存在、R8.0～R8.6 阶段齐全、补充责任任务合法、无遗漏/虚构 ID。该检查不验证 feature 实现、Chrome 权限或用户安装效果。
+
 
 ## 六、依赖顺序与可并行工作
 
