@@ -10,6 +10,7 @@
     "src/platform/host/sdk-broker.js",
     "src/platform/host/sdk-methods.js",
     "tests/framework/k2-sdk-broker.test.mjs",
+    ".github/workflows/r7-axiosx-http-lab.yml",
     "examples/tasks/README.zh-CN.md",
     "docs/framework/workstreams/r72-http-resume-20261009.*",
     "docs/framework/evidence/r72-resume-20261009/**"
@@ -67,7 +68,8 @@
       "integrated-build-development.log",
       "integrated-verify.log"
     ],
-    "ci": "Live PR current HEAD checks: https://github.com/shopable-ai/opendesk-browser/pull/26/checks; do not reuse checks from another head"
+    "ci": "Live PR current HEAD checks: https://github.com/shopable-ai/opendesk-browser/pull/26/checks; do not reuse checks from another head",
+    "ciCoverage": "R7 workflow now watches both changed SDK host files and k2-sdk-broker.test.mjs, and runs the new durable HTTP failure regressions"
   },
   "nativeEvidence": {
     "sidePanel": "final-native-db.json; exact run/result/revision/released table in the workstream Markdown",

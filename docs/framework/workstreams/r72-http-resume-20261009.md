@@ -2,7 +2,7 @@
 
 本轮修复了真实 Chrome 中发现的缺陷：SDK 已完整收到 404/429/500 响应，却将运行保留为未知效果。现在只有受信 HTTP Driver 的完整响应回执能在同一事务中生成持久 `sdk-result.httpErrorWire` 并完成运行；交付错误正文前仍核对 document、grant、网站权限和 deadline。恢复或重复请求只返回已保存的 E_HTTP，不重发网络效果。超时、传输失败、无效 JSON 或仅抛出一个携带 response 的错误仍保留未知效果。
 
-当前 PR 相对集成基线仅修改 `sdk-broker.js`、`sdk-methods.js`、对应 Broker 回归测试和本文档/README。未修改 Controller、共享 Network Driver、公开 SDK 方法、依赖或签名任务包。原始回执在 [独立证据目录](../evidence/r72-resume-20261009/)，索引为 `evidence-manifest.json`。
+当前 PR 相对集成基线修改 `sdk-broker.js`、`sdk-methods.js`、对应 Broker 回归测试、R7 CI 和本文档/README。R7 CI 补上这两个宿主文件与回归测试的触发路径，并实际运行 Broker 测试。未修改 Controller、共享 Network Driver、公开 SDK 方法、依赖或签名任务包。原始回执在 [独立证据目录](../evidence/r72-resume-20261009/)，索引为 `evidence-manifest.json`。
 
 ## 两个候选，分别计证据
 
