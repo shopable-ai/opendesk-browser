@@ -40,6 +40,7 @@ function hasNativeEffect(operation) {
 // injected storage transaction; the maps below only correlate live promises.
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost}) {
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
+  const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
   const tx = (mode, work, names = stores) => storage.transaction(names, mode, work);
   const now = () => clock.now();
@@ -486,7 +487,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         return tx('readonly', transaction => admittedOperation(transaction, envelope, host, sender,
           {post: details.phase === 'post', handoff: details.handoff}));
       };
-      const driver = createControllerDriver({api, clock, authorize:authorizeOperation});
+      const withLocatorWrite = async (identity, effect) => {
+        const writeKey = canonical([identity.runId, identity.ownerEpoch, identity.target.tabId,
+          identity.target.frameId, identity.target.documentId]);
+        invariant(!locatorWriters.has(writeKey), 'E_WRITE_CONFLICT', 'Concurrent Locator mutations are not permitted');
+        locatorWriters.add(writeKey);
+        try { return await effect(); } finally { locatorWriters.delete(writeKey); }
+      };
+      const driver = createControllerDriver({api, clock, authorize:authorizeOperation, withWrite:withLocatorWrite});
       const recordReceipt = async receipt => tx('readwrite', async transaction => {
         const operation = await transaction.get('commandJournal', key);
         invariant(operation?.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
