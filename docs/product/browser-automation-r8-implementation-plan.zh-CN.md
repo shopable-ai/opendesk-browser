@@ -2,6 +2,14 @@
 
 > 审计日期：2026-10-09（Asia/Shanghai）。首轮源码审计基线：`main@945cf92726fcadcd60ecb3dc70729029fb9f28e6`；并行文档主线由 `main@0dcc23b6` 连续同步至 `main@36cdb63`，保留新的 PR 归属事实、35 项追溯和全部独立评分。保留该主线已建立的 E01–E40 稳定任务 ID，增量补齐字段、去重映射和验收，不覆盖为新的编号体系。本文件是唯一的 R8 **工程执行计划**；[188 项功能总目录](browser-automation-feature-catalog-r8.zh-CN.md) 继续作为唯一能力账本。这里把它们归并为 **40 个稳定工程任务（E01–E40）**，不复制第二份 188 行矩阵，不把规划、候选 PR 或测试数量当作产品完成率。
 
+## OpenDesk UI Development R1 子切片（2026-10-09）
+
+- **SOURCE_IMPLEMENTED**：E33 关联的 Page USER_SCRIPT 原生 UI（`src/scripting/user-scripts/page-ui.js`）、`@opendesk/ui` 固定本地构建别名、按需 CSS 与 JSON/PNG/JPEG/WebP 有界静态内嵌（`scripts/program-assets.mjs` / 两份既有项目校验和构建器）。
+- **示例与接口**：`examples/programs/page-ui-basic/` 的多文件源码、独立 CSS/JSON/PNG、[UI API](../framework/ui-api.zh-CN.md)；沿用 Sidebar 原草稿包导入与「网页用户脚本 · 依赖与试运行」按钮，Task v1/正式 Page 安装合同未升级。
+- **COMPONENT_TESTED / BUILD_VERIFIED**：以该提交关联的实际定向测试或 CI 结果为准；没有执行结果时不写 PASS。旧的 `sidebar-assets-contract` fail-closed 构建用例已更新为资源成功构建及非法输入负面测试。
+- **CHROME_NATIVE_VERIFIED = NOT_TESTED**：需在本地 Mac 真 Chrome 用同一候选构建，分别检查导入、ShadowRoot、DOM/CSS 隔离、按钮状态、data 图片/CSP、离线、重复运行/关闭重开、200% 缩放、320/400/600 宽度及页面导航。不得将 Node 或 CI 的静态结果升级为原生证据。
+- **后续独立范围**：React/Vue/JSX/TSX/Tailwind adapter、复杂 Sidebar sandbox 用户应用、正式 Page 安装与撤权信号桥、完整 GM/UserCSS 均不因本子切片而宣称完成。具体错误与 API 以已提交源码为准。
+
 ## 1. 本轮结论与适用规则
 
 正式定位为 **用户脚本管理器 + 现代 JavaScript 开发框架 + 浏览器自动化任务平台 + 可选 AI Agent**。现有 Controller、RunHost、Locator、Task 发布、单文件草稿、页面预览、ESM 构建和 SDK 是复用基座；正式 Page 安装、GM Facade、调度和跨浏览器适配存在独立缺口。现有 `background-services.js` 是 SDK 的时间、日志、固定资源服务，不能因文件名而被标为 Background Script 引擎。

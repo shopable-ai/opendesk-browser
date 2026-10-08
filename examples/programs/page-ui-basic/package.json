@@ -1,0 +1,27 @@
+{
+  "name": "@opendesk-examples/page-ui-basic",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "无框架 Shadow DOM 页面工具，多文件 CSS/PNG/JSON 受控资源闭环",
+  "author": "OpenDesk examples",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-ui-basic",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": ["http://127.0.0.1/*"],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "assets": [
+      {"path": "assets/panel.css", "kind": "css"},
+      {"path": "assets/config.json", "kind": "json"},
+      {"path": "assets/mark.png", "kind": "image"}
+    ]
+  }
+}

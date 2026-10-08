@@ -17,7 +17,11 @@ test('strict production SW budget and fixed packaged Native transport entry',()=
   assert.equal(BUILD_POLICY.productionBytes,320*1024);
   assert.equal(PACKAGE_ENTRIES['native-agent/transport'],'./src/native-agent/transport.js');
   assert.equal(FIXED_OUTPUTS.transport,'native-agent/transport.js');
-  assert.equal(Object.keys(PACKAGE_ENTRIES).length,13);
+  // Sidebar Tools is a second, explicitly reviewed fixed classic entry;
+  // Native still has exactly one pinned same-extension transport script.
+  assert.equal(PACKAGE_ENTRIES['sidebar-tools/bridge'],'./src/sidebar-tools/bridge.js');
+  assert.equal(FIXED_OUTPUTS.bridge,'sidebar-tools/bridge.js');
+  assert.equal(Object.keys(PACKAGE_ENTRIES).length,14);
 });
 
 test('single exact same-extension static import allowed in SW only',()=>{

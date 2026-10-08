@@ -34,3 +34,43 @@ jobs:
         run: npm run build:dev
       - name: Both packages retain exact manifest and vendored hashes
         run: npm run verify
+      - name: Verify ZIP archives exactly match validated WXT dist bytes (not Chrome installation)
+        run: |
+          npm run pack
+          npm run pack:dev
+          python3 - <<'PY'
+          import hashlib, json, zipfile
+          from pathlib import Path
+          for mode in ('production', 'development'):
+              root = Path('dist') / mode
+              build = json.loads((Path('docs/framework/evidence/wxt/builds') / f'build-{mode}.json').read_text())
+              receipt = json.loads((Path('docs/framework/evidence/wxt/packages') / f'pack-{mode}.json').read_text())
+              archive = Path('artifacts') / f'opendesk-browser-{mode}.zip'
+              raw = archive.read_bytes()
+              assert receipt['status'] == 'passed' and receipt['mode'] == mode
+              assert receipt['packageHash'] == build['report']['packageHash']
+              assert receipt['bytes'] == len(raw)
+              assert receipt['zipSha256'] == hashlib.sha256(raw).hexdigest()
+              expected = {file.relative_to(root).as_posix(): file.read_bytes()
+                          for file in root.rglob('*') if file.is_file()}
+              with zipfile.ZipFile(archive) as compressed:
+                  assert compressed.testzip() is None
+                  assert len(compressed.namelist()) == len(expected)
+                  assert set(compressed.namelist()) == set(expected)
+                  for name, content in expected.items():
+                      assert compressed.read(name) == content, f'{mode}/{name}'
+              print(f'ZIP_EXACT_DIST_BYTES=PASS mode={mode} files={len(expected)} sha256={receipt["zipSha256"]}')
+          PY
+      - name: Archive verified ZIPs and immutable build/pack receipts (not a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: opendesk-wxt-zips-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            artifacts/opendesk-browser-production.zip
+            artifacts/opendesk-browser-development.zip
+            docs/framework/evidence/wxt/packages/pack-production.json
+            docs/framework/evidence/wxt/packages/pack-development.json
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json

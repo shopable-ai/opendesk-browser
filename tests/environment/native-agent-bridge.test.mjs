@@ -220,7 +220,11 @@ test('dispatched but unanswered calls are never retried, even if same id reappea
   const f=mock();t.after(()=>f.service.dispose());await f.service.ready;f.native().onMessage.fire({v:1,kind:'hello'});
   const p={registrationId:'registration-1',scriptId:'s',sourceUtf8:'async function main(){}',expectedRevision:0};
   f.native().onMessage.fire(message('save-1','script.save',p));
-  await drain();await drain();assert.equal(f.requests.length,1);
+  // Reservation, storage.local persistence and permission checks are async.
+  // Observe the first real Host dispatch instead of assuming two event-loop turns.
+  for(let i=0;i<100&&f.requests.length<1;i++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.requests.length,1);
   f.native().onDisconnect.fire();
   const sender={id:f.api.runtime.id,url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'s'};
   await f.service.handleSettings({type:'enable'},sender);

@@ -1,14 +1,15 @@
 // OpenDesk multi-file ESM project compiler. Local build adapter only:
 // no install, no Chrome permission, no additional browser execution engine.
 import {readFile,writeFile,mkdir,mkdtemp,rm,realpath,readdir} from 'node:fs/promises';
-import {resolve,join,dirname,basename} from 'node:path';
+import {resolve,join,dirname,basename,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
-import {pathToFileURL} from 'node:url';
+import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 import webpack from 'webpack';
 import {parse} from 'acorn';
 import {validateProgramProject,projectError} from './validate-program-project.mjs';
+import {buildAssetRecords} from './program-assets.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {compileLockedPageSource} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
@@ -23,6 +24,7 @@ const AUTHORING_TOTAL_LIMIT=256000;
 const AUTHORING_FILE_LIMIT=32;
 const ENVELOPE_LIMIT=512000;
 const require=createRequire(import.meta.url);
+const PAGE_UI_MODULE=fileURLToPath(new URL('../src/scripting/user-scripts/page-ui.js',import.meta.url));
 const {SourceMapConsumer,SourceMapGenerator}=require('source-map');
 
 const fail=(code,message,details={})=>{throw projectError(code,message,details);};
@@ -67,7 +69,8 @@ async function compileWebpack(root,entry,temp,mode){
     entry:resolve(root,entry),
     devtool:mode==='development'?'source-map':false,
     output:{path:temp,filename:'bundle.js',library:{name:runtimeName,type:'var'},publicPath:''},
-    resolve:{modules:[join(root,'node_modules')],extensions:['.js','.mjs'],symlinks:true,fallback:{}},
+    resolve:{modules:[join(root,'node_modules')],extensions:['.js','.mjs'],symlinks:true,
+      fallback:{},alias:{'@opendesk/ui$':PAGE_UI_MODULE}},
     optimization:{
       runtimeChunk:false,
       splitChunks:false,
@@ -169,14 +172,16 @@ function pageHeader(pkg,project){
     '// ==/UserScript==',''].join('\n');
 }
 
-function programSource(pkg,project,bundle,{sourceMapFile}={}){
+function programSource(pkg,project,bundle,{sourceMapFile,assets={}}={}){
   const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
   const body=sourceMapFile?stripWebpackMapComment(bundle):bundle;
   const args=project.runtimeKind==='page-userscript'?'':'{page,params,axiosx,AppStorage,AppLocal,storage}';
+  const pageAssets=project.runtimeKind==='page-userscript'&&Object.keys(assets).length>0;
+  const parameters=pageAssets?JSON.stringify({assets}):args;
   const code=body+'\n;\nasync function main() {\n'+
     '  const run = '+runtimeName+'.default;\n'+
     "  if (typeof run !== 'function') throw new Error('E_PROJECT_ENTRY: default export must be a function');\n"+
-    '  return await run('+args+');\n}\n'+
+    '  return await run('+parameters+');\n}\n'+
     (sourceMapFile?'//# sourceMappingURL='+sourceMapFile+'\n':'');
   return header+code;
 }
@@ -233,10 +238,25 @@ function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode}){
 function publicAuthoring(before,webpackModules,mode,hash){
   return {
     files:before.sources,
+    ...(before.assets.length?{assets:before.assets}:{}),
     webpackModules,
     buildMode:mode,
     buildHash:hash
   };
+}
+
+async function collectAssets(root,assets){
+  const bytesByPath=new Map();
+  for(const row of assets){
+    const real=await realpath(join(root,row.path));
+    ensure(real.startsWith(root+sep),'E_PROJECT_SYMLINK','Asset must remain inside the project',
+      {phase:'assets',location:row.path});
+    const bytes=await readFile(real);
+    ensure(sha(bytes)===row.sha256,'E_PROJECT_CHANGED','Asset changed after validation',
+      {phase:'assets',location:row.path});
+    bytesByPath.set(row.path,bytes);
+  }
+  return buildAssetRecords(assets,bytesByPath);
 }
 
 export async function buildProgramProject(input,{outputDirectory,mode='production'}={}){
@@ -249,8 +269,8 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
   ensure(before.id===project.id&&before.version===pkg.version&&before.entry===project.entry&&
     before.runtimeKind===project.runtimeKind,'E_PROJECT_CHANGED','Project identity changed after validation',
     {project:projectLabel,phase:'validate',location:'package.json'});
-  ensure(before.assets.length===0,'E_PROJECT_ASSET_BUILD',
-    'Source assets can be validated but are not yet bundled into program.js',
+  ensure(project.runtimeKind==='page-userscript'||before.assets.length===0,
+    'E_PROJECT_ASSET_ENV','R1 bundled assets are supported only in Page USER_SCRIPT projects',
     {project:projectLabel,phase:'build',location:'package.json#opendesk.assets'});
   if(project.runtimeKind==='controller'){
     ensure(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(pkg.version),
@@ -262,7 +282,8 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
   try{
     const compiled=await compileWebpack(root,project.entry,temp,mode);
     const sourceMapFile=mode==='development'?'program.js.map':undefined;
-    const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile});
+    const embeddedAssets=await collectAssets(root,before.assets);
+    const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets});
     const bytes=Buffer.from(sourceUtf8,'utf8');
     const limit=project.runtimeKind==='page-userscript'?SOURCE_LIMIT:65536;
     ensure(bytes.length>0&&bytes.length<=limit,'E_PROJECT_OUTPUT_LIMIT',
@@ -287,7 +308,8 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       'Project source changed during build',{project:projectLabel,phase:'validate'});
 
     const hash=sha(bytes);
-    const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root)})));
+    const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root),
+      ...(before.assets.length?{assets:before.assets}:{})})));
     const out=resolve(outputDirectory||join(process.cwd(),
       'artifacts','programs',project.id,pkg.version,'r31-'+mode,hash.slice(0,16)+'-'+authoringHash.slice(0,12)));
     const draft=draftEnvelope({pkg,project,before,sourceUtf8,sourceHash:hash,mode});
@@ -305,6 +327,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       buildHash:hash,
       sourceModules:before.sources,
       sourceFiles:before.sources,
+      ...(before.assets.length?{assets:before.assets}:{}),
       npmPackages:before.npmPackages,
       npmLockSha256:await npmLockHash(root),
       sourceFile:'program.js',

@@ -11,10 +11,12 @@ const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
 export const BUILD_CONTRACT_SOURCE = 'scripts/build-contract.mjs';
 export const SANDBOX_HTML = 'scripting/sandbox/sandbox.html';
+export const TOOL_SANDBOX_HTML = 'sidebar-tools/sandbox.html';
+export const TOOL_SANDBOX_META_CSP = "default-src 'none'; script-src 'self' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; child-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 export const CONTROL_WORKER = 'scripting/sandbox/worker-runtime.js';
 export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
 export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";
-export const SANDBOX_CSP = `sandbox allow-scripts; ${SANDBOX_META_CSP}`;
+export const SANDBOX_CSP = "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'";
 export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js'], matches: ['http://*/*', 'https://*/*']}]);
 export const FIXED_ASSETS = Object.freeze({
   'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},
@@ -25,7 +27,8 @@ const HTML_REFERENCES = Object.freeze({
   'ui/tool.html': ['tool-shell.css', 'tool-shell.js'],
   'native-agent/settings.html': ['settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
-  [SANDBOX_HTML]: ['sandbox.js']
+  [SANDBOX_HTML]: ['sandbox.js'],
+  [TOOL_SANDBOX_HTML]: ['bridge.js']
 });
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output);
@@ -93,7 +96,7 @@ export function verifyManifest(manifest) {
   if (!same(manifest.optional_permissions, OPTIONAL_PLUGIN_API_PERMISSIONS)) throw new Error('Unexpected optional plugin API permissions');
   if (!same(manifest.host_permissions, REQUIRED_HOST_PATTERNS)) throw new Error('Expected default all-site host permission');
   if (!same(manifest.content_security_policy, {extension_pages: EXTENSION_CSP, sandbox: SANDBOX_CSP})) throw new Error('Unexpected CSP');
-  if (!same(manifest.sandbox, {pages: [SANDBOX_HTML]})) throw new Error('Unexpected sandbox boundary');
+  if (!same(manifest.sandbox, {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML]})) throw new Error('Unexpected sandbox boundary');
   if (!same(manifest.background, {service_worker: 'sw.js'})) throw new Error('Unexpected or missing worker entry');
   if (!same(Object.keys(manifest.action || {}), ['default_title'])) throw new Error('Unexpected action resource/entry');
   if (!same(manifest.side_panel, {default_path: 'ui/tool.html'})) throw new Error('Unexpected or missing Side Panel entry');
@@ -243,7 +246,7 @@ async function inspectHTML(root, file) {
   }
   for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
-  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
 }
 export async function verifyPackage(directory) {
   const root = resolve(directory);
@@ -288,7 +291,7 @@ export async function verifyPackage(directory) {
   const sdkResources = await verifySdkResourceManifest(root);
   return {status: 'passed', manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST], sdkResources,
     sdkEntries: {MAIN: 'framework/sdk-main.js', ISOLATED: 'agents/page-relay.js'}, privilegedDynamicExecutionFound: false,
-    approvedDynamicExecution: boundaries, sandbox: {pages: [SANDBOX_HTML], csp: SANDBOX_CSP}, ...await packageFingerprint(root)};
+    approvedDynamicExecution: boundaries, sandbox: {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML], csp: SANDBOX_CSP}, ...await packageFingerprint(root)};
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   console.log(JSON.stringify(await verifyPackage(process.argv[2] || 'dist/production')));

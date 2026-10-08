@@ -120,8 +120,21 @@ test('Controller ESM emits a Task v1 Candidate and invokes only approved Locator
   assert.deepEqual(calls,['fill:OpenDesk','click','wait']);
 });
 
-test('unsupported CSS/JSON/PNG may be validated but MUST be rejected by the JS-only build adapter',async t=>{
+test('declared CSS/JSON/PNG are frozen into Page USER_SCRIPT without becoming installed',async t=>{
   const out=await temporary();t.after(()=>rm(out,{recursive:true,force:true}));
-  await assert.rejects(buildProgramProject(root+'sidebar-assets-contract',{outputDirectory:out}),
-    error=>error.code==='E_PROJECT_ASSET_BUILD');
+  const built=await buildProgramProject(root+'sidebar-assets-contract',{outputDirectory:out});
+  assert.equal(built.status,'BUILT_UNVERIFIED');
+  assert.equal(built.runtimeKind,'page-userscript');
+  assert.equal(built.installable,false);
+  assert.deepEqual(built.assets.map(row=>row.kind),['css','json','image']);
+  const code=await readFile(join(out,'program.js'),'utf8');
+  assert.equal(sha(code),built.sourceHash);
+  assert.match(code,/data:image\/png;base64,/);
+  const draft=await validateProgramDraft(
+    JSON.parse(await readFile(join(out,'program.opendesk-draft.json'),'utf8')));
+  assert.equal(draft.sourceUtf8,code);
+  assert.equal(draft.build.sourceHash,built.sourceHash);
+  // Original import format and Task v1 are not extended by these authoring assets.
+  assert.deepEqual(Object.keys(draft).sort(),
+    ['authoring','build','format','project','runtimeKind','sourceUtf8']);
 });

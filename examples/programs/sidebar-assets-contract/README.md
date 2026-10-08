@@ -1,14 +1,10 @@
-# 资源合同样例：CSS / JSON / PNG（故意不能打包）
+# 资源合同样例：CSS / JSON / PNG（Page 资源构建回归）
 
-这是用户所需「整个项目文件夹包括图片」的**真实磁盘源文件样例**，不是已安装 Page 程序。含 `assets/panel.css`、`assets/config.json` 和 4×4 PNG `assets/mark.png`，供未来文件夹导入器/资源打包器使用。
+此样例包含真实磁盘 `assets/panel.css`、`assets/config.json`、4×4 `assets/mark.png`，用于确认现有 `opendesk.project.v1` 资源声明与构建器贯通；不是 UI 可视化 Demo。真正 UI 演示使用 [page-ui-basic](../page-ui-basic/README.md)。
 
 ```sh
 node scripts/validate-program-project.mjs examples/programs/sidebar-assets-contract
-# 应输出 AUTHORING_VALID_NOT_PACKAGED + 三项真实资源的 SHA-256
 npm run build:program -- examples/programs/sidebar-assets-contract
-# 当前 main 的预期结果：E_PROJECT_ASSET_BUILD；退出码非零
 ```
 
-当前 `opendesk.assets` 只允许相对路径、类型、字节大小与哈希校验；**没有 CSS 注入、JSON 读取 API、图片 URL 或资源安装对账**。这份 Demo 用来验证“拒绝未经支持的资源打包”这个安全门槛。
-
-后续接通资源构建时，必须将原来的拒绝测试升级为真正的资源哈希、受控加载、真实 Chrome DOM/图片显示、版本冻结、撤权/重启与篡改拒绝测试；**不能只删除失败断言就声称实现**。
+当前构建将 CSS、JSON 和 PNG 在严格大小、类型、哈希和 CSS 路径验证后内嵌为固定 `program.js` 产物；`artifact.json` 记录资源哈希。它是 Page 用户脚本手动预览可用的冻结字节，**不是自动安装、后台运行或任意 @resource/GM 兼容**。若有非法 URL、文件类型或超限数据，校验／构建必须 fail closed。旧的 `E_PROJECT_ASSET_BUILD` 预期仅适用于资源打包尚未实现的历史版本，现已被成功资源构建及负面校验测试替代。

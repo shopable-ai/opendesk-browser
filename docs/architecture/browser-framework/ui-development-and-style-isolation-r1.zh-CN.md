@@ -1,8 +1,11 @@
 # OpenDesk UI 开发与样式隔离 R1：原生默认、框架可选、资源按容器加载
 
 > 决策日期：2026-10-09（Asia/Shanghai）。初次源码核对基线：main@`36cdb638dc755f1be266eac745d09ce2e384a2c1`；保存前复查 main@`70fb3449ae97cfdf69b4fc83f0466e36f8501006`，本专项引用的 UI 入口、构建器、校验器、Task 合同和 CSP 核心事实未变。
-> 本文状态：**设计与缺口已核对；新增 UI 运行能力待实施、待真实 Chrome 验收**。本文不把安装依赖、放置示例或保存设计认定为产品支持。
+> 本文状态：**R1 原生 Page UI 源码与 CSS/JSON/图片构建已实现，真实 Chrome 验收仍为 NOT_TESTED**。具体 API 与运行入口见 [Page UI API](../../framework/ui-api.zh-CN.md) 和 [page-ui-basic](../../../examples/programs/page-ui-basic/README.md)。本文不把安装依赖、放置示例或保存设计认定为产品支持。
 > 适用范围：插件自身 UI、现有任务参数表单、用户网页内 UI、多文件 UI 工程和未来侧栏内自定义任务界面。沿用现有 Sidebar、RunHost、Authority、Task/Program 和两类执行环境。
+
+
+> **实施增量 2026-10-09：** 详见 [Sidebar 自定义工具 R1](../../product/sidebar-custom-tools-r1.zh-CN.md)。已新增独立 opendesk.sidebar-tool.v1 JSON（HTML/CSS/单个已编译经典 JS）、受限 sandbox UI、存储与网页标题/URL 的窄桥、工具选项卡及本地图片打包器。它不修改现有 Task v1 运行包、Page 资源链或 React/Vue/JSX/Tailwind 构建预设。因此本页以下对通用 Program UI 资产与 React/Vue/Tailwind 正式闭环尚未实施的描述仍成立；不要混淆两个版本的能力。
 
 ## 1. 采用的设计
 
@@ -33,7 +36,7 @@ React/Vue 主要帮助组织组件、交互和状态，Tailwind 帮助编写样�
 | React/Vue/Tailwind 官方预设 | 本次 `package.json` 没有这些依赖，`src/vendor` 只有固定 jQuery 资源 | **没有现成预设证据**；不能据 npm 可安装便宣称已支持 |
 | 多文件 JavaScript | 本地 ESM 校验与单个 classic JS 构建已存在 | **已有源码**：[校验器](../../../scripts/validate-program-project.mjs)、[构建器](../../../scripts/build-program-project.mjs) |
 | JSX/TSX、Vue 单文件组件 | 校验器仅接受 `.js/.mjs`，使用普通 Acorn 解析；构建器没有相应组件编译配置 | **未接入正式构建链**。纯 JS 写法或已预编译文件是另一种情况，仍需逐例校验，不宣称整个框架生态已支持 |
-| CSS/JSON/图片源资产 | 项目 schema 允许有限资产声明及哈希校验，但构建器对非空 `assets` 抛出 `E_PROJECT_ASSET_BUILD` | **已声明、未贯通构建与运行**；不能把“可写进 package.json”称为“可以显示” |
+| CSS/JSON/图片源资产 | `opendesk.assets` 声明、签名/尺寸/哈希校验及静态内嵌已接入 Page 构建器 | **SOURCE_IMPLEMENTED，Chrome NOT_TESTED**；可把资源冻进 `program.js`，网页实际展示与 CSP 仍需原生证据 |
 | 自定义任务 UI 包 | Task v1 是关闭字段的 `sourceUtf8 + manifest + paramsSchema` 合同，没有 HTML/CSS/图片资源通道 | **需要版本化扩展**；不能直接在旧 v1 塞入 `ui` 字段 |
 | 现有执行沙箱 | `manifest.json` 中已有 sandbox 的 CSP 包含 `style-src 'none'`、`img-src 'none'` | **它是既有计算运行边界，不是已实现的完整用户 UI 宿主**；不能仅删除 CSP 限制便宣布完成 |
 | 产物容量 | 当前构建器 Page 为 100000 字节、Controller 为 65536 字节；Task 包及通信另有准入限制 | **框架支持需要测量真实产物及整条链路预算**，不能仅放大一个常量 |
@@ -130,7 +133,7 @@ CSS 自定义名称在 Shadow DOM 中有规范作用域和实现差异；`@prope
 
 UI 生命周期与计算任务生命周期相关，但不能混同：任务计算完成后，结果界面可以保留；关闭界面不自动重跑任务；停止执行仍走现有 RunHost/权限边界。
 
-拟议的最小容器句柄如下，**这是待实现的契约，不是当前可调用的 OpenDesk API**：
+历史设计时拟议的容器形态如下；**当前真正实现以 [Page UI API](../../framework/ui-api.zh-CN.md) 的 `createPageUI` 及真实方法签名为准**：
 
 ~~~typescript
 type UiInstance = {
@@ -218,7 +221,7 @@ React 的源码由适配器编译；Vue 单文件组件预编译后采用 runtim
 | 批次 | 实际交付 | 相关既有责任 | 独立完成条件 |
 | --- | --- | --- | --- |
 | 当前设计补齐 | 当前能力表、按需规则、隔离方案、资源合同和验收入口 | E33、E40，参考 DEV-003/004/010/011 | 文档与真实源码一致；不提升运行时状态 |
-| 第一批：原生网页 UI | 一个输入框、按钮、状态、结果与本地图片的 Page UI；原生 CSS；Shadow 容器；资源和清理 | E33 组织构建/开发，复用 E17/E20 的适用样式/资源底层；安装期对接 E12/E14 | 实际构建→原入口导入→获准网页展示→交互→关闭/重开；原网页既有元素的样式与交互不受影响；受管资源可清理 |
+| 第一批：原生网页 UI | **SOURCE_IMPLEMENTED**：`@opendesk/ui`、CSS/JSON/PNG 静态编译、[Page Demo](../../../examples/programs/page-ui-basic/README.md) 与定向测试；**CHROME_NATIVE_VERIFIED=NOT_TESTED** | E33 组织构建/开发，复用 E17/E20 的适用样式/资源底层；安装期对接 E12/E14 | 待本地 Codex 真实完成导入→授权网页展示→交互→关闭/重开、CSP/离线和样式隔离证据 |
 | 第二批：框架与 Tailwind | 在同一已验收的容器和资产链上接 React、Vue 编译适配及可选 Tailwind | E33 与 E40；按具体组件/浏览器范围验收 | 两种框架分别状态更新、弹层、卸载与离线重新运行；Tailwind 产物及资源正确 |
 | 第三批：侧栏内复杂用户 UI | 确有任务需要自定义完整侧栏界面时实现独立 sandbox 展示文档及窄消息桥 | E33/E40，复用当前宿主/Authority | 不进入特权宿主；任务调用沿用现有授权；可信点击、错误和关闭状态可验证 |
 
