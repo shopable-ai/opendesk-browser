@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - agent/native-agent-bridge-r1-20261008
+      - agent/program-r3-native-01a11bdf
   pull_request:
     branches:
       - main
