@@ -37,11 +37,15 @@
   "concurrentPRs": [
     {
       "number": 7,
-      "role": "site permission UI (Draft); review shared Chrome permission UX/manifest"
+      "role": "CLOSED / NOT MERGED; centralized site-access integration already in later main, preserve siteAccess UI"
     },
     {
       "number": 9,
-      "role": "Sidebar R5 UI (Open); rebase host lifecycle edits and test current shell"
+      "role": "MERGED into main; R5 compact UI retained"
+    },
+    {
+      "number": 11,
+      "role": "THIS DRAFT Native Agent bridge candidate; merged latest main into workstream branch, do not merge until Native tests"
     }
   ],
   "sourceAndComponentEvidence": {
@@ -55,8 +59,8 @@
       "npm run verify"
     ],
     "localRuntime": "NOT_TESTED",
-    "githubActions": "PASS on commit 31887ab7ea2bdc1784a8f4d081941aa9ec2b7606 (13/13 bridge, 37/37 shared, source/production/development build/verify); final 425b26b recheck PENDING",
-    "build": "CI_VERIFIED on 31887ab7ea2bdc1784a8f4d081941aa9ec2b7606"
+    "githubActions": "PASS on 16a780d76a92ccb605bf226caa8b4ace674374ed (Native and shared regression / source / production+development WXT builds / verify); site-access merge 28c8385e integration checks PENDING",
+    "build": "CI_VERIFIED on 16a780d76a92ccb605bf226caa8b4ace674374ed"
   },
   "nativeEvidence": {
     "chromeExtension": "NOT_TESTED",
@@ -79,10 +83,10 @@
   "rollback": "Close or revert only dedicated PR, retain historical run receipts and independent modules",
   "pr": "https://github.com/shopable-ai/opendesk-browser/pull/11",
   "updatedAt": "2026-10-08",
-  "currentMainObserved": "37f84193cb7024af6de9ded16db5b70a999f6c61",
+  "currentMainObserved": "28389f5edc6210a3774698600c518be37867ad7b",
   "integrationNotes": [
-    "Main advanced after candidate branched (new Sidebar R5, user-scripts D1 and R4.1 handoff). GitHub PR #11 currently needs explicit conflict review before integration.",
-    "do not overwrite main/new shared src/sw.js, src/ui/tool-shell.js or scripts/build.mjs; rebase in isolated local Codex worktree",
-    "Native Host file remains missing, so all macOS/Chrome/Codex statuses are NOT_TESTED regardless of CI green"
+    "PR #9 (Sidebar R5) merged; centralized site-access from other workstreams is in main 28389f5 and was kept when merging into this workstream",
+    "Latest independent feature merge commit: 28c8385efdd3f86691f41ba0f8ddf7fd251e409c; CI with centralized authorization in progress",
+    "Native Host file remains missing; macOS/Chrome/Codex end-to-end MUST remain NOT_TESTED"
   ]
 }
