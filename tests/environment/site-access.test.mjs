@@ -98,6 +98,25 @@ test('native approval remains valid when an onAdded refresh supersedes its UI ob
   assert.equal(f.requests.length,1);
 });
 
+test('developer site permission controls coexist with the main three-tab workbench', async () => {
+  const {readFile} = await import('node:fs/promises');
+  const [html,shell,css]=await Promise.all([
+    readFile('src/ui/tool.html','utf8'),
+    readFile('src/ui/tool-shell.js','utf8'),
+    readFile('src/ui/tool-shell.css','utf8')]);
+  const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);
+  assert.equal(new Set(ids).size,ids.length,'each DOM id remains unique');
+  const developStart=html.indexOf('id="workbench-develop"');
+  const siteSection=html.indexOf('id="site-access"');
+  assert.ok(developStart>0 && siteSection>developStart && html.indexOf('id="script-title"')>siteSection,
+    'site permission onboarding lives inside the develop tab');
+  assert.match(shell,/createTaskWorkbench/);
+  assert.match(shell,/createSiteAccess/);
+  assert.match(shell,/siteAccess\.dispose\(\); taskWorkbench\.dispose\(\)/);
+  assert.match(css,/\.workbench-nav/);
+  assert.match(css,/#site-access-status/);
+});
+
 test('narrow browser permissions do not claim all-site access', async t => {
   const f = fixture(); t.after(() => f.controller.dispose());
   f.native.cookies = true;

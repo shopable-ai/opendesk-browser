@@ -34,6 +34,22 @@ details>section{margin-top:12px}
 #scraping-panel{border-left:4px solid #cb8a25}
 :focus-visible{outline:2px solid #214bc0;outline-offset:2px}
 @media(max-width:340px){main{padding:8px}section{padding:12px}.actions button{flex-basis:100%}}
+
+/* One Side Panel document; page switches never unmount the running RunHost. */
+[hidden]{display:none!important}
+.workbench-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 12px}
+.workbench-nav button{min-width:0;background:#e4e9f3;color:#283951;font-weight:600;border-radius:8px;padding:11px 4px}
+.workbench-nav button[aria-selected=true]{background:#214bc0;color:#fff}
+.task-detail{background:#f7f9fd;border:1px solid #dce3ed;border-radius:8px;padding:10px;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+#task-params-form{min-width:0}
+#task-params-form label{font-weight:600;margin-top:10px}
+#task-params-form input[type=checkbox]{width:auto}
+#task-params-form .hint{font-weight:400}
+#task-params-form select{width:100%}
+#task-history{overflow-wrap:anywhere}
+#task-history ol{margin:8px 0;padding-left:20px}
+#task-history li{margin-bottom:8px}
+@media(max-width:340px){.workbench-nav{gap:4px}.workbench-nav button{font-size:12px;padding:10px 2px}}
 #site-access-status[data-state=granted]{color:#17683b}
 #site-access-status[data-state=denied],#site-access-status[data-state=error]{color:#aa2538}
 #site-access .row button{flex:1 1 130px}

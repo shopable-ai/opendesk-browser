@@ -12,7 +12,10 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'scripting/sandbox/worker-runtime': './src/scripting/sandbox/worker-runtime.js'
 });
 
-export const BUILD_POLICY = Object.freeze({productionBytes: 256 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
+// Trusted local task candidate verification and immutable install checks ship in the
+// existing single Service Worker. Retain the hard single-bundle ceiling; this is
+// a reviewed product growth allowance, not permission to split or load remote code.
+export const BUILD_POLICY = Object.freeze({productionBytes: 320 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 export const FIXED_OUTPUTS = Object.freeze(Object.fromEntries(Object.keys(PACKAGE_ENTRIES).filter(name => name !== 'sw').map(name => [name.split('/').at(-1), name + '.js'])));
 
 // Deliberately not a WXT executable entry or web-accessible MAIN resource.

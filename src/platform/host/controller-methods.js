@@ -5,6 +5,7 @@ import {encodeValue, decodeValue} from '../page-port/codec.js';
 import {decodeValue as decodeControlValue, encodeValue as encodeControlValue} from '../../framework/control/value.js';
 import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} from '../target/index.js';
 import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} from '../../framework/control/native-driver.js';
+import {assertInstalledTask} from '../tasks/service.js';
 
 const stores = ['runs', 'commandJournal', 'results'];
 const live = new Set(['preparing', 'running']);
@@ -116,11 +117,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function commitControllerScript(request, sender) {
     fields(request, ['scriptId', 'expectedRevision', 'sourceUtf8', 'contentHash'], ['scriptId', 'expectedRevision', 'sourceUtf8']);
+    invariant(!request.scriptId?.startsWith('task:'),'E_PERMISSION','Installed tasks reserve their immutable script IDs');
     const host = await assertHost(sender);
     return storage.commitScriptRevision(scriptContext(host, sender), request);
   }
   function scriptMutation(request) {
     fields(request, ['scriptId', 'expectedRevision'], ['scriptId', 'expectedRevision']); id(request.scriptId);
+    invariant(!request.scriptId.startsWith('task:'),'E_PERMISSION','Installed task revisions cannot be changed by the editor');
     invariant(Number.isSafeInteger(request.expectedRevision) && request.expectedRevision > 0, 'E_REVISION', 'Exact script head required');
   }
   async function tombstoneControllerScript(request, sender) {
@@ -153,7 +156,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return storage.transaction(['scriptHeads', 'commandJournal'], 'readonly', async transaction => {
       await currentHost(transaction, host, sender);
       return (await transaction.all('scriptHeads'))
-        .filter(row => row?.tag === 'script-head' && row.namespace === namespace(host) && !row.tombstoned)
+        .filter(row => row?.tag === 'script-head' && row.namespace === namespace(host) && !row.tombstoned && !row.scriptId.startsWith('task:'))
         .map(row => ({scriptId: row.scriptId, revision: row.revision, contentHash: row.contentHash}))
         .sort((a, b) => a.scriptId.localeCompare(b.scriptId));
     });
@@ -291,7 +294,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     // snapshots. The original top-level saved request remains compatible.
     fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
-    id(request.requestId); selection(request.target); decodeValue(request.paramsWire);
+    id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const variant = request.source, isDraft = variant?.kind === 'draft';
     if (variant !== undefined) {
       invariant(!['scriptId', 'revision', 'contentHash'].some(key => Object.hasOwn(request, key)),
@@ -301,6 +304,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash']);
     }
     const saved = isDraft ? null : variant || request;
+    const isInstalledTask = !isDraft && saved.scriptId?.startsWith('task:');
     const draftSourceUtf8 = isDraft ? variant.sourceUtf8 : undefined;
     if (isDraft) {
       invariant(typeof draftSourceUtf8 === 'string' &&
@@ -325,6 +329,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const admitted = await tx('readwrite', async transaction => {
       await currentHost(transaction, host, sender);
       assertCandidate();
+      if (isInstalledTask) await assertInstalledTask(transaction,namespace(host),{
+        scriptId:saved.scriptId,contentHash:saved.contentHash,
+        origin:selectedOrigin || observed.allowedOrigin,params:runParams});
       const old = await transaction.get('commandJournal', admissionKey);
       if (old) {
         invariant(old.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
@@ -360,7 +367,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await transaction.put('runs', {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
       await transaction.put('commandJournal', {tag: 'controller-start', runId, requestDigest}, admissionKey);
       return {run, pinned, duplicate: false};
-    }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions']);
+    }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
     const run = admitted.run;
     if (admitted.duplicate) return {runId: run.runId, state: run.state, duplicate: true, runRevision: run.runRevision};
     try {

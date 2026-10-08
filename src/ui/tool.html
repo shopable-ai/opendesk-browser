@@ -4,6 +4,46 @@
 <body>
 <header><h1>OpenDesk Browser</h1><p>JavaScript 浏览器自动化工作台</p></header>
 <main>
+  <nav class="workbench-nav" aria-label="OpenDesk 工作台">
+    <button type="button" id="tab-my-tasks" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
+    <button type="button" id="tab-discover" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-discover">发现</button>
+    <button type="button" id="tab-develop" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
+  </nav>
+  <div id="workbench-tasks" data-workbench-page="tasks">
+    <section aria-labelledby="installed-heading"><h2 id="installed-heading">我的任务</h2>
+      <p class="hint">仅展示你明确安装的版本。运行前检查网站、参数与权限。</p>
+      <label for="task-installed-list">已安装任务</label><select id="task-installed-list"><option value="">读取已安装任务…</option></select>
+      <div id="task-installed-detail" class="task-detail" aria-live="polite">尚未选择任务</div>
+      <p id="task-current-site" class="identity"></p>
+      <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>
+      <div class="row actions"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
+      <p id="task-status" role="status">选择一个已安装任务</p>
+      <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>
+      <h2>执行历史</h2><div id="task-history" aria-live="polite">正在读取历史…</div>
+      <div class="row"><button type="button" id="task-refresh">更新任务</button><button type="button" id="task-fork-draft" disabled>复制为独立草稿</button></div>
+      <details><summary>任务管理</summary>
+        <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button></div>
+        <p class="hint">停用和卸载立即阻止新的运行；已提交任务继续遵守原有停止和退休机制。卸载不会删除历史结果。</p>
+      </details>
+    </section>
+  </div>
+  <div id="workbench-discover" data-workbench-page="discover" hidden>
+    <section aria-labelledby="discover-heading"><h2 id="discover-heading">发现本地任务</h2>
+      <p class="hint">本地目录与导入文件，不是云端市场。未验证的任务绝不会自动安装。</p>
+      <label for="task-package-file">导入任务包 JSON 或 JavaScript 草稿</label>
+      <input type="file" id="task-package-file" accept=".json,.js,application/json,text/javascript">
+      <label for="task-catalog-list">本地任务目录</label><select id="task-catalog-list"><option value="">尚无任务候选</option></select>
+      <div id="task-catalog-detail" class="task-detail" aria-live="polite">选中任务后查看作者、网站、权限、版本及验证状态</div>
+      <label for="task-verify-run">验证所用的真实运行 ID（须为相同源码与网站的已完成运行）</label>
+      <input id="task-verify-run" placeholder="先在开发中运行并确认实际结果" autocomplete="off">
+      <div class="row actions"><button type="button" id="task-verify" disabled>核对运行证据</button>
+        <button type="button" id="task-publish" disabled>设为本地可用</button>
+        <button type="button" id="task-install" disabled>安装确定版本</button></div>
+      <p id="task-catalog-status" role="status">仅本机验证，不代表第三方审核或签名认证</p>
+      <div class="row"><button type="button" id="task-catalog-refresh">刷新目录</button></div>
+    </section>
+  </div>
+  <div id="workbench-develop" data-workbench-page="develop" hidden>
   <section aria-labelledby="current-page-title"><h2 id="current-page-title">当前网页</h2>
     <p id="script-current-page-title" class="page-title">正在识别…</p>
     <p id="script-current-page-url" class="identity"></p>
@@ -27,6 +67,18 @@
     <label for="script-id">脚本名称 / ID</label><input id="script-id" value="my-script" autocomplete="off">
     <div class="row"><label for="script-revision">revision</label><input id="script-revision" type="number" min="1" placeholder="留空加载最新版本"><button id="script-load">加载版本</button></div>
     <p id="script-version" role="status">尚未保存</p>
+    <details id="task-package-dev"><summary>从已保存版本创建任务候选</summary>
+      <p class="hint">先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。</p>
+      <label for="task-dev-id">稳定任务标识</label><input id="task-dev-id" value="my-first-task" autocomplete="off">
+      <label for="task-dev-version">任务版本</label><input id="task-dev-version" value="1.0.0" autocomplete="off">
+      <label for="task-dev-title">名称</label><input id="task-dev-title" value="我的第一个任务">
+      <label for="task-dev-description">用途</label><input id="task-dev-description" value="运行当前网页的自动化脚本">
+      <label for="task-dev-author">作者</label><input id="task-dev-author" value="local-developer">
+      <label for="task-dev-schema">参数 Schema（JSON）</label>
+      <textarea id="task-dev-schema" rows="4" spellcheck="false">{"type":"object","properties":{},"required":[],"additionalProperties":false}</textarea>
+      <button type="button" id="task-create-candidate">保存为待验证任务候选</button>
+      <p id="task-dev-status" role="status">候选需要真实运行验证后才能安装</p>
+    </details>
     <label for="script-source">JavaScript 编辑器 · 草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
@@ -85,6 +137,7 @@
   </section>
     <aside>SDK 授权与自动化任务独立；健康检查只确认环境通信。</aside>
   </details>
+  </div>
 </main>
 <script src="tool-shell.js"></script>
 </body></html>

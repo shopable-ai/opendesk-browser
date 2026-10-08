@@ -4,6 +4,7 @@ import {isToolSender, httpUrl, permissionPattern} from '../../environment.js';
 import {commandKey, commandRecordKey} from '../journal.js';
 import {sdkMethods} from './sdk-methods.js';
 import {controllerMethods} from './controller-methods.js';
+import {taskMethods} from '../tasks/service.js';
 
 // IDB commit order, rather than a worker-local mutex, orders stop/dispatch/seal.
 export function createRunAuthority({storage, api, session, entitlement, validatePlan, clock = {now: () => Date.now()}}) {
@@ -277,7 +278,8 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   }
   const sdk = sdkMethods({storage,api,session,clock,assertHost,currentHost});
   const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost});
-  return {...sdk, ...controller,
+  const tasks = taskMethods({storage,assertHost,currentHost,clock});
+  return {...sdk, ...controller, ...tasks,
     registerHost, assertHost, admitIdentity, claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun,
     abandonUnknown, finishRun, loseHost, recover, snapshotRun:async (request,sender) => projection(request.runId ?? null,sender), projection};
 }
