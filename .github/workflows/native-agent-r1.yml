@@ -33,7 +33,7 @@ jobs:
       - name: Frozen dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Native bridge protocol, Host and request ledger components (NOT real Chrome)
-        run: node --test tests/environment/native-agent-wire.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-bridge.test.mjs
+        run: node --test tests/environment/native-agent-wire.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-native-host.test.mjs
       - name: Shared Sidebar and Controller regressions
         run: node --test tests/environment/script-editor.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs
       - name: Source and packaging contracts
