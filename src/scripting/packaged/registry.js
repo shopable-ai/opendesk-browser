@@ -1,4 +1,5 @@
 import {PageError, requireValue, selector, duration, options, VALUE_LIMITS} from '../../framework/control/value.js';
+import {createLocatorDOM} from './locator-dom.js';
 
 // This registry runs only in the broker-selected ISOLATED document agent. It is
 // fixed packaged code; function source from a caller is never evaluated here.
@@ -9,6 +10,7 @@ export function createPackagedPageSession({document: doc = document, window: win
   function check() {
     requireValue(!disposed && !signal?.aborted, cancelCode()); guard();
   }
+  const locatorDOM = createLocatorDOM({document:doc, window:win, check});
   function element(css) {
     check(); selector(css); let found;
     try { found = doc.querySelector(css); } catch (cause) { throw new PageError('E_SELECTOR_INVALID', cause.message); }
@@ -115,9 +117,13 @@ export function createPackagedPageSession({document: doc = document, window: win
     } else { node.textContent = value.content; check(); parent.append(node); }
     check(); return undefined;
   }
-  async function execute(method, args) {
+  async function execute(method, args, documentPin = {}) {
     check(); requireValue(Array.isArray(args), 'E_ARGUMENT_TYPE');
     switch (method) {
+      case 'locatorRead': return locatorDOM.read(...args);
+      case 'locatorPrepare': return locatorDOM.prepare(...args);
+      case 'locatorCommit': return locatorDOM.commit(...args);
+      case 'locatorObserve': return locatorDOM.observe(args[0], documentPin);
       case 'title': return doc.title;
       case 'content': requireValue(doc.body, 'E_PAGE_NOT_READY'); return doc.body.innerHTML;
       case 'url': return win.location.href;
@@ -138,7 +144,7 @@ export function createPackagedPageSession({document: doc = document, window: win
     if (disposed) return; disposed = true;
     for (const wait of [...waits]) wait.cancel(new PageError(cancelCode()));
     for (const resource of [...resources]) resource.cancel();
-    for (const node of nodes) node.remove(); nodes.clear(); uploads.clear();
+    for (const node of nodes) node.remove(); nodes.clear(); uploads.clear(); locatorDOM.clear();
     signal?.removeEventListener('abort', dispose);
   }
   signal?.addEventListener('abort', dispose, {once: true}); if (signal?.aborted) dispose();
