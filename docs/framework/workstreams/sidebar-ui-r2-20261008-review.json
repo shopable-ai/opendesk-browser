@@ -1,0 +1,21 @@
+{
+  "workstreamId": "sidebar-ui-r2-20261008-review",
+  "branch": "agent/sidebar-ui-r2-20261008-review",
+  "baseMain": "c313a6b38f400d999c8ed303cd07980c68a3cea1",
+  "scope": "Sidebar UI SPEC, HTML interactive preview, task card/history/catalog UI wiring",
+  "originalPrototype": "ORIGINAL_PROTOTYPE_NOT_RECOVERED",
+  "modifiedFiles": [
+    "docs/product/sidebar-ui-spec.zh-CN.md",
+    "prototypes/sidebar/sidebar-ui-interactive-preview.html",
+    "docs/framework/workstreams/sidebar-ui-r2-20261008-review.json"
+  ],
+  "testCommands": [
+    "node --test tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs",
+    "npm run check"
+  ],
+  "testResult": "NOT_TESTED",
+  "nativeSidebar": "NOT_TESTED",
+  "browserVisual": "NOT_TESTED",
+  "otherWorkstreams": "Do not overwrite shared local workspaces or modify public-owner.json; only scoped UI files",
+  "pullRequest": "PENDING"
+}

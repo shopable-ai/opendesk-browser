@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk Sidebar · 工作台体验预览 R2（忠实候选）</title>
+<style>
+:root{font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20324d;background:#eaf0f8}
+*{box-sizing:border-box}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #355ed2;outline-offset:2px}
+[hidden]{display:none!important}body{margin:0}.banner{padding:10px 16px;text-align:center;background:#e0e9fc;color:#385895;font-size:11px}.stage{padding:22px;display:flex;justify-content:center;min-height:100vh}.sidebar{width:min(410px,100%);height:min(760px,calc(100vh - 90px));min-height:560px;display:flex;flex-direction:column;background:#f7f9fd;border:1px solid #dce4ef;border-radius:14px;box-shadow:0 12px 34px #20395523;overflow:hidden}.head{background:white;padding:14px 16px 11px;border-bottom:1px solid #e5ebf3}.brandrow{display:flex;align-items:center;gap:10px}.logo{width:34px;height:34px;border-radius:10px;background:#3155bf;display:grid;place-items:center;color:white;font-size:20px;font-weight:800}.brand{flex:1}.brand strong{display:block;font-size:14px}.brand small{display:block;color:#8b98ab;font-size:10px}.ghost{color:#355fbe;background:#edf3ff;border:0;border-radius:9px;padding:9px 11px;font-size:11px;font-weight:700}.site{margin-top:12px;background:#f7faff;border:1px solid #e8edf6;padding:9px 10px;border-radius:10px;font-size:11px;color:#496180;display:flex;justify-content:space-between;gap:8px}.good{color:#17754c;font-weight:700}.tabs{display:grid;grid-template-columns:1fr 1fr;background:white;border-bottom:1px solid #e4eaf3;padding:0 12px}.tabs button{border:0;border-bottom:2px solid transparent;background:transparent;color:#8391a5;font-weight:650;padding:12px}.tabs button.active{border-bottom-color:#3a63d0;color:#365cc2}.content{min-height:0;overflow-y:auto;flex:1;padding:15px}.title{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.title h1{font-size:17px;margin:0;letter-spacing:-.3px}.muted{color:#8190a5;font-size:11px}.pill{padding:4px 8px;border-radius:20px;color:#24825e;background:#e8f6ee;font-size:10px;font-weight:700}.task{background:white;border:1px solid #e0e7f0;border-radius:12px;margin:9px 0;overflow:hidden}.task.selected{border-color:#8ca7ef;box-shadow:0 0 0 2px #e7edff}.task>button{display:flex;gap:10px;align-items:flex-start;text-align:left;background:transparent;border:0;width:100%;padding:13px;color:#263b59}.task .icon{width:36px;height:36px;background:#eaf0ff;color:#4063be;border-radius:10px;display:grid;place-items:center;font-size:18px}.task .copy{flex:1;min-width:0}.task .copy strong{display:block;font-size:12px}.task .copy small{display:block;color:#8d9bb0;font-size:11px;margin-top:4px;overflow-wrap:anywhere}.task .inside{padding:13px;border-top:1px solid #eaf0f7}.field{display:block;color:#52647d;font-size:11px;font-weight:700;margin:10px 0 6px}.input{display:block;min-width:0;width:100%;background:white;border:1px solid #dce4f0;border-radius:8px;padding:10px;color:#304361}.result{margin:13px 0 0;background:#f7faff;border:1px solid #e5ebf5;border-radius:9px;padding:10px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}.history{margin-top:12px;border-top:1px solid #ecf0f7;padding-top:11px;font-size:11px}.history summary{cursor:pointer;font-weight:700}.history details{border-bottom:1px solid #eef1f6;padding:9px 0}.history pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fb;padding:8px;border-radius:7px}.dock{flex:none;background:white;border-top:1px solid #e0e7f0;padding:11px 14px 14px}.dock small{display:block;color:#8c9aaf;margin-bottom:8px}.buttons{display:flex;gap:7px}.primary{background:#355ed2;color:white;border:1px solid #355ed2;border-radius:9px;padding:10px 14px;font-weight:730;flex:1}.secondary{background:#fff;border:1px solid #d9e2ee;color:#59718f;border-radius:9px;padding:10px 12px;font-weight:680}.devtip{padding:11px;border-radius:9px;background:#eaf1ff;color:#3f64a2;font-size:11px;margin-bottom:12px}.editor{width:100%;min-height:250px;resize:vertical;border-radius:10px;border:1px solid #394862;background:#17243c;color:#e8f0ff;padding:12px;font:12px/1.65 ui-monospace,monospace}.block{border:1px solid #e3eaf3;background:white;padding:11px;border-radius:10px;margin:11px 0}.block summary{cursor:pointer;color:#4f6582}.block pre{white-space:pre-wrap;overflow-wrap:anywhere}.catalog{width:min(100%,1000px);background:#f9fbfe;border:1px solid #dce4ef;border-radius:14px;padding:25px;min-height:640px}.cataloghead{display:flex;align-items:center;justify-content:space-between;gap:12px}.cataloghead h1{font-size:22px;margin:0}.filters{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}.filters button{background:white;border:1px solid #dce4ed;border-radius:25px;padding:7px 12px;color:#647b9a}.filters button.active{background:#e8efff;color:#365bbd;border-color:#aabfea}.cataloggrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.8fr);gap:16px;margin-top:14px}.catalogitems{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-content:start}.item{border:1px solid #e0e6f0;background:white;text-align:left;padding:14px;border-radius:11px;min-height:125px;display:flex;flex-direction:column;gap:8px;color:#25405f}.item.active{border-color:#8da8f1;box-shadow:0 0 0 2px #e8efff}.item strong{font-size:13px}.item small{font-size:11px;color:#8090a7;flex:1}.reader{background:white;border:1px solid #e0e6f0;padding:17px;border-radius:12px}.reader h2{font-size:17px;margin:0 0 8px}.reader p{font-size:12px;color:#75869e}.fact{border-top:1px solid #edf0f5;display:flex;justify-content:space-between;gap:12px;padding:10px 0;font-size:11px}.fact span{color:#8898ac}.notice{font-size:11px;color:#506d9b;background:#ecf2ff;border-radius:8px;padding:10px;margin:14px 0}.foot{color:#8696a8;font-size:11px;margin:13px 0}
+@media(max-width:650px){.stage{padding:12px 7px}.catalog{padding:15px}.cataloggrid{grid-template-columns:1fr}.sidebar{height:calc(100vh - 76px)}}@media(max-width:380px){.catalogitems{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="banner">忠实恢复的交互设计候选 · ORIGINAL_PROTOTYPE_NOT_RECOVERED · 示例安装/运行/授权均为模拟，不会操作网页</div>
+<div class="stage">
+  <div id="sidebar" class="sidebar">
+    <header class="head"><div class="brandrow"><div class="logo">O</div><div class="brand"><strong>OpenDesk Browser</strong><small>浏览器自动化工作台</small></div><button class="ghost" id="open-discover">发现 ↗</button></div><div class="site"><span>当前网页 · workspace.example.com</span><span class="good">● 可运行</span></div></header>
+    <nav class="tabs" aria-label="工作台"><button class="active" data-tab="tasks" aria-selected="true">我的任务</button><button data-tab="develop" aria-selected="false">开发</button></nav>
+    <main class="content">
+      <div id="pane-tasks"><div class="title"><div><h1>我的任务</h1><span class="muted">常用自动化，随时运行</span></div><span class="pill" id="installed-count">2 个已安装</span></div><div id="cards"></div><p class="foot">每个任务下方保留自己的结果与历史；技术诊断信息默认折叠。</p></div>
+      <div id="pane-develop" hidden><div class="title"><div><h1>开发工作台</h1><span class="muted">JavaScript · 草稿可以直接运行</span></div></div><div class="devtip">当前网页可运行。运行使用编辑器最新草稿，不自动创建保存版本。</div><textarea id="code" class="editor" spellcheck="false" aria-label="脚本代码">async function main() {
+  return {
+    title: await page.title(),
+    url: await page.url(),
+    checked: true
+  };
+}</textarea><details class="block"><summary>参数 JSON（可选）</summary><label class="field" for="dev-params">运行参数</label><textarea id="dev-params" class="input" rows="3">{"value":0}</textarea></details><div class="block"><strong>本次执行结果</strong><pre id="dev-result">尚未运行</pre></div><details class="block"><summary>版本管理与高级设置</summary><label class="field" for="script-name">脚本名称</label><input class="input" id="script-name" value="my-first-script"><p class="muted">保存与运行是两个独立操作。</p></details></div>
+    </main>
+    <footer class="dock"><div id="dock-tasks"><small id="task-status">已就绪 · 选择任务即可运行</small><div class="buttons"><button class="primary" id="run-task">▶ 运行任务</button><button class="secondary" id="stop-task" disabled>停止</button></div></div><div id="dock-develop" hidden><small id="dev-status">草稿模式 · 尚未保存</small><div class="buttons"><button class="primary" id="run-draft">▶ 运行草稿</button><button class="secondary" id="save">保存版本</button><button class="secondary" id="stop-draft" disabled>停止</button></div></div></footer>
+  </div>
+  <div class="catalog" id="catalog" hidden><div class="cataloghead"><div><h1>发现自动化任务</h1><p class="muted">本地任务目录 · 浏览、了解权限、明确安装</p></div><button class="secondary" id="back">← 返回侧栏</button></div><label class="field" for="search">搜索任务</label><input id="search" class="input" type="search" placeholder="搜索名称、用途或网站…"><div class="filters" id="filters"><button data-filter="all" class="active">全部</button><button data-filter="available">可安装</button><button data-filter="installed">已安装</button><button data-filter="candidate">待验证</button></div><div class="cataloggrid"><div class="catalogitems" id="items"></div><aside class="reader" id="reader"></aside></div><div class="notice" id="catalog-status">当前目录仅使用演示数据；本页面不是在线 Marketplace。</div><label class="field" for="package">导入本地任务包 JSON / JavaScript 草稿（入口演示）</label><input id="package" type="file" accept=".json,.js" class="input"></div>
+</div>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ const rows=[
+ {id:"info",title:"提取页面信息",detail:"读取当前页面标题和地址，整理结构化结果",icon:"▤",site:"workspace.example.com",permission:"读取网页内容",stage:"available",installed:true,version:"1.0.0",history:[{state:"成功",result:'{"title":"产品工作台","ok":true}',time:"今天 15:24"}]},
+ {id:"form",title:"填写示例表单",detail:"根据参数填写当前页面中的表单",icon:"✎",site:"workspace.example.com",permission:"读取并操作网页",stage:"available",installed:true,version:"1.1.0",history:[{state:"成功",result:"已填写 2 个字段",time:"昨天 16:20"}]},
+ {id:"links",title:"整理页面链接",detail:"整理当前网页链接作为结构化输出",icon:"☷",site:"workspace.example.com",permission:"读取网页内容",stage:"available",installed:false,version:"1.0.0",history:[]},
+ {id:"candidate",title:"本地草稿任务",detail:"需要本机可信执行验证才能安装",icon:"{ }",site:"workspace.example.com",permission:"未完成本机验证",stage:"candidate",installed:false,version:"0.1.0",history:[]}
+ ];
+ let selected="info",selectedCatalog="links",filter="all",isRunning=false,isDraftRunning=false,taskTimer=null,draftTimer=null,version=0;
+ const escape=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ function cards(){
+ const installed=rows.filter(r=>r.installed);$("installed-count").textContent=installed.length+" 个已安装";
+ if(!installed.some(r=>r.id===selected))selected=installed[0]?.id;
+ $("cards").innerHTML=installed.map(r=>'<article class="task '+(selected===r.id?'selected':'')+'"><button data-task="'+r.id+'" aria-expanded="'+(selected===r.id)+'"><span class="icon">'+r.icon+'</span><span class="copy"><strong>'+escape(r.title)+'</strong><small>'+escape(r.detail)+'</small></span><span class="pill">已启用</span></button>'+(selected===r.id?'<div class="inside"><span class="good">● 当前网页适用</span><div class="muted">'+escape(r.site)+' · v'+escape(r.version)+'</div><label class="field" for="task-param">本次参数</label><input id="task-param" class="input" value="示例参数"><div class="result"><strong>最近结果</strong><div id="task-result">'+escape(r.history[0]?.result||"尚未运行")+'</div></div><div class="history"><details><summary>运行记录 · '+r.history.length+' 条　⌄</summary>'+r.history.map(h=>'<details><summary>'+escape(h.state)+' · '+escape(h.time)+'</summary><pre>'+escape(h.result)+'</pre></details>').join('')+'</details></div></div>':'')+'</article>').join('')||'<p class="notice">暂无已安装任务，请前往发现页。</p>';
+ }
+ function catalog(){
+ const term=$("search").value.trim().toLowerCase();
+ const matching=rows.filter(r=>(filter==="all"||filter==="available"&&!r.installed&&r.stage==="available"||filter==="installed"&&r.installed||filter==="candidate"&&r.stage==="candidate")&&(r.title+" "+r.detail+" "+r.site).toLowerCase().includes(term));
+ $("items").innerHTML=matching.map(r=>'<button class="item '+(r.id===selectedCatalog?'active':'')+'" data-catalog="'+r.id+'"><span style="font-size:23px;color:#4368b9">'+r.icon+'</span><strong>'+escape(r.title)+'</strong><small>'+escape(r.detail)+'</small><span class="pill">'+(r.installed?"已安装":r.stage==="candidate"?"待验证":"可安装")+'</span></button>').join('')||'<p class="muted">没有匹配的任务。</p>';
+ const r=rows.find(r=>r.id===selectedCatalog);
+ $("reader").innerHTML=r?'<h2>'+escape(r.title)+'</h2><p>'+escape(r.detail)+'</p><div class="fact"><span>适用网站</span><strong>'+escape(r.site)+'</strong></div><div class="fact"><span>所需能力</span><strong>'+escape(r.permission)+'</strong></div><div class="fact"><span>来源</span><strong>本机演示数据</strong></div><div class="fact"><span>版本</span><strong>'+escape(r.version)+'</strong></div><div class="fact"><span>安装状态</span><strong>'+(r.installed?"已安装":r.stage==="candidate"?"待验证":"可安装")+'</strong></div><button class="primary" id="install" style="width:100%;margin-top:14px" '+(r.installed||r.stage!=="available"?"disabled":"")+'>'+(r.installed?"已安装":r.stage==="candidate"?"尚不可安装":"确认安装此版本")+'</button><p class="muted">本地验证不代表第三方审核。真实网站权限需在 Chrome 明确确认。</p>':"请先选择任务";
+ }
+ function tab(id){$("pane-tasks").hidden=id!=="tasks";$("pane-develop").hidden=id!=="develop";$("dock-tasks").hidden=id!=="tasks";$("dock-develop").hidden=id!=="develop";document.querySelectorAll("[data-tab]").forEach(b=>{const yes=b.dataset.tab===id;b.classList.toggle("active",yes);b.setAttribute("aria-selected",String(yes));});}
+ function openCatalog(yes){$("sidebar").hidden=yes;$("catalog").hidden=!yes;if(yes)catalog();}
+ document.addEventListener("click",event=>{
+ const b=event.target.closest("button");if(!b)return;
+ if(b.dataset.tab){tab(b.dataset.tab);return;}
+ if(b.dataset.task){selected=b.dataset.task;cards();return;}
+ if(b.dataset.filter){filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(n=>n.classList.toggle("active",n.dataset.filter===filter));catalog();return;}
+ if(b.dataset.catalog){selectedCatalog=b.dataset.catalog;catalog();return;}
+ if(b.id==="open-discover"){openCatalog(true);return;}
+ if(b.id==="back"){openCatalog(false);tab("tasks");return;}
+ if(b.id==="install"){
+ const r=rows.find(r=>r.id===selectedCatalog);if(!r||r.installed||r.stage!=="available")return;
+ r.installed=true;$("catalog-status").textContent="交互模拟：已将 "+r.title+" 添加到「我的任务」，未写入扩展存储。";cards();catalog();return;
+ }
+ if(b.id==="run-task"){
+ if(isRunning)return;isRunning=true;$("run-task").disabled=true;$("stop-task").disabled=false;$("task-status").textContent="模拟运行中 · 不操作浏览器网页";
+ const id=selected;taskTimer=setTimeout(()=>{
+ isRunning=false;$("run-task").disabled=false;$("stop-task").disabled=true;
+ const r=rows.find(r=>r.id===id),failure=($("task-param")?.value||"").includes("失败");
+ const text=failure?"E_PARAMS：演示输入不符合要求":'{"ok":true,"items":3}';
+ r.history.unshift({state:failure?"失败":"成功",result:text,time:"刚刚"});
+ $("task-status").textContent=failure?"模拟失败":"模拟成功";cards();},1100);return;
+ }
+ if(b.id==="stop-task"){clearTimeout(taskTimer);isRunning=false;$("run-task").disabled=false;$("stop-task").disabled=true;$("task-status").textContent="模拟已停止";$("task-result").textContent="用户停止了本次模拟运行";return;}
+ if(b.id==="save"){version++;$("dev-status").textContent="模拟保存 r"+version+" · 保存不会运行";return;}
+ if(b.id==="run-draft"){
+ if(isDraftRunning)return;isDraftRunning=true;$("stop-draft").disabled=false;$("dev-result").textContent="正在模拟…";
+ draftTimer=setTimeout(()=>{isDraftRunning=false;$("stop-draft").disabled=true;$("dev-result").textContent=$("code").value.includes("throw ")?"E_SCRIPT · 演示失败（脚本未真正执行）":'{"title":"产品工作台","checked":true}';},1000);return;}
+ if(b.id==="stop-draft"){clearTimeout(draftTimer);isDraftRunning=false;$("stop-draft").disabled=true;$("dev-result").textContent="模拟任务已停止";}
+ });
+ $("search").addEventListener("input",catalog);
+ $("package").addEventListener("change",()=>{$("catalog-status").textContent="仅展示文件导入交互入口；演示不读取、不上传、不安装所选文件。";});
+ cards();catalog();tab("tasks");
+})();
+</script>
+</body></html>
