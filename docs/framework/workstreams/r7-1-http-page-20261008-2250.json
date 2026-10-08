@@ -5,6 +5,7 @@
   "intent": "单页真实 Fetch/HTTP 调试，保留已签名表单与现代 Locator 搜索",
   "files": [
     "examples/tasks/demo-form.html",
+    "examples/tasks/http-fetch-draft.js",
     "examples/tasks/request-sample.json",
     "examples/tasks/http-test-server.mjs",
     "examples/tasks/README.zh-CN.md",
@@ -14,7 +15,7 @@
   ],
   "collisionRisk": "仅演示页面、定向测试和独立证据；与 Native PR #11 的 RunHost、Sidebar 和构建输入无重叠；main 漂移或其他 PR 修改相同文件需先复核。",
   "validation": {
-    "sourceContract": "PASS — node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs: 9/9, fail 0, against exact remote Git blob SHA verified in isolated Linux container",
+    "sourceContract": "PASS — node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs: 10/10, fail 0; after extra native-API HTTP draft contract, checked exact Git blob SHA for HTML, helper, fixture, signed task, tests and draft in isolated Linux container",
     "isolatedNodeHttp": "PASS — real loopback HTTP: JSON 200, HTML 200, text/plain 200, real 404 and 429, POST 200 echo, invalid POST 400, real delay and AbortError (Node 22 test).",
     "staticPythonHttp": "PASS — python3 -m http.server using exact fixture HTML/JSON, real status 200 JSON, 200 HTML, 404",
     "isolatedChromiumDom": "PASS — Chromium rendered current HTML via page.set_content (direct navigation blocked by environment policy); 1280px and 390px interactions: click count, toggle, form submit, dynamic search, preset UI, POST fields, reset, no horizontal overflow or page errors. Screenshots /mnt/data/opendesk-r71-1280-actual-dom.png and /mnt/data/opendesk-r71-390-actual-dom.png in ephemeral agent sandbox, not native Chrome.",
@@ -22,7 +23,7 @@
     "externalPublicApi": "NOT_TESTED — API docs confirm interfaces but no successful external browser request observed.",
     "macNativeChromeExtension": "NOT_TESTED — no user Mac Chrome / CFT profile or trusted native extension receipt accessible here.",
     "signedV1Task": "SOURCE_CONTRACT_PASS — signed JSON SHA unchanged, legacy selector/entry checks. NATIVE=NOT_TESTED.",
-    "modernPageApiDraft": "BROWSER_DOM_PASS — recreated submit button / async result verified; extension Page API = NOT_TESTED.",
+    "modernPageApiDraft": "BROWSER_DOM_PASS for dynamic Locator search scenario; SOURCE_CONTRACT_PASS for new http-fetch-draft.js; actual extension Page API execution = NOT_TESTED.",
     "packageBuild": "NOT_TESTED — no local npm install/build; task-page tests isolated from full packaging.",
     "integrationMain": "NOT_MERGED — branch PR awaits real Chrome validation / serial integration"
   },
@@ -37,5 +38,5 @@
     "Native Chrome Extension, signed task end-to-end, and OpenDesk Page API real run receipts NOT_TESTED",
     "Merge to main only after main drift/conflict check, PR tests, native evidence, and authorized integration"
   ],
-  "prUrl": null
+  "prUrl": "https://github.com/shopable-ai/opendesk-browser/pull/20"
 }
