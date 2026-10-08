@@ -8,4 +8,4 @@
 node scripts/validate-program-project.mjs examples/programs/page-heading
 ```
 
-输出 `AUTHORING_VALID_NOT_PACKAGED` 仅证明文件/声明/模块引用在静态层合规，不代表已经生成了可在 Chrome 运行的 bundle。正式 ESM 打包和 Page Program 安装消费者仍待下一阶段接通。
+校验仅证明源码合同。之后可在仓库根目录执行 `npm run build:program -- examples/programs/page-heading`，构建器输出一个带 @match 的 `program.js` 和最终 SHA-256 的 `artifact.json`。在 Sidebar「开发」打开该 JS，点击「运行网页 JS」进行**不保存**的预览；这依旧需要浏览器用户脚本开关和当前网站权限。正式 Page Program 安装、重启对账与 Chrome 原生用户验收仍待完成。

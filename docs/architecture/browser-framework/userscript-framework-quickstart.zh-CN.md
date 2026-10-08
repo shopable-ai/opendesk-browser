@@ -10,7 +10,7 @@
 
 ## 2. 源码写法与执行环境要分开
 
-复杂项目优先采用 [多文件 ESM + package.json](program-project-authoring-r1.zh-CN.md)，传统油猴脚本保留 @require。多文件只是源码的组织与构建输入，不是第三种高权限执行世界。当前已经具备静态项目验证器，**ESM bundler 和正式 Page 安装消费链仍然没有实现**。
+复杂项目优先采用 [多文件 ESM + package.json](program-project-authoring-r1.zh-CN.md)，传统油猴脚本保留 @require。多文件只是源码的组织与构建输入，不是第三种高权限执行世界。当前已有静态校验器和单文件 ESM 构建工具，可将页面项目编译为 JS 并手动导入 Sidebar，Controller 项目还能生成符合 Task v1 的待验证 JSON；**Chrome 原生多文件流程及正式 Page 安装仍未验收/实现**。
 
 ## 3. 目前只有两条脚本执行路线
 

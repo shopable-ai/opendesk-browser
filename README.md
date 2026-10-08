@@ -4,7 +4,7 @@
 
 ## 当前框架与真实进度（先读这里）
 
-复杂脚本建议使用 **多文件 ESM + package.json 的 opendesk 字段**，保留单文件油猴的 @require 作为兼容入口。源码可验证不代表包已经构建或安装。
+复杂脚本优先使用 **多文件 ESM + package.json 的 opendesk 字段**，传统单文件 JS 仍在 Sidebar「开发」直接运行。`npm run build:program -- <目录>` 将页面项目构建为本地 `program.js`，将 Controller 项目构建为 `program.js` 与可导入的 Task v1 Candidate JSON；**构建和导入仍不意味着已通过 Chrome 验证或已安装**。
 
 - [多文件 ESM 与 AI 编辑/发布规则](docs/architecture/browser-framework/program-project-authoring-r1.zh-CN.md) ｜ [AI 发布 Skill](.agents/skills/opendesk-program-publish/SKILL.md) ｜ [示例程序](examples/programs/page-heading/README.md)
 

@@ -29,7 +29,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const revisions = new Map(), documents = new Map();
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
-  let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
+  let downloading = false, projection, currentTask, editingBusy = false, importBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
   let scriptListSequence = 0, ownedDraftRunId = null;
   let currentRevision, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
@@ -68,6 +68,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     if (disposed) return;
     renderRevisionState();
     find('script-save').disabled = editingBusy; find('script-load').disabled = editingBusy;
+    find('script-import-button').disabled = editingBusy || importBusy;
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
     find('script-run').disabled = editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
@@ -404,6 +405,11 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       if(disposed)return;
       const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
       if(result!==undefined)find('page-preview-result').textContent=result;
+      const inline=find('page-preview-inline-status');
+      inline.hidden=false;inline.dataset.state=state;
+      inline.textContent='网页 JS：'+message+
+        (state==='completed'&&result!==undefined ? ' · '+result.split('\n')[0].slice(0,100) : '');
+      if(state==='error'&&/E_DEPENDENCY|@require|依赖/.test(message))find('page-preview-tools').open=true;
     };
     try {
       // Freeze source, dependency and document during the trusted click,
@@ -448,7 +454,28 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   on('script-history-open','click',()=>read(find('script-history-run').value));
   on('script-download','click',downloadResult); on('script-download-result','change',update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
-  on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',update);
+  on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update);
+  on('script-source','input',()=>{find('page-preview-inline-status').hidden=true;update();});
+  listen(find('script-import-button'),'click',event=>{
+    if(event.isTrusted && !disposed && !editingBusy && !importBusy)find('script-import-file').click();
+  });
+  listen(find('script-import-file'),'change',event=>{
+    if(!event.isTrusted || disposed || importBusy)return;
+    const file=find('script-import-file').files?.[0];if(!file)return;
+    const previous={id:scriptId(),source:find('script-source').value,revision:find('script-revision').value};
+    importBusy=true;update();
+    Promise.resolve().then(async()=>{
+      if(!/\.js$/i.test(file.name||'') || !Number.isSafeInteger(file.size) || file.size>100000)
+        throw {code:'E_SOURCE_FILE',message:'请选择不超过 100 KB 的已编译 .js 或单文件脚本'};
+      const text=await file.text();
+      if(disposed || editingBusy || previous.id!==scriptId() ||
+        previous.source!==find('script-source').value || previous.revision!==find('script-revision').value)
+        throw {code:'E_DRAFT_CHANGED',message:'读取文件期间草稿已变化，没有覆盖当前编辑'};
+      importDraft(text);
+    }).catch(fail).finally(()=>{
+      importBusy=false;if(!disposed){find('script-import-file').value='';update();}
+    });
+  });
   listen(find('script-run'), 'click', start);
   listen(find('page-preview-run'), 'click', previewPage);
   on('script-stop','click',async () => {
@@ -470,7 +497,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const unsubscribeConnection = client.subscribeConnection?.(event=>{if(event.connected) recoverView();});
   client.ready.then(recoverView).catch(fail);
   refreshTabs().catch(fail); refreshScripts({silent: true}).catch(fail); update();
-  return {host, importDraft(sourceUtf8) {
+  function importDraft(sourceUtf8) {
     if (disposed || editingBusy) throw {code:'E_BUSY',message:'编辑器正在保存或已经关闭，请稍后重新导入'};
     if (typeof sourceUtf8 !== 'string' || !sourceUtf8.trim() || new TextEncoder().encode(sourceUtf8).length > 100000)
       throw {code:'E_LIMIT',message:'导入草稿必须为非空 JavaScript，且不超过 100000 字节'};
@@ -480,8 +507,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-source').value = sourceUtf8;
     // File/catalog handoff replaces source program bytes; refresh @require review.
     dependencyPanel.refresh();
-    update(); display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
-  }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
+    find('page-preview-inline-status').hidden=true;
+    update(); display('draft','已导入未保存 JS；选择“运行网页 JS”或“运行自动化”，不会自动保存或执行');
+  }
+  return {host, importDraft, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length,
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))}}), dispose() {
     if (disposed) return; disposed = true; dependencyPanel.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();

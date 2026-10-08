@@ -5,6 +5,10 @@ on:
     paths:
       - 'scripts/validate-program-project.mjs'
       - 'tests/environment/program-project.test.mjs'
+      - 'tests/environment/program-build.test.mjs'
+      - 'tests/environment/script-editor.test.mjs'
+      - 'src/ui/tool.html'
+      - 'src/ui/script-editor.js'
       - 'schemas/opendesk-program-project.v1.schema.json'
       - 'examples/programs/**'
       - '.github/workflows/program-project-source.yml'
@@ -24,6 +28,9 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate multi-file ESM source metadata
         run: |
-          node --test tests/environment/program-project.test.mjs
+          node --test tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs tests/environment/script-editor.test.mjs
           node scripts/validate-program-project.mjs examples/programs/page-heading
+          node scripts/validate-program-project.mjs examples/programs/controller-title
+          node scripts/build-program-project.mjs examples/programs/page-heading
+          node scripts/build-program-project.mjs examples/programs/controller-title
       - run: npm run check

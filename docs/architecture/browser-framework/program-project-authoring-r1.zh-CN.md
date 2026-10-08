@@ -42,9 +42,9 @@
                   │
         静态检查（已实现）
                   │
-        可信 bundler（待实现）
+        本地 Webpack 单文件 bundler（R2 已实现，尚缺 Chrome 原生回执）
                   │
-        SHA-256 冻结后的本地 JS + assets（待实现）
+        SHA-256 冻结后的本地 JS（已实现；CSS/图片资源未接通）
              ┌────┴────┐
         Page USER_SCRIPT    Controller RunHost
              │                 │
@@ -56,8 +56,8 @@
 
 1. **创建/编辑**：AI 在本地多文件源码中开发；不要让 Sidebar 变成大型 IDE。保留单文件立即调试入口。
 2. **静态校验（当前可执行）**：运行 node scripts/validate-program-project.mjs examples/programs/page-heading。它核对源码目录、相对模块图、权限声明、npm lock 一致性和源文件哈希，返回 AUTHORING_VALID_NOT_PACKAGED。它不会触发网络、执行第三方代码或发放权限。
-3. **构建冻结（下一阶段）**：复用仓库已有 Vite/Rollup 或审查后的轻量 bundler，生成一个或少量确定性的 JS/资源资产；禁止未解析 import、网络模块、偷偷新增动态 chunk。固定实际最终字节 SHA-256。不能只锁 package-lock.json。
-4. **导入 Candidate**：Controller 必须严格转换成现有 Task v1 的 async-main / 单 origin / page.automation 合同。Page 必须先建立类型专用的 Revision/Candidate/Verification/Available/Installed，不得把 Page 改称为 Controller Task。
+3. **构建冻结（已实现源码 + CI 部件验收）**：运行 `npm run build:program -- examples/programs/page-heading` 或 `npm run build:program -- examples/programs/controller-title`。复用仓库已有 Webpack，不加载项目自定义配置；静态 ESM 编译成单个 classic JS、校验其语法与大小，生成 SHA-256、`artifact.json` 和 `program.js`。若是 Controller，再生成合法 `program.opendesk-task.json`。CSS/JSON/图片声明在当前阶段会阻断构建，不会伪装成已打包资产。
+4. **直接调试或导入 Candidate**：Page 构建结果 `program.js` 可在 Sidebar「开发」选择「打开本地 JS」并点击「运行网页 JS」；不保存也能调用现有预览链。Controller 同样可以在开发页以「运行自动化」运行编译 JS，或在完整任务目录导入生成的 Task v1 JSON 为待验证 Candidate。Page 正式自动安装仍须建立类型专用的 Revision/Candidate/Verification/Available/Installed，不得把 Page 改称为 Controller Task。
 5. **显式安装**：只有真实 Verification 和 Authority 确认 Available 后，用户才在独立任务目录选择安装。Page 将来使用 chrome.userScripts.register/unregister/update 以及重启、撤权、扩展更新对账。
 6. **发布给他人**：先支持离线本地包，随后可选 GitHub Release / 目录源；在线插件市场不是当前默认依赖。Git 提交、构建、包生成、安装、在线发布是五个不同动作。不能拿 commit 或 JSON 文件冒充“已发布”。
 
@@ -69,10 +69,10 @@ Skill 指导 AI 按相同顺序读合同、组织源码、运行检查与发布�
 
 ## 6. 本轮可证明与仍然缺少的
 
-**当前实现**：项目 manifest 静态类型检查、相对模块依赖图检查、禁止 URL/dynamic import、npm lock 声明核对、资源文件路径及哈希、示例与 Agent Skill。页面 D1 的 @require 审核/锁/preview 消费者继续保留。
+**当前源码已实现**：项目 manifest 静态校验、模块依赖图、npm lock 声明核对、单文件 JS bundler 和最终 SHA-256 构建记录；Controller 可以生成实际 Task v1 Candidate JSON，Page 可以通过现有 USER_SCRIPT 预览 JS 产物。Sidebar 三页签保留且直接运行按钮常驻开发底栏，导入已编译 JS 不保存也不自动执行。最终用户原生体验仍需受控 Chrome 验收。
 
-**尚未实现**：真实 ESM bundler，发行包签名/最终产物锁，源码项目直接导入 Task Catalog，Page 正式安装/对账，Chrome 原生端到端验收。任何校验输出都应明确 installable:false。
+**尚未实现**：CSS/JSON/图片资产编译、公开发行包签名/自动升级、Page 类型正式安装与恢复对账；Chrome 原生端到端验收仍缺。当前 artifact 明确 `status: BUILT_UNVERIFIED` 且 `installable:false`；Controller Task JSON 仍必须独立走原有核对证据后才能 Available。
 
-下一阶段首个用户闭环只选一个小 ESM 项目：构建固定 JS → 用同一 D1 页面预览执行 → 真实 Chrome 成功回执 → 离线重跑 → 再接入正式安装。不要先扩展脚本市场，也不要继续堆新的任务入口。
+下一阶段的首个**原生验收闭环**：用同一构建产物，在受控真实 Chrome 通过 Sidebar「打开本地 JS → 运行网页 JS」取得可信回执，再验证离线重跑与权限撤销。之后再接 Page 正式安装；不以 Node/VM 测试代替真实用户操作。不要先扩展脚本市场，也不要继续堆新的任务入口。
 
 官方参考：[npm package.json](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/)、[VS Code 扩展 manifest](https://code.visualstudio.com/api/references/extension-manifest)、[VSIX 打包与发布](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)、[esbuild bundling](https://esbuild.github.io/api/)、[Chrome User Scripts API](https://developer.chrome.com/docs/extensions/reference/api/userScripts)、[MV3 远程代码政策](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)。

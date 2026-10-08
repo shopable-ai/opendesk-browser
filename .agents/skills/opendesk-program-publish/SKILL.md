@@ -24,8 +24,15 @@ description: Create, edit, review, package, validate or publish OpenDesk Browser
 
 检查结果 AUTHORING_VALID_NOT_PACKAGED 表示静态项目结构、ESM 引用、声明及锁文件约束被核对，**并未执行 bundle、导入候选、原生 Chrome 或安装**。
 
+## 本地 ESM 构建命令（已接入真实编译器）
+
+    npm run build:program -- examples/programs/page-heading
+    npm run build:program -- examples/programs/controller-title
+
+命令会先严格检查源项目，再使用仓库现有 Webpack 将静态依赖图构建为单个 classic JS，计算最终 SHA-256，并在忽略版本控制的 artifacts/programs/ 下写入不可变 program.js 和 artifact.json。Controller 还会生成可导入的 program.opendesk-task.json（Candidate，绝不是 Available）；Page 只生成可由 Sidebar 打开并用 USER_SCRIPT 手动预览的 JS，尚无正式自动安装。css/json/image 当前只验证声明，不注入；构建时明确拒绝未支持的 assets。
+
 ## 发布门槛
-- 只有真实受信构建器完成确定性 ESM bundling、所有 import 静态消解、产物字节哈希和依赖锁后，才可以生成冻结发行包。项目源码 JSON 不能自称为发行包。
+- 本地 JS bundling 与产物哈希已可执行，但 artifact.json 的状态仅为 BUILT_UNVERIFIED；它不是已签名或可安装的正式 Page 发行包。项目源码 JSON 不能自称为发行包，源 npm-lock 也不是最终字节哈希。
 - Controller 产物只有严格兼容现有 opendesk.task-package.v1 合同时，才能调用现有 Candidate/Verification/Available/Installed 链。Page 尚缺专用 P2 生命周期，不能冒用 Controller 验证或注册描述。
 - 区分 Git commit、源码验证、bundle、包生成、Candidate 导入、Available、用户安装和远端市场发布。不得在用户未明确授权时进行自动安装、远端发布或 npm publish。
 - 对来路不明的 npm 包，未经审核不执行安装钩子或其他自定义脚本。npm package-lock 不等于最终浏览器代码的 SHA-256 锁。
