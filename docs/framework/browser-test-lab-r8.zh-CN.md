@@ -7,7 +7,7 @@
 
 - **唯一日常人工入口**：`examples/tasks/demo-form.html`，端口 43111、URL `http://127.0.0.1:43111/demo-form.html`。
 - **专项测试资源**：`tests/prototypes/**/fixture/`、`contracts/fixtures/` 及由运行器生成的 HTML，可独立存在。它们不是需要删除的重复人工入口。
-- 用户现场的 `127.0.0.1:43113/locator-acceptance.html` 无法从本执行环境访问，而且当前 main Git 树中没有该文件。**不要猜测其内容，也不要在未知脚本依赖下删除它**。本地审查该服务进程、生成器、引用与历史报告后，才允许下线、改为专项入口或建立 301/302 兼容链接。
+- 本机历史服务 `127.0.0.1:43113/locator-acceptance.html` 与 `127.0.0.1:64687/next` 均**不能从 GitHub 连接器访问**；当前 main Git 树也没有这两个具体 HTML 路径。**不要猜测其内容、把旧服务当成标准首页，或在未知脚本依赖下杀死进程**。本地查明实际监听进程、启动命令、引用与历史报告后，才允许下线、改为专项入口或添加兼容跳转。
 - 页面自身不包含浏览器扩展运行时。页面负责**真实、稳定、可复现的 DOM/HTTP 被测条件**；Sidebar、Page API、RunHost、GM/USER_SCRIPT 运行证据来自实际扩展。
 
 ## 页面信息架构与视觉原则
@@ -17,7 +17,7 @@
 1. Sticky 顶栏：产品识别、LOCAL FIXTURE 标志、`#reset-all`。
 2. Intro / 快捷能力标签：明确这是测试环境，不把 DOM 状态称为通过。
 3. 左侧场景导航：01–07，可键盘访问，锚点链接；窄屏退化为横向导航。
-4. 六组核心场景：文本/列表、点击/显隐、异步请求、旧版表单、现代动态搜索、真实 HTTP GET。
+4. 六组核心场景：文本/列表、点击/显隐、异步请求、旧版表单、现代动态搜索、**一个输入框 + 一个 GET 按钮**。
 5. 第七组 Locator 专项：四张可操作卡片、实测结果位置、Sidebar 草稿样例和能力边界。
 
 不依赖在线字体、图片、CDN、第三方 JavaScript、框架 CSS 或联网 API；保留唯一原生 inline script。尊重 reduced-motion、原生 label、aria-live、focus-visible 与小屏布局。
@@ -31,7 +31,7 @@
 | 异步请求 | `#request-success/failure/timeout/cancel`, `#async-status` | 发出同源 GET，状态包括 success/error/timeout/cancelled | 404、超时、取消后迟到响应 |
 | 旧版 Task Package | `#name` → `#submit` → `#done` | 源脚本与任务 SHA 不变；提交文案正确 | required 与旧结果残留 |
 | 现代 Locator | `#keyword`, `#search-submit`, `#results` | `fill` 替换预填值、按钮重绘/暂禁、唯一提交 | detached、disabled、重复提交 |
-| 原生 HTTP | `#api-url`, `#api-send`, `#api-http-status`, `#api-response` | 真实 HTTP 200/404、耗时、类型与正文；无 Cookie | 网络/CORS/URL 无效/取消/超时 |
+| 原生 HTTP GET | `#api-url`, `#api-send`, `#api-status`, `#api-http-status` | 页面仅输入框/GET 按钮/状态行；Network 查看完整协议；隐藏节点保留有限脚本读取 | 网络/CORS/URL 无效/修改 URL 后取消/超时 |
 | Locator：同名 | `#locator-confirm-a/b`、`#locator-duplicate-result` | 同名按钮 count=2，按 testid 可精确点击 A/B | 不唯一定位不可直接提交 |
 | Locator：可操作性 | `#locator-readonly-field`、`#locator-disabled-button`、`#locator-aria-disabled` | 原生 readonly/disabled/ARIA 属性存在 | 禁用或只读被绕过 |
 | Locator：遮挡 | `#locator-cover-shield`, `#locator-covered-target`, `#locator-cover-toggle` | 默认覆盖按钮；解除后用户真实点击增加计数 | 被遮挡时产生错误提交 |
@@ -40,7 +40,7 @@
 ### 防止错测的规则
 
 - `getByRole/getByLabel/getByTestId/locator/observe` 是 OpenDesk **有限实现**，不能默认照搬 Playwright 所有方法。现代接口能力版本及边界见 `types/opendesk-page.d.ts`、`docs/framework/modern-page-api.zh-CN.md`。
-- 本页通过 `fetch` 可验证**浏览器原生 HTTP 与 CORS**，**不能据此证明**扩展提供的 `axiosx`/GM 请求桥具有跨源能力。如果未来需要验证这两种 API，应先核对实际 SDK 注入 Realm、调用签名与安全策略，使用明确的扩展脚本及扩展回执，**不能在网页 window 中制造同名 mock**。
+- 本页通过 `fetch` 可验证**浏览器原生 HTTP 及目标服务器 CORS 行为**，**不能据此证明**扩展提供的 `axiosx`/GM 请求桥具有跨源能力。主仓库当前有受信 SDK `src/framework/sdk/http.js` 与 `src/platform/chrome/network.js`，真正的 SDK network 目标来源/授权验证复用 `tests/framework/fixtures/sdk-target-origins/server.mjs`；GM xhr 兼容仍不得混淆为已实现。不可在网页 `window` 上制造假的 axiosx。
 - “模拟超时”表示客户端等待被限时中止，**不是 Python HTTP 服务器真实延迟**。
 - 真实 IP 示例需用户点击 GET；跨域失败可能为服务端 CORS，不能假装为插件问题。响应正文始终写入 textContent，不执行第三方 HTML。
 - 改造页面不得改变 `examples/tasks/form-fill.v1.opendesk-task.json`，尤其 sourceHash、siteOrigins 和已发布任务约束。
@@ -77,6 +77,38 @@ node --test tests/environment/basic-browser-page.test.mjs
 | 安全与结果真实性 | 无自动外部请求、无凭据上传、无 HTML 注入、无假 PASS、原生证据可溯源 |
 
 截至本文件创建时：**静态目标已经实现，但真实 Chrome 逐项验收及视觉截图还未完成；不声称 95+ 已被证明。**
+
+
+## R8.1：HTTP 场景收敛为最小单次 GET
+
+用户明确不需要 Postman 化的接口测试 UI。第 06 组保留：
+
+- 一个水平 URL 输入框 `#api-url`（默认同源 HTML，单击前不会发送请求）与唯一按钮 `#api-send`。
+- 一行 `#api-status` 和真实 `#api-http-status`；仅在出错时显示短文本 `#api-error`。
+- 明确的「Chrome DevTools → Network」提示；**不展示**请求预设下拉框、取消按钮、POST、自定义 Headers、历史、响应正文或 HTTP 元数据表。
+- 为旧的 Page API 草稿读取，`#api-duration`、`#api-content-type` 和 `#api-response` 仍在**隐藏**的 `#api-debug-data` 里，用来记录有限响应，绝不能把这些隐式数据冒充可见页面。
+- 改 URL 或重置会调用 AbortController 并阻止迟到的异步结果覆盖；8 秒期限依旧存在。禁止页面加载即自动外发第三方请求。
+
+本页 **fetch(目标 URL)** 与扩展 **axiosx(目标 URL)** 必须分开执行验证。对已批准站点使用 SDK 网络 Fixture，核对真实宿主请求记录和授权回执；网页 DevTools 只保证可观察本页发起的 fetch，扩展 SW 网络需要进入扩展自己的调试工具查看。
+
+### 旧的本地 `/next` 服务及临时端口的安全清理
+
+这是本机状态，不是可由 GitHub 直接删除的仓库文件。先在用户的 Mac 上执行只读排查：
+
+```bash
+lsof -nP -iTCP:64687 -sTCP:LISTEN
+lsof -nP -iTCP:43113 -sTCP:LISTEN
+# 将 PID 替换为上一条输出显示的进程 ID
+ps -p PID -o pid=,ppid=,command=
+rg -n 'locator-acceptance|64687|/next|43113' examples tests scripts docs/framework README.md AGENTS.md
+```
+
+1. 如果端口属于当前仍被 Native/CFT/SDK 驱动的专用 Fixture，不要停用；只要不再在人工测试文档中宣传这个入口即可。
+2. 如果是已废弃独立预览服务器，确认没有活动引用后在其启动的终端**正常退出**，而不是一概 `kill -9`。
+3. 如果页面存放在本机未跟踪文件或其他 worktree，先保存差异、核对入口和脚本依赖，再移除废弃副本；不删除正式 Fixture/合同快照/历史原始证据。
+4. 完成后确认人工入口只有 `http://127.0.0.1:43111/demo-form.html`，且运行器仍可正常完成原生验收。
+
+无法实际访问和审计 64687 服务之前，**LOCAL_LEGACY_SERVER_CLEANUP=NOT_VERIFIED**；不把 GitHub 文档更新冒充本机进程清理完成。
 
 ## 维护规则
 

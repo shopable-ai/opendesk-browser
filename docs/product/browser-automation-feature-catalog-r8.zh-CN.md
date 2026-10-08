@@ -1,13 +1,13 @@
 # OpenDesk Browser R8：用户脚本与浏览器自动化能力总清单（分级、评分、差距和验收）
 
-> 研究基线：2026-10-09，仓库 shopable-ai/opendesk-browser 的 main@c93ee36700171114ff38a5e705ce177fc55251df（文档审计起点）；**本文件是版本化产品能力规划，不是功能实现声明**。创建/更新文档不改变真实代码状态。详情以实际 main 源码及测试证据为准。任何 SOURCE_IMPLEMENTED 都不能冒充 BUILD_VERIFIED/CHROME_NATIVE_VERIFIED。
+> 研究基线：2026-10-09，仓库 shopable-ai/opendesk-browser 的 main@c93ee36700171114ff38a5e705ce177fc55251df（文档审计起点）；**本文件是版本化产品能力规划，不是功能实现声明**。创建/更新文档不改变真实代码状态。初始研究之后的工程复核见第 7 节：源码基线 945cf927，同步并行 main 至 c2538e9，修复候选 84dc3c7；最终 main 集成号以该提交所在 PR 为准。详情以实际 main 源码及测试证据为准。任何 SOURCE_IMPLEMENTED 都不能冒充 BUILD_VERIFIED/CHROME_NATIVE_VERIFIED。
 
 ## 1. 如何使用本清单
 
 - **唯一的“能力总账本”**：给每条能力稳定 ID；新发现的竞品功能先建条目，再经源码审计、分级、阶段分配，不直接开发。功能设计见 R8 ADR，GM 逐方法语义见 R8 compatibility matrix，推进节奏见 R8 roadmap。禁止在多个文件维护互不一致的第二份全量清单。
 - **产品分层**：L0 核心必要（正常安装/执行/授权/原生验收）；L1 重要兼容和日常增强；L2 高级开发者/高频团队需求；L3 可选实验/平台/高权限功能；LX 明确近期不实施或刻意拒绝。产品层级与阶段 P0–P4 是独立维度，LX 的 P4 只表示可定期重新评估，不是已承诺交付。
 - **评分不是代码完成百分比**：每行 V=产品价值（1–5，5 最高）；每模块分别给 **用户价值/100** 与 **OpenDesk 产品契合度/100**，实现复杂度 C=1..5、安全/权限风险 R=1..5。全为研究时的独立专家判断，不是市场用户样本或实测分数；无总平均分，不用高价值抵消高安全风险。
-- **源码证据简称**：S=SOURCE_IMPLEMENTED；P=PARTIAL；M=MISSING（仅对已抽样的对应目录/产品链而言）；U=NOT_AUDITED。历史 Node 测试、CI 构建、真实 Chrome/Codex 等必须另填 COMPONENT_TESTED/BUILD_VERIFIED/CHROME_NATIVE_VERIFIED 的证据 SHA；R8 补充研究没有执行这些命令。
+- **源码证据简称**：S=SOURCE_IMPLEMENTED；P=PARTIAL；M=MISSING（仅对已抽样的对应目录/产品链而言）；U=NOT_AUDITED。历史 Node 测试、CI 构建、真实 Chrome/Codex 等必须另填 COMPONENT_TESTED/BUILD_VERIFIED/CHROME_NATIVE_VERIFIED 的证据 SHA；早期 R8 补充研究没有执行这些命令；本轮工程证据另见第 7 节。
 - **R8.1 范围**：P0 功能在 R8.1 需“复用或完成缺口”，但已 S 的能力主要回归测试，不允许以 P0 标签让 Codex 再开发一次；P1–P4 和 LX 不由 R8.1 实现。P0 不包括 GM_* 全量兼容。安全上无法证明的行为必须标 BLOCKED，而不是为达标放宽权限。
 
 ## 2. 模块独立评分（仅决策优先级，不等于已完成质量）
@@ -44,20 +44,20 @@
 | INS-001 | 本地 .user.js / JS 文件导入 | L0 | P0 | 5 | P | 现有 JS 草稿导入；Page 正式安装缺口 |
 | INS-002 | 从 HTTPS 脚本链接预览候选（不自动安装） | L0 | P0 | 5 | M | 只收集 URL 与固定实际字节，明确点击审查 |
 | INS-003 | 粘贴单文件后立即 Page 试运行 | L0 | P0 | 5 | S | 现有单次 USER_SCRIPT preview，不等于安装 |
-| INS-004 | 发现网页脚本链接的安装入口 | L1 | P1 | 3 | U | 仅提出安装候选；禁止静默拦截自动执行 |
+| INS-004 | 发现网页脚本链接的安装入口 | L1 | P1 | 3 | M | 已查 task-workbench / tool-shell；当前仅本地 JS/Task 包入口，没有网页 .user.js 链接接管消费者 |
 | INS-005 | 安装确认页显示源码、版本、目标网站 | L0 | P0 | 5 | P | 保留独立管理页，批准真实来源及权限 |
 | INS-006 | 安装来源 URL 与 @namespace 唯一性 | L0 | P0 | 5 | P | 以真实下载/导入出处为准，不信 @downloadURL |
 | INS-007 | 候选版源码哈希/依赖锁冻结 | L0 | P0 | 5 | S | 已有依赖与 Page manifest 编译，发布状态仍缺 |
 | INS-008 | Page Candidate→Verified→Available→Installed | L0 | P0 | 5 | P | 必须类型专属证明，不能借 Controller 结果 |
 | INS-009 | 已装脚本启用/停用与卸载 | L0 | P0 | 5 | P | Controller 已有，Page 需要 Native 注册管理 |
-| INS-010 | 名称与来源冲突检测/导入覆盖提示 | L1 | P1 | 4 | U | 避免同名不同出处意外更新 |
+| INS-010 | 名称与来源冲突检测/导入覆盖提示 | L1 | P1 | 4 | P | tasks/service.js 已拒绝同 taskId/version 不同字节（E_REQUEST_CONFLICT）；Page 名称/来源去重、覆盖审查未接入 |
 | INS-011 | 更新源固定、手动检查与更新候选 | L1 | P1 | 5 | M | 更新 URL 不是自动授信 |
 | INS-012 | 更新权限 diff 与来源/依赖变化审核 | L1 | P1 | 5 | M | 变更网站/@grant/@connect 重新确认 |
 | INS-013 | 更新失败回滚已装固定版本 | L0 | P0 | 5 | M | P0 覆盖最小手动替换/失败回滚；自动更新 P1 |
 | INS-014 | 版本历史与完整 diff | L1 | P1 | 4 | P | 现有 Controller revisions，Page 完整视图待接线 |
-| INS-015 | 脚本标签/分组/批量启停 | L1 | P2 | 3 | U | 先单脚本生命周期，规模增长后实现 |
+| INS-015 | 脚本标签/分组/批量启停 | L1 | P2 | 3 | M | task-workbench.js 有目录筛选和逐任务启停；没有脚本标签/批量操作合同 |
 | INS-016 | 脚本回收站与原配置恢复 | L2 | P2 | 3 | M | ScriptCat Beta 参考，不要求 P0 |
-| INS-017 | 导出 ZIP/JSON/脚本备份 | L1 | P2 | 4 | U | 检查现有 Controller 导入导出，不等于脚本备份 |
+| INS-017 | 导出 ZIP/JSON/脚本备份 | L1 | P2 | 4 | P | tasks/contract.js 有固定 JSON Task Package，script-editor 可下载结果；未形成已装脚本/依赖/配置的导出恢复闭环 |
 
 ### META · UserScript 元数据与匹配语义
 
@@ -68,7 +68,7 @@
 | META-001 | 开头元数据语法识别、未知指令失败关闭 | L0 | P0 | 5 | S | 已有 metadata parser/assess；只读保留不等于兼容 |
 | META-002 | @name/@namespace/@version/@description | L0 | P0 | 5 | P | 识别与展示；需绑定安装身份 |
 | META-003 | @author/@license/@supportURL/@homepageURL | L1 | P1 | 4 | P | 识别未必落实可信来源/许可政策 |
-| META-004 | @antifeature 追踪/广告/矿工等风险披露 | L1 | P1 | 5 | P | 当前解析描述，但安装时风险呈现不足 |
+| META-004 | @antifeature 追踪/广告/矿工等风险披露 | L1 | P1 | 5 | P | 84dc3c7：真实头部及 locale @antifeature 在依赖审核显示 W_ANTIFEATURE_DECLARED 纯文本自述风险；正式安装风险审查仍缺 [EP-E1] |
 | META-005 | @match 网站规则 | L0 | P0 | 5 | P | 有 native descriptor；实际持久注册缺口 |
 | META-006 | @exclude-match 规则 | L0 | P0 | 5 | P | 描述可编译，需真实非匹配测试 |
 | META-007 | @include glob 或正则变体 | L1 | P1 | 4 | M | 当前明确拒绝；必须转换或声明差异 |
@@ -100,7 +100,7 @@
 | LIFE-007 | 匹配文档恰好一次的脚本启动门槛 | L0 | P0 | 5 | P | wrapper once-token 不等于完整安装验证 |
 | LIFE-008 | SPA pushState/replaceState/popstate 观测 | L1 | P1 | 4 | M | 默认不重复整脚本注入，按事件独立订阅 |
 | LIFE-009 | frames/嵌套 frame/跨源 frame/空白 frame | L0 | P0 | 5 | P | exact frame 与 site scope 正式验收 |
-| LIFE-010 | document-start 同步时序与授权握手冲突 | L0 | P0 | 5 | U | 竞态/延迟必须真实测试，失败就明确降级 |
+| LIFE-010 | document-start 同步时序与授权握手冲突 | L0 | P0 | 5 | M | preview/execution-source 尚无正式逐文档认证；ADR-06 明确异步授权与原生 start 不能同时无等待，需原生时序证明 |
 | LIFE-011 | 用户取消网站授权后禁下次启动 | L0 | P0 | 5 | P | 单次预览有 gate；注册竞态尚未关闭 |
 | LIFE-012 | 脚本更新时原子版本切换/回滚 | L0 | P0 | 5 | M | Chrome API 与本地事务非原子，需要对账 |
 | LIFE-013 | 已运行 DOM 副作用无法强制回滚提示 | L0 | P0 | 5 | P | 停止语义需呈现不可逆边界 |
@@ -149,12 +149,14 @@
 | DEV-004 | 本地构建与执行字节锁 | L0 | P0 | 5 | P | 已构建 BUILT_UNVERIFIED，正式 Page 注册需桥接 |
 | DEV-005 | @require 第三方 JS 审核/离线命中 | L0 | P0 | 5 | S | 已有 D1 manager，真实 Chrome 回归待做 |
 | DEV-006 | 语法检查/错误定位 | L1 | P1 | 4 | P | 已有静态检查器，完整 editor diagnostics 待查 |
-| DEV-007 | 现代 JS/GM 类型定义与自动补全 | L1 | P1 | 4 | U | 不直接复制 ScriptCat GPL 类型实现 |
+| DEV-007 | 现代 JS/GM 类型定义与自动补全 | L1 | P1 | 4 | P | types/opendesk-page.d.ts 已有现代 Page/Locator 声明；GM 类型、编辑器补全及诊断缺失，不复制 GPL 实现 |
 | DEV-008 | 源码版本 Diff / 依赖更新对比 | L1 | P1 | 4 | P | Controller Revision 存在；跨运行类型视图欠缺 |
 | DEV-009 | 真实页面断点/调试输出/日志 | L1 | P1 | 4 | P | 日志有部分 Controller 入口，GM/debug 页新建计划 |
 | DEV-010 | 生成示例、模板和脚本脚手架 | L2 | P2 | 3 | P | 已有 examples/programs，不做复杂编辑器平台 |
 | DEV-011 | 源码导入/导出与 VS Code/Codex 开发联动 | L2 | P2 | 3 | P | 已有构建/导入，有可选 Agent PR |
 | DEV-012 | 类型专属 native 自动化测试/测试报告 | L0 | P0 | 5 | P | 组件与 Chrome 真实验证必须分离 |
+
+> **UI 开发能力补充（2026-10-09）**：DEV-003/004/010/011 作为原生、React/Vue、Tailwind 与多文件 UI 资源的上层追踪入口，详细范围见 [UI 开发与样式隔离 R1](../architecture/browser-framework/ui-development-and-style-isolation-r1.zh-CN.md)，工程责任见实施计划的“UI 开发专项增补”。当前插件自身 UI 和参数表单已实现，不代表完整用户 UI 框架已支持；现有 `.js/.mjs` 构建、未接通的 CSS/图片资产与待实现的组件编译必须分列。此需求不同于下面的 UserCSS 模块；原 188 项 ID 与数量保持，新增专项设计不提升任何运行时验收状态。
 
 ### AUTO · 现代 Browser Automation 与 RPA 操作
 
@@ -171,10 +173,10 @@
 | AUTO-007 | 多步骤条件/循环/变量 | L1 | P2 | 4 | P | 优先用 JS/已有 Task 组合，不做第二节点引擎 |
 | AUTO-008 | 表单/下载/数据读取 | L1 | P2 | 4 | P | 复用原 SDK，按任务验证 |
 | AUTO-009 | 多 Tab 协作及 frame/shadow DOM | L2 | P2 | 3 | P | 先核查已有 API 范围，不宣称全 Playwright |
-| AUTO-010 | 截图/全页视觉/OCR | L3 | P3 | 3 | U | 新增敏感能力需隔离与浏览器授权 |
+| AUTO-010 | 截图/全页视觉/OCR | L3 | P3 | 3 | P | ChromePage.screenshot → control/native-driver.js → captureVisibleTab 已实现受控视口截图；fullPage 明确拒绝，OCR 缺失；本轮 native NOT_TESTED |
 | AUTO-011 | 录制操作→Locator/JS | L2 | P3 | 4 | M | 可选录制层，不用新 RPA 执行内核 |
 | AUTO-012 | 错误恢复/超时/重试前效果证明 | L0 | P0 | 5 | P | 当前 Run/Journal 基础，严禁未知效果盲重发 |
-| AUTO-013 | Network 请求监控/拦截/改写 | L3 | P3 | 2 | U | 不同于 axiosx 受控 HTTP；Debugger/DNR 独立权限 |
+| AUTO-013 | Network 请求监控/拦截/改写 | L3 | P3 | 2 | M | 已查 SDK/network/native-driver；axiosx 请求不是监听/拦截。manifest 的 webRequest/DNR 可选声明没有对应脚本拦截产品 |
 | AUTO-014 | CSV/JSON/文件任务资产 | L2 | P2 | 3 | P | 已有 Result/下载组件，具体 formats 待测 |
 
 ### TRG · 触发入口、交互与自动化启动
@@ -188,12 +190,12 @@
 | TRG-003 | 匹配网站新文档自动执行 Page Script | L0 | P0 | 5 | M | R8.1 核心交付 |
 | TRG-004 | SPA 路由变化事件（非重新注入） | L1 | P1 | 4 | M | 应独立订阅可撤销 |
 | TRG-005 | 浏览器右键菜单启动 | L1 | P2 | 3 | M | 可选 contextMenus 权限已经声明 |
-| TRG-006 | 浏览器快捷键 / 命令 | L2 | P2 | 3 | U | commands API 与默认快捷键产品化需核实 |
+| TRG-006 | 浏览器快捷键 / 命令 | L2 | P2 | 3 | M | manifest 无 commands，SW/Sidebar 无 onCommand 任务消费者；需独立键位/授权合同 |
 | TRG-007 | 浏览器启动后触发短任务 | L2 | P2 | 3 | M | 需有未运行/错过处理 |
 | TRG-008 | 定时/间隔/Cron | L1 | P2 | 4 | M | MV3 不能承诺持续准点 |
-| TRG-009 | 标签打开/关闭/切换事件 | L2 | P2 | 3 | U | 受限的 browser-event triggers |
-| TRG-010 | 页面 CustomEvent/API 触发 | L3 | P3 | 2 | U | 防止任意第三方网页越权启动任务 |
-| TRG-011 | 外部 CLI / Agent 请求触发 | L2 | P3 | 4 | P | PR #11 未合 main；未来可选 Bridge |
+| TRG-009 | 标签打开/关闭/切换事件 | L2 | P2 | 3 | P | current-page-target.js、SW 和 controller-methods 有标签事件/目标失效围栏；未形成可安装 TriggerDefinition |
+| TRG-010 | 页面 CustomEvent/API 触发 | L3 | P3 | 2 | M | SDK transport 的 CustomEvent 是现有受控请求桥，不是可由网页任意启动 Installed Task 的触发器 |
+| TRG-011 | 外部 CLI / Agent 请求触发 | L2 | P3 | 4 | M | main 无外部 Native/CLI 触发入口；实现仅在未合 Draft PR #11，不能算 main 已有 |
 
 ### BG · 后台、定时调度与可靠性
 
@@ -209,8 +211,8 @@
 | BG-006 | 重启、进程休眠和崩溃恢复 | L1 | P2 | 5 | P | RunHost 局部已有，调度场景缺口 |
 | BG-007 | 后台执行日志、错误、重试与暂停 | L1 | P2 | 4 | P | 复用 Journal，分清执行与触发记录 |
 | BG-008 | 长任务 checkpoint 与资源预算 | L2 | P2 | 3 | M | 按工作单位持久化，不依赖无限 keepalive |
-| BG-009 | Offscreen/沙箱受控短任务 | L2 | P2 | 3 | U | 不将 ScriptCat 实现原样移植 |
-| BG-010 | 可选 Native Host 更长任务 | L3 | P3 | 3 | P | PR #11 尚未合 main，用户明确选择 |
+| BG-009 | Offscreen/沙箱受控短任务 | L2 | P2 | 3 | P | scripting/sandbox/controller.js 与 worker-runtime.js 已承载 Controller 短任务；没有 Background/Offscreen 独立合同 |
+| BG-010 | 可选 Native Host 更长任务 | L3 | P3 | 3 | M | main 无 Native 长任务宿主；Draft PR #11 的 RunHost 适配也不等于浏览器关闭后长任务保障 |
 | BG-011 | 调度同时多任务并发上限 | L1 | P2 | 4 | M | 避免重入/权限扩大 |
 
 ### AI · AI Agent、录制、Skill 与可重复发布
@@ -221,15 +223,15 @@
 | --- | --- | --- | --- | ---: | --- | --- |
 | AI-001 | AI 根据页面观察辅助生成 JS 草稿 | L2 | P3 | 4 | P | R6 合同已设计，原生 E2E 未测 |
 | AI-002 | AI 生成后的静态校验/源码 hash 冻结 | L0 | P0 | 5 | P | 复用 Task Revision/manifest，发布仍需证明 |
-| AI-003 | Agent 调用 Controller observe/click/run | L2 | P3 | 4 | P | PR #11 仍 open/draft |
-| AI-004 | Agent run.get / run.stop 复用 Durable Run | L2 | P3 | 4 | P | 不创建第二 Controller |
+| AI-003 | Agent 调用 Controller observe/click/run | L2 | P3 | 4 | M | main 没有 Agent 入口；Controller observe/click/run 可复用，实际 Native 桥仅在 Draft PR #11 |
+| AI-004 | Agent run.get / run.stop 复用 Durable Run | L2 | P3 | 4 | P | main 有 Durable Run/get/stop；Agent 对应 RPC 在 Draft PR #11，外部端到端未验收 |
 | AI-005 | 关闭 AI 后用户独立重复任务 | L1 | P3 | 5 | P | R6 业务目标，真实验收缺 |
 | AI-006 | 任务发布与行为证明的审核流程 | L1 | P3 | 5 | P | Controller 已有 Task v1，AI 到 Task 本机 E2E 未验 |
-| AI-007 | 可选 MCP / CLI / Native Bridge | L2 | P3 | 4 | P | 不要求普通用户安装 Host |
+| AI-007 | 可选 MCP / CLI / Native Bridge | L2 | P3 | 4 | M | main 无 MCP/CLI/Native Bridge 可安装入口；Draft PR #11 待原生验收，不要求普通任务安装 Host |
 | AI-008 | 可版本化 Skill / Task Package | L2 | P3 | 3 | P | 已有 Agent 设计与多文件项目能力 |
 | AI-009 | 操作录制与 selector 修复 | L2 | P3 | 4 | M | 先验证现有 Locator，避免新引擎 |
 | AI-010 | 敏感操作确认/提示注入拦截 | L0 | P0 | 5 | P | 发布/许可必须守门，AI 外部入口需增强 |
-| AI-011 | 模型提供商切换与纯离线任务运行 | L2 | P3 | 4 | U | AI 适配层可选，离线 Task 必须独立 |
+| AI-011 | 模型提供商切换与纯离线任务运行 | L2 | P3 | 4 | P | Task/RunHost 源码不依赖模型会话；模型 provider 切换未实现，含网络任务不保证离线可用，AI 退出后用户闭环 NOT_TESTED |
 
 ### UX · Sidebar、普通用户体验与开发面板
 
@@ -246,7 +248,7 @@
 | UX-007 | 首次使用 Allow User Scripts / 网站权限引导 | L0 | P0 | 5 | P | 真实新 Profile 全路径验收 |
 | UX-008 | 安装前详细权限/来源/差异审查 | L0 | P0 | 5 | P | 完整管理页，不拥挤 Sidebar |
 | UX-009 | 运行结果/错误/历史与跳转调试 | L1 | P1 | 4 | P | Controller 已有，Page 后续事件记录不同 |
-| UX-010 | 快捷启停、当前站点脚本数/状态 | L1 | P1 | 4 | U | 扩展 popup 或简化状态，不重复品牌 |
+| UX-010 | 快捷启停、当前站点脚本数/状态 | L1 | P1 | 4 | P | task-workbench.js 的 Controller Installed 卡片已有启停/状态；当前站点 Page 脚本计数和自动注册状态仍缺 |
 | UX-011 | 键盘/读屏/低对比辅助 | L0 | P0 | 5 | P | 已有 UI 回归，真 Chrome/a11y 待验 |
 | UX-012 | 完整源代码/GM 调试放独立页面 | L1 | P1 | 4 | P | 遵守 Sidebar 简洁 |
 
@@ -270,16 +272,16 @@
 
 | ID | 功能 | 级 | 期 | V | 现状 | 范围/证据 |
 | --- | --- | --- | --- | ---: | --- | --- |
-| ECO-001 | 外部脚本目录链接展示/跳转 | L1 | P1 | 3 | U | Greasy Fork/ScriptCat 不可自动安装 |
-| ECO-002 | Greasy Fork 元数据与反功能披露 | L1 | P1 | 4 | P | 识别 @antifeature 不等于风险 UI 已有 |
+| ECO-001 | 外部脚本目录链接展示/跳转 | L1 | P1 | 3 | M | 实际 tool/catalog 消费者仅本机目录；研究文档有外链不代表产品发现入口 |
+| ECO-002 | Greasy Fork 元数据与反功能披露 | L1 | P1 | 4 | P | 84dc3c7 新增 @antifeature 纯文本警示及编辑后刷新；无声明不证明安全，HTTPS 目录导入/安装仍未完成 [EP-E1] |
 | ECO-003 | 来源固定与更新域名变更保护 | L1 | P1 | 5 | P | 现有依赖锁可复用，更新申请尚缺 |
 | ECO-004 | 代码许可证与第三方依赖归属校验 | L1 | P1 | 4 | P | 许可 unknown 不自动当作可复制 |
 | ECO-005 | 脚本订阅源/自选关注更新 | L2 | P2 | 3 | M | 只通知候选，不无确认安装 |
-| ECO-006 | 脚本列表批量管理及分组标签 | L2 | P2 | 3 | U | 待规模证据 |
-| ECO-007 | 安装后的本机加密/明文备份策略 | L1 | P2 | 4 | U | 需明示包含哪些敏感配置 |
+| ECO-006 | 脚本列表批量管理及分组标签 | L2 | P2 | 3 | M | 现有目录分类/搜索不构成用户脚本分组和批量修改；尚无对应存储/操作消费者 |
+| ECO-007 | 安装后的本机加密/明文备份策略 | L1 | P2 | 4 | M | storage 的 preserveMigrationBackup 只保存不可执行原始迁移数据；不是 Installed 脚本/GM 配置明文或加密备份策略 |
 | ECO-008 | 同步冲突/设备身份及云同步 | L3 | P4 | 2 | M | 不提前承诺商用账户服务 |
 | ECO-009 | 版本签名/验证发布者身份 | L3 | P4 | 3 | M | Web PKI 与脚本签名另设计 |
-| ECO-010 | 脚本安全报告/用户反馈入口 | L2 | P3 | 3 | U | 先外链反馈和 issue，无需市场 |
+| ECO-010 | 脚本安全报告/用户反馈入口 | L2 | P3 | 3 | M | 当前脚本详情没有安全反馈/举报入口；仓库 issue 地址不等同产品中的按脚本反馈 |
 | ECO-011 | 开放插件 SDK、第三方适配包 | L3 | P4 | 2 | M | 架构需保留扩展点但不新建平台 |
 | ECO-012 | 企业管理/脚本集中投放政策 | L3 | P4 | 2 | M | 参考 Tampermonkey provisioning，不是近期核心 |
 
@@ -295,7 +297,7 @@
 | SEC-004 | 从 Script 世界发送专用消息并校验 sender | L1 | P1 | 5 | M | 不可相信 payload scriptId/grant |
 | SEC-005 | 版本、sourceHash 和依赖锁验证 | L0 | P0 | 5 | P | 已有组件；正式发行审计未闭 |
 | SEC-006 | 权限变更与审查记录不可绕过 | L0 | P0 | 5 | P | P0 站点范围，P1 GM/@connect 细分 |
-| SEC-007 | 未知元数据/未支持 GM 明确拒绝 | L0 | P0 | 5 | S | 现有 D1 失败关闭 |
+| SEC-007 | 未知元数据/未支持 GM 明确拒绝 | L0 | P0 | 5 | S | 84dc3c7 复用 D1 失败关闭，修复异步依赖检查覆盖最新元数据/审批未复查；71 定向组件 PASS，native NOT_TESTED [EP-E1] |
 | SEC-008 | 插件更新/浏览器重启注册竞态防重复 | L0 | P0 | 5 | M | Reconciler 执行日志 |
 | SEC-009 | 远程 JS 只由 User Scripts 许可世界执行 | L0 | P0 | 5 | P | 遵守 CWS MV3 RHC 限制 |
 | SEC-010 | Cookie/下载/剪贴板敏感作用域 | L3 | P3 | 5 | M | 不可继承默认 Chrome cookies 权限 |
@@ -303,7 +305,7 @@
 | SEC-012 | CORS/redirect/凭据/请求体边界 | L1 | P1 | 5 | P | 当前 axiosx 短请求不同于 GM_xhr |
 | SEC-013 | 许可证/GPL 污染与第三方供应链审计 | L0 | P0 | 5 | P | 任何引用源码须版权审查 |
 | SEC-014 | Chrome Web Store 最小权限与单一用途审核 | L1 | P1 | 5 | P | 当前默认 <all_urls>/cookies 较宽；公开发布前关口 |
-| SEC-015 | 安全公告、漏洞报告、版本撤回 | L2 | P2 | 4 | U | 长期运营能力，早期可利用 GitHub issue |
+| SEC-015 | 安全公告、漏洞报告、版本撤回 | L2 | P2 | 4 | M | 现有 Task 卸载/Script tombstone 不是发行安全公告或版本撤回流程；未发现对应产品消费者/仓库安全响应合同 |
 
 ### PORT · 跨浏览器、可观测性和可选插件架构
 
@@ -371,6 +373,18 @@
 
 每条功能实施必须记录：featureId、main SHA、runtimeKind、sourceFiles、tests、status、evidence SHA/path、testedChromeVersion、realPermissionState、owner/pr/nextAction。单次 test PASS 不改变其他状态；可将项目既有机器账本作为终局权威。对竞争能力仅允许 OFFICIAL_DOC/RELEASE/SOURCE_READ/COMMUNITY_REPORT/UNVERIFIED，禁止把商店宣传当测试。
 
-**清单统计**：188 条、14 个能力模块；其中 P0 有 65 条（包括已经 S 的复用能力，绝非全部新开发），S=21、P=71、M=77、U=19。这些数字仅描述条目标签和研究范围，**不是实现百分比或产品覆盖率**。
+**清单统计**：188 条、14 个能力模块；其中 P0 有 65 条（包括已经 S 的复用能力，绝非全部新开发），S=21、P=75、M=92、U=0。这些数字仅描述条目标签和研究范围，**不是实现百分比或产品覆盖率**。
 
 历史状态说明：R8 文档创建前已检查 main、PR #11 和 PR #20；后续务必重新 fetch 以免并行 agent 修改导致静态标签过期。
+
+## 7. R8 Engineering Program R1 真实源码复核（2026-10-09）
+
+本次复核保留全部 **188 个原始功能 ID**。审查基线为 `main@945cf92726fcadcd60ecb3dc70729029fb9f28e6`；并行 `main@0dcc23b6e1a3409a0dc06f2afd2884ed1e74a448` 仅新增执行计划和路线链接，未把 PR #11/#20/#22 的功能合入。随后同步 `main@71fa54e` 的真实 HTTP 页面/测试变化及 `main@c2538e9` 的归属 CI；以上仍没有将 Native/PR #20 的候选代码合入 main。40 项工程任务沿用并行计划的 **E01–E40**，每个能力只有一个主责任务，验收任务可引用前置能力；详见 [唯一执行计划](browser-automation-r8-implementation-plan.zh-CN.md)。这里仍是唯一全量功能目录。
+
+本轮把先前 19 个 U 项在各自真实消费者范围内改为 P/M，并纠正将未合 Native Draft 能力视为 main 部分实现的条目。审查了 `src/platform/tasks/{contract,service}.js`、`src/platform/storage/`、`src/platform/host/`、`src/framework/ChromePage.js`、`src/framework/control/native-driver.js`、`src/framework/sdk/`、`src/scripting/sandbox/`、`src/scripting/user-scripts/`、`src/ui/`、`types/opendesk-page.d.ts`、`manifest.json` 及现有测试。**M 表示对应正式功能的消费者或合同缺失，并不否定可复用的底层组件**；P 不代表整条用户流程已完成。
+
+- **本轮产品源码切片**：`84dc3c7abe08505ae5e24849315dc8dd5587932d`（E08/E40 子项）。`src/ui/page-dependencies.js` 在检查回复、权限/文件/服务异步返回及审批时重新检查当前源码；旧依赖锁仍可按同依赖身份复用，不能借旧报告覆盖新的 GM/resource/include 拒绝。`dependency-metadata.js` 添加脚本自述的纯文本反功能风险警示。
+- **EP-E1**：[独立工程回执](../framework/workstreams/r8-engineering-r1-b62cc961.json) 与 [原始日志/构建指纹](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/)：5 个新增行为用例在旧实现复现失败；修复后 71/71 定向；原候选 197/197 environment，同步新主线并处理 canonical 指南回归后最终 201/201 environment、139 文件静态检查、任务归属契约 3/3、生产/开发构建、ZIP 打包与包验证通过。源码、组件、构建分别记录；全部 Chrome 原生/用户安装闭环仍 `NOT_TESTED`。
+- **技术决策**：[R8-EP-ADR-01～14](../architecture/browser-framework/plugin-capability-architecture-r8-adr.zh-CN.md#10-r8-engineering-program-r1-增量决策) 只代表设计接受或延期/安全门槛。专用 USER_SCRIPT 消息不能单独证明具体脚本身份；没有可信实例认证不能开放特权 GM。官方匹配语义与 Chrome Alarms 版本差异均需后续原生验证。
+
+以上统计是源码分类，不是功能完成率；本轮只交付明确标注的工程切片，未将 E08、E40 或整个 R8.1 宣告完成。

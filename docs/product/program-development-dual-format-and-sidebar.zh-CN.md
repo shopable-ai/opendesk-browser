@@ -120,3 +120,16 @@ npm run build:program -- examples/programs/controller-title
 下一步应先验证：**同一程序构建 → 原 R6 独立目录导入 .js → Sidebar 原编辑器 → 明确用户点击 → Chrome 原生返回 → 断网重用、换页/撤权失败关闭**。再完善 Page 类型正式安装，不为了这条路径大改 Sidebar。
 
 **以后所有 Sidebar UI 调整都以 R6 为比较基线**，逐项保留既有 DOM 控件、三页签和运行/停止所有权；任何新方案应先说明必要性并进行真实视觉预览，不得直接用示意 UI 替代现行产品。
+
+## 7. UI、React/Vue 与 Tailwind 的开发边界（2026-10-09）
+
+详见 [UI 开发与样式隔离 R1](../architecture/browser-framework/ui-development-and-style-isolation-r1.zh-CN.md)。当前已有插件自身界面和 `paramsSchema` 原生参数表单；页面脚本可使用 DOM API。**这不等于当前已提供 React/Vue/Tailwind 的正式多文件 UI 开发闭环。**
+
+- 不使用框架仍是正式路径。简单任务继续使用现成参数表单，复杂网页小工具才需要自定义 UI。
+- React/Vue 属于项目的渲染选择；Tailwind 是可选的构建期样式工具，可以与原生、React、Vue 分别组合。
+- 基础 CSS 按 UI 容器启用，网页内 UI 优先独立 ShadowRoot。选择启用不等于已经隔离；不得向网站全局注入完整 Tailwind reset。
+- 当前校验/构建入口只直接处理 `.js/.mjs`；CSS/图片资产未贯通，JSX/TSX/Vue 单文件组件没有正式编译适配。现有文件选择器也不等于目录导入入口。
+- 用户任意 UI 代码不能直接作为特权 Sidebar 组件运行；简单表单继续由宿主渲染，复杂侧栏应用另行实现独立展示文档。
+- 下一批先完成原生网页 UI 的资产、挂载、交互与清理，再在同一链路接 React/Vue/Tailwind。无需因该需求等待完整 UserCSS 管理器，也不扩展 Sidebar 一级页签。
+
+本节是新需求的设计补充；UI 资源通道、框架适配和真实 Chrome 支持状态仍以实际代码与验收证据为准。

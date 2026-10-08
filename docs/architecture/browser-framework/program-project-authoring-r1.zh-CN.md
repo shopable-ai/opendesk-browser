@@ -84,3 +84,9 @@ Skill 指导 AI 按相同顺序读合同、组织源码、运行检查与发布�
 下一阶段的首个**原生验收闭环**：用同一构建产物，在受控真实 Chrome 经原完整任务目录导入 `program.js`、回到 Sidebar「开发」原页面脚本折叠区点击试运行，取得可信回执，再验证离线重跑与权限撤销。之后再接 Page 正式安装；不以 Node/VM 测试代替真实用户操作。不要先扩展脚本市场，也不要继续堆新的任务入口。
 
 官方参考：[npm package.json](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/)、[VS Code 扩展 manifest](https://code.visualstudio.com/api/references/extension-manifest)、[VSIX 打包与发布](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)、[esbuild bundling](https://esbuild.github.io/api/)、[Chrome User Scripts API](https://developer.chrome.com/docs/extensions/reference/api/userScripts)、[MV3 远程代码政策](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)。
+
+## UI 与样式资源的后续扩展
+
+[UI 开发与样式隔离 R1](ui-development-and-style-isolation-r1.zh-CN.md)补齐本项目的界面开发决策：原生 UI 默认、React/Vue 按项目可选、Tailwind 在构建期生成 CSS；资源只进入其所属界面容器。已有 `assets` 的声明和校验不等于资源构建完成；当前 `.js/.mjs` 入口也不代表 JSX/TSX 或 Vue 单文件组件已经支持。
+
+下一批先完成原生网页 UI 的 CSS/图片资产、挂载与清理闭环，再接框架编译。扩展项目/产物合同前需定义向后兼容，不能直接向现行 v1 增加未被接受的 UI 字段，也不能为加入完整框架随意取消脚本/通信容量上限。本文既有构建命令和状态在相应实现及验收完成前保持原义。

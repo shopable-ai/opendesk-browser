@@ -268,6 +268,8 @@ export function assessUserScriptExecution(parsed, {entryFormat='async-main',phas
   if (!['async-main','classic-userscript'].includes(entryFormat)) block('E_ENTRY_FORMAT','Choose classic-userscript or async-main explicitly; ESM is not a UserScript entry mode');
   if (!['preview','registration'].includes(phase)) block('E_METADATA_PHASE','Expected preview or registration admission');
   for (const row of parsed.directives) {
+    if (row.kind === 'descriptive' && row.name.split(':')[0] === 'antifeature')
+      warn('W_ANTIFEATURE_DECLARED',`脚本自述 @${row.originalName}：${row.value || '(未说明)'}。这不是安全鉴定；未声明也不代表没有风险。`,row);
     if (row.kind === 'unknown') block('E_METADATA_UNSUPPORTED',`@${row.name} has unknown execution semantics; remove it or use a supported adapter`,row);
     if (row.name === 'grant' && row.value !== 'none') block('E_GRANT_UNSUPPORTED',`@grant ${row.value || '(empty)'} is not implemented; no GM or host privilege is granted`,row);
     if (row.name === 'resource') block('E_RESOURCE_UNSUPPORTED','@resource is preserved but its GM resource APIs are not implemented',row);
