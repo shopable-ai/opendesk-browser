@@ -9,7 +9,7 @@ const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正�
 const textValue=value=>value===undefined?'undefined':JSON.stringify(value,null,2);
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
-  document:doc=globalThis.document}) {
+  document:doc=globalThis.document,importDraft}) {
   const get=id=>doc.getElementById(id);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
@@ -179,7 +179,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       workspace.hidden=true;
       const empty=doc.createElement('p');
       empty.className='hint';
-      empty.textContent='还没有安装任务。点击右上角「发现任务」在完整页面浏览本地目录。';
+      empty.textContent='还没有安装任务。点击右上角「任务目录 ↗」在独立完整页面导入、验证并安装。';
       parent.append(empty,workspace);
       return;
     }
@@ -223,7 +223,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const row=installedRow(),info=candidateFor(row);
     get('task-installed-detail').textContent=info
       ?`${info.manifest.description}\n适用：${info.manifest.siteOrigins.join('、')}\n所需能力：${info.manifest.permissions.join('、')}\n来源：${info.manifest.source} · v${row.version}`
-      :'尚未安装任务；请到「发现」导入和安装';
+      :'尚未安装任务；请到顶部「任务目录 ↗」导入、验证并安装';
     get('task-result').textContent=row?'正在读取当前任务的最近结果…':'尚无任务运行结果';
     if(info)renderForm(info);
     else{renderKey=null;clearChildren(get('task-params-form'));}
@@ -364,10 +364,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     reader.append(heading,subtitle,meta,advanced,note);
     update();
   }
-  async function refresh(preferred) {
+  async function refresh(preferred,{skipUnchanged=false}={}) {
     const seq=++catalogSequence;
     const result=await client.request('listTaskCatalog',{});
     if(disposed||seq!==catalogSequence)return;
+    if(skipUnchanged&&JSON.stringify([catalog,installed])===JSON.stringify([result.catalog,result.installed]))return;
     catalog=result.catalog;installed=result.installed;
     renderInstalled();renderCatalog(preferred);renderLocalDiscovery();
   }
@@ -442,9 +443,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   async function readFile() {
     const file=get('task-package-file').files?.[0];
     if(!file)return;
+    // Capture the File first, then allow the same file to be selected again
+    // after either a successful import or a rejected/failed handoff.
+    get('task-package-file').value='';
     if(file.size>100000)throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
     const sourceUtf8=await file.text();
     if(file.name.toLowerCase().endsWith('.js')) {
+      if(catalogSurface) {
+        const response=await api.runtime.sendMessage({protocol:'opendesk.sidebar.draft-import.v1',sourceUtf8}).catch(error=>{
+          const message=error?.message || String(error);
+          if(message.includes('Receiving end does not exist'))return;
+          throw {code:'E_DRAFT_TRANSPORT',message};
+        });
+        if(!response?.ok)throw response?.error || {code:'E_HOST_NOT_FOUND',message:'请在同一窗口打开 Sidebar，再重新导入 JavaScript 草稿'};
+        get('task-catalog-status').textContent='已导入同窗口 Sidebar 的未保存草稿；返回目标网页，在「开发」明确运行。未保存、未安装、未自动执行。';
+        return;
+      }
       get('script-id').value=`import-${Date.now()}`;
       get('script-revision').value='';
       get('script-source').value=sourceUtf8;
@@ -456,7 +470,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       await refresh(identity(value));announce();
       get('task-catalog-status').textContent=`已导入待验证任务 ${identity(value)}；未自动赋予可信状态`;
     }
-    get('task-package-file').value='';
   }
   function run(event) {
     if(!event.isTrusted||disposed||running||working||host.currentRun)return;
@@ -519,7 +532,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       manifestHash:row.manifestHash,expectedInstalledVersion:previous?.version ?? null});
     await refresh(identity(row));announce();
     get('task-status').textContent=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
-    const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。回到 Sidebar 的「我的任务」即可运行。`;
+    const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的任务」填写参数并运行。`;
     get('task-catalog-status').textContent=installedMessage;
     get('task-install-feedback').textContent=installedMessage;
     // The full-page catalog has no visible Sidebar tabs/dock. Never navigate
@@ -552,7 +565,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     try{await fn();}catch(error){fail(error);}finally{working=false;update();}
   };
   for(const [tab,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']])
-    listen(get(id),'click',()=>navigate(tab));
+    listen(get(id),'click',()=>{
+      navigate(tab);
+      if(tab==='tasks'||tab==='discover')refresh(undefined,{skipUnchanged:true}).catch(fail);
+    });
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
   listen(get('discover-to-tasks'),'click',()=>navigate('tasks'));
   listen(get('discover-to-catalog'),'click',()=>navigate('catalog'));
@@ -607,7 +623,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected)refresh().catch(fail);});
   client.ready.then(()=>refresh()).catch(fail);
   navigate('tasks');update();
-  return {navigate,showCatalogPage,refresh,dispose() {
+  return {navigate,showCatalogPage,refresh,receiveDraft(sourceUtf8) {
+    if(disposed || catalogSurface || typeof importDraft !== 'function')throw {code:'E_HOST_NOT_FOUND',message:'Sidebar 编辑器不可用'};
+    importDraft(sourceUtf8);
+    navigate('develop');
+  },dispose() {
     if(disposed)return;disposed=true;
     unsubscribePage?.();unsubscribeRun?.();unsubscribeConn?.();
     for(const {node,event,fn} of listeners)node.removeEventListener(event,fn);

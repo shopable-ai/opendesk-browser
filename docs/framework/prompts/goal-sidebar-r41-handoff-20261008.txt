@@ -1,0 +1,91 @@
+# GOAL：OpenDesk Browser Sidebar R4.1 续接——完成最新候选真实用户验收与安全收敛
+
+工作区：/Users/shopme/Documents/workspace/opendesk-browser
+默认中文。先读取 AGENTS.md 和本提示词引用的交接资料，然后直接行动，不停在计划或审计。
+
+一、目标与授权
+
+继续完成已确定的 R4 Sidebar 用户闭环，不重新设计 Sidebar 或执行框架。采用“最短真实用户路径 → 失败定向修复 → 必要邻接回归 → 稳定候选验收”。
+本轮延续用户明确授权：可以直接在现有 main 工作区安全修改和整合；不创建新分支；默认不 commit、push、publish。不得覆盖其他 Agent 修改，不执行 reset --hard、git clean 或强推。旧的独立分支/PR main 流程与本授权冲突时，以本次明确授权为准，仅在专属 workstream 记录，不改写 public-owner.json 或历史 receipt。
+开始重新检查 git status、branch、log、worktree、fetch origin、本地/远端 main、其他 Agent 占用。交接时 main 与 origin/main 均为 540765e05efbbe705360014e48c2ea36822cdc4a；这不是下一轮可以跳过检查的理由。
+
+二、当前真实状态——请勿把不同候选的证据混成最终 PASS
+
+专属工作记录：docs/framework/workstreams/sidebar-r41-20261008-local.json
+完整原始证据根目录：docs/framework/evidence/sidebar-r41-20261008-local/
+新增交接索引：该目录内 handoff-20261008.json
+
+最新源码候选 v3：
+- 冻结生产目录：docs/framework/evidence/sidebar-r41-20261008-local/candidate-final-production-v3/
+- production packageHash：ff90a9b33c10d99f7fa2cb084528001b6ecd7898b68fb96c41a72775cca241df
+- development packageHash：d81c17f2b14bda3bfd6f35c85a1961dc57cbb3bbb82d349c4709849d2827fff6
+- 构建 receipt：builds-v3/build-production.json、build-development.json
+- 源码/未提交状态：source-state-v3.json、source-v3.patch
+- 47 项定向组件检查通过：components-v3.log；源码检查通过：check-v3.log；5 项相邻 RunHost 检查此前通过：runhost-neighbor.log。
+- v3 已构建并启动过受控 Chrome，但尚未完成真实 Side Panel 用户验收；final-native-v3/ 不能当作 NATIVE_VERIFIED。
+
+上一冻结生产候选 v2（packageHash 117431c3a9399bf3ebc35854c439f4aec277e1951cb45ba28bae306dbc5d6ba8）具有可信原生证据，集中在 final-native-v2/：
+- 真 SIDE_PANEL 三页签；未保存 async main 草稿执行真实表单/按钮并返回持久结果：draft-success.json。
+- 保存 A、运行未保存 B、运行期间保存 C，B 的结果仍绑定原源码：abc-success.json。
+- 切换目标标签后 Stop，原目标不漂移、无后续禁止操作、资源 released：stop-target-switch.json。
+- 准备阶段原生 Reload 改变文档后 E_DOCUMENT_STALE 明确拒绝：admission-rejected.json。
+- JS 文件在完整目录导入后交给同窗口现有 Sidebar 开发页签，不自动保存、执行或安装：js-handoff.json。
+- 正式示例源码真实运行：demo-draft.json；独立核对：candidate-verified.json；明确 Available：candidate-available.json；明确安装、Schema 参数运行：installed-run.json。
+- 真 Side Panel 关闭/重开：panel-closed.json、panel-reopened.json。
+- 整个浏览器退出后同配置目录、同扩展身份重启，保留安装/权限/历史并再次运行：restart-restored.json、restart-run.json、restart-parameter-run.json 以及 launcher 生命周期文件。
+- Chrome serviceworker-internals 原生 Stop 后，现有 RunHost 恢复运行：service-worker-stopped.png、worker-recovered.json。
+- 真 Sidebar 实测 360×767，无文档水平溢出；320/480 和低高度 CSS 检查尚未完成。拖动未改变尺寸，不宣称其他宽度的原生覆盖。
+- 三页签真实截图：my-tasks-run.png、discover-installed.png、develop-unsaved.png；目录安装截图：catalog-installed.png。
+
+v2 正式运行示例身份：
+- 草稿试跑 runId 98c8bc7b-1839-4532-a8ca-0275111cf63a，resultId 5ff50084-f93e-437e-be53-16f9a12f3a54。
+- Schema 正式运行 runId d99dd7c9-d292-4809-acf7-c34b8118f2e6，resultId 994a6676-b1ab-44db-8426-a0d88cbd26a6。
+- 同 profile 重启后新参数运行 runId 24d69622-df94-45f5-9788-afdfd44ff5de；结果身份见 restart-parameter-run.json。
+- 任务 sample.form-fill@1.0.0，sourceHash 1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63。
+- v2 扩展身份 aphbngflljoeejdkeinnookhdchppbfk；Chrome/138.0.7204.183，revision @e90faf484ddbc033fc9bf337621761d3dd5c5289。
+这些身份只属于 v2，不直接移作 v3 的最终验收。
+
+三、已经修复的真实缺陷——不要重新建设或重复审计
+
+1. src/ui/task-workbench.js：完整目录导入 JS 以前会进入运行按钮隐藏的开发视图；现通过严格消息交接给同窗口现有 Sidebar。目录安装后保持在目录并给出回到“我的任务”的指引。
+2. src/ui/script-editor.js：新增现有编辑器 importDraft；只导入未保存源码，保留 RunHost，忙碌/空源码/UTF-8 超限明确拒绝；没有第二套存储或运行器。
+3. src/ui/tool-shell.js：交接消息严格检查扩展 id、chrome-extension 协议和 host、tool 页面路径、同 window、非 incognito、真实扩展 tab sender；pagehide 清理 listener。不能用 URL.origin=null 作为扩展身份比较。
+4. src/ui/task-workbench.js：v2 原生发现独立目录安装后，已打开 Sidebar 列表仍为空，必须手动“更新任务”。v3 已补进入“我的任务/发现”时读取目录；数据未变时不重建参数表单，避免丢失填写值。新增回归通过，只读增量审查 APPROVE，但此修复尚需 v3 原生复验。
+5. 同文件两处空状态已改为顶部“任务目录 ↗”的独立页面流程。
+6. scripts/build.mjs：支持 OPENDESK_BUILD_EVIDENCE_DIR，让新构建记录进入独立目录，不覆盖旧 tracked receipt。
+7. examples/tasks/README.zh-CN.md、docs/architecture/sidebar-product-contract.zh-CN.md：改为独立目录导入/验证/安装与未保存草稿直接运行；保留旧提示词和证据，不重写历史。
+8. 已修正测试中的旧元素 ID、实际 CAS、卸载准入和同版本源码冲突覆盖；新增交接 sender 边界、草稿冻结及外部目录刷新回归。
+
+有意保留原有未跟踪文件 docs/framework/prompts/goal-sidebar-visible-verification-and-task-loop-20261008.txt，不覆盖它。其他本轮新文件为 tests/environment/sidebar-draft-import.test.mjs、tests/framework/sidebar-r41-observer.mjs 与专属 workstream/本提示词。
+
+四、下一步按阻断优先级直接执行
+
+1. 确认 v3 冻结目录、源码、receipt 与实际 main 差异仍一致。若无源码变化，复用 v3；若有变化，说明原因并另建候选/证据目录，禁止覆盖已测快照。
+2. 优先复验最新缺陷：完整目录导入/正式核对/Available/安装后，返回目标网页点击 Sidebar“我的任务”，无需手动刷新即可出现任务；“发现”也读到安装状态。数据不变时切换页签保留参数；切换页签不丢源码、不自动创建 Run。
+3. 在同一最终候选完成最短核心闭环：未保存正式 main 草稿真实输入/点击/结果；必要 A/B/C 冻结、Stop/目标隔离、准备阶段文档变化拒绝；正式示例 Candidate → 精确草稿原生运行 → 可信证据核对 → Verified → 明确 Available → 明确安装 → Schema 参数运行 → 持久结果 → 同 profile 完整重启再次运行。不得用 v2 的 PASS 静默替换 v3。
+4. 风险驱动补 UI/生命周期缺口：320/360/480 和低高度、长代码/结果、任务记录位置；真实 Side Panel 关闭/重开、Worker 恢复、timeout、撤权与未知效果不自动重放。将 CSS 视口模拟与真正 Chrome Side Panel 覆盖分别记账。只修实际缺陷，不重设计。
+5. 最后定向组件/源码/构建/包检查，输出能力表、原始日志、三页签截图、精确 Run/result/源码/版本/目标身份、最终 main HEAD/未提交差异、并行冲突与剩余缺口。
+
+五、测试资源和成本控制
+
+本轮自建 Chrome/fixture/demo HTTP 服务已关闭，无保留运行中的本轮测试 profile。native/、final-native-v2/、final-native-v3/ 的 launcher cleanup 为 PASS。历史未验收中间尝试 final-native/cleanup.json 仍为 FAIL（退出过程的 PID/PPID/executable 身份观察竞态）；该记录同时显示浏览器已退出、profileRemoved=true、residual=[]，必须保留其 FAIL，不重写为 PASS。重启证据已在 v2 中完整落盘，不能要求下一轮继续使用已清理的 profile。下一轮自行建一个专用 profile，整个最终任务链和完整重启期间复用它及同一扩展路径/身份。
+受控 CFT：tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app。
+先查 43111 端口与服务占用。示例包 siteOrigins 是 http://127.0.0.1:43111；空闲时运行 python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks。不得随意结束他人的服务。
+
+复用现有正式测试工具，不创建测试专用执行器绕过产品：
+- tests/framework/sidebar-native-session.mjs：start / observe / arm；SIDEBAR_EVIDENCE_DIR 指向新独立证据目录。
+- 同 profile 重启：启动时 SIDEBAR_SAME_PROFILE_RESTART=1，保持终端 stdin 可用（建议 tty）；向运行中 driver 输入 restart 换代，检查 lifecycle 的 profile inode、扩展身份与实际进程退出。
+- tests/framework/sidebar-r41-observer.mjs：只读 UI/页面效果和 isTrusted 输入观察。
+- tests/framework/sidebar-native-admission-barrier.mjs：诊断断点，不是执行器。原生 Run 后用原生 Reload 改文档，再 SIGUSR1 恢复自己的诊断进程。避免长观察停顿导致期限失效。
+- 原生所有点击/键盘/文件选择用 cua_repl。禁止 DOM 赋值、synthetic events、权限状态注入、伪造 native ack；CDP 只读/明确诊断不替代用户操作。
+- 原生 AX 索引失效时重新读取状态；必要时基于新截图用坐标。填写后确认值，再运行，不能假定剪贴板已经输入成功。
+- Mac 曾锁屏导致工具失败，后来已恢复；若再次锁定，明确记录 OS 前置阻断，不能通过旁路伪造原生成功。
+
+组件入口：node --test tests/environment/task-workbench.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/task-package-flow.test.mjs
+源码检查：npm run check；构建使用独立 OPENDESK_BUILD_EVIDENCE_DIR。
+不要默认 npm test 或重复大回归。环境预检约3分钟，定向组件3–8分钟，单组原生10–20分钟用于暴露卡点。失败先保存证据、判层、修代码或观察方法；没有明确变化不重试。
+保留 603+19、独立 B05、F3、1000 mixed、10 reconnect、六项 baseline、ZIP 一致性等历史合同，本轮默认不执行、不修改分母、不宣称正式关闭。
+
+R4 产品边界继续有效：我的任务包含安装卡片/Schema/运行停止/卡片与详情下最近记录/启停卸载；发现仅搜索和筛选 Installed Task，点击只选中；顶部任务目录是独立完整页面；开发支持未保存 async function main()、原 Runtime 注入 page/params、源码参数目标冻结、保存运行独立、Controller 与 USER_SCRIPT 预览区分。共用原 RunHost/所有权，不增加运行器、数据库、Authority、云市场、采集业务、语音或任务树产品。
+
+先输出简短功能状态与最短执行计划，随即完成真实用户验证及定向修复，不等待确认。最终状态使用 IMPLEMENTED / COMPONENT_VERIFIED / NATIVE_VERIFIED / BLOCKED / NOT_TESTED，源码实施与证据分别表达，不用测试数量推导产品完成百分比。

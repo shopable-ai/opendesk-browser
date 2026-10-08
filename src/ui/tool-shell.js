@@ -7,6 +7,19 @@ import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
 
+// A source-only UI handoff. It never grants permissions, saves or starts a run.
+export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,receiveDraft}) {
+  if(message?.protocol!=='opendesk.sidebar.draft-import.v1' || !sidebarSurface ||
+    sender?.id!==api.runtime.id || !sender.tab || sender.tab.incognito ||
+    !Number.isSafeInteger(windowId) || sender.tab.windowId!==windowId)return;
+  try {
+    const sourceUrl=new URL(sender.url),toolUrl=new URL(api.runtime.getURL('ui/tool.html'));
+    if(sourceUrl.protocol!==toolUrl.protocol || sourceUrl.host!==toolUrl.host || sourceUrl.pathname!==toolUrl.pathname)return;
+    receiveDraft(message.sourceUtf8);
+    return {ok:true};
+  }catch(error){return {ok:false,error:{code:error.code || 'E_DRAFT_IMPORT',message:error.message || String(error)}};}
+}
+
 export function initToolShell() {
   const hostUrl = new URL(location.href);
   const hostInstanceId = hostUrl.searchParams.get('hostInstanceId');
@@ -20,13 +33,23 @@ export function initToolShell() {
   const foundationClient = createHostClient(chrome, {hostInstanceId});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
-const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget});
+const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
+  importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8)});
+let sidebarSurface=false, draftImportAttached=false;
+const draftImportListener=(message,sender,sendResponse)=>{
+  const response=receiveSidebarDraft({message,sender,windowId:currentPageTarget.snapshot.windowId,sidebarSurface,
+    api:chrome,receiveDraft:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8)});
+  if(response)sendResponse(response);
+  return false;
+};
+chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=true;
 /* The same authorized tool.html can be opened in a full Chrome tab.
  * A tab is the complete local catalog; the Side Panel stays lightweight.
  * No new document allowlist, authority, or storage instance is introduced.
  */
 Promise.resolve(chrome.tabs.getCurrent?.()).then(tab => {
   if(tab?.id) taskWorkbench.showCatalogPage();
+  else sidebarSurface=true;
 }).catch(error => console.warn('Task catalog surface unavailable',error));
 const listeners = [];
 let browserListenersAttached = false;
@@ -35,7 +58,7 @@ const listen = (element, event, listener, options) => {
 };
 Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.freeze({
   snapshot: () => snapshotToolResources(scriptEditor.resourceSnapshot(),
-    {subscriptions: listeners.length + 2 * Number(browserListenersAttached) + currentPageTarget.resourceSnapshot().subscriptions})
+    {subscriptions: listeners.length + 2 * Number(browserListenersAttached) + Number(draftImportAttached) + currentPageTarget.resourceSnapshot().subscriptions})
 })});
 const scrapingPanel = document.querySelector('#scraping-panel');
 scrapingPanel.dataset.moduleStatus = 'MODULE_NOT_INSTALLED';
@@ -179,6 +202,7 @@ chrome.tabs.onRemoved.addListener(sdkTabRemoved);
 browserListenersAttached = true;
 refreshSdkTabs().catch(sdkError);
 listen(window, 'pagehide', () => {
+  chrome.runtime.onMessage.removeListener(draftImportListener);draftImportAttached=false;sidebarSurface=false;
   chrome.webNavigation.onCommitted.removeListener(sdkNavigation); chrome.tabs.onRemoved.removeListener(sdkTabRemoved);
   chrome.permissions.onRemoved.removeListener(sdkPermissionsRemoved); sdkApproval.dispose();
   browserListenersAttached = false;

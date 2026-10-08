@@ -85,6 +85,33 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}) {
     dispose(){editor.dispose();target.dispose();}};
 }
 
+test('importing a JS draft leaves saved versions and running source independent',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  await f.click('script-save');
+  const source='async function main() { return "imported B"; }';
+  f.editor.importDraft(source);
+  assert.match(f.find('script-id').value,/^import-/);
+  assert.equal(f.find('script-revision').value,'');
+  assert.equal(f.find('script-source').value,source);
+  assert.equal(f.persisted.scripts.length,1);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  await f.click('script-run');
+  f.editor.importDraft('async function main() { return "imported C"; }');
+  assert.equal(f.starts.length,1);
+  assert.equal(f.starts[0].source.sourceUtf8,source);
+  assert.equal(f.persisted.scripts.length,1);
+  await f.finish('imported B');
+});
+
+test('draft import rejects empty/oversized sources and active saves without overwriting the editor',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());const before=f.find('script-source').value;
+  for(const value of ['',null,'中'.repeat(33334)])assert.throws(()=>f.editor.importDraft(value),error=>error.code==='E_LIMIT');
+  assert.equal(f.find('script-source').value,before);
+  const gate=deferred();f.setSaveGate(gate);await f.click('script-save');
+  assert.throws(()=>f.editor.importDraft('async function main() {}'),error=>error.code==='E_BUSY');
+  assert.equal(f.find('script-source').value,before);gate.resolve();await tick();
+});
+
 test('Save persists revision/hash without requesting permission, creating a Run, or executing code',async t=>{
   const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');
   assert.equal(f.persisted.scripts[0].revision,1);assert.match(f.persisted.scripts[0].contentHash,/^[a-f0-9]{64}$/);
