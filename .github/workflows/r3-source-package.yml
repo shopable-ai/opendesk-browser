@@ -1,0 +1,32 @@
+name: R3 page-script package and build
+on:
+  push:
+    branches:
+      - agent/r3-page-script-dependencies-20261008-1533
+      - main
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  r3-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Page script package and vendored dependency contract
+        run: node --test tests/environment/page-program-package.test.mjs
+      - name: Source and vendor integrity
+        run: npm run check
+      - name: Production build and verification
+        run: npm run build
+      - name: Development build and verification
+        run: npm run build:dev
+      - name: Both packages retain exact manifest and vendored hashes
+        run: npm run verify
