@@ -33,8 +33,8 @@ export default defineConfig({
           entry.outputDir = resolve(wxt.config.outDir, dirname(target));
         }
       }
-      if (names.size !== 11 || !names.has('background') || Object.keys(FIXED_OUTPUTS).some(name => !names.has(name)))
-        throw new Error('WXT must resolve exactly the 11 approved entries');
+      if (names.size !== 12 || !names.has('background') || Object.keys(FIXED_OUTPUTS).some(name => !names.has(name)))
+        throw new Error('WXT must resolve exactly the 12 approved entries');
     },
     'prepare:publicPaths'(_wxt, paths) {
       paths.push(...Object.values(FIXED_OUTPUTS));
