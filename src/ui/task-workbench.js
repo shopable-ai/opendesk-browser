@@ -628,7 +628,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     try{await fn();}catch(error){fail(error);}finally{working=false;update();}
   };
   const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']];
-  for(const [index,[tab,id]] of tabOrder){
+  for(const [index,[tab,id]] of tabOrder.entries()){
     listen(get(id),'click',()=>{
       navigate(tab);
       if(tab==='tasks'||tab==='discover')refresh(undefined,{skipUnchanged:true}).catch(fail);
