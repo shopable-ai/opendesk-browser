@@ -70,7 +70,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     };
     frameRoot.append(frame);render();notice('正在打开「'+tool.title+'」…');
   }
-  const accepted=tool=>tool.capabilities.includes('storage.local');
   async function dispatch(operation,payload,tool,source,token) {
     if(!tool.capabilities.includes(operation.startsWith('storage.')?'storage.local':
        operation==='currentPage.info'?'currentPage.read':
@@ -138,15 +137,35 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(result=>reply(true,result),error=>reply(false,null,error));
   }
+  function admittedList(rows) {
+    if(!Array.isArray(rows))return [];
+    const seen=new Set();
+    return rows.slice(0,MAX_INSTALLED_TOOLS).flatMap(row=>{
+      try{
+        const accepted=validateSidebarToolPackage(row);
+        if(seen.has(accepted.id))return [];
+        seen.add(accepted.id);return [accepted];
+      }catch{return [];}
+    });
+  }
+  // Other Side Panels may update/uninstall a tool. Revoke the old iframe immediately.
+  const onToolStorageChanged=(changes,area)=>{
+    if(disposed||area!=='local'||!Object.hasOwn(changes||{},SIDEBAR_TOOL_STORE))return;
+    const fresh=admittedList(changes[SIDEBAR_TOOL_STORE]?.newValue);
+    const selected=active&&fresh.find(row=>row.id===active.id);
+    const invalidated=active&&(!selected||JSON.stringify(selected)!==JSON.stringify(active));
+    if(invalidated)closeTool();
+    installed=fresh;render();
+    if(invalidated)notice('当前工具已在其他窗口更新或卸载，旧界面已关闭。');
+  };
+  if(api.storage.onChanged?.addListener){
+    api.storage.onChanged.addListener(onToolStorageChanged);
+    listeners.push(()=>api.storage.onChanged.removeListener(onToolStorageChanged));
+  }
   async function loadInstalled() {
     const result=await api.storage.local.get(SIDEBAR_TOOL_STORE);
     if(disposed)return;
-    const source=result[SIDEBAR_TOOL_STORE];
-    if(Array.isArray(source)){
-      installed=source.slice(0,MAX_INSTALLED_TOOLS).flatMap(row=>{
-        try{return [validateSidebarToolPackage(row)];}catch{return [];}
-      });
-    }
+    installed=admittedList(result[SIDEBAR_TOOL_STORE]);
     render();
   }
   async function chooseFile() {

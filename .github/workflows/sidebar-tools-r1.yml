@@ -21,6 +21,7 @@ on:
       - 'package.json'
       - 'examples/sidebar-tools/**'
       - 'tests/environment/sidebar-tools.test.mjs'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
       - '.github/workflows/sidebar-tools-r1.yml'
   workflow_dispatch:
 permissions:
@@ -38,7 +39,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate independent tool, existing Sidebar and project contracts
         run: |
-          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-product-contract.test.mjs
+          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-product-contract.test.mjs
           npm run check
       - name: Build installable offline notes tool JSON
         run: |

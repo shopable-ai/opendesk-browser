@@ -4,6 +4,9 @@
 
 2026-10-09 用户范围修正：旧 jQuery 版本及插件适配属于低优先级边缘问题，由程序优先处理；不扩展当前框架实施或原生验收。具体触发条件记在[旧 jQuery 兼容待办](../framework/backlog/legacy-jquery-compatibility.md)。
 
+
+> **2026-10-09 新增：Sidebar 自定义工具 R1** 已增加独立的工具选项卡、HTML/CSS/JS 工具包与隔离展示文档，使用说明、能力边界和 CLI 见 [侧栏自定义工具 R1](sidebar-custom-tools-r1.zh-CN.md)。它与下文多文件 Page/Controller Program 和 Task v1 是独立但共用宿主的功能：并不代表 .vue、JSX 或 Tailwind 源码可以在浏览器内直接编译，也没有开放自定义任务直接启动或任意 Chrome API 的工具桥。
+
 ## 1. 一句话说明
 
 **复杂程序优先在本地用 ESM 多文件项目开发；简单 JavaScript 仍在原 Sidebar 编辑器中直接输入并运行。** 两者最终使用同一套既有运行与权限底座。不要把两种源码形态称为相互竞争的两个产品版本。

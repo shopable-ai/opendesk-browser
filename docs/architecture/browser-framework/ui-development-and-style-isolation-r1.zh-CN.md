@@ -4,6 +4,9 @@
 > 本文状态：**R1 原生 Page UI 源码与 CSS/JSON/图片构建已实现，真实 Chrome 验收仍为 NOT_TESTED**。具体 API 与运行入口见 [Page UI API](../../framework/ui-api.zh-CN.md) 和 [page-ui-basic](../../../examples/programs/page-ui-basic/README.md)。本文不把安装依赖、放置示例或保存设计认定为产品支持。
 > 适用范围：插件自身 UI、现有任务参数表单、用户网页内 UI、多文件 UI 工程和未来侧栏内自定义任务界面。沿用现有 Sidebar、RunHost、Authority、Task/Program 和两类执行环境。
 
+
+> **实施增量 2026-10-09：** 详见 [Sidebar 自定义工具 R1](../../product/sidebar-custom-tools-r1.zh-CN.md)。已新增独立 opendesk.sidebar-tool.v1 JSON（HTML/CSS/单个已编译经典 JS）、受限 sandbox UI、存储与网页标题/URL 的窄桥、工具选项卡及本地图片打包器。它不修改现有 Task v1 运行包、Page 资源链或 React/Vue/JSX/Tailwind 构建预设。因此本页以下对通用 Program UI 资产与 React/Vue/Tailwind 正式闭环尚未实施的描述仍成立；不要混淆两个版本的能力。
+
 ## 1. 采用的设计
 
 **默认允许不使用框架；需要时由项目选择 React 或 Vue；基础 CSS 按界面容器启用；Tailwind 在构建时生成项目需要的 CSS。**
