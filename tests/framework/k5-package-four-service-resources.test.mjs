@@ -7,6 +7,7 @@ import {dirname, join} from 'node:path';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_ALIASES, SDK_RESOURCE_MANIFEST} from '../../src/framework/sdk/resource-contract.js';
 import {createSdkResourceManifest, verifySdkResourceManifest, verifyPackage, PACKAGE_ENTRIES,
   BUILD_POLICY, CONTROL_WORKER, SANDBOX_HTML, FIXED_ASSETS, SDK_MAIN_WAR} from '../../scripts/verify-package.mjs';
+import {PINNED_USER_SCRIPT_LIBRARIES} from '../../scripts/build-contract.mjs';
 
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const fixtureBytes = [Buffer.from('MAIN: 组合资源🙂\r\n'), Buffer.from('ISOLATED: relay\n')];
@@ -33,6 +34,13 @@ async function withPackage(mode, run) {
     for (const path of ['ui/tool.html', 'ui/target-bootstrap.html', 'ui/tool-shell.css', SANDBOX_HTML])
       await put(root, path, await readFile(new URL(`../../src/${path}`, import.meta.url)));
     await put(root, 'licenses/todo-user-vue-MIT.txt', await readFile(new URL('../../docs/contracts/licenses/todo-user-vue-MIT.txt', import.meta.url)));
+    // Reproduce the real R3 build's exact vetted vendor + licence assets.
+    // Do not bypass package verification by stubbing or weakening required assets.
+    for (const library of Object.values(PINNED_USER_SCRIPT_LIBRARIES)) {
+      assert.equal(library.id, 'jquery');
+      await put(root, library.output, await readFile(new URL('../../src/vendor/jquery-3.7.1.min.js', import.meta.url)));
+      await put(root, library.licenseOutput, await readFile(new URL('../../src/vendor/jquery-3.7.1.LICENSE.txt', import.meta.url)));
+    }
     const build = await readFile(new URL('../../scripts/build.mjs', import.meta.url), 'utf8');
     const icon = /const notificationIcon = '([^']+)';/.exec(build)?.[1];
     assert.ok(icon, 'The build must retain its fixed notification icon');
@@ -171,8 +179,14 @@ for (const mode of ['production', 'development']) {
   test(`FOUR_SERVICE_RESOURCE ${mode} synthetic package requires and fingerprints the one new JSON asset`, async () => {
     await withPackage(mode, async root => {
       const report = await verifyPackage(root);
-      assert.equal(report.classicEntries.length, 11);
-      assert.equal(report.files.length, mode === 'development' ? 30 : 19);
+      const vendors = Object.values(PINNED_USER_SCRIPT_LIBRARIES);
+      assert.equal(report.classicEntries.length, Object.keys(PACKAGE_ENTRIES).length + vendors.length);
+      assert.deepEqual(report.classicEntries.filter(path => path.startsWith('vendor/')), vendors.map(row => row.output));
+      assert.equal(report.files.length, (mode === 'development' ? 30 : 19) + 2 * vendors.length);
+      for (const vendor of vendors) {
+        assert.deepEqual(report.files.find(file => file.path === vendor.output),
+          {path: vendor.output, bytes: vendor.bytes, sha256: vendor.sha256});
+      }
       assert.ok(report.assetsChecked.includes(SDK_RESOURCE_MANIFEST));
       assert.deepEqual(report.sdkResources, await createSdkResourceManifest(root));
       const manifestFile = report.files.find(file => file.path === SDK_RESOURCE_MANIFEST);
