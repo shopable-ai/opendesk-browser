@@ -63,6 +63,12 @@ Controller 侧现代浏览器自动化默认参考 [Page API 文档](../../frame
 5. **显式安装**：只有真实 Verification 和 Authority 确认 Available 后，用户才在独立任务目录选择安装。Page 将来使用 chrome.userScripts.register/unregister/update 以及重启、撤权、扩展更新对账。
 6. **发布给他人**：先支持离线本地包，随后可选 GitHub Release / 目录源；在线插件市场不是当前默认依赖。Git 提交、构建、包生成、安装、在线发布是五个不同动作。不能拿 commit 或 JSON 文件冒充“已发布”。
 
+### R3.1 build / draft / diagnostics contract
+
+`scripts/build-program-project.mjs` defaults to production mode. Production output preserves frozen `program.js` bytes and excludes source maps. `--mode development` keeps the single JavaScript runtime output and may add only one local diagnostic file, `program.js.map`; that map is for raw generated positions in the final `program.js`, including UserScript header offsets. Browser runtime stacks must not be rewritten as source positions unless a separate runtime contract explicitly preserves and maps the raw generated stack.
+
+Every build also writes `program.opendesk-draft.json` with format `opendesk.program-draft.v1`. The draft contains exact `sourceUtf8`, `{mode, sourceHash, byteLength}`, `{id, version, entry}`, `runtimeKind`, and authoring files from the validated local ESM graph only. It does not include `node_modules` source. UI import must validate the runtime hash and byte length, each authoring hash, and entry presence, with bounds of `source<=100000` bytes, authoring total `<=256000` bytes, `files<=32`, and envelope `<=512000` bytes. The Sidebar source viewer is a snapshot viewer; local rebuild is required for new runtime bytes. Controller Task v1 packages remain unchanged and separate from this draft envelope.
+
 ## 5. 为什么需要 Skill + 机器工具
 
 Skill 指导 AI 按相同顺序读合同、组织源码、运行检查与发布；**机器校验器**拦截不可接受的格式和路径；**Trusted Broker/Authority** 判定实际网页权限和正式安装。三个环节缺一不可。只写提示词无法证明代码可运行，也不能代替真实浏览器回执。
