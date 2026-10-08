@@ -1,0 +1,82 @@
+{
+  "workstreamId": "native-agent-bridge-r1-20261008",
+  "branch": "agent/native-agent-bridge-r1-20261008",
+  "baseMain": "66f11874fa27f6de438155124a3f772129386f8b",
+  "ownership": {
+    "owned": [
+      "src/native-agent/**",
+      "native-agent/**",
+      "src/entrypoints/settings.js",
+      "tests/environment/native-agent-*.test.mjs",
+      "docs/framework/workstreams/native-agent-bridge-r1-20261008.json",
+      "docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md",
+      "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt",
+      ".github/workflows/native-agent-r1.yml"
+    ],
+    "sharedThinChanges": [
+      "src/sw.js",
+      "src/ui/tool-shell.js",
+      "src/platform/host/client.js",
+      "manifest.json",
+      "scripts/build.mjs",
+      "scripts/build-contract.mjs",
+      "scripts/verify-package.mjs",
+      "wxt.config.mjs"
+    ],
+    "untouched": [
+      "src/run-host.js",
+      "src/platform/host/authority.js",
+      "src/platform/host/controller-methods.js",
+      "src/ui/script-editor.js",
+      "src/ui/task-workbench.js",
+      "src/platform/tasks",
+      "src/scripting/sandbox",
+      "docs/framework/public-owner.json"
+    ]
+  },
+  "concurrentPRs": [
+    {
+      "number": 7,
+      "role": "site permission UI (Draft); review shared Chrome permission UX/manifest"
+    },
+    {
+      "number": 9,
+      "role": "Sidebar R5 UI (Open); rebase host lifecycle edits and test current shell"
+    }
+  ],
+  "sourceAndComponentEvidence": {
+    "state": "GITHUB_SOURCE_COMMITTED",
+    "testCommands": [
+      "npm ci --ignore-scripts --no-audit --no-fund",
+      "node --test tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs",
+      "npm run check",
+      "npm run build",
+      "npm run build:dev",
+      "npm run verify"
+    ],
+    "localRuntime": "NOT_TESTED",
+    "githubActions": "PENDING",
+    "build": "NOT_TESTED"
+  },
+  "nativeEvidence": {
+    "chromeExtension": "NOT_TESTED",
+    "chromeNativeMessaging": "NOT_TESTED",
+    "macOSSetup": "NOT_TESTED",
+    "realCodexCLI": "NOT_TESTED",
+    "runHostFullFlow": "NOT_TESTED",
+    "chromeRestart": "NOT_TESTED",
+    "finalAcceptance": "NO"
+  },
+  "blocker": {
+    "code": "NATIVE_HOST_FILE_BLOCKED",
+    "path": "native-agent/native-host.mjs",
+    "detail": "Two GitHub connector write attempts for the outside-browser Native Host were blocked by tool safety review. Do not treat setup or CLI as functional until this component is implemented and audited in local Codex.",
+    "workContinuesVia": "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt"
+  },
+  "architecture": "Native is a developer-only opt-in entry; SW handles durable idempotence and a live authenticated Host port, existing RunHost starts the one Controller Worker and durable result",
+  "oldDemoUnmodified": true,
+  "nativeHostNotRequiredForAvailableTasks": true,
+  "rollback": "Close or revert only dedicated PR, retain historical run receipts and independent modules",
+  "pr": "PENDING",
+  "updatedAt": "2026-10-08"
+}
