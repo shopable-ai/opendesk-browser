@@ -1,0 +1,38 @@
+{
+  "workstreamId": "r6-browser-agent-ecosystem-20261008-7d3",
+  "repository": "shopable-ai/opendesk-browser",
+  "branch": "agent/r6-browser-agent-ecosystem-20261008-7d3",
+  "baseMainSha": "28389f5edc6210a3774698600c518be37867ad7b",
+  "task": "Only market research, source audit and proposed architecture decision; no production runtime edits",
+  "path": "docs/architecture/browser-framework/ai-browser-agent-ecosystem-r6-20261008.zh-CN.md",
+  "scope": [
+    "docs/architecture/browser-framework/ai-browser-agent-ecosystem-r6-20261008.zh-CN.md",
+    "docs/framework/workstreams/r6-browser-agent-ecosystem-20261008-7d3.json"
+  ],
+  "tests": {
+    "sourceAudit": "Remote GitHub files read + vendor API docs; not an execution test",
+    "node": "NOT_TESTED",
+    "build": "NOT_TESTED",
+    "nativeChrome": "NOT_TESTED",
+    "userFlow": "NOT_TESTED",
+    "finalFramework": "NO"
+  },
+  "localCodexWorkspace": "NOT_ACCESSIBLE",
+  "runtimeModified": false,
+  "proposedOnly": true,
+  "status": "DRAFT_PR_PENDING",
+  "risk": "Remote main may differ from local Mac/Codex working tree; validate docs with latest local before integration.",
+  "researchCriteria": [
+    "US/CN models",
+    "commercial agent",
+    "existing browser session",
+    "Coding Agent CLI",
+    "open source",
+    "cloud",
+    "AI RPA",
+    "WebMCP",
+    "repeatable JS tasks"
+  ],
+  "acceptance": "Research proposal only; implementation candidate requires independent native Chrome evidence",
+  "updatedAt": "2026-10-08"
+}
