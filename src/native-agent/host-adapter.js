@@ -61,7 +61,11 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     }
     if (method === 'run.get') {
       if (typeof params.runId !== 'string' || !params.runId) throw new AgentBridgeError('E_SCHEMA');
-      return host.controller.snapshotControllerRun({runId:params.runId});
+      const snapshot=await host.controller.snapshotControllerRun({runId:params.runId});
+      // Controller projection can include every historical run in this namespace.
+      // External callers may only observe their specifically authorized run.
+      return {run:snapshot.run,results:snapshot.results,downloads:snapshot.downloads,
+        slotAvailable:snapshot.slotAvailable};
     }
     if (method === 'run.stop') {
       if (typeof params.runId !== 'string' || !params.runId) throw new AgentBridgeError('E_SCHEMA');
