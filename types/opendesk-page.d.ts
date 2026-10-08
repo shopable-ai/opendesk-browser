@@ -52,7 +52,7 @@ export interface ObservedElement {
   role: OpenDeskRole | null;
   name: string;
   text: string;
-  state: {visible: boolean; disabled: boolean; readOnly: boolean; expanded?: string; checked?: string};
+  state: {visible: boolean; disabled: boolean; readOnly: boolean; expanded?: string; checked?: string; selected?: boolean};
   scope: {tag: string; id: string | null} | null;
   /** Null when a unique matching locator could not be verified. */
   locator: LocatorDescriptor | null;
