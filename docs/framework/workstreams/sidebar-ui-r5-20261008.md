@@ -22,7 +22,7 @@ PR：`https://github.com/shopable-ai/opendesk-browser/pull/9`
 | --- | --- | --- |
 | 现有浏览器侧栏 Node 定向测试 | 第一次 34/38 通过，4 项 R4 旧断言已按新行为修复；第二次 38/38 通过 | COMPONENT_TESTED |
 | 源码/生产/开发构建与双包校验 | Actions `37774223217` SUCCESS | BUILD_VERIFIED |
-| 最新额外结果/预览断言 | 以最终 PR Head Actions 结果为准，不沿用旧 SHA 的成功结论 | PENDING_FINAL_CI |
+| 最新额外结果/预览断言 | Actions `37775004200` SUCCESS；39/39 定向测试通过（0 失败） | COMPONENT_TESTED |
 | R3/R4/R5 HTML 语义 | 原型属于 UI_SIMULATION；不能当真实扩展证据 | PROTOTYPE |
 | 300/360/420/520px 原生侧栏、缩放、键盘和真实权限/Stop | 尚未取得真实截图、浏览器回执；不得按 PASS 处理 | NATIVE_NOT_TESTED |
 | PR #7 一次性授权兼容 | 与 R5 共享 `src/ui/tool.html` 和 `src/ui/tool-shell.css`；未来必须做差异整合 | INTEGRATION_PENDING |
@@ -31,6 +31,8 @@ PR：`https://github.com/shopable-ai/opendesk-browser/pull/9`
 CI 记录：
 - UI 定向测试：`https://github.com/shopable-ai/opendesk-browser/actions/runs/37774223221`（38/38）
 - R3 source/production/dev package：`https://github.com/shopable-ai/opendesk-browser/actions/runs/37774223217`（success）
+- R5 追加源码/预览回归后 UI 测试：`https://github.com/shopable-ai/opendesk-browser/actions/runs/37775004200`（39/39）
+- R5 最新生产/开发构建：`https://github.com/shopable-ai/opendesk-browser/actions/runs/37775004197`（success）
 
 ## R4 与 R5 名义布局高度（来源：CSS 规则，**非截图测量**）
 
