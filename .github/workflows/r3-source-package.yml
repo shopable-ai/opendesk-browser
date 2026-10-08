@@ -61,3 +61,16 @@ jobs:
                       assert compressed.read(name) == content, f'{mode}/{name}'
               print(f'ZIP_EXACT_DIST_BYTES=PASS mode={mode} files={len(expected)} sha256={receipt["zipSha256"]}')
           PY
+      - name: Archive verified ZIPs and immutable build/pack receipts (not a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: opendesk-wxt-zips-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            artifacts/opendesk-browser-production.zip
+            artifacts/opendesk-browser-development.zip
+            docs/framework/evidence/wxt/packages/pack-production.json
+            docs/framework/evidence/wxt/packages/pack-development.json
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json
