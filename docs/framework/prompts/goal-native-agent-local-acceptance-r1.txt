@@ -30,7 +30,7 @@ git worktree add ../opendesk-browser-native-r1 origin/agent/native-agent-bridge-
 - native-agent 三个 environment tests
 - docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md
 
-**重大阻断：native-agent/native-host.mjs 尚未创建。此前网页版尝试两次写入均被工具安全拦截，因此不要说 Host / CLI / 原生通讯已经实现或通过。**
+**最新进度：native-agent/native-host.mjs 已提交 PR #11，先前的源码写入限制已解除。** 接管时先读取最新 Native 分支，审计新增 Host 和测试；不得重复新建 Native Host。仍缺本机 macOS/Chrome/Codex 真实验收，且 CI 构建结果需按最新候选再核实。
 
 先审查已提交代码（不是盲信），尤其检查：
 - nativeMessaging 的可选权限、Chrome Options 中真实用户 click；
@@ -44,7 +44,7 @@ git worktree add ../opendesk-browser-native-r1 origin/agent/native-agent-bridge-
 
 ## 2. 第一优先：补齐安全 Native Host，构成可运行闭环
 
-在 native-agent/native-host.mjs 补齐 macOS Node Native Messaging 进程：
+审计、修复并在真实 macOS 上验证现有 native-agent/native-host.mjs（已经在仓库中，不要重建另一个进程）：
 - 仅通过 Chrome 的原生 manifest \`allowed_origins\` 指定 extension ID 唤起；拒绝错误 origin/扩展 ID，拒绝非预期平台；
 - 对 stdio 使用四字节 little-endian UTF-8 字节长度 framing、60KiB 上限、严格 JSON 响应和 stdout 纯协议；stderr 诊断不含密钥/脚本；
 - 进程**同时**作为单一 Unix Socket IPC broker，不再二次启动旧 Demo 的 broker.mjs；socket 要在每次 Chrome 启动时显式创建，退出时只删除自己确实拥有的 socket inode；
