@@ -223,6 +223,34 @@ test('precise document replacement fences existing Locator',async()=>{
   } finally {f.dispose();}
 });
 
+test('native input labels, explicit roles, aria-label and aria-labelledby share semantic rules',async()=>{
+  const f=fixture();
+  try {
+    const direct=f.dom.body.append(new Element('div',{role:'button','aria-label':'启动任务'}));
+    const label=f.dom.body.append(new Element('span',{id:'submit-title'},'确认运行'));
+    const labelled=f.dom.body.append(new Element('div',{role:'button','aria-labelledby':'submit-title'}));
+    assert.equal(semanticRole(direct),'button');
+    assert.equal(accessibleName(direct,f.dom.doc),'启动任务');
+    assert.equal(accessibleName(labelled,f.dom.doc),'确认运行');
+    assert.equal(await f.context.page.getByRole('button',{name:'启动任务',exact:true}).count(),1);
+    assert.equal(await f.context.page.getByRole('button',{name:'确认运行',exact:true}).count(),1);
+    const observation=await f.context.page.observe({maxNodes:50,maxDepth:5,maxChars:5000});
+    const row=observation.nodes.find(x=>x.name==='确认运行');
+    assert.ok(row?.locator,'aria-labelledby must produce a verified locator');
+    assert.equal(locate(f.dom.doc,row.locator)[0],labelled);
+    assert.equal(await f.context.page.getByLabel('搜索关键词',{exact:true}).getAttribute('id'),'keyword');
+  }finally{f.dispose();}
+});
+test('disabled click never commits and does not submit during timeout',async()=>{
+  const f=fixture();
+  try {
+    f.dom.button.disabled=true;
+    await assert.rejects(f.context.page.getByRole('button',{name:'搜索',exact:true}).click({timeout:100}),{
+      code:'E_TIMEOUT'});
+    assert.equal(f.commits,0);assert.equal(f.dom.submits,0);
+    assert.ok(f.receipts.some(row=>row.stage==='packaged.finalFailure'));
+  }finally{f.dispose();}
+});
 test('lost commit callback retains one page effect and an uncertainty receipt; never replays click',async()=>{
   const f=fixture({dropCommit:true,deadlineMs:120});
   try {
