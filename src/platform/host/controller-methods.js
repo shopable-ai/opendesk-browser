@@ -497,24 +497,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const recordReceipt = async receipt => tx('readwrite', async transaction => {
         const operation = await transaction.get('commandJournal', key);
         invariant(operation?.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
-        const rows = operation.nativeReceipts ||= [], copy = structuredClone(receipt);
-        const locator = envelope.operation.kind === 'packaged' &&
-          ['locatorAction','locatorWait'].includes(envelope.operation.method);
-        if (locator && ['webNavigation.getAllFrames','tabs.sendMessage'].includes(receipt.stage)) {
-          // Keep the last native poll evidence and its total count, rather
-          // than growing the durable journal for the full 120-second wait.
-          // Explicit commitIntent/commitNoEffect records are never sampled.
-          const old = rows.findIndex(row => row.stage === receipt.stage && row.sampled === true);
-          if (old >= 0) rows.splice(old, 1);
-          rows.push({...copy, sampled:true});
-          operation.locatorNativePollCount = (operation.locatorNativePollCount || 0) + 1;
-        } else if (locator && receipt.stage === 'locator.commitNoEffect') {
-          // Every earlier commit intent was explicitly cleared by a
-          // no-effect receipt. Keep the newest checkpoint and a count.
+        // An explicitly rejected Locator commit closes all earlier intents.
+        if (receipt.stage === 'locator.commitNoEffect') {
           operation.locatorNoEffectCount = (operation.locatorNoEffectCount || 0) + 1;
-          operation.nativeReceipts = rows.filter(row => !['locator.commitIntent','locator.commitNoEffect'].includes(row.stage));
-          operation.nativeReceipts.push(copy);
-        } else rows.push(copy);
+          operation.nativeReceipts = (operation.nativeReceipts || []).filter(row =>
+            row.stage !== 'locator.commitIntent' && row.stage !== 'locator.commitNoEffect');
+        }
+        (operation.nativeReceipts ||= []).push(structuredClone(receipt));
         await transaction.put('commandJournal', operation, key);
       }, ['commandJournal']);
       const recordServiceEffect = async value => {
