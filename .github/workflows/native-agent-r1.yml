@@ -44,3 +44,13 @@ jobs:
         run: npm run build:dev
       - name: Verify actual production/development output
         run: npm run verify
+  macos-native-host-ipc:
+    runs-on: macos-15
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Isolated real macOS Host process and CLI IPC (simulated Chrome framing; NOT Chrome E2E)
+        run: node --test tests/environment/native-agent-macos-install.test.mjs
