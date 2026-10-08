@@ -524,7 +524,7 @@ test('catalog project JSON import validates snapshots and hands frozen bytes to 
   const draft=await programDraft(),text=JSON.stringify(draft,null,2)+'\n';
   f.get('task-package-file').value='program.opendesk-draft.json';
   f.get('task-package-file').files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
-  f.get('task-package-file').fire('change');await tick();await tick();
+  await f.get('task-package-file').fire('change');
   assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',draft}]);
   assert.equal(f.get('workbench-develop').hidden,true);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
@@ -538,7 +538,7 @@ test('catalog rejects a changed project snapshot before handoff and permits rese
   const text=JSON.stringify(draft);
   f.get('task-package-file').value='program.opendesk-draft.json';
   f.get('task-package-file').files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
-  f.get('task-package-file').fire('change');await tick();await tick();
+  await f.get('task-package-file').fire('change');
   assert.equal(f.draftMessages.length,0);assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   assert.match(f.get('task-catalog-status').textContent,/E_PROGRAM_HASH/);
   assert.equal(f.get('task-package-file').value,'');

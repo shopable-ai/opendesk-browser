@@ -35,7 +35,7 @@
 | 初始 Demo / 项目与构建测试 | PASS | `demo-tests.log`、`project-build-tests.log`；不是当前原生验收 |
 | 同步 main 后定向测试 | PASS：81/81 | `current-main/targeted-tests.log` |
 | JSON 导入与 roundtrip 回归 | PASS：32/32 | `current-main/import-regression.log`，与其他集合有重叠，不能相加 |
-| 最终受影响测试 | PASS：89/89 | `current-main/final-targeted-tokenized.log`；覆盖构建、源码、Page UI、目录导入、编辑器与资源拒绝 |
+| 最终受影响测试 | PASS：89/89 | `ci/local-regressions-after-ci-fix.log`；覆盖构建、源码、Page UI、目录导入、编辑器与资源拒绝 |
 | 源码静态检查 | PASS | `current-main/final-check-tokenized.log`；产品/文档 `git diff --check` PASS（排除按原始字节保留的证据日志空白） |
 | Page / Controller / 资源 Demo 校验与构建 | PASS；三份真实 JS SHA 都等于 artifact.sourceHash；draft 校验 PASS | `current-main/final-programs.json`、`final-programs.log` |
 | CSS 远程、导入、转义、字符串图片 URL、未声明/越界图片 | PASS：明确拒绝 | `program-assets.test.mjs` 与最终定向日志 |
@@ -100,3 +100,11 @@ CSS 安全依据：[CSS 转义与字符串规则](https://www.w3.org/TR/css-synt
 ```
 
 整体质量门槛 `≥95/100` 尚未满足：Sidebar、Chrome 和 Codex 闭环关键项未测试，不给满分或伪造评分。后续解锁后复用同一 worktree/分支，先核对最新 main 与 package/sourceInputs，再续原生操作；只有受影响输入变化时才重建，不重跑无关完整验收。
+
+## PR #29 的远端检查与集成边界
+
+PR：<https://github.com/shopable-ai/opendesk-browser/pull/29>。首个 head `03159aab02bbf2fc9898b344653de3349b5df8f5` 的 R3 与 bridge-components 各有两个新增 JSON 导入测试失败：它们仍用 timer tick 等待异步 crypto。之前等待 handler 的修改落在旧 JS 用例；现已对这两个精确用例改为 `await fire(change)`。本地 29 项目录测试及 89 项受影响测试通过；后续 CI 按更新的 PR head 核对，旧失败保留。
+
+macOS arm/intel Native CI 另有真实失败：无插件的裸 Chrome/CDP 基线即超时，stderr 报 MachPortRendezvous 权限拒绝。最新 main `bd7c8d1b` 的两个原生 job 也在同一无插件基线失败；其 Native 测试、启动器和 workflow 未被本 PR 修改。基线 logs 为 `ci/job-113482212315.log`、`ci/job-113482212251.log`；PR 首轮 logs 为 `ci/job-113492784120.log`、`ci/job-113492784092.log`。不能将这个既有环境失败隐藏或通过跳过测试、关闭 sandbox 伪造通过。
+
+本 PR 只集成具有 Node/构建/独立静态复核证明的局部修复。原生 Mac/Chrome/Codex 验收仍开放，CI 组件通过也不提升为原生 PASS。

@@ -71,7 +71,13 @@
       "tests": 89,
       "pass": 89,
       "fail": 0,
-      "evidence": "current-main/final-targeted-tokenized.log"
+      "evidence": "ci/local-regressions-after-ci-fix.log"
+    },
+    "remoteCIInitial": {
+      "head": "03159aab02bbf2fc9898b344653de3349b5df8f5",
+      "r3-package": "FAIL 2 importer observation races",
+      "bridge-components": "FAIL same 2 tests",
+      "macos-native": "FAIL bare CFT/CDP baseline, same on main"
     }
   },
   "contractDifferences": [
@@ -106,9 +112,11 @@
     "unlockReplyReceived": false
   },
   "mainIntegration": {
-    "status": "VERIFIED_LOCAL_FIXES_PENDING_PR",
+    "status": "LOCAL_FIX_PR_AWAITING_CORRECTED_COMPONENT_CI",
     "nativeAcceptance": "OPEN",
-    "noNativePassClaim": true
+    "noNativePassClaim": true,
+    "PR": "https://github.com/shopable-ai/opendesk-browser/pull/29",
+    "nativeCIMainBaseline": "FAIL on bd7c8d1b bare unextended renderer/CDP; ci logs retained"
   },
   "finalFixes": [
     "module BOM byte identity",

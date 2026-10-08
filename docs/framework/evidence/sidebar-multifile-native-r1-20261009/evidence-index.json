@@ -1,5 +1,4 @@
 {
-  "productCandidate": "5988ced5959003d88327658558c9fc08b86f92d8",
   "frozenLocalCandidate": "6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b",
   "files": [
     {
@@ -36,6 +35,46 @@
       "path": "check.log",
       "bytes": 208,
       "sha256": "dda5b581294035f0dd468c0b25cc06e85425a40b8a256af33a66a79787c83aaf"
+    },
+    {
+      "path": "ci/import-handler-after.log",
+      "bytes": 3048,
+      "sha256": "c2f1504d9c6230b209a37e991af6ff7a813315786358968f046906bceaf18110"
+    },
+    {
+      "path": "ci/job-113482212251.log",
+      "bytes": 45419,
+      "sha256": "ed4228a74aa5c64107dc2491e49c88fee51282fadde8adff11cd14feb777e024"
+    },
+    {
+      "path": "ci/job-113482212315.log",
+      "bytes": 41854,
+      "sha256": "1fb06c21002883513608e2c2c471687506d34003da5ada3704cabc458a400d30"
+    },
+    {
+      "path": "ci/job-113492783585.log",
+      "bytes": 231518,
+      "sha256": "c60313a5a04538130f0ccb0cb11c0cdbd3c24d2ffb70c56b8b55aef0f6085909"
+    },
+    {
+      "path": "ci/job-113492784092.log",
+      "bytes": 46239,
+      "sha256": "7dd27cd8e1bbada793421c7e4f334b7fca058768fe0f1f309085be76b9027a3c"
+    },
+    {
+      "path": "ci/job-113492784120.log",
+      "bytes": 39459,
+      "sha256": "c75ce944016a69db37122e7c3b642f1d2c0e24e2f85f2bc5a07bf5c370abd677"
+    },
+    {
+      "path": "ci/job-113492785254.log",
+      "bytes": 76830,
+      "sha256": "b88bd5b2e0ba25b33338056242a108611f627db097d6d0ecdf3397341a6e197d"
+    },
+    {
+      "path": "ci/local-regressions-after-ci-fix.log",
+      "bytes": 8987,
+      "sha256": "9f8bf4a43d9d909b7b8982a34cfdb59a60fc1e866ee98517205989167e453a3e"
     },
     {
       "path": "current-main/build-assets.log",
