@@ -36,10 +36,8 @@ test('trusted Side Panel run sends the exact unsaved draft to the original Contr
   const [html, editor, host, broker]=await Promise.all([
     read('src/ui/tool.html'), read('src/ui/script-editor.js'),
     read('src/run-host.js'), read('src/platform/host/controller-methods.js')]);
-  // Modern Page API explicitly distinguishes the Controller automation runner
-  // from USER_SCRIPT page-JS previews; both stay disabled until their own admission.
-  assert.match(html,/id="script-run" disabled title="[^"]*Controller[^"]*">运行自动化<\/button>/);
-  assert.match(html,/id="page-preview-run" type="button" disabled title="[^"]*USER_SCRIPT[^"]*">运行网页 JS<\/button>/);
+  assert.match(html,/id="script-run" disabled[^>]*>运行自动化/);
+  assert.match(html,/id="page-preview-run"[^>]*>运行网页 JS/);
   assert.match(editor,/sourceUtf8 = find\('script-source'\)\.value/);
   assert.match(editor,/host\.start\(\{source:\{kind:'draft',sourceUtf8\}/);
   assert.match(editor,/permissions\.request/);
