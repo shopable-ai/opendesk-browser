@@ -2,6 +2,8 @@
 
 更新：2026-10-09。本记录属于 `agent/program-r3-native-01a11bdf`，只代表下列精确候选的组件验收。当前状态：实现与本轮组件验证已保存，后续交接；尚未完成安装/重启及 main 集成，不是最终 F3 或 ZIP 安装 PASS。
 
+候选已提交为[草稿 PR #22](https://github.com/shopable-ai/opendesk-browser/pull/22)。创建时 GitHub main 已到 `c93ee36700171114ff38a5e705ce177fc55251df`，PR 为不可合并；先核对冲突和其它聊天的集成工作，再确定受影响验证。不要把测试前的 main 或本轮旧候选直接覆盖到最新 main。
+
 ## 候选与原始证据
 
 - 工作区：`/Users/shopme/Documents/workspace/opendesk-browser-program-r3`；产品源码 HEAD：`30754f86938608163b0e2e6508d3f619dffbe517`。本轮基于 main `704dd8c`，交接时观察到 origin/main `736884656fdab4229aad21889dbeeda1f14d4558`，尚未同步，不将旧候选结果宣称为最新 main 验收。
