@@ -39,3 +39,17 @@ test('R5 official sidebar preserves three views, privileged controls, compact di
   assert.match(css,/task-history-entry/);
   assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 });
+
+test('R5 keeps one derived interactive prototype with installed-only compact discovery',async()=>{
+  const r5=await read('examples/ui/sidebar-r5-compact-preview.html');
+  assert.match(r5,/drawLocalDiscoveryR5/);
+  assert.match(r5,/renderDockR5/);
+  assert.match(r5,/data-tab="discover"/);
+  assert.match(r5,/r5-search/);
+  assert.match(r5,/搜索已安装任务/);
+  assert.match(r5,/ui\.tab==='discover'&&!active/,'idle Discover has no footer');
+  assert.match(r5,/所有|模拟点击不代表真实 Chrome/);
+  const inline=r5.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert(inline,'one self-contained clickable HTML demo');
+  assert.doesNotThrow(()=>new Script(inline),'R5 prototype script must parse');
+});
