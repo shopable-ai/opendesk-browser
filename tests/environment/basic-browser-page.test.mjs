@@ -92,13 +92,15 @@ function createApiDomHarness(html, handleFetch) {
       this.disabled=false;
       this.dataset={state:'idle'};
       this.listeners=new Map();
+      this.children=[];
     }
     addEventListener(type, listener) {
       if (!this.listeners.has(type)) this.listeners.set(type,[]);
       this.listeners.get(type).push(listener);
     }
     reset() {}
-    replaceChildren() { this.textContent=''; }
+    replaceChildren(...items) { this.textContent=''; this.children=items; }
+    append(item) { this.children.push(item); }
     setAttribute(name, value) { this[name]=String(value); }
     dispatch(type) {
       return Promise.all((this.listeners.get(type)||[]).map(listener=>listener({
@@ -126,6 +128,68 @@ function createApiDomHarness(html, handleFetch) {
   },{timeout:2000});
   return {nodes, dispatch:(id,type)=>nodes.get(id).dispatch(type)};
 }
+
+
+test('the single canonical page exposes seven navigable groups and honest Locator fixtures',async()=>{
+  const html=await load();
+  for(const id of ['lab-text','lab-click','lab-async','lab-form','lab-search','lab-api','lab-locator']) {
+    assert.match(html,new RegExp('id="'+id+'"'));
+    assert.match(html,new RegExp('href="#'+id+'"'));
+  }
+  for(const id of ['locator-confirm-a','locator-confirm-b','locator-readonly-field',
+    'locator-disabled-button','locator-aria-disabled','locator-cover-shield',
+    'locator-covered-target','locator-cover-toggle','locator-cover-count',
+    'locator-late-launch','locator-late-result','locator-late-status']) {
+    assert.match(html,new RegExp('id="'+id+'"'));
+  }
+  assert.match(html,/id="locator-confirm-a" data-testid="locator-confirm-a"/);
+  assert.match(html,/id="locator-confirm-b" data-testid="locator-confirm-b"/);
+  assert.match(html,/id="locator-readonly-field"[^>]*readonly>/);
+  assert.match(html,/id="locator-disabled-button"[^>]*disabled>/);
+  assert.match(html,/id="locator-aria-disabled"[^>]*aria-disabled="true"/);
+  assert.match(html,/id="locator-cover-shield"/);
+  assert.match(html,/button\.dataset\.testid = 'locator-late-target'/);
+  assert.match(html,/resetLocatorPlayground\(\);/);
+  assert.match(html,/真实 DOM/);
+  assert.doesNotMatch(html,/测试全部通过|自动验收 PASS/);
+});
+
+test('Locator fixture actions, late insertion, and reset mutate only observable DOM',async()=>{
+  const dom=createApiDomHarness(await load(),()=>{throw new Error('unexpected fetch');});
+  await dom.dispatch('locator-confirm-a','click');
+  assert.equal(dom.nodes.get('locator-duplicate-result').textContent,'实际点击：分区 A');
+  await dom.dispatch('locator-confirm-b','click');
+  assert.equal(dom.nodes.get('locator-duplicate-result').textContent,'实际点击：分区 B');
+
+  const cover=dom.nodes.get('locator-cover-shield');
+  assert.equal(cover.hidden,false);
+  await dom.dispatch('locator-cover-toggle','click');
+  assert.equal(cover.hidden,true);
+  assert.equal(dom.nodes.get('locator-cover-toggle')['aria-pressed'],'true');
+  // FakeNode dispatch cannot emulate browser hit-testing. Native Chrome must separately verify occlusion.
+  await dom.dispatch('locator-covered-target','click');
+  assert.equal(dom.nodes.get('locator-cover-count').textContent,'1');
+
+  await dom.dispatch('locator-late-launch','click');
+  assert.equal(dom.nodes.get('locator-late-status').dataset.state,'loading');
+  assert.equal(dom.nodes.get('locator-late-result').children.length,0);
+  await new Promise(resolve=>setTimeout(resolve,760));
+  const targets=dom.nodes.get('locator-late-result').children;
+  assert.equal(targets.length,1);
+  assert.equal(targets[0].id,'locator-late-target');
+  assert.equal(targets[0].dataset.testid,'locator-late-target');
+  assert.equal(dom.nodes.get('locator-late-status').dataset.state,'visible');
+
+  await dom.dispatch('locator-late-launch','click');
+  await dom.dispatch('reset-all','click');
+  assert.equal(dom.nodes.get('locator-late-status').dataset.state,'idle');
+  assert.equal(dom.nodes.get('locator-late-result').children.length,0);
+  assert.equal(dom.nodes.get('locator-cover-count').textContent,'0');
+  assert.equal(cover.hidden,false);
+  await new Promise(resolve=>setTimeout(resolve,760));
+  assert.equal(dom.nodes.get('locator-late-result').children.length,0,
+    'cancelled delayed insertion must not resurrect after reset');
+});
 
 test('HTTP panel sends no request until click and shows real status/content without HTML injection',async()=>{
   const seen=[];
