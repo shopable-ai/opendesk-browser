@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {Script} from 'node:vm';
 
@@ -16,7 +16,10 @@ test('one ordinary HTML page exposes unique, stable automation targets',async()=
     'toggle-button','extra-text','delay','request-success','request-failure',
     'request-timeout','request-cancel','async-status','async-status-text',
     'async-result','demo-form','name','submit','search-form','keyword',
-    'search-submit','search-status','search-count','results','reset-all'
+    'search-submit','search-status','search-count','results','reset-all',
+    'api-url','api-preset','api-send','api-cancel','api-status',
+    'api-status-text','api-http-status','api-duration','api-content-type',
+    'api-response','api-error'
   ]) assert(ids.includes(id),`must provide #${id}`);
   for(const selector of ['sample-title','sample-text'])
     assert.match(html,new RegExp(`id="${selector}"[^>]*data-testid="${selector}"`));
@@ -49,7 +52,7 @@ test('modern search retains an initially filled field and deliberately replaces 
   assert.match(html,/results\.textContent = '结果：' \+ term/);
 });
 
-test('legacy async scene uses local fetches and distinguishes loading, 404, abort and timeout',async()=>{
+test('async scene sends only local fetches and distinguishes loading, 404, abort and timeout',async()=>{
   const html=await load();
   assert.match(html,/\.\/demo-form\.html\?test-response=1/);
   assert.match(html,/\.\/__opendesk_expected_404__\.json/);
@@ -61,6 +64,118 @@ test('legacy async scene uses local fetches and distinguishes loading, 404, abor
   assert.match(html,/showAsync\('idle', '尚未发起请求'\)/);
 });
 
+
+test('explicit HTTP GET controls expose safe semantics and preserve offline-first operation',async()=>{
+  const html=await load();
+  assert.match(html,/<label for="api-url">请求 URL<\/label>/);
+  assert.match(html,/id="api-url"[^>]*value="\.\/demo-form\.html\?test-response=1"/);
+  assert.match(html,/https:\/\/api\.ipify\.org\?format=json/);
+  assert.match(html,/id="api-response"[^>]*data-testid="api-response"/);
+  assert.match(html,/credentials:'omit'/);
+  assert.match(html,/method:'GET'/);
+  assert.match(html,/mode:'cors'/);
+  assert.match(html,/new URL\(input, location\.href\)/);
+  assert.match(html,/response\.headers\.get\('content-type'\)/);
+  assert.match(html,/response\.status/);
+  assert.match(html,/activeApi !== request \|\| request\.controller\.signal\.aborted/);
+  assert.match(html,/readApiPreview\(response\)/);
+  assert.doesNotMatch(html,/apiResponse\.innerHTML/);
+});
+
+function createApiDomHarness(html, handleFetch) {
+  class FakeNode {
+    constructor(id) {
+      this.id=id;
+      this.value='';
+      this.textContent='';
+      this.hidden=false;
+      this.disabled=false;
+      this.dataset={state:'idle'};
+      this.listeners=new Map();
+    }
+    addEventListener(type, listener) {
+      if (!this.listeners.has(type)) this.listeners.set(type,[]);
+      this.listeners.get(type).push(listener);
+    }
+    reset() {}
+    replaceChildren() { this.textContent=''; }
+    setAttribute(name, value) { this[name]=String(value); }
+    dispatch(type) {
+      return Promise.all((this.listeners.get(type)||[]).map(listener=>listener({
+        target:this, preventDefault() {}
+      })));
+    }
+  }
+  const nodes=new Map([...html.matchAll(/\bid="([^"]+)"/g)]
+    .map(([,id])=>[id,new FakeNode(id)]));
+  // Model the input's actual initial value, not a blank JavaScript stub.
+  const initialApiUrl=html.match(/<input id="api-url"[^>]*value="([^"]+)"/)?.[1];
+  assert.ok(initialApiUrl);
+  nodes.get('api-url').value=initialApiUrl;
+  nodes.get('api-preset').value=initialApiUrl;
+  const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  assert.equal(scripts.length,1);
+  new Script(scripts[0][1]).runInNewContext({
+    document:{
+      getElementById(id){return nodes.get(id);},
+      createElement(tag){return new FakeNode(tag);}
+    },
+    fetch:handleFetch, AbortController, DOMException, URL, TextDecoder,
+    performance, setTimeout, clearTimeout,
+    location:{href:'http://127.0.0.1:43111/demo-form.html'}
+  },{timeout:2000});
+  return {nodes, dispatch:(id,type)=>nodes.get(id).dispatch(type)};
+}
+
+test('HTTP panel sends no request until click and shows real status/content without HTML injection',async()=>{
+  const seen=[];
+  const dom=createApiDomHarness(await load(),(url,options)=>{
+    seen.push({url,options});
+    return Promise.resolve(new Response('<h1>HTTP 200</h1>',{
+      status:200,headers:{'content-type':'text/html;charset=utf-8'}
+    }));
+  });
+  assert.equal(seen.length,0);
+  dom.nodes.get('api-url').value='./demo-form.html?test-response=1';
+  await dom.dispatch('api-send','click');
+  assert.equal(seen.length,1);
+  assert.equal(seen[0].url,'http://127.0.0.1:43111/demo-form.html?test-response=1');
+  assert.equal(seen[0].options.method,'GET');
+  assert.equal(seen[0].options.credentials,'omit');
+  assert.equal(dom.nodes.get('api-status').dataset.state,'success');
+  assert.equal(dom.nodes.get('api-http-status').textContent,'200');
+  assert.equal(dom.nodes.get('api-response').textContent,'<h1>HTTP 200</h1>');
+  assert.equal(dom.nodes.get('api-response').hidden,false);
+  assert.equal(dom.nodes.get('api-cancel').disabled,true);
+});
+
+test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies',async()=>{
+  const html=await load();
+  const missing=createApiDomHarness(html,()=>Promise.resolve(new Response('missing',{status:404})));
+  await missing.dispatch('api-send','click');
+  assert.equal(missing.nodes.get('api-status').dataset.state,'error');
+  assert.equal(missing.nodes.get('api-http-status').textContent,'404');
+  assert.match(missing.nodes.get('api-error').textContent,/HTTP 404/);
+
+  let deliver;
+  const cancelled=createApiDomHarness(html,()=>new Promise(resolve=>{deliver=resolve;}));
+  const running=cancelled.dispatch('api-send','click');
+  await cancelled.dispatch('api-cancel','click');
+  deliver(new Response('late reply',{status:200}));
+  await running;
+  assert.equal(cancelled.nodes.get('api-status').dataset.state,'cancelled');
+  assert.equal(cancelled.nodes.get('api-response').textContent,'');
+
+  let deliverReset;
+  const reset=createApiDomHarness(html,()=>new Promise(resolve=>{deliverReset=resolve;}));
+  const inFlight=reset.dispatch('api-send','click');
+  await reset.dispatch('reset-all','click');
+  deliverReset(new Response('stale success',{status:200}));
+  await inFlight;
+  assert.equal(reset.nodes.get('api-status').dataset.state,'idle');
+  assert.equal(reset.nodes.get('api-response').textContent,'');
+});
+
 test('inline JavaScript parses without a third-party runtime or external resources',async()=>{
   const html=await load();
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
@@ -70,60 +185,18 @@ test('inline JavaScript parses without a third-party runtime or external resourc
   assert.doesNotMatch(html,/<link[^>]+href=/);
 });
 
-
-test('R7.1 real HTTP form has stable URL, method, actions, status, timing, error and response targets', async () => {
-  const html = await load();
-  for (const id of [
-    'http-title', 'http-example', 'http-form', 'http-method', 'http-url',
-    'http-timeout', 'http-send', 'http-cancel', 'http-status', 'http-status-text',
-    'http-code', 'http-duration', 'http-content-type', 'http-error',
-    'http-response-details', 'http-response', 'http-post-fields', 'http-body'
-  ]) assert.match(html, new RegExp('id="' + id + '"'), 'missing #' + id);
-  for (const id of [
-    'http-example','http-method','http-url','http-timeout','http-send',
-    'http-cancel','http-status','http-code','http-duration','http-error','http-response'
-  ]) assert.match(html,new RegExp('id="' + id + '"[^>]*data-testid="' + id + '"'));
-  assert.match(html, /id="http-url"[^>]*value="\.\/request-sample\.json"/);
-  assert.match(html, /id="http-method"[^>]*><option>GET<\/option><option>POST<\/option>/);
-  assert.match(html, /httpForm\.addEventListener\('submit', event =>/);
-  assert.match(html, /const response = await fetch\(url\.href, options\)/);
-  assert.match(html, /const raw = await response\.text\(\)/);
-  assert.match(html, /response\.headers\.get\('content-type'\)/);
-  assert.match(html, /JSON\.parse\(raw\)/);
-  assert.match(html, /httpResponse\.textContent =/);
-  assert.doesNotMatch(html, /httpResponse\.innerHTML\s*=/);
-});
-
-test('R7.1 requests only on submit and handles HTTP, network, timeout, cancel, reset and stale completions', async () => {
-  const html = await load();
-  for (const origin of ['geocoding-api.open-meteo.com','api.open-meteo.com','ipwho.is'])
-    assert(html.includes(origin));
-  assert.match(html, /httpExample\.addEventListener\('change', \(\) =>/);
-  assert.match(html, /httpForm\.addEventListener\('submit', event =>/);
-  assert.match(html, /void runHttp\(\)/);
-  assert.match(html, /abortActiveHttp\('superseded'\)/);
-  assert.match(html, /if \(activeHttp !== req\) return/);
-  assert.match(html, /req\.controller\.abort\(\)/);
-  assert.match(html, /req\.reason === 'timeout'/);
-  assert.match(html, /setHttpState\('cancelled'/);
-  assert.match(html, /setHttpState\('error', 'HTTP 请求失败'/);
-  assert.match(html, /setHttpState\('error', '网络请求失败'/);
-  assert.match(html, /resetHttp\(\)/);
-  assert.match(html, /credentials: 'omit'/);
-  assert.match(html, /referrerPolicy: 'no-referrer'/);
-});
-
-
-test('R7.1 OpenDesk HTTP draft uses supported Page Locator actions and reads real DOM results', async () => {
-  const draft = await readFile('examples/tasks/http-fetch-draft.js', 'utf8');
-  assert.match(draft, /async function main\(\)/);
-  assert.match(draft, /page\.getByLabel\('API URL', \{exact:true\}\)\.fill\(url\)/);
-  assert.match(draft, /page\.getByRole\('button', \{name:'发送请求', exact:true\}\)\.click\(\)/);
-  assert.match(draft, /page\.locator\('#http-status\[data-state="/);
-  assert.match(draft, /\.waitFor\(\{state:'visible', timeout:10000\}\)/);
-  for (const target of ['#http-code','#http-duration','#http-content-type','#http-response','#http-error']) {
-    assert(draft.includes("page.locator('" + target + "').textContent()"), target);
+test('manual browser testing has exactly one canonical HTML and no obsolete advertised URL',async()=>{
+  const [files, guide, root, agents] = await Promise.all([
+    readdir('examples/tasks'),
+    readFile('examples/tasks/README.zh-CN.md','utf8'),
+    readFile('README.md','utf8'),
+    readFile('AGENTS.md','utf8')
+  ]);
+  assert.deepEqual(files.filter(file=>file.endsWith('.html')).sort(),['demo-form.html'],
+    'examples/tasks must not accumulate duplicate manual browser pages');
+  for(const [name,content] of [['guide',guide],['root',root],['agents',agents]]) {
+    assert.match(content,/http:\/\/127\.0\.0\.1:43111\/demo-form\.html/,name+' must publish one stable demo URL');
+    assert.doesNotMatch(content,/http:\/\/127\.0\.0\.1:\d+\/fixture\b/,name+' must not advertise a legacy temporary fixture URL');
   }
-  assert.doesNotMatch(draft, /document\.(?:querySelector|getElementById)|page\.evaluate\(/);
-  assert.doesNotThrow(() => new Script(draft));
+  assert.match(root,/python3 -m http\.server 43111 --bind 127\.0\.0\.1 --directory examples\/tasks/);
 });

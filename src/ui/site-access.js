@@ -1,6 +1,8 @@
+import {REQUIRED_HOST_PATTERNS} from '../platform/chrome/permission-gate.js';
+
 // Chrome owns durable grants. Never store a boolean "approved" substitute:
 // it would survive revocation or a fresh browser test profile incorrectly.
-export const ALL_WEB_ORIGINS = Object.freeze(['http://*/*', 'https://*/*']);
+export const ALL_WEB_ORIGINS = REQUIRED_HOST_PATTERNS;
 
 function error(code, message) {
   const value = new Error(message);
@@ -8,21 +10,13 @@ function error(code, message) {
   return value;
 }
 
-export function siteAccessPermissionRequest({cookies = false, notifications = false} = {}) {
-  if (typeof cookies !== 'boolean' || typeof notifications !== 'boolean')
-    throw error('E_SCHEMA', '可选浏览器权限必须明确选择');
-  const permissions = [
-    ...(cookies ? ['cookies'] : []),
-    ...(notifications ? ['notifications'] : [])
-  ];
-  return {origins: [...ALL_WEB_ORIGINS], ...(permissions.length ? {permissions} : {})};
+export function siteAccessPermissionRequest() {
+  // Required hosts can be re-requested only if Chrome has withheld access.
+  return {origins: [...ALL_WEB_ORIGINS]};
 }
 
-export function siteAccessSatisfies(state, options = {}) {
-  if (!state) return false;
-  return state.websites === true &&
-    (!options.cookies || state.cookies === true) &&
-    (!options.notifications || state.notifications === true);
+export function siteAccessSatisfies(state) {
+  return state?.websites === true && state.cookies === true && state.notifications === true;
 }
 
 // This controller changes only native Chrome permission state. It does NOT
@@ -52,9 +46,11 @@ export function createSiteAccess({api, onState = () => {}}) {
       const actual = await readNativePermissions();
       if (disposed || token !== sequence) return null;
       snapshot = actual;
-      publish(snapshot.websites ? 'granted' : 'limited', snapshot.websites
-        ? '已授权全部 HTTP/HTTPS 网站；Chrome 会在后续运行中复用授权'
-        : '尚未集中授权；运行其他网站可能需要单独批准');
+      publish(siteAccessSatisfies(snapshot) ? 'granted' : 'limited', snapshot.websites
+        ? (siteAccessSatisfies(snapshot)
+          ? 'Chrome 已授予默认全网站和核心 API 权限'
+          : '全网站权限可用，但核心 API 权限不完整；请检查扩展的权限设置')
+        : 'Chrome 已限制网站访问；可点击恢复或在扩展详情中选择所有网站');
       return snapshot;
     } catch (cause) {
       if (!disposed && token === sequence) {
@@ -65,15 +61,15 @@ export function createSiteAccess({api, onState = () => {}}) {
     }
   }
 
-  function grant(event, options = {}) {
+  function grant(event) {
     if (!event?.isTrusted) return Promise.reject(error('E_GESTURE', '必须由真实用户点击授权'));
     if (disposed) return Promise.reject(error('E_HOST_CLOSED', '授权面板已关闭'));
     if (busy) return Promise.reject(error('E_BUSY', '授权申请正在处理中'));
     let request, pending;
     try {
-      request = siteAccessPermissionRequest(options);
+      request = siteAccessPermissionRequest();
       busy = true;
-      publish('requesting', '等待 Chrome 确认所选权限；尚未完成授权');
+      publish('requesting', '正在请求 Chrome 恢复全部网站访问；尚未确认授权');
       // Must be invoked synchronously inside the trusted click, without an
       // await/contains/IPC beforehand, or Chrome may lose the user gesture.
       pending = api.permissions.request(request);
@@ -89,7 +85,7 @@ export function createSiteAccess({api, onState = () => {}}) {
         // onAdded may race with a UI refresh: verify native state independently
         // rather than treating a superseded UI refresh as a denied grant.
         const actual = await readNativePermissions();
-        if (!siteAccessSatisfies(actual, options))
+        if (!siteAccessSatisfies(actual))
           throw error('E_PERMISSION', 'Chrome 权限状态与申请不一致；请检查扩展的网站访问设置');
         await refresh();
         return actual;

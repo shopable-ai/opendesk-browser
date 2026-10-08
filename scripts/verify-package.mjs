@@ -5,6 +5,7 @@ import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
+import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
@@ -84,12 +85,12 @@ export async function verifySdkResourceManifest(directory) {
   return actual;
 }
 export function verifyManifest(manifest) {
-  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'optional_host_permissions', 'background', 'action', 'side_panel', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
+  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
-  if (!same(manifest.permissions, ['storage', 'scripting', 'sidePanel', 'activeTab', 'downloads', 'tabs', 'webNavigation', 'userScripts'])) throw new Error('Unexpected permissions');
-  if (!same(manifest.optional_permissions, ['cookies', 'notifications'])) throw new Error('Unexpected optional permissions');
-  if (!same(manifest.optional_host_permissions, ['http://*/*', 'https://*/*'])) throw new Error('Unexpected optional host permissions');
+  if (!same(manifest.permissions, REQUIRED_BROWSER_API_PERMISSIONS)) throw new Error('Unexpected required browser API permissions');
+  if (!same(manifest.optional_permissions, OPTIONAL_PLUGIN_API_PERMISSIONS)) throw new Error('Unexpected optional plugin API permissions');
+  if (!same(manifest.host_permissions, REQUIRED_HOST_PATTERNS)) throw new Error('Expected default all-site host permission');
   if (!same(manifest.content_security_policy, {extension_pages: EXTENSION_CSP, sandbox: SANDBOX_CSP})) throw new Error('Unexpected CSP');
   if (!same(manifest.sandbox, {pages: [SANDBOX_HTML]})) throw new Error('Unexpected sandbox boundary');
   if (!same(manifest.background, {service_worker: 'sw.js'})) throw new Error('Unexpected or missing worker entry');
@@ -97,7 +98,7 @@ export function verifyManifest(manifest) {
   if (!same(manifest.side_panel, {default_path: 'ui/tool.html'})) throw new Error('Unexpected or missing Side Panel entry');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
   if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
-  if (manifest.host_permissions || manifest.content_scripts || manifest.externally_connectable) throw new Error('Unapproved broad exposure');
+  if (manifest.optional_host_permissions || manifest.content_scripts || manifest.externally_connectable) throw new Error('Unapproved optional host or page exposure');
   if (!same(Object.keys(manifest).sort(), fields.sort())) throw new Error('Unexpected manifest entry/exposure');
 }
 const property = node => node?.type === 'MemberExpression' ? node.computed ? node.property.value : node.property.name : undefined;

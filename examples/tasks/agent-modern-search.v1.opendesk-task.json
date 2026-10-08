@@ -1,0 +1,41 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "sample.agent-modern-search",
+    "version": "1.0.0",
+    "title": "示例：可重复运行的现代搜索",
+    "description": "使用现代 Locator 填写演示搜索框、等待结果；仅作为待验证候选导入。",
+    "author": "OpenDesk Browser",
+    "source": "local-demo",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "keyword": {
+          "type": "string",
+          "title": "搜索关键词",
+          "minLength": 1,
+          "maxLength": 80,
+          "default": "OpenDesk"
+        }
+      },
+      "required": [
+        "keyword"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "a40fe6471506743a785ab32fd85a48f3991a641fb3c28741735c20e799d13812",
+  "sourceUtf8": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n"
+}
