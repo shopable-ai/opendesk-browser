@@ -66,7 +66,7 @@ jobs:
             const closed = context.payload.pull_request;
             if (context.eventName === 'pull_request' && closed?.merged &&
                 closed.head?.repo?.full_name === `${owner}/${repo}` &&
-                /^agent\\/[A-Za-z0-9._/-]+$/.test(closed.head.ref) &&
+                closed.head.ref.startsWith('agent/') &&
                 closed.head.ref !== 'main') {
               await removeWhenSafe({name:closed.head.ref,pr:closed.number,sha:closed.head.sha});
             }
