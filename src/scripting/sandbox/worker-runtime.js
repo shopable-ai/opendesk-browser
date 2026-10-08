@@ -4,6 +4,14 @@ import {encodeValue, PageError} from '../../framework/control/value.js';
 // Bundle this entry as a fixed classic script, fetch that packaged bundle in
 // the extension host, then instantiate it as a Blob Worker in the opaque realm.
 // AsyncFunction is captured and used ONLY here, never in host, sandbox or SW.
+// A single isolated Worker supports async function main() and prior body scripts.
+export function controllerProgramBody(sourceUtf8) {
+  if (typeof sourceUtf8 !== 'string') throw new TypeError('Controller source must be text');
+  // Legacy scripts with a top-level return complete before the epilogue.
+  // A declared main() receives page/params as lexical globals and its
+  // returned value becomes the run result without a second execution engine.
+  return `${sourceUtf8}\n; if (typeof main !== 'undefined') { if (typeof main !== 'function') throw new TypeError('main must be a function'); return await main(); }`;
+}
 export function installControlWorker(scope) {
   'use strict';
   const AsyncBody = Object.getPrototypeOf(async function () {}).constructor;
@@ -33,7 +41,7 @@ export function installControlWorker(scope) {
           error: {code: error?.code || 'E_CONTROL_EXECUTION', name: error?.name || 'Error', message: String(error?.message || error)}});
       }
       try {
-        const body = new AsyncBody('page', 'params', 'axiosx', 'AppStorage', 'AppLocal', 'storage', data.body);
+        const body = new AsyncBody('page', 'params', 'axiosx', 'AppStorage', 'AppLocal', 'storage', controllerProgramBody(data.body));
         const params = clone(data.params);
         then(NativePromise.resolve(apply(body, params, [proxy.page, params, proxy.services.axiosx, proxy.services.AppStorage, proxy.services.AppLocal, proxy.services.storage])), value => {
           try { send({kind: 'result', runId: pin.runId, ownerEpoch: pin.ownerEpoch, value: encodeValue(value)}); }
