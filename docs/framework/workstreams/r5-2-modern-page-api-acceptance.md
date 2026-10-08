@@ -5,7 +5,7 @@
 ## 基线与可复核源码身份
 
 - 起点：`2f332b0316d50c103646d5dc8653e02837e038a9`（R5.1 / 后续 Sidebar main 基线）。
-- 完成代码与测试的精确候选：[`60e0d38af08d8fb755e271d9e8f516393f245252`](https://github.com/shopable-ai/opendesk-browser/commit/60e0d38af08d8fb755e271d9e8f516393f245252)。此后只新增本工作记录；重新核对最终 `main` HEAD 和 CI。
+- 完成代码与测试的精确候选：[`60e0d38af08d8fb755e271d9e8f516393f245252`](https://github.com/shopable-ai/opendesk-browser/commit/60e0d38af08d8fb755e271d9e8f516393f245252)。这份 PASS 只对应所列源码候选和相应 CI；后续 `main` 可能合入独立的 R7 演示页/UI 更新，必须以最新 HEAD 和对应 CI 再验证，不能把旧候选回执直接当作新产品验收。
 - 主要修复文件：
   `src/framework/control/native-driver.js`、`src/scripting/packaged/locator-dom.js`、
   `src/scripting/packaged/page-session.js`、`src/platform/host/controller-methods.js`；

@@ -12,6 +12,7 @@
 
 - [一页读懂脚本、依赖、执行与安装（D2）](docs/architecture/browser-framework/userscript-framework-quickstart.zh-CN.md)：先看这篇，避免把「已接线」「组件测试」「真实 Chrome」混为一谈。
 - [Browser Framework 架构与 ChromePage](docs/architecture/browser-framework/README.md)：完整框架职责。
+- [现代 Page API：Locator / fill / waitFor / page.observe](docs/framework/modern-page-api.zh-CN.md)：Controller 新任务的默认写法及安全边界；[R5.2 组件证据与真实 Chrome 待验收项](docs/framework/workstreams/r5-2-modern-page-api-acceptance.md)。旧 `page.type` 的追加语义保持兼容。
 - [D1 依赖 ADR](docs/architecture/browser-framework/userscript-dependencies-d1-adr.zh-CN.md)：@require、哈希、授权与缓存的细节。
 
 **现在可做**：编辑页脚本、识别标准 @require、明确审核并锁定内容字节、进入不保存草稿的 USER_SCRIPT 预览代码路径；具备定向组件和双构建 CI。**尚未验收**：真实 Chrome 用户流程与断网运行。**尚未正式实现**：Page Program 的自动匹配安装、启停、重启注册对账。生成 register 描述符不等于已安装任务。

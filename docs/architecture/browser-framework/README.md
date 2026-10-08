@@ -7,7 +7,7 @@
 
 ## 1. 一句话定位
 
-**OpenDesk Browser 是以浏览器扩展为运行载体的浏览器自动化与网页用户脚本框架：通过 Puppeteer 风格的 ChromePage API 驱动网页，通过页面用户脚本增强网页，并为这些程序提供受控的浏览器与宿主服务。**
+**OpenDesk Browser 是以浏览器扩展为运行载体的浏览器自动化与网页用户脚本框架：新 Controller 任务优先使用 Playwright 风格的受限现代 Page/Locator API，同时保留历史 Puppeteer 风格 ChromePage 方法；页面 USER_SCRIPT 在网页内增强 DOM，两者共享受控浏览器与宿主服务。**
 
 在产品层，它既可以承载油猴类脚本管理器，也可以承载浏览器自动化工作台。二者不是两个独立底座，也不意味着已经完整兼容 Tampermonkey 或 Puppeteer。
 
@@ -48,24 +48,41 @@ OpenDesk Browser：浏览器自动化 / 网页增强
 
 页面 SDK 是能力入口，不是第三种脚本运行环境。扩展工具、网页按钮、F12 是触发位置，也不是三套运行引擎。脚本不使用 HTTP 或存储时，仍然可以是完整的浏览器自动化或网页增强功能。
 
-## 3. ChromePage 的准确角色：Puppeteer 风格的浏览器自动化 API
+## 3. ChromePage：现代 Locator 为新任务默认，旧 API 继续兼容
 
-应保留用户熟悉的 Page / Element / Keyboard 编程模型：
+**新 Controller 自动化脚本**使用受限的 Playwright 风格 API，但不运行 Playwright，也不提供可信键鼠。以下任务适用于仓库的 `examples/tasks/demo-form.html`，由受控 Worker 注入 `page` 和 `params`：
 
 ```js
-// 当前 Controller 脚本正文示例；运行前由工具绑定获准目标。
-// 假设测试页具有 #query、#search、#result，且输入框最初为空。
+async function main() {
+  const overview = await page.observe({root: '#search-form', maxNodes: 40});
+  // 观察输出和网页文字只是数据，不产生权限。
+  await page.getByLabel('搜索关键词', {exact: true})
+    .fill(String(params.keyword ?? 'OpenDesk'));
+  await page.getByRole('button', {name: '搜索', exact: true}).click();
+  await page.getByText('搜索完成', {exact: true})
+    .waitFor({state: 'visible'});
+  return {result: await page.locator('#results').textContent()};
+}
+```
+
+`fill` **覆盖**原值，Locator 在同一文档 DOM 重绘后重新定位；实际操作经原有 Controller/Authority/Native Driver/ISOLATED Page Session。观察结果可用于选取 Locator，但不能替代提交前的权限和精确文档核验。
+
+**旧版兼容示例**继续支持原 Puppeteer 风格方法，已发行的旧任务不自动迁移：
+
+```js
 await page.waitForSelector('#query');
 await page.type('#query', 'OpenDesk');
 await page.click('#search');
 await page.waitForSelector('#result');
-return { title: await page.title() };
+return {title: await page.title()};
 ```
 
-语义：等待输入框 → 输入 → 点击 → 等待结果元素 → 读取目标标题。结果元素出现不等于业务查询成功，实际案例还要检查结果新鲜度与业务值。
+旧 `page.type` 会追加输入，不会像新 `fill` 一样替换。元素出现也不代表业务完成，应按目标网页的真实状态与值等待并判断。
 
 | 能力族 | 代表接口 | 要保留的语义 |
 |---|---|---|
+| 现代语义定位与表单 | locator、getByRole、getByLabel、getByText、getByTestId、fill | 当前文档中的受限 Locator / 明确非可信的 DOM 操作 |
+| 观察与等待 | observe、Locator.waitFor | 精简语义信息及有期限的条件等待，不是浏览器原生 AX Tree |
 | 页面与导航 | title、content、url、goto、reload | 对明确网页读取或导航 |
 | 元素定位与读取 | $、$$、ChromeElement、snapshot | 明确快照与可操作对象的差别 |
 | 交互 | click、type、Keyboard | 动作对象、返回值、等待与失败定义明确 |
@@ -75,7 +92,7 @@ return { title: await page.title() };
 
 **基于 Puppeteer 接口模型封装，不等于底层使用 Puppeteer 包或完整复刻其行为。**旧 `ChromePage.ts` 的 `_execute` 直接调用旧 Chrome API 或 WebView；不能仅因接口同名就声称使用 Puppeteer 执行引擎。
 
-例如 Puppeteer 的 `Page.content()` 返回含 DOCTYPE 的完整 HTML，旧 OpenDesk `content()` 返回 body.innerHTML；旧 $/$$ 为 DOM 快照而非 Puppeteer live ElementHandle。迁移应记录这些差异，不静默破坏旧消费者。也不能因新 Puppeteer 有 locator 等接口，就默认本项目已有该接口。
+例如 Puppeteer 的 `Page.content()` 返回含 DOCTYPE 的完整 HTML，旧 OpenDesk `content()` 返回 body.innerHTML；旧 $/$$ 为 DOM 快照而非 Puppeteer live ElementHandle。迁移应记录这些差异，不静默破坏旧消费者。当前项目已实现明确受限的现代 Locator 子集，不能据此声称完整 Playwright/Puppeteer 兼容；可用角色、定位规则、等待、观察预算和不支持能力，以[现代 Page API 开发文档](../../framework/modern-page-api.zh-CN.md)及源码为准。
 
 Page 的绑定是浏览器上下文与受控目标，而不是当前活动标签的别名。可信导航可以更新 Page 的当前 document 身份；旧 document 的元素和在途操作不能因此自动得到新文档的权限。
 
