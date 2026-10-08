@@ -30,7 +30,7 @@ npm run build:dev
 npm run dev:chrome
 ```
 
-`dev:chrome` 使用已缓存的 macOS Chrome for Testing 155（可通过 `OPENDESK_CFT_VERSION=138` 选 138），加载当前工作区固定的 `dist/development` 路径，把浏览器数据保存在用户目录下 `~/.opendesk-browser/dev-profiles/primary-<worktree hash>`，并校验目录所有权和私有权限；不使用个人 Chrome Profile、不删除这个开发 Profile、不自动授予网站权限。不同 worktree 和 `OPENDESK_DEV_PROFILE` 名称隔离。
+`dev:chrome` 使用已缓存的 macOS Chrome for Testing 155（可通过 `OPENDESK_CFT_VERSION=138` 选 138）；若在独立 worktree 中缺少缓存，可明确指定 `OPENDESK_CFT_CACHE_ROOT=/原工作区/tests/.cache/m5-browsers` 复用同一组**受控 CFT 二进制**（绝不复制个人 Chrome Profile）。它加载当前工作区固定的 `dist/development` 路径，把浏览器数据保存在用户目录下 `~/.opendesk-browser/dev-profiles/primary-<worktree hash>`，并校验目录所有权和私有权限；不使用个人 Chrome Profile、不删除这个开发 Profile、不自动授予网站权限。不同 worktree 和 `OPENDESK_DEV_PROFILE` 名称隔离。
 
 首次在这个真实 Chrome Profile 里，手动确认全网 HTTP/HTTPS 授权；在 Chrome 138+ 的扩展详情中另行开启“允许运行用户脚本”。之后请关闭测试浏览器，再用**完全相同**的 worktree 路径和命令重启，检查 `chrome.runtime.id` 不变、`chrome.permissions.getAll()` 与 `chrome.permissions.contains({origins:['http://*/*','https://*/*']})` 依然显示浏览器授权。重新编译后直接在 `chrome://extensions` 点击“重新加载扩展”；不要反复删除/新装或切换扩展目录。
 
