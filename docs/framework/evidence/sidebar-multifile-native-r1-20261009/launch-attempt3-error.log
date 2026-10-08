@@ -1,0 +1,104 @@
+{"event":"launcher-cleanup-failed","exit":{"code":2,"signal":null,"observedEvent":"exit"},"pidAliveAfterExit":false,"profileRemoved":false,"profileState":"unknown","cleanupOwner":"/Users/shopme/.codex/browser-testing/launch.py","cleanupStatus":"FAIL","lifecycle":[],"originalErrors":[{"stage":"operation","name":"Error","message":"Launcher exited before metadata: usage: launch.py [-h] [--executable EXECUTABLE] [--report REPORT]\n                 [--resolve-only]\nlaunch.py: error: This launcher only accepts Chrome for Testing, not your personal Chrome\n"}],"cleanupErrors":[{"stage":"read:/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.lifecycle.jsonl","name":"Error","code":"ENOENT","message":"ENOENT: no such file or directory, open '/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.lifecycle.jsonl'"},{"stage":"residual","name":"Error","message":"Owned resource cleanup incomplete"}],"residual":[{"profile":null,"state":"unknown"}],"attempts":[{"number":1,"errors":[{"stage":"read:/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.lifecycle.jsonl","name":"Error","code":"ENOENT","message":"ENOENT: no such file or directory, open '/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.lifecycle.jsonl'"},{"stage":"residual","name":"Error","message":"Owned resource cleanup incomplete"}],"raw":{"stdout":"{\"event\": \"adapter-cleanup\", \"launcherPid\": 74817, \"status\": \"PASS\", \"profile\": null, \"profileIdentity\": null, \"profileStatus\": \"not-created\", \"children\": [], \"residual\": [], \"errors\": [], \"events\": [], \"attempts\": 1, \"inspectionExitObservations\": []}\n","stderr":"usage: launch.py [-h] [--executable EXECUTABLE] [--report REPORT]\n                 [--resolve-only]\nlaunch.py: error: This launcher only accepts Chrome for Testing, not your personal Chrome\n","lifecycle":null,"adapterCleanup":"{\n  \"event\": \"adapter-cleanup\",\n  \"launcherPid\": 74817,\n  \"status\": \"PASS\",\n  \"profile\": null,\n  \"profileIdentity\": null,\n  \"profileStatus\": \"not-created\",\n  \"children\": [],\n  \"residual\": [],\n  \"errors\": [],\n  \"events\": [],\n  \"attempts\": 1,\n  \"inspectionExitObservations\": []\n}\n"},"lifecycle":[],"adapterCleanup":{"event":"adapter-cleanup","launcherPid":74817,"status":"PASS","profile":null,"profileIdentity":null,"profileStatus":"not-created","children":[],"residual":[],"errors":[],"events":[],"attempts":1,"inspectionExitObservations":[]}}],"candidates":[]}
+file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs:43
+      if (launcher.exitCode !== null) throw new Error(`Launcher exited before metadata: ${stderr}`);
+                                            ^
+
+Error: Launcher exited before metadata: usage: launch.py [-h] [--executable EXECUTABLE] [--report REPORT]
+                 [--resolve-only]
+launch.py: error: This launcher only accepts Chrome for Testing, not your personal Chrome
+
+    at launchChrome (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs:43:45)
+    at async file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/session-driver.mjs:10:16 {
+  cleanup: {
+    exit: { code: 2, signal: null, observedEvent: 'exit' },
+    pidAliveAfterExit: false,
+    profileRemoved: false,
+    profileState: 'unknown',
+    cleanupOwner: '/Users/shopme/.codex/browser-testing/launch.py',
+    cleanupStatus: 'FAIL',
+    lifecycle: [],
+    originalErrors: [
+      {
+        stage: 'operation',
+        name: 'Error',
+        code: undefined,
+        message: 'Launcher exited before metadata: usage: launch.py [-h] [--executable EXECUTABLE] [--report REPORT]\n' +
+          '                 [--resolve-only]\n' +
+          'launch.py: error: This launcher only accepts Chrome for Testing, not your personal Chrome\n'
+      }
+    ],
+    cleanupErrors: [
+      {
+        stage: 'read:/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.lifecycle.jsonl',
+        name: 'Error',
+        code: 'ENOENT',
+        message: "ENOENT: no such file or directory, open '/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.lifecycle.jsonl'"
+      },
+      {
+        stage: 'residual',
+        name: 'Error',
+        code: undefined,
+        message: 'Owned resource cleanup incomplete'
+      }
+    ],
+    residual: [ { profile: null, state: 'unknown' } ],
+    attempts: [
+      {
+        number: 1,
+        errors: [
+          {
+            stage: 'read:/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.lifecycle.jsonl',
+            name: 'Error',
+            code: 'ENOENT',
+            message: "ENOENT: no such file or directory, open '/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.lifecycle.jsonl'"
+          },
+          {
+            stage: 'residual',
+            name: 'Error',
+            code: undefined,
+            message: 'Owned resource cleanup incomplete'
+          }
+        ],
+        raw: {
+          stdout: '{"event": "adapter-cleanup", "launcherPid": 74817, "status": "PASS", "profile": null, "profileIdentity": null, "profileStatus": "not-created", "children": [], "residual": [], "errors": [], "events": [], "attempts": 1, "inspectionExitObservations": []}\n',
+          stderr: 'usage: launch.py [-h] [--executable EXECUTABLE] [--report REPORT]\n' +
+            '                 [--resolve-only]\n' +
+            'launch.py: error: This launcher only accepts Chrome for Testing, not your personal Chrome\n',
+          lifecycle: null,
+          adapterCleanup: '{\n' +
+            '  "event": "adapter-cleanup",\n' +
+            '  "launcherPid": 74817,\n' +
+            '  "status": "PASS",\n' +
+            '  "profile": null,\n' +
+            '  "profileIdentity": null,\n' +
+            '  "profileStatus": "not-created",\n' +
+            '  "children": [],\n' +
+            '  "residual": [],\n' +
+            '  "errors": [],\n' +
+            '  "events": [],\n' +
+            '  "attempts": 1,\n' +
+            '  "inspectionExitObservations": []\n' +
+            '}\n'
+        },
+        lifecycle: [],
+        adapterCleanup: {
+          event: 'adapter-cleanup',
+          launcherPid: 74817,
+          status: 'PASS',
+          profile: null,
+          profileIdentity: null,
+          profileStatus: 'not-created',
+          children: [],
+          residual: [],
+          errors: [],
+          events: [],
+          attempts: 1,
+          inspectionExitObservations: []
+        }
+      }
+    ],
+    candidates: []
+  }
+}
+
+Node.js v26.3.1

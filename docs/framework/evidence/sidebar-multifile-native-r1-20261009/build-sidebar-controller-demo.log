@@ -1,0 +1,90 @@
+
+> opendesk-browser@0.1.0 build:program
+> node scripts/build-program-project.mjs examples/programs/sidebar-controller-demo
+
+{
+  "format": "opendesk.build-artifact.v1",
+  "status": "BUILT_UNVERIFIED",
+  "installable": false,
+  "runtimeKind": "controller",
+  "programId": "sample.sidebar-controller-demo",
+  "version": "1.0.0",
+  "sourceFormat": "esm",
+  "entryFormat": "async-main",
+  "entry": "src/main.js",
+  "buildMode": "production",
+  "buildHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+  "sourceModules": [
+    {
+      "path": "src/main.js",
+      "bytes": 362,
+      "sha256": "9f134f3c3dd458acb7324935d7014272a76f716afccf11053b29812f9b1b0d3c"
+    },
+    {
+      "path": "src/params.js",
+      "bytes": 141,
+      "sha256": "8ebf8a34fdf4104a6a16fb60e8e6e1d257ed88cf3c47e244fee09bb20dbec8ef"
+    },
+    {
+      "path": "src/search.js",
+      "bytes": 492,
+      "sha256": "5ad47ac55d314ffbe46cb2cc12ca67c0479c7b77ce4f109c429ed0f00c23de55"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/main.js",
+      "bytes": 362,
+      "sha256": "9f134f3c3dd458acb7324935d7014272a76f716afccf11053b29812f9b1b0d3c"
+    },
+    {
+      "path": "src/params.js",
+      "bytes": 141,
+      "sha256": "8ebf8a34fdf4104a6a16fb60e8e6e1d257ed88cf3c47e244fee09bb20dbec8ef"
+    },
+    {
+      "path": "src/search.js",
+      "bytes": 492,
+      "sha256": "5ad47ac55d314ffbe46cb2cc12ca67c0479c7b77ce4f109c429ed0f00c23de55"
+    }
+  ],
+  "npmPackages": [],
+  "npmLockSha256": null,
+  "sourceFile": "program.js",
+  "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+  "sourceBytes": 1194,
+  "draftFile": "program.opendesk-draft.json",
+  "authoring": {
+    "files": [
+      {
+        "path": "src/main.js",
+        "bytes": 362,
+        "sha256": "9f134f3c3dd458acb7324935d7014272a76f716afccf11053b29812f9b1b0d3c"
+      },
+      {
+        "path": "src/params.js",
+        "bytes": 141,
+        "sha256": "8ebf8a34fdf4104a6a16fb60e8e6e1d257ed88cf3c47e244fee09bb20dbec8ef"
+      },
+      {
+        "path": "src/search.js",
+        "bytes": 492,
+        "sha256": "5ad47ac55d314ffbe46cb2cc12ca67c0479c7b77ce4f109c429ed0f00c23de55"
+      }
+    ],
+    "webpackModules": [
+      "src/main.js"
+    ],
+    "buildMode": "production",
+    "buildHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8"
+  },
+  "siteOrigins": [
+    "http://127.0.0.1:43111"
+  ],
+  "permissions": [
+    "page.automation"
+  ],
+  "candidateFile": "program.opendesk-task.json",
+  "note": "Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted.",
+  "outputDirectory": "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/artifacts/programs/sample.sidebar-controller-demo/1.0.0/r31-production/d7210dd03e38dd9d-e2797c9b7aa5"
+}

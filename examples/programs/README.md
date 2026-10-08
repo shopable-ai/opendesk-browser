@@ -6,7 +6,7 @@
 | [controller-title](controller-title/) | 旧有 Controller ESM 标题读取 | 本地构建与 Candidate |
 | [sidebar-page-demo](sidebar-page-demo/) | 3 个源模块 → Page USER_SCRIPT → 测试页可见标记 | 可构建；真实 Chrome 待验收 |
 | [sidebar-controller-demo](sidebar-controller-demo/) | 3 个源模块 → Controller Locator → 真实表单/结果 | 可构建；真实 Chrome 待验收 |
-| [sidebar-assets-contract](sidebar-assets-contract/) | CSS/JSON/PNG 的路径/哈希与拒绝不支持的构建 | 源文件校验 PASS；构建预期失败 |
+| [sidebar-assets-contract](sidebar-assets-contract/) | Page CSS/JSON/PNG 的有界打包与安全拒绝 | 本地构建与负向回归；真实 Chrome 待验收 |
 
 全部示例共用 `examples/tasks/demo-form.html`，没有新增重复的人工测试页。
 
@@ -19,6 +19,6 @@ npm run build:program -- examples/programs/sidebar-page-demo
 npm run build:program -- examples/programs/sidebar-controller-demo
 ```
 
-上面两种 JS 构建还输出 `program.opendesk-draft.json`：在现有完整任务目录导入，可保留多文件只读源码快照与固定执行字节。开发模式可使用 `--mode development` 生成可读 JS 与本地 Source Map。构建结果为 `BUILT_UNVERIFIED`，不是 `Installed`；资源样例构建目前应返回 `E_PROJECT_ASSET_BUILD`，不可将其计为安装成功。
+上面两种 JS 构建还输出 `program.opendesk-draft.json`：在现有完整任务目录导入，可保留多文件只读源码快照与固定执行字节。开发模式可使用 `--mode development` 生成可读 JS 与本地 Source Map。构建结果为 `BUILT_UNVERIFIED`，不是 `Installed`；当前 main 已支持 Page CSS/JSON/PNG 有界打包；Controller 资源仍以 `E_PROJECT_ASSET_ENV` 拒绝。原 R1 提示词中的 `E_PROJECT_ASSET_BUILD` 门槛对应旧基线，差异与原始结果保存在[本轮验收记录](../../docs/framework/workstreams/sidebar-multifile-native-r1-20261009.md)。资源构建成功不等于安装或真实网页验收通过。
 
 - [page-ui-basic](page-ui-basic/README.md)：R1 原生 Shadow DOM 页面工具；独立 CSS、JSON 与 PNG 固定内嵌，按需 UI 样式与关闭/重新打开（仅手动 USER_SCRIPT 试运行，Chrome 待验收）。

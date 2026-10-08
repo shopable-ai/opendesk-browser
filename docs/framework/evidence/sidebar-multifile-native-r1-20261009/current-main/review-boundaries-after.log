@@ -1,0 +1,31 @@
+✔ CSS url() points to embedded image, with JSON and hashes; no runtime dev server (386.452333ms)
+✔ reject CSS network/import/undeclared URLs and spoofed image bytes (7.571125ms)
+✔ reject CSS escaped tokens and unsupported string image URLs (8.25775ms)
+✔ original JavaScript-only program keeps its output without adding base CSS (75.97675ms)
+✔ three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler (337.644667ms)
+✔ Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim (64.763625ms)
+✔ development mode emits readable program JS, draft metadata and a separate local source map only (22.279542ms)
+✔ development source map maps final generated throw position back to local authoring module (11.581458ms)
+✔ a declared Page stylesheet enters the immutable program artifact rather than failing closed (57.053334ms)
+✔ webpack dependency failures report project, phase and importing source location (53.248125ms)
+✔ untrusted remote and dynamic ESM imports are rejected before Webpack (2.481959ms)
+✔ a frozen output directory rejects replacement without quietly publishing new bytes (112.813792ms)
+✔ UTF-8 BOM in an authoring module survives build and draft import (275.616791ms)
+✔ package metadata BOM fails at validation with the fixed Webpack boundary (4.203459ms)
+✔ Page prerelease version matches the project and draft schema at import (66.663333ms)
+✔ builder applies envelope budget to the bytes actually written for file import (122.200334ms)
+✔ multi-file ESM authoring project is a source contract, not an installed program (17.217334ms)
+✔ imports cannot escape project or load remote modules at browser runtime (4.367041ms)
+✔ entry diagnostics distinguish missing and non-function defaults with source location (3.013833ms)
+✔ dynamic import is not quietly kept as an unlocked runtime dependency (2.008792ms)
+✔ npm imports require declared dependencies and a committed matching npm lock (3.877875ms)
+✔ Page/Controller source contracts remain discriminated without changing Task v1 (2.49425ms)
+✔ assets can be listed and hashed but never silently injected (4.079167ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 769.8935

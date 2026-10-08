@@ -1,0 +1,40 @@
+✔ UTF-8 BOM in an authoring module survives build and draft import (273.880083ms)
+✔ Page prerelease version matches the project and draft schema at import (61.986458ms)
+✔ builder applies envelope budget to the bytes actually written for file import (113.735917ms)
+✔ entering Sidebar task views reads external installations without executing and preserves unchanged form inputs (17.334083ms)
+✔ installed tasks default page, render schema form and freeze the exact saved version/params/target (19.040208ms)
+✔ installed task can be explicitly forked into an independent unsaved editor draft (5.293833ms)
+✔ task Stop cannot cancel another view's in-flight draft; parameter form never navigates (4.153791ms)
+✔ installed task refuses stale target after async installed-version lookup (6.6165ms)
+✔ task cards retain readable selection and do not surface raw IDs as the main UI (2.896833ms)
+✔ Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog (7.5975ms)
+✔ Discover filter controls are real view filters and cannot start another run (10.267666ms)
+✔ opening the separate full-size catalog preserves its import and management view (2.740666ms)
+✔ full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state (4.0345ms)
+✔ idle Discover has no fixed footer and inline import still opens the authenticated catalog (11.964958ms)
+✔ R5 result/history stay out of sight until a task has runs (7.541958ms)
+✔ card view retains original action identities, history and parameter form across tab changes (8.654625ms)
+✔ switching between two installed tasks preserves each independent unsaved parameter input (2.916375ms)
+✔ R6 accessible roving tabs support Arrow and Home/End (2.183708ms)
+✔ R6 task card refresh, keyboard selection and Discover handoff restore focus (5.176791ms)
+✔ R6 late run start/result cannot become the newly selected task status (11.0515ms)
+✔ R6 previous-version notices and results do not leak after installed upgrade (8.677583ms)
+✔ two extension documents share only a refresh hint and re-read authoritative installed state (32.679375ms)
+✔ catalog installation stays in the complete directory and directs running back to Sidebar (4.149458ms)
+✔ catalog JS import hands source to Sidebar and never enters a view with a hidden runner (5.196458ms)
+✔ missing Sidebar refuses import with an actionable message, without losing the directory (5.058833ms)
+✔ catalog draft transport errors retain their cause instead of claiming Sidebar is missing (3.882708ms)
+✔ receiving a source-only import selects Sidebar Developer without creating a run (2.657417ms)
+✔ R6.1 task-owned Stop is the sole cross-view action and names the launching task (13.490209ms)
+✔ R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover (1.640334ms)
+✔ R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop (0.27375ms)
+✔ catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running (4.896458ms)
+✔ catalog rejects a changed project snapshot before handoff and permits reselecting the file (4.238708ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 553.857666

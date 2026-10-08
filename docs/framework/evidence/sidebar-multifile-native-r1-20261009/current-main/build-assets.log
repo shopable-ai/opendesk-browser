@@ -1,0 +1,102 @@
+
+> opendesk-browser@0.1.0 build:program
+> node scripts/build-program-project.mjs examples/programs/sidebar-assets-contract
+
+{
+  "format": "opendesk.build-artifact.v1",
+  "status": "BUILT_UNVERIFIED",
+  "installable": false,
+  "runtimeKind": "page-userscript",
+  "programId": "sample.sidebar-assets-contract",
+  "version": "0.1.0",
+  "sourceFormat": "esm",
+  "entryFormat": "async-main",
+  "entry": "src/main.js",
+  "buildMode": "production",
+  "buildHash": "82cdbb54d178e517493bdaeab2e749534ab511e5488ee2e3ebc670d7c0ba9554",
+  "sourceModules": [
+    {
+      "path": "src/main.js",
+      "bytes": 384,
+      "sha256": "c8e54cd875be908242c91ba7e024be2a6cd8ebff6ac05dbadfb87682f606323c"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/main.js",
+      "bytes": 384,
+      "sha256": "c8e54cd875be908242c91ba7e024be2a6cd8ebff6ac05dbadfb87682f606323c"
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/panel.css",
+      "kind": "css",
+      "sha256": "b404ae0ee03ed5925b43432c51ce49a1ee757021d395d329e49d33d5d12a4530",
+      "bytes": 178
+    },
+    {
+      "path": "assets/config.json",
+      "kind": "json",
+      "sha256": "c93eeac3b2f9eeaf360477274c5c9f1648674b1819a56dcec8a00691de7d4277",
+      "bytes": 161
+    },
+    {
+      "path": "assets/mark.png",
+      "kind": "image",
+      "sha256": "5352d8f9267f19825076496fbb14bedad3385180480e6b4540919573c6308d2d",
+      "bytes": 84
+    }
+  ],
+  "npmPackages": [],
+  "npmLockSha256": null,
+  "sourceFile": "program.js",
+  "sourceHash": "82cdbb54d178e517493bdaeab2e749534ab511e5488ee2e3ebc670d7c0ba9554",
+  "sourceBytes": 1692,
+  "draftFile": "program.opendesk-draft.json",
+  "authoring": {
+    "files": [
+      {
+        "path": "src/main.js",
+        "bytes": 384,
+        "sha256": "c8e54cd875be908242c91ba7e024be2a6cd8ebff6ac05dbadfb87682f606323c"
+      }
+    ],
+    "assets": [
+      {
+        "path": "assets/panel.css",
+        "kind": "css",
+        "sha256": "b404ae0ee03ed5925b43432c51ce49a1ee757021d395d329e49d33d5d12a4530",
+        "bytes": 178
+      },
+      {
+        "path": "assets/config.json",
+        "kind": "json",
+        "sha256": "c93eeac3b2f9eeaf360477274c5c9f1648674b1819a56dcec8a00691de7d4277",
+        "bytes": 161
+      },
+      {
+        "path": "assets/mark.png",
+        "kind": "image",
+        "sha256": "5352d8f9267f19825076496fbb14bedad3385180480e6b4540919573c6308d2d",
+        "bytes": 84
+      }
+    ],
+    "webpackModules": [
+      "src/main.js"
+    ],
+    "buildMode": "production",
+    "buildHash": "82cdbb54d178e517493bdaeab2e749534ab511e5488ee2e3ebc670d7c0ba9554"
+  },
+  "pageRules": {
+    "matches": [
+      "http://127.0.0.1/*"
+    ],
+    "excludeMatches": [],
+    "runAt": "document_idle",
+    "allFrames": false,
+    "world": "USER_SCRIPT"
+  },
+  "note": "Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted.",
+  "outputDirectory": "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/artifacts/programs/sample.sidebar-assets-contract/0.1.0/r31-production/82cdbb54d178e517-0a639d82d8e2"
+}

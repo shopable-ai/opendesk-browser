@@ -1,0 +1,51 @@
+
+> opendesk-browser@0.1.0 build:dev
+> node scripts/build.mjs development
+
+
+WXT 0.21.4
+ℹ Generating types...
+✔ Finished in 153 ms
+
+WXT 0.21.4
+ℹ Building chrome-mv3 for development with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/13] sw[K⠙ [1/13] sw[K⠹ [1/13] sw[K⠸ [1/13] sw[K⠼ [1/13] sw[K⠴ [1/13] sw[K⠦ [1/13] sw[K⠧ [1/13] sw[K⠇ [1/13] sw[K⠏ [1/13] sw[K⠋ [1/13] sw[K⠙ [1/13] sw[K⠹ [1/13] sw[K⠸ [1/13] sw[K⠼ [1/13] sw[K⠴ [1/13] sw[K⠦ [1/13] sw[K⠧ [1/13] sw[K⠇ [1/13] sw[K⠏ [1/13] sw[K⠋ [1/13] sw[K⠙ [1/13] sw[K⠙ [2/13] bootstrap[K⠹ [2/13] bootstrap[K⠹ [3/13] health[K⠸ [3/13] health[K⠸ [4/13] page-agent[K⠼ [4/13] page-agent[K⠴ [4/13] page-agent[K⠴ [5/13] page-relay[K⠦ [5/13] page-relay[K⠧ [5/13] page-relay[K⠇ [5/13] page-relay[K⠇ [6/13] page-session[K⠏ [6/13] page-session[K⠋ [6/13] page-session[K⠙ [6/13] page-session[K⠹ [6/13] page-session[K⠹ [7/13] sandbox[K⠸ [7/13] sandbox[K⠸ [8/13] sdk-main[K⠼ [8/13] sdk-main[K⠴ [8/13] sdk-main[K⠦ [8/13] sdk-main[K⠧ [8/13] sdk-main[K⠧ [9/13] selection-entry[K⠇ [9/13] selection-entry[K⠇ [10/13] settings[K⠏ [10/13] settings[K⠏ [11/13] tool-shell[K⠋ [11/13] tool-shell[K⠙ [11/13] tool-shell[K⠹ [11/13] tool-shell[K⠸ [11/13] tool-shell[K⠼ [11/13] tool-shell[K⠴ [11/13] tool-shell[K⠦ [11/13] tool-shell[K⠧ [11/13] tool-shell[K⠇ [11/13] tool-shell[K⠏ [11/13] tool-shell[K⠋ [11/13] tool-shell[K⠋ [12/13] transport[K⠙ [12/13] transport[K⠹ [12/13] transport[K⠹ [13/13] worker-runtime[K⠸ [13/13] worker-runtime[K⠼ [13/13] worker-runtime[K⠴ [13/13] worker-runtime[K⠦ [13/13] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 4.858 s
+  ├─ dist/development/manifest.json                            1.52 kB  
+  ├─ dist/development/native-agent/settings.html               1.83 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.html           385 B    
+  ├─ dist/development/ui/target-bootstrap.html                 200 B    
+  ├─ dist/development/ui/tool.html                             21.23 kB 
+  ├─ dist/development/agents/bootstrap.js                      21.70 kB 
+  ├─ dist/development/agents/bootstrap.js.map                  65.33 kB 
+  ├─ dist/development/agents/health.js                         1.06 kB  
+  ├─ dist/development/agents/health.js.map                     15.04 kB 
+  ├─ dist/development/agents/page-agent.js                     34.59 kB 
+  ├─ dist/development/agents/page-agent.js.map                 95.31 kB 
+  ├─ dist/development/agents/page-relay.js                     35.52 kB 
+  ├─ dist/development/agents/page-relay.js.map                 113.01 kB
+  ├─ dist/development/agents/selection-entry.js                638 B    
+  ├─ dist/development/agents/selection-entry.js.map            968 B    
+  ├─ dist/development/framework/sdk-main.js                    49.77 kB 
+  ├─ dist/development/framework/sdk-main.js.map                152.75 kB
+  ├─ dist/development/native-agent/settings.js                 22.39 kB 
+  ├─ dist/development/native-agent/settings.js.map             58.37 kB 
+  ├─ dist/development/native-agent/transport.js                29.53 kB 
+  ├─ dist/development/native-agent/transport.js.map            89.73 kB 
+  ├─ dist/development/scripting/packaged/page-session.js       55.33 kB 
+  ├─ dist/development/scripting/packaged/page-session.js.map   174.29 kB
+  ├─ dist/development/scripting/sandbox/sandbox.js             4.24 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.js.map         11.64 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js      49.94 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js.map  156.91 kB
+  ├─ dist/development/sw.js                                    325.15 kB
+  ├─ dist/development/sw.js.map                                963.02 kB
+  ├─ dist/development/ui/tool-shell.js                         177.96 kB
+  ├─ dist/development/ui/tool-shell.js.map                     529.24 kB
+  ├─ dist/development/vendor/jquery-3.7.1.min.js               87.53 kB 
+  ├─ dist/development/ui/tool-shell.css                        19.09 kB 
+  ├─ dist/development/icons/notification.png                   595 B    
+  ├─ dist/development/licenses/jquery-MIT.txt                  1.10 kB  
+  └─ dist/development/licenses/todo-user-vue-MIT.txt           1.10 kB  
+Σ Total size: 3.37 MB                                        
+✔ Finished in 4.953 s
+{"mode":"development","builder":"wxt","status":"passed","packageHash":"8de76f8b99610f306951973a400004fab6a10044deb172ac4e378d9f6070566d","assets":37}

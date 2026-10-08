@@ -1,0 +1,62 @@
+[
+  {
+    "name": "targeted-tests",
+    "command": [
+      "node",
+      "--test",
+      "tests/environment/program-draft-roundtrip.test.mjs",
+      "tests/environment/program-source.test.mjs",
+      "tests/environment/program-build.test.mjs",
+      "tests/environment/program-project.test.mjs",
+      "tests/environment/sidebar-project-demo.test.mjs",
+      "tests/environment/program-assets.test.mjs",
+      "tests/environment/page-ui.test.mjs",
+      "tests/environment/task-workbench.test.mjs",
+      "tests/environment/sidebar-draft-import.test.mjs",
+      "tests/environment/script-editor.test.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "check",
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "build-assets",
+    "command": [
+      "npm",
+      "run",
+      "build:program",
+      "--",
+      "examples/programs/sidebar-assets-contract"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "build-page",
+    "command": [
+      "npm",
+      "run",
+      "build:program",
+      "--",
+      "examples/programs/sidebar-page-demo"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "build-controller",
+    "command": [
+      "npm",
+      "run",
+      "build:program",
+      "--",
+      "examples/programs/sidebar-controller-demo"
+    ],
+    "exitCode": 0
+  }
+]

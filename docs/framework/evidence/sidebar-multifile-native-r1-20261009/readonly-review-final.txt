@@ -1,0 +1,8 @@
+Read-only reviewer: Poincare (01a11cac-9fc9-7942-b1b2-3f5adc9caa51)
+Scope: current project draft consistency and CSS string/comment scan corrections only.
+
+The reviewer found source BOM / Page version / serialized JSON budget inconsistencies, then CSS escaped URL / image-set and metadata BOM gaps, followed by CSS string/comment normalization defects. Each confirmed defect received a regression and was corrected by the leader in this worktree.
+
+Final verdict on the original string/comment scan: no confirmed P1/P2 within this bounded scope. Original strings reject backslash, LF/CR/FF, unterminated quotes and comments before cleanup. Comment markers inside strings are preserved. Masking retains character length and URL replacement offsets match the same normalized text.
+
+This is static read-only review only. The reviewer ran no tests/builds/browser actions and made no writes. It is not independent final F3 or native acceptance evidence.

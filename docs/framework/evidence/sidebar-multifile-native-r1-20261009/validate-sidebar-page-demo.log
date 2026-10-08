@@ -1,0 +1,30 @@
+{
+  "status": "AUTHORING_VALID_NOT_PACKAGED",
+  "format": "opendesk.project.v1",
+  "id": "sample.sidebar-page-demo",
+  "version": "0.1.0",
+  "runtimeKind": "page-userscript",
+  "entry": "src/main.js",
+  "sourceFormat": "esm",
+  "sources": [
+    {
+      "path": "src/fixture.js",
+      "bytes": 500,
+      "sha256": "49725b0f15129b26d43ee1b09e7d24a8258c88aa30d3db6a207810c423d3ba48"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 394,
+      "sha256": "339ce07e50bb873fb57935cee580bc884e351f524a162eccab5b1954cf83256a"
+    },
+    {
+      "path": "src/proof.js",
+      "bytes": 502,
+      "sha256": "f0e6178341339e3e573c46414b7f51f80f718c687814dd238683fb75908cb5d0"
+    }
+  ],
+  "assets": [],
+  "npmPackages": [],
+  "installable": false,
+  "note": "Source authoring metadata only. Validate/build/run through the existing OpenDesk program pipeline."
+}

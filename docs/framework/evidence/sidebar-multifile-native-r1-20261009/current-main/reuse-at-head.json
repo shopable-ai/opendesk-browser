@@ -1,0 +1,15 @@
+{
+  "head": "a04c8e3a2e2e8bf1486aa7fc27ed922bc9e4eaff",
+  "buildInputComparison": [
+    {
+      "mode": "development",
+      "buildReceipt": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/builds/build-development.json",
+      "affectedProductInputs": []
+    },
+    {
+      "mode": "production",
+      "buildReceipt": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/builds/build-production.json",
+      "affectedProductInputs": []
+    }
+  ]
+}

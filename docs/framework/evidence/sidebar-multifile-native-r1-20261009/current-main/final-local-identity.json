@@ -1,0 +1,25 @@
+{
+  "productCandidate": "6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b",
+  "builds": [
+    {
+      "mode": "production",
+      "receipt": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/local-candidate-builds/build-production.json",
+      "receiptSha256": "c99b8206b80b6f226467853ee58f5a3d8eb3812a9d5a9c22eb059e7a4ce919e3",
+      "affectedInputs": []
+    },
+    {
+      "mode": "development",
+      "receipt": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/local-candidate-builds/build-development.json",
+      "receiptSha256": "eb15e765744d83b2e08e9ff2362c94b857339b33b3a05c3a2182ac76eae89d48",
+      "affectedInputs": []
+    }
+  ],
+  "finalTargetedLog": {
+    "path": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/final-targeted-tokenized.log",
+    "tests": 89,
+    "pass": 89,
+    "fail": 0
+  },
+  "staticCheck": "PASS: final-check-tokenized.log",
+  "verify": "PASS: local-candidate-verify.log after both builds completed"
+}

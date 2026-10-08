@@ -1,0 +1,44 @@
+REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:54306/devtools/page/EDE6CA97856584E0E54863EE859F758B
+REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion
+REAL_CHROME_CDP_FRAME={"id":2,"result":{"result":{"type":"object","value":{"alive":true,"url":"about:blank"}}}}
+REAL_CHROME_UNEXTENDED_RENDERER=PASS browser=cft version=Chrome/155.0.8059.39
+REAL_CHROME_BINARY=cft VERSION=Google Chrome for Testing 155.0.8059.39
+✔ real macOS Chrome: bare renderer/CDP control without extensions (557.994083ms)
+REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+REAL_CHROME_EXTENSION_LOADED=PASS id=kbgbamecbefgfoinkcoppfjimhlppgbm
+MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser=cft
+REAL_CHROME_OPTIONS_TARGET={"id":"D122B6805EC6111577861EE19ADF976C","type":"page","url":"about:blank","ws":"ws://127.0.0.1:54315/devtools/page/D122B6805EC6111577861EE19ADF976C"}
+REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:54315/devtools/page/D122B6805EC6111577861EE19ADF976C
+REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion
+REAL_CHROME_CDP_BROWSER_VERSION={"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.35.20"}
+REAL_CHROME_CDP_FRAME={"id":2,"result":{"result":{"type":"object","value":{"url":"about:blank","ready":"complete"}}}}
+REAL_CHROME_BLANK_CONTROL={"url":"about:blank","ready":"complete"}
+REAL_CHROME_CDP_FRAME={"id":3,"result":{}}
+REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedNavigating","params":{"frameId":"D122B6805EC6111577861EE19ADF976C","url":"chrome-extension://kbgbamecbefgfoinkcoppfjimhlppgbm/native-agent/settings.html","loaderId":"8A13F63D6FE07567F9194A45BE15F746","navigationType":"differentDocument"}}
+REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedLoading","params":{"frameId":"D122B6805EC6111577861EE19ADF976C"}}
+REAL_CHROME_OPTIONS_NAVIGATION={"frameId":"D122B6805EC6111577861EE19ADF976C","loaderId":"8A13F63D6FE07567F9194A45BE15F746","isDownload":false}
+REAL_CHROME_OPTIONS_LOADED=PASS
+REAL_CHROME_ENABLE_HIT={"x":140.25,"y":246.359375,"width":756,"height":413,"disabled":false,"hit":true}
+REAL_CHROME_CDP_POINTER_DISPATCHED=PASS (extension itself requires event.isTrusted)
+REAL_CHROME_NATIVE_HANDSHAKE=NOT_VERIFIED; Options status="Native Agent：关闭\nNative Host：未连接（检查 setup 与 CLI doctor）\n已注册工作台：0\nExtension ID：kbgbamecbefgfoinkcoppfjimhlppgbm"
+✖ real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake (19272.159958ms)
+REAL_CHROME_PROCESS_EXIT={"code":null,"signal":"SIGKILL","stderr":"\nDevTools listening on ws://127.0.0.1:54315/devtools/browser/83ee9b16-4587-4990-b345-bf14ca843dc0\n[84197:54238799:1009/022756.473792:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[84197:54238799:1009/022756.474200:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[84197:54238799:1009/022756.474270:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[84197:54238799:1009/022756.474342:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[84197:54238799:1009/022756.474399:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[84197:54238799:1009/022757.045733:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n"}
+REAL_CHROME_CDP_CLOSED={"code":1006,"reason":"","pending":0}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19916.98775
+
+✖ failing tests:
+
+test at tests/environment/native-agent-chrome-real.test.mjs:146:1
+✖ real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake (19272.159958ms)
+  Error: Native handshake after Chrome Options trusted click timed out
+      at eventually (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:18:9)
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:275:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

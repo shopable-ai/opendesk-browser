@@ -1,0 +1,32 @@
+✔ CSS url() points to embedded image, with JSON and hashes; no runtime dev server (385.881959ms)
+✔ reject CSS network/import/undeclared URLs and spoofed image bytes (5.561792ms)
+✔ CSS comments and URL-like string content retain their literal meaning (2.87875ms)
+✔ reject CSS escaped tokens and unsupported string image URLs (7.588208ms)
+✔ original JavaScript-only program keeps its output without adding base CSS (74.617833ms)
+✔ three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler (337.987875ms)
+✔ Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim (63.586958ms)
+✔ development mode emits readable program JS, draft metadata and a separate local source map only (21.632916ms)
+✔ development source map maps final generated throw position back to local authoring module (11.484708ms)
+✔ a declared Page stylesheet enters the immutable program artifact rather than failing closed (56.473458ms)
+✔ webpack dependency failures report project, phase and importing source location (52.423375ms)
+✔ untrusted remote and dynamic ESM imports are rejected before Webpack (2.465666ms)
+✔ a frozen output directory rejects replacement without quietly publishing new bytes (112.900917ms)
+✔ UTF-8 BOM in an authoring module survives build and draft import (275.212583ms)
+✔ package metadata BOM fails at validation with the fixed Webpack boundary (4.007083ms)
+✔ Page prerelease version matches the project and draft schema at import (67.107875ms)
+✔ builder applies envelope budget to the bytes actually written for file import (122.886041ms)
+✔ multi-file ESM authoring project is a source contract, not an installed program (17.157334ms)
+✔ imports cannot escape project or load remote modules at browser runtime (4.76525ms)
+✔ entry diagnostics distinguish missing and non-function defaults with source location (2.918ms)
+✔ dynamic import is not quietly kept as an unlocked runtime dependency (1.858209ms)
+✔ npm imports require declared dependencies and a committed matching npm lock (3.979708ms)
+✔ Page/Controller source contracts remain discriminated without changing Task v1 (2.598334ms)
+✔ assets can be listed and hashed but never silently injected (4.043ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 767.036708
