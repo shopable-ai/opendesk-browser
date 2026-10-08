@@ -30,7 +30,7 @@ chrome.webNavigation.onCommitted.addListener(details => {
   // the native document fact for its separately journalled controlled handoff.
   invalidateSdk('navigation',{tabId:details.tabId,frameId:details.frameId,documentId:details.documentId});
   if (details.frameId === 0) foundation.then(broker => broker.cleanupPagePreviewWorlds({tabId:details.tabId,documentId:details.documentId}))
-    .catch(error => console.error('page preview cleanup',error));
+    .catch(error => console.error(`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`));
 });
 chrome.permissions.onRemoved.addListener(removed => {
   invalidateSdk('permission-removed',{origins:removed.origins,permissions:removed.permissions});
@@ -50,7 +50,7 @@ chrome.tabs.onRemoved.addListener(tabId => {
   foundation.then(broker => broker.recoverHostTab(tabId))
     .catch(error => console.error(`[foundation host tab ${error.code || 'E_OWNER'}] ${error.message}`));
   foundation.then(broker => broker.cleanupPagePreviewWorlds({tabId,removed:true}))
-    .catch(error => console.error('page preview cleanup',error));
+    .catch(error => console.error(`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`));
 });
 chrome.tabs.onUpdated.addListener((tabId, change) => { if (change.status === 'loading') health.forgetTab(tabId); });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
