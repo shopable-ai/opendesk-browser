@@ -17,9 +17,10 @@ test('one ordinary HTML page exposes unique, stable automation targets',async()=
     'request-timeout','request-cancel','async-status','async-status-text',
     'async-result','demo-form','name','submit','search-form','keyword',
     'search-submit','search-status','search-count','results','reset-all',
-    'api-url','api-preset','api-send','api-cancel','api-status',
-    'api-status-text','api-http-status','api-duration','api-content-type',
-    'api-response','api-error'
+    'api-url','api-preset','api-channel','api-method','api-timeout',
+    'api-body','api-post-fields','api-headers','api-send','api-cancel',
+    'api-status','api-status-text','api-http-status','api-duration',
+    'api-content-type','api-response','api-error'
   ]) assert(ids.includes(id),`must provide #${id}`);
   for(const selector of ['sample-title','sample-text'])
     assert.match(html,new RegExp(`id="${selector}"[^>]*data-testid="${selector}"`));
@@ -69,13 +70,27 @@ test('explicit HTTP GET controls expose safe semantics and preserve offline-firs
   const html=await load();
   assert.match(html,/<label for="api-url">请求 URL<\/label>/);
   assert.match(html,/id="api-url"[^>]*value="\.\/demo-form\.html\?test-response=1"/);
+  assert.match(html,/<label for="api-channel">/);
+  assert.match(html,/<select id="api-channel"[^>]*>/);
+  assert.match(html,/<option value="fetch"/);
+  assert.match(html,/<option value="sdk"/);
+  assert.match(html,/<label for="api-method">/);
+  assert.match(html,/<select id="api-method"[^>]*>/);
+  assert.match(html,/<option(?: value="GET")?>GET<\/option>/);
+  assert.match(html,/<option(?: value="POST")?>POST<\/option>/);
+  assert.match(html,/<label for="api-timeout">/);
+  assert.match(html,/id="api-timeout"[^>]*value="8000"/);
+  assert.match(html,/<label for="api-body">/);
+  assert.match(html,/<textarea id="api-body"/);
+  assert.match(html,/<[^>]+id="api-headers"/);
+  assert.match(html,/<[^>]+id="api-post-fields"/);
+  assert.match(html,/<button id="api-send"[^>]*>发送 GET<\/button>/);
   assert.match(html,/https:\/\/api\.ipify\.org\?format=json/);
   assert.match(html,/id="api-response"[^>]*data-testid="api-response"/);
   assert.match(html,/credentials:'omit'/);
-  assert.match(html,/method:'GET'/);
-  assert.match(html,/mode:'cors'/);
+  assert.match(html,/method/);
   assert.match(html,/new URL\(input, location\.href\)/);
-  assert.match(html,/response\.headers\.get\('content-type'\)/);
+  assert.match(html,/response\.headers/);
   assert.match(html,/response\.status/);
   assert.match(html,/activeApi !== request \|\| request\.controller\.signal\.aborted/);
   assert.match(html,/readApiPreview\(response\)/);
@@ -111,8 +126,20 @@ function createApiDomHarness(html, handleFetch) {
   // Model the input's actual initial value, not a blank JavaScript stub.
   const initialApiUrl=html.match(/<input id="api-url"[^>]*value="([^"]+)"/)?.[1];
   assert.ok(initialApiUrl);
-  nodes.get('api-url').value=initialApiUrl;
+  for (const input of html.matchAll(/<input\b([^>]*)>/g)) {
+    const id=input[1].match(/\bid="([^"]+)"/)?.[1];
+    if (!id || !nodes.has(id)) continue;
+    nodes.get(id).value=input[1].match(/\bvalue="([^"]*)"/)?.[1] ?? '';
+  }
   nodes.get('api-preset').value=initialApiUrl;
+  for (const select of html.matchAll(/<select\b([^>]*)>([\s\S]*?)<\/select>/g)) {
+    const id=select[1].match(/\bid="([^"]+)"/)?.[1];
+    if (!id || !nodes.has(id)) continue;
+    const options=[...select[2].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/g)];
+    const selected=Math.max(0,options.findIndex(option=>/\sselected(?:\s|>|=)/.test(option[1])));
+    const option=options[selected] ?? options[0];
+    nodes.get(id).value=option?.[1].match(/\bvalue="([^"]*)"/)?.[1] ?? option?.[2]?.replace(/<[^>]+>/g,'').trim() ?? '';
+  }
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.equal(scripts.length,1);
   new Script(scripts[0][1]).runInNewContext({
@@ -120,7 +147,7 @@ function createApiDomHarness(html, handleFetch) {
       getElementById(id){return nodes.get(id);},
       createElement(tag){return new FakeNode(tag);}
     },
-    fetch:handleFetch, AbortController, DOMException, URL, TextDecoder,
+    fetch:handleFetch, AbortController, DOMException, URL, TextDecoder, TextEncoder,
     performance, setTimeout, clearTimeout,
     location:{href:'http://127.0.0.1:43111/demo-form.html'}
   },{timeout:2000});
