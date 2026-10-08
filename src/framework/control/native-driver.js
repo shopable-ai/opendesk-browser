@@ -54,6 +54,8 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     if (state.controller.signal.aborted) throw state.controller.signal.reason;
     if (state.run.closed) throw state.run.closed;
     if (state.deadlineAt !== null && clock.now() >= state.deadlineAt) throw error('E_TIMEOUT');
+    if (state.locatorAbort?.signal.aborted) throw state.locatorAbort.signal.reason;
+    if (state.locatorExpiryAt !== undefined && clock.now() >= state.locatorExpiryAt) throw error('E_TIMEOUT');
   }
   async function permission(state, phase, extra = {}) {
     guard(state);
@@ -63,20 +65,32 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     requireValue(decision !== false, 'E_PERMISSION'); guard(state);
   }
   function race(state, promise) {
-    const signal = state.controller.signal;
+    // A per-Locator clock can stop one operation without retiring the run.
+    const signals = [state.controller.signal, state.locatorAbort?.signal].filter(Boolean);
     return new Promise((resolve, reject) => {
-      const abort = () => { signal.removeEventListener('abort', abort); reject(signal.reason); };
-      Promise.resolve(promise).then(value => { signal.removeEventListener('abort', abort); resolve(value); }, cause => {
-        signal.removeEventListener('abort', abort); reject(cause);
-      });
-      if (signal.aborted) abort(); else signal.addEventListener('abort', abort, {once: true});
+      let settled = false;
+      const listeners = signals.map(signal => () => finish(reject, signal.reason));
+      function finish(done, value) {
+        if (settled) return;
+        settled = true;
+        signals.forEach((signal, index) => signal.removeEventListener('abort', listeners[index]));
+        done(value);
+      }
+      Promise.resolve(promise).then(value => finish(resolve, value), cause => finish(reject, cause));
+      const aborted = signals.find(signal => signal.aborted);
+      if (aborted) finish(reject, aborted.reason);
+      else signals.forEach((signal, index) => signal.addEventListener('abort', listeners[index], {once: true}));
     });
   }
   async function wait(state, promise, extra = {}) {
     let timer, ended = false;
     async function poll() {
       try { await permission(state, 'pre', extra); if (!ended) timer = setTimeout(poll, 25); }
-      catch (cause) { state.controller.abort(cause); }
+      catch (cause) {
+        if (state.locatorAbort && cause?.code === 'E_TIMEOUT' && !state.controller.signal.aborted)
+          state.locatorAbort.abort(cause);
+        else state.controller.abort(cause);
+      }
     }
     // Revalidate while an admitted native wait is pending, including when no
     // Chrome callback arrives. A late callback can never revive delivery.
@@ -471,7 +485,8 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     const descriptor = validateLocatorDescriptor(description), op = validateLocatorOperation(raw);
     requireValue(method === 'locatorWait' ? op.action === 'waitFor' :
       method === 'locatorAction' && ['click','fill'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
-    const expiry = Math.min(state.deadlineAt ?? Infinity, clock.now() + (op.timeout ?? 30000));
+    // The single clock starts before the first authorization and document RPC.
+    const expiry = state.locatorExpiryAt;
     let submitted = false, lastReason = 'E_SELECTOR_NOT_FOUND';
     try {
       for (;;) {
@@ -511,6 +526,10 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       // No such proof exists after a commit was dispatched.
       if (submitted || !['E_TIMEOUT','E_STRICT_MODE_VIOLATION','E_SELECTOR_INVALID','E_SELECTOR_NOT_FOUND',
         'E_INPUT_TARGET_UNSUPPORTED','E_WRITE_CONFLICT'].includes(cause.code)) throw cause;
+      // No commit was sent: remove only the *local* deadline to record a
+      // target-bound no-effect failure under the original run deadline.
+      clearTimeout(state.locatorTimer);
+      delete state.locatorAbort; delete state.locatorExpiryAt;
       await permission(state, 'pre'); await verifyTarget(state);
       const projected = {code:cause.code,name:'PageError',message:cause.message};
       await saveReceipt(state, 'packaged.finalFailure', {frameId:state.envelope.target.frameId,
@@ -558,6 +577,12 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     }
     requireValue(!run.requests.has(envelope.requestId), 'E_OPERATION_REPLAY'); run.requests.add(envelope.requestId);
     const controller = new AbortController(), state = {envelope, args, descriptor, run, controller, deadlineAt, recordReceipt, cleanups: []};
+    if (kind === 'packaged' && (method === 'locatorAction' || method === 'locatorWait')) {
+      state.locatorExpiryAt = Math.min(deadlineAt ?? Infinity, clock.now() + (args[1].timeout ?? 30000));
+      state.locatorAbort = new AbortController();
+      state.locatorTimer = setTimeout(() => state.locatorAbort?.abort(error('E_TIMEOUT')),
+        Math.max(0, state.locatorExpiryAt - clock.now()));
+    }
     const abort = () => controller.abort(signal.reason?.code ? signal.reason : error('E_CANCELLED'));
     let timer;
     if (signal?.aborted) abort(); else signal?.addEventListener('abort', abort, {once: true});
@@ -583,7 +608,9 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       if (controller.signal.aborted) { const reason = controller.signal.reason; await cancel(envelope.identity); throw reason; }
       throw cause;
     } finally {
-      clearTimeout(timer); signal?.removeEventListener('abort', abort); run.pending.delete(state);
+      clearTimeout(timer); clearTimeout(state.locatorTimer);
+      delete state.locatorAbort; delete state.locatorExpiryAt;
+      signal?.removeEventListener('abort', abort); run.pending.delete(state);
       for (const dispose of state.cleanups.reverse()) dispose();
     }
   }
