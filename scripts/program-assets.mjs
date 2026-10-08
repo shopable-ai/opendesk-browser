@@ -33,13 +33,16 @@ export function checkAssetBytes(asset,bytes) {
 }
 function rewriteCss(css,sourcePath,images) {
   // Fail closed on runtime stylesheet imports and unsupported URL grammars.
-  const withoutComments=css.replace(/\/\*[\s\S]*?\*\//g,'');
-  if(/@import\b|@\\|url\s*\(\s*(?:data:|https?:|blob:|\/\/)/i.test(withoutComments))
-    fail('E_PROJECT_ASSET_URL','CSS remote/data/import references are not supported: '+sourcePath,sourcePath);
+  const strings=/"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'/g;
+  const comments=new RegExp('('+strings.source+')|/\\*[\\s\\S]*?\\*/','g');
+  const withoutComments=css.replace(comments,(_match,quoted)=>quoted||' ');
+  const tokens=withoutComments.replace(strings,quoted=>' '.repeat(quoted.length));
+  if(/\\/.test(withoutComments)||/@import\b|\b(?:image(?:-set)?|src)\s*\(/i.test(tokens))
+    fail('E_PROJECT_ASSET_URL','CSS escapes, string image sources and remote/data/import references are not supported: '+sourcePath,sourcePath);
   const urlPattern=/url\s*\(\s*(?:(["'])([^"']+)\1|([^'")\s]+))\s*\)/gi;
-  const occurrences=(withoutComments.match(/url\s*\(/gi)||[]).length;
-  const found=[...withoutComments.matchAll(urlPattern)];
-  if(occurrences!==found.length)
+  const references=new Set([...tokens.matchAll(/\burl\s*\(/gi)].map(match=>match.index));
+  const found=[...withoutComments.matchAll(urlPattern)].filter(match=>references.has(match.index));
+  if(references.size!==found.length)
     fail('E_PROJECT_ASSET_URL','Unsupported CSS url() syntax: '+sourcePath,sourcePath);
   function resolved(spec) {
     if(!/^[A-Za-z0-9@._/-]+$/.test(spec)||spec.startsWith('/')||spec.includes('\\')||spec.includes('?')||spec.includes('#'))
@@ -49,7 +52,8 @@ function rewriteCss(css,sourcePath,images) {
       fail('E_PROJECT_ASSET_URL','CSS image is not declared in opendesk.assets: '+spec,sourcePath);
     return images.get(normalized);
   }
-  return css.replace(urlPattern,(_match,_quote,quoted,plain)=>'url("'+resolved(quoted||plain)+'")');
+  return withoutComments.replace(urlPattern,(match,_quote,quoted,plain,offset)=>
+    references.has(offset)?'url("'+resolved(quoted||plain)+'")':match);
 }
 export function buildAssetRecords(assets,bytesByPath) {
   let total=0;

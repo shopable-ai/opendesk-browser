@@ -4,6 +4,7 @@ import {mkdtemp,cp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {buildProgramProject} from '../../scripts/build-program-project.mjs';
+import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
 import {validateProgramDraft,PROGRAM_DRAFT_LIMIT} from '../../src/ui/program-source.js';
 async function project(t) {
   const root=await mkdtemp(join(tmpdir(),'opendesk-draft-roundtrip-'));
@@ -22,6 +23,14 @@ test('UTF-8 BOM in an authoring module survives build and draft import',async t=
   await validateProgramDraft(draft);
   assert.equal(draft.authoring.files.find(row=>row.path==='src/describe.js').sourceUtf8.charCodeAt(0),0xfeff);
 });
+test('package metadata BOM fails at validation with the fixed Webpack boundary',async t=>{
+  const {root,input}=await project(t),file=join(input,'package.json');
+  await writeFile(file,Buffer.concat([Buffer.from([0xef,0xbb,0xbf]),await readFile(file)]));
+  for(const check of [()=>validateProgramProject(input),()=>buildProgramProject(input,{outputDirectory:join(root,'output')})]){
+    await assert.rejects(check(),e=>e.code==='E_PROJECT_META'&&e.phase==='metadata'&&e.location==='package.json'&&/BOM/.test(e.message));
+  }
+});
+
 test('Page prerelease version matches the project and draft schema at import',async t=>{
   const {root,input}=await project(t),file=join(input,'package.json'),pkg=JSON.parse(await readFile(file,'utf8'));
   pkg.version='1.0.0-beta.1';await writeFile(file,JSON.stringify(pkg));

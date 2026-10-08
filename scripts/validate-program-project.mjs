@@ -177,7 +177,10 @@ export async function validateProgramProject(input){
   const projectRoot=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(projectRoot);
   const packageDetails=context(projectLabel,'metadata','package.json');
-  const pkg=JSON.parse(decode(await checkedFile(projectRoot,'package.json',64*1024,packageDetails),packageDetails));
+  const packageBytes=await checkedFile(projectRoot,'package.json',64*1024,packageDetails);
+  ensure(!packageBytes.subarray(0,3).equals(Buffer.from([0xef,0xbb,0xbf])),
+    'E_PROJECT_META','package.json must be UTF-8 without BOM for the fixed Webpack resolver',packageDetails);
+  const pkg=JSON.parse(decode(packageBytes,packageDetails));
   const p=metadata(pkg,projectLabel);
 
   const graph=new Map();
