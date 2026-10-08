@@ -14,9 +14,12 @@ const SOURCE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPTS = ['native-host.mjs','wire.mjs'];
 const extensionIdPattern = /^[a-p]{32}$/;
 function refuseLinks(file) {
-  if (fs.existsSync(file) && fs.lstatSync(file).isSymbolicLink()) throw new WireError('E_INSTALL_SYMLINK');
+  // lstat also detects dangling symlinks, which existsSync would miss.
+  try {if(fs.lstatSync(file).isSymbolicLink())throw new WireError('E_INSTALL_SYMLINK');}
+  catch(error){if(error.code!=='ENOENT')throw error;}
 }
 function ensurePrivate() {
+  refuseLinks(path.dirname(PRIVATE_DIR));
   refuseLinks(PRIVATE_DIR);
   fs.mkdirSync(PRIVATE_DIR,{recursive:true,mode:0o700});
   fs.chmodSync(PRIVATE_DIR,0o700);
@@ -28,9 +31,17 @@ function writeJson(file,data) {
   fs.chmodSync(file,0o600);
 }
 export function loadInstall() {
+  refuseLinks(path.dirname(PRIVATE_DIR));
+  refuseLinks(PRIVATE_DIR);
   refuseLinks(INSTALL_FILE);
+  for (const file of [PRIVATE_DIR,INSTALL_FILE]) {
+    const stat=fs.statSync(file);
+    if ((stat.mode&0o077)!==0 || (process.getuid&&stat.uid!==process.getuid()))
+      throw new WireError('E_INSTALL_PERMISSIONS');
+  }
   const info=JSON.parse(fs.readFileSync(INSTALL_FILE,'utf8'));
-  if(info.name!==HOST_NAME || info.socketPath!==SOCKET_FILE || !extensionIdPattern.test(info.extensionId))
+  if(info.name!==HOST_NAME || info.socketPath!==SOCKET_FILE ||
+    !extensionIdPattern.test(info.extensionId) || !/^[a-f0-9]{64}$/.test(info.clientCredential))
     throw new WireError('E_INSTALL_INVALID');
   return info;
 }
@@ -45,6 +56,7 @@ export function setup(extensionId) {
   for(const file of [...SCRIPTS,'native-host'])refuseLinks(path.join(PRIVATE_DIR,file));
   const expectedManifest={name:HOST_NAME,description:'OpenDesk Browser optional Native Agent',type:'stdio',
     path:path.join(PRIVATE_DIR,'native-host'),allowed_origins:['chrome-extension://'+extensionId+'/']};
+  refuseLinks(MANIFEST_FILE);
   if(fs.existsSync(MANIFEST_FILE)) {
     const actual=JSON.parse(fs.readFileSync(MANIFEST_FILE,'utf8'));
     if(JSON.stringify(actual)!==JSON.stringify(expectedManifest))throw new WireError('E_MANIFEST_CONFLICT');
