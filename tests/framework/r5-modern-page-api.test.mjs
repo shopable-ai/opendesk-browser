@@ -141,7 +141,7 @@ function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateComm
   const transport={request:envelope=>driver.execute(envelope,{deadlineAt:Date.now()+deadlineMs,
     recordReceipt:receipt=>{receipts.push(receipt);}})};
   const context=createRunContext({identity,revision,target,transport,dom:null});
-  return {dom,calls,phases,receipts,context,installation,
+  return {dom,bus,calls,phases,receipts,context,installation,
     get commits(){return commits;},get writes(){return writes;},
     setDocument(value){changed=value;},revoke(){granted=false;},
     dispose(){context.dispose();installation.dispose();}};
@@ -337,14 +337,21 @@ test('ARIA readonly, disabled, pointer-events and animation prevent a commit',as
   }finally{f.dispose();}
 });
 
-test('read-only page requests do not accumulate while commit replay stays fenced',async()=>{
+test('completed read-only requests re-evaluate DOM; duplicate native commit has one effect',async()=>{
   const f=fixture({duplicateCommit:true});
   try {
-    for(let i=0;i<25;i++) assert.equal(await f.context.page.getByRole('button',{name:'搜索'}).count(),1);
-    await pause(0);
-    assert.equal(f.installation.snapshot().requests,0);
+    for(let i=0;i<25;i++)
+      assert.equal(await f.context.page.getByRole('button',{name:'搜索'}).count(),1);
     await f.context.page.getByRole('button',{name:'搜索'}).click({timeout:1000});
-    assert.equal(f.dom.submits,1);
-    assert.ok(f.installation.snapshot().requests>=1,'commit result must remain cached');
+    assert.equal(f.dom.submits,1,'native duplicate delivery must not click twice');
+
+    const envelope={requestId:'same-read-replay',identity,revision,target,
+      operation:{kind:'packaged',method:'locatorRead',args:encodeValue([
+        createLocatorDescriptor('role','button',{name:'搜索',exact:true}),{action:'count'}])}};
+    const read=()=>f.bus.deliver({type:'OPENDESK_CONTROLLER_PAGE_SESSION_V1',action:'execute',envelope});
+    assert.equal(decodeValue((await read()).value),1);
+    f.dom.form.append(new Element('button',{},'搜索'));
+    assert.equal(decodeValue((await read()).value),2,
+      'completed read-only request must be re-evaluated, not replayed from a stale cache');
   }finally{f.dispose();}
 });

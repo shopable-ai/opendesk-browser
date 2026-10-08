@@ -7,7 +7,12 @@ import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} 
 import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} from '../../framework/control/native-driver.js';
 import {assertInstalledTask} from '../tasks/service.js';
 
-const stores = ['runs', 'commandJournal', 'results'];
+const COMMAND_JOURNAL = 'commandJournal';
+const DOC_REPLACED = 'E_DOCUMENT_REPLACED';
+const REQUEST_CONFLICT = 'E_REQUEST_CONFLICT';
+const EFFECT_UNKNOWN = 'E_EFFECT_UNKNOWN';
+const CANCELLED_CODE = 'E_CANCELLED';
+const stores = ['runs', COMMAND_JOURNAL, 'results'];
 const live = new Set(['preparing', 'running']);
 const terminals = new Set(['completed', 'failed', 'stopped', 'interrupted']);
 // Typed values still decode at semantic depth 12. Object tags add up to three
@@ -62,7 +67,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     invariant(current.permissionEpoch === run.nativeFence.permissionEpoch, 'E_PERMISSION', 'Observed permission removal permanently fenced this run');
     invariant(current.tabEpoch === run.nativeFence.tabEpoch && current.frameEpoch === run.nativeFence.frameEpoch &&
       current.rootFrameEpoch === run.nativeFence.rootFrameEpoch,
-      'E_DOCUMENT_REPLACED', 'Observed native document loss fenced this run');
+      DOC_REPLACED, 'Observed native document loss fenced this run');
   }
   async function owner(transaction, run, host, sender, {active = false} = {}) {
     await currentHost(transaction, host, sender);
@@ -73,7 +78,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (active) {
       checkFence(run);
       invariant(live.has(run.state) && !run.cancelSeq && !run.retirementId && now() < run.deadlineAt,
-        now() >= run.deadlineAt ? 'E_TIMEOUT' : 'E_CANCELLED', 'Controller admission is fenced');
+        now() >= run.deadlineAt ? 'E_TIMEOUT' : CANCELLED_CODE, 'Controller admission is fenced');
     }
     return run;
   }
@@ -94,23 +99,23 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         // Revision transactions deliberately contain no runs store. Their
         // durable lease mirror is fenced in the same transaction as run state.
         if (run) {
-          const lease = await transaction.get('commandJournal', `controller-pin:${run.runId}`);
+          const lease = await transaction.get(COMMAND_JOURNAL, `controller-pin:${run.runId}`);
           invariant(lease?.tag === 'controller-lease' && lease.registrationId === host.registrationId &&
             pinBindingFields.every(key => Object.hasOwn(lease, key) && same(lease[key], context[key])),
             'E_OWNER');
           if (!retiring) invariant(live.has(lease.state) && !lease.cancelSeq && now() < lease.deadlineAt,
-            now() >= lease.deadlineAt ? 'E_TIMEOUT' : 'E_CANCELLED');
+            now() >= lease.deadlineAt ? 'E_TIMEOUT' : CANCELLED_CODE);
         }
         return true;
       },
       async authorize() {
         return tx('readonly', async transaction => context.authorizeInTransaction(transaction),
-          scriptId === undefined ? ['runs', 'commandJournal'] : ['scriptHeads', 'commandJournal']);
+          scriptId === undefined ? ['runs', COMMAND_JOURNAL] : ['scriptHeads', COMMAND_JOURNAL]);
       }};
     return context;
   }
   async function lease(transaction, run) {
-    await transaction.put('commandJournal', {tag: 'controller-lease', runId: run.runId, namespace: run.namespace,
+    await transaction.put(COMMAND_JOURNAL, {tag: 'controller-lease', runId: run.runId, namespace: run.namespace,
       principal: run.principal, grantIncarnation: run.registrationId, opId: run.opId, requestId: run.requestId,
       resultId: run.resultId, browserSessionIncarnation: run.browserSessionIncarnation,
       registrationId: run.registrationId, cancelSeq: run.cancelSeq, state: run.state, deadlineAt: run.deadlineAt,
@@ -140,7 +145,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function getControllerScript(request, sender) {
     fields(request, ['scriptId', 'revision'], ['scriptId']); id(request.scriptId);
     const host = await assertHost(sender);
-    return storage.transaction(['scriptHeads', 'scriptRevisions', 'commandJournal'], 'readonly', async transaction => {
+    return storage.transaction(['scriptHeads', 'scriptRevisions', COMMAND_JOURNAL], 'readonly', async transaction => {
       await currentHost(transaction, host, sender);
       const head = await transaction.get('scriptHeads', scriptKey(namespace(host), request.scriptId));
       invariant(head && !head.tombstoned, 'E_TOMBSTONE', 'Script is not available');
@@ -154,7 +159,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function listControllerScripts(request, sender) {
     fields(request ?? {}, []);
     const host = await assertHost(sender);
-    return storage.transaction(['scriptHeads', 'commandJournal'], 'readonly', async transaction => {
+    return storage.transaction(['scriptHeads', COMMAND_JOURNAL], 'readonly', async transaction => {
       await currentHost(transaction, host, sender);
       return (await transaction.all('scriptHeads'))
         .filter(row => row?.tag === 'script-head' && row.namespace === namespace(host) && !row.tombstoned && !row.scriptId.startsWith('task:'))
@@ -214,7 +219,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const current = await transaction.get('runs', run.runId);
         checkFence(current);
         invariant(current?.tag === 'controller-run' && !current.cancelSeq && live.has(current.state) &&
-          current.browserSessionIncarnation === session, 'E_CANCELLED');
+          current.browserSessionIncarnation === session, CANCELLED_CODE);
         invariant(now() < current.deadlineAt, 'E_TIMEOUT');
       }, ['runs']);
       try {
@@ -222,7 +227,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         if ((!changedFrom || observed.documentId !== changedFrom) && (!run.startUrl || bootstrapUrl ||
           httpUrl(observed.url).origin === httpUrl(run.startUrl).origin)) return observed;
       } catch (error) {
-        if (!['E_DOCUMENT_REPLACED', 'E_TARGET'].includes(error.code)) throw error;
+        if (![DOC_REPLACED, 'E_TARGET'].includes(error.code)) throw error;
       }
       await new Promise(resolve => setTimeout(resolve, 25));
     }
@@ -231,23 +236,23 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const creationKey = `controller-create:${run.runId}`;
     const intent = await tx('readwrite', async transaction => {
       const current = await owner(transaction, await transaction.get('runs', run.runId), host, sender, {active: true});
-      const previous = await transaction.get('commandJournal', creationKey);
-      invariant(!previous, 'E_EFFECT_UNKNOWN', 'Owned creation dispatch is never replayed');
+      const previous = await transaction.get(COMMAND_JOURNAL, creationKey);
+      invariant(!previous, EFFECT_UNKNOWN, 'Owned creation dispatch is never replayed');
       const creationId = newId(), bootstrapUrl = api.runtime.getURL(`ui/target-bootstrap.html?creationId=${encodeURIComponent(creationId)}`);
       const value = {tag: 'controller-target-create', runId: current.runId, creationId, browserSessionIncarnation: session,
         bootstrapUrl, state: 'dispatched', submissionCount: 1, tabId: null, dispatchAt: now()};
-      await transaction.put('commandJournal', value, creationKey);
+      await transaction.put(COMMAND_JOURNAL, value, creationKey);
       return value;
     });
     await requireGrant(api, httpUrl(run.startUrl).origin);
     const created = await api.tabs.create({url: intent.bootstrapUrl, active: false});
-    invariant(Number.isSafeInteger(created?.id), 'E_EFFECT_UNKNOWN', 'No native owned tab receipt');
+    invariant(Number.isSafeInteger(created?.id), EFFECT_UNKNOWN, 'No native owned tab receipt');
     creatingTabs.set(run.runId, created.id);
     await tx('readwrite', async transaction => {
-      const value = await transaction.get('commandJournal', creationKey);
-      invariant(value.submissionCount === 1 && value.tabId === null, 'E_EFFECT_UNKNOWN');
+      const value = await transaction.get(COMMAND_JOURNAL, creationKey);
+      invariant(value.submissionCount === 1 && value.tabId === null, EFFECT_UNKNOWN);
       value.tabId = created.id; value.receiptAt = now(); value.state = 'created';
-      await transaction.put('commandJournal', value, creationKey);
+      await transaction.put(COMMAND_JOURNAL, value, creationKey);
       const current = await transaction.get('runs', run.runId);
       current.nativeTabId = created.id; current.nativeFence.tabEpoch = tabEpochs.get(created.id) || 0;
       current.nativeFence.frameEpoch = frameEpochs.get(canonical([created.id, 0])) || 0;
@@ -257,10 +262,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     await requireGrant(api, httpUrl(run.startUrl).origin);
     await tx('readwrite', async transaction => {
       await owner(transaction, await transaction.get('runs', run.runId), host, sender, {active: true});
-      const value = await transaction.get('commandJournal', creationKey);
-      invariant(!value.navigationSubmissionCount, 'E_EFFECT_UNKNOWN');
+      const value = await transaction.get(COMMAND_JOURNAL, creationKey);
+      invariant(!value.navigationSubmissionCount, EFFECT_UNKNOWN);
       value.bootstrapDocumentId = bootstrap.documentId; value.navigationSubmissionCount = 1; value.navigationState = 'dispatched';
-      await transaction.put('commandJournal', value, creationKey);
+      await transaction.put(COMMAND_JOURNAL, value, creationKey);
     });
     await api.tabs.update(created.id, {url: run.startUrl});
     const observed = await waitDocument(run, created.id, {changedFrom: bootstrap.documentId});
@@ -334,9 +339,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if (isInstalledTask) await assertInstalledTask(transaction,namespace(host),{
         scriptId:saved.scriptId,contentHash:saved.contentHash,
         origin:selectedOrigin || observed.allowedOrigin,params:runParams});
-      const old = await transaction.get('commandJournal', admissionKey);
+      const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
-        invariant(old.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
+        invariant(old.requestDigest === requestDigest, REQUEST_CONFLICT);
         return {run: await owner(transaction, await transaction.get('runs', old.runId), host, sender), duplicate: true};
       }
       const slot = await transaction.get('runs', '@slot');
@@ -367,7 +372,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       }
       await transaction.put('runs', run, runId);
       await transaction.put('runs', {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
-      await transaction.put('commandJournal', {tag: 'controller-start', runId, requestDigest}, admissionKey);
+      await transaction.put(COMMAND_JOURNAL, {tag: 'controller-start', runId, requestDigest}, admissionKey);
       return {run, pinned, duplicate: false};
     }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
     const run = admitted.run;
@@ -405,12 +410,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const run = await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender, {active: true});
     invariant(envelope.identity.tag === 'controller-run' && same(envelope.identity, {...run.identity, target: envelope.target}) &&
       same(envelope.revision, run.revision), 'E_OWNER', 'Controller operation binding differs');
-    invariant(same(envelope.target, run.target), 'E_DOCUMENT_REPLACED');
-    if (run.navigationRequestId) invariant(run.navigationRequestId === envelope.requestId, 'E_DOCUMENT_REPLACED', 'Navigation fenced old operations');
+    invariant(same(envelope.target, run.target), DOC_REPLACED);
+    if (run.navigationRequestId) invariant(run.navigationRequestId === envelope.requestId, DOC_REPLACED, 'Navigation fenced old operations');
     if (handoff) invariant(post && handoff.from.documentId === run.target.documentId && handoff.to.tabId === run.target.tabId &&
       handoff.to.frameId === run.target.frameId && handoff.to.targetVersion === run.target.targetVersion + 1 &&
       handoff.to.browserSessionIncarnation === session && handoff.to.mode === run.target.mode,
-    'E_DOCUMENT_REPLACED', 'Native navigation handoff differs');
+    DOC_REPLACED, 'Native navigation handoff differs');
     return run;
   }
   async function controllerOperation(request, sender) {
@@ -432,8 +437,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const host = await assertHost(sender), key = opKey(envelope.identity.runId, envelope.requestId), requestDigest = await digest(envelope, wireCanonicalOptions);
     const previous = await tx('readonly', async transaction => {
       await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender);
-      const value = await transaction.get('commandJournal', key);
-      if (value) invariant(value.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
+      const value = await transaction.get(COMMAND_JOURNAL, key);
+      if (value) invariant(value.requestDigest === requestDigest, REQUEST_CONFLICT);
       return value;
     });
     if (serviceCall && previous?.state === 'durable' && !previous.reply && Object.hasOwn(previous,'valueWire')) {
@@ -445,25 +450,25 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await tx('readonly', async transaction => {
         const run = await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender, {active: true});
         invariant(same(envelope.identity, {...run.identity, target: envelope.target}) && same(envelope.revision, run.revision), 'E_OWNER');
-        invariant(same(target, run.target) && !run.navigationRequestId, 'E_DOCUMENT_REPLACED');
+        invariant(same(target, run.target) && !run.navigationRequestId, DOC_REPLACED);
       });
       return previous.reply;
     }
     if (pending.has(key)) return pending.get(key);
-    if (previous) throw new FoundationError('E_EFFECT_UNKNOWN', 'Dispatched controller operation is not replayable');
+    if (previous) throw new FoundationError(EFFECT_UNKNOWN, 'Dispatched controller operation is not replayable');
     const completion = perform(); pending.set(key, completion);
     try { return await completion; } finally { if (pending.get(key) === completion) pending.delete(key); }
     async function perform() {
       const navigation = envelope.operation.kind === 'browser' && ['goto', 'reload'].includes(envelope.operation.method);
       const run = await tx('readwrite', async transaction => {
         const current = await admittedOperation(transaction, envelope, host, sender);
-        invariant(!await transaction.get('commandJournal', key), 'E_EFFECT_UNKNOWN');
+        invariant(!await transaction.get(COMMAND_JOURNAL, key), EFFECT_UNKNOWN);
         if (navigation) {
-          invariant(!current.navigationRequestId, 'E_DOCUMENT_REPLACED');
+          invariant(!current.navigationRequestId, DOC_REPLACED);
           current.navigationRequestId = envelope.requestId;
           await transaction.put('runs', current, current.runId);
         }
-        await transaction.put('commandJournal', {tag: navigation ? 'controller-navigation' : 'controller-operation', runId: current.runId,
+        await transaction.put(COMMAND_JOURNAL, {tag: navigation ? 'controller-navigation' : 'controller-operation', runId: current.runId,
           ...(serviceCall ? {lifecycle:'controller',namespace:current.namespace,principal:current.principal,grantIncarnation:current.registrationId,
             browserSessionIncarnation:session,opId:key,requestId:envelope.requestId,resultId:`${key}:result`,method:envelope.operation.method} : {}),
           requestDigest, envelope, state: 'dispatched', submissionCount: 1, dispatchAt: now()}, key);
@@ -495,37 +500,26 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       };
       const driver = createControllerDriver({api, clock, authorize:authorizeOperation, withWrite:withLocatorWrite});
       const recordReceipt = async receipt => tx('readwrite', async transaction => {
-        const operation = await transaction.get('commandJournal', key);
-        invariant(operation?.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
-        const rows = operation.nativeReceipts ||= [], copy = structuredClone(receipt);
-        const locator = envelope.operation.kind === 'packaged' &&
-          ['locatorAction','locatorWait'].includes(envelope.operation.method);
-        if (locator && ['webNavigation.getAllFrames','tabs.sendMessage'].includes(receipt.stage)) {
-          // Keep the last native poll evidence and its total count, rather
-          // than growing the durable journal for the full 120-second wait.
-          // Explicit commitIntent/commitNoEffect records are never sampled.
-          const old = rows.findIndex(row => row.stage === receipt.stage && row.sampled === true);
-          if (old >= 0) rows.splice(old, 1);
-          rows.push({...copy, sampled:true});
-          operation.locatorNativePollCount = (operation.locatorNativePollCount || 0) + 1;
-        } else if (locator && receipt.stage === 'locator.commitNoEffect') {
-          // Every earlier commit intent was explicitly cleared by a
-          // no-effect receipt. Keep the newest checkpoint and a count.
+        const operation = await transaction.get(COMMAND_JOURNAL, key);
+        invariant(operation?.requestDigest === requestDigest, REQUEST_CONFLICT);
+        // An explicitly rejected Locator commit closes all earlier intents.
+        if (receipt.stage === 'locator.commitNoEffect') {
           operation.locatorNoEffectCount = (operation.locatorNoEffectCount || 0) + 1;
-          operation.nativeReceipts = rows.filter(row => !['locator.commitIntent','locator.commitNoEffect'].includes(row.stage));
-          operation.nativeReceipts.push(copy);
-        } else rows.push(copy);
-        await transaction.put('commandJournal', operation, key);
-      }, ['commandJournal']);
+          operation.nativeReceipts = (operation.nativeReceipts || []).filter(row =>
+            row.stage !== 'locator.commitIntent' && row.stage !== 'locator.commitNoEffect');
+        }
+        (operation.nativeReceipts ||= []).push(structuredClone(receipt));
+        await transaction.put(COMMAND_JOURNAL, operation, key);
+      }, [COMMAND_JOURNAL]);
       const recordServiceEffect = async value => {
         const valueWire = encodeValue(value), reply = {requestId:envelope.requestId,value:encodeControlValue(value)};
         await tx('readwrite', async transaction => {
-          const operation = await transaction.get('commandJournal', key);
-          invariant(operation?.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
+          const operation = await transaction.get(COMMAND_JOURNAL, key);
+          invariant(operation?.requestDigest === requestDigest, REQUEST_CONFLICT);
           await transaction.put('results',{...Object.fromEntries(pinBindingFields.map(field=>[field,operation[field]])),
             tag:'controller-service-result',opKey:key,requestDigest,state:'durable',valueWire,committedAt:now()},operation.resultId);
           operation.state='durable'; operation.valueWire=valueWire; operation.reply=reply; operation.receiptAt=now();
-          await transaction.put('commandJournal',operation,key);
+          await transaction.put(COMMAND_JOURNAL,operation,key);
         });
         return reply;
       };
@@ -535,7 +529,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           opKey:key,method:envelope.operation.method,requestDigest,deadlineAt:run.deadlineAt,signal:abort.signal,
           authorize:details=>authorizeOperation(envelope,details),
           authorizeInTransaction:transaction=>admittedOperation(transaction,envelope,host,sender),
-          assertDispatch(){checkFence(run);invariant(!abort.signal.aborted && now()<run.deadlineAt,'E_CANCELLED');},
+          assertDispatch(){checkFence(run);invariant(!abort.signal.aborted && now()<run.deadlineAt,CANCELLED_CODE);},
           recordNativeReceipt:recordReceipt,recordEffect:recordServiceEffect};
         const httpMethod = {AXIOS_GET:'GET',AXIOS_POST:'POST',AXIOS_PUT:'PUT',AXIOS_DELETE:'DELETE'}[context.method];
         const value = httpMethod
@@ -550,8 +544,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         // Record observed native effect before checking delivery permission.
         // Cancellation cannot erase the receipt or make this request replayable.
         await tx('readwrite', async transaction => {
-          const operation = await transaction.get('commandJournal', key);
-          invariant(operation?.requestDigest === requestDigest && operation.submissionCount === 1, 'E_REQUEST_CONFLICT');
+          const operation = await transaction.get(COMMAND_JOURNAL, key);
+          invariant(operation?.requestDigest === requestDigest && operation.submissionCount === 1, REQUEST_CONFLICT);
           if(reply.error){
             const kind=envelope.operation.kind;
             const cookiePreflight=kind==='browser'&&COOKIE_PREFLIGHT_METHODS.includes(envelope.operation.method);
@@ -576,12 +570,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           operation.state = 'durable'; operation.receiptAt = now(); operation.reply = reply;
           if (reply.handoff) operation.targetTransition = {navigationIntentId: envelope.requestId,
             from: structuredClone(reply.handoff.from), to: structuredClone(reply.handoff.to)};
-          await transaction.put('commandJournal', operation, key);
+          await transaction.put(COMMAND_JOURNAL, operation, key);
         });
         return await tx('readwrite', async transaction => {
           const current = await admittedOperation(transaction, envelope, host, sender, {post: true, handoff: reply.handoff});
           if (navigation) {
-            invariant(reply.handoff, 'E_DOCUMENT_REPLACED');
+            invariant(reply.handoff, DOC_REPLACED);
             current.target = structuredClone(reply.handoff.to); current.identity.target = current.target;
             boundTargets.set(current.runId, current.target);
             delete current.navigationRequestId; current.runRevision++; current.eventSeq++;
@@ -591,12 +585,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         });
       } catch (error) {
         await tx('readwrite', async transaction => {
-          const operation = await transaction.get('commandJournal', key);
+          const operation = await transaction.get(COMMAND_JOURNAL, key);
           if (!operation || operation.state === 'durable') return;
           if (serviceCall && error.code==='E_HTTP' && operation.nativeReceipts?.some(receipt=>Number.isInteger(receipt.status))) {
             operation.state='durable'; operation.effectState='response-observed'; operation.receiptAt=now();
             operation.reply={requestId:envelope.requestId,error:{...typed(error),cause:{status:error.status,response:error.response}}};
-            operation.failure=typed(error); await transaction.put('commandJournal',operation,key); return;
+            operation.failure=typed(error); await transaction.put(COMMAND_JOURNAL,operation,key); return;
           }
           // Missing a receipt cannot prove a rejected native call had no effect.
           // Only the driver's explicit user-script availability failure, before
@@ -611,10 +605,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           const uncertainAction = envelope.operation.kind === 'packaged' &&
             envelope.operation.method === 'locatorAction' && lastLocatorCommit?.stage === 'locator.commitIntent';
           operation.state = uncertainAction ? 'effect_unknown' :
-            error.code === 'E_CANCELLED' || error.code === 'E_TIMEOUT' ? 'cancelled' :
+            error.code === CANCELLED_CODE || error.code === 'E_TIMEOUT' ? 'cancelled' :
             failedWithoutEffect ? 'failed' : 'effect_unknown';
           operation.failure = typed(error); operation.deliveryState = 'fenced';
-          await transaction.put('commandJournal', operation, key);
+          await transaction.put(COMMAND_JOURNAL, operation, key);
           const current = await transaction.get('runs', run.runId);
           if (current?.navigationRequestId === envelope.requestId) delete current.navigationRequestId;
           if (current && live.has(current.state) && !current.cancelSeq && operation.state === 'effect_unknown') {
@@ -634,18 +628,18 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const host = await assertHost(sender), key = `controller-stop:${canonical([request.runId, request.requestId])}`;
     const answer = await tx('readwrite', async transaction => {
       const run = await owner(transaction, await transaction.get('runs', request.runId), host, sender);
-      const old = await transaction.get('commandJournal', key);
-      if (old) { invariant(old.requestDigest === canonical(request), 'E_REQUEST_CONFLICT'); return old.response; }
+      const old = await transaction.get(COMMAND_JOURNAL, key);
+      if (old) { invariant(old.requestDigest === canonical(request), REQUEST_CONFLICT); return old.response; }
       if (!run.cancelSeq && !terminals.has(run.state) && !run.retirementId) {
         invariant(request.expectedRunRevision === undefined || request.expectedRunRevision === run.runRevision, 'E_REVISION');
         run.cancelSeq++; run.ownerEpoch++; run.runRevision++; run.eventSeq++; run.state = 'stopping';
-        run.terminalReason = request.reason || 'E_CANCELLED'; await transaction.put('runs', run, run.runId); await lease(transaction, run);
+        run.terminalReason = request.reason || CANCELLED_CODE; await transaction.put('runs', run, run.runId); await lease(transaction, run);
       }
       const response = {runId: run.runId, state: run.state, cancelSeq: run.cancelSeq, runRevision: run.runRevision};
-      await transaction.put('commandJournal', {tag: 'controller-stop', requestDigest: canonical(request), response}, key);
+      await transaction.put(COMMAND_JOURNAL, {tag: 'controller-stop', requestDigest: canonical(request), response}, key);
       return response;
     });
-    abortOperations(request.runId, request.reason === 'E_TIMEOUT' ? 'E_TIMEOUT' : 'E_CANCELLED');
+    abortOperations(request.runId, request.reason === 'E_TIMEOUT' ? 'E_TIMEOUT' : CANCELLED_CODE);
     const run = await tx('readonly', transaction => transaction.get('runs', request.runId), ['runs']);
     await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
     return answer;
@@ -656,14 +650,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       invariant(run?.tag === 'controller-run', 'E_OWNER');
       if (host) await owner(transaction, run, host, sender);
       if (requestId) {
-        const key = `controller-finish:${canonical([runId, requestId])}`, previous = await transaction.get('commandJournal', key);
-        if (previous) invariant(previous.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
-        else await transaction.put('commandJournal', {tag: 'controller-finish', runId, requestDigest}, key);
+        const key = `controller-finish:${canonical([runId, requestId])}`, previous = await transaction.get(COMMAND_JOURNAL, key);
+        if (previous) invariant(previous.requestDigest === requestDigest, REQUEST_CONFLICT);
+        else await transaction.put(COMMAND_JOURNAL, {tag: 'controller-finish', runId, requestDigest}, key);
       }
       const old = await transaction.get('results', run.resultId);
       if (old) {
         if (old.state === 'completed' && status === 'completed') invariant(same(old.outcome.valueWire, outcome.valueWire),
-          'E_REQUEST_CONFLICT', 'Controller terminal value is immutable');
+          REQUEST_CONFLICT, 'Controller terminal value is immutable');
         if (workerRetired && !run.workerRetired) { run.workerRetired = true; await transaction.put('runs', run, runId); await lease(transaction, run); }
         return {run: project(run), result: old};
       }
@@ -673,12 +667,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const state = expired && terminal === 'completed' ? 'stopped' : terminal;
       const result = {tag: 'controller-result', resultId: run.resultId, runId, namespace: run.namespace, principal: run.principal,
         revision: run.revision, sourceKind: run.sourceKind, state, outcome: state === 'completed' ? {ok: true, valueWire: outcome.valueWire} :
-          {ok: false, error: run.cancelSeq || expired ? typed(new FoundationError(expired ? 'E_TIMEOUT' : run.terminalReason || 'E_CANCELLED', 'Controller fenced')) : outcome.error},
+          {ok: false, error: run.cancelSeq || expired ? typed(new FoundationError(expired ? 'E_TIMEOUT' : run.terminalReason || CANCELLED_CODE, 'Controller fenced')) : outcome.error},
         committedAt: now()};
       if (result.outcome.ok) decodeValue(result.outcome.valueWire);
-      if (state === 'completed') invariant(!(await transaction.all('commandJournal')).some(value => value.runId === runId &&
+      if (state === 'completed') invariant(!(await transaction.all(COMMAND_JOURNAL)).some(value => value.runId === runId &&
         ['controller-operation', 'controller-navigation'].includes(value.tag) && ['dispatched', 'effect_unknown'].includes(value.state)),
-      'E_EFFECT_UNKNOWN', 'Unsettled controller effects prevent success');
+      EFFECT_UNKNOWN, 'Unsettled controller effects prevent success');
       run.state = state; run.cancelSeq++; run.ownerEpoch++; run.runRevision++; run.eventSeq++;
       run.workerRetired = workerRetired; run.retirementId = newId(); run.retirementState = 'fenced';
       run.terminalReason = result.outcome.ok ? null : result.outcome.error;
@@ -700,9 +694,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     await tx('readonly', async transaction => owner(transaction, await transaction.get('runs', request.runId), host, sender));
     const state = request.status === 'succeeded' ? 'completed' : request.status === 'error' ? 'failed' : request.status === 'host-closed' ? 'interrupted' : 'stopped';
     const answer = await settleInternal(request.runId, state, request.status === 'succeeded' ? {valueWire: request.valueWire} :
-      {error: request.error || typed(new FoundationError(request.status === 'timeout' ? 'E_TIMEOUT' : 'E_CANCELLED', request.status))},
+      {error: request.error || typed(new FoundationError(request.status === 'timeout' ? 'E_TIMEOUT' : CANCELLED_CODE, request.status))},
       {...request, host, sender, requestDigest: await digest(request, wireCanonicalOptions)});
-    abortOperations(request.runId, request.status === 'timeout' ? 'E_TIMEOUT' : 'E_CANCELLED');
+    abortOperations(request.runId, request.status === 'timeout' ? 'E_TIMEOUT' : CANCELLED_CODE);
     // Settlement persists even if permission is lost; delivery is separately authorized.
     const delivery=await snapshotControllerRun({runId:request.runId},sender);
     invariant(delivery.results.some(result=>result.resultId===answer.result.resultId),'E_PERMISSION','Result delivery is no longer authorized');
@@ -720,7 +714,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
     let absence = 'borrowed-not-closed';
     if (run.selection.mode === 'owned') {
-      const intent = await tx('readonly', transaction => transaction.get('commandJournal', `controller-create:${run.runId}`), ['commandJournal']);
+      const intent = await tx('readonly', transaction => transaction.get(COMMAND_JOURNAL, `controller-create:${run.runId}`), [COMMAND_JOURNAL]);
       if (intent && (!Number.isSafeInteger(intent.tabId) || intent.browserSessionIncarnation !== session))
         return {state: 'pending', releaseCount: 0, reason: 'creation-unknown'};
       if (intent) {
@@ -729,9 +723,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const call = await tx('readwrite', async transaction => {
           const current = await transaction.get('runs', run.runId);
           invariant(current.retirementId === run.retirementId && current.workerRetired && current.browserSessionIncarnation === session, 'E_OWNER');
-          const key = `controller-retirement:${run.retirementId}`, old = await transaction.get('commandJournal', key);
+          const key = `controller-retirement:${run.retirementId}`, old = await transaction.get(COMMAND_JOURNAL, key);
           if (old) return false;
-          await transaction.put('commandJournal', {tag: 'controller-retirement', runId: run.runId, retirementId: run.retirementId,
+          await transaction.put(COMMAND_JOURNAL, {tag: 'controller-retirement', runId: run.runId, retirementId: run.retirementId,
             submissionCount: 1, state: 'remove-dispatched', tabId: intent.tabId, dispatchAt: now()}, key);
           return true;
         });
@@ -760,13 +754,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       // Host disappearance cannot call a host-authorized revision API. Release
       // only this existing exact pin after realm/target retirement is proven.
       if (!host && current.revision?.pinKey) {
-        const pin = await transaction.get('commandJournal', current.revision.pinKey);
+        const pin = await transaction.get(COMMAND_JOURNAL, current.revision.pinKey);
         invariant(pin?.runId === current.runId && pin.opKey === `controller-pin:${current.runId}`, 'E_OWNER');
-        await transaction.put('commandJournal', {...pin, released: true}, current.revision.pinKey);
+        await transaction.put(COMMAND_JOURNAL, {...pin, released: true}, current.revision.pinKey);
       }
       await transaction.put('runs', {...slot, currentRunId: null, state: 'available', releaseCount: 1}, '@slot');
       boundTargets.delete(current.runId); navigating.delete(current.runId); creatingTabs.delete(current.runId);
-      await transaction.put('commandJournal', {tag: 'controller-retirement', runId: run.runId, retirementId: run.retirementId,
+      await transaction.put(COMMAND_JOURNAL, {tag: 'controller-retirement', runId: run.runId, retirementId: run.retirementId,
         releaseCount: 1, absence, releasedAt: now()}, `controller-retirement:${run.retirementId}`);
       return {state: 'released', releaseCount: 1, retirementId: run.retirementId};
     });
@@ -787,14 +781,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           current.cancelSeq++; current.ownerEpoch++; current.terminalReason = 'E_HOST_CLOSED';
           await transaction.put('runs', current, current.runId);
           await lease(transaction, current);
-        }, ['runs', 'commandJournal']);
+        }, ['runs', COMMAND_JOURNAL]);
         const answer = await settleInternal(run.runId, 'interrupted', {error: typed(new FoundationError('E_HOST_CLOSED', 'Host document is gone'))}, {workerRetired: true});
         await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
         await retire({...run, ...answer.run}, null, null);
       } else await tx('readwrite', async transaction => {
         const current = await transaction.get('runs', run.runId);
         if (!terminals.has(current.state)) { current.state = 'paused_unknown'; current.runRevision++; await transaction.put('runs', current, current.runId); await lease(transaction, current); }
-      }, ['runs', 'commandJournal']);
+      }, ['runs', COMMAND_JOURNAL]);
     }
   }
   async function invalidateControllerTarget({tabId, frameId = 0, documentId, removed = false, permissionRemoved = false, origins = []} = {}) {
@@ -827,20 +821,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         if (!removed && !permissionRemoved && documentId === run.target?.documentId) continue;
         if (!removed && !permissionRemoved && frameId === 0 && documentId === run.target?.rootDocumentId) continue;
         run.cancelSeq++; run.ownerEpoch++; run.runRevision++; run.state = 'stopping';
-        run.terminalReason = permissionRemoved ? 'E_PERMISSION' : 'E_DOCUMENT_REPLACED';
+        run.terminalReason = permissionRemoved ? 'E_PERMISSION' : DOC_REPLACED;
         await transaction.put('runs', run, run.runId); invalidated.push(run);
         await lease(transaction, run);
       }
       return invalidated;
-    }, ['runs', 'commandJournal']);
+    }, ['runs', COMMAND_JOURNAL]);
     for (const run of runs) abortOperations(run.runId, run.terminalReason);
     return runs.map(project);
   }
   async function recoverControllers() {
     return tx('readwrite', async transaction => {
-      for (const operation of await transaction.all('commandJournal')) {
+      for (const operation of await transaction.all(COMMAND_JOURNAL)) {
         if (['controller-operation', 'controller-navigation', 'controller-target-create'].includes(operation.tag) && operation.state === 'dispatched') {
-          operation.state = 'effect_unknown'; await transaction.put('commandJournal', operation,
+          operation.state = 'effect_unknown'; await transaction.put(COMMAND_JOURNAL, operation,
             operation.tag === 'controller-target-create' ? `controller-create:${operation.runId}` : opKey(operation.runId, operation.envelope.requestId));
         }
       }
