@@ -15,6 +15,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
   let localQuery='', localFilter='current';
+  const parameterDrafts=new Map();
   const listeners=[];
   // This channel is a hint only. The recipient always re-reads the authoritative
   // Task Catalog through the existing Host Client; no task data crosses it.
@@ -78,6 +79,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function renderForm(row) {
     const wrapper=get('task-params-form'),key=identity(row);
     if(renderKey===key)return;
+    if(renderKey) {
+      const prior={};
+      for(const control of wrapper.children) {
+        const name=control?.dataset?.taskParam;
+        if(name)prior[name]=control.type==='checkbox'?{checked:control.checked}:{value:control.value};
+      }
+      parameterDrafts.set(renderKey,prior);
+    }
     renderKey=key;clearChildren(wrapper);
     const schema=row.manifest.paramsSchema;
     for(const [name,rule] of Object.entries(schema.properties)) {
@@ -104,6 +113,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }
       wrapper.append(label,control);
       if(rule.description){const help=doc.createElement('p');help.className='hint';help.textContent=rule.description;wrapper.append(help);}
+    }
+    const prior=parameterDrafts.get(key);
+    if(prior){
+      for(const control of wrapper.children){
+        const value=prior[control?.dataset?.taskParam];
+        if(!value)continue;
+        if(Object.hasOwn(value,'checked'))control.checked=value.checked;
+        else control.value=value.value;
+      }
     }
     if(!Object.keys(schema.properties).length)wrapper.textContent='此任务无需填写参数';
   }
