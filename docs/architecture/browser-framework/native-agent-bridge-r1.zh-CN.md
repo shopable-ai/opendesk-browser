@@ -82,3 +82,15 @@ Chrome 官方文档在版本 **146 起**区分 macOS 上 Google Chrome 和 Chrom
 3. \`chrome.storage.local\` 相关日志需要显式人工备份、清理策略和原生重启核对；容量达到上限应 fail closed。
 4. 必须在同一真实版本 Chrome 和 CI 对齐所有打包文件 SHA、Manifest options 页、Native Host 脚本快照，不将 source check 作为运行证据。
 5. PR #9（Sidebar R5）已经合并；PR #7 已关闭但未以原 PR 合并。新的 main 已有集中站点授权代码，候选已逐项保留 `siteAccess` 初始化、权限检查和生命周期清理。下一轮必须核对现行站点授权 UI 与 Agent `permissions.contains` 的一致性，不把 Native 接入当网站授权。
+
+## R6.2 Native Bridge 安全收敛（2026-10-08，未完成原生验收）
+
+现有 PR #11 未替换 Native Messaging，以下仅为小范围安全边界修复，保留同一 RunHost、Authority、Controller、Worker、Durable Result 和权限体系：
+
+1. src/native-agent/service-worker.js 中 run.get/run.stop 要求 runId 在 Native ledger 中已确认 ACKNOWLEDGED，且 **registrationId 必须等于最初 run.start 的 Host**；跨 Sidebar Host 不能获取或停止另一 Host 的运行。
+2. 已投递变更并由 Host 回复 ACK 后，如果写入 storage.local 的 finalize 失败，按 **OUTCOME_UNKNOWN** 返回；不能误称 FAILED_CONFIRMED 而使上层 Agent 误以为可以重新操作。相同 requestId 已留账本栅栏，仍不得重复派发。
+3. tests/environment/native-agent-bridge.test.mjs 新增这两项失败路径，tests/environment/agent-to-task-fixtures.test.mjs 校验只读 observe 草稿与现代 Task v1 package 的不可变 SHA；这些只属于 Node 组件层证据。
+
+既有 [Native CI 37793448204](https://github.com/shopable-ai/opendesk-browser/actions/runs/37793448204) 于 8ab0ada6 HEAD 生产 sw.js=324759 bytes，上限 327680 bytes，Node、源码检查、双构建、verify 均通过。**此为本轮修改前的历史基线，新增提交必须重新验证**。Native Host 的 macOS Actions 使用真实临时 Host/Socket，但 Chrome 帧仍为模拟。
+
+Agent 观察、draft/saved JS、Candidate→Verification→Available→Install 和脱离 AI 的复用仅在 [Agent→Task R1 合同](agent-to-task-contract-r1.zh-CN.md) 中定义；不向 Native 新增直接发布 RPC，也不伪造已验证状态。真实 Mac Chrome/Codex、用户手势、站点 grant、documentId、断线、关闭 Bridge 后普通 Task 仍需现场验收。当前 NATIVE_CHROME_VERIFIED=NOT_TESTED、AI_AGENT_E2E_VERIFIED=NOT_TESTED、FINAL_FRAMEWORK_ACCEPTED=NO。
