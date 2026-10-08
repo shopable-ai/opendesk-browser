@@ -97,6 +97,10 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
   child=spawn(executable,[
     '--headless=new','--no-first-run','--no-default-browser-check',
+    // CI macOS can kill renderers before JS contexts initialize unless
+    // GPU/sandbox/shared-memory use is minimized. These flags are ONLY
+    // for this isolated diagnostic profile, not the shipped extension.
+    '--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
     '--disable-background-networking','--disable-sync',
     '--remote-allow-origins=*','--remote-debugging-port=0',
     '--disable-extensions-except='+ext,'--load-extension='+ext,
