@@ -80,6 +80,8 @@ Sidebar 只拥有 UI 与 CurrentPageTarget。不得新增第二套 JavaScript ex
 
 复验通过后才进入既有 `RunHost`。进入以后不再以 active tab 作为运行目标。
 
+当前网页的借用目标还携带可选的 `expectedUrl`，由既有 Controller target observer 在准入观察和 revision pin 后的复验中确认。准备期间 pending navigation 或同文档 URL 变化均拒绝；旧手动目标未提供此字段时保持原合同。此字段不增加权限，也不建立新的 target authority。运行阶段仍由既有 exact document / origin / epoch fence 约束。
+
 实现锚点：`src/ui/script-editor.js` 的 Run handler 与 `src/run-host.js`。
 
 ## Revision / Run / Result 合同
@@ -154,3 +156,15 @@ Controller 默认 Current Page 不代表自动安装 OpenDeskSDK。SDK 仍要求
 - 运行期间使用 dynamic active-tab target 吗？必须 NO。
 - Controller 与 SDK authorization 合并了吗？必须 NO。
 - Save / Run / Result 的关系改变了吗？必须 NO。
+
+## Sidebar Web Implementation（2026-10-08）
+
+主界面按当前网页、脚本、当前任务、结果展示。页面标题和 URL 分开显示；高级目标、手动文档、独立 SDK、健康检查与采集模块的现状入口保留在折叠区。320/360/480px 静态布局证据只证明布局，不证明 Chrome Side Panel 可用。
+
+Run 的 revision、参数和目标在 click 内冻结，权限请求在第一个 await 前发起。保存/加载/删除串行执行；迟到的保存不会切换另一脚本，加载期间新增编辑不会被回包覆盖。准备期间关闭 Host 不再启动 Run。
+
+当前任务与历史查询分开投影；运行完成和停止始终以获准的 runId 收尾，不使用可编辑查询框、当前脚本 ID 或新 revision 关联结果。Result 展示其自身 revision/sourceHash，保留 falsy/undefined 与错误类型。过期的 snapshot 回包或错误不得覆盖更新的持久观察。重开仅读取历史；未保存或加载版本不能运行。
+
+执行环境保持现状：Controller async-body 在隔离 Worker 中执行，支持 deadline/Stop/retirement；`page.evaluate(fn)` 由已授权的 userScripts adapter 在 USER_SCRIPT world 中操作准确文档的 DOM；已有 MAIN 路径用于页面全局环境交互。Sidebar 没有 raw executeScript 旁路，也不构成用户脚本匹配/管理产品。
+
+Web/component PASS 与 Native PASS 分开。组件 pagehide/abort/retirement 测试不能替代真实关面板，静态渲染不能替代真实权限点击、DOM 效果或安装。下一阶段入口：`docs/framework/prompts/goal-sidebar-native-acceptance.txt`。

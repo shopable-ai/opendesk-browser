@@ -6,7 +6,7 @@ import {createSdkBroker} from './sdk-broker.js';
 import {createTabsService} from '../chrome/tabs.js';
 import {SDK_FILES, SDK_VERSION, validateSdkRequest} from '../../framework/sdk/registry.js';
 import {PROTOCOL, FoundationError, invariant, newId, canonical, digestUtf8, projectFoundationError} from '../protocol.js';
-import {httpUrl, isToolSender} from '../../environment.js';
+import {httpUrl, isToolSender, resolveToolSender} from '../../environment.js';
 import {bytesToBase64, decodeValue, canonicalValue} from '../page-port/codec.js';
 import {BUDGETS} from '../protocol.js';
 
@@ -139,6 +139,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const routes = {
     commitControllerScript:(p,s)=>authority.commitControllerScript(p,s),
     getControllerScript:(p,s)=>authority.getControllerScript(p,s),
+    listControllerScripts:(p,s)=>authority.listControllerScripts(p,s),
     startControllerRun:(p,s)=>authority.startControllerRun(p,s),
     controllerOperation:(p,s)=>authority.controllerOperation(p,s),
     stopControllerRun:(p,s)=>authority.stopControllerRun(p,s),
@@ -193,6 +194,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     if (message.type === 'BOOTSTRAP_READY') return consumer ? consumer.bootstrapReady(message.payload,sender) : unavailable();
     if (message.type === 'TARGET_READY') return consumer ? consumer.agentReady(message.payload,sender) : unavailable();
     if (['AGENT_READY','PAGE_DATA','PAGE_END','PAGE_EFFECT','PAGE_ERROR','SOURCE_RESULT','SOURCE_PREVIEW_DATA','SOURCE_PREVIEW_END','SOURCE_ERROR'].includes(message.type)) return consumer ? consumer.handleAgentMessage(message,sender) : unavailable();
+    sender = await resolveToolSender(api, sender);
     invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
     if (!consumer && templateOperations.has(message.type)) unavailable();
     const route = Object.hasOwn(routes, message.type) ? routes[message.type] : undefined;

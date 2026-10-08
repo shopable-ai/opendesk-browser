@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "mode": "production",
-  "packageHash": "e56c7d5ccc331a679b2aa593bca9ec4732ac521c1fb7d9e33318e022aa022d04",
-  "zipSha256": "a2f48d4dbf6c1b24b5404fcb93a45e33fb4140e22288a95ead0d78430a3b8dd3",
-  "bytes": 145489
+  "packageHash": "f9de53e703c205089b7edca3cb48729ccb7feec9cefd9c333e680f7d8e9cdd37",
+  "zipSha256": "2b54e0a051cb499c0dc311ef49c765c72a708822d255f3043787fe0729ee94b2",
+  "bytes": 151009
 }

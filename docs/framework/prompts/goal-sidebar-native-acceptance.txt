@@ -1,0 +1,49 @@
+# GOAL：在受控真实 Chrome 中验收 Sidebar Web Implementation Candidate
+
+仅续接本文件对应候选的真实 Sidebar 验收。先读 AGENTS.md、docs/architecture/sidebar-product-contract.zh-CN.md、docs/framework/public-owner.json、该 owner.release、takeoverAcceptance 与 docs/framework/evidence/sidebar-web-20261008-01a117c4/candidate.json。
+本轮 Web 实现已停止；不恢复前任 Goal、不创建其他对话，不使用历史候选 PASS。遵守只读来源工程、不新增依赖、不切分支、不 commit/push/publish 的现行规则。唯一 writer 必须通过真实释放、fresh process audit 和实际 threadId 自登记，新建自身 acceptance；若仍有活跃 writer，停止冲突性写入。
+
+候选当前事实（必须先重新核对 candidate.json，不凭本段认定成功）：
+  WEB_IMPLEMENTATION_READY_FOR_NATIVE = YES
+  NATIVE_SIDEBAR_VERIFIED = NOT_TESTED
+  FINAL_FRAMEWORK_ACCEPTED = NO
+静态 CSS 预览、组件 fixture 的 isTrusted 和 Worker retirement 回包均非真实 Chrome 输入或 native ack。原 603+19/B05/mixed/reconnect/资源/F3/安装合同未关闭，本次 Sidebar 验收不得冒充最终框架接受，也不自动启动历史全量 F3。
+
+首先执行 git status --short、git branch --show-current、git rev-parse HEAD。
+检查 candidate.json 的源码文件与 SHA-256、compiledInputsHash、双模式 build receipt、packageHash、ZIP hash 和 ZIP/dist 字节一致性。
+允许 owner/receipt 元数据产生真实变化； compiled inputs/dist/ZIP 不变时不为元数据重建，不改旧 receipt 伪装新身份。源码或编译输入改变时建立新候选身份，不复用本候选 PASS。
+
+正式调用链：
+  Sidebar → CurrentPageTarget → 已保存 revision + params + 真实 click 权限 → exact revalidate
+  → RunHost → Controller Authority → Sandbox / Worker → PageProxy / ChromePage
+  → Native Driver / userScripts → exact 页面 → Durable Result / retirement
+复用既有 Controller、Authority、RunHost、Result Store；不新增执行器，不新增 Sidebar raw executeScript 旁路。
+现有 current-page borrowed selection 可选 expectedUrl 仅强化准备期间的 URL/pending navigation 校验；手动目标和既有 Page API 保持合同。运行后不再以 active tab 决定目标。
+
+准备可区分的本地 HTTP 页面 A/B（含同 URL 双 tab 变体）；A 包含由用户真实点击后设置 dataset.release=yes 的“放行”按钮，记录窗口/tab/main document 的真实 native identity。仅使用受控 CFT 与新独立 profile，不触碰个人 Chrome。分别记录真实 Side Panel sender、窗口归属、userScripts 是否可用、权限及浏览器完整版本/二进制 hash。
+只有正式 Sidebar 产品入口中的真实输入可以用于 Save/Run/Stop；禁止用 DOM value 赋值、dispatchEvent 或绕过 UI 的后台 API 代替用户操作，禁止伪造 native ack。脚本通过获准 page.evaluate 修改 A 的 DOM 是本次待验收的正式效果，不是验收驱动直接修改目标。
+高级折叠区只做展开/观察，不把 tab-hosted tool.html 当成真实 Side Panel。
+
+依赖顺序与通过条件：
+  1. 打开真实 Chrome Side Panel，自动识别所属窗口页面 A：标题、URL、HTTP(S) 主文档与实际 native identity 一致。受限/未解析/隐身页面给明确不可运行原因；多窗口不能偷跟 last focused window。
+  2. 真实编辑并 Save r1；记录 scriptId/revision/contentHash，SHA-256 与 source UTF-8 一致。Save 不创建 Run，不申请执行权限，也不产生 DOM 操作。
+  3. 真实 Run r1。示例正文可为：
+       await page.evaluate(() => { document.body.dataset.opendesk = 'r1'; });
+       await page.waitForFunction(() => document.body.dataset.release === 'yes', {timeout:20000,polling:100});
+       return {marker: await page.evaluate(() => document.body.dataset.opendesk), value: params.value};
+     用已保存版本、params、当前 A capture 和真实点击授权进入正式 RunHost；记录 runId/resultId/revision.sourceHash。观察唯一真实 native effect/回执，A 的 marker=r1，B 无 marker，world=USER_SCRIPT。MAIN 能力以既有 API 独立定向验证，不新增模式。
+  4. r1 运行期间切到 B：Current Page 跟 B，Running Target 仍 A；同 URL 双 tab 同样不得串页。运行中 Save r2：r1 的源码/参数/target/pin/result 仍是 r1；未保存修改不能替换明确持久版本。随后真实点击 A 的“放行”按钮使 r1 完成，证明 completed Result 的值、r1 hash 和唯一 runId；不要由验收驱动直接修改 dataset。
+  5. 用真实导航/重载重置 A 的等待条件，明确加载已保存的长任务版本并再次 Run，然后真实 Stop 该任务：controller fence/abort → Worker retirement → durable stopped → target/resource released。精确记录原 runId/resultId 和 r1 hash；不得仅看 UI 文案。
+  6. 启动新的长任务，再通过 Chrome 本身真正关闭 Side Panel。不能仅调用 dispose()。观察 actual host port/document 消失、hostGone fallback、abort/Worker retirement、durable interrupted（E_HOST_CLOSED 等具体合同错误）与 pin/slot/target 释放。
+  7. 重开真实 Side Panel，仅读取持久历史；没有再次 start/execute/replay，原 resultId、revision/sourceHash、状态和值准确。运行中修改 UI scriptId/revision/params/查询 runId 不能改变任务结果关联。撤权后重新读取时结果投递应拒绝；刷新视图不得重显已经拒绝投递的旧结果。
+  8. 准备阶段切 tab、pending navigation、同文档 SPA URL 变化、reload/document replacement：拒绝 stale，不执行替换页；若已持久准入才失败，必须有准确失败结果与 retirement released。
+  9. 验证撤权、多窗口和 extension reload：未知效果/缺失回执/owner 或 document 变化保守拦截，不盲目重放。重新授权也不能复活旧 run。
+ 10. 将本候选 ZIP 解压并逐文件核对验收 dist；真实安装/加载解压包、打开 Side Panel 跑关键 Save/Run/Stop/持久结果。包检查和 ZIP byte identity 不算真实安装 PASS。
+
+每项保存同一身份的原始输入、观察、native callback/receipt、run/result 原始对象、retirement released 和资源账本。caseId 可用于追溯，但任务树名称用真实功能。不得以测试数量或任意分组推导产品百分比。
+
+失败处理：
+  真实失败证据 → 第一处错误边界 → 最小源码修复 → 更新候选身份/构建 ZIP（仅实际编译输入变更时）→ 受影响定向重验。
+同一失败只有代码/环境/观察方式明确变化后才重试；不因驱动不方便重设框架，不扩大采集、语音、任务树、Native Messaging、Agent Bridge、MCP、Demo3 或完整用户脚本管理器范围。
+
+交付：逐项 PASS/FAIL/NOT_TESTED、完整 candidate/源码/dist/ZIP 身份、真实 Sidebar close 证据、安装证据和下一实际缺口。只有所有本文件 required native 项的同候选真实证据通过后，才可记录 NATIVE_SIDEBAR_VERIFIED=YES；FINAL_FRAMEWORK_ACCEPTED 保持 NO，除非独立完整最终合同另行正式接受。

@@ -130,6 +130,17 @@ function fixture({frameId = 0} = {}) {
   return {api, state, driver, target, identity, revision, envelope, result, authorize, win, doc, input, nodes, realm, dispose};
 }
 
+test('existing ChromePage evaluate changes only its exact document through USER_SCRIPT after active-tab changes',async t=>{
+  const f=fixture();t.after(f.dispose);f.doc.body.dataset={};const decoy={body:{dataset:{}}};
+  const context=createRunContext({identity:f.identity,revision:f.revision,target:f.target,
+    transport:{request:envelope=>f.driver.execute(envelope)}});t.after(()=>context.dispose());
+  f.state.active=false;
+  assert.equal(await context.page.evaluate(()=>{document.body.dataset.opendesk='enabled';return document.body.dataset.opendesk;}),'enabled');
+  assert.equal(f.doc.body.dataset.opendesk,'enabled');assert.equal(decoy.body.dataset.opendesk,undefined);
+  assert.equal(f.state.userExecutions.at(-1).world,'USER_SCRIPT');
+  assert.deepEqual(f.state.userExecutions.at(-1).target,{tabId:f.target.tabId,documentIds:[f.target.documentId]});
+});
+
 test('real packaged errors have an exact correlated final receipt and permit the next call', async t => {
   for (const frameId of [0, 7]) {
     const f = fixture({frameId}); t.after(f.dispose); const receipts = [];

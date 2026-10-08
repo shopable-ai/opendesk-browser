@@ -1,7 +1,6 @@
 import {PROTOCOL, CONTRACT_VERSION, CONTRACT_HASH, FoundationError, newId} from '../protocol.js';
 
-export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconnectDelayMs = 250} = {}) {
-  const hostInstanceId = newId();
+export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconnectDelayMs = 250, hostInstanceId = newId()} = {}) {
   const sourceListeners = new Map(), commandListeners = new Map(), runListeners = new Set(), connectionListeners = new Set();
   const pending = new Set(), requestTimers = new Set(), runDeadlines = new Map();
   let registration, port, disposed = false, connected = false, connecting, reconnectTimer = null;
@@ -84,7 +83,7 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
   }
   // These methods share this document's one registration and transport. A UI
   // injects this client into RunHost instead of registering a second owner.
-  const controller = Object.fromEntries(['commitControllerScript','getControllerScript','tombstoneControllerScript','garbageCollectControllerScript','startControllerRun',
+  const controller = Object.fromEntries(['commitControllerScript','getControllerScript','listControllerScripts','tombstoneControllerScript','garbageCollectControllerScript','startControllerRun',
     'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
     .map(method => [method, request => send(method, request)]));
   return {get ready(){return connect();}, request:send, reconnect:connect,

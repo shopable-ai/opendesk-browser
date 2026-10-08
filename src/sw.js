@@ -1,4 +1,4 @@
-import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, httpUrl, EnvironmentError} from './environment.js';
+import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
 
@@ -56,6 +56,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.protocol !== PROTOCOL) return false;
   async function handle() {
     if (message.type === 'AGENT_READY') return health.rememberReady(message, sender);
+    sender = await resolveToolSender(chrome, sender);
     if (!isToolSender(chrome, sender)) throw new EnvironmentError('E_TARGET', '仅包内工具窗口可调用环境检查');
     switch (message.type) {
       case 'CREATE_HEALTH_TARGET': return health.createTarget(message.url);
@@ -76,13 +77,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.runtime.onConnect.addListener(port => {
   if (port.name !== FOUNDATION_PROTOCOL) return;
-  if (!isToolSender(chrome, port.sender)) { port.disconnect(); return; }
-  const documentId = port.sender.documentId;
+  const senderReady = resolveToolSender(chrome, port.sender);
+  senderReady.catch(() => port.disconnect());
+  let documentId;
   let closed = false, registrationId;
   port.onMessage.addListener(message => {
     if (message?.type !== 'bind-host' || typeof message.registrationId !== 'string') return;
     foundation.then(async broker => {
-      const host = await broker.authority.assertHost(port.sender, message.registrationId);
+      const sender = await senderReady;
+      documentId = sender.documentId;
+      const host = await broker.authority.assertHost(sender, message.registrationId);
       if (closed) return broker.disconnectHost(host.registrationId, documentId);
       const existing = hostPorts.get(documentId);
       if (existing && existing !== port) throw new EnvironmentError('E_OWNER', '宿主端口已绑定');

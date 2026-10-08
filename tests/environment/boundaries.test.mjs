@@ -138,3 +138,15 @@ test('document invalidation and revoke while awaiting reply reject late health s
     pending();await assert.rejects(response,{code:invalidate==='reload'?'E_TARGET':'E_PERMISSION'});
   }
 });
+
+test('missing Side Panel sender documentId resolves only unique native instance context', async () => {
+  const {resolveToolSender} = await import('../../src/environment.js');
+  const url=toolUrl+'?hostInstanceId=host-unique', sender={id:extension,url,origin:`chrome-extension://${extension}`};
+  let contexts=[{contextType:'SIDE_PANEL',documentUrl:url,documentId:'native-side-doc',frameId:0,incognito:false}];
+  const api={runtime:{id:extension,getURL:()=>toolUrl,getContexts:async query=>{assert.deepEqual(query,{contextTypes:['SIDE_PANEL'],documentUrls:[url]});return contexts;}}};
+  const resolved=await resolveToolSender(api,sender);assert.equal(resolved.documentId,'native-side-doc');assert(isToolSender(api,resolved));
+  for(const changed of [{...sender,url:toolUrl},{...sender,id:'foreign'},{...sender,frameId:1},{...sender,documentId:'forged',url:'https://evil.example/ui/tool.html'},{...sender,tab:{id:1}}])await assert.rejects(resolveToolSender(api,changed),{code:'E_OWNER'});
+  contexts=[...contexts,...contexts];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});
+  contexts=[];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});
+  contexts=[{contextType:'TAB',documentUrl:url,documentId:'wrong',frameId:0,incognito:false}];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});
+});

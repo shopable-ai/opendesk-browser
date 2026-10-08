@@ -9,13 +9,14 @@ import os from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
 import {PROTOCOL} from '../../src/platform/protocol.js';
-import {SDK_METHODS, ADMITTED_METHODS} from '../../src/framework/sdk/registry.js';
+import {SDK_METHODS, ADMITTED_METHODS, SDK_VERSION} from '../../src/framework/sdk/registry.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_ALIASES, SDK_RESOURCE_MANIFEST} from '../../src/framework/sdk/resource-contract.js';
 import {observeLegacyStorage, observeLegacyHttp, observeLegacyService, observeLegacyResource, discoverLegacyCompletion} from './k5-sdk-legacy-consumers.mjs';
 import {launchChrome, LAUNCHER} from './k5-sdk-native-launcher.mjs';
 import {observePage, sdkInvocationExpression, observedSdkInvocation, bindPublicSdkPayload} from './b05-product-acceptance-20261003.mjs';
 import {validateNativeSelectionReceipt} from './k5-sdk-native-selection-receipt.mjs';
 import {runOriginalStorageCases} from './k5-sdk-original-storage-native.mjs';
+import {runOriginalSessionCases} from './k5-sdk-original-session-native.mjs';
 import {observeNativeToolResources, observeNativeSdkResources, runNativeSdkResourceCase, requireIdleSdkResources, validateNativeSdkDisposal, waitForNativeToolConnection} from './k5-sdk-native-resource-observation.mjs';
 
 // Load the existing built product verbatim. No generated extension, manifest key,
@@ -26,7 +27,7 @@ const args = process.argv.slice(2), option = (name, fallback) => args.find(arg =
 const contractCheck=args.includes('--contract-check'),nativeRequested=args.includes('--native');
 const originalSdkIds=option('original-sdk','').split(',').filter(Boolean);
 const originalStorageRequested=originalSdkIds.length>0;
-assert(new Set(originalSdkIds).size===originalSdkIds.length&&originalSdkIds.every(id=>['F2-K2-SDK-004','F2-K2-SDK-005'].includes(id)), 'Unsupported original SDK storage case');
+assert(new Set(originalSdkIds).size===originalSdkIds.length&&originalSdkIds.every(id=>['F2-K2-SDK-004','F2-K2-SDK-005','F2-K2-SDK-007','F2-K2-SDK-009','F2-K2-SDK-019'].includes(id)), 'Unsupported original SDK storage case');
 assert(contractCheck!==nativeRequested,'Choose exactly one explicit --contract-check or --native SDK lane');
 const rebuildReceiptPath=option('rebuild-receipt',null);
 assert(rebuildReceiptPath,'Current frozen candidate --rebuild-receipt is required before SDK execution');
@@ -124,7 +125,7 @@ const server = createServer(async (req, res) => {
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`, reports = [];
-const initialCapabilities = originalStorageRequested ? ['storage.persistent'] : ['network', 'storage.persistent', 'storage.session', 'service.log', 'service.time', 'resources.packaged'];
+const initialCapabilities = originalStorageRequested ? [...(originalSdkIds.some(id=>id.endsWith('004')||id.endsWith('005'))?['storage.persistent']:[]),...(originalSdkIds.some(id=>['F2-K2-SDK-007','F2-K2-SDK-009','F2-K2-SDK-019'].includes(id))?['storage.session']:[])] : ['network', 'storage.persistent', 'storage.session', 'service.log', 'service.time', 'resources.packaged'];
 const capabilities = [...initialCapabilities];
 async function connect(url, label, traffic) {
   const socket = new WebSocket(url), pending = new Map(), listeners = new Set(); let sequence = 0;
@@ -138,9 +139,9 @@ async function connect(url, label, traffic) {
     message.error ? waiter.reject(new Error(JSON.stringify(message.error))) : waiter.resolve(message.result);
   };
   socket.onclose = () => { for (const waiter of pending.values()) { clearTimeout(waiter.timer); waiter.reject(new Error(`${label} CDP closed`)); } pending.clear(); };
-  return {send(method, params = {}) {
+  return {send(method, params = {}, sessionId) {
     return new Promise((resolve, reject) => {
-      const id = ++sequence, message = {id, method, params};
+      const id = ++sequence, message = {id, method, params,...(sessionId?{sessionId}:{})};
       const timer = setTimeout(() => { pending.delete(id); reject(new Error(`${label} ${method} timed out`)); }, 45000);
       pending.set(id, {resolve, reject, timer});
       const entry = {at: new Date().toISOString(), endpoint: label, direction: 'sent', message};
@@ -270,13 +271,17 @@ async function browserRun(mode, label) {
       const target = await until(async () => (await (await fetch(`${debuggingURL}/json/list`)).json()).find(target => target.id === targetId && target.webSocketDebuggerUrl), 'target endpoint');
       const client = await connect(target.webSocketDebuggerUrl, targetId, traffic); clients.push(client); return client;
     }
-    const worker = await until(async () => (await browserClient.send('Target.getTargets')).targetInfos.find(target => target.type === 'service_worker' && target.url.startsWith('chrome-extension://') && target.url.endsWith('/sw.js')), 'actual product service worker');
-    const workerClient = await attach(worker.targetId);
+    let worker = await until(async () => (await browserClient.send('Target.getTargets')).targetInfos.find(target => target.type === 'service_worker' && target.url.startsWith('chrome-extension://') && target.url.endsWith('/sw.js')), 'actual product service worker');
+    let workerClient = await attach(worker.targetId);
+    const workerContextStart=traffic.length;
     await workerClient.send('Runtime.enable');
     await until(() => evaluate(workerClient, 'typeof chrome!=="undefined" && !!chrome.runtime?.id'), 'native extension worker bindings initialized');
     const identity = await evaluate(workerClient, '({id:chrome.runtime.id,manifest:chrome.runtime.getManifest(),url:chrome.runtime.getURL("sw.js")})');
     assert.equal(identity.manifest.name, manifest.name); assert.equal(identity.manifest.version, manifest.version); assert.equal(identity.url, worker.url);
-    session.actualWorker = {targetId: worker.targetId, ...identity};
+    let workerContexts=traffic.slice(workerContextStart).filter(r=>r.endpoint===worker.targetId&&r.message?.method==='Runtime.executionContextCreated').map(r=>r.message.params.context);
+    assert(workerContexts.length&&workerContexts.every(c=>c.uniqueId));
+    session.actualWorker = {targetId: worker.targetId, ...identity,executionContexts:workerContexts};
+    session.workerIncarnations=[session.actualWorker];
     const extensionId = identity.id; report.extensionId = extensionId;
     const targetURL = `${origin}/target?seed=${seed}&session=${number}`, decoyURL = `${origin}/decoy?seed=${seed}&session=${number}`;
     const targetId = (await browserClient.send('Target.createTarget', {url: targetURL})).targetId;
@@ -373,11 +378,34 @@ async function browserRun(mode, label) {
     async function snapshot() {
       return evaluate(tool, `(async()=>{const databases=await indexedDB.databases();const data=await new Promise((resolve,reject)=>{const request=indexedDB.open('opendesk-browser');request.onerror=()=>reject(request.error);request.onsuccess=()=>{const db=request.result,names=['commandJournal','runs','results','frameworkKV'],tx=db.transaction(names,'readonly'),rows={};for(const name of names){const cursor=tx.objectStore(name).openCursor();rows[name]=[];cursor.onsuccess=()=>{const item=cursor.result;if(item){rows[name].push({key:item.primaryKey,value:item.value});item.continue();}};}tx.oncomplete=()=>{db.close();resolve(rows);};tx.onabort=()=>reject(tx.error);};});return{databases,data,sessionStorage:await chrome.storage.session.get(null)};})()`);
     }
-    async function stopWorker() {
-      const version = await until(() => swEvents.flatMap(event => event.params.versions || []).filter(version => version.scriptURL === `chrome-extension://${extensionId}/sw.js` && version.runningStatus === 'running').at(-1), 'exact running product worker version');
-      await tool.send('ServiceWorker.stopWorker', {versionId: version.versionId});
-      await until(async () => !(await browserClient.send('Target.getTargets')).targetInfos.some(target => target.type === 'service_worker' && target.url === version.scriptURL), 'worker actually stopped');
-      return version;
+    async function refreshWorker() {
+      worker=await until(async()=>(await browserClient.send('Target.getTargets')).targetInfos.find(t=>t.type==='service_worker'&&t.url===identity.url),'current actual native worker');
+      workerClient=await attach(worker.targetId);const since=traffic.length;
+      await workerClient.send('Runtime.enable');
+      const actual=await evaluate(workerClient,'({id:chrome.runtime.id,url:chrome.runtime.getURL("sw.js")})');assert.equal(actual.id,extensionId);assert.equal(actual.url,identity.url);
+      workerContexts=traffic.slice(since).filter(r=>r.endpoint===worker.targetId&&r.message?.method==='Runtime.executionContextCreated').map(r=>r.message.params.context);
+      assert(workerContexts.length&&workerContexts.every(c=>c.uniqueId));
+      session.workerIncarnations.push({targetId:worker.targetId,...actual,executionContexts:workerContexts,observedAt:Date.now()});
+      return {target:worker,client:workerClient,executionContexts:workerContexts};
+    }
+    async function stopWorker({recovery,evidence}={}) {
+      const old={...worker},start=swEvents.length;
+      const version=await until(()=>swEvents.flatMap(e=>e.params.versions||[]).filter(v=>v.scriptURL===identity.url&&v.targetId===old.targetId&&v.runningStatus==='running').at(-1),'exact running worker version');
+      const stop={version,targetId:old.targetId,requestedAt:new Date().toISOString()};if(evidence)evidence.workerStop=stop;
+      if(recovery)recovery.expectReplacement();
+      await tool.send('ServiceWorker.stopWorker',{versionId:version.versionId});
+      await until(async()=>!(await browserClient.send('Target.getTargets')).targetInfos.some(t=>t.targetId===old.targetId),'original worker actually stopped');
+      stop.targetAbsent=true;stop.versionStopped=await until(()=>swEvents.slice(start).flatMap(e=>e.params.versions||[]).find(v=>v.versionId===version.versionId&&v.scriptURL===identity.url&&v.runningStatus==='stopped'),'exact native stopped worker version');
+      stop.physicalTerminationObserved=true;
+      if(!recovery)return version;
+      workerClient.close();await recovery.afterPhysicalStop(stop);
+      const waking=evaluate(page,`chrome.runtime.sendMessage(${JSON.stringify({protocol:PROTOCOL,type:'SDK_HELLO',payload:{sdkVersion:SDK_VERSION}})})`,nativeContext.id);
+      const [wake,replacement]=await Promise.all([waking,recovery.wait()]);assert.equal(wake.ok,true);stop.wake=wake;
+      const actual=await evaluate(replacement.client,'({id:chrome.runtime.id,url:chrome.runtime.getURL("sw.js")})');assert.equal(actual.id,extensionId);assert.equal(actual.url,identity.url);
+      worker=replacement.target;workerClient={send:replacement.client.send,onEvent:replacement.client.on,close:replacement.client.close};workerContexts=replacement.contexts;
+      recovery.assertCoverage();stop.freshNativeContext=evidence.recoveryStartup.executionContext;stop.replacementTargetId=worker.targetId;
+      session.workerIncarnations.push({targetId:worker.targetId,...actual,executionContexts:workerContexts,observedAt:Date.now()});
+      return stop;
     }
     async function restartBrowser() {
       // Browser.close is whole-browser shutdown. Its response may be lost when
@@ -456,7 +484,7 @@ async function browserRun(mode, label) {
         evaluateMain:()=>readRealm(mains[0],'globalThis.OpenDeskSDK?.diagnostics?.()'),
         evaluateRelay:()=>readRealm(nativeContext,'globalThis.__openDeskSdkRelayV1?.diagnostics?.()')});
     }
-    current = {session, tool, page, decoy, browserClient, workerClient, workerTargetId:worker.targetId, install, snapshot, stopWorker, restartBrowser, stop, targetId, tabId,native,startPublic,publicCompletion,publicCall,startNativeBurst,awaitNativeBurst,releaseNativeBurst,resourceSnapshot};
+    current = {session, tool, page, decoy, browserClient, get workerClient(){return workerClient;}, get workerTargetId(){return worker.targetId;}, get workerDescriptor(){return {...worker,executionContexts:workerContexts};}, observerClients:clients, refreshWorker, install, snapshot, stopWorker, restartBrowser, stop, targetId, tabId,native,startPublic,publicCompletion,publicCall,startNativeBurst,awaitNativeBurst,releaseNativeBurst,resourceSnapshot};
     return current;
   }
   try {
@@ -480,7 +508,8 @@ async function browserRun(mode, label) {
     });
     assert(nativeHello, 'Real sender/grant Hello prerequisite failed; dependent SDK cases cannot run');
     await caseRun('SDK-ACTUAL-SIX-COUNT-IDLE-BASELINE',async()=>requireIdleSdkResources(await first.resourceSnapshot()));
-    if(originalStorageRequested)await runOriginalStorageCases({first,caseRun,ids:originalSdkIds,seed,traffic,extensionId:report.extensionId,extension,until});
+    if(originalStorageRequested)await runOriginalStorageCases({first,caseRun,ids:originalSdkIds.filter(id=>id.endsWith('004')||id.endsWith('005')),seed,traffic,extensionId:report.extensionId,extension,until});
+    if(originalStorageRequested)await runOriginalSessionCases({first,caseRun,ids:originalSdkIds.filter(id=>['007','009','019'].some(suffix=>id.endsWith(suffix))),seed,traffic,extensionId:report.extensionId,extension,until});
     // Original storage lane runs only its exact cases and required real SDK setup/disposal.
     if (!originalStorageRequested) {
     await caseRun('LEGACY-APPSTORAGE-APPLOCAL-REAL-COMPLETION-PROMISES', async () => {

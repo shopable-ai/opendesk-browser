@@ -11,8 +11,8 @@
     },
     {
       "path": "manifest.json",
-      "bytes": 1192,
-      "sha256": "cbf326f83d114126880b5b67d0ae42091ae31299983c21ebadc2b6121eaaa975"
+      "bytes": 1267,
+      "sha256": "1e8ca99f83e43e2e17c83ede7d12f882c3b0f710d845ac2c3fcb17d388807fb3"
     },
     {
       "path": "package-lock.json",
@@ -51,8 +51,8 @@
     },
     {
       "path": "scripts/verify-package.mjs",
-      "bytes": 21154,
-      "sha256": "4a27af2f1ef8996953f5085b8e46dabfebbc7dddee56a056e59f4188de5e5ef7"
+      "bytes": 21306,
+      "sha256": "95f09fd26af534c4d2794b49afde3440db56efb109fb84bfb65c9ec0e6fae172"
     },
     {
       "path": "scripts/wxt-checkpoint.mjs",
@@ -146,8 +146,8 @@
     },
     {
       "path": "src/environment.js",
-      "bytes": 10944,
-      "sha256": "3b5e5d6fdc1a45d9024c75aff3676cc8f68a94717463a9b4fe4e52e2c8cd2dd6"
+      "bytes": 12357,
+      "sha256": "d6d1c9c0282d82730317175811147896b1fdf77dc0a9a5a3085a9b0fd707b158"
     },
     {
       "path": "src/features/scraping/background.js",
@@ -271,8 +271,8 @@
     },
     {
       "path": "src/platform/chrome/network.js",
-      "bytes": 6892,
-      "sha256": "6e978085991301421c7f1e9ac2d9a42183ee84833ff5e051ac4083217f3da274"
+      "bytes": 7034,
+      "sha256": "5b841a2abc84a46cbd3f995ca30b228b08eab6536b2ab68377eff84cf7c46d39"
     },
     {
       "path": "src/platform/chrome/notifications.js",
@@ -311,18 +311,18 @@
     },
     {
       "path": "src/platform/host/broker.js",
-      "bytes": 14526,
-      "sha256": "6fc21fbf73f82b286a61a4bc9ee16ef7ebc9793b24679d138dc387dbabd1b696"
+      "bytes": 14667,
+      "sha256": "a3057b26f059fb778cf8b460e4cc22a37f6bb88aa3733966d0a4e40d6967627f"
     },
     {
       "path": "src/platform/host/client.js",
-      "bytes": 7793,
-      "sha256": "fa51755f1cb2eedd284c9cee5bc3b26136db8a8b518acf39cd5b388c06c4885a"
+      "bytes": 7809,
+      "sha256": "826e00767de5887d69a8b3dc72b845c52fe25eabd6383b4e783008e4b7277054"
     },
     {
       "path": "src/platform/host/controller-methods.js",
-      "bytes": 54158,
-      "sha256": "ffdd6ca84acc76d682660235c161ba8887ae25af9eb823eb25625fc140719d1d"
+      "bytes": 57348,
+      "sha256": "5308a1497ae9a0ed9614d5008c72fdfef47a758d4a520c054ca164d18c6d8c9a"
     },
     {
       "path": "src/platform/host/sdk-broker.js",
@@ -391,8 +391,8 @@
     },
     {
       "path": "src/platform/target/index.js",
-      "bytes": 26298,
-      "sha256": "b7f48e9edebbe360d86f47fd84afb33e2941b86a2c5614852695048f1eb9c161"
+      "bytes": 27361,
+      "sha256": "fce5c013f5f8f5c49d40a8bed3bda4d38250cb2c94c7dc2589c53a8858cab0fd"
     },
     {
       "path": "src/run-host.js",
@@ -441,8 +441,13 @@
     },
     {
       "path": "src/sw.js",
-      "bytes": 5869,
-      "sha256": "35b72b98cc8a3b23d9422340fc9777dbd0ecd7551735f9359a9052684394702a"
+      "bytes": 6032,
+      "sha256": "cd4d3f03fa8dd54141b47a8d9a72e486142af3feab8c9e2493809d8691c12638"
+    },
+    {
+      "path": "src/ui/current-page-target.js",
+      "bytes": 8176,
+      "sha256": "239873391f73036c7b0d7b33a8438e870d1d74c8533495e6fb6ba40dfdb2a221"
     },
     {
       "path": "src/ui/resource-diagnostics.js",
@@ -451,8 +456,8 @@
     },
     {
       "path": "src/ui/script-editor.js",
-      "bytes": 15987,
-      "sha256": "a16d69b60529e5b2c02b49f3a690baaffbe18b00125543eac353642693458492"
+      "bytes": 26838,
+      "sha256": "6b0e3fdba8732ebfcc3b405273c9614e4755a15c3d644a47edbc26b847928b8a"
     },
     {
       "path": "src/ui/target-bootstrap.html",
@@ -461,18 +466,18 @@
     },
     {
       "path": "src/ui/tool-shell.css",
-      "bytes": 1326,
-      "sha256": "6cc4f15df5945aa9ed0af7b21e5db611828bb64fb8496e06a4654f7697327401"
+      "bytes": 2475,
+      "sha256": "6b22c310ac69e176f8a773348de5dce5676c4a9c64deaf69b98e13554b7cd6a3"
     },
     {
       "path": "src/ui/tool-shell.js",
-      "bytes": 9312,
-      "sha256": "aa159cbbe714a7187ed58caba9ae688de292b1ad3f2a3b134c2a8288e1dbda29"
+      "bytes": 9906,
+      "sha256": "a479536b6b0c4fea3378ff3339c90a55ca3e1b4babf960fea6457ba99eb15cdb"
     },
     {
       "path": "src/ui/tool.html",
-      "bytes": 4962,
-      "sha256": "13f9b283cffe72161ef24bc40b32c6c75fd8b9ee5be078735ac924384d1f0be2"
+      "bytes": 7328,
+      "sha256": "46a1ef3d23f983bd79d312a4e8c32edd708a84423ae8a66defa11ef6baf8c779"
     },
     {
       "path": "wxt.config.mjs",
@@ -540,7 +545,7 @@
       ],
       "csp": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'"
     },
-    "packageHash": "e56c7d5ccc331a679b2aa593bca9ec4732ac521c1fb7d9e33318e022aa022d04",
+    "packageHash": "f9de53e703c205089b7edca3cb48729ccb7feec9cefd9c333e680f7d8e9cdd37",
     "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
     "files": [
       {
@@ -590,8 +595,8 @@
       },
       {
         "path": "manifest.json",
-        "bytes": 946,
-        "sha256": "97c9d8bc15ccec14cdcf72e0ecf0cb5d25a3f3c766922b657b1efdf5e0d8215a"
+        "bytes": 1003,
+        "sha256": "c5d1004e472f8dc62ff8e975284c5e255310b411cb522d5994f7227facfc8a6b"
       },
       {
         "path": "scripting/packaged/page-session.js",
@@ -615,8 +620,8 @@
       },
       {
         "path": "sw.js",
-        "bytes": 256670,
-        "sha256": "91327bd642fedf380763fc5f5c34542f373ce02ffbf3852e182c27fb565f9c7d"
+        "bytes": 260100,
+        "sha256": "58234cc847587b98153c07a64f643582f20aa065620ee66b81b7302a55569d58"
       },
       {
         "path": "ui/target-bootstrap.html",
@@ -625,18 +630,18 @@
       },
       {
         "path": "ui/tool-shell.css",
-        "bytes": 1326,
-        "sha256": "6cc4f15df5945aa9ed0af7b21e5db611828bb64fb8496e06a4654f7697327401"
+        "bytes": 2475,
+        "sha256": "6b22c310ac69e176f8a773348de5dce5676c4a9c64deaf69b98e13554b7cd6a3"
       },
       {
         "path": "ui/tool-shell.js",
-        "bytes": 63311,
-        "sha256": "167dfbc5881956fa52a12b28589db43aa6895a79244a35c77871cc609e438bc5"
+        "bytes": 74671,
+        "sha256": "024ef28f44c4fbb25ba12a58836821be9e381f9d3cd39d9a37cf24be7ee44a47"
       },
       {
         "path": "ui/tool.html",
-        "bytes": 4962,
-        "sha256": "13f9b283cffe72161ef24bc40b32c6c75fd8b9ee5be078735ac924384d1f0be2"
+        "bytes": 7328,
+        "sha256": "46a1ef3d23f983bd79d312a4e8c32edd708a84423ae8a66defa11ef6baf8c779"
       }
     ]
   }

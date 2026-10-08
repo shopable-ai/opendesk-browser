@@ -147,6 +147,17 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return row;
     });
   }
+  async function listControllerScripts(request, sender) {
+    fields(request ?? {}, []);
+    const host = await assertHost(sender);
+    return storage.transaction(['scriptHeads', 'commandJournal'], 'readonly', async transaction => {
+      await currentHost(transaction, host, sender);
+      return (await transaction.all('scriptHeads'))
+        .filter(row => row?.tag === 'script-head' && row.namespace === namespace(host) && !row.tombstoned)
+        .map(row => ({scriptId: row.scriptId, revision: row.revision, contentHash: row.contentHash}))
+        .sort((a, b) => a.scriptId.localeCompare(b.scriptId));
+    });
+  }
   function project(run) {
     if (!run) return null;
     return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'ownerEpoch', 'cancelSeq', 'identity',
@@ -183,11 +194,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       results:snapshot.results.filter(row=>!denied.has(row.runId)),resultDeliveryDenied:[...denied]};
   }
   function selection(target) {
-    fields(target, target?.mode === 'owned' ? ['mode', 'url'] : ['mode', 'tabId', 'frameId', 'documentId']);
+    fields(target, target?.mode === 'owned' ? ['mode', 'url'] : ['mode', 'tabId', 'frameId', 'documentId', 'expectedUrl', 'expectedWindowId']);
     invariant(['owned', 'borrowed'].includes(target.mode), 'E_TARGET', 'Explicit target ownership is required');
     if (target.mode === 'owned') httpUrl(target.url);
     else invariant(Number.isSafeInteger(target.tabId) && target.tabId >= 0 && Number.isSafeInteger(target.frameId) && target.frameId >= 0 &&
       typeof target.documentId === 'string' && target.documentId, 'E_TARGET', 'Exact borrowed document required');
+    if (target.expectedUrl !== undefined) httpUrl(target.expectedUrl);
+    if (target.expectedWindowId !== undefined) invariant(target.mode === 'borrowed' && Number.isSafeInteger(target.expectedWindowId) &&
+      target.expectedWindowId >= 0 && target.frameId === 0 && target.expectedUrl !== undefined, 'E_TARGET', 'Current Page window required');
   }
   async function waitDocument(run, tabId, {bootstrapUrl, documentId, changedFrom} = {}) {
     for (;;) {
@@ -248,6 +262,31 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return {...observed, creationId: intent.creationId};
   }
   async function startControllerRun(request, sender) {
+    selection(request.target);
+    let changed = false;
+    const target = request.target;
+    const activated = info => {if (info.windowId === target.expectedWindowId && info.tabId !== target.tabId) changed = true;};
+    const updated = (tabId, change, tab) => {
+      if (tabId !== target.tabId) return;
+      if (['loading', 'unloaded'].includes(change.status) || change.pendingUrl ||
+          (change.url !== undefined && change.url !== target.expectedUrl) || tab?.incognito) changed = true;
+    };
+    const navigated = details => {
+      if (details.tabId === target.tabId && details.frameId === target.frameId &&
+          ((details.documentId !== undefined && details.documentId !== target.documentId) || details.url !== target.expectedUrl)) changed = true;
+    };
+    const removed = tabId => {if (tabId === target.tabId) changed = true;};
+    const navigating = details => {if (details.tabId === target.tabId && details.frameId === target.frameId) changed = true;};
+    const windowRemoved = windowId => {if (windowId === target.expectedWindowId) changed = true;};
+    const fences = [[api.tabs.onActivated, activated], [api.tabs.onUpdated, updated], [api.tabs.onRemoved, removed],
+      [api.webNavigation.onBeforeNavigate, navigating], [api.webNavigation.onCommitted, navigated], [api.webNavigation.onHistoryStateUpdated, navigated],
+      [api.webNavigation.onReferenceFragmentUpdated, navigated], [api.windows?.onRemoved, windowRemoved]];
+    const assertCandidate = () => invariant(!changed, 'E_DOCUMENT_STALE', 'Captured Current Page changed during admission');
+    if (target.expectedWindowId !== undefined) for (const [event, listener] of fences) event?.addListener(listener);
+    try { return await prepareControllerRun(request, sender, assertCandidate); }
+    finally { if (target.expectedWindowId !== undefined) for (const [event, listener] of fences) event?.removeListener(listener); }
+  }
+  async function prepareControllerRun(request, sender, assertCandidate) {
     fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'paramsWire', 'target', 'deadlineAt'],
       ['requestId', 'scriptId', 'revision', 'contentHash', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); id(request.scriptId); selection(request.target); decodeValue(request.paramsWire);
@@ -262,6 +301,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const admissionKey = `controller-start:${canonical([host.registrationId, request.requestId])}`;
     const admitted = await tx('readwrite', async transaction => {
       await currentHost(transaction, host, sender);
+      assertCandidate();
       const old = await transaction.get('commandJournal', admissionKey);
       if (old) {
         invariant(old.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
@@ -293,9 +333,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     try {
       const pinned = admitted.pinned;
       if (!observed) observed = await createOwned(run, host, sender);
-      await verifyControllerTarget({api, target: observed});
-      return tx('readwrite', async transaction => {
+      await verifyControllerTarget({api, target: observed, expectedUrl: request.target.expectedUrl, expectedWindowId:request.target.expectedWindowId});
+      return await tx('readwrite', async transaction => {
         const current = await owner(transaction, await transaction.get('runs', run.runId), host, sender, {active: true});
+        assertCandidate();
         current.target = {...observed, targetSessionId: newId(), targetVersion: 1, mode: request.target.mode, browserSessionIncarnation: session};
         current.identity = {tag: 'controller-run', runId: current.runId, hostInstanceId: host.hostInstanceId, hostDocumentId: host.hostDocumentId,
           ownerEpoch: current.ownerEpoch, scriptId: current.scriptId, revision: current.revision.revision, contentHash: current.contentHash, target: current.target};
@@ -304,6 +345,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         creatingTabs.delete(current.runId);
         await transaction.put('runs', current, current.runId);
         await lease(transaction, current);
+        assertCandidate();
         return {...project(current), sourceUtf8: pinned.revision.sourceUtf8, paramsWire: current.paramsWire};
       });
     } catch (error) {
@@ -735,7 +777,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return {replayed: 0};
     });
   }
-  return Object.freeze({commitControllerScript, getControllerScript, tombstoneControllerScript, garbageCollectControllerScript,
+  return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
     startControllerRun, controllerOperation, stopControllerRun,
     finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, recoverControllers});
 }

@@ -6,7 +6,16 @@ import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 
 export function initToolShell() {
-const foundationClient = createHostClient();
+  const hostUrl = new URL(location.href);
+  const hostInstanceId = hostUrl.searchParams.get('hostInstanceId');
+  if (!hostInstanceId) {
+    hostUrl.search = ''; hostUrl.hash = ''; hostUrl.searchParams.set('hostInstanceId', crypto.randomUUID());
+    // A committed document navigation is required: Chrome 138 MessageSender
+    // retains the original URL after history.replaceState.
+    location.replace(hostUrl.href);
+    return;
+  }
+  const foundationClient = createHostClient(chrome, {hostInstanceId});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
 const listeners = [];

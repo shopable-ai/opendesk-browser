@@ -21,9 +21,33 @@ export function isToolSender(api, sender) {
   // sender.tab and sender.frameId. If a tab is present, require its top frame;
   // otherwise accept only the packaged top-level extension document.
   const topLevel = sender?.tab ? sender.frameId === 0 : sender?.frameId === undefined || sender.frameId === 0;
-  return sender?.id === api.runtime.id && sender.url === api.runtime.getURL('ui/tool.html') &&
+  return sender?.id === api.runtime.id && isToolDocumentUrl(api, sender.url) &&
     typeof sender.documentId === 'string' && sender.documentId.length > 0 &&
     topLevel && (!sender.documentLifecycle || sender.documentLifecycle === 'active') && !sender.tab?.incognito;
+}
+function isToolDocumentUrl(api, value) {
+  try {
+    const url = new URL(value), base = new URL(api.runtime.getURL('ui/tool.html'));
+    return url.protocol === base.protocol && url.host === base.host && url.pathname === base.pathname && !url.hash &&
+      (!url.search || [...url.searchParams].length === 1 &&
+        /^[A-Za-z0-9._:-]{1,128}$/.test(url.searchParams.get('hostInstanceId') || ''));
+  } catch { return false; }
+}
+// Chrome Side Panel MessageSender can omit documentId. Resolve it only from
+// a unique native context for this packaged host instance, never from payload.
+export async function resolveToolSender(api, sender) {
+  if (isToolSender(api, sender)) return sender;
+  if (sender?.documentId || sender?.id !== api.runtime.id || sender.tab ||
+      sender.frameId !== undefined && sender.frameId !== 0 ||
+      !isToolDocumentUrl(api, sender.url) ||
+      !new URL(sender.url).searchParams.has('hostInstanceId'))
+    throw new EnvironmentError('E_OWNER', 'Unresolved packaged tool sender');
+  const contexts = await api.runtime.getContexts({contextTypes:['SIDE_PANEL'], documentUrls:[sender.url]});
+  const matches = contexts.filter(context => context.contextType === 'SIDE_PANEL' &&
+    context.documentUrl === sender.url && context.frameId === 0 && !context.incognito &&
+    typeof context.documentId === 'string' && context.documentId.length > 0);
+  if (matches.length !== 1) throw new EnvironmentError('E_OWNER', 'Side Panel document is missing or ambiguous');
+  return Object.freeze({...sender, documentId:matches[0].documentId, frameId:matches[0].frameId});
 }
 export function validTarget(target) {
   if (!target || !Number.isInteger(target.tabId) || target.tabId < 0 || target.frameId !== 0 ||

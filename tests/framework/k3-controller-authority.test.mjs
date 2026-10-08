@@ -81,6 +81,30 @@ async function fixture() {
     setAllowed:value=>{allowed=value;},beforeReply:fn=>{beforeReply=fn;}};
 }
 
+test('Sidebar captured URL rejects SPA change and pending navigation before creating a run',async () => {
+  for(const pending of [false,true]) {
+    const f=await fixture(), revision=await f.commit();
+    if(pending) f.tabs.get(2).pendingUrl='https://a.example/next';
+    else {f.frames.get(2)[0].url='https://a.example/next';f.tabs.get(2).url='https://a.example/next';}
+    await assert.rejects(f.start(revision,{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page'}),{code:'E_DOCUMENT_STALE'});
+    assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);
+    assert.equal(f.calls.length,0);
+  }
+});
+
+test('Sidebar URL changing during revision pinning fails durably and releases the slot without executing',async () => {
+  const f=await fixture(), revision=await f.commit(), pin=f.storage.pinScriptRevision;
+  f.storage.pinScriptRevision=async(...args)=>{
+    const pinned=await pin(...args); f.frames.get(2)[0].url='https://a.example/next'; f.tabs.get(2).url='https://a.example/next'; return pinned;
+  };
+  await assert.rejects(f.start(revision,{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page'}),{code:'E_DOCUMENT_STALE'});
+  const run=(await f.rows('runs')).find(row=>row.tag==='controller-run');
+  assert.equal(run.state,'failed'); assert.equal(run.retirementState,'released');
+  const result=(await f.rows('results')).find(row=>row.runId===run.runId);
+  assert.equal(result.outcome.error.code,'E_DOCUMENT_STALE'); assert.equal(result.revision.sourceHash,revision.contentHash);
+  assert.equal(f.calls.length,0);
+});
+
 function packagedFailureReply(f, transform = reply => reply) {
   const send = f.api.tabs.sendMessage;
   f.api.tabs.sendMessage = (id, message, options, callback) => {
@@ -435,6 +459,18 @@ test('public authority commits exact UTF8/headCAS and pins r1 while head advance
   await f.finish(run); await f.authority.retireControllerTarget({runId:run.runId},f.sender);
   assert.ok((await f.rows('commandJournal')).filter(r=>r.tag==='script-revision-pin').every(r=>r.released));
 });
+test('controller script list is a host-authorized head projection filtered by namespace and tombstone',async () => {
+  const f=await fixture(), visible=await f.commit('return "visible";');
+  await f.storage.transaction(['scriptHeads'],'readwrite',async tx=>{
+    await tx.put('scriptHeads',{tag:'script-head',namespace:'tool:foreign',scriptId:'foreign-script',
+      revision:1,contentHash:'f'.repeat(64)},`script:${canonical(['tool:foreign','foreign-script'])}`);
+  });
+  assert.deepEqual(await f.authority.listControllerScripts({},f.sender),[{scriptId:'script',revision:1,contentHash:visible.contentHash}]);
+  await f.authority.tombstoneControllerScript({scriptId:'script',expectedRevision:1},f.sender);
+  assert.deepEqual(await f.authority.listControllerScripts({},f.sender),[]);
+  const next={...f.sender,documentId:'foreign-doc'};
+  await assert.rejects(f.authority.listControllerScripts({},next),code('E_OWNER'));
+});
 test('borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does',async () => {
   const f=await fixture(), run=await f.start(await f.commit(),{mode:'borrowed',tabId:2,frameId:7,documentId:'doc-child'});
   const context=createRunContext({identity:run.identity,revision:run.revision,target:run.target,transport:{request:envelope=>f.authority.controllerOperation({envelope},f.sender)}});
@@ -711,4 +747,68 @@ test('repeating finish after permission revocation cannot bypass result delivery
   const f=await fixture(),run=await f.start(await f.commit());await f.finish(run);
   f.setAllowed(false);await assert.rejects(f.finish(run),code('E_PERMISSION'));
   assert.equal((await f.rows('results')).filter(row=>row.tag==='controller-result').length,1);
+});
+
+function currentPageFixture(f) {
+  let active=2;const listeners=new Set();
+  f.api.tabs.onActivated={addListener:listener=>listeners.add(listener),removeListener:listener=>listeners.delete(listener)};
+  f.api.tabs.query=async ({windowId})=>[{...f.tabs.get(active),windowId,active:true,status:'complete'}];
+  f.tabs.set(3,{id:3,incognito:false,url:'https://a.example/page'});
+  const target={mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page',expectedWindowId:7};
+  return {target,listeners,switch(){active=3;for(const listener of listeners)listener({windowId:7,tabId:3});}};
+}
+test('Current Page active switch before admission rejects same URL B without creating run',async()=>{
+  const f=await fixture(),candidate=currentPageFixture(f),revision=await f.commit();candidate.switch();
+  await assert.rejects(f.start(revision,candidate.target),{code:'E_DOCUMENT_STALE'});
+  assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);assert.equal(candidate.listeners.size,0);
+});
+test('same-URL navigation beginning during admission invalidates the old document before commit',async()=>{
+  const f=await fixture(),candidate=currentPageFixture(f),revision=await f.commit(),pin=f.storage.pinScriptRevision,listeners=new Set();
+  f.api.webNavigation.onBeforeNavigate={addListener:listener=>listeners.add(listener),removeListener:listener=>listeners.delete(listener)};
+  f.storage.pinScriptRevision=async(...args)=>{const value=await pin(...args);for(const listener of listeners)listener({tabId:2,frameId:0,url:candidate.target.expectedUrl});return value;};
+  await assert.rejects(f.start(revision,candidate.target),{code:'E_DOCUMENT_STALE'});
+  const run=(await f.rows('runs')).find(row=>row.tag==='controller-run');
+  assert.equal(run.retirementState,'released');assert.equal(run.workerRetired,true);
+  assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').state,'available');
+  assert.equal((await f.rows('results')).find(row=>row.runId===run.runId).revision.sourceHash,revision.contentHash);
+  assert.equal(listeners.size,0);assert.equal(f.calls.length,0);
+});
+
+test('Current Page activation during pin fails original run durably and releases slot',async()=>{
+  const f=await fixture(),candidate=currentPageFixture(f),revision=await f.commit(),pin=f.storage.pinScriptRevision;
+  f.storage.pinScriptRevision=async(...args)=>{const value=await pin(...args);candidate.switch();return value;};
+  await assert.rejects(f.start(revision,candidate.target),{code:'E_DOCUMENT_STALE'});
+  const run=(await f.rows('runs')).find(row=>row.tag==='controller-run');assert.equal(run.state,'failed');assert.equal(run.retirementState,'released');
+  const result=(await f.rows('results')).find(row=>row.runId===run.runId);assert.equal(result.resultId,run.resultId);assert.equal(result.revision.sourceHash,revision.contentHash);assert.equal(result.outcome.error.code,'E_DOCUMENT_STALE');assert.equal(candidate.listeners.size,0);assert.equal(f.calls.length,0);
+});
+test('Current Page activation after last native observation is fenced; admitted target can later be inactive',async()=>{
+  const f=await fixture(),candidate=currentPageFixture(f),revision=await f.commit(),query=f.api.tabs.query;let count=0;
+  f.api.tabs.query=async request=>{const rows=await query(request);if(++count===4)candidate.switch();return rows;};
+  await assert.rejects(f.start(revision,candidate.target),{code:'E_DOCUMENT_STALE'});assert.equal(candidate.listeners.size,0);
+  const failed=(await f.rows('runs')).find(row=>row.tag==='controller-run');
+  assert.equal(failed.state,'failed');assert.equal(failed.retirementState,'released');
+  assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').state,'available');
+  assert.equal((await f.rows('results')).find(row=>row.runId===failed.runId).outcome.error.code,'E_DOCUMENT_STALE');
+  assert.ok((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').every(row=>row.released));
+  const second=await fixture(),c=currentPageFixture(second),run=await second.start(await second.commit(),c.target);
+  c.switch();assert.equal(c.listeners.size,0);assert.equal(run.target.tabId,2);assert.equal(run.target.windowId,7);
+  await second.finish(run);assert.equal((await second.rows('runs')).find(row=>row.runId===run.runId).state,'completed');
+});
+
+test('native target changes after final candidate query reject admission and release durable slot and pin', async () => {
+  for (const change of [{status:'loading'}, {status:'unloaded'}, {pendingUrl:'https://a.example/next'}, {url:'https://a.example/page?spa=changed'}]) {
+    const f=await fixture(), candidate=currentPageFixture(f), revision=await f.commit(), query=f.api.tabs.query;
+    const listeners=new Set(); f.api.tabs.onUpdated={addListener:l=>listeners.add(l),removeListener:l=>listeners.delete(l)};
+    let count=0;
+    f.api.tabs.query=async request=>{const value=await query(request);if (++count===4) for (const listener of listeners) listener(2,change,{...f.tabs.get(2),...change});return value;};
+    let runId;
+    await assert.rejects(f.start(revision,candidate.target), error=>{runId=error.runId;return error.code==='E_DOCUMENT_STALE';});
+    assert.ok(runId);
+    const run=(await f.rows('runs')).find(row=>row.runId===runId);
+    assert.equal(run.state,'failed');assert.equal(run.retirementState,'released');assert.equal(run.workerRetired,true);
+    assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').state,'available');
+    assert.equal((await f.rows('results')).find(row=>row.runId===runId).revision.sourceHash,revision.contentHash);
+    assert.ok((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').every(row=>row.released));
+    assert.equal(listeners.size,0);assert.equal(candidate.listeners.size,0);assert.equal(f.calls.length,0);
+  }
 });

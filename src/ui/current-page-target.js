@@ -41,6 +41,8 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     if (tab.windowId !== boundWindowId || tab.active !== true)
       return unavailable('E_NO_ACTIVE_TAB', '当前活动网页已变化', boundWindowId);
     if (tab.incognito) return unavailable('E_INCOGNITO', '不支持隐身窗口网页', boundWindowId);
+    if (tab.status === 'loading' || tab.status === 'unloaded')
+      return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页尚未完成加载，请等待页面稳定', boundWindowId);
     let tabUrl;
     try { tabUrl = pageUrl(tab.url); }
     catch (error) { return unavailable(error.code, error.message, boundWindowId); }
@@ -63,7 +65,7 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     const confirmed = await api.tabs.query({active: true, windowId: boundWindowId});
     if (!Array.isArray(confirmed) || confirmed.length !== 1 || confirmed[0].id !== tab.id ||
         confirmed[0].windowId !== boundWindowId || confirmed[0].active !== true || confirmed[0].incognito ||
-        confirmed[0].pendingUrl || confirmed[0].url !== tab.url)
+      confirmed[0].pendingUrl || ['loading', 'unloaded'].includes(confirmed[0].status) || confirmed[0].url !== tab.url)
       return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页在识别过程中发生变化', boundWindowId);
 
     return Object.freeze({status: 'available', windowId: boundWindowId, tabId: tab.id, frameId: 0,
@@ -71,6 +73,7 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
   }
 
   async function refresh() {
+    if (disposed) return state;
     const token = ++sequence;
     if (!disposed) emit(resolving(windowId));
     let next;
@@ -84,13 +87,19 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     listen(api.tabs?.onActivated, info => { if (info?.windowId === windowId) void refresh(); });
     listen(api.tabs?.onUpdated, (tabId, change, tab) => {
       if (tab?.windowId !== windowId || (!tab.active && tabId !== state.tabId)) return;
-      if (['url', 'pendingUrl', 'status'].some(key => Object.hasOwn(change || {}, key))) void refresh();
+      if (['url', 'pendingUrl', 'status', 'title'].some(key => Object.hasOwn(change || {}, key))) void refresh();
     });
     listen(api.tabs?.onRemoved, (tabId, info) => {
       if (info?.windowId === windowId || tabId === state.tabId) void refresh();
     });
     const navigation = details => { if (details?.frameId === 0 && details.tabId === state.tabId) void refresh(); };
+    listen(api.webNavigation?.onBeforeNavigate, details => {
+      if (details?.frameId !== 0 || details.tabId !== state.tabId) return;
+      sequence++;
+      emit({...unavailable('E_DOCUMENT_UNRESOLVED', '当前网页正在导航，请等待文档加载完成', windowId), tabId: details.tabId});
+    });
     listen(api.webNavigation?.onCommitted, navigation);
+    listen(api.webNavigation?.onErrorOccurred, navigation);
     listen(api.webNavigation?.onHistoryStateUpdated, navigation);
     listen(api.webNavigation?.onReferenceFragmentUpdated, navigation);
     listen(api.windows?.onRemoved, removedWindowId => {
@@ -114,17 +123,22 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
   })();
 
   function capture() {
+    if (disposed) throw new EnvironmentError('E_HOST_CLOSED', 'Sidebar 已关闭');
     if (state.status !== 'available')
       throw new EnvironmentError(state.reason || 'E_TARGET', state.message || '当前网页不可运行');
     return Object.freeze({...state, capturedAt: Date.now()});
   }
 
   async function revalidate(captured) {
+    if (disposed) throw new EnvironmentError('E_HOST_CLOSED', 'Sidebar 已关闭');
     if (!captured || captured.status !== 'available' || captured.windowId !== windowId) throw stale();
+    const token = ++sequence;
     let observed;
     try { observed = await observe(windowId); }
     catch { throw stale(); }
-    if (!disposed) emit(observed);
+    if (disposed) throw new EnvironmentError('E_HOST_CLOSED', 'Sidebar 已关闭');
+    if (token !== sequence) throw stale();
+    emit(observed);
     if (observed.status !== 'available') throw stale(observed.message);
     for (const key of ['windowId', 'tabId', 'frameId', 'documentId', 'url', 'origin'])
       if (observed[key] !== captured[key]) throw stale();

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "target": "WXT; JavaScript; MV3; existing API contracts",
-  "stepId": "Browser-core-native-candidate67",
+  "stepId": "Browser-core-native-candidate70",
   "state": "in_progress",
   "lastPassedStep": "P3",
   "steps": {
@@ -15,7 +15,7 @@
   },
   "ledger": "docs/framework/source-compatibility-ledger.json",
   "productInputsSha256": "bd9e3f83ddec5e3a8f6464cfc11c5f65763b96b5972e6a3e242abe423d131e3e",
-  "verificationInputsSha256": "1cc8b08560ddf3eefe5032d99d3d92588b11874e7e7b0432d51d4ac1151e159d",
+  "verificationInputsSha256": "9171366e60aa8fcb28856f3647e4ed0b37de86b8d4213873450f12a956883473",
   "packageHashes": {
     "production": "e56c7d5ccc331a679b2aa593bca9ec4732ac521c1fb7d9e33318e022aa022d04",
     "development": "983ddde2a9d461239ebd36221706cfacc4a0ed74027b5cff78c4707422e537d7"
@@ -338,6 +338,10 @@
     "tests/framework/k5-sdk-native-selection-receipt.test.mjs",
     "tests/framework/k5-sdk-original-authority.mjs",
     "tests/framework/k5-sdk-original-authority.test.mjs",
+    "tests/framework/k5-sdk-original-session-native.mjs",
+    "tests/framework/k5-sdk-original-session-native.test.mjs",
+    "tests/framework/k5-sdk-original-session.mjs",
+    "tests/framework/k5-sdk-original-session.test.mjs",
     "tests/framework/k5-sdk-original-storage-native.mjs",
     "tests/framework/k5-sdk-original-storage-native.test.mjs",
     "tests/framework/k5-sdk-original-storage.mjs",
@@ -694,7 +698,13 @@
     "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T16-57-13.637Z-9aa57bad",
     "docs/framework/evidence/wxt/snapshots/2026-10-07T16-57-14.108Z-Browser-core-native-candidate66-candidate_inputs_requalified",
     "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T17-02-34.916Z-fdfb9bab",
-    "docs/framework/evidence/wxt/snapshots/2026-10-07T17-02-35.361Z-Browser-core-native-candidate67-candidate_inputs_requalified"
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T17-02-35.361Z-Browser-core-native-candidate67-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T17-26-27.205Z-2c15dc22",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T17-26-39.122Z-Browser-core-native-candidate68-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T17-29-30.158Z-66ba4bb3",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T17-29-30.656Z-Browser-core-native-candidate69-candidate_inputs_requalified",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/f2-controller-product-native/ready-2026-10-07T17-33-37.035Z-855b3526",
+    "docs/framework/evidence/wxt/snapshots/2026-10-07T17-33-37.512Z-Browser-core-native-candidate70-candidate_inputs_requalified"
   ],
   "ownedRuntime": {
     "writer": "01a10b50-57ff-7e01-8d6e-452dd17c2cdd",
@@ -703,15 +713,15 @@
     "operations": [],
     "state": "serial-handoff-accepted"
   },
-  "updatedAt": "2026-10-07T17:02:35.491Z",
+  "updatedAt": "2026-10-07T17:33:37.653Z",
   "ownerThreadId": "01a10b50-57ff-7e01-8d6e-452dd17c2cdd",
   "zipHashes": {
     "production": "a2f48d4dbf6c1b24b5404fcb93a45e33fb4140e22288a95ead0d78430a3b8dd3",
     "development": "6ef228b9a16b5aed20966238ba12ac57e56e7c8453b97d44d14eb143829a5779"
   },
   "latestSnapshot": {
-    "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-07T17-02-35.361Z-Browser-core-native-candidate67-candidate_inputs_requalified",
-    "manifestSha256": "9ccbb2ed0ad522df97c6f89c76553bc789d369fa9f0709429555128ff8a4a3f2",
+    "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-07T17-33-37.512Z-Browser-core-native-candidate70-candidate_inputs_requalified",
+    "manifestSha256": "7ae409acda2552454c4ad99e254bc64b76c749b37144a2594c907617a28a5789",
     "passedAtStep": "P3",
     "layer": "candidate_inputs_requalified"
   },
