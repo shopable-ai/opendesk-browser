@@ -1,0 +1,37 @@
+name: Sidebar R5 static visual comparison
+
+on:
+  pull_request:
+    paths:
+      - "examples/ui/sidebar-r4-installed-discovery-preview.html"
+      - "examples/ui/sidebar-r5-compact-preview.html"
+      - "scripts/tests/sidebar-preview-visual.mjs"
+      - ".github/workflows/sidebar-r5-visual.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-html-chrome:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Capture same-width R4 and R5 Discover HTML previews
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/sidebar-preview-visual.mjs artifacts/sidebar-r5-visual
+      - name: Archive screenshots and pixel metrics (static prototypes only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sidebar-r5-static-html-visual-evidence
+          path: artifacts/sidebar-r5-visual/
+          if-no-files-found: warn
+          retention-days: 14

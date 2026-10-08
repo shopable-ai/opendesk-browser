@@ -3,8 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenDesk Browser</title><link rel="stylesheet" href="tool-shell.css"></head>
 <body>
 <header class="workspace-header">
-  <div class="workspace-brand"><span class="workspace-logo" aria-hidden="true">O</span><div><h1>OpenDesk Browser</h1><p>网页自动化工作台</p></div></div>
-  <button type="button" id="open-catalog" class="catalog-open" aria-label="在独立完整页面打开任务目录">任务目录 ↗</button>
+  <div class="workspace-brand"><span class="workspace-logo" aria-hidden="true">O</span><h1>OpenDesk Browser</h1></div>
 </header>
 <nav class="workbench-nav" aria-label="工作台">
   <button type="button" id="tab-my-tasks" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
@@ -13,46 +12,44 @@
 </nav>
 <main id="workspace-content">
   <div id="workbench-tasks" data-workbench-page="tasks">
-    <section aria-labelledby="installed-heading"><h2 id="installed-heading">我的任务</h2>
-      <p class="hint">仅展示你明确安装的版本。运行前检查网站、参数与权限。</p>
+    <section class="tasks-surface" aria-label="已安装任务">
       <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>
       <div id="task-installed-cards" class="task-card-list" aria-label="已安装任务列表"></div>
       <div id="task-selected-workspace" class="task-selected-workspace">
-      <div id="task-installed-detail" class="task-detail" aria-live="polite">尚未选择任务</div>
       <p id="task-current-site" class="identity"></p>
       <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>
-      
-      <p id="task-status" role="status">选择一个已安装任务</p><h3 class="task-result-heading">最近一次结果</h3>
-      <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>
-      <details class="task-history-panel" open><summary>运行记录 · 当前任务</summary><div id="task-history" aria-live="polite">正在读取历史…</div></details>
-      <div class="row"><button type="button" id="task-refresh">更新任务</button><button type="button" id="task-fork-draft" disabled>复制为独立草稿</button></div>
-      <details><summary>任务管理</summary>
-        <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button></div>
-        <p class="hint">停用和卸载立即阻止新的运行；已提交任务继续遵守原有停止和退休机制。卸载不会删除历史结果。</p>
+      <p id="task-status" role="status" aria-live="polite"></p>
+      <div id="task-result-panel" class="task-result-panel" hidden>
+        <h3 class="task-result-heading">最近结果</h3>
+        <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>
+      </div>
+      <details id="task-history-panel" class="task-history-panel" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>
+      <details class="task-scope-panel"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>
+      <details class="task-tools"><summary>更多操作</summary>
+        <div class="row"><button type="button" id="task-refresh">刷新任务</button><button type="button" id="task-fork-draft" disabled>复制草稿</button></div>
+        <details><summary>任务管理</summary>
+          <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>
+          <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>
+        </details>
       </details>
       </div>
     </section>
   </div>
   <div id="workbench-local-discover" data-workbench-page="local-discover" hidden>
-    <section class="local-discovery-section" aria-labelledby="local-discover-heading">
-      <div class="local-discovery-intro">
-        <h2 id="local-discover-heading">发现已安装任务</h2>
-        <p class="hint">从本机已有任务中，找到适合当前网页的操作。不会联网搜索或自动安装脚本。</p>
+    <section class="local-discovery-section" aria-label="发现已安装任务">
+      <div class="local-discovery-search-row">
+        <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
+        <input type="search" id="local-discover-search" placeholder="搜索已安装任务…" autocomplete="off">
+        <button type="button" id="local-discover-open-catalog" class="local-discovery-import" aria-label="打开完整任务目录，导入或管理任务">导入</button>
       </div>
-      <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
-      <input type="search" id="local-discover-search" placeholder="搜索名称、用途或网站…" autocomplete="off">
       <div id="local-discover-filters" class="local-discovery-filters" role="group" aria-label="本地任务筛选">
         <button type="button" id="local-filter-current" data-local-filter="current" aria-pressed="true">当前网页</button>
-        <button type="button" id="local-filter-all" data-local-filter="all" aria-pressed="false">全部已安装</button>
-        <button type="button" id="local-filter-disabled" data-local-filter="disabled" aria-pressed="false">已停用</button>
+        <button type="button" id="local-filter-all" data-local-filter="all" aria-pressed="false">全部</button>
+        <button type="button" id="local-filter-disabled" data-local-filter="disabled" aria-pressed="false">停用</button>
       </div>
-      <p id="local-discover-count" class="hint" aria-live="polite"></p>
+      <p id="local-discover-count" class="visually-hidden" aria-live="polite"></p>
       <div id="local-discover-cards" class="local-discovery-list" aria-label="发现的本机任务"></div>
       <p id="local-discover-status" class="hint" role="status"></p>
-      <div class="local-discovery-footer">
-        <span>需要导入或安装新任务？</span>
-        <button type="button" id="local-discover-open-catalog">打开完整任务目录 ↗</button>
-      </div>
     </section>
   </div>
   <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->
@@ -94,23 +91,22 @@
     <details id="developer-target-detail"><summary>查看当前网页详细信息</summary>
       <p id="script-current-page-title" class="page-title">正在识别…</p>
       <p id="script-current-page-url" class="identity"></p>
-      <p class="hint">运行前自动确认目标；本次运行启动后切换标签页不会改变执行目标。</p>
     </details>
   </section>
-  <section aria-labelledby="script-title"><h2 id="script-title">脚本</h2>
-    <label for="script-source">JavaScript 编辑器 · 草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
+  <section class="developer-editor" aria-label="JavaScript 草稿">
+    <label for="script-source" class="visually-hidden">JavaScript 编辑器，草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
-    <p class="hint">未保存的代码可以直接运行。源码、参数及目标网页会在启动时冻结。</p>
     <details class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
-  <div class="developer-feedback developer-run-state" aria-labelledby="task-title"><h2 id="task-title">当前任务</h2>
-    <p id="script-task-id" class="identity">尚未运行</p><p id="script-task-status" role="status"></p>
+  <p id="script-task-status" class="developer-task-status" role="status"></p>
+  <details id="developer-run-technical" class="developer-run-technical"><summary>运行目标与版本</summary>
+    <p id="script-task-id" class="identity">尚未运行</p>
     <p id="script-running-target" class="identity" data-state="idle">运行目标：尚未建立</p>
     <p id="script-task-version" class="identity"></p>
-  </div>
-  <div class="developer-feedback developer-results" aria-labelledby="result-title"><h2 id="result-title">结果</h2>
+  </details>
+  <details id="developer-results-panel" class="developer-results"><summary>结果与历史</summary><div class="developer-results-body">
     <pre id="script-result" aria-label="脚本持久结果">尚无结果</pre>
     <div class="row"><button id="script-read">刷新持久结果</button></div>
     <label for="script-history-run">持久结果历史</label><select id="script-history-run"><option value="">选择历史任务</option></select>
@@ -122,11 +118,31 @@
       <div class="row"><label for="script-download-result">已完成的持久结果</label><select id="script-download-result"><option value="">请选择要下载的结果</option></select><button id="script-download" disabled>下载结果 JSON</button></div>
       <p id="script-download-status" role="status">结果下载保留类型信息，包括 undefined。</p>
     </details>
-  </div>
+  </div></details>
 
-    <details id="page-preview-tools"><summary>网页 DOM 脚本试运行（USER_SCRIPT / jQuery）</summary>
-      <p class="hint">开发预览直接执行编辑器中的 async function main()；可使用 document、DOM、jQuery，不使用 Controller 的 page/params。仅对当前网页精确文档执行一次，不保存、不安装、不自动匹配网址。</p>
-      <label><input type="checkbox" id="page-preview-jquery"> 加载扩展内固定 jQuery 3.7.1（隔离 USER_SCRIPT，不修改网站 MAIN 全局）</label>
+    <details id="page-preview-tools"><summary>网页用户脚本 · 依赖与试运行</summary>
+      <p class="hint">使用上方编辑器的当前源码，可访问 document 和已锁定依赖。这里与 Controller 的 page / params 模式独立；调试无需保存。</p>
+      <label for="page-preview-entry">页面脚本入口</label>
+      <select id="page-preview-entry"><option value="async-main">OpenDesk · async function main()</option><option value="classic-userscript">经典用户脚本 · 顶层 / IIFE</option></select>
+      <div id="page-dependency-panel">
+        <div class="row"><label for="page-dependency-url">添加 @require</label><input id="page-dependency-url" type="url" placeholder="HTTPS JavaScript 资源地址"><button id="page-dependency-add" type="button">插入声明</button></div>
+        <p id="page-dependency-status" role="status">正在识别源码依赖…</p>
+        <div id="page-dependency-sources"></div>
+        <label for="page-dependency-lock">固定依赖版本</label><select id="page-dependency-lock" disabled><option value="">尚未锁定</option></select>
+        <div class="row"><button id="page-dependency-prepare" type="button" disabled>读取资源并审核</button><button id="page-dependency-refresh" type="button">刷新本机版本</button></div>
+        <details><summary>从本地文件提供依赖</summary>
+          <p class="hint">选择一条 @require，再提供其 JavaScript 文件；审核会显示实际来源和哈希，不读取 file:// 地址。</p>
+          <label for="page-dependency-local-order">对应声明</label><select id="page-dependency-local-order"><option value="">选择对应声明</option></select>
+          <label for="page-dependency-local-file">JavaScript 文件（最多 1 MiB）</label><input id="page-dependency-local-file" type="file" accept=".js,.mjs,text/javascript,application/javascript,text/plain">
+        </details>
+        <pre id="page-dependency-review" aria-label="依赖来源与内容审核" hidden></pre>
+        <button id="page-dependency-approve" type="button" disabled>确认来源并锁定</button>
+        <pre id="page-dependency-warnings" role="status" hidden></pre>
+      </div>
+      <details><summary>旧版 jQuery 试运行备用入口</summary>
+        <label><input type="checkbox" id="page-preview-jquery"> 加载扩展内固定 jQuery 3.7.1</label>
+        <p class="hint">仅用于没有 @require 的 async main 脚本；新依赖请使用上面的声明与锁定流程。原生迁移验收完成前保留此入口。</p>
+      </details>
       <button id="page-preview-run" type="button" disabled>在当前网页试运行 DOM 脚本</button>
       <p id="page-preview-status" role="status">需先在扩展详情中允许用户脚本，并授权当前网站。</p>
       <pre id="page-preview-result" aria-label="即时页面脚本结果">尚未运行</pre>
@@ -187,15 +203,9 @@
 </main>
 <footer id="workspace-dock" class="workspace-dock">
   <div id="task-dock" class="dock-actions">
-    <span class="dock-caption">任务结果与运行记录保存在现有工作台</span>
     <div class="dock-buttons"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
   </div>
-  <div id="discover-dock" class="dock-actions" hidden>
-    <span class="dock-caption">从本机已安装任务中快速发现和定位</span>
-    <div class="dock-buttons"><button type="button" id="discover-to-tasks">我的任务</button><button type="button" id="discover-to-catalog">完整任务目录 ↗</button></div>
-  </div>
   <div id="develop-dock" class="dock-actions" hidden>
-    <span class="dock-caption">草稿可直接运行，无需先保存</span>
     <div class="dock-buttons"><button id="script-run" disabled>运行草稿</button><button id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
   </div>
 </footer>

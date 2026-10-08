@@ -2,6 +2,10 @@ import {httpUrl, permissionPattern} from '../../environment.js';
 import {FoundationError, invariant} from '../../platform/protocol.js';
 import {JQUERY_371, sha256Utf8} from './page-program-package.js';
 import {loadPackagedJquery} from './packaged-dependencies.js';
+import {createDependencyManager} from './dependency-manager.js';
+import {compileLockedPageSource, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
+import {createPreviewWorlds} from './preview-worlds.js';
+import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
 
 // One-shot developer preview only. Not a Task Candidate, durable Controller
 // Result, installed Page Program or a persistent userScripts.register grant.
@@ -23,16 +27,33 @@ function freezeTarget(raw) {
   return Object.freeze({...raw});
 }
 function frozenSource(request) {
+  if (request && !Object.hasOwn(request, 'withJquery')) {
+    const allowed = ['sourceUtf8','entryFormat','lockId','target','importSourceUrl'];
+    invariant(typeof request === 'object' && !Array.isArray(request) &&
+      Object.keys(request).every(key => allowed.includes(key)) &&
+      ['sourceUtf8','entryFormat','target'].every(key => Object.hasOwn(request,key)), 'E_SCHEMA', 'Unexpected page preview fields');
+    invariant(typeof request.sourceUtf8 === 'string' && request.sourceUtf8.trim().length > 0 &&
+      new TextEncoder().encode(request.sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT &&
+      PAGE_ENTRY_FORMATS.includes(request.entryFormat) &&
+      (request.lockId == null || typeof request.lockId === 'string'), 'E_SOURCE', 'Invalid page script entry or source');
+    return Object.freeze({sourceUtf8:request.sourceUtf8,entryFormat:request.entryFormat,
+      lockId:request.lockId ?? null, ...(request.importSourceUrl ? {importSourceUrl:request.importSourceUrl} : {}),
+      target:freezeTarget(request.target),legacy:false});
+  }
   fields(request, ['sourceUtf8', 'withJquery', 'target']);
   invariant(typeof request.withJquery === 'boolean' && typeof request.sourceUtf8 === 'string' &&
     request.sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(request.sourceUtf8).byteLength <= MAX_SOURCE_BYTES &&
     /\basync\s+function\s+main\s*\(/.test(request.sourceUtf8),
     'E_SOURCE', 'Preview requires a bounded async function main()');
+  // Transitional checkbox requests must not bypass metadata admission or
+  // silently ignore @require. New declarations always use the reviewed lock.
+  const metadata = parseUserScriptDependencies(request.sourceUtf8);
+  assertUserScriptExecutable(metadata,{entryFormat:'async-main',dependenciesLocked:metadata.requires.length === 0});
   return Object.freeze({sourceUtf8:request.sourceUtf8, withJquery:request.withJquery,
-    target:freezeTarget(request.target)});
+    target:freezeTarget(request.target),legacy:true});
 }
-export async function compilePageScriptPreview({sourceUtf8, withJquery, jqueryCode} = {}) {
+export async function compilePageScriptPreview({sourceUtf8, withJquery, jqueryCode,receiptNonce} = {}) {
   invariant(typeof sourceUtf8 === 'string' && typeof withJquery === 'boolean' &&
     sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(sourceUtf8).byteLength <= MAX_SOURCE_BYTES &&
@@ -48,14 +69,16 @@ export async function compilePageScriptPreview({sourceUtf8, withJquery, jqueryCo
   // Chrome awaits the promise returned by this final source. MAIN is never used.
   const guard = withJquery
     ? "if (globalThis.jQuery?.fn?.jquery !== '3.7.1') throw new Error('E_DEPENDENCY_NOT_READY');\n" : '';
-  js.push({code:"(async () => {\n'use strict';\n" + guard + sourceUtf8 +
-    "\nif (typeof main !== 'function') throw new Error('E_MAIN_REQUIRED');\nreturn await main();\n})()"});
+  js.push({code:pageConsumerSource(guard+sourceUtf8,'async-main',receiptNonce)});
   return Object.freeze({sourceHash:hash, world:'USER_SCRIPT',
     worldId:'opendesk-preview-' + hash.slice(0,48) + (withJquery ? '-jq' : '-plain'),
-    js:Object.freeze(js)});
+    js:Object.freeze(js),receiptNonce});
 }
-export function createPageScriptPreview({api, storage, assertHost, fetchImpl = globalThis.fetch}) {
+export function createPageScriptPreview({api, storage, assertHost, dependencies, fetchImpl = globalThis.fetch}) {
   invariant(api && storage && typeof assertHost === 'function', 'E_SCHEMA', 'Trusted preview dependencies missing');
+  const dependencyManager = dependencies || createDependencyManager({api,storage,assertHost,fetchImpl});
+  const worlds = createPreviewWorlds({api});
+  let active = false;
   async function verifyTarget(t) {
     // Trusted browser observation, then documentIds injection; never fall back
     // to origin-only authorization or whichever tab happens to be active.
@@ -78,15 +101,27 @@ export function createPageScriptPreview({api, storage, assertHost, fetchImpl = g
     invariant(!slot?.currentRunId, 'E_OWNER', 'A Controller task currently owns the run slot');
   }
   async function preview(request, sender) {
+    invariant(!active, 'E_OWNER', '已有页面脚本试运行正在等待浏览器回执');
+    active = true;
+    try {return await evaluate(request,sender);} finally {active = false;}
+  }
+  async function evaluate(request, sender) {
     await assertHost(sender); // Existing authenticated packaged tool document.
     const frozen = frozenSource(request);
     await verifyTarget(frozen.target);
-    let jqueryCode;
-    if (frozen.withJquery) {
+    let jqueryCode, locked, script;
+    const receiptNonce=crypto.randomUUID();
+    if (frozen.legacy && frozen.withJquery) {
       const packed = await loadPackagedJquery({runtime:api.runtime,fetchImpl});
       jqueryCode = packed.code;
     }
-    const script = await compilePageScriptPreview({...frozen, jqueryCode});
+    if (frozen.legacy) script = await compilePageScriptPreview({...frozen,jqueryCode,receiptNonce});
+    else {
+      locked = await dependencyManager.loadForExecution({sourceUtf8:frozen.sourceUtf8,
+        entryFormat:frozen.entryFormat,lockId:frozen.lockId,
+        ...(frozen.importSourceUrl ? {importSourceUrl:frozen.importSourceUrl} : {})},sender);
+      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce});
+    }
     let native;
     try {
       native = api.userScripts;
@@ -97,23 +132,38 @@ export function createPageScriptPreview({api, storage, assertHost, fetchImpl = g
       throw new FoundationError('E_USER_SCRIPTS_UNAVAILABLE',
         '请在 chrome://extensions 中打开此扩展的「允许用户脚本」开关');
     }
+    // Both routes prove isolation, including the transitional packaged-library
+    // checkbox. Legacy source-hash worlds can also exhaust Chromium's budget.
+    const worldId = await worlds.allocate(native,frozen.target);
+    await assertHost(sender);
     await verifyTarget(frozen.target);
     const tabId = frozen.target.tabId, documentId = frozen.target.documentId;
     const results = await native.execute({target:{tabId,documentIds:[documentId]},
-      world:script.world,worldId:script.worldId,js:script.js});
+      world:script.world,worldId,js:script.js});
     invariant(Array.isArray(results) && results.length === 1 &&
       results[0]?.frameId === 0 && results[0]?.documentId === documentId,
       'E_RESULT_FORMAT', 'Native user script returned no exact document receipt');
     const receipt = results[0];
-    if (receipt.error) throw new FoundationError('E_PAGE_SCRIPT_EXECUTION',String(receipt.error));
+    if (receipt.error !== undefined) throw new FoundationError('E_PAGE_SCRIPT_EXECUTION',String(receipt.error));
+    const completion=receipt.result;
+    invariant(completion && completion.format===PAGE_PREVIEW_RECEIPT_FORMAT && completion.nonce===receiptNonce &&
+      typeof completion.ok==='boolean','E_PAGE_SCRIPT_EXECUTION',
+      '脚本未返回完成回执，可能存在语法错误、依赖异常或无法传回的结果；请查看网页控制台');
+    invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error || '页面脚本执行失败');
+    const value=completion.value;
     let resultText;
-    try {resultText = receipt.result === undefined ? 'undefined' : JSON.stringify(receipt.result);}
+    try {resultText = value === undefined ? 'undefined' : JSON.stringify(value);}
     catch {resultText = '（返回值不可 JSON 序列化）';}
-    if(typeof resultText !== 'string') resultText = String(receipt.result);
+    if(typeof resultText !== 'string') resultText = String(value);
+    if(frozen.entryFormat==='classic-userscript') resultText='经典脚本的顶层同步代码已执行；异步 IIFE、监听器和定时器不等待，也不会因预览返回而停止。';
     return {state:'preview-evaluated',durable:false,registered:false,tabId,documentId,
-      sourceHash:script.sourceHash,world:script.world,withJquery:frozen.withJquery,
-      dependency:frozen.withJquery ? {id:JQUERY_371.id,version:JQUERY_371.version} : null,
+      sourceHash:script.sourceHash,world:script.world,worldId,
+      ...(frozen.legacy ? {withJquery:frozen.withJquery,
+        dependency:frozen.withJquery ? {id:JQUERY_371.id,version:JQUERY_371.version} : null} :
+        {entryFormat:frozen.entryFormat,lockId:locked.lockId,manifestDigest:locked.manifestDigest,
+          dependencies:locked.entries.map(({order,url,sha256,sourceKind})=>({order,url,sha256,sourceKind})),
+          warnings:script.warnings}),
       resultText:resultText.slice(0,2048)};
   }
-  return Object.freeze({preview});
+  return Object.freeze({preview,cleanupWorlds:worlds.cleanup});
 }

@@ -81,6 +81,8 @@ test('candidate cannot install without matching trustworthy native run, then exa
     manifestHash:pkg.manifestHash})).stage,'available');
   assert.equal((await f.send('installTask',{taskId:pkg.manifest.taskId,version:'1.0.0',
     manifestHash:pkg.manifestHash,expectedInstalledVersion:null})).enabled,true);
+  await assert.rejects(f.send('installTask',{taskId:pkg.manifest.taskId,version:'1.0.0',
+    manifestHash:pkg.manifestHash,expectedInstalledVersion:null}),errorCode('E_REVISION'));
   const scriptId=taskScriptId(pkg.manifest.taskId,pkg.manifest.version);
   assert.equal((await f.send('resolveInstalledTask',{taskId:pkg.manifest.taskId})).scriptId,scriptId);
   assert.equal((await f.send('listTaskCatalog',{})).installed[0].version,'1.0.0');
@@ -98,13 +100,17 @@ test('candidate cannot install without matching trustworthy native run, then exa
   await f.send('uninstallTask',{taskId:pkg.manifest.taskId,version:'1.0.0'});
   assert.equal((await f.send('listTaskCatalog',{})).installed.length,0);
   assert.equal((await f.tx.all('scriptRevisions')).length,1,'uninstall keeps immutable version for result history');
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
+    origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
 });
 
-test('same task version cannot replace bytes and install CAS rejects stale upgrades',async()=>{
+test('same task version cannot replace even a correctly hashed package',async()=>{
   const f=fixture(),pkg=await example();
   await f.send('importTaskPackage',{package:pkg});
   const changed={...pkg,manifest:{...pkg.manifest,title:'换标题'}};
   await assert.rejects(f.send('importTaskPackage',{package:changed}),errorCode('E_HASH'));
+  const rehashed=await createTaskPackage({...pkg.manifest,title:'换标题'},pkg.sourceUtf8);
+  await assert.rejects(f.send('importTaskPackage',{package:rehashed}),errorCode('E_REQUEST_CONFLICT'));
   await assert.rejects(f.send('getTaskCandidate',{taskId:'no-such-id',version:'1.0.0'}),errorCode('E_OWNER'));
 });
 

@@ -38,7 +38,8 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
     sharedStore.installed=structuredClone(installedState);
   }
   const state=sharedStore || {catalog:secondTask?[row,other]:[row],installed:installedState};
-  const starts=[],permissions=[],stops=[],catalogOpens=[];
+  const catalogState=state;
+  const starts=[],permissions=[],stops=[],catalogOpens=[],draftMessages=[],importedDrafts=[];
   let target={status:'available',url:'https://a.example/',tabId:9,windowId:7,documentId:'doc-9'};
   const page={
     get snapshot(){return target;},subscribe:fn=>{fn(target);return()=>{};},
@@ -75,12 +76,39 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
     subscribe:()=>()=>{}
   };
   const api={permissions:{request:value=>{permissions.push(value);return Promise.resolve(true);}},
-    runtime:{getURL:path=>'chrome-extension://extension/'+path},
+    runtime:{getURL:path=>'chrome-extension://extension/'+path,sendMessage:async message=>{draftMessages.push(message);return {ok:true};}},
     tabs:{create:async request=>{catalogOpens.push(request);return {id:99};}}};
-  const ui=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc});
-  return {ui,get,page,host,view,starts,permissions,stops,catalogOpens,
+  const ui=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,importDraft:source=>importedDrafts.push(source)});
+  return {ui,get,page,host,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,
     click:async(id,trusted=true)=>{get(id).fire('click',{isTrusted:trusted});await tick();await tick();}};
 };
+
+test('entering Sidebar task views reads external installations without executing and preserves unchanged form inputs',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());
+  const installed=f.catalogState.installed.pop();
+  await tick();await tick();
+  assert.equal(f.get('task-installed-cards').children.length,2);
+  assert.equal(f.get('task-installed-cards').children[1],f.get('task-selected-workspace'));
+  assert.equal(f.get('task-selected-workspace').hidden,true);
+  assert.match(f.get('task-installed-cards').children[0].textContent,/发现.*导入/);
+  assert.equal(f.get('task-installed-detail').textContent,'','empty task scope stays compact under R5');
+  assert.equal(f.get('task-run').disabled,true);
+  f.catalogState.installed.push(installed);
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('task-run').disabled,false);
+  const input=f.get('task-param-name');
+  input.value='Preserved native input';
+  await f.click('tab-discover');
+  assert.equal(f.get('local-discover-cards').children.length,1);
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('task-param-name'),input,'unchanged catalog must not replace the editable form');
+  assert.equal(input.value,'Preserved native input');
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  f.catalogState.installed=[];
+  await f.click('tab-discover');
+  assert.equal(f.get('local-discover-cards').children.length,1);
+  assert.match(f.get('local-discover-cards').children[0].textContent,/还没有任务/);
+});
 
 test('installed tasks default page, render schema form and freeze the exact saved version/params/target',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
@@ -167,7 +195,9 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
   assert.equal(button.attributes['aria-controls'],'task-selected-workspace');
   assert.equal(group.children[1],f.get('task-selected-workspace'),'parameters and history remain under selected card');
   assert.match(button.children[1].children[0].textContent,/表单任务/);
-  assert.match(f.get('task-installed-detail').textContent,/输入表单/);
+  assert.match(button.children[1].children[1].textContent,/输入表单/,'card already communicates its purpose');
+  assert.match(f.get('task-installed-detail').textContent,/适用网站/,'secondary details show scope and permissions');
+  assert.doesNotMatch(f.get('task-installed-detail').textContent,/输入表单/,'R5 avoids repeating the task purpose');
   assert.doesNotMatch(f.get('task-installed-detail').textContent,/[a-f0-9]{64}/,'raw hashes belong in diagnostics');
   assert.equal(f.get('workbench-discover').hidden,true);
 });
@@ -184,7 +214,7 @@ test('Sidebar Discover searches installed tasks only and selects a task without 
   f.get('local-discover-search').fire('input');
   assert.match(f.get('local-discover-count').textContent,/0 个/);
   assert.equal(f.get('local-discover-cards').children.length,1,'empty search renders an explanation');
-  assert.match(f.get('local-discover-cards').children[0].textContent,/没有找到/);
+  assert.match(f.get('local-discover-cards').children[0].textContent,/没有匹配/);
   f.get('local-discover-search').value='表单';
   f.get('local-discover-search').fire('input');
   assert.equal(f.get('local-discover-cards').children.length,1);
@@ -242,17 +272,27 @@ test('full-size catalog keeps its own reader after real install and re-reads the
   assert.equal(f.get('task-run').disabled,false,'installed task is eligible on its own website');
 });
 
-test('installed Discover keeps its own useful dock without running or requesting permission',async t=>{
+test('idle Discover has no fixed footer and inline import still opens the authenticated catalog',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('tab-discover');
-  assert.equal(f.get('discover-dock').hidden,false,'idle Discover has a navigation dock');
-  await f.click('discover-to-tasks');
-  assert.equal(f.get('workbench-tasks').hidden,false);
+  assert.equal(f.get('workspace-dock').hidden,true,'idle local search leaves all height for results');
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('workspace-dock').hidden,false,'task Run is visible in My Tasks');
   await f.click('tab-discover');
-  await f.click('discover-to-catalog');
-  assert.equal(f.catalogOpens.length,1,'explicit catalog button opens the existing extension surface');
+  await f.click('local-discover-open-catalog');
+  assert.equal(f.catalogOpens.length,1,'inline import opens existing full-page catalog');
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
+});
+
+test('R5 result/history stay out of sight until a task has runs',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  assert.equal(f.get('task-result-panel').hidden,true);
+  assert.equal(f.get('task-history-panel').hidden,true);
+  await f.click('tab-discover');
+  assert.equal(f.get('task-result-panel').hidden,true);
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('task-history-panel').hidden,true);
 });
 
 test('card view retains original action identities, history and parameter form across tab changes',async t=>{
@@ -289,7 +329,7 @@ test('two extension documents share only a refresh hint and re-read authoritativ
   const catalog=make({installedInitially:false,sharedStore:store});
   t.after(()=>{sidebar.ui.dispose();catalog.ui.dispose();});
   await tick();await tick();
-  assert.equal(sidebar.get('task-installed-cards').children[0].textContent.includes('还没有安装'),true);
+  assert.match(sidebar.get('task-installed-cards').children[0].textContent,/还没有任务/);
   catalog.ui.showCatalogPage();
   catalog.get('task-catalog-list').value='demo.form@1.0.0';
   catalog.get('task-catalog-list').fire('change');
@@ -300,4 +340,57 @@ test('two extension documents share only a refresh hint and re-read authoritativ
   assert.equal(sidebar.get('task-run').disabled,false);
   assert.equal(sidebar.starts.length,0,'catalog notification never runs a task');
   assert.equal(sidebar.permissions.length,0,'catalog notification never requests permission');
+});
+
+test('catalog installation stays in the complete directory and directs running back to Sidebar',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  f.get('task-catalog-list').value='demo.form@1.0.0';
+  await f.click('task-install');
+  assert.equal(f.get('workbench-discover').hidden,false);
+  assert.equal(f.get('workbench-tasks').hidden,true);
+  assert.match(f.get('task-catalog-status').textContent,/已安装.*Sidebar「我的任务」/);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+});
+
+test('catalog JS import hands source to Sidebar and never enters a view with a hidden runner',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  const source='async function main() { return "file draft"; }';
+  f.get('task-package-file').value='draft.js';
+  f.get('task-package-file').files=[{name:'draft.js',size:source.length,text:async()=>source}];
+  f.get('task-package-file').fire('change');await tick();await tick();
+  assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',sourceUtf8:source}]);
+  assert.equal(f.get('workbench-discover').hidden,false);
+  assert.equal(f.get('workbench-develop').hidden,true);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  assert.match(f.get('task-catalog-status').textContent,/未保存草稿/);
+  assert.equal(f.get('task-package-file').value,'','the same file can be imported again');
+});
+
+test('missing Sidebar refuses import with an actionable message, without losing the directory',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  f.api.runtime.sendMessage=async()=>{throw Error('Receiving end does not exist');};
+  f.get('task-package-file').value='draft.js';
+  f.get('task-package-file').files=[{name:'draft.js',size:1,text:async()=>'x'}];
+  f.get('task-package-file').fire('change');await tick();await tick();
+  assert.match(f.get('task-catalog-status').textContent,/同一窗口打开 Sidebar/);
+  assert.equal(f.get('workbench-discover').hidden,false);assert.equal(f.starts.length,0);
+  assert.equal(f.get('task-package-file').value,'','retrying after opening Sidebar must fire change again');
+});
+
+test('catalog draft transport errors retain their cause instead of claiming Sidebar is missing',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  f.api.runtime.sendMessage=async()=>{throw Error('Extension context invalidated');};
+  f.get('task-package-file').value='draft.js';
+  f.get('task-package-file').files=[{name:'draft.js',size:1,text:async()=>'x'}];
+  f.get('task-package-file').fire('change');await tick();await tick();
+  assert.match(f.get('task-catalog-status').textContent,/E_DRAFT_TRANSPORT：Extension context invalidated/);
+  assert.equal(f.get('task-package-file').value,'');assert.equal(f.starts.length,0);
+});
+
+test('receiving a source-only import selects Sidebar Developer without creating a run',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.ui.receiveDraft('async function main() {}');
+  assert.deepEqual(f.importedDrafts,['async function main() {}']);
+  assert.equal(f.get('workbench-develop').hidden,false);assert.equal(f.starts.length,0);
+  assert.equal(f.permissions.length,0);
 });

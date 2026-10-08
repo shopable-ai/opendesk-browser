@@ -1,0 +1,67 @@
+{
+  "workstreamId": "sidebar-r41-20261008-local",
+  "threadId": "01a11b20-4f8c-7993-b929-fe205ff4af02",
+  "branch": "main",
+  "baseCommit": "540765e05efbbe705360014e48c2ea36822cdc4a",
+  "remoteMain": "540765e05efbbe705360014e48c2ea36822cdc4a",
+  "status": "handoff-requested-by-user",
+  "authorization": "2026-10-08 user explicitly authorizes safe edits/integration in existing main, without creating a branch, committing, pushing or publishing. This task-local authorization supersedes the older main-only-by-PR workflow; public-owner history is untouched.",
+  "coordination": {
+    "otherLocalWorktrees": [],
+    "trackedDirtyAtStart": [],
+    "preservedUntrackedPrompt": "docs/framework/prompts/goal-sidebar-visible-verification-and-task-loop-20261008.txt",
+    "peerMainThread": "01a11a98-2ca3-7241-89e5-bbaec8b95b79 idle; public-owner released-serial-handoff",
+    "nativeResource": "own CFT process, new launcher-owned profile, dynamic fixture port and independently checked-free demo port 43111",
+    "writeOwner": "this chat only; read-only native subagent did not write or use browser resources"
+  },
+  "files": [
+    "docs/architecture/sidebar-product-contract.zh-CN.md",
+    "examples/tasks/README.zh-CN.md",
+    "scripts/build.mjs",
+    "src/ui/script-editor.js",
+    "src/ui/task-workbench.js",
+    "src/ui/tool-shell.js",
+    "tests/environment/script-editor.test.mjs",
+    "tests/environment/sidebar-product-contract.test.mjs",
+    "tests/environment/task-package-flow.test.mjs",
+    "tests/environment/task-workbench.test.mjs",
+    "tests/environment/sidebar-draft-import.test.mjs",
+    "tests/framework/sidebar-r41-observer.mjs"
+  ],
+  "evidence": "docs/framework/evidence/sidebar-r41-20261008-local",
+  "completed": [
+    "v2 native Side Panel tabs, unsaved draft DOM effects and durable result",
+    "v2 A/B/C frozen source and Stop after target tab switch",
+    "v2 E_DOCUMENT_STALE admission rejection without effects",
+    "v2 catalog JS -> same-window Sidebar handoff",
+    "v2 Candidate -> Verified -> explicit Available -> Install -> Schema run",
+    "v2 true panel close/reopen and same-profile complete browser restart/re-run",
+    "v2 Chrome native Service Worker Stop then existing RunHost recovery",
+    "v3 cross-page installed-list refresh and unchanged-parameter retention implemented; native pending",
+    "47 targeted component tests, 5 RunHost neighbors, source check and both builds",
+    "read-only incremental review APPROVE"
+  ],
+  "pending": [
+    "v3 native cross-page installed-list refresh and unchanged Schema retention",
+    "v3 same-candidate critical native user paths and task installation/restart chain",
+    "320/480 and low-height CSS checks, distinguish native 360 evidence",
+    "risk-driven timeout/revocation native checks",
+    "final capability table and identity closure"
+  ],
+  "historicalContracts": "Preserved; full 603+19/F3/1000 mixed/10 reconnect intentionally NOT_TESTED this round",
+  "updatedAt": "2026-10-08T12:10:51.854257+00:00",
+  "continuationPrompt": "docs/framework/prompts/goal-sidebar-r41-handoff-20261008.txt",
+  "latestCandidate": {
+    "production": "ff90a9b33c10d99f7fa2cb084528001b6ecd7898b68fb96c41a72775cca241df",
+    "development": "d81c17f2b14bda3bfd6f35c85a1961dc57cbb3bbb82d349c4709849d2827fff6",
+    "snapshot": "docs/framework/evidence/sidebar-r41-20261008-local/candidate-final-production-v3",
+    "component": "COMPONENT_VERIFIED",
+    "native": "NOT_TESTED",
+    "nativeReason": "User requested new-chat handoff before latest v3 Side Panel acceptance; launched browser is not a pass."
+  },
+  "resourceCleanup": {
+    "testBrowsers": "native, final-native-v2 and final-native-v3 cleanup PASS; all own profiles removed/no residual. Historical untested final-native cleanup remains FAIL due process identity inspection during exit; preserve original.",
+    "demoHTTP43111": "own server stopped; port no longer listening",
+    "freeze": "all tested snapshots and raw receipts preserved"
+  }
+}

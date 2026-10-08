@@ -1,0 +1,16 @@
+[
+  {
+    "kind": "unix-stream",
+    "status": "blocked",
+    "errno": 1,
+    "error": "[Errno 1] Operation not permitted"
+  },
+  {
+    "kind": "tcp-ipv4",
+    "status": "created"
+  },
+  {
+    "kind": "udp-ipv4",
+    "status": "created"
+  }
+]
