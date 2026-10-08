@@ -46,14 +46,21 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}) {
     async tombstoneControllerScript(request){const head=persisted.scripts.filter(row=>row.scriptId===request.scriptId&&!row.tombstoned).at(-1);
       if(head?.revision!==request.expectedRevision)throw {code:'E_REVISION',message:'Script tombstone CAS conflict'};head.tombstoned=true;return {tombstoned:true};},
     async startControllerRun(request){starts.push(structuredClone(request));traces.push('start');
-      const saved=persisted.scripts.find(row=>row.scriptId===request.scriptId&&row.revision===request.revision);
-      const run={tag:'controller-run',runId:'run-'+(persisted.runs.length+1),state:'running',deadlineAt:request.deadlineAt,
-        revision:{scriptId:saved.scriptId,revision:saved.revision,sourceHash:saved.contentHash},target:{...request.target,url:request.target.expectedUrl,allowedOrigin:new URL(request.target.expectedUrl).origin}};
-      persisted.runs.push(run);return {...run,sourceUtf8:saved.sourceUtf8,paramsWire:request.paramsWire,identity:{runId:run.runId,ownerEpoch:1}};},
+      const isDraft=request.source?.kind==='draft';
+      const saved=isDraft?null:persisted.scripts.find(row=>row.scriptId===request.scriptId&&row.revision===request.revision);
+      const sourceUtf8=isDraft?request.source.sourceUtf8:saved?.sourceUtf8;
+      if(typeof sourceUtf8!=='string')throw {code:'E_REVISION',message:'Explicit saved revision required'};
+      const runId='run-'+(persisted.runs.length+1);
+      const revision=isDraft
+        ? {kind:'draft',scriptId:'draft:'+runId,revision:1,sourceHash:createHash('sha256').update(sourceUtf8).digest('hex')}
+        : {scriptId:saved.scriptId,revision:saved.revision,sourceHash:saved.contentHash};
+      const run={tag:'controller-run',runId,sourceKind:isDraft?'draft':'saved',state:'running',deadlineAt:request.deadlineAt,
+        revision,target:{...request.target,url:request.target.expectedUrl,allowedOrigin:new URL(request.target.expectedUrl).origin}};
+      persisted.runs.push(run);return {...run,sourceUtf8,paramsWire:request.paramsWire,identity:{runId:run.runId,ownerEpoch:1}};},
     async snapshotControllerRun(request){snapshots.push(structuredClone(request));return {run:request.runId?persisted.runs.find(row=>row.runId===request.runId):null,runs:structuredClone(persisted.runs),results:structuredClone(persisted.results),downloads:[],resultDeliveryDenied:[],slotAvailable:!persisted.runs.some(row=>row.state==='running')};},
     async stopControllerRun(request){traces.push(['durable-stop',request.reason]);return {runId:request.runId,state:'stopping'};},
     async finishControllerRun(request){const run=persisted.runs.find(row=>row.runId===request.runId);run.state=request.status==='succeeded'?'completed':request.status==='host-closed'?'interrupted':request.status==='stopped'?'stopped':'failed';
-      const result={tag:'controller-result',runId:run.runId,resultId:'result-'+run.runId,revision:run.revision,state:run.state,outcome:request.status==='succeeded'?{ok:true,valueWire:request.valueWire}:{ok:false,error:request.error}};
+      const result={tag:'controller-result',runId:run.runId,resultId:'result-'+run.runId,sourceKind:run.sourceKind,revision:run.revision,state:run.state,outcome:request.status==='succeeded'?{ok:true,valueWire:request.valueWire}:{ok:false,error:request.error}};
       persisted.results.push(result);return {run,result};},
     async retireControllerTarget({runId}){persisted.runs.find(row=>row.runId===runId).retirementState='released';return {state:'released',releaseCount:1};},
     controllerOperation:async()=>{throw Error('Unexpected page operation');}
@@ -112,19 +119,42 @@ test('Delete tombstones the latest head and refreshes the saved-script selector'
   assert.equal(f.find('script-list').children.some(row=>row.value==='my-script'),false);
 });
 
-test('Run freezes saved r1/params/page A; switch to B and Save r2 cannot replace its target or Result identity',async t=>{
+test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B',async t=>{
   const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');const r1=f.persisted.scripts[0];
-  f.find('script-source').value='return 999;';f.find('script-source').fire('input');await f.click('script-run');
-  assert.equal(f.traces[0],'permission');assert.equal(f.starts[0].revision,1);assert.equal(f.starts[0].contentHash,r1.contentHash);
+  const b='return {draft:"B"};', c='return {draft:"C"};';
+  const bHash=createHash('sha256').update(b).digest('hex');
+  f.find('script-source').value=b;f.find('script-source').fire('input');await f.click('script-run');
+  assert.equal(f.traces[0],'permission');
+  assert.deepEqual(f.starts[0].source,{kind:'draft',sourceUtf8:b});
+  assert.equal(f.starts[0].scriptId,undefined);assert.equal(f.persisted.scripts.length,1);
   assert.equal(f.starts[0].target.documentId,'doc-11');assert.equal(f.starts[0].target.expectedUrl,'https://a.example/');
-  assert.deepEqual(f.executions,[{source:r1.sourceUtf8,params:{value:1}}]);
+  assert.deepEqual(f.executions,[{source:b,params:{value:1}}]);
   await f.switchTab();assert.equal(f.find('script-current-page-title').textContent,'B');assert.match(f.find('script-running-target').textContent,/a\.example/);
-  await f.click('script-save');assert.equal(f.persisted.scripts[1].revision,2);assert.match(f.find('script-task-version').textContent,/r1/);
+  f.find('script-source').value=c;f.find('script-source').fire('input');
+  await f.click('script-save');assert.equal(f.persisted.scripts.length,2);assert.equal(f.persisted.scripts[1].revision,2);
+  assert.equal(f.persisted.scripts[0].sourceUtf8,r1.sourceUtf8);assert.equal(f.persisted.scripts[1].sourceUtf8,c);
+  assert.match(f.find('script-task-version').textContent,/草稿快照/);
   f.find('script-id').value='another-script';f.find('script-params').value='{"value":777}';f.find('script-run-id').value='run-decoy';
-  await f.finish(false);assert.equal(f.starts.length,1);assert.equal(f.persisted.results[0].revision.sourceHash,r1.contentHash);
-  assert.match(f.find('script-result').textContent,/result-run-1/);assert.match(f.find('script-result').textContent,new RegExp(r1.contentHash));
+  await f.finish(false);assert.equal(f.starts.length,1);assert.equal(f.persisted.results[0].revision.sourceHash,bHash);
+  assert.match(f.find('script-result').textContent,/result-run-1/);assert.match(f.find('script-result').textContent,new RegExp(bHash));
   assert.doesNotMatch(f.find('script-result').textContent,/run-decoy/);assert.equal(f.find('script-run-id').value,'run-1');
   assert(!f.snapshots.some(row=>row.runId==='run-decoy'));assert.match(f.find('script-history').textContent,/result-run-1/);
+});
+
+
+test('a brand-new unsaved draft runs with an empty script ID and never creates a saved revision',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.find('script-id').value='';
+  f.find('script-source').value='return {newDraft:true};';
+  f.find('script-source').fire('input');
+  await f.click('script-run');
+  assert.equal(f.starts.length,1);assert.equal(f.starts[0].source.kind,'draft');
+  assert.equal(f.starts[0].scriptId,undefined);
+  assert.deepEqual(f.executions,[{source:'return {newDraft:true};',params:{value:1}}]);
+  assert.equal(f.persisted.scripts.length,0);
+  await f.finish({newDraft:true});
+  assert.equal(f.persisted.scripts.length,0);
+  assert.equal(f.persisted.results[0].sourceKind,'draft');
 });
 
 test('permission preparation rejects a switched page; closing the editor during permission never admits a run',async t=>{
@@ -154,7 +184,7 @@ test('pagehide invokes RunHost host-close; reopened editor only reads the durabl
 test('late Save/Load replies do not overwrite another script selection or edits made during loading',async t=>{
   const f=await fixture();t.after(()=>f.dispose());const save=deferred();f.setSaveGate(save);await f.click('script-save');
   f.find('script-id').value='another-script';f.find('script-id').fire('input');save.resolve();await tick();
-  assert.equal(f.find('script-revision').value,'');assert.match(f.find('script-version').textContent,/尚未保存/);
+  assert.equal(f.find('script-revision').value,'');assert.match(f.find('script-version').textContent,/未保存草稿可直接运行/);
   f.find('script-id').value='my-script';const load=deferred();f.setLoadGate(load);await f.click('script-load');
   f.find('script-source').value='new edit while loading';load.resolve();await tick();
   assert.equal(f.find('script-source').value,'new edit while loading');assert.match(f.find('script-status').textContent,/E_REVISION/);

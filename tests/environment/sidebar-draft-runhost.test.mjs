@@ -29,10 +29,13 @@ test('RunHost freezes a draft source variant and parameters before awaiting the 
   const running = host.start({source, params, target, deadlineAt: Date.now() + 30000});
   source.sourceUtf8 = 'return {value:999};';
   params.value = 999;
+  target.tabId = 999;
+  target.documentId = 'modified-after-click';
   await assert.rejects(running, error => error.code === 'E_EFFECT_UNKNOWN');
   assert.equal(requests.length, 1);
   assert.deepEqual(requests[0].source, {kind: 'draft', sourceUtf8: 'return {value:params.value};'});
   assert.equal(decodeValue(requests[0].paramsWire).value, 5);
+  assert.deepEqual(requests[0].target, {mode: 'borrowed', tabId: 5, frameId: 0, documentId: 'test-document'});
   assert.equal(requests[0].scriptId, undefined);
   assert.equal(requests[0].revision, undefined);
   assert.equal(requests[0].contentHash, undefined);
@@ -42,9 +45,12 @@ test('RunHost freezes a draft source variant and parameters before awaiting the 
 test('saved script API retains explicit scriptId/revision/contentHash admission', async () => {
   const {host, requests} = stubHost();
   const hash = 'a'.repeat(64);
-  await assert.rejects(host.start({
-    scriptId: 'saved-r1', revision: 1, contentHash: hash, params: {}, target: {mode: 'borrowed', tabId: 5, frameId: 0, documentId: 'exact'},
-  }), error => error.code === 'E_EFFECT_UNKNOWN');
+  const target = {mode: 'borrowed', tabId: 5, frameId: 0, documentId: 'exact'};
+  const running = host.start({scriptId: 'saved-r1', revision: 1, contentHash: hash, params: {}, target});
+  target.tabId = 99;
+  target.documentId = 'changed';
+  await assert.rejects(running, error => error.code === 'E_EFFECT_UNKNOWN');
+  assert.deepEqual(requests[0].target, {mode: 'borrowed', tabId: 5, frameId: 0, documentId: 'exact'});
   assert.deepEqual(Object.fromEntries(['scriptId', 'revision', 'contentHash'].map(key => [key, requests[0][key]])),
     {scriptId: 'saved-r1', revision: 1, contentHash: hash});
   assert.equal(requests[0].source, undefined);
