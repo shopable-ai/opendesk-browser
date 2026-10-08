@@ -88,7 +88,12 @@ function decodeDigest(value, byteLength) {
   } catch { return null; }
 }
 function parseIntegrity(fragment, row, diagnostics) {
-  if (!fragment) return [];
+  if (fragment === null) return []; // No '#' means a standard unpinned URL.
+  if (fragment === '') {
+    diagnostics.push(diagnostic('error','E_DEPENDENCY_INTEGRITY',
+      'Empty integrity fragment after #; remove # or provide a supported digest',row));
+    return [];
+  }
   let text;
   try {text = decodeURIComponent(fragment);}
   catch {
@@ -122,7 +127,7 @@ function parseDependency(value, order, row, importSourceUrl) {
   const diagnostics = [];
   const hashAt = value.indexOf('#');
   const address = hashAt < 0 ? value : value.slice(0,hashAt);
-  const integrity = parseIntegrity(hashAt < 0 ? '' : value.slice(hashAt + 1),row,diagnostics);
+  const integrity = parseIntegrity(hashAt < 0 ? null : value.slice(hashAt + 1),row,diagnostics);
   let url = null;
   try {
     if (!address || /[\s\u0000-\u001f\u007f\\]/.test(address) || value.length > 8192) throw new Error();

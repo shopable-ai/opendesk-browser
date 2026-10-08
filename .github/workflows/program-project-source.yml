@@ -1,0 +1,29 @@
+name: OpenDesk multi-file source contract
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/validate-program-project.mjs'
+      - 'tests/environment/program-project.test.mjs'
+      - 'schemas/opendesk-program-project.v1.schema.json'
+      - 'examples/programs/**'
+      - '.github/workflows/program-project-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate multi-file ESM source metadata
+        run: |
+          node --test tests/environment/program-project.test.mjs
+          node scripts/validate-program-project.mjs examples/programs/page-heading
+      - run: npm run check

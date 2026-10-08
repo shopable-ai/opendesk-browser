@@ -95,6 +95,7 @@ test('TM hex/Base64, SRI tokens, percent-encoded fragments and multiple strong h
 
 test('malformed or conflicting integrity is preserved for diagnosis and cannot be admitted',()=>{
   const hash = digest('sha256').toString('hex'), other = digest('sha256','other').toString('hex');
+  rejected(userscript(['@require https://cdn.example/a.js#']),'E_DEPENDENCY_INTEGRITY');
   for (const fragment of ['sha256=oops','sha256-%ZZ','sha256-A===','sha999=abcd','sha256-'+'A'.repeat(43)+'B',
     'sha256-'+Buffer.alloc(31).toString('base64')])
     rejected(userscript(['@require https://cdn.example/a.js#' + fragment]),'E_DEPENDENCY_INTEGRITY');

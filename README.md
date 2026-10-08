@@ -1,12 +1,20 @@
 # OpenDesk Browser
 
-## 先理解框架怎么用
+**定位：Chrome MV3 的浏览器自动化与网页增强工作台。** 跨页面操作走 Controller / RunHost / ChromePage；页面 JavaScript 走 User Scripts API 的 USER_SCRIPT。两者共享可信宿主，但不是同一个运行环境。
 
-**两个核心用法：保存一份自动化脚本，在明确网页上运行；或由网页通过 SDK 请求扩展提供 HTTP、存储等受控服务。**
+## 当前框架与真实进度（先读这里）
 
-从 [Browser Framework：使用场景、语义调用与架构入口](docs/architecture/browser-framework/README.md) 开始。它先说明 `page.title()`、网页 `axiosx.get()`、脚本运行按钮与 DevTools 调用的区别，再对应 Legacy / Current / Target、状态与权限 owner、迁移地图和验证矩阵。
+复杂脚本建议使用 **多文件 ESM + package.json 的 opendesk 字段**，保留单文件油猴的 @require 作为兼容入口。源码可验证不代表包已经构建或安装。
 
-> 以下内容保留原 02A 阶段的环境交付记录，不能作为全部当前产品状态。当前已存在的 Controller、Page SDK、authority、IDB 与运行接线，以及 P1 候选的范围，见上述架构入口；源码存在不代表全部浏览器验收通过。该文档更新不改变历史证据或产品完成标志。
+- [多文件 ESM 与 AI 编辑/发布规则](docs/architecture/browser-framework/program-project-authoring-r1.zh-CN.md) ｜ [AI 发布 Skill](.agents/skills/opendesk-program-publish/SKILL.md) ｜ [示例程序](examples/programs/page-heading/README.md)
+
+- [一页读懂脚本、依赖、执行与安装（D2）](docs/architecture/browser-framework/userscript-framework-quickstart.zh-CN.md)：先看这篇，避免把「已接线」「组件测试」「真实 Chrome」混为一谈。
+- [Browser Framework 架构与 ChromePage](docs/architecture/browser-framework/README.md)：完整框架职责。
+- [D1 依赖 ADR](docs/architecture/browser-framework/userscript-dependencies-d1-adr.zh-CN.md)：@require、哈希、授权与缓存的细节。
+
+**现在可做**：编辑页脚本、识别标准 @require、明确审核并锁定内容字节、进入不保存草稿的 USER_SCRIPT 预览代码路径；具备定向组件和双构建 CI。**尚未验收**：真实 Chrome 用户流程与断网运行。**尚未正式实现**：Page Program 的自动匹配安装、启停、重启注册对账。生成 register 描述符不等于已安装任务。
+
+Controller 的 @require 不会被偷偷下载并运行进 Worker 或 Service Worker；第三方脚本仅进入受控 USER_SCRIPT 页面环境。
 
 ## 历史：02A 环境交付范围
 
