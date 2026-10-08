@@ -128,10 +128,18 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   const optionsTab=await newTab('chrome-extension://'+extensionId+'/native-agent/settings.html');
   cdp=await connectCDP(optionsTab.webSocketDebuggerUrl);
   await cdp.call('Runtime.enable');
+  await cdp.call('Page.enable');
+  await cdp.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
   const status=async()=>evaluated("document.getElementById('bridge-status')?.textContent||''");
-  await eventually(async()=>((await status()).includes('Extension ID：'+extensionId)),{
-    timeout:15000,label:'Options settings page with real extension sender'
-  });
+  try {
+    await eventually(async()=>((await status()).includes('Extension ID：'+extensionId)),{
+      timeout:15000,label:'Options settings page with real extension sender'
+    });
+  }catch(e) {
+    const diagnostic=await evaluated("(()=>({url:location.href,title:document.title,readyState:document.readyState,body:document.body?.textContent?.slice(0,900)||'',chromeId:globalThis.chrome?.runtime?.id||null,status:document.getElementById('bridge-status')?.textContent||''}))()").catch(error=>({inspectionError:error.message}));
+    console.log('REAL_CHROME_OPTIONS_DIAGNOSTIC='+JSON.stringify(diagnostic));
+    throw e;
+  }
   console.log('REAL_CHROME_OPTIONS_LOADED=PASS');
   const rectangle=await evaluated("(()=>{const r=document.getElementById('bridge-enable').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
   assert.ok(rectangle&&rectangle.x>0&&rectangle.y>0,'Native Enable button must be visible');
