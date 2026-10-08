@@ -169,13 +169,11 @@
     </details>
     <details id="script-advanced"><summary>高级脚本与目标设置</summary>
       <details id="site-access" class="site-access-panel">
-        <summary>网站权限 · 一次性授权</summary>
+        <summary>网站权限 · 默认全部网站</summary>
         <p id="site-access-status" role="status" data-state="checking">正在查询 Chrome 网站权限…</p>
-        <p class="hint">可在真实点击后由 Chrome 一次性授权所有 HTTP/HTTPS 网站。默认仍保留逐站授权；不会绕过任务或 SDK 的应用级许可。</p>
-        <label><input id="site-access-cookies" type="checkbox">同时申请 Cookie 权限（可选）</label>
-        <label><input id="site-access-notifications" type="checkbox">同时申请通知权限（可选）</label>
-        <div class="row"><button id="site-access-grant" type="button">一次性授权全部网站</button><button id="site-access-refresh" type="button">刷新授权状态</button></div>
-        <p class="hint">撤销授权或使用新 Chrome Profile 后需要重新确认。Chrome 内部页面及独立的用户脚本开关不受此操作影响。</p>
+        <p class="hint">安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。</p>
+        <div class="row"><button id="site-access-grant" type="button">恢复全部网站访问</button><button id="site-access-refresh" type="button">刷新授权状态</button></div>
+        <p class="hint">如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。</p>
       </details>
       <p class="hint">默认使用当前网页；手动目标仅用于高级操作。</p>
       <div class="row"><label for="script-target-mode">目标方式</label><select id="script-target-mode"><option value="current">当前网页（默认）</option><option value="owned">创建隔离网页（高级）</option><option value="borrowed">手动选择精确文档（高级）</option></select></div>

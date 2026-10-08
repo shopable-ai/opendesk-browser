@@ -1,5 +1,7 @@
 name: Site access targeted checks
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 permissions:
@@ -20,5 +22,6 @@ jobs:
           node --check scripts/dev-chrome.mjs
           node --check scripts/dev-chrome-config.mjs
           node --check src/ui/site-access.js
+          node --check src/platform/chrome/permission-gate.js
           node --check src/ui/tool-shell.js
-          node --test tests/environment/dev-chrome-config.test.mjs tests/environment/site-access.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/framework/k2-sdk-ui-approval.test.mjs
+          node --test tests/environment/dev-chrome-config.test.mjs tests/environment/site-access.test.mjs tests/environment/permission-gate.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/framework/k2-sdk-ui-approval.test.mjs
