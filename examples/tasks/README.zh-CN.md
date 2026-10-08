@@ -111,6 +111,12 @@ node examples/tasks/http-test-server.mjs 43111
 
 官方说明：[Open-Meteo / API 与 CORS](https://github.com/open-meteo/open-meteo)、[Open-Meteo / 许可与限制](https://open-meteo.com/en/terms)、[ipwho.is / 免费接口与限额](https://ipwhois.io/documentation)。外部服务可能因网络、地域、限速、CORS 策略或服务变化失败；**外部成功必须由当前真实浏览器响应验证，不能由 README 示例推定**。
 
+### OpenDesk Page API 一键验收草稿
+
+在 Sidebar「开发」中粘贴本目录新增的 `http-fetch-draft.js`，输入参数 `{"url":"./request-sample.json","expected":"success"}`，运行前确保演示页为当前目标、网站已授权。它用已存在的 `getByLabel().fill()` 填写 URL、`getByRole().click()` 点击发送、`locator(...).waitFor()` 等待 `#http-status[data-state="success"]`，最后读取实际 DOM 的 HTTP 状态、耗时、Content-Type、响应内容与错误信息。结果应含 `httpStatus: "HTTP 200"` 和本地夹具内容（由本机真实返回决定，而非脚本模拟）。
+
+要验证真实 404：输入 `{"url":"./__opendesk_expected_404__.json","expected":"error"}`，检查结果 `httpStatus: "HTTP 404"` 和服务器原始响应。重复执行 2 次，核对运行序号、目标身份、结果持久化和回执。对后续耗时和取消仍需浏览器原生手动点击或特定任务草稿，并不能仅靠这一简单成功/错误草稿宣称全覆盖。**当前仅提供源码和静态契约，OpenDesk 扩展真实运行尚未在此环境验收。**
+
 ### 自动化验证等级（必须分开记录）
 
 | 层级 | 验收方式 | 证明范围 |
