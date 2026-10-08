@@ -98,3 +98,30 @@ UserCSS 独立资产：CSS 原文、站点匹配、固定版本、禁用/卸载�
 独立实现元数据解析和适配 API 是目标；引用公开行为、标准和测试样例要附出处，复制任何 GPL/AGPL/MIT/MPL 代码前必须核对 SPDX、LICENSE、贡献者版权、依赖子许可和分发影响。ScriptCat、Stylus、Safari Userscripts 均涉及 GPL 代码；Automa 另行审查仓库许可及商业发布约束。Tampermonkey 闭源。
 
 **未完成的验证**：各平台逐方法 GM 行为、OrangeMonkey 的“全部 GM”声称、商业 RPA 近期收费/离线性、跨浏览器 Safari/Firefox 原生调试、所有竞品的精确权限提示行为；因此这不是“所有竞品已 100% 验收”的声明。
+
+
+## 8. R8 增量查漏：生态治理、触发器、开发者网络调试与停维护竞品（2026-10-09）
+
+经过复核 Tampermonkey 文档目录、ScriptCat 1.5 Beta 版本记录、Greasy Fork 发布政策、Automa/Ui.Vision 官方文档、Requestly、Katalon Recorder 和 Mozilla userScripts，本轮识别的遗漏已登记到**唯一产品能力总账本**：[R8 功能总清单：188 项/14 模块](../../product/browser-automation-feature-catalog-r8.zh-CN.md)。该清单中的条目是研究对象和候选目标，不是已经实现。
+
+| 增量对象 | 官网或原始文档证据 | 新发现或原 R8 覆盖不足 | 对 OpenDesk 决策 | 证据级别 |
+| --- | --- | --- | --- | --- |
+| Tampermonkey 高级 GM | https://www.tampermonkey.net/documentation.php | GM_addElement；GM_getValues/setValues/deleteValues 批量 API；GM_getTab/saveTab/getTabs；GM_audio；window.onurlchange；@run-in/@sandbox，另有企业部署章节 | 补 GM 分类，而非全面跟做。大多数 P2/P3/LX；网页动态位置变化需单独建 API；默认不支持 GM_webRequest | OFFICIAL_DOC，兼容行为未逐项原生测 |
+| ScriptCat 1.5 Beta 安装/编辑体验 | https://github.com/scriptscat/scriptcat/releases | v1.5.0-beta.1（2026-08-06）有 External Access sctl+CLI/MCP 的分级授权、操作审计和回收站；v1.5.0-beta.4（2026-09-18）安装前标明未支持/仅 ScriptCat 支持的 metadata/GM API，升级只强调新权限、脚本模板按类型定制 | P0 优先“明确不支持”的安装预览与版本风险差异；回收站 P2、Agent 外部入口仍以 OpenDesk 现有 PR #11 为边界；**Beta 不能算 stable** | RELEASE，不是当前稳定版 E2E |
+| Greasy Fork 元信息 | https://greasyfork.org/en/help/meta-keys | @installURL、@updateURL、@downloadURL 可能被平台剥除/重写，@license 对再发布有意义 | 运行时以真实可信导入来源、已冻结字节和用户批准为准，不能只信用户脚本声明的更新 URL | OFFICIAL_DOC |
+| Greasy Fork 反功能 | https://greasyfork.org/en/help/antifeatures | @antifeature ads / tracking / miner / payment / referral-link 等应向用户显式披露；已解析 ≠ UI 已审计 | 增加安装审查风险标签、来源隐私说明；不靠 @antifeature 声明推断脚本安全 | OFFICIAL_DOC |
+| Greasy Fork 外部代码治理 | https://greasyfork.org/en/help/external-scripts | 引入远程 executable code 的路径不止 @require，还包括动态 script 标签、fetch 后 eval 等；@resource 既可能是非执行资源也可能成为执行依赖 | 来源/许可证/字节锁/动态执行策略分别审；静态 hash 不自动说明运行安全 | OFFICIAL_DOC |
+| Automa 触发体系 | https://www.goautoma.com/extension/docs/blocks/trigger.html | Browser startup、访问网站、Cron/Interval、具体时间、右键菜单、键盘快捷键、JS CustomEvent 等触发 | P0 URL 文档自动运行；P2 context menu/快捷键/定时；不默认把网页 CustomEvent 当受信 Task 运行授权 | OFFICIAL_DOC |
+| Automa 错误与诊断 | https://www.goautoma.com/extension/docs/workflow/settings.html | 错误处理策略、后台/Popup 运行区分、最后状态重用、保存日志、CDP debug mode、网页可见执行高亮 | 参考诊断与受控重试，**不创建第二图执行内核** | OFFICIAL_DOC |
+| Ui.Vision 新 JavaScript Macro | https://ui.vision/rpa/docs/uiv | uiv.* 提供原生 JS 流程、OCR/截图、AI、CSV、tab、下载等，代表“代码 + 视觉”路线与传统宏可以共存 | 优先复用 OpenDesk Locator/Controller 和确定性 JS；视觉、CSV、录制放 P3，CDP/桌面隔离审计 | OFFICIAL_DOC |
+| Requestly HTTP Interceptor | https://requestly.com/products/http-interceptor/ 及 https://github.com/requestly/interceptor | 请求/响应 Header/Body 修改、mock、重定向和脚本注入属另一个高权限产品类型 | 在能力清单登记“独立高权限网络调试模块”而非 GM_xmlhttpRequest，也不将 axiosx 等同拦截器；近期不实施 | OFFICIAL_DOC/SOURCE_READ |
+| Katalon Recorder | https://chromewebstore.google.com/detail/katalon-recorder-selenium/ljdobmomdgdljniojadhoplhkpialdid | Chrome 商店页面明确公告不再积极维护，未来不再提供功能更新/安全修补 | 仅用录制/导出和历史兼容作产品样例，不以停维护项目作为安全代码基础 | STORE_NOTICE |
+| Web Scraper | https://webscraper.io/documentation/ | Sitemap / selector 树 / cloud 调度 / API 与导出是明确的采集业务方案 | **AGENTS.md 已排除继续建设网页采集产品**，仅借鉴任务验收/selector 可靠性，不恢复采集模块 | OFFICIAL_DOC + REPO_POLICY |
+| Firefox MV3 | https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts | Firefox 将 userScripts 设为 optional-only permission，经扩展 API 请求；Chrome 为安装时声明 + 用户扩展详情开关 | P4 必须分浏览器授权驱动，不能复用 Chrome manifest/启用方式原样标“跨浏览器兼容” | OFFICIAL_DOC |
+| Chrome Web Store 安全/权限规则 | https://developer.chrome.com/docs/webstore/program-policies/policies | MV3 远程代码只在明确 API 目的/隔离边界内可用；不要为未来未实现功能预申请宽权限 | 当前 manifest 默认全站与敏感权限并不等于最终商店最小权限合规，公共发行前设强制关口 | OFFICIAL_POLICY |
+
+### 取舍与剩余证据
+
+研究清单与工程 Roadmap **不必一一实施**。优先补 P0（正式 Page 安装+匹配自动执行+权限撤销闭环），P1（迁移常用 GM/明确不兼容/来源更新审核），P2（调度与 CSS），P3（录制、可选 Agent），P4（社区、同步与跨浏览器）；某些危险 GM/HTTP Interceptor 能力明确标记 LX 或需要独立高权限应用。
+
+抽样来源只能确认官方产品描述或开源源码结构，尚未完成所有产品的逐平台/逐版本 E2E、普通用户评论的统计抽样、全部开放 Issue 的版本复现。**不在没有数据时给竞品发布质量打“95 分通过”**。功能“价值评分”和“OpenDesk 契合度”仅是研究判断，完整表见 R8 功能总清单。
