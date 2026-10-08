@@ -1,8 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectScript} from '../../scripts/verify-package.mjs';
+import {readFile} from 'node:fs/promises';
+import {inspectScript,verifyManifest} from '../../scripts/verify-package.mjs';
 import {BUILD_POLICY,FIXED_OUTPUTS,PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 import {installNativeTransport,NATIVE_TRANSPORT_KEY} from '../../src/native-agent/transport.js';
+
+test('Native remains optional after merging the current permission catalog',async()=>{
+  const manifest=JSON.parse(await readFile('manifest.json','utf8'));
+  assert.equal(manifest.permissions.includes('nativeMessaging'),false);
+  assert.equal(manifest.optional_permissions.filter(p=>p==='nativeMessaging').length,1);
+  assert.doesNotThrow(()=>verifyManifest(manifest));
+  assert.throws(()=>verifyManifest({...manifest,permissions:[...manifest.permissions,'nativeMessaging']}),/Unexpected required browser API permissions/);
+});
 
 test('strict production SW budget and fixed packaged Native transport entry',()=>{
   assert.equal(BUILD_POLICY.productionBytes,320*1024);

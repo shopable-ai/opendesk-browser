@@ -105,3 +105,9 @@
 - [Modern Page API R5.1/R5.2](../../framework/modern-page-api.zh-CN.md)：Locator 具体语义。
 - [任务示例 README](../../../examples/tasks/README.zh-CN.md)：真实页面、草稿和 Candidate 的用户操作。
 - [R6 双格式/Sidebar 约束](../../product/program-development-dual-format-and-sidebar.zh-CN.md)：多文件编译和三页签。
+
+## 7. 最新 main 合并边界（本地候选）
+
+保留 main 的 `agent-modern-search.v1.opendesk-task.json` 及其独立 Candidate 身份；本轮按 `modern-search.v1.opendesk-task.json` 验收，两包源码相同，taskId / manifestHash 不同，不互换验证记录。观察草稿保留 `kind/url/observation` 返回结构，将预算对齐 main 的 maxDepth:5 / maxNodes:32 / maxChars:4200。页面已包含 R7.1 HTTP API 验证，保留其 URL、取消、状态和旧 fixture 约束。
+
+现代 Locator `fill/click` 当前使用 ISOLATED DOM 合成操作；页面效果成功不能单独证明可信原生输入。若正式 Native/Task 合同要求可信输入或额外 native receipt，必须取得该证据，不能用 synthetic events、外部 Playwright 动作或伪造 ACK 补足门槛。

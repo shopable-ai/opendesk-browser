@@ -12,6 +12,8 @@
 
 - [一页读懂脚本、依赖、执行与安装（D2）](docs/architecture/browser-framework/userscript-framework-quickstart.zh-CN.md)：先看这篇，避免把「已接线」「组件测试」「真实 Chrome」混为一谈。
 - [Browser Framework 架构与 ChromePage](docs/architecture/browser-framework/README.md)：完整框架职责。
+- [默认全网站权限、插件可选 API 与 Chrome 授权边界](docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md)：安装时请求全站访问，额外原生 API 按可信用户手势启用，SDK/任务依然独立审批。
+- [现代 Page API：Locator / fill / waitFor / page.observe](docs/framework/modern-page-api.zh-CN.md)：Controller 新任务的默认写法及安全边界；[R5.2 组件证据与真实 Chrome 待验收项](docs/framework/workstreams/r5-2-modern-page-api-acceptance.md)。旧 `page.type` 的追加语义保持兼容。
 - [D1 依赖 ADR](docs/architecture/browser-framework/userscript-dependencies-d1-adr.zh-CN.md)：@require、哈希、授权与缓存的细节。
 
 **现在可做**：编辑页脚本、识别标准 @require、明确审核并锁定内容字节、进入不保存草稿的 USER_SCRIPT 预览代码路径；具备定向组件和双构建 CI。**尚未验收**：真实 Chrome 用户流程与断网运行。**尚未正式实现**：Page Program 的自动匹配安装、启停、重启注册对账。生成 register 描述符不等于已安装任务。
@@ -39,7 +41,7 @@ npm run pack:dev
 
 ## 环境安装与检查
 
-开发浏览器的扩展管理页启用开发者模式，加载对应dist目录。点击扩展工具栏入口打开一个工具窗口；并发重复入口复用同一窗口。工具窗口的“授权并创建检查页”在用户点击中请求origin权限，新建专用HTTP(S)标签；原页面不翻页。健康检查只返回readyState与目标绑定，不读取业务数据。原页面检查依赖工具栏点击获得的activeTab，不能假定该权限转移给新tab。目标重载/关闭/跨origin、站点权限撤销或受限页面会明确报错，不自动重新绑定旧文档。
+开发浏览器的扩展管理页启用开发者模式，加载对应dist目录。点击扩展工具栏入口打开一个工具窗口；并发重复入口复用同一窗口。扩展在安装/更新时请求全部网站访问和核心浏览器 API。工具窗口的“授权并创建检查页”仍在用户点击中核验或恢复被 Chrome 限制的 origin 权限，并新建专用HTTP(S)标签；原页面不翻页。健康检查只返回readyState与目标绑定，不读取业务数据。原页面检查依赖工具栏点击获得的activeTab，不能假定该权限转移给新tab。目标重载/关闭/跨origin、站点权限撤销或受限页面会明确报错，不自动重新绑定旧文档。
 
 静态选区入口agents/selection-entry.js只声明MODULE_NOT_INSTALLED。健康脚本文件的求值返回值从未被当作选区结果，真实HEALTH消息才构成环境通信证据。
 

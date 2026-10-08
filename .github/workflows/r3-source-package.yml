@@ -22,6 +22,8 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: D1 metadata, immutable assets, real preview consumers and dependency UI
         run: node --test tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/boundaries.test.mjs
+      - name: Canonical HTML fixture contracts and real HTTP panel DOM behavior
+        run: node --test tests/environment/basic-browser-page.test.mjs
       - name: Source and vendor integrity
         run: npm run check
       - name: Production build and verification

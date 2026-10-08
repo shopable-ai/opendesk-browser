@@ -1,6 +1,6 @@
-# OpenDesk Browser 现代 Page API R5.1
+# OpenDesk Browser 现代 Page API（R5.1 接口 / R5.2 可靠性）
 
-版本：`1.0.0-r5.1`。实现契约：`src/framework/control/locator-contract.js`；JS/TS 编辑提示：`types/opendesk-page.d.ts`。本接口为 **Playwright 风格的 OpenDesk 子集**，不是 Node.js Playwright，也不提供 Playwright 全功能兼容。
+公开契约版本保持 `1.0.0-r5.1`（R5.2 是兼容可靠性修复，不是新版本的完整 Playwright API）。[R5.2 实施与验收证据](workstreams/r5-2-modern-page-api-acceptance.md)。实现契约：`src/framework/control/locator-contract.js`；JS/TS 编辑提示：`types/opendesk-page.d.ts`。本接口为 **Playwright 风格的 OpenDesk 子集**，不是 Node.js Playwright，也不提供 Playwright 全功能兼容。
 
 ## 一个可直接运行的草稿
 
@@ -73,6 +73,6 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 - prepare 采用两次连续动画帧重新检查节点身份和矩形稳定性；拒绝禁用、ARIA 禁用/只读、inert、pointer-events:none 和被遮挡元素。它仍不会滚动、聚焦或发送页面事件；离屏元素仍不自动滚动。
 - observe 额外强制内部遍历上限（`budget.maxVisited`，随 maxNodes 调整，最高 3000）与定位验证次数上限（`budget.maxLocatorChecks=40`）。在整页超过 1200 元素时跳过代价过高的全局语义建议，保留能够核验的原生 CSS、TestId、局部范围建议。多组同名按钮在具备唯一 id 的 form/dialog 中优先使用经实际定位验证的容器范围。**仅 `locator` 非 null 才表明该建议被当前运行时重新定位并校验唯一性。**
 - `truncated:true` 表示节点数、输出字符、深度或遍历上限导致不能代表完整页面；观察输出包含已访问数量/验证数量，不输出输入框的当前值，默认跳过 hidden/aria-hidden 子树。maxChars 限制节点数据（JSON 长度），响应本身另有固定元数据开销。
-- 仅完成的只读 Locator RPC 可以释放 Page Session 去重记录；`locatorCommit` 与旧有可能产生网页副作用的请求继续保留缓存。Controller Journal 将多次 read-only 轮询的原生回执保留最近样本及计数，分别保留 commitIntent 和 commitNoEffect 证据。
+- 仅完成的只读 Locator RPC 可以释放 Page Session 去重记录；`locatorCommit` 与旧有可能产生网页副作用的请求继续保留缓存。Driver 不把反复只读轮询的原生阶段回执逐项写入 Journal；保留明确的 `locator.commitIntent`、`locator.commitNoEffect` 和最终结果回执以判断是否可能有网页副作用。
 
 这些属于源码/组件层质量增强，不等于已完成真实 Chrome Sidebar→Durable Result、外部 AI Agent E2E 验收；在提供原生执行回执前必须标记为 NOT_TESTED。
