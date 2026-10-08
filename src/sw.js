@@ -1,12 +1,15 @@
 import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
+import {createNativeAgentService} from './native-agent/service-worker.js';
+import {AGENT_CONFIG_PROTOCOL} from './native-agent/protocol.js';
 
 export function initServiceWorker() {
 
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
 const health = createHealthProbe(chrome);
 const hostPorts = new Map();
+const nativeAgent = createNativeAgentService({api:chrome,hostPorts});
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts});
 foundation.catch(error => console.error(`[foundation startup ${error.code || 'E_VERSION'}] ${error.message}`));
 function invalidateSdk(reason, selector) {
@@ -47,6 +50,11 @@ chrome.tabs.onRemoved.addListener(tabId => {
 });
 chrome.tabs.onUpdated.addListener((tabId, change) => { if (change.status === 'loading') health.forgetTab(tabId); });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.protocol === AGENT_CONFIG_PROTOCOL) {
+    nativeAgent.handleSettings(message,sender).then(data=>sendResponse({ok:true,data}),
+      error=>sendResponse({ok:false,error:{code:error.code||'E_EFFECT_UNKNOWN',message:error.message}}));
+    return true;
+  }
   if (message?.protocol === FOUNDATION_PROTOCOL) {
     foundation.then(broker => broker.handle(message, sender)).then(
       data => sendResponse({ok:true, data}),
@@ -82,6 +90,7 @@ chrome.runtime.onConnect.addListener(port => {
   let documentId;
   let closed = false, registrationId;
   port.onMessage.addListener(message => {
+    if (nativeAgent.acceptHostResponse(port,message)) return;
     if (message?.type !== 'bind-host' || typeof message.registrationId !== 'string') return;
     foundation.then(async broker => {
       const sender = await senderReady;
