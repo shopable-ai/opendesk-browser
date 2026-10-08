@@ -1,0 +1,200 @@
+{
+  "format": "opendesk.workstream.d1.v1",
+  "recordedAt": "2026-10-08T12:33:27.542680+00:00",
+  "recordPhase": "local validation before the containing GitHub commit",
+  "repository": "https://github.com/shopable-ai/opendesk-browser",
+  "initialBaseSha": "66f11874fa27f6de438155124a3f772129386f8b",
+  "integrationParentSha": "0874755e8b2902653abe844f658163dbbecbf8c6",
+  "branch": "main",
+  "newGitBranchesCreated": false,
+  "forcePushAllowed": false,
+  "repositoryAccessObserved": {
+    "push": true,
+    "maintain": true,
+    "admin": true,
+    "mainProtected": false
+  },
+  "parallelIntegration": {
+    "mainAdvancedDuringWork": true,
+    "mergedPullRequest": 9,
+    "mergedHead": "0874755e8b2902653abe844f658163dbbecbf8c6",
+    "conflictFiles": [
+      "src/ui/tool-shell.css",
+      "docs/product/sidebar-ui-spec.zh-CN.md"
+    ],
+    "resolution": "Preserve latest R5 content; reapply only nine D1 dependency styles and narrow developer specification. Review auto-merged tool.html/script-editor.js and retain R5 result-panel behavior.",
+    "independentMergeReview": "PASS_READ_ONLY_DIFF_REVIEW",
+    "otherPullRequest": {
+      "number": 7,
+      "state": "open draft",
+      "head": "935dcb2a28560c0dc429e3b30aeb807297dfabf7",
+      "overlap": [
+        "src/ui/tool-shell.css",
+        "src/ui/tool.html"
+      ],
+      "action": "Read actual patch; do not modify or merge this independent permissions PR."
+    },
+    "existingBranchesObserved": [
+      "main",
+      "agent/sidebar-ui-r2-20261008-review",
+      "agent/sidebar-ui-r5-20261008",
+      "agent/site-access-once-20261008-1647",
+      "agent/native-agent-bridge-r1-20261008"
+    ],
+    "preservedHistoricalFiles": [
+      "docs/framework/public-owner.json",
+      "docs/framework/evidence/wxt/builds/build-production.json",
+      "docs/framework/evidence/wxt/builds/build-development.json"
+    ],
+    "preIntegrationEvidence": "evidence/d1-20261008/before-r5-integration/ (not the final integrated candidate)"
+  },
+  "decision": {
+    "selected": "D",
+    "weightedArchitectureScore": 93.3,
+    "target": 95,
+    "targetReached": false,
+    "notACompletionPercentage": true,
+    "scoreWeights": {
+      "compatibility": 20,
+      "security": 20,
+      "developerExperience": 15,
+      "performance": 10,
+      "extensibility": 10,
+      "maintainability": 15,
+      "testability": 10
+    },
+    "alternatives": {
+      "A": 62.9,
+      "B": 63.1,
+      "C": 67.3,
+      "D": 93.3
+    },
+    "independentSourceReview": {
+      "compatibility": 87,
+      "runtime": 94,
+      "supplyChain": 95,
+      "chromeMv3": 92,
+      "storageAndVersioning": 94,
+      "productExperience": 91,
+      "maintainability": 95,
+      "adversarialEvidence": 92
+    }
+  },
+  "acceptance": {
+    "SOURCE_IMPLEMENTED": {
+      "status": "PASS",
+      "scope": [
+        "P0 parser and semantic admission",
+        "P1 immutable dependency manager and real Broker/UI/preview consumers"
+      ],
+      "pageInstallation": "P2_CONTRACT_AND_COMPILER_ONLY"
+    },
+    "COMPONENT_TESTED": {
+      "status": "PASS",
+      "tests": {
+        "tests": 97,
+        "pass": 97,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "receipt": "evidence/d1-20261008/targeted-tests.tap",
+      "model": "Real modules with DOM/client/network/storage doubles and separate Node VM contexts; not Chrome"
+    },
+    "BUILD_VERIFIED": {
+      "status": "PASS",
+      "modes": [
+        "production",
+        "development"
+      ],
+      "sourceInputsSha256": "78d30542806c1f2ca52c74ec98d95693906d29f5d883c54c3adea231b7ea63a5",
+      "sourceFingerprintRecipe": "SHA256 UTF-8 compact JSON of the ordered sourceInputs array in the two build records",
+      "sourceDriftDuringBuild": []
+    },
+    "CHROME_NATIVE_VERIFIED": {
+      "status": "NOT_TESTED",
+      "environmentPreflight": "BLOCKED_ENV",
+      "reason": "CFT 155.0.8059.39 aborts before extension loading: AF_UNIX SOCK_STREAM socket EPERM, exit 134",
+      "evidence": "evidence/d1-20261008/environment-preflight.json"
+    },
+    "USER_FLOW_VERIFIED": {
+      "status": "NOT_TESTED",
+      "componentUserPaths": "PASS",
+      "reason": "No real Chrome permission/DOM/USER_SCRIPT flow completed"
+    },
+    "FINAL_FRAMEWORK_ACCEPTED": {
+      "status": "NO",
+      "remaining": [
+        "native P1 receipts",
+        "Page installation lifecycle and automatic-document world admission",
+        "final machine ledger",
+        "independent F3",
+        "same-candidate ZIP installation consistency"
+      ]
+    }
+  },
+  "commands": {
+    "tests": "node --test --test-reporter=tap tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/boundaries.test.mjs",
+    "source": "npm run check",
+    "build": [
+      "npm run build",
+      "npm run build:dev"
+    ],
+    "verify": "npm run verify"
+  },
+  "builds": {
+    "production": {
+      "status": "PASS",
+      "packageHash": "5e4f9f07aa31fe51bfbfeb202172dcefdd955158936f6f960e4601eb4a1db109",
+      "files": 21,
+      "evidence": "evidence/d1-20261008/build-production.json"
+    },
+    "development": {
+      "status": "PASS",
+      "packageHash": "994454f09ca1af58983588e50ecde8f79f079aa569e615a845290491888482ad",
+      "files": 32,
+      "evidence": "evidence/d1-20261008/build-development.json"
+    }
+  },
+  "ci": {
+    "workflow": ".github/workflows/r3-source-package.yml",
+    "resultSource": "GitHub Actions run associated with this containing commit",
+    "assertion": "No remote CI outcome is prefilled in this pre-push record."
+  },
+  "storage": {
+    "databaseVersion": 2,
+    "store": "frameworkKV",
+    "assetRepresentation": "ArrayBuffer",
+    "schemaMigration": false,
+    "automaticGc": false,
+    "referenceOwnersImplemented": [
+      "review",
+      "lock"
+    ],
+    "referenceOwnersPending": [
+      "program-revision",
+      "installed-version",
+      "historical-run"
+    ]
+  },
+  "implementedConsumers": [
+    "src/platform/host/broker.js",
+    "src/ui/page-dependencies.js",
+    "src/ui/script-editor.js",
+    "src/scripting/user-scripts/preview.js",
+    "src/scripting/user-scripts/page-program-package.js"
+  ],
+  "limitations": [
+    "classic-userscript supports top-level synchronous completion, not awaiting asynchronous IIFEs or stopping listeners",
+    "classic source and requires share a compilation unit with explicit strict/lexical scope warning",
+    "six preview world allocations per document plus actual isolation probes",
+    "MAIN, GM/resource APIs, ESM compilation and a full script-import provenance UI are not implemented",
+    "formal Page Candidate/Verification/Available/install/reconcile remains closed"
+  ],
+  "nextShortestUserLoop": "In a launchable controlled Chrome, load this exact source build, approve standard @require for packaged jQuery plus one ordinary HTTPS library, run unsaved async-main and classic source, verify exact native document receipt and MAIN references, reuse the fixed lock offline, then close/reopen and verify cache recovery. Do not substitute simulated acknowledgements.",
+  "documents": [
+    "docs/architecture/browser-framework/userscript-dependencies-d1-adr.zh-CN.md",
+    "docs/architecture/browser-framework/userscript-dependency-contract.v1.zh-CN.md",
+    "docs/framework/workstreams/2026-10-08-d1-native-environment-evidence.zh-CN.md"
+  ]
+}

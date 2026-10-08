@@ -3,6 +3,8 @@ import {permissionPattern} from '../environment.js';
 import {base64ToBytes, decodeValue} from '../platform/page-port/codec.js';
 import {hashArtifactBytes} from '../platform/downloads/blob-lifecycle.js';
 import {BUDGETS, invariant} from '../platform/protocol.js';
+import {createPageDependencyPanel, dependencyMessage} from './page-dependencies.js';
+import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -33,6 +35,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
   let browserListenersAttached = false;
+  let dependencyPanel;
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
@@ -70,7 +73,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-run').disabled = editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
       !find('script-source').value.trim() || mode.value === 'current' && currentPageState?.status !== 'available';
     find('script-stop').disabled = stopping || !ownedDraftRunId || host.currentRun !== ownedDraftRunId;
-    find('page-preview-run').disabled = previewBusy || editingBusy || running || !!host.currentRun ||
+    find('page-preview-run').disabled = previewBusy || dependencyPanel?.busy || editingBusy || running || !!host.currentRun ||
       !find('script-source').value.trim() || currentPageState?.status !== 'available';
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
@@ -205,6 +208,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     if (scriptId() !== id || find('script-revision').value.trim() !== revisionText || find('script-source').value !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
     find('script-source').value = row.sourceUtf8; remember(row, {head: !revisionText || revisions.get(id) === row.revision});
+    dependencyPanel.refresh();
     display('loaded', `已加载持久版本 r${row.revision}`);
   }
   async function loadLatestFromList() {
@@ -216,6 +220,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     if (scriptList.value !== id || scriptId() !== activeId || find('script-revision').value.trim() !== revisionText || find('script-source').value !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
     find('script-id').value = id; find('script-source').value = row.sourceUtf8;
+    dependencyPanel.refresh();
     remember(row);
     if (selectedHead !== row.revision) await refreshScripts({silent: true});
     display('loaded', `已加载 ${id} 最新 r${row.revision}`);
@@ -352,6 +357,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       chosen = selection(); params = JSON.parse(find('script-params').value);
       sourceUtf8 = find('script-source').value;
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
+      if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
+        message:'这是页面用户脚本，请展开“网页用户脚本”并选择经典脚本或 async main 试运行；Controller 草稿运行不解释这些元数据。'};
       // The native permission request stays in the trusted click, before awaits.
       permission = api.permissions.request({origins:[permissionPattern(chosen.url)],
         ...(find('script-allow-cookies').checked ? {permissions:['cookies']} : {})});
@@ -391,8 +398,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     });
   }
   function previewPage(event) {
-    if (!event.isTrusted || disposed || previewBusy || editingBusy || running || host.currentRun) return;
-    let captured, permission, sourceUtf8, withJquery;
+    if (!event.isTrusted || disposed || previewBusy || dependencyPanel?.busy || editingBusy || running || host.currentRun) return;
+    let captured, permission, sourceUtf8, withJquery, pageSource;
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
       const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
@@ -402,8 +409,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       // Freeze source, dependency and document during the trusted click,
       // before permission request or any asynchronous work.
       captured=currentPageTarget.capture();
-      sourceUtf8=find('script-source').value;
-      withJquery=find('page-preview-jquery').checked === true;
+      pageSource=dependencyPanel.capture();sourceUtf8=pageSource.sourceUtf8;
+      withJquery=find('page-preview-jquery').checked === true && !find('page-preview-jquery').disabled && pageSource.entryFormat==='async-main';
       if(!sourceUtf8.trim())throw {code:'E_SOURCE',message:'请输入 async function main()'};
       permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
@@ -412,14 +419,19 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       if(!await permission)throw {code:'E_PERMISSION',message:'用户拒绝网站授权'};
       if(disposed)throw {code:'E_HOST_CLOSED',message:'工作台已关闭'};
       await currentPageTarget.revalidate(captured);
-      const result=await client.request('previewPageScript',{sourceUtf8,withJquery,
+      const result=await client.request('previewPageScript',{
+        ...(withJquery ? {sourceUtf8,withJquery:true} : pageSource),
         target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId}});
       displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果，也不会安装自动执行。',
-        result.resultText+' \n源码 SHA-256：'+result.sourceHash);
+        result.resultText+' \n源码 SHA-256：'+result.sourceHash+
+        (result.lockId ? '\n固定依赖：'+result.lockId : '')+
+        (result.warnings?.length ? '\n'+result.warnings.map(dependencyMessage).join('\n') : ''));
     })().catch(error=>displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)))
       .finally(()=>{previewBusy=false;update();});
   }
+  dependencyPanel=createPageDependencyPanel({client,api,document:doc,getSource:()=>find('script-source').value,
+    setSource:value=>{find('script-source').value=value;update();},onState:update});
   const onNavigation = details => {
     if (String(details.tabId) === tab.value) clearDocuments();
   };
@@ -461,7 +473,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   return {host, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length,
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))}}), dispose() {
-    if (disposed) return; disposed = true; unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; dependencyPanel.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

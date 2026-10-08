@@ -120,9 +120,29 @@
     </details>
   </div></details>
 
-    <details id="page-preview-tools"><summary>网页 DOM 脚本试运行（USER_SCRIPT / jQuery）</summary>
-      <p class="hint">开发预览直接执行编辑器中的 async function main()；可使用 document、DOM、jQuery，不使用 Controller 的 page/params。仅对当前网页精确文档执行一次，不保存、不安装、不自动匹配网址。</p>
-      <label><input type="checkbox" id="page-preview-jquery"> 加载扩展内固定 jQuery 3.7.1（隔离 USER_SCRIPT，不修改网站 MAIN 全局）</label>
+    <details id="page-preview-tools"><summary>网页用户脚本 · 依赖与试运行</summary>
+      <p class="hint">使用上方编辑器的当前源码，可访问 document 和已锁定依赖。这里与 Controller 的 page / params 模式独立；调试无需保存。</p>
+      <label for="page-preview-entry">页面脚本入口</label>
+      <select id="page-preview-entry"><option value="async-main">OpenDesk · async function main()</option><option value="classic-userscript">经典用户脚本 · 顶层 / IIFE</option></select>
+      <div id="page-dependency-panel">
+        <div class="row"><label for="page-dependency-url">添加 @require</label><input id="page-dependency-url" type="url" placeholder="HTTPS JavaScript 资源地址"><button id="page-dependency-add" type="button">插入声明</button></div>
+        <p id="page-dependency-status" role="status">正在识别源码依赖…</p>
+        <div id="page-dependency-sources"></div>
+        <label for="page-dependency-lock">固定依赖版本</label><select id="page-dependency-lock" disabled><option value="">尚未锁定</option></select>
+        <div class="row"><button id="page-dependency-prepare" type="button" disabled>读取资源并审核</button><button id="page-dependency-refresh" type="button">刷新本机版本</button></div>
+        <details><summary>从本地文件提供依赖</summary>
+          <p class="hint">选择一条 @require，再提供其 JavaScript 文件；审核会显示实际来源和哈希，不读取 file:// 地址。</p>
+          <label for="page-dependency-local-order">对应声明</label><select id="page-dependency-local-order"><option value="">选择对应声明</option></select>
+          <label for="page-dependency-local-file">JavaScript 文件（最多 1 MiB）</label><input id="page-dependency-local-file" type="file" accept=".js,.mjs,text/javascript,application/javascript,text/plain">
+        </details>
+        <pre id="page-dependency-review" aria-label="依赖来源与内容审核" hidden></pre>
+        <button id="page-dependency-approve" type="button" disabled>确认来源并锁定</button>
+        <pre id="page-dependency-warnings" role="status" hidden></pre>
+      </div>
+      <details><summary>旧版 jQuery 试运行备用入口</summary>
+        <label><input type="checkbox" id="page-preview-jquery"> 加载扩展内固定 jQuery 3.7.1</label>
+        <p class="hint">仅用于没有 @require 的 async main 脚本；新依赖请使用上面的声明与锁定流程。原生迁移验收完成前保留此入口。</p>
+      </details>
       <button id="page-preview-run" type="button" disabled>在当前网页试运行 DOM 脚本</button>
       <p id="page-preview-status" role="status">需先在扩展详情中允许用户脚本，并授权当前网站。</p>
       <pre id="page-preview-result" aria-label="即时页面脚本结果">尚未运行</pre>
