@@ -109,9 +109,10 @@ function eventBus() {
       });
     }};
 }
-function fixture({afterPrepare}={}) {
+function fixture({afterPrepare,dropCommit=false,deadlineMs=2000}={}) {
   const dom=pageDOM(), bus=eventBus(), calls=[], phases=[];
   let granted=true, changed=false, commits=0, writes=0;
+  const receipts=[];
   const api={runtime:{id:'ext',onMessage:bus,getURL:path=>'chrome-extension://ext/'+path},
     tabs:{sendMessage(_tab,message,exact,callback){
       assert.deepEqual(exact,{documentId:target.documentId,frameId:0});
@@ -121,7 +122,7 @@ function fixture({afterPrepare}={}) {
         if(message.action==='execute' && message.envelope.operation.method==='locatorPrepare') {
           if(afterPrepare) { granted=false; }
         }
-        callback(reply);
+        if (!dropCommit || message.action!=='execute' || message.envelope.operation.method!=='locatorCommit') callback(reply);
       });
     }},
     webNavigation:{getAllFrames(_opts,callback){callback([{frameId:0,documentId:changed?'doc-B':'doc-A',
@@ -131,9 +132,10 @@ function fixture({afterPrepare}={}) {
   const driver=createControllerDriver({api,authorize:async (_env,{phase})=>{
     phases.push(phase);if(!granted)throw new PageError('E_PERMISSION');return true;
   },withWrite:async (_owner,fn)=>{writes++;return fn();}});
-  const transport={request:envelope=>driver.execute(envelope,{deadlineAt:Date.now()+2000})};
+  const transport={request:envelope=>driver.execute(envelope,{deadlineAt:Date.now()+deadlineMs,
+    recordReceipt:receipt=>{receipts.push(receipt);}})};
   const context=createRunContext({identity,revision,target,transport,dom:null});
-  return {dom,calls,phases,context,installation,
+  return {dom,calls,phases,receipts,context,installation,
     get commits(){return commits;},get writes(){return writes;},
     setDocument(value){changed=value;},revoke(){granted=false;},
     dispose(){context.dispose();installation.dispose();}};
@@ -219,4 +221,24 @@ test('precise document replacement fences existing Locator',async()=>{
     await assert.rejects(old.click({timeout:200}),{code:'E_DOCUMENT_REPLACED'});
     assert.equal(f.commits,0);assert.equal(f.dom.submits,0);
   } finally {f.dispose();}
+});
+
+test('lost commit callback retains one page effect and an uncertainty receipt; never replays click',async()=>{
+  const f=fixture({dropCommit:true,deadlineMs:120});
+  try {
+    await assert.rejects(f.context.page.getByRole('button',{name:'搜索',exact:true}).click({timeout:100}),{
+      code:'E_TIMEOUT'});
+    assert.equal(f.commits,1);
+    assert.equal(f.dom.submits,1);
+    assert.ok(f.receipts.some(row=>row.stage==='locator.commitIntent'));
+    assert.equal(f.receipts.some(row=>row.stage==='locator.commitNoEffect'),false);
+  } finally {f.dispose();}
+});
+test('semantic exact text is case-sensitive; partial text normalizes spaces',()=>{
+  const {doc,button}=pageDOM();
+  assert.equal(locate(doc,createLocatorDescriptor('text','搜索',{exact:true})).includes(button),true);
+  assert.equal(locate(doc,createLocatorDescriptor('text','搜索',{exact:false})).includes(button),true);
+  assert.equal(locate(doc,createLocatorDescriptor('text','搜索x',{exact:true})).length,0);
+  assert.deepEqual(validateLocatorDescriptor(createLocatorDescriptor('role','button',{name:'搜索',exact:true})),
+    createLocatorDescriptor('role','button',{name:'搜索',exact:true}));
 });
