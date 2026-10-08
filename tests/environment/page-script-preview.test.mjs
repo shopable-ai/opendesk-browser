@@ -9,10 +9,11 @@ globalThis.crypto ||= webcrypto;
 const source = 'async function main(){ document.title="Preview OK"; return {title:document.title}; }';
 const target = {tabId:5,frameId:0,documentId:'doc-5',expectedWindowId:9,expectedUrl:'https://example.com/demo'};
 function fixture(overrides = {}) {
-  const calls=[], page={title:'Before'};
+  const calls=[], page={title:'Before'},contexts=new Map(),session={};
   let frameCount=0;
   const api={
     runtime:{getURL:path=>'chrome-extension://extension/'+path},
+    storage:{session:{get:async key=>({[key]:structuredClone(session[key])}),set:async value=>Object.assign(session,structuredClone(value))}},
     tabs:{
       get:async()=>({id:5,windowId:9,active:true,incognito:false,status:'complete',url:target.expectedUrl}),
       query:async()=>[{id:5,active:true}]
@@ -23,12 +24,19 @@ function fixture(overrides = {}) {
         url:target.expectedUrl,documentLifecycle:'active'}];
     }},
     permissions:{contains:async()=>overrides.permission!==false},
-    userScripts:{getScripts:async()=>[],execute:async request=>{
-      calls.push(request);
-      if(overrides.error)return [{frameId:0,documentId:'doc-5',error:'Native evaluation failed'}];
-      if(overrides.wrongReceipt)return [{frameId:0,documentId:'doc-other',result:null}];
-      if(overrides.noEval)return [{frameId:0,documentId:'doc-5',result:null}];
-      const value=await vm.runInNewContext(request.js.at(-1).code,{document:page});
+    userScripts:{getScripts:async()=>[],getWorldConfigurations:async()=>[],configureWorld:async()=>{},resetWorldConfiguration:async()=>{},execute:async request=>{
+      const probe=request.js.length===1 && /^(?:const |typeof )?__opendesk_probe_/.test(request.js[0].code);
+      if(!probe){
+        calls.push(request);
+        if(overrides.error || overrides.emptyError)return [{frameId:0,documentId:'doc-5',error:overrides.emptyError?'':'Native evaluation failed'}];
+        if(overrides.wrongReceipt)return [{frameId:0,documentId:'doc-other',result:null}];
+        if(overrides.missingCompletion)return [{frameId:0,documentId:'doc-5'}];
+      }
+      const id=request.worldId || 'default';
+      if(!contexts.has(id))contexts.set(id,vm.createContext({document:page,...(overrides.noEval?{jQuery:{fn:{jquery:'3.7.1'}}}:{})}));
+      // noEval only stubs vendor DOM initialization for the byte-wiring test;
+      // generic two-library execution is covered by dependency-flow tests.
+      const value=await vm.runInContext(request.js.at(-1).code,contexts.get(id));
       return [{frameId:0,documentId:'doc-5',result:JSON.parse(JSON.stringify(value))}];
     }}
   };
@@ -69,7 +77,8 @@ test('no injection after document change, permission revoke, Controller slot, in
 });
 
 test('incorrect browser document receipt and native script errors cannot claim success',async()=>{
-  for(const [mode,code] of [[{wrongReceipt:true},'E_RESULT_FORMAT'],[{error:true},'E_PAGE_SCRIPT_EXECUTION']]){
+  for(const [mode,code] of [[{wrongReceipt:true},'E_RESULT_FORMAT'],[{error:true},'E_PAGE_SCRIPT_EXECUTION'],
+    [{emptyError:true},'E_PAGE_SCRIPT_EXECUTION'],[{missingCompletion:true},'E_PAGE_SCRIPT_EXECUTION']]){
     const f=fixture(mode);
     await fails(f.preview.preview(request(),{}),code);
   }

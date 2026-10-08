@@ -16,7 +16,8 @@ class Element {
   addEventListener(name,fn){if(!this.listeners.has(name))this.listeners.set(name,new Set());this.listeners.get(name).add(fn);}
   removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
   fire(name,event={}){for(const fn of this.listeners.get(name)||[])fn(event);}
-  append(child){this.children.push(child);}
+  append(...children){this.children.push(...children);}
+  setAttribute(name,value){this[name]=String(value);}
   replaceChildren(...children){this.children=children;this.value=children[0]?.value||'';}
   removeAttribute(name){delete this[name];}
 }
@@ -25,9 +26,9 @@ const event=()=>{const e=new Element();return {addListener:fn=>e.addEventListene
 const html=await readFile('src/ui/tool.html','utf8');
 async function fixture(persisted={scripts:[],runs:[],results:[]}) {
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
-  const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view};
+  const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
-  const traces=[], permissions=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], terminal=deferred();
+  const traces=[], permissions=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate;
   const tabs=new Map([[11,{id:11,windowId:7,url:'https://a.example/',title:'A',incognito:false}],[12,{id:12,windowId:7,url:'https://b.example/',title:'B',incognito:false}]]);
   const api={runtime:{getURL:p=>'chrome-extension://extension/'+p},permissions:{request:request=>{permissions.push(request);traces.push('permission');return permission;}},
@@ -67,6 +68,12 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}) {
   };
   const client={ready:Promise.resolve(),controller,runCommands:{},storage:{},pagePort:{},exportBridge:{},entitlement:{},resourceSnapshot:()=>({}),
     async request(type,payload){
+      if(type==='inspectPageDependencies'){
+        dependencyInspections.push(structuredClone(payload));
+        return {requires:[{order:0,url:'https://cdn.example/library.js',raw:'https://cdn.example/library.js',
+          name:'Imported dependency',sourceKind:'https',cacheChoices:[]}],locks:[],
+          admission:{status:'needs-review',blockers:[],warnings:[]}};
+      }
       if(type!=='previewPageScript')throw Error('Unexpected preview request: '+type);
       previews.push(structuredClone(payload));
       return {state:'preview-evaluated',resultText:'{"ok":true}',sourceHash:'a'.repeat(64)};
@@ -77,7 +84,7 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}) {
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
   })})});
   await tick();
-  return {find,editor,target,persisted,api,view,permissions,starts,executions,snapshots,commits,previews,traces,
+  return {find,editor,target,persisted,api,view,permissions,starts,executions,snapshots,commits,previews,traces,dependencyInspections,
     click:async id=>{find(id).fire('click',{isTrusted:true});await tick();},
     finish:async value=>{terminal.resolve({status:'succeeded',value:controlEncode(value)});await editor.host.completion;await tick();},
     setPermission:value=>{permission=value;},setSaveGate:value=>{saveGate=value;},setLoadGate:value=>{loadGate=value;},
@@ -110,6 +117,23 @@ test('draft import rejects empty/oversized sources and active saves without over
   const gate=deferred();f.setSaveGate(gate);await f.click('script-save');
   assert.throws(()=>f.editor.importDraft('async function main() {}'),error=>error.code==='E_BUSY');
   assert.equal(f.find('script-source').value,before);gate.resolve();await tick();
+});
+
+test('catalog draft import updates dependency review from the new source without saving or running',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const source='// ==UserScript==\n// @require https://cdn.example/library.js\n// ==/UserScript==\nasync function main(){return document.title;}';
+  f.editor.importDraft(source);await tick();
+  assert.deepEqual(f.dependencyInspections,[{sourceUtf8:source,entryFormat:'async-main'}]);
+  assert.equal(f.find('page-preview-jquery').disabled,true);
+  assert.equal(f.find('page-dependency-sources').children.length,1);
+  assert.match(f.find('page-dependency-status').textContent,/审核并锁定/);
+  assert.equal(f.find('page-dependency-lock').value,'');
+  f.editor.importDraft('async function main(){return 1;}');await tick();
+  assert.equal(f.find('page-preview-jquery').disabled,false);
+  assert.equal(f.find('page-dependency-sources').children.length,0);
+  assert.equal(f.find('page-dependency-prepare').disabled,true);
+  assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);
+  assert.equal(f.previews.length,0);assert.equal(f.persisted.scripts.length,0);
 });
 
 test('Save persists revision/hash without requesting permission, creating a Run, or executing code',async t=>{

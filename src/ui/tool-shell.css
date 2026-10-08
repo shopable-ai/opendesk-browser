@@ -143,6 +143,15 @@ details>section{margin-top:10px}
 #script-library-tools,#page-preview-tools,#script-advanced{border-top:1px solid var(--line);padding-top:9px;margin:11px 0}
 #script-library-tools>summary,#page-preview-tools>summary,#script-advanced>summary{font-size:12px;font-weight:650}
 #script-library-tools label,#script-advanced label{font-size:11px;color:#526681}
+#page-dependency-panel{margin:12px 0;padding:10px;border:1px solid var(--line);border-radius:8px;background:#f9fbff}
+#page-dependency-panel .row{margin:8px 0}
+.dependency-source{padding:8px 0;border-top:1px solid var(--line);min-width:0}
+.dependency-source label{font-size:12px;font-weight:600}
+.dependency-source .hint{margin:4px 0}
+#page-dependency-status[data-state=error]{color:#ae3d4b}
+#page-dependency-status[data-state=locked]{color:#138263}
+#page-dependency-review{max-height:260px;background:#fff;border:1px solid var(--line)}
+#page-dependency-warnings{font-family:inherit;color:#725622;background:#fff8e7}
 #tool-diagnostics{border-top:1px solid var(--line);padding-top:10px;margin:12px 0}
 #tool-diagnostics>summary{font-size:11px}
 #tool-diagnostics section{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px;margin-bottom:9px}

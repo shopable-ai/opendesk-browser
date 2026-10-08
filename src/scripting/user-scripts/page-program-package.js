@@ -1,6 +1,12 @@
 // Pure manifest/compiler layer. Not an authority, executor, database or registration side effect.
 // The trusted broker must first produce an Available + installed grant and then call
 // chrome.userScripts.register/unregister with the returned descriptor.
+import {canonical,digest} from '../../platform/protocol.js';
+import {JQUERY_371} from './packaged-dependencies.js';
+export {JQUERY_371} from './packaged-dependencies.js';
+import {compileLockedPageSource} from './execution-source.js';
+import {hashPageProgramManifest,validatePageProgramManifest,verifyPageProgramSource,
+  validatePageProgramRules,PAGE_PROGRAM_RUNTIME} from './page-program-contract.js';
 const HEX64 = /^[0-9a-f]{64}$/;
 const ID = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
 const RUN_AT = new Set(['document_start', 'document_end', 'document_idle']);
@@ -40,10 +46,6 @@ function validateDependencyLock(lock) {
 
 // No CDN, npm resolution or fetching occurs in this compiler. Bytes are provided by
 // an independently verified extension-bundled loader; they never run in SW/Worker.
-export const JQUERY_371 = Object.freeze({
-  id:'jquery', version:'3.7.1', sha256:'fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a',
-  path:'vendor/jquery-3.7.1.min.js', license:'MIT', origin:'packaged'
-});
 
 function wrapper(source, identity, withJquery) {
   const instanceKey = JSON.stringify(`${identity.scriptId}:${identity.revision}:${identity.manifestHash}`);
@@ -55,7 +57,7 @@ function wrapper(source, identity, withJquery) {
 // Caller contract: `authority.assertAvailable` MUST be the existing trusted broker
 // validation, not a function surfaced to page scripts/untrusted UI. A plain
 // candidate.state string is never sufficient authorization.
-export async function preparePageProgramRegistration({candidate, sourceUtf8, authority, dependencySources = {}}) {
+export async function prepareLegacyPageProgramRegistration({candidate, sourceUtf8, authority, dependencySources = {}}) {
   ensure(candidate && typeof candidate === 'object' && typeof authority?.assertAvailable === 'function', 'E_AUTHORITY_REQUIRED');
   const {candidateId, manifestHash, revision, manifest} = candidate;
   ensure(ID.test(candidateId) && HEX64.test(manifestHash) && revision && ID.test(revision.scriptId) &&
@@ -86,4 +88,37 @@ export async function preparePageProgramRegistration({candidate, sourceUtf8, aut
     worldId:`opendesk-page-${ownerHash.slice(0,48)}`,
     js:Object.freeze([...sources, {code:wrapper(sourceUtf8, identity, dependencies.length > 0)}]),
   });
+}
+
+// D1 Page asset compiler. The caller supplies trusted loadForExecution() output
+// and an authority scoped to this owner namespace. It must separately reconcile
+// registration IDs, configure/verify native world isolation and obtain real type-
+// specific verification. Producing this descriptor grants no installation state.
+// Legacy R3/JQ descriptors use the explicit function above; there is no automatic
+// reinterpretation of async-main-v1 or the Controller opendesk.task.v1 contract.
+export async function preparePageProgramRegistration({candidate,sourceUtf8,authority,dependencyResolution} = {}) {
+  ensure(candidate && typeof candidate === 'object' && typeof authority?.assertAvailable === 'function','E_AUTHORITY_REQUIRED');
+  const snapshot = structuredClone(candidate), resolution = structuredClone(dependencyResolution);
+  const {candidateId,namespace,manifestHash} = snapshot;
+  ensure(typeof candidateId === 'string' && ID.test(candidateId) && typeof namespace === 'string' && namespace.length > 0 && namespace.length <= 256 &&
+    HEX64.test(manifestHash),'E_PAGE_CANDIDATE');
+  const manifest = validatePageProgramManifest(snapshot.manifest);
+  ensure(await hashPageProgramManifest(manifest) === manifestHash,'E_MANIFEST_HASH');
+  await verifyPageProgramSource({manifest,sourceUtf8,dependencyResolution:resolution});
+  const proof = await authority.assertAvailable(candidateId);
+  ensure(proof?.candidateId === candidateId && proof.namespace === namespace && proof.manifestHash === manifestHash &&
+    proof.status === 'Available' && proof.installationEnabled === true &&
+    proof.runtimeKind === PAGE_PROGRAM_RUNTIME && proof.entryFormat === manifest.entryFormat &&
+    proof.programId === manifest.programId && proof.revision === manifest.revision && proof.sourceHash === manifest.sourceHash &&
+    proof.dependencyLockId === manifest.dependencyLockId && proof.dependencyManifestDigest === manifest.dependencyManifestDigest,
+    'E_NOT_AVAILABLE');
+  const approvedRules = validatePageProgramRules(proof.approvedPageRules);
+  ensure(canonical(approvedRules) === canonical(manifest.pageRules),'E_NOT_AVAILABLE');
+  const compiled = await compileLockedPageSource({sourceUtf8,entryFormat:manifest.entryFormat,
+    entries:resolution.entries,importSourceUrl:manifest.sourceProfile.importSourceUrl});
+  ensure(compiled.sourceHash === manifest.sourceHash && compiled.world === manifest.pageRules.world,'E_SOURCE_HASH');
+  const identityHash = await digest({namespace,candidateId,manifestHash});
+  const id = 'opendesk-page-d1-' + identityHash.slice(0,48), rules = manifest.pageRules;
+  return Object.freeze({id,matches:rules.matches,excludeMatches:rules.excludeMatches,runAt:rules.runAt,
+    allFrames:rules.allFrames,world:'USER_SCRIPT',worldId:id,js:compiled.js});
 }

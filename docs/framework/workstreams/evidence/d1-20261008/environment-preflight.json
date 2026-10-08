@@ -1,0 +1,44 @@
+{
+  "format": "opendesk-d1-native-environment-evidence-v1",
+  "recordedAt": "2026-10-08T12:11:09.217330+00:00",
+  "browserVersion": "Google Chrome for Testing 155.0.8059.39",
+  "platform": "Linux x86_64",
+  "profile": "/workspace/scratch/f57f2769a907/d1-native-evidence/profile-headless",
+  "profileMode": "0o700",
+  "command": "/workspace/scratch/f57f2769a907/cft-runtime/chrome-linux64/chrome --headless=new --no-sandbox --disable-dev-shm-usage --no-first-run --no-default-browser-check --disable-background-networking --disable-component-update --remote-debugging-port=0 --remote-debugging-address=127.0.0.1 --window-size=1400,1100 --proxy-server=http://127.0.0.1:40409 --user-data-dir=/workspace/scratch/f57f2769a907/d1-native-evidence/profile-headless chrome://extensions/",
+  "execSessionId": 80549,
+  "execInitialChunk": "d641a4",
+  "execCompletionChunk": "d5eb00",
+  "exitCode": 134,
+  "stderrExcerptFile": "chrome-startup.exec-stderr.txt",
+  "stderrProvenance": "Exact initial stderr copied from exec_command output; subsequent completion reported signal 6 and exit 134.",
+  "socketDiagnostics": [
+    {
+      "kind": "unix-stream",
+      "status": "blocked",
+      "errno": 1,
+      "error": "[Errno 1] Operation not permitted"
+    },
+    {
+      "kind": "tcp-ipv4",
+      "status": "created"
+    },
+    {
+      "kind": "udp-ipv4",
+      "status": "created"
+    }
+  ],
+  "devToolsActivePortExists": false,
+  "status": "BLOCKED_ENV",
+  "blocker": "AF_UNIX socket creation is denied by this executor. Chrome aborts before opening its browser interface or extension UI.",
+  "extensionLoaded": false,
+  "allowUserScriptsClicked": false,
+  "hostPermissionPromptHandled": false,
+  "nativeUserScriptsExecuted": false,
+  "CHROME_NATIVE_VERIFIED": "NOT_TESTED",
+  "USER_FLOW_VERIFIED": "NOT_TESTED",
+  "FINAL_FRAMEWORK_ACCEPTED": false,
+  "ownedBrowserPidsFoundAtCleanup": [],
+  "cleanup": "Original foreground process exited with code 134; any matching owned-profile Chrome PID found during cleanup received SIGTERM. No personal profile was used.",
+  "scope": "Environment preflight only; not a Mac CFT, F3, production ZIP, or browser restart acceptance."
+}

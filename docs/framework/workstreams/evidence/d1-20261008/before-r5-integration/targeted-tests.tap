@@ -1,0 +1,586 @@
+TAP version 13
+# Subtest: product shell configures the Chrome Side Panel action and never creates a popup
+ok 1 - product shell configures the Chrome Side Panel action and never creates a popup
+  ---
+  duration_ms: 2.817325
+  type: 'test'
+  ...
+# Subtest: tool sender accepts top-level Side Panel documents and rejects foreign or nested senders
+ok 2 - tool sender accepts top-level Side Panel documents and rejects foreign or nested senders
+  ---
+  duration_ms: 0.554166
+  type: 'test'
+  ...
+# Subtest: URL policy rejects restricted/file/credentials and preserves exact origin including port
+ok 3 - URL policy rejects restricted/file/credentials and preserves exact origin including port
+  ---
+  duration_ms: 0.911603
+  type: 'test'
+  ...
+# Subtest: health waits for sender readiness and binds Chrome document metadata, not file result
+ok 4 - health waits for sender readiness and binds Chrome document metadata, not file result
+  ---
+  duration_ms: 10.204423
+  type: 'test'
+  ...
+# Subtest: revoked permission blocks even previously installed agent
+ok 5 - revoked permission blocks even previously installed agent
+  ---
+  duration_ms: 2.210316
+  type: 'test'
+  ...
+# Subtest: reload, cross-origin and closed tab reject bound target without automatic reinjection
+ok 6 - reload, cross-origin and closed tab reject bound target without automatic reinjection
+  ---
+  duration_ms: 6.5233
+  type: 'test'
+  ...
+# Subtest: forged health nonce and fake sender cannot satisfy exact target
+ok 7 - forged health nonce and fake sender cannot satisfy exact target
+  ---
+  duration_ms: 2.070891
+  type: 'test'
+  ...
+# Subtest: missing module has no capabilities or runner and can be mounted/disposed
+ok 8 - missing module has no capabilities or runner and can be mounted/disposed
+  ---
+  duration_ms: 0.508789
+  type: 'test'
+  ...
+# Subtest: Side Panel configuration failure is surfaced without a popup fallback
+ok 9 - Side Panel configuration failure is surfaced without a popup fallback
+  ---
+  duration_ms: 0.367652
+  type: 'test'
+  ...
+# Subtest: unknown authorization mode is rejected before another injection
+ok 10 - unknown authorization mode is rejected before another injection
+  ---
+  duration_ms: 2.331444
+  type: 'test'
+  ...
+# Subtest: permission revoke reports permission failure even when Chrome hides tab URL
+ok 11 - permission revoke reports permission failure even when Chrome hides tab URL
+  ---
+  duration_ms: 1.028756
+  type: 'test'
+  ...
+# Subtest: permission revoked during tabs.get is diagnosed before inspecting its hidden URL
+ok 12 - permission revoked during tabs.get is diagnosed before inspecting its hidden URL
+  ---
+  duration_ms: 2.190147
+  type: 'test'
+  ...
+# Subtest: repeated agent ready preserves optional authorization and cannot bypass revoke
+ok 13 - repeated agent ready preserves optional authorization and cannot bypass revoke
+  ---
+  duration_ms: 2.169526
+  type: 'test'
+  ...
+# Subtest: same-document concurrent binding resolves all readiness waiters
+ok 14 - same-document concurrent binding resolves all readiness waiters
+  ---
+  duration_ms: 2.078352
+  type: 'test'
+  ...
+# Subtest: document invalidation and revoke while awaiting reply reject late health success
+ok 15 - document invalidation and revoke while awaiting reply reject late health success
+  ---
+  duration_ms: 1.137516
+  type: 'test'
+  ...
+# Subtest: missing Side Panel sender documentId resolves only unique native instance context
+ok 16 - missing Side Panel sender documentId resolves only unique native instance context
+  ---
+  duration_ms: 1.354275
+  type: 'test'
+  ...
+# Subtest: inspection only parses and lists download permissions; explicit actions and post-download hash review are separate
+ok 17 - inspection only parses and lists download permissions; explicit actions and post-download hash review are separate
+  ---
+  duration_ms: 37.324125
+  type: 'test'
+  ...
+# Subtest: packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit
+ok 18 - packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit
+  ---
+  duration_ms: 9.593583
+  type: 'test'
+  ...
+# Subtest: approved locks run offline after a new manager instance and draft edits; source/mode changes require a new lock
+ok 19 - approved locks run offline after a new manager instance and draft edits; source/mode changes require a new lock
+  ---
+  duration_ms: 5.110159
+  type: 'test'
+  ...
+# Subtest: duplicate declarations preserve execution order, shared bytes do not share another namespace approval
+ok 20 - duplicate declarations preserve execution order, shared bytes do not share another namespace approval
+  ---
+  duration_ms: 17.233368
+  type: 'test'
+  ...
+# Subtest: a local file adapter preserves declared URL and original file bytes without claiming a network download
+ok 21 - a local file adapter preserves declared URL and original file bytes without claiming a network download
+  ---
+  duration_ms: 5.001328
+  type: 'test'
+  ...
+# Subtest: same URL updates produce new immutable locks; selecting approved old bytes stays offline and deterministic
+ok 22 - same URL updates produce new immutable locks; selecting approved old bytes stays offline and deterministic
+  ---
+  duration_ms: 9.00084
+  type: 'test'
+  ...
+# Subtest: SRI validates original bytes with SHA-256/384/512 and does not silently approve a mismatch
+ok 23 - SRI validates original bytes with SHA-256/384/512 and does not silently approve a mismatch
+  ---
+  duration_ms: 18.854096
+  type: 'test'
+  ...
+# Subtest: downloader rejects redirects, HTML/JSON, malformed UTF-8, private IPs and excess streaming bytes
+ok 24 - downloader rejects redirects, HTML/JSON, malformed UTF-8, private IPs and excess streaming bytes
+  ---
+  duration_ms: 5.804972
+  type: 'test'
+  ...
+# Subtest: permission revocation and stale host during network/hash work never commit an approvable review or lock
+ok 25 - permission revocation and stale host during network/hash work never commit an approvable review or lock
+  ---
+  duration_ms: 11.296712
+  type: 'test'
+  ...
+# Subtest: asset, review provenance and lock tampering fail closed; quota failure atomically rolls back prepared assets
+ok 26 - asset, review provenance and lock tampering fail closed; quota failure atomically rolls back prepared assets
+  ---
+  duration_ms: 11.62058
+  type: 'test'
+  ...
+# Subtest: ordinary JS and metadata-looking strings remain source; real BOM/blank-prefixed CRLF header is preserved
+ok 27 - ordinary JS and metadata-looking strings remain source; real BOM/blank-prefixed CRLF header is preserved
+  ---
+  duration_ms: 2.886502
+  type: 'test'
+  ...
+# Subtest: leading copyright comments do not hide real dependencies or privileges; malformed markers fail closed
+ok 28 - leading copyright comments do not hide real dependencies or privileges; malformed markers fail closed
+  ---
+  duration_ms: 2.770517
+  type: 'test'
+  ...
+# Subtest: standard unpinned @require is importable and reviewable, including duplicate execution order
+ok 29 - standard unpinned @require is importable and reviewable, including duplicate execution order
+  ---
+  duration_ms: 0.69883
+  type: 'test'
+  ...
+# Subtest: TM hex/Base64, SRI tokens, percent-encoded fragments and multiple strong hashes canonicalize without losing plus signs
+ok 30 - TM hex/Base64, SRI tokens, percent-encoded fragments and multiple strong hashes canonicalize without losing plus signs
+  ---
+  duration_ms: 4.367735
+  type: 'test'
+  ...
+# Subtest: malformed or conflicting integrity is preserved for diagnosis and cannot be admitted
+ok 31 - malformed or conflicting integrity is preserved for diagnosis and cannot be admitted
+  ---
+  duration_ms: 1.33059
+  type: 'test'
+  ...
+# Subtest: weak integrity does not masquerade as verified SRI; mixed declarations keep strong requirements
+ok 32 - weak integrity does not masquerade as verified SRI; mixed declarations keep strong requirements
+  ---
+  duration_ms: 0.523251
+  type: 'test'
+  ...
+# Subtest: relative dependencies use actual importer provenance, never a page URL or @downloadURL
+ok 33 - relative dependencies use actual importer provenance, never a page URL or @downloadURL
+  ---
+  duration_ms: 1.001495
+  type: 'test'
+  ...
+# Subtest: unsupported grants/resources/directives do not prevent import or hide later dependencies
+ok 34 - unsupported grants/resources/directives do not prevent import or hide later dependencies
+  ---
+  duration_ms: 0.930781
+  type: 'test'
+  ...
+# Subtest: entry modes remain explicit and native match/frame/timing mappings are inspectable
+ok 35 - entry modes remain explicit and native match/frame/timing mappings are inspectable
+  ---
+  duration_ms: 3.856827
+  type: 'test'
+  ...
+# Subtest: large valid headers no longer fail at 64 lines or 8 dependencies; real bounds fail closed with import diagnostics
+ok 36 - large valid headers no longer fail at 64 lines or 8 dependencies; real bounds fail closed with import diagnostics
+  ---
+  duration_ms: 3.459376
+  type: 'test'
+  ...
+# Subtest: pasting @require only inspects; trusted acquisition requests permission synchronously and full-hash approval unlocks unsaved edits
+ok 37 - pasting @require only inspects; trusted acquisition requests permission synchronously and full-hash approval unlocks unsaved edits
+  ---
+  duration_ms: 37.233903
+  type: 'test'
+  ...
+# Subtest: changing declarations clears an old lock and a late old review cannot replace the current source or become approvable
+ok 38 - changing declarations clears an old lock and a late old review cannot replace the current source or become approvable
+  ---
+  duration_ms: 4.706353
+  type: 'test'
+  ...
+# Subtest: approved cached bytes can be locked for explicitly selected classic mode without a CDN permission prompt
+ok 39 - approved cached bytes can be locked for explicitly selected classic mode without a CDN permission prompt
+  ---
+  duration_ms: 5.440675
+  type: 'test'
+  ...
+# Subtest: permission refusal stops acquisition and local files preserve their original bytes without a CDN request
+ok 40 - permission refusal stops acquisition and local files preserve their original bytes without a CDN request
+  ---
+  duration_ms: 7.165195
+  type: 'test'
+  ...
+# Subtest: add dependency edits only the true metadata block, leaves examples intact and refuses to hide an incomplete header
+ok 41 - add dependency edits only the true metadata block, leaves examples intact and refuses to hide an incomplete header
+  ---
+  duration_ms: 4.139578
+  type: 'test'
+  ...
+# Subtest: closing or changing source while permission/file reading is pending cancels acquisition and old approval handlers
+ok 42 - closing or changing source while permission/file reading is pending cancels acquisition and old approval handlers
+  ---
+  duration_ms: 9.371436
+  type: 'test'
+  ...
+# Subtest: explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors
+ok 43 - explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors
+  ---
+  duration_ms: 12.875008
+  type: 'test'
+  ...
+# Subtest: new pinned revision obtains different world and old revision unchanged
+ok 44 - new pinned revision obtains different world and old revision unchanged
+  ---
+  duration_ms: 5.054667
+  type: 'test'
+  ...
+# Subtest: fails closed without existing broker Available+install grant or with altered script hash
+ok 45 - fails closed without existing broker Available+install grant or with altered script hash
+  ---
+  duration_ms: 4.780823
+  type: 'test'
+  ...
+# Subtest: dependency version/sha/world lock enforced, library failure blocks injection
+ok 46 - dependency version/sha/world lock enforced, library failure blocks injection
+  ---
+  duration_ms: 1.703599
+  type: 'test'
+  ...
+# Subtest: D1 Page contract consumes actual manager locks and preserves generic classic globals without a wrapper
+ok 47 - D1 Page contract consumes actual manager locks and preserves generic classic globals without a wrapper
+  ---
+  duration_ms: 40.862959
+  type: 'test'
+  ...
+# Subtest: async-main Page revisions share immutable dependencies while registration identities remain isolated
+ok 48 - async-main Page revisions share immutable dependencies while registration identities remain isolated
+  ---
+  duration_ms: 20.881532
+  type: 'test'
+  ...
+# Subtest: full Page authority proof binds kind, entry, revision, dependency identity and every rule, not only matches
+ok 49 - full Page authority proof binds kind, entry, revision, dependency identity and every rule, not only matches
+  ---
+  duration_ms: 41.056549
+  type: 'test'
+  ...
+# Subtest: Page source/metadata/asset tampering is blocked and old Controller/R3 formats require an explicit path
+ok 50 - Page source/metadata/asset tampering is blocked and old Controller/R3 formats require an explicit path
+  ---
+  duration_ms: 14.972467
+  type: 'test'
+  ...
+# Subtest: named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration
+ok 51 - named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration
+  ---
+  duration_ms: 13.078377
+  type: 'test'
+  ...
+# Subtest: no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in
+ok 52 - no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in
+  ---
+  duration_ms: 10.968554
+  type: 'test'
+  ...
+# Subtest: incorrect browser document receipt and native script errors cannot claim success
+ok 53 - incorrect browser document receipt and native script errors cannot claim success
+  ---
+  duration_ms: 11.313166
+  type: 'test'
+  ...
+# Subtest: source, site and requested execution world cannot be forged through preview protocol
+ok 54 - source, site and requested execution world cannot be forged through preview protocol
+  ---
+  duration_ms: 1.290351
+  type: 'test'
+  ...
+# Subtest: verified pinned jQuery bytes precede preview main, without Service Worker evaluation
+ok 55 - verified pinned jQuery bytes precede preview main, without Service Worker evaluation
+  ---
+  duration_ms: 12.821694
+  type: 'test'
+  ...
+# Subtest: Save persists revision/hash without requesting permission, creating a Run, or executing code
+ok 56 - Save persists revision/hash without requesting permission, creating a Run, or executing code
+  ---
+  duration_ms: 20.070377
+  type: 'test'
+  ...
+# Subtest: reopened editor lists saved scripts without running and loads the selected latest head explicitly
+ok 57 - reopened editor lists saved scripts without running and loads the selected latest head explicitly
+  ---
+  duration_ms: 4.548781
+  type: 'test'
+  ...
+# Subtest: loading a historical revision does not turn it into the latest Save CAS head
+ok 58 - loading a historical revision does not turn it into the latest Save CAS head
+  ---
+  duration_ms: 6.092245
+  type: 'test'
+  ...
+# Subtest: Delete tombstones the latest head and refreshes the saved-script selector
+ok 59 - Delete tombstones the latest head and refreshes the saved-script selector
+  ---
+  duration_ms: 6.791585
+  type: 'test'
+  ...
+# Subtest: saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+ok 60 - saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+  ---
+  duration_ms: 13.767402
+  type: 'test'
+  ...
+# Subtest: a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+ok 61 - a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+  ---
+  duration_ms: 4.003038
+  type: 'test'
+  ...
+# Subtest: permission preparation rejects a switched page; closing the editor during permission never admits a run
+ok 62 - permission preparation rejects a switched page; closing the editor during permission never admits a run
+  ---
+  duration_ms: 15.148978
+  type: 'test'
+  ...
+# Subtest: Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+ok 63 - Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+  ---
+  duration_ms: 7.980917
+  type: 'test'
+  ...
+# Subtest: pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+ok 64 - pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+  ---
+  duration_ms: 6.197961
+  type: 'test'
+  ...
+# Subtest: late Save/Load replies do not overwrite another script selection or edits made during loading
+ok 65 - late Save/Load replies do not overwrite another script selection or edits made during loading
+  ---
+  duration_ms: 6.715374
+  type: 'test'
+  ...
+# Subtest: late saved-script selector load cannot overwrite edits made during loading
+ok 66 - late saved-script selector load cannot overwrite edits made during loading
+  ---
+  duration_ms: 5.903437
+  type: 'test'
+  ...
+# Subtest: an older snapshot reply cannot disable Run after a newer durable observation
+ok 67 - an older snapshot reply cannot disable Run after a newer durable observation
+  ---
+  duration_ms: 5.900783
+  type: 'test'
+  ...
+# Subtest: an older snapshot error cannot overwrite a newer successful durable view
+ok 68 - an older snapshot error cannot overwrite a newer successful durable view
+  ---
+  duration_ms: 7.818403
+  type: 'test'
+  ...
+# Subtest: the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing
+ok 69 - the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing
+  ---
+  duration_ms: 7.667326
+  type: 'test'
+  ...
+# Subtest: DOM preview binds frozen source, dependency choice and exact current document from trusted click
+ok 70 - DOM preview binds frozen source, dependency choice and exact current document from trusted click
+  ---
+  duration_ms: 5.192194
+  type: 'test'
+  ...
+# Subtest: DOM preview refuses to inject when the active document changes while permission is pending
+ok 71 - DOM preview refuses to inject when the active document changes while permission is pending
+  ---
+  duration_ms: 6.287082
+  type: 'test'
+  ...
+# Subtest: Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+ok 72 - Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+  ---
+  duration_ms: 5.390136
+  type: 'test'
+  ...
+# Subtest: manifest exposes tool.html as a global Chrome Side Panel
+ok 73 - manifest exposes tool.html as a global Chrome Side Panel
+  ---
+  duration_ms: 4.728095
+  type: 'test'
+  ...
+# Subtest: product shell has no popup-window fallback
+ok 74 - product shell has no popup-window fallback
+  ---
+  duration_ms: 3.352859
+  type: 'test'
+  ...
+# Subtest: default Run freezes Current Page then revalidates before existing RunHost
+ok 75 - default Run freezes Current Page then revalidates before existing RunHost
+  ---
+  duration_ms: 2.106823
+  type: 'test'
+  ...
+# Subtest: trusted Side Panel run sends the exact unsaved draft to the original Controller authority
+ok 76 - trusted Side Panel run sends the exact unsaved draft to the original Controller authority
+  ---
+  duration_ms: 1.923123
+  type: 'test'
+  ...
+# Subtest: ordinary Sidebar sections precede folded engineering tools and preserve every control ID
+ok 77 - ordinary Sidebar sections precede folded engineering tools and preserve every control ID
+  ---
+  duration_ms: 3.885213
+  type: 'test'
+  ...
+# Subtest: installed tasks default page, render schema form and freeze the exact saved version/params/target
+ok 78 - installed tasks default page, render schema form and freeze the exact saved version/params/target
+  ---
+  duration_ms: 23.63593
+  type: 'test'
+  ...
+# Subtest: installed task can be explicitly forked into an independent unsaved editor draft
+ok 79 - installed task can be explicitly forked into an independent unsaved editor draft
+  ---
+  duration_ms: 6.945917
+  type: 'test'
+  ...
+# Subtest: task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+ok 80 - task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+  ---
+  duration_ms: 5.332691
+  type: 'test'
+  ...
+# Subtest: installed task refuses stale target after async installed-version lookup
+ok 81 - installed task refuses stale target after async installed-version lookup
+  ---
+  duration_ms: 6.929158
+  type: 'test'
+  ...
+# Subtest: task cards retain readable selection and do not surface raw IDs as the main UI
+ok 82 - task cards retain readable selection and do not surface raw IDs as the main UI
+  ---
+  duration_ms: 3.646643
+  type: 'test'
+  ...
+# Subtest: Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog
+ok 83 - Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog
+  ---
+  duration_ms: 7.170854
+  type: 'test'
+  ...
+# Subtest: Discover filter controls are real view filters and cannot start another run
+ok 84 - Discover filter controls are real view filters and cannot start another run
+  ---
+  duration_ms: 9.961155
+  type: 'test'
+  ...
+# Subtest: opening the separate full-size catalog preserves its import and management view
+ok 85 - opening the separate full-size catalog preserves its import and management view
+  ---
+  duration_ms: 3.393299
+  type: 'test'
+  ...
+# Subtest: full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+ok 86 - full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+  ---
+  duration_ms: 5.76338
+  type: 'test'
+  ...
+# Subtest: installed Discover keeps its own useful dock without running or requesting permission
+ok 87 - installed Discover keeps its own useful dock without running or requesting permission
+  ---
+  duration_ms: 12.300741
+  type: 'test'
+  ...
+# Subtest: card view retains original action identities, history and parameter form across tab changes
+ok 88 - card view retains original action identities, history and parameter form across tab changes
+  ---
+  duration_ms: 9.061309
+  type: 'test'
+  ...
+# Subtest: switching between two installed tasks preserves each independent unsaved parameter input
+ok 89 - switching between two installed tasks preserves each independent unsaved parameter input
+  ---
+  duration_ms: 2.434447
+  type: 'test'
+  ...
+# Subtest: two extension documents share only a refresh hint and re-read authoritative installed state
+ok 90 - two extension documents share only a refresh hint and re-read authoritative installed state
+  ---
+  duration_ms: 9.463511
+  type: 'test'
+  ...
+# Subtest: real manager → approval → preview executes two ordered sources, reuses draft locks offline, and rechecks new GM grants
+ok 91 - real manager → approval → preview executes two ordered sources, reuses draft locks offline, and rechecks new GM grants
+  ---
+  duration_ms: 33.76998
+  type: 'test'
+  ...
+# Subtest: classic top-level const runs repeatedly in fresh worlds; trailing comments and ASI do not consume the next source
+ok 92 - classic top-level const runs repeatedly in fresh worlds; trailing comments and ASI do not consume the next source
+  ---
+  duration_ms: 11.045413
+  type: 'test'
+  ...
+# Subtest: a synchronous dependency failure prevents later libraries and the consumer from executing
+ok 93 - a synchronous dependency failure prevents later libraries and the consumer from executing
+  ---
+  duration_ms: 13.616199
+  type: 'test'
+  ...
+# Subtest: an absent user main cannot fall back to a dependency global main or an async-main-looking comment
+ok 94 - an absent user main cannot fall back to a dependency global main or an async-main-looking comment
+  ---
+  duration_ms: 5.425974
+  type: 'test'
+  ...
+# Subtest: simulated Chromium named-world exhaustion falls back to default, fails the isolation probe, and injects no user code
+ok 95 - simulated Chromium named-world exhaustion falls back to default, fails the isolation probe, and injects no user code
+  ---
+  duration_ms: 7.970307
+  type: 'test'
+  ...
+# Subtest: document budget survives service restart and navigation cleanup; closing a tab releases the ledger even when the API is disabled
+ok 96 - document budget survives service restart and navigation cleanup; closing a tab releases the ledger even when the API is disabled
+  ---
+  duration_ms: 22.379108
+  type: 'test'
+  ...
+1..96
+# tests 96
+# suites 0
+# pass 96
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 371.60783
