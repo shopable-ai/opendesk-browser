@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {programDraft} from '../fixtures/program-draft.mjs';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
@@ -20,7 +21,7 @@ class Element {
     walk(this);return found;
   }
   removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
-  fire(name,data={}){for(const fn of this.listeners.get(name)||[])fn(data);}
+  fire(name,data={}){return Promise.all([...this.listeners.get(name)||[]].map(fn=>fn(data)));}
   setAttribute(name,value){this.attributes[name]=String(value);}
   append(...items){this.children.push(...items);}
   replaceChildren(...items){this.children=items;this.value=items[0]?.value??'';this.textContent='';}
@@ -435,7 +436,7 @@ test('catalog JS import hands source to Sidebar and never enters a view with a h
   const source='async function main() { return "file draft"; }';
   f.get('task-package-file').value='draft.js';
   f.get('task-package-file').files=[{name:'draft.js',size:source.length,text:async()=>source}];
-  f.get('task-package-file').fire('change');await tick();await tick();
+  await f.get('task-package-file').fire('change');
   assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',sourceUtf8:source}]);
   assert.equal(f.get('workbench-discover').hidden,false);
   assert.equal(f.get('workbench-develop').hidden,true);
@@ -449,7 +450,7 @@ test('missing Sidebar refuses import with an actionable message, without losing 
   f.api.runtime.sendMessage=async()=>{throw Error('Receiving end does not exist');};
   f.get('task-package-file').value='draft.js';
   f.get('task-package-file').files=[{name:'draft.js',size:1,text:async()=>'x'}];
-  f.get('task-package-file').fire('change');await tick();await tick();
+  await f.get('task-package-file').fire('change');
   assert.match(f.get('task-catalog-status').textContent,/同一窗口打开 Sidebar/);
   assert.equal(f.get('workbench-discover').hidden,false);assert.equal(f.starts.length,0);
   assert.equal(f.get('task-package-file').value,'','retrying after opening Sidebar must fire change again');
@@ -516,4 +517,29 @@ test('R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop'
   assert.match(css,/\.workspace-dock\[data-stop-only="true"\] \.dock-buttons > #task-stop,/);
   assert.match(css,/#task-stop:disabled,#script-stop:disabled\{display:none\}/,
     'an unauthorized or already retired Stop must remain hidden');
+});
+
+test('catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  const draft=await programDraft(),text=JSON.stringify(draft,null,2)+'\n';
+  f.get('task-package-file').value='program.opendesk-draft.json';
+  f.get('task-package-file').files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
+  await f.get('task-package-file').fire('change');
+  assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',draft}]);
+  assert.equal(f.get('workbench-develop').hidden,true);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  assert.match(f.get('task-catalog-status').textContent,/未保存草稿/);
+  assert.equal(f.get('task-package-file').value,'');
+});
+
+test('catalog rejects a changed project snapshot before handoff and permits reselecting the file',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  const draft=await programDraft();draft.authoring.files[0].sourceUtf8+='\n// altered';
+  const text=JSON.stringify(draft);
+  f.get('task-package-file').value='program.opendesk-draft.json';
+  f.get('task-package-file').files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
+  await f.get('task-package-file').fire('change');
+  assert.equal(f.draftMessages.length,0);assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  assert.match(f.get('task-catalog-status').textContent,/E_PROGRAM_HASH/);
+  assert.equal(f.get('task-package-file').value,'');
 });

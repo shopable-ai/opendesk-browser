@@ -1,0 +1,31 @@
+{
+  "candidate": "c5fe462101267afeb1121840c41b3f8647c3e1b5",
+  "baseline": "5769730beb9fddc6fc788a2702409ec06076feac",
+  "demoHash": "815af5458d617b4688a504cfc265f81427ccfd847a718210c4cc9eeeeb510383",
+  "programs": [
+    {
+      "id": "sample.sidebar-page-demo",
+      "directory": "artifacts/programs/sample.sidebar-page-demo/0.1.0/r31-production/4d8693b967e4e5e8-521d9e32240f",
+      "sourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+      "sourceBytes": 1582,
+      "matches": true,
+      "draftFileBytes": 3955
+    },
+    {
+      "id": "sample.sidebar-controller-demo",
+      "directory": "artifacts/programs/sample.sidebar-controller-demo/1.0.0/r31-production/d7210dd03e38dd9d-e2797c9b7aa5",
+      "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+      "sourceBytes": 1194,
+      "matches": true,
+      "draftFileBytes": 3134
+    },
+    {
+      "id": "sample.sidebar-assets-contract",
+      "directory": "artifacts/programs/sample.sidebar-assets-contract/0.1.0/r31-production/82cdbb54d178e517-0a639d82d8e2",
+      "sourceHash": "82cdbb54d178e517493bdaeab2e749534ab511e5488ee2e3ebc670d7c0ba9554",
+      "sourceBytes": 1692,
+      "matches": true,
+      "draftFileBytes": 2750
+    }
+  ]
+}

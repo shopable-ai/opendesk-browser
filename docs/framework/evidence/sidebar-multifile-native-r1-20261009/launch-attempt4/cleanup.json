@@ -1,0 +1,181 @@
+{
+  "exit": {
+    "code": 1,
+    "signal": null,
+    "observedEvent": "exit"
+  },
+  "pidAliveAfterExit": false,
+  "profileRemoved": true,
+  "profileState": "path-absent",
+  "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py",
+  "cleanupStatus": "FAIL",
+  "lifecycle": [
+    {
+      "event": "started",
+      "at": 1791482990.140738,
+      "generation": 1,
+      "pid": 74876,
+      "launcherPid": 74875,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435",
+      "profileDevice": 16777234,
+      "profileInode": 17612724,
+      "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+    }
+  ],
+  "originalErrors": [
+    {
+      "stage": "operation",
+      "name": "Error",
+      "message": "Restart launcher exited: Traceback (most recent call last):\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 713, in <module>\n    main()\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 380, in main\n    runpy.run_path(str(GLOBAL_LAUNCHER), run_name='__main__')\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 268, in run_path\n    return _run_module_code(code, init_globals, run_name,\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 97, in _run_module_code\n    _run_code(code, mod_globals, init_globals,\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 87, in _run_code\n    exec(code, run_globals)\n  File \"/Users/shopme/.codex/browser-testing/launch.py\", line 5, in <module>\n    os.execv(\"/usr/bin/python3\", [\"/usr/bin/python3\", \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\"] + sys.argv[1:])\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 371, in follow_global_entry\n    runpy.run_path(str(IMPLEMENTATION), run_name='__main__')\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 268, in run_path\n    return _run_module_code(code, init_globals, run_name,\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 97, in _run_module_code\n    _run_code(code, mod_globals, init_globals,\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 87, in _run_code\n    exec(code, run_globals)\n  File \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", line 96, in <module>\n    sys.exit(main())\n  File \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", line 82, in main\n    returncode = child.wait()\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 345, in wait\n    self.restart()\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 295, in restart\n    self.assert_process()\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 277, in assert_process\n    raise RuntimeError('process-inspection-unavailable or ownership mismatch')\nRuntimeError: process-inspection-unavailable or ownership mismatch\n"
+    }
+  ],
+  "cleanupErrors": [
+    {
+      "stage": "adapter-cleanup-failed",
+      "name": "Error",
+      "message": "{\"event\":\"adapter-cleanup\",\"launcherPid\":74875,\"status\":\"FAIL\",\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\",\"profileIdentity\":[16777234,17612724],\"profileStatus\":\"removed\",\"children\":[{\"pid\":74876,\"state\":\"exited\",\"returncode\":0}],\"residual\":[],\"errors\":[{\"kind\":\"cleanup\",\"stage\":\"inspect-child\",\"type\":\"RuntimeError\",\"message\":\"Owned child arguments mismatch\",\"inspectionReads\":[{\"columns\":\"pid=,ppid=,comm=\",\"stdout\":\"74876 74875 /private/tmp/opendesk-sidebar-multifile-r1/instance3/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791483266.749012},{\"columns\":\"command=\",\"stdout\":\"(Google Chrome fo)\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791483266.755439}]},{\"kind\":\"original\",\"stage\":\"lifetime-wait\",\"type\":\"RuntimeError\",\"message\":\"process-inspection-unavailable or ownership mismatch\",\"inspectionReads\":[]},{\"kind\":\"original\",\"stage\":\"global-launcher\",\"type\":\"RuntimeError\",\"message\":\"process-inspection-unavailable or ownership mismatch\",\"inspectionReads\":[]}],\"events\":[{\"event\":\"started\",\"at\":1791482990.140738,\"generation\":1,\"pid\":74876,\"launcherPid\":74875,\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\",\"profileDevice\":16777234,\"profileInode\":17612724,\"implementation\":\"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\"implementationSha256\":\"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}],\"attempts\":3,\"inspectionExitObservations\":[{\"pid\":74876,\"returncode\":0,\"inspectionFailedAt\":1791483266.765192,\"pollAfterInspection\":1791483266.7652018,\"error\":{\"stage\":\"inspect-child\",\"type\":\"RuntimeError\",\"message\":\"Owned child PID/PPID/executable mismatch\",\"inspectionReads\":[{\"columns\":\"pid=,ppid=,comm=\",\"stdout\":\"74876 74875 (Google Chrome fo)\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791483266.7593331},{\"columns\":\"command=\",\"stdout\":\"<defunct>\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791483266.765163}]}}]}"
+    }
+  ],
+  "residual": [],
+  "attempts": [
+    {
+      "number": 1,
+      "errors": [
+        {
+          "stage": "adapter-cleanup-failed",
+          "name": "Error",
+          "message": "{\"event\":\"adapter-cleanup\",\"launcherPid\":74875,\"status\":\"FAIL\",\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\",\"profileIdentity\":[16777234,17612724],\"profileStatus\":\"removed\",\"children\":[{\"pid\":74876,\"state\":\"exited\",\"returncode\":0}],\"residual\":[],\"errors\":[{\"kind\":\"cleanup\",\"stage\":\"inspect-child\",\"type\":\"RuntimeError\",\"message\":\"Owned child arguments mismatch\",\"inspectionReads\":[{\"columns\":\"pid=,ppid=,comm=\",\"stdout\":\"74876 74875 /private/tmp/opendesk-sidebar-multifile-r1/instance3/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791483266.749012},{\"columns\":\"command=\",\"stdout\":\"(Google Chrome fo)\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791483266.755439}]},{\"kind\":\"original\",\"stage\":\"lifetime-wait\",\"type\":\"RuntimeError\",\"message\":\"process-inspection-unavailable or ownership mismatch\",\"inspectionReads\":[]},{\"kind\":\"original\",\"stage\":\"global-launcher\",\"type\":\"RuntimeError\",\"message\":\"process-inspection-unavailable or ownership mismatch\",\"inspectionReads\":[]}],\"events\":[{\"event\":\"started\",\"at\":1791482990.140738,\"generation\":1,\"pid\":74876,\"launcherPid\":74875,\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\",\"profileDevice\":16777234,\"profileInode\":17612724,\"implementation\":\"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\"implementationSha256\":\"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}],\"attempts\":3,\"inspectionExitObservations\":[{\"pid\":74876,\"returncode\":0,\"inspectionFailedAt\":1791483266.765192,\"pollAfterInspection\":1791483266.7652018,\"error\":{\"stage\":\"inspect-child\",\"type\":\"RuntimeError\",\"message\":\"Owned child PID/PPID/executable mismatch\",\"inspectionReads\":[{\"columns\":\"pid=,ppid=,comm=\",\"stdout\":\"74876 74875 (Google Chrome fo)\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791483266.7593331},{\"columns\":\"command=\",\"stdout\":\"<defunct>\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791483266.765163}]}}]}"
+        }
+      ],
+      "raw": {
+        "stdout": "{\"event\": \"owned-child\", \"pid\": 74876, \"generation\": 1, \"launcherPid\": 74875, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\", \"args\": [\"/private/tmp/opendesk-sidebar-multifile-r1/instance3/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development\", \"--disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development\", \"about:blank\"]}\n{\"pid\": 74876, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\", \"executable\": \"/private/tmp/opendesk-sidebar-multifile-r1/instance3/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"args\": [\"/private/tmp/opendesk-sidebar-multifile-r1/instance3/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development\", \"--disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development\", \"about:blank\"], \"log\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435/chrome.log\"}\n{\"event\": \"inspection-confirmed-exit\", \"pid\": 74876, \"returncode\": 0, \"inspectionFailedAt\": 1791483266.765192, \"pollAfterInspection\": 1791483266.7652018, \"error\": {\"stage\": \"inspect-child\", \"type\": \"RuntimeError\", \"message\": \"Owned child PID/PPID/executable mismatch\", \"inspectionReads\": [{\"columns\": \"pid=,ppid=,comm=\", \"stdout\": \"74876 74875 (Google Chrome fo)\\n\", \"stderr\": \"\", \"returncode\": 0, \"observedAt\": 1791483266.7593331}, {\"columns\": \"command=\", \"stdout\": \"<defunct>\\n\", \"stderr\": \"\", \"returncode\": 0, \"observedAt\": 1791483266.765163}]}}\n{\"event\": \"adapter-cleanup\", \"launcherPid\": 74875, \"status\": \"FAIL\", \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\", \"profileIdentity\": [16777234, 17612724], \"profileStatus\": \"removed\", \"children\": [{\"pid\": 74876, \"state\": \"exited\", \"returncode\": 0}], \"residual\": [], \"errors\": [{\"kind\": \"cleanup\", \"stage\": \"inspect-child\", \"type\": \"RuntimeError\", \"message\": \"Owned child arguments mismatch\", \"inspectionReads\": [{\"columns\": \"pid=,ppid=,comm=\", \"stdout\": \"74876 74875 /private/tmp/opendesk-sidebar-multifile-r1/instance3/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\\n\", \"stderr\": \"\", \"returncode\": 0, \"observedAt\": 1791483266.749012}, {\"columns\": \"command=\", \"stdout\": \"(Google Chrome fo)\\n\", \"stderr\": \"\", \"returncode\": 0, \"observedAt\": 1791483266.755439}]}, {\"kind\": \"original\", \"stage\": \"lifetime-wait\", \"type\": \"RuntimeError\", \"message\": \"process-inspection-unavailable or ownership mismatch\", \"inspectionReads\": []}, {\"kind\": \"original\", \"stage\": \"global-launcher\", \"type\": \"RuntimeError\", \"message\": \"process-inspection-unavailable or ownership mismatch\", \"inspectionReads\": []}], \"events\": [{\"event\": \"started\", \"at\": 1791482990.140738, \"generation\": 1, \"pid\": 74876, \"launcherPid\": 74875, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\", \"profileDevice\": 16777234, \"profileInode\": 17612724, \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}], \"attempts\": 3, \"inspectionExitObservations\": [{\"pid\": 74876, \"returncode\": 0, \"inspectionFailedAt\": 1791483266.765192, \"pollAfterInspection\": 1791483266.7652018, \"error\": {\"stage\": \"inspect-child\", \"type\": \"RuntimeError\", \"message\": \"Owned child PID/PPID/executable mismatch\", \"inspectionReads\": [{\"columns\": \"pid=,ppid=,comm=\", \"stdout\": \"74876 74875 (Google Chrome fo)\\n\", \"stderr\": \"\", \"returncode\": 0, \"observedAt\": 1791483266.7593331}, {\"columns\": \"command=\", \"stdout\": \"<defunct>\\n\", \"stderr\": \"\", \"returncode\": 0, \"observedAt\": 1791483266.765163}]}}]}\n",
+        "stderr": "Traceback (most recent call last):\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 713, in <module>\n    main()\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 380, in main\n    runpy.run_path(str(GLOBAL_LAUNCHER), run_name='__main__')\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 268, in run_path\n    return _run_module_code(code, init_globals, run_name,\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 97, in _run_module_code\n    _run_code(code, mod_globals, init_globals,\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 87, in _run_code\n    exec(code, run_globals)\n  File \"/Users/shopme/.codex/browser-testing/launch.py\", line 5, in <module>\n    os.execv(\"/usr/bin/python3\", [\"/usr/bin/python3\", \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\"] + sys.argv[1:])\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 371, in follow_global_entry\n    runpy.run_path(str(IMPLEMENTATION), run_name='__main__')\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 268, in run_path\n    return _run_module_code(code, init_globals, run_name,\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 97, in _run_module_code\n    _run_code(code, mod_globals, init_globals,\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py\", line 87, in _run_code\n    exec(code, run_globals)\n  File \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", line 96, in <module>\n    sys.exit(main())\n  File \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", line 82, in main\n    returncode = child.wait()\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 345, in wait\n    self.restart()\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 295, in restart\n    self.assert_process()\n  File \"/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py\", line 277, in assert_process\n    raise RuntimeError('process-inspection-unavailable or ownership mismatch')\nRuntimeError: process-inspection-unavailable or ownership mismatch\n",
+        "lifecycle": "{\"event\": \"started\", \"at\": 1791482990.140738, \"generation\": 1, \"pid\": 74876, \"launcherPid\": 74875, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\", \"profileDevice\": 16777234, \"profileInode\": 17612724, \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}\n",
+        "adapterCleanup": "{\n  \"event\": \"adapter-cleanup\",\n  \"launcherPid\": 74875,\n  \"status\": \"FAIL\",\n  \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\",\n  \"profileIdentity\": [\n    16777234,\n    17612724\n  ],\n  \"profileStatus\": \"removed\",\n  \"children\": [\n    {\n      \"pid\": 74876,\n      \"state\": \"exited\",\n      \"returncode\": 0\n    }\n  ],\n  \"residual\": [],\n  \"errors\": [\n    {\n      \"kind\": \"cleanup\",\n      \"stage\": \"inspect-child\",\n      \"type\": \"RuntimeError\",\n      \"message\": \"Owned child arguments mismatch\",\n      \"inspectionReads\": [\n        {\n          \"columns\": \"pid=,ppid=,comm=\",\n          \"stdout\": \"74876 74875 /private/tmp/opendesk-sidebar-multifile-r1/instance3/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\\n\",\n          \"stderr\": \"\",\n          \"returncode\": 0,\n          \"observedAt\": 1791483266.749012\n        },\n        {\n          \"columns\": \"command=\",\n          \"stdout\": \"(Google Chrome fo)\\n\",\n          \"stderr\": \"\",\n          \"returncode\": 0,\n          \"observedAt\": 1791483266.755439\n        }\n      ]\n    },\n    {\n      \"kind\": \"original\",\n      \"stage\": \"lifetime-wait\",\n      \"type\": \"RuntimeError\",\n      \"message\": \"process-inspection-unavailable or ownership mismatch\",\n      \"inspectionReads\": []\n    },\n    {\n      \"kind\": \"original\",\n      \"stage\": \"global-launcher\",\n      \"type\": \"RuntimeError\",\n      \"message\": \"process-inspection-unavailable or ownership mismatch\",\n      \"inspectionReads\": []\n    }\n  ],\n  \"events\": [\n    {\n      \"event\": \"started\",\n      \"at\": 1791482990.140738,\n      \"generation\": 1,\n      \"pid\": 74876,\n      \"launcherPid\": 74875,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 17612724,\n      \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\n      \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"\n    }\n  ],\n  \"attempts\": 3,\n  \"inspectionExitObservations\": [\n    {\n      \"pid\": 74876,\n      \"returncode\": 0,\n      \"inspectionFailedAt\": 1791483266.765192,\n      \"pollAfterInspection\": 1791483266.7652018,\n      \"error\": {\n        \"stage\": \"inspect-child\",\n        \"type\": \"RuntimeError\",\n        \"message\": \"Owned child PID/PPID/executable mismatch\",\n        \"inspectionReads\": [\n          {\n            \"columns\": \"pid=,ppid=,comm=\",\n            \"stdout\": \"74876 74875 (Google Chrome fo)\\n\",\n            \"stderr\": \"\",\n            \"returncode\": 0,\n            \"observedAt\": 1791483266.7593331\n          },\n          {\n            \"columns\": \"command=\",\n            \"stdout\": \"<defunct>\\n\",\n            \"stderr\": \"\",\n            \"returncode\": 0,\n            \"observedAt\": 1791483266.765163\n          }\n        ]\n      }\n    }\n  ]\n}\n"
+      },
+      "lifecycle": [
+        {
+          "event": "started",
+          "at": 1791482990.140738,
+          "generation": 1,
+          "pid": 74876,
+          "launcherPid": 74875,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435",
+          "profileDevice": 16777234,
+          "profileInode": 17612724,
+          "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+        }
+      ],
+      "adapterCleanup": {
+        "event": "adapter-cleanup",
+        "launcherPid": 74875,
+        "status": "FAIL",
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435",
+        "profileIdentity": [
+          16777234,
+          17612724
+        ],
+        "profileStatus": "removed",
+        "children": [
+          {
+            "pid": 74876,
+            "state": "exited",
+            "returncode": 0
+          }
+        ],
+        "residual": [],
+        "errors": [
+          {
+            "kind": "cleanup",
+            "stage": "inspect-child",
+            "type": "RuntimeError",
+            "message": "Owned child arguments mismatch",
+            "inspectionReads": [
+              {
+                "columns": "pid=,ppid=,comm=",
+                "stdout": "74876 74875 /private/tmp/opendesk-sidebar-multifile-r1/instance3/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\n",
+                "stderr": "",
+                "returncode": 0,
+                "observedAt": 1791483266.749012
+              },
+              {
+                "columns": "command=",
+                "stdout": "(Google Chrome fo)\n",
+                "stderr": "",
+                "returncode": 0,
+                "observedAt": 1791483266.755439
+              }
+            ]
+          },
+          {
+            "kind": "original",
+            "stage": "lifetime-wait",
+            "type": "RuntimeError",
+            "message": "process-inspection-unavailable or ownership mismatch",
+            "inspectionReads": []
+          },
+          {
+            "kind": "original",
+            "stage": "global-launcher",
+            "type": "RuntimeError",
+            "message": "process-inspection-unavailable or ownership mismatch",
+            "inspectionReads": []
+          }
+        ],
+        "events": [
+          {
+            "event": "started",
+            "at": 1791482990.140738,
+            "generation": 1,
+            "pid": 74876,
+            "launcherPid": 74875,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ew8mc435",
+            "profileDevice": 16777234,
+            "profileInode": 17612724,
+            "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+            "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+          }
+        ],
+        "attempts": 3,
+        "inspectionExitObservations": [
+          {
+            "pid": 74876,
+            "returncode": 0,
+            "inspectionFailedAt": 1791483266.765192,
+            "pollAfterInspection": 1791483266.7652018,
+            "error": {
+              "stage": "inspect-child",
+              "type": "RuntimeError",
+              "message": "Owned child PID/PPID/executable mismatch",
+              "inspectionReads": [
+                {
+                  "columns": "pid=,ppid=,comm=",
+                  "stdout": "74876 74875 (Google Chrome fo)\n",
+                  "stderr": "",
+                  "returncode": 0,
+                  "observedAt": 1791483266.7593331
+                },
+                {
+                  "columns": "command=",
+                  "stdout": "<defunct>\n",
+                  "stderr": "",
+                  "returncode": 0,
+                  "observedAt": 1791483266.765163
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "pid": 74876,
+      "state": "exited",
+      "returncode": 0
+    }
+  ]
+}

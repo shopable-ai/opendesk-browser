@@ -1,0 +1,118 @@
+[
+  {
+    "name": "validate-sidebar-page-demo",
+    "command": [
+      "node",
+      "scripts/validate-program-project.mjs",
+      "examples/programs/sidebar-page-demo"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  },
+  {
+    "name": "validate-sidebar-controller-demo",
+    "command": [
+      "node",
+      "scripts/validate-program-project.mjs",
+      "examples/programs/sidebar-controller-demo"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  },
+  {
+    "name": "validate-sidebar-assets-contract",
+    "command": [
+      "node",
+      "scripts/validate-program-project.mjs",
+      "examples/programs/sidebar-assets-contract"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  },
+  {
+    "name": "build-sidebar-page-demo",
+    "command": [
+      "npm",
+      "run",
+      "build:program",
+      "--",
+      "examples/programs/sidebar-page-demo"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  },
+  {
+    "name": "build-sidebar-controller-demo",
+    "command": [
+      "npm",
+      "run",
+      "build:program",
+      "--",
+      "examples/programs/sidebar-controller-demo"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  },
+  {
+    "name": "build-sidebar-assets-contract",
+    "command": [
+      "npm",
+      "run",
+      "build:program",
+      "--",
+      "examples/programs/sidebar-assets-contract"
+    ],
+    "exitCode": 1,
+    "expectedExit": 1,
+    "matched": true
+  },
+  {
+    "name": "check",
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  },
+  {
+    "name": "build-production",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  },
+  {
+    "name": "build-development",
+    "command": [
+      "npm",
+      "run",
+      "build:dev"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  },
+  {
+    "name": "verify",
+    "command": [
+      "npm",
+      "run",
+      "verify"
+    ],
+    "exitCode": 0,
+    "expectedExit": 0,
+    "matched": true
+  }
+]

@@ -1,0 +1,45 @@
+node:internal/errors:998
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /usr/bin/python3 /Users/shopme/.codex/skills/chrome-testing-keychain/scripts/check_instance.py /Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-program-r3.json
+    at genericNodeError (node:internal/errors:998:15)
+    at wrappedFn (node:internal/errors:543:14)
+    at checkExecSyncError (node:child_process:926:11)
+    at execFileSync (node:child_process:962:15)
+    at file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/program-native-acceptance.mjs:218:3 {
+  status: 2,
+  signal: null,
+  output: [
+    null,
+    Buffer(273) [Uint8Array] [
+      123,  10,  32,  32,  34, 115, 116,  97, 116, 117, 115,  34,
+       58,  32,  34, 105, 110, 115, 116,  97, 110,  99, 101,  45,
+       99, 104, 101,  99, 107,  45, 102,  97, 105, 108, 101, 100,
+       34,  44,  10,  32,  32,  34, 114, 101,  97, 100, 121,  34,
+       58,  32, 102,  97, 108, 115, 101,  44,  10,  32,  32,  34,
+      101, 114, 114, 111, 114,  34,  58,  32,  34,  91,  69, 114,
+      114, 110, 111,  32,  50,  93,  32,  78, 111,  32, 115, 117,
+       99, 104,  32, 102, 105, 108, 101,  32, 111, 114,  32, 100,
+      105, 114, 101,  99,
+      ... 173 more items
+    ],
+    Buffer(0) [Uint8Array] []
+  ],
+  pid: 79077,
+  stdout: Buffer(273) [Uint8Array] [
+    123,  10,  32,  32,  34, 115, 116,  97, 116, 117, 115,  34,
+     58,  32,  34, 105, 110, 115, 116,  97, 110,  99, 101,  45,
+     99, 104, 101,  99, 107,  45, 102,  97, 105, 108, 101, 100,
+     34,  44,  10,  32,  32,  34, 114, 101,  97, 100, 121,  34,
+     58,  32, 102,  97, 108, 115, 101,  44,  10,  32,  32,  34,
+    101, 114, 114, 111, 114,  34,  58,  32,  34,  91,  69, 114,
+    114, 110, 111,  32,  50,  93,  32,  78, 111,  32, 115, 117,
+     99, 104,  32, 102, 105, 108, 101,  32, 111, 114,  32, 100,
+    105, 114, 101,  99,
+    ... 173 more items
+  ],
+  stderr: Buffer(0) [Uint8Array] []
+}
+
+Node.js v26.3.1

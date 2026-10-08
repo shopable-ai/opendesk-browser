@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py", line 713, in <module>
+    main()
+  File "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py", line 380, in main
+    runpy.run_path(str(GLOBAL_LAUNCHER), run_name='__main__')
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py", line 268, in run_path
+    return _run_module_code(code, init_globals, run_name,
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py", line 97, in _run_module_code
+    _run_code(code, mod_globals, init_globals,
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/Users/shopme/.codex/browser-testing/launch.py", line 5, in <module>
+    os.execv("/usr/bin/python3", ["/usr/bin/python3", "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py"] + sys.argv[1:])
+  File "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py", line 371, in follow_global_entry
+    runpy.run_path(str(IMPLEMENTATION), run_name='__main__')
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py", line 268, in run_path
+    return _run_module_code(code, init_globals, run_name,
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py", line 97, in _run_module_code
+    _run_code(code, mod_globals, init_globals,
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py", line 96, in <module>
+    sys.exit(main())
+  File "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py", line 82, in main
+    returncode = child.wait()
+  File "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py", line 345, in wait
+    self.restart()
+  File "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py", line 295, in restart
+    self.assert_process()
+  File "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py", line 277, in assert_process
+    raise RuntimeError('process-inspection-unavailable or ownership mismatch')
+RuntimeError: process-inspection-unavailable or ownership mismatch

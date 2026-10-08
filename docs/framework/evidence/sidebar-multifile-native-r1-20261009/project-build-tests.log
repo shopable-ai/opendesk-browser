@@ -1,0 +1,23 @@
+✔ three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler (357.558833ms)
+✔ Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim (68.922334ms)
+✔ development mode emits readable program JS, draft metadata and a separate local source map only (34.105375ms)
+✔ development source map maps final generated throw position back to local authoring module (13.263417ms)
+✔ an unbundled asset is rejected rather than included in a supposedly complete project (2.735625ms)
+✔ webpack dependency failures report project, phase and importing source location (59.408333ms)
+✔ untrusted remote and dynamic ESM imports are rejected before Webpack (3.631334ms)
+✔ a frozen output directory rejects replacement without quietly publishing new bytes (126.616125ms)
+✔ multi-file ESM authoring project is a source contract, not an installed program (17.627583ms)
+✔ imports cannot escape project or load remote modules at browser runtime (4.942833ms)
+✔ entry diagnostics distinguish missing and non-function defaults with source location (2.888834ms)
+✔ dynamic import is not quietly kept as an unlocked runtime dependency (1.75725ms)
+✔ npm imports require declared dependencies and a committed matching npm lock (3.5555ms)
+✔ Page/Controller source contracts remain discriminated without changing Task v1 (2.2695ms)
+✔ assets can be listed and hashed but never silently injected (3.379084ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 777.711417
