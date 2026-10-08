@@ -133,3 +133,47 @@ P0.4 运行闭环测试：
 6. 增加模拟组件测试与新 Profile Chrome 真实验收：reload once、nonmatch zero、disable next-document zero、SPA 与 iframe、@require 顺序和离线、撤权/脚本开关关闭、版本升级/回滚、SW 休眠与重启。尤其证明撤权 race 不会在**新文档**执行未经授权脚本；如与 document-start 同步语义冲突需限权或明确降级。
 7. 在同候选运行 npm run check、npm test、npm run build、npm run build:dev、npm run verify；真实 Chrome/Codex 无法执行时保留 NOT_TESTED、提供本地 Codex 专用验收脚本，不写虚假 PASS。
 8. 完成后更新 R8 ADR/矩阵/实施状态，报告实际提交 SHA、代码变更、验收证据和剩余阻断；只在 main 交付，不 push --force、不清理无关分支。
+
+
+## 9. 产品能力总账本与评分分层（2026-10-09 增量）
+
+**能力追踪总入口**：[R8 用户脚本与浏览器自动化功能目录（188 项，14 模块）](browser-automation-feature-catalog-r8.zh-CN.md)。这里是产品实施时间表，目录是稳定功能 ID、分级和实施证据的唯一能力总账。R8 全球竞品的新增查漏（ScriptCat beta、Automa 触发器、Tampermonkey 高级 GM、Greasy Fork 治理、Requestly）归档于 [竞品研究第 8 节](../architecture/browser-framework/userscript-competitor-research-r8-20261008.zh-CN.md)，新增元数据/API 语义归档于 [兼容矩阵第 7 节](../architecture/browser-framework/userscript-compatibility-matrix-r8.zh-CN.md)。
+
+### 四种评分与五类分层，不要把价值混同完成度
+
+- 价值：单项 V=1..5；模块用户价值、OpenDesk 产品契合度分别 /100。**评分只表达是否值得研发，不表示目前实现程度**。
+- 工程难度 C=1..5、权限/安全风险 R=1..5，不与价值取平均来掩盖高风险。
+- 产品层次：L0 绝对核心；L1 重要迁移/增强；L2 高级开发者与触发能力；L3 可选实验和生态；LX 刻意不作为核心兼容目标（如 GM_audio / GM_webRequest）。
+- 研发阶段：P0–P4 的工程优先级；L0/L1 不是“此轮全部做”的同义词，阶段优先于竞品的功能数量。
+- 代码状态与验证证据分离：SOURCE_IMPLEMENTED、COMPONENT_TESTED、BUILD_VERIFIED、CHROME_NATIVE_VERIFIED、PARTIAL、MISSING、NOT_TESTED。单个条目目前的 P/M/S/U 标签是**静态抽查**，进入开发前重新核查最新 main。
+
+### R8.1 执行以后普通用户真正应该能做什么
+
+| 使用场景 | R8.1 完成且真 Chrome 验收后的可用结果 | 不可越界的条件 |
+| --- | --- | --- |
+| 普通用户装一个无 GM 特权的经典 .user.js | 在现有管理/导入页预览来源、版本、@match、依赖和权限，明确确认安装后只在获准网站后续文档自动运行 | 声明不兼容的 GM/@include 类脚本必须拒绝或明确提示，**不 silently ignore** |
+| 开发者直接试运行当前页 DOM 脚本 | 现有 Sidebar 开发区粘贴 JS，调用 Page Preview；源码固定后可以进入正式 Page 安装候选 | Preview 是手动单次运行，不能自己标记 Verified/Installed |
+| 多文件 ESM 页面项目 | 本地构建输出 program.js，沿现有导入/审核链试运行和冻结合格 Page Program 后安装 | R8.1 不开发云端 npm 包管理器、在线 ESM 动态加载 |
+| 安装后自动执行 | 每个匹配新文档按获准的 run-at/frame 规则执行；不匹配零次；显示注册/脚本状态 | Chrome 138+ 需要用户打开 Allow User Scripts，真实网站权限必须有效 |
+| 日常暂停/恢复脚本 | 用户可在“我的任务”或独立管理页停用/启用 Page，阻止后续文档自动注入 | 已经运行的脚本增加的 DOM/监听器不自动回滚；存在撤权竞态时不得假报“立刻彻底停止” |
+| 安装状态恢复 | 浏览器重启/扩展更新/Service Worker 重启后，Authority 和原生注册集合对账，恢复应该存在的注册 | 缺权限、资产损坏、执行世界不可用时应失败关闭并明确提示 |
+| 安全版本替换 | 显式选择新固定版本，验证 hash/依赖/网站和授权，失败回退旧版注册/状态 | **不等于**自动从任意更新链接更新；自动订阅/周期检查仍在 P1 |
+| 查看运行和错误 | 看到安装、批准、注册、失败状态；可根据确切 documentId 或日志追溯自动运行 | 不能将 chrome.userScripts.register() 成功直接等同于真实网页功能效果 |
+
+这张表是**目标验收合同**，不是当前主干已完成的事实。R8.1 只补 Page 类型安装链：Controller R5/R6 自动化、原三页签、dependency manager、ESM builder 等**既有功能要回归保护，不应重新开发**。
+
+### R8.1 完成后仍然不会直接拥有的能力
+
+**GM API 全面兼容**、跨域 GM_xmlhttpRequest、GM 存储/菜单/通知/下载、高敏 Cookie/unsafeWindow、@include/@exclude 的 Tampermonkey 全部规则、ScriptCat @background/@crontab、可精确恢复的 Cron、UserCSS、录制到 Workflow、AI 自动修复、MCP/Native Agent 已合 main、云同步或跨浏览器正式兼容。以上遵循 P1–P4 的分期合同；即使页面自动运行成功，**也不能对外宣称“全面兼容油猴/脚本猫”**。
+
+### 最小 R8.1 验收与阻断
+
+1. 统一标准 Chrome 原生测试页面以现有 examples/tasks/demo-form.html 为入口；如需新增专门的 Page fixtures 放相同 examples/tasks/ 下，禁止重新使用历史临时 /fixture 手工入口。
+2. 真 Chrome：安装 → 新文档匹配执行一次 → nonmatch zero → 停用后下一文档 zero → iframe → SPA → run-at → 关闭脚本开关/撤站点权限拒绝 → 重启/更新对账 → 损坏依赖失败 → 更新回滚旧版。这些同时包含源 code 证据、Native 回执与用户可见 DOM 效果。
+3. 安装更新是两个非原子系统（IndexedDB vs Chrome Native registration）：必须有单 writer、幂等身份、持久 desired/actual 状态、可信启动授权 guard 或明确被验证的时序限制；不能凭 UI 提示强行宣称无撤权竞态。
+4. 同一个候选运行 npm run check、npm test、npm run build、npm run build:dev、npm run verify，真实 Chrome/Codex 不可用则必须报告 CHROME_NATIVE_VERIFIED=NOT_TESTED，不能把 P0 标记最终签收。
+5. PR #11 Native Agent 和 PR #20 网络测试各自有独立工作流，不是本轮 Page P0 的实现依赖；不从 PR/旧文档推断已经合 main。
+
+### 下一轮开始前的操作纪律
+
+最新 GitHub main、PR/worktree 和文件修改权必须重新读取。只在用户批准的集成路径下处理 main；若 AGENTS.md 的写入隔离/保护规则与同轮用户具体授权存在冲突，应保留已有独立工作区安全边界，不以强推/重置覆盖并行成果。只允许已经确认的 P0 功能缺口进入 R8.1 的代码提交，不能以 catalog 出现 188 项为由展开大规模重构。
