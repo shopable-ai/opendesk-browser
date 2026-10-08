@@ -229,3 +229,9 @@ details>section{margin-top:10px}
   #script-run{flex-basis:100%}
 }
 @media(prefers-reduced-motion:no-preference){.task-card,.local-discovery-card,.local-discovery-filters button{transition:background-color .12s,border-color .12s}}
+
+/* Optional native permission panel nested under Developer advanced settings. */
+#site-access-status{font-size:11px;line-height:1.5;color:#526783;overflow-wrap:anywhere}
+#site-access-status[data-state=granted]{color:#138263}
+#site-access-status[data-state=denied],#site-access-status[data-state=error]{color:#ae3d4b}
+#site-access .row button{flex:1 1 130px}

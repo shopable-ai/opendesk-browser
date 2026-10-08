@@ -167,6 +167,15 @@
     </details>
     </details>
     <details id="script-advanced"><summary>高级脚本与目标设置</summary>
+      <details id="site-access" class="site-access-panel">
+        <summary>网站权限 · 一次性授权</summary>
+        <p id="site-access-status" role="status" data-state="checking">正在查询 Chrome 网站权限…</p>
+        <p class="hint">可在真实点击后由 Chrome 一次性授权所有 HTTP/HTTPS 网站。默认仍保留逐站授权；不会绕过任务或 SDK 的应用级许可。</p>
+        <label><input id="site-access-cookies" type="checkbox">同时申请 Cookie 权限（可选）</label>
+        <label><input id="site-access-notifications" type="checkbox">同时申请通知权限（可选）</label>
+        <div class="row"><button id="site-access-grant" type="button">一次性授权全部网站</button><button id="site-access-refresh" type="button">刷新授权状态</button></div>
+        <p class="hint">撤销授权或使用新 Chrome Profile 后需要重新确认。Chrome 内部页面及独立的用户脚本开关不受此操作影响。</p>
+      </details>
       <p class="hint">默认使用当前网页；手动目标仅用于高级操作。</p>
       <div class="row"><label for="script-target-mode">目标方式</label><select id="script-target-mode"><option value="current">当前网页（默认）</option><option value="owned">创建隔离网页（高级）</option><option value="borrowed">手动选择精确文档（高级）</option></select></div>
       <label for="script-owned-url">隔离网页地址</label><input id="script-owned-url" type="url" placeholder="https://example.com/" disabled>
