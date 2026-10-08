@@ -103,3 +103,48 @@ test('macOS isolated Native Host install, private socket, real wrapper and authe
   assert.equal(fs.readFileSync(oldDemo,'utf8'),'other native host preserved\n');
   assert.equal(fs.existsSync(root),false,'cleanup removes own installation only');
 });
+
+test('macOS Chrome for Testing uses its own manifest and cannot replace Google Chrome registration',{
+  skip:process.platform!=='darwin',
+  timeout:15000
+},async t=>{
+  const home=fs.mkdtempSync('/private/tmp/opendesk-cft-test-');
+  const env={...process.env,HOME:home};
+  const cftManifest=path.join(home,'Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts',HOST_NAME+'.json');
+  const chromeManifest=path.join(home,'Library/Application Support/Google/Chrome/NativeMessagingHosts',HOST_NAME+'.json');
+  const root=path.join(home,'.opendesk-browser','native-agent-r1');
+  const cli=args=>spawnSync(process.execPath,['native-agent/cli.mjs',...args],
+    {cwd:process.cwd(),env,encoding:'utf8',timeout:8000});
+  let host;
+  t.after(()=>{host?.kill('SIGKILL');fs.rmSync(home,{recursive:true,force:true});});
+  fs.mkdirSync(path.dirname(chromeManifest),{recursive:true});
+  fs.writeFileSync(chromeManifest,'{"other":"chrome host remains untouched"}\n');
+  let output=cli(['setup','--browser','cft','--extension-id',ID]);
+  assert.equal(output.status,0,output.stderr);
+  assert.equal(JSON.parse(output.stdout).browser,'cft');
+  assert.deepEqual(JSON.parse(fs.readFileSync(cftManifest,'utf8')).allowed_origins,[ORIGIN]);
+  assert.equal(fs.readFileSync(chromeManifest,'utf8'),'{"other":"chrome host remains untouched"}\n');
+  output=cli(['doctor']);
+  assert.equal(JSON.parse(output.stdout).local.browser,'cft');
+  assert.equal(JSON.parse(output.stdout).local.installed,true);
+  const conflict=cli(['setup','--browser','chrome','--extension-id',ID]);
+  assert.notEqual(conflict.status,0,'one installation may not silently change its Chrome variant');
+  assert.match(conflict.stderr,/E_BROWSER_CONFLICT/);
+  host=spawn(path.join(root,'native-host'),[ORIGIN],{env,stdio:['pipe','pipe','pipe']});
+  const decoder=new NativeDecoder();
+  const received=new Promise((resolve,reject)=>{
+    host.stdout.on('data',chunk=>{
+      try{const frames=decoder.push(chunk);if(frames.length)resolve(frames[0]);}
+      catch(e){reject(e);}
+    });
+  });
+  assert.deepEqual(await deadline(received,6000,'missing CFT Host hello'),{v:1,kind:'hello'});
+  const finished=onceExit(host);
+  host.stdin.end();
+  assert.equal((await finished).code,0);
+  for(let i=0;i<50&&fs.existsSync(path.join(root,'agent.sock'));i++)await pause(20);
+  output=cli(['cleanup']);
+  assert.equal(output.status,0,output.stderr);
+  assert.equal(fs.existsSync(cftManifest),false);
+  assert.equal(fs.readFileSync(chromeManifest,'utf8'),'{"other":"chrome host remains untouched"}\n');
+});
