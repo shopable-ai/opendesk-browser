@@ -88,12 +88,18 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.equal(f.get('workbench-discover').hidden,true,'full catalog must not occupy the Side Panel');
   assert.equal(f.catalogOpens.length,0,'Sidebar Discover must not open a marketplace tab');
   assert.equal(f.get('local-discover-cards').children.length,1,'matching installed task is discoverable');
+  assert.equal(f.get('task-dock').hidden,false,'task-owned Stop remains accessible in Discover');
+  assert.equal(f.get('develop-dock').hidden,true,'Discover must not expose a second runner');
   await f.click('tab-develop');
   assert.equal(f.get('workbench-develop').hidden,false);
+  assert.equal(f.get('task-dock').hidden,false,'task-owned Stop remains accessible in Developer');
+  assert.equal(f.get('develop-dock').hidden,true,'an unrelated draft cannot take over the task dock');
   assert.equal(f.host.currentRun,'run-task-1','switching Sidebar views must never retire RunHost');
   f.host.complete({ok:true});await tick();await tick();
   assert.match(f.get('task-result').textContent,/"ok": true/);
   assert.match(f.get('task-history').children[0].children[0].textContent,/run-task-1/);
+  await f.click('tab-discover');
+  assert.equal(f.get('task-dock').hidden,true,'idle Discover should not show a Run dock');
 });
 
 test('installed task can be explicitly forked into an independent unsaved editor draft',async t=>{
