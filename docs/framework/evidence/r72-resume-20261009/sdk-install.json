@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-08T16:36:15.275Z",
+  "pid": 23979,
+  "targetId": "835267DEC23DB7A5395CE771AA0F5E3C",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=cd454e76-8a7e-43e9-9dfa-673e98f6c254",
+  "result": {
+    "sdk-status": {
+      "text": "Authority 已确认此快照；后续调用仍由 authority 核验；ready 可能复用先前 Hello"
+    },
+    "sdk-result": {
+      "text": "{\n  \"approvalSnapshot\": {\n    \"tabId\": 810498132,\n    \"frameId\": 0,\n    \"documentId\": \"164ACC682B50D6877073F00FE33BF959\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ]\n  },\n  \"receipt\": {\n    \"grantIncarnation\": \"a1a55927-0e00-45c9-a94c-5a63938fa877\",\n    \"documentId\": \"164ACC682B50D6877073F00FE33BF959\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"lastConfirmedReceipt\": {\n    \"grantIncarnation\": \"a1a55927-0e00-45c9-a94c-5a63938fa877\",\n    \"documentId\": \"164ACC682B50D6877073F00FE33BF959\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"historyNotice\": \"历史回执不证明当前授权仍有效，也不代表当前输入已批准\"\n}"
+    },
+    "script-status": {
+      "text": "已读取持久结果"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": undefined,\n  \"state\": undefined,\n  \"results\": [],\n  \"resultDeliveryDenied\": []\n}"
+    },
+    "script-lifecycle-status": {},
+    "script-current-page-debug": {
+      "text": "{\n  \"windowId\": 810498131,\n  \"tabId\": 810498132,\n  \"frameId\": 0,\n  \"documentId\": \"164ACC682B50D6877073F00FE33BF959\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+    },
+    "script-source": {
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}"
+    },
+    "script-params": {
+      "text": "{\"value\":0}",
+      "value": "{\"value\":0}"
+    }
+  }
+}

@@ -70,6 +70,8 @@
 
 ### CORS、axiosx 和网络调试的界限
 
+SDK 的完整非 2xx 响应仍以 `E_HTTP` 拒绝，并在错误顶层提供 `status` / `response`。受信 HTTP Driver 已完整读取、校验的响应会保存为持久错误结果；重复或恢复同一请求只读取该结果，并重新核对授权，不再发送 HTTP。超时、传输失败、无效 JSON 和没有完整原生回执的错误仍保守保留未知效果。完整 R7.2 HTTP 页面候选与当前极简 GET 页存在产品合同差异，分候选证据见 [本轮记录](../../docs/framework/workstreams/r72-http-resume-20261009.md)。
+
 - 本页发出的是**网页原生 fetch**，受浏览器 CORS 限制。一次同源 200 只能证明这个 GET 发生并成功，**不能证明跨域被解决**。
 - OpenDesk SDK `axiosx` 走受信宿主的 `NetworkService`，有独立的目标来源授权和执行回执。其专项测试应复用 `tests/framework/fixtures/sdk-target-origins/server.mjs` 的 A/B/C 受控服务及扩展 Controller 测试链；不要在 `window` 上造假的同名 axiosx。
 - 页面请求在当前标签 DevTools Network 查看；由**扩展后台**发出的 SDK 请求可能需要在扩展 Service Worker 的 DevTools Network、Fixture 服务请求记录及 Controller 回执中查看，不能仅用网页标签的 Network 面板判定没有请求。

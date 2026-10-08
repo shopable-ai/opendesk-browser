@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-08T17:54:55.993Z",
+  "pid": 23979,
+  "targetId": "F6EA2BFD500B5B2D6148F98A51C852C2",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=4d29e7db-b834-4ada-898d-5e113bf79640",
+  "result": {
+    "sdk-status": {
+      "text": "Authority 已确认此快照；后续调用仍由 authority 核验；ready 可能复用先前 Hello"
+    },
+    "sdk-result": {
+      "text": "{\n  \"approvalSnapshot\": {\n    \"tabId\": 810498132,\n    \"frameId\": 0,\n    \"documentId\": \"48815A88213CF3961A65BEAFB695C83F\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ]\n  },\n  \"receipt\": {\n    \"grantIncarnation\": \"bb349d01-537d-4db0-9076-4934f9bb8a06\",\n    \"documentId\": \"48815A88213CF3961A65BEAFB695C83F\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"lastConfirmedReceipt\": {\n    \"grantIncarnation\": \"bb349d01-537d-4db0-9076-4934f9bb8a06\",\n    \"documentId\": \"48815A88213CF3961A65BEAFB695C83F\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"historyNotice\": \"历史回执不证明当前授权仍有效，也不代表当前输入已批准\"\n}"
+    },
+    "script-status": {
+      "text": "任务 a1b84ee3-9001-423c-a549-a94f0bbb2000：失败"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": \"a1b84ee3-9001-423c-a549-a94f0bbb2000\",\n  \"state\": \"failed\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"a1b84ee3-9001-423c-a549-a94f0bbb2000\",\n      \"resultId\": \"574c4bc8-93d0-48a4-a436-75ba3403a3e7\",\n      \"state\": \"failed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:a1b84ee3-9001-423c-a549-a94f0bbb2000\",\n        \"revision\": 1,\n        \"sourceHash\": \"b8ce4564121a957d0a401593eb77aba5ac7af04b4d93763e0b2639a8094f2bd1\"\n      },\n      \"sourceHash\": \"b8ce4564121a957d0a401593eb77aba5ac7af04b4d93763e0b2639a8094f2bd1\",\n      \"error\": {\n        \"code\": \"E_NETWORK\",\n        \"name\": \"PageError\",\n        \"message\": \"HTTP transport failed\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": [\n    \"0d626593-6466-46b8-8366-fc1f3115522e\",\n    \"78d7deeb-007a-4047-9c09-e54b07640675\",\n    \"451fb04c-eaa0-4fbd-8abb-7d13cb01d514\",\n    \"bbcc66e7-d715-450a-aa72-9e3a75dc3a52\",\n    \"d01c6139-85ff-4a9d-9685-29040a4c4eb5\",\n    \"1bc8b836-dfe7-440f-8a62-96c2845acf4c\",\n    \"c4877dee-5ed2-4a68-9327-43163c89c519\",\n    \"9767ea28-39bc-4a1a-ba90-c743dcca24f2\",\n    \"c96d33a9-babd-4868-a686-0c3cf6f253b4\",\n    \"5586af13-fe62-4990-98ea-50771ecc39c7\"\n  ]\n}"
+    },
+    "script-lifecycle-status": {},
+    "script-current-page-debug": {
+      "text": "{\n  \"windowId\": 810498131,\n  \"tabId\": 810498132,\n  \"frameId\": 0,\n  \"documentId\": \"48815A88213CF3961A65BEAFB695C83F\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html?navigation=r72-resume\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+    },
+    "script-source": {
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n"
+    },
+    "script-params": {
+      "text": "{\"value\":0}",
+      "value": "{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}"
+    }
+  }
+}

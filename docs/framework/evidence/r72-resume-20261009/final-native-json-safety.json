@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-08T17:33:00.803Z",
+  "pid": 23979,
+  "targetId": "B5B4480AA56CB103BF3EEFBDFF0A1804",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html",
+  "result": {
+    "state": "success",
+    "status": "200",
+    "text": "{\n  \"method\": \"POST\",\n  \"ok\": true,\n  \"received\": {\n    \"value\": \"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true\\\">\"\n  }\n}",
+    "responseChildren": 0,
+    "embeddedImage": false,
+    "executed": false
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-08T17:48:29.285Z",
+  "pid": 23979,
+  "targetId": "F6EA2BFD500B5B2D6148F98A51C852C2",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=4d29e7db-b834-4ada-898d-5e113bf79640",
+  "result": {
+    "sdk-status": {
+      "text": "请选择网页、当前文档和服务"
+    },
+    "sdk-result": {
+      "text": ""
+    },
+    "script-status": {
+      "text": "任务 5586af13-fe62-4990-98ea-50771ecc39c7：已完成"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": \"5586af13-fe62-4990-98ea-50771ecc39c7\",\n  \"state\": \"completed\",\n  \"results\": [],\n  \"resultDeliveryDenied\": [\n    \"0d626593-6466-46b8-8366-fc1f3115522e\",\n    \"78d7deeb-007a-4047-9c09-e54b07640675\",\n    \"451fb04c-eaa0-4fbd-8abb-7d13cb01d514\",\n    \"bbcc66e7-d715-450a-aa72-9e3a75dc3a52\",\n    \"d01c6139-85ff-4a9d-9685-29040a4c4eb5\",\n    \"1bc8b836-dfe7-440f-8a62-96c2845acf4c\",\n    \"c4877dee-5ed2-4a68-9327-43163c89c519\",\n    \"9767ea28-39bc-4a1a-ba90-c743dcca24f2\",\n    \"c96d33a9-babd-4868-a686-0c3cf6f253b4\",\n    \"5586af13-fe62-4990-98ea-50771ecc39c7\"\n  ]\n}"
+    },
+    "script-lifecycle-status": {},
+    "script-current-page-debug": {
+      "text": "{\n  \"windowId\": 810498131,\n  \"tabId\": 810498132,\n  \"frameId\": 0,\n  \"documentId\": \"48815A88213CF3961A65BEAFB695C83F\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html?navigation=r72-resume\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+    },
+    "script-source": {
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n"
+    },
+    "script-params": {
+      "text": "{\"value\":0}",
+      "value": "{\"url\":\"http://127.0.0.1:43112/request-sample.json\"}"
+    }
+  }
+}

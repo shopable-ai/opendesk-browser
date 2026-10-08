@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-08T17:40:05.542Z",
+  "pid": 23979,
+  "targetId": "B5B4480AA56CB103BF3EEFBDFF0A1804",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html?navigation=r72-resume",
+  "result": {
+    "url": "http://127.0.0.1:43111/demo-form.html?navigation=r72-resume",
+    "sdk": "undefined",
+    "retainedOldSdk": "undefined",
+    "resources": []
+  }
+}

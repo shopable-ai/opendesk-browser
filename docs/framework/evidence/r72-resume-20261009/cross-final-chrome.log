@@ -1,0 +1,12 @@
+
+DevTools listening on ws://127.0.0.1:62276/devtools/browser/5d8ad775-86a8-4581-a9d2-294b32757bcb
+[68278:54132516:1009/015812.916235:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[68278:54132516:1009/015812.919624:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[68278:54132516:1009/015840.190603:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68278:54132516:1009/015927.314373:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68278:54132516:1009/020120.078002:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68278:54132516:1009/020133.457411:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+2026-10-09 02:02:07.083 Google Chrome for Testing[68278:54132435] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[68278:54132516:1009/020454.067465:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[68278:54132516:1009/020507.653194:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68278:54132516:1009/020814.814601:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2

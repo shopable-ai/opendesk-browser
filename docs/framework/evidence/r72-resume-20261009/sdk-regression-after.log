@@ -1,0 +1,33 @@
+✔ SDK complete HTTP errors close the run and replay the same error without another effect (70.016916ms)
+✔ SDK HTTP failure facts survive a post-receipt permission fence without disclosing the body (1.972458ms)
+✔ SDK errors without a complete trusted HTTP receipt remain unknown and cannot be replayed (2.66625ms)
+✔ SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs (10.105917ms)
+✔ SDK recovery reconciles atomic storage durable result before broker receipt and never replays it (2.052125ms)
+✔ SDK restart at dispatched cut pauses its run with original unknown effect and no replacement (1.022208ms)
+✔ B05 broker unknown error retains the original admission reference without replay or new writes (3.025292ms)
+✔ SDK Hello needs native document/grant and never claims a controller slot (0.681708ms)
+✔ SDK grant and request payload cannot carry page authority/namespace/bare args (0.532041ms)
+✔ SDK sender/document/lifecycle fences reject before any storage effect (0.545708ms)
+✔ 100 same-ID concurrent persistent calls commit one effect and one result (23.762875ms)
+✔ same ID with changed args or deadline conflicts and does not overwrite effect (2.88325ms)
+✔ native session adapter preserves own undefined/false/0 across Chrome JSON storage (4.673875ms)
+✔ durable session duplicate after authority restart does not resubmit native set (2.4815ms)
+✔ native session failure records unknown dispatch and will not retry same write (1.043458ms)
+✔ SW recovery fences dispatched write gap and retains original identity/deadline (0.76475ms)
+✔ durable duplicate cannot extend original 15s service deadline (1.367792ms)
+✔ native permission remove then regrant cannot revive old request/grant (2.407625ms)
+✔ observed navigation invalidates current page Hello and pending admission (0.724042ms)
+✔ notification permission removal with empty origins revokes the affected grant (0.481958ms)
+✔ notification native receipt and durable undefined survive delivery revocation (1.024958ms)
+✔ successful HTTP business envelope remains data and stores native result before delivery (1.58275ms)
+✔ SDK backend timer clamps to earlier caller deadline even for hung native callback (1.778709ms)
+✔ legacy log uses shared dispatched journal before one safe sink; duplicate gets own-undefined receipt (1.269458ms)
+✔ legacy log unknown sink outcome is retained across recovery and is never submitted again (1.172958ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 429.424084

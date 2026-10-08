@@ -1,0 +1,70 @@
+Window: "任务管理器", App: OpenDesk R72 CFT.
+0 标准窗口 任务管理器, Secondary Actions: Raise
+	1 container 任务管理器
+		2 container
+			3 container
+				4 标签组 所有任务
+					5 标签 (settable, boolean) 标签页和扩展程序, Value: off
+					6 标签 (settable, boolean) 浏览器, Value: off
+					7 标签 (selected, settable, boolean) 所有任务, Value: on
+				8 文本栏 (settable) 从列表中搜索任何进程。, Placeholder: 搜索
+			9 滚动区
+				10 表格
+					11 row “任务”列、“内存占用”列、“CPU”列目前是按降序排列、“网络”列和“进程 ID”列
+						12 单元格 “任务”列
+						13 单元格 “内存占用”列
+						14 单元格 “CPU”列目前是按降序排列
+						15 单元格 “网络”列
+						16 单元格 “进程 ID”列
+					17 row GPU 进程、133 MB、0.3、0和68290
+						18 单元格 GPU 进程
+						19 单元格 133 MB
+						20 单元格 0.3
+						21 单元格 0
+						22 单元格 68290
+					23 row 浏览器、98.6 MB、0.2、0和68278
+						24 单元格 浏览器
+						25 单元格 98.6 MB
+						26 单元格 0.2
+						27 单元格 0
+						28 单元格 68278
+					29 row (selected) 备用渲染程序、13.0 MB、0.0、0和70893
+						30 单元格 备用渲染程序
+						31 单元格 13.0 MB
+						32 单元格 0.0
+						33 单元格 0
+						34 单元格 70893
+					35 单元格 预渲染：https://www.google.com/search/warmup.html
+					36 单元格 15.1 MB
+					37 单元格 0.0
+					38 单元格 0
+					39 单元格 68339
+					40 单元格 扩展程序：OpenDesk Browser
+					41 单元格 57.2 MB
+					42 单元格 0.0
+					43 单元格 0
+					44 单元格 70894
+					45 单元格 Service Worker：chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/sw.js
+					46 单元格
+					47 单元格
+					48 单元格
+					49 单元格
+					50 row 备用渲染程序、13.6 MB、0.0、0和68764
+					51 row 实用程序：Storage Service、6.7 MB、0.0、0和68292
+					52 row 实用程序：Network Service、12.8 MB、0.0、0和68291
+			53 按钮 结束任务
+	54 关闭按钮
+	55 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	56 最小化按钮
+	57 文本 任务管理器
+58 menu bar
+	59 OpenDesk R72 CFT
+	60 文件
+	61 编辑
+	62 显示
+	63 历史记录
+	64 书签
+	65 个人资料
+	66 标签页
+	67 窗口
+	68 帮助

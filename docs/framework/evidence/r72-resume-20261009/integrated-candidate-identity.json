@@ -1,0 +1,11 @@
+{
+  "codeCommit": "acb8a6ec68b2cba05e55e0e76ddeeed5630f2921",
+  "integratedMain": "5769730beb9fddc6fc788a2702409ec06076feac",
+  "sourceInputsMatch": true,
+  "mismatches": [],
+  "sourceDriftDuringBuild": [],
+  "developmentPackageHash": "4ac266f044e8e927f7aa972f880a08009b473150e22e22558c1fe62f6e1d97b6",
+  "productionPackageHash": "58c37fae95f0c2fb739b87cbb93d37c52b12fd5fb5db1b7679741567df71d67d",
+  "nativeStatus": "NOT_TESTED",
+  "nativeBlocker": "CUA reports the Mac is locked and automatic unlock failed; no trusted SDK approval in this profile."
+}

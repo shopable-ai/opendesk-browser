@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-08T18:13:32.083Z",
+  "number": 20,
+  "state": "closed",
+  "merged": true,
+  "mergedAt": "2026-10-08T17:04:34Z",
+  "head": "66cfcbd67fb2393d0addaa3d81b15c273ed6710a",
+  "base": "bdb3bf9b55a56dfbc70e2fb2b30b70a11252cc42",
+  "baseBranch": "agent/native-agent-bridge-r1-20261008",
+  "mergeCommit": "33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd",
+  "url": "https://github.com/shopable-ai/opendesk-browser/pull/20"
+}

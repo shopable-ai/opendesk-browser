@@ -1,0 +1,38 @@
+[
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:56094/devtools/page/412444EB2B8A402EB76E2E324397BF19",
+    "id": "412444EB2B8A402EB76E2E324397BF19",
+    "title": "chrome://webui-toolbar.top-chrome",
+    "type": "browser_ui",
+    "url": "chrome://webui-toolbar.top-chrome/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:56094/devtools/page/412444EB2B8A402EB76E2E324397BF19"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:56094/devtools/page/B5B4480AA56CB103BF3EEFBDFF0A1804",
+    "id": "B5B4480AA56CB103BF3EEFBDFF0A1804",
+    "title": "OpenDesk Browser \u00b7 \u57fa\u7840\u7f51\u9875\u4ea4\u4e92\u6d4b\u8bd5",
+    "type": "page",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:56094/devtools/page/B5B4480AA56CB103BF3EEFBDFF0A1804"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:56094/devtools/page/4A305BBB66C20332D4320D4D78C82795",
+    "id": "4A305BBB66C20332D4320D4D78C82795",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:56094/devtools/page/4A305BBB66C20332D4320D4D78C82795"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:56094/devtools/page/B0E1408187A126E551B8A97AE0621190",
+    "id": "B0E1408187A126E551B8A97AE0621190",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:56094/devtools/page/B0E1408187A126E551B8A97AE0621190"
+  }
+]

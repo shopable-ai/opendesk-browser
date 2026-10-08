@@ -1,0 +1,136 @@
+Window: "扩展程序 - OpenDesk Browser", App: OpenDesk R72 CFT.
+0 标准窗口 扩展程序 - OpenDesk Browser - Google Chrome for Testing, URL: chrome://extensions/?id=biijaejjjeepieeihkocjpgggkjhpnap, Secondary Actions: Raise
+	1 container 扩展程序 - OpenDesk Browser - Google Chrome for Testing, URL: chrome://extensions/?id=biijaejjjeepieeihkocjpgggkjhpnap
+		2 container
+			3 工具栏
+				4 滚动区
+					5 container chrome://webui-toolbar.top-chrome/
+						6 工具栏
+							7 按钮 返回, Help: 点击后退，长按查看历史记录
+							8 按钮 (disabled) 前进, Help: 点击前进，长按查看历史记录
+							9 按钮 重新加载, Help: 重新加载此页
+				10 container
+					11 弹出式按钮 Chrome for Testing
+					12 文本栏 (settable) 地址和搜索栏, Value: chrome://extensions/?id=biijaejjjeepieeihkocjpgggkjhpnap, Placeholder: 问问 Google 或输入网址
+					13 按钮 为此标签页添加书签
+				14 弹出式按钮 不允许在此网站上使用扩展程序。选择即可打开菜单
+				15 按钮 您
+				16 弹出式按钮 Chromium
+			17 container
+				18 滚动区
+					19 HTML 内容 扩展程序 - OpenDesk Browser, URL: chrome://extensions/?id=biijaejjjeepieeihkocjpgggkjhpnap
+						20 container
+							21 标题 扩展程序, Value: 1
+								22 文本 扩展程序
+							23 搜索文本字段 (settable) 搜索扩展程序
+							24 文本 开发者模式
+							25 切换 开发者模式, Value: on
+							26 container
+								27 按钮 加载未打包的扩展程序
+								28 按钮 打包扩展程序
+								29 按钮 更新, Help: 立即更新扩展程序
+						30 container
+							31 container
+								32 菜单 Secondary Actions: Cancel
+									33 我的扩展程序
+										34 文本 我的扩展程序
+									35 网站权限
+										36 文本 网站权限
+									37 键盘快捷键
+										38 文本 键盘快捷键
+								39 文本 使用 AI 编码智能体构建扩展程序？安装 
+								40 link Chrome Extensions 和 Chrome Web Store skill, Value: developer.chrome.com/docs/extensions/ai/build-with-ai?utm_source=ext_sidebar&hl=zh-CN#modern_web_guidance
+								41 文本 ，即可让编码智能体掌握最新的 API 动态与最佳实践。
+								42 container
+									43 文本 在 
+									44 link Chrome 应用商店, Value: chromewebstore.google.com/category/extensions?utm_source=ext_sidebar&hl=zh-CN
+									45 文本  中发现更多扩展程序和主题
+							46 container
+								47 点击此按钮即可离开“opendesk browser details page”子页面。 “OpenDesk Browser”详情页面上的返回按钮
+								48 标题 OpenDesk Browser, Value: 1
+									49 文本 OpenDesk Browser
+								50 按钮 重新加载
+								51 文本 已启用
+								52 切换 开启，扩展程序已启用, Value: on
+								53 标题 说明, Value: 2
+									54 文本 说明
+								55 文本 OpenDesk Browser 浏览器自动化框架。
+								56 标题 版本, Value: 2
+									57 文本 版本
+								58 文本 0.1.0
+								59 标题 大小, Value: 2
+									60 文本 大小
+								61 文本 3.0 MB
+								62 标题 ID, Value: 2
+									63 文本 ID
+								64 文本 biijaejjjeepieeihkocjpgggkjhpnap
+								65 标题 检查视图：, Value: 2
+									66 文本 检查视图：
+								67 内容列表
+									68 container
+										69 AXListMarker • 
+										70 链接 Service Worker （无效）
+											71 文本 Service Worker （无效）
+									72 container
+										73 AXListMarker • 
+										74 链接 ui/tool.html
+											75 文本 ui/tool.html
+								76 标题 权限, Value: 2
+									77 文本 权限
+								78 内容列表
+									79 container
+										80 AXListMarker • 
+										81 文本 读取您的浏览记录
+									82 container
+										83 AXListMarker • 
+										84 文本 显示通知
+									85 container
+										86 AXListMarker • 
+										87 文本 管理您的下载内容
+								88 文本 选择此扩展程序何时可以读取和更改您的网站数据
+								89 link 详细了解扩展程序的权限, Value: support.google.com/chrome?p=enable_extensions
+								90 文本 您可以在任意网站上点击该扩展程序，即可随时使用它
+								91 弹出式按钮 选择此扩展程序何时可以读取和更改您的网站数据, Value: 每次访问时都询问
+									92 (selected) 每次访问时都询问
+								93 切换 允许扩展程序在 Chromium 工具栏中显示访问请求 详细了解权限请求。, Value: on
+								94 切换 允许运行用户脚本 此扩展程序将能够运行未经 Google 审核的代码。这可能不安全，仅在您清楚了解相关风险并确认操作安全的情况下，才应启用此功能。, Value: off
+								95 链接 网站设置
+								96 切换 固定到工具栏, Value: off
+								97 切换 允许访问文件网址 对此设置的更改将在 Chromium 重启后生效。 , Value: on
+								98 切换 收集各项错误, Value: on
+								99 标题 来源, Value: 2
+									100 文本 来源
+								101 text 未打包的扩展程序 加载来源：
+								102 链接 ~/文稿/workspace/opendesk-browser-r72-resume/dist/development
+									103 文本 ~/文稿/workspace/opendesk-browser-r72-resume/dist/development
+								104 链接 卸载扩展程序
+			105 container 信息栏容器
+				106 container 信息栏
+					107 文本 Chrome 测试版 v155.0.8059.39 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。
+					108 链接 下载 Chrome
+			109 弹出式按钮 标签页搜索
+			110 container
+				111 标签组
+					112 标签 (settable, boolean) OpenDesk Browser · 基础网页交互测试, Value: off
+						113 按钮 关闭
+					114 标签 (selected, settable, boolean) 扩展程序 - OpenDesk Browser, Value: on
+						115 按钮 关闭
+					116 标签 (settable, boolean) OpenDesk Browser, Value: off
+						117 按钮 关闭
+			118 按钮 新标签页
+	119 关闭按钮
+	120 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	121 最小化按钮
+122 menu bar
+	123 OpenDesk R72 CFT
+	124 文件
+	125 编辑
+	126 显示
+	127 历史记录
+	128 书签
+	129 个人资料
+	130 标签页
+	131 窗口
+	132 帮助
+
+The focused UI element is 91 弹出式按钮 选择此扩展程序何时可以读取和更改您的网站数据, Value: 每次访问时都询问

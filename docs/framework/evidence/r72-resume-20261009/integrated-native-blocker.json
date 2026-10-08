@@ -1,0 +1,10 @@
+{
+  "source": "mcp__cua_repl.js getApp(com.google.chrome.for.testing.opendesk.r72.resume20261009)",
+  "toolMessage": "The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock Mac manually before continuing.",
+  "nativeStatus": "NOT_TESTED",
+  "nativeApprovalCompleted": false,
+  "fakeApprovalUsed": false,
+  "userUnlockQuestion": "pending; do not infer approval from elapsed time",
+  "observedAtApproximate": "2026-10-08T18:25:00Z",
+  "recordedAt": "2026-10-08T18:36:20.270289+00:00"
+}

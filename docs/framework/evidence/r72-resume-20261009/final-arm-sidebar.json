@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-08T17:09:20.307Z",
+  "pid": 23979,
+  "targetId": "1CA479E16FDD7973F8096BDCF19633F6",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=d5b3876f-c8ad-4e56-a465-b9e1f5de4725",
+  "result": {
+    "armed": true,
+    "url": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=d5b3876f-c8ad-4e56-a465-b9e1f5de4725"
+  }
+}
