@@ -121,7 +121,10 @@ export function createNativeAgentService({api = globalThis.chrome,hostPorts = ne
     let reply;
     try {
       const value = await handleNative(message);
-      reply = value?.kind === 'response' ? value : successReply(requestId,value);
+      reply = value?.kind === 'response' ? value : value?.type === 'native-agent.response'
+        ? {v:AGENT_VERSION,kind:'response',requestId,
+            ...(value.error ? {error:value.error} : {result:value.result})}
+        : successReply(requestId,value);
     } catch (error) {
       reply = errorReply(requestId,error,error?.outcome);
       if (AGENT_MUTATIONS.includes(message?.method) && error?.code !== 'E_EFFECT_UNKNOWN') {
