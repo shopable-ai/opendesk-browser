@@ -5,6 +5,7 @@ import {createScriptEditor} from './script-editor.js';
 import {createSdkApproval, snapshotSdkApproval} from './sdk-approval.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
+import {createTaskWorkbench} from './task-workbench.js';
 
 export function initToolShell() {
   const hostUrl = new URL(location.href);
@@ -19,6 +20,7 @@ export function initToolShell() {
   const foundationClient = createHostClient(chrome, {hostInstanceId});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
+const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget});
 const listeners = [];
 let browserListenersAttached = false;
 const listen = (element, event, listener, options) => {
@@ -175,7 +177,7 @@ listen(window, 'pagehide', () => {
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }
