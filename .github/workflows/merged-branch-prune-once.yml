@@ -1,0 +1,51 @@
+name: Prune exact merged branches once
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/merged-branch-prune-once.yml'
+permissions:
+  contents: write
+  pull-requests: read
+jobs:
+  delete-merged:
+    if: github.repository == 'shopable-ai/opendesk-browser' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify merged PRs and exact branch SHAs, then delete only the allowlist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner,repo}=context.repo;
+            const expected=[
+              {
+                "number": 3,
+                "branch": "agent/parallel-workflow-20261008",
+                "sha": "11362cb17a263231aa3654b76c2ce53126f8b5b6"
+              },
+              {
+                "number": 6,
+                "branch": "agent/sidebar-p0-freeze-20261008-1543",
+                "sha": "9c5f4fb67404ceb7a2ecea1466c7104442b5e999"
+              },
+              {
+                "number": 4,
+                "branch": "agent/sidebar-p0-draft-20261008",
+                "sha": "b234bdb0a698725b9eace04b6b11afd4e3dfbc7f"
+              },
+              {
+                "number": 5,
+                "branch": "agent/r3-page-script-dependencies-20261008-1533",
+                "sha": "7077c137ddbbb9122c3edc32ae7d54c9205e8ea6"
+              }
+            ];
+            for(const item of expected) {
+              const {data:pr}=await github.rest.pulls.get({owner,repo,pull_number:item.number});
+              if(!pr.merged_at || pr.head.ref!==item.branch || pr.head.sha!==item.sha) {
+                throw new Error('PR not exactly merged: #'+item.number);
+              }
+              const {data:ref}=await github.rest.git.getRef({owner,repo,ref:'heads/'+item.branch});
+              if(ref.object.sha!==item.sha) throw new Error('Branch changed: '+item.branch);
+              await github.rest.git.deleteRef({owner,repo,ref:'heads/'+item.branch});
+              core.info('Deleted merged branch '+item.branch+' at '+item.sha);
+            }
