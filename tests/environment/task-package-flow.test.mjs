@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {digestUtf8} from '../../src/platform/protocol.js';
+import {digest, digestUtf8} from '../../src/platform/protocol.js';
 import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId,
   TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
 import {assertInstalledTask, taskMethods} from '../../src/platform/tasks/service.js';
@@ -56,15 +56,26 @@ test('candidate cannot install without matching trustworthy native run, then exa
   await assert.rejects(f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId:'nonexistent'}),errorCode('E_VERIFICATION'));
   const runId='run-native-1',resultId='result-native-1';
   const run={tag:'controller-run',runId,namespace:f.namespace,state:'completed',
-    retirementState:'released',revision:{sourceHash:pkg.manifest.program.sourceHash},
+    retirementState:'released',workerRetired:true,scriptId:'draft:run-native-1',
+    hostInstanceId:'host-instance',hostDocumentId:'host-document',
+    revision:{sourceHash:pkg.manifest.program.sourceHash},
     target:{allowedOrigin:'https://example.com'},resultId};
   const result={tag:'controller-result',resultId,runId,namespace:f.namespace,state:'completed',
     revision:{sourceHash:pkg.manifest.program.sourceHash},outcome:{ok:true}};
   await f.tx.put('runs',run,runId);
   await f.tx.put('results',result,resultId);
   await assert.rejects(f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId}),errorCode('E_VERIFICATION'));
+  const envelope={requestId:'native-op-1',
+    identity:{tag:'controller-run',runId,scriptId:run.scriptId,
+      hostInstanceId:run.hostInstanceId,hostDocumentId:run.hostDocumentId,
+      contentHash:pkg.manifest.program.sourceHash},
+    revision:{sourceHash:pkg.manifest.program.sourceHash},
+    target:{allowedOrigin:'https://example.com'},
+    operation:{kind:'packaged',method:'click',args:[]}};
+  const reply={requestId:envelope.requestId,value:{kind:'undefined'}};
   await f.tx.put('commandJournal',{tag:'controller-operation',runId,state:'durable',
-    envelope:{operation:{kind:'packaged',method:'click'}},nativeReceipts:[{stage:'result'}]},'op-real');
+    requestDigest:await digest(envelope,{maxDepth:48}),envelope,reply,
+    nativeReceipts:[{stage:'result',requestId:envelope.requestId,receipt:reply}]},'op-real');
   assert.equal((await f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId})).stage,'verified');
   assert.equal((await f.send('makeTaskAvailable',{taskId:pkg.manifest.taskId,version:'1.0.0',
     manifestHash:pkg.manifestHash})).stage,'available');
@@ -104,4 +115,56 @@ test('the checked-in sample is an authentic v1 package with exact manifest and s
   assert.equal(pkg.manifest.taskId,'sample.form-fill');
   assert.equal(pkg.manifest.siteOrigins[0],'http://127.0.0.1:43111');
   assert.deepEqual(validateTaskParams(pkg.manifest.paramsSchema,{}),{name:'Alice'});
+});
+
+test('formal verification refuses altered admission identity, failed effects and mismatched receipts',async()=>{
+  const pkg=await example(),hash=pkg.manifest.program.sourceHash;
+  const mutations=[
+    ['caught native error',async ({op})=>{
+      op.reply={requestId:op.envelope.requestId,error:{code:'E_TARGET',message:'Site operation failed'}};
+      op.nativeReceipts[0].receipt=structuredClone(op.reply);
+    }],
+    ['forged receipt request ID',async ({op})=>{op.nativeReceipts[0].requestId='other';}],
+    ['tampered operation digest',async ({op})=>{op.requestDigest='0'.repeat(64);}],
+    ['different host document',async ({op})=>{
+      op.envelope.identity.hostDocumentId='stale-document';
+      op.requestDigest=await digest(op.envelope,{maxDepth:48});
+    }],
+    ['different script hash',async ({op})=>{
+      op.envelope.identity.contentHash='0'.repeat(64);
+      op.requestDigest=await digest(op.envelope,{maxDepth:48});
+    }],
+    ['unretired worker',async ({run})=>{run.workerRetired=false;}],
+    ['result key mismatch',async ({result})=>{result.resultId='other-result';}]
+  ];
+  for(const [reason,mutate] of mutations){
+    const f=fixture();await f.send('importTaskPackage',{package:pkg});
+    const runId='verification-run',resultId='verification-result',requestId='page-op-1';
+    const run={tag:'controller-run',runId,resultId,namespace:f.namespace,
+      scriptId:'draft:verification-run',hostInstanceId:'host-run',hostDocumentId:'host-document',
+      state:'completed',retirementState:'released',workerRetired:true,
+      revision:{sourceHash:hash},target:{allowedOrigin:'https://example.com'}};
+    const result={tag:'controller-result',resultId,runId,namespace:f.namespace,
+      state:'completed',revision:{sourceHash:hash},outcome:{ok:true}};
+    const envelope={requestId,identity:{tag:'controller-run',runId,scriptId:run.scriptId,
+      hostInstanceId:run.hostInstanceId,hostDocumentId:run.hostDocumentId,contentHash:hash},
+      revision:{sourceHash:hash},target:{allowedOrigin:'https://example.com'},
+      operation:{kind:'packaged',method:'click',args:[]}};
+    const reply={requestId,value:{kind:'undefined'}};
+    const op={tag:'controller-operation',runId,state:'durable',envelope,reply,
+      requestDigest:await digest(envelope,{maxDepth:48}),
+      nativeReceipts:[{stage:'result',requestId,receipt:structuredClone(reply)}]};
+    await mutate({run,result,op});
+    await f.tx.put('runs',run,runId);await f.tx.put('results',result,resultId);
+    await f.tx.put('commandJournal',op,requestId);
+    await assert.rejects(f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,
+      version:pkg.manifest.version,runId}),errorCode('E_VERIFICATION'),reason);
+  }
+});
+
+test('invalid task schema and origin return typed errors instead of generic exceptions',async()=>{
+  const pkg=await example();
+  assert.throws(()=>validateTaskParams({...pkg.manifest.paramsSchema,properties:null},{}),errorCode('E_SCHEMA'));
+  await assert.rejects(createTaskPackage({...pkg.manifest,siteOrigins:['not a URL']},source),
+    errorCode('E_PERMISSION'));
 });
