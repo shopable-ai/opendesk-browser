@@ -12,6 +12,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const get=id=>doc.getElementById(id);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
+  let catalogSurface=false, catalogQuery='', catalogFilter='all';
   const listeners=[];
   const listen=(node,event,fn)=>{node.addEventListener(event,fn);listeners.push({node,event,fn});};
   const fail=error=>{
@@ -24,11 +25,25 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const option=(name,value)=>new Option(name,value);
   function navigate(name) {
     if(!['tasks','discover','develop'].includes(name))return;
+    if(name==='discover'&&!catalogSurface) {
+      // The full catalog opens as the same packaged, authenticated tool.html
+      // document in a browser TAB. No new privileged sender or trust bypass.
+      Promise.resolve().then(()=>api.tabs.create({url:api.runtime.getURL('ui/tool.html')})).catch(fail);
+      return;
+    }
     for(const value of ['tasks','discover','develop']){
       get('workbench-'+value).hidden=value!==name;
       get(value==='tasks'?'tab-my-tasks':value==='discover'?'tab-discover':'tab-develop')
         .setAttribute('aria-selected',String(value===name));
     }
+    get('task-dock').hidden=catalogSurface || name!=='tasks';
+    get('develop-dock').hidden=catalogSurface || name!=='develop';
+    if(doc.documentElement?.dataset) doc.documentElement.dataset.opendeskTab=name;
+  }
+  function showCatalogPage() {
+    catalogSurface=true;
+    if(doc.documentElement?.dataset) doc.documentElement.dataset.opendeskSurface='catalog';
+    navigate('discover');
   }
   const identity=row=>`${row.taskId}@${row.version}`;
   const candidate=()=>catalog.find(row=>identity(row)===get('task-catalog-list').value);
@@ -37,7 +52,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const formatCandidate=row=>{
     if(!row)return '尚无候选任务';
     const manifest=row.manifest;
-    return `${manifest.title} · v${row.version}\n用途：${manifest.description}\n作者：${manifest.author}\n来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n程序哈希：${manifest.program.sourceHash}\n清单哈希：${row.manifestHash}\n状态：${states[row.stage] || row.stage}${row.verifiedAt?' · 有本机可信运行回执':''}`;
+    return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n状态：${states[row.stage] || row.stage}${row.verifiedAt?' · 有本机运行验证记录':''}`;
   };
   function clearChildren(node) {node.replaceChildren();}
   function renderForm(row) {
@@ -115,6 +130,33 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-install').textContent=selected?.installed?'已安装':'安装确定版本';
     get('task-create-candidate').disabled=working;
   }
+  function renderInstalledCards() {
+    const parent=get('task-installed-cards'),selected=get('task-installed-list').value;
+    parent.replaceChildren();
+    if(!installed.length){
+      const empty=doc.createElement('p');
+      empty.className='hint';
+      empty.textContent='还没有安装任务。点击右上角「发现任务」在完整页面浏览本地目录。';
+      parent.append(empty);return;
+    }
+    for(const row of installed){
+      const info=candidateFor(row),button=doc.createElement('button');
+      button.type='button';button.className='task-card';
+      button.dataset.taskId=row.taskId;
+      button.setAttribute('aria-pressed',String(row.taskId===selected));
+      const badge=doc.createElement('span');badge.className='task-card-icon';
+      badge.textContent=(info?.manifest.title || row.taskId).slice(0,1).toUpperCase();
+      const copy=doc.createElement('span');copy.className='task-card-copy';
+      const title=doc.createElement('strong');title.textContent=info?.manifest.title || row.taskId;
+      const subtitle=doc.createElement('small');subtitle.textContent=`${info?.manifest.description || '已安装任务'} · v${row.version}`;
+      copy.append(title,subtitle);
+      const state=doc.createElement('span');state.className='task-card-state'+(row.enabled?'':' off');
+      state.textContent=row.enabled?'已启用':'已停用';
+      button.append(badge,copy,state);
+      button.addEventListener('click',()=>{get('task-installed-list').value=row.taskId;renderInstalledSelection();});
+      parent.append(button);
+    }
+  }
   function renderInstalled() {
     const sel=get('task-installed-list'),prior=sel.value;
     sel.replaceChildren(option(installed.length?'请选择已安装任务':'暂无已安装任务',''));
@@ -131,6 +173,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-installed-detail').textContent=info?formatCandidate(info)+(row.enabled?'\n已安装：启用':'\n已安装：停用'):'尚未安装任务；请到「发现」导入和安装';
     if(info)renderForm(info);
     else{renderKey=null;clearChildren(get('task-params-form'));}
+    renderInstalledCards();
     update();refreshHistory().catch(fail);
   }
   function renderCatalog(preserve) {
@@ -138,7 +181,40 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     sel.replaceChildren(option(catalog.length?'请选择候选版本':'目录中没有任务',''));
     for(const row of catalog)sel.append(option(`${row.manifest.title} · v${row.version} · ${states[row.stage]}`,identity(row)));
     if(catalog.some(row=>identity(row)===old))sel.value=old;
+    renderCatalogCards();
     renderCandidate();
+  }
+  function renderCatalogCards() {
+    const parent=get('task-catalog-cards'),current=get('task-catalog-list').value;
+    parent.replaceChildren();
+    const rows=catalog.filter(row=>{
+      if(catalogFilter==='installed'&&!row.installed) return false;
+      if(catalogFilter==='available'&&row.stage!=='available')return false;
+      if(catalogFilter==='candidate'&&row.stage!=='candidate')return false;
+      const manifest=row.manifest;
+      return [manifest.title,manifest.description,manifest.author,manifest.source,...manifest.siteOrigins]
+        .join(' ').toLocaleLowerCase().includes(catalogQuery);
+    });
+    get('task-catalog-count').textContent=`共 ${rows.length} 个本地任务版本`;
+    if(!rows.length){
+      const empty=doc.createElement('p');empty.className='hint';
+      empty.textContent='没有匹配的任务，请尝试其他关键词或分类。';
+      parent.append(empty);return;
+    }
+    for(const row of rows){
+      const button=doc.createElement('button');button.type='button';button.className='catalog-card';
+      if(identity(row)===current)button.className+=' selected';
+      const title=doc.createElement('strong');title.textContent=row.manifest.title;
+      const summary=doc.createElement('small');summary.textContent=row.manifest.description;
+      const state=doc.createElement('span');state.className='catalog-card-state';
+      state.textContent=`${states[row.stage]||row.stage} · v${row.version}${row.installed?' · 已安装':''}`;
+      button.append(title,summary,state);
+      button.addEventListener('click',()=>{
+        get('task-catalog-list').value=identity(row);
+        renderCatalogCards();renderCandidate();
+      });
+      parent.append(button);
+    }
   }
   function renderCandidate() {
     const row=candidate();
@@ -315,6 +391,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   };
   for(const [tab,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']])
     listen(get(id),'click',()=>navigate(tab));
+  listen(get('open-catalog'),'click',()=>navigate('discover'));
+  listen(get('task-search'),'input',()=>{
+    catalogQuery=get('task-search').value.trim().toLocaleLowerCase();
+    renderCatalogCards();
+  });
+  listen(get('task-categories'),'click',event=>{
+    const selected=event.target.closest?.('button[data-catalog-filter]');
+    if(!selected)return;
+    catalogFilter=selected.dataset.catalogFilter;
+    for(const button of get('task-categories').querySelectorAll('button[data-catalog-filter]'))
+      button.classList.toggle('selected',button.dataset.catalogFilter===catalogFilter);
+    renderCatalogCards();
+  });
   listen(get('task-params-form'),'submit',event=>event.preventDefault());
   listen(get('task-installed-list'),'change',renderInstalledSelection);
   listen(get('task-catalog-list'),'change',renderCandidate);
@@ -343,7 +432,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected)refresh().catch(fail);});
   client.ready.then(()=>refresh()).catch(fail);
   navigate('tasks');update();
-  return {navigate,refresh,dispose() {
+  return {navigate,showCatalogPage,refresh,dispose() {
     if(disposed)return;disposed=true;
     unsubscribePage?.();unsubscribeRun?.();unsubscribeConn?.();
     for(const {node,event,fn} of listeners)node.removeEventListener(event,fn);
