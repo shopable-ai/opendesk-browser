@@ -156,6 +156,8 @@
 | DEV-011 | 源码导入/导出与 VS Code/Codex 开发联动 | L2 | P2 | 3 | P | 已有构建/导入，有可选 Agent PR |
 | DEV-012 | 类型专属 native 自动化测试/测试报告 | L0 | P0 | 5 | P | 组件与 Chrome 真实验证必须分离 |
 
+> **UI 开发能力补充（2026-10-09）**：DEV-003/004/010/011 作为原生、React/Vue、Tailwind 与多文件 UI 资源的上层追踪入口，详细范围见 [UI 开发与样式隔离 R1](../architecture/browser-framework/ui-development-and-style-isolation-r1.zh-CN.md)，工程责任见实施计划的“UI 开发专项增补”。当前插件自身 UI 和参数表单已实现，不代表完整用户 UI 框架已支持；现有 `.js/.mjs` 构建、未接通的 CSS/图片资产与待实现的组件编译必须分列。此需求不同于下面的 UserCSS 模块；原 188 项 ID 与数量保持，新增专项设计不提升任何运行时验收状态。
+
 ### AUTO · 现代 Browser Automation 与 RPA 操作
 
 模块来源：[SRC06][SRC09][SRC11]。

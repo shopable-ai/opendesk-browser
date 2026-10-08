@@ -20,6 +20,7 @@
 - 任务来源只有功能总目录中的稳定功能 ID。工程任务可以合并重复能力、分批验收，但不能以新任务名称悄悄扩张产品范围。
 - 本轮用户要求的 R8.0～R8.6 是**工程阶段**；旧 roadmap 的 P0～P4 是粗粒度产品候选阶段，不能当成一轮全部实施清单。其对应关系见第 6 节。
 - 架构规范仍在 [R8 ADR](../architecture/browser-framework/plugin-capability-architecture-r8-adr.zh-CN.md)，API 语义仍在 [GM 兼容矩阵](../architecture/browser-framework/userscript-compatibility-matrix-r8.zh-CN.md)。本计划只记录任务、依赖、验收与证据。
+- [UI 开发与样式隔离 R1](../architecture/browser-framework/ui-development-and-style-isolation-r1.zh-CN.md)记录用户后续明确提出的 UI 开发专项：原生默认、React/Vue 按项目选择、Tailwind 构建与样式容器。责任归入现有 E33 等任务的后续细化，不将新增设计计为本轮原 188 项的实现证据。
 - 遵守 [AGENTS.md](../../AGENTS.md) 和 [多 Agent 协议](../framework/parallel-development.md)：写入 Agent 使用独立 worktree/短期分支，获授权的集成者串行更新 main。旧 roadmap 中“全程不新建分支”的历史措辞不能要求多个 Agent 共写 main；最终正式交付仍统一 main。禁止强推、硬重置、覆盖脏工作或为清理分支强合 Draft。
 - 本地 Mac 路径只有实际可访问时才使用。受控 Chrome/CFT profile、固定端口、dist/ZIP 与 native 证据必须独占或明确隔离；云端源码及 Node 验证不能代签用户的 Chrome/Codex。
 
@@ -531,7 +532,7 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 - **功能映射**：DEV-006、DEV-007、DEV-008、DEV-010、AUTO-007、AUTO-008、AUTO-009、AUTO-014。
 - **用户价值 / 契合度**：开发者通过清晰 JS 示例完成条件/循环、表单/下载、数据与多目标任务；V=5，F=5。**优先级/阶段/复杂度/风险**：B；R8.5；C=4，R=3。
 - **源码与实际证据**：`PARTIAL`。`examples/programs/`、`examples/tasks/`、Page/Locator、SDK/download/result 已有；多 Tab/frame/shadow 与资产格式需按真实 API 逐项验，不宣称全 Playwright 支持。E0。
-- **复用 / 必改范围**：在既有示例目录加受版本控制的 JS/ESM 模板，按实测缺口增强现有 API/类型/错误定位；文件数据采用既有 Result/下载服务，保持 AGENTS 排除采集业务范围。 PR #22 源码快照/可读产物先由 E03 集成；在此基础补 Source Map、GM 类型声明/诊断、源版本/依赖 diff，不能在 E33 再做一套 Editor。
+- **复用 / 必改范围**：在既有示例目录加受版本控制的 JS/ESM 模板，按实测缺口增强现有 API/类型/错误定位；文件数据采用既有 Result/下载服务，保持 AGENTS 排除采集业务范围。 PR #22 源码快照/可读产物先由 E03 集成；在此基础补 Source Map、GM 类型声明/诊断、源版本/依赖 diff，不能在 E33 再做一套 Editor。 用户后续提出的原生/React/Vue/Tailwind UI 开发专项见第 12 节与 UI 专项设计；先闭合资产和原生容器，再增加编译适配，不将设计记为已实现。
 - **API / 数据 / 生命周期**：正常 JS 实现条件、循环和变量，模板显式 target/params/result/deadline；多 Tab/frame/shadow 必须精确身份与独立权限，文件资产固定 format/hash/大小。复杂工作发布为原 Task/Candidate，不创建图形 workflow/node engine。 sourceMap 固定 hash 并只指向实际源码/helper，不要求运行时远端加载；调试资产与 source/artifact/Installed 分开，单文件仍可直接输入运行。
 - **前置**：E03、E23。
 - **独立验收**：每模板可从干净源码构建、导入、运行、停止；结果与页面/文件可复核；循环/多目标不绕开预算或 owner；CSV/JSON 编码/注入边界明确；未知效果先观察再决策，不自动无限重试。
@@ -732,3 +733,21 @@ Page 正式安装、GM、Cron/Background、UserCSS、跨浏览器仍没有因此
 5. **后续 R8.1**：仅在 E07～E14 已接线后的固定候选开展 E15 的安装/匹配/nonmatch/frame/run-at/撤权/重启/回滚完整验收；在此之前只报告当前切片，不伪造页面安装 proof。
 
 每个结果都记录 Chrome 版本、候选 SHA、扩展/产物 hash、profile/权限状态、exact document 和真实 effect/registration/run/result ID，以及原始证据路径。失败先定位并修最小缺口；测试条件未变化不无意义重试，不覆盖历史 receipt。
+
+## 12. UI 开发专项增补（2026-10-09）
+
+本次专项核对基线为 main@`70fb3449ae97cfdf69b4fc83f0466e36f8501006`。本次保存前保留刚合入主线的工程计划及证据；以上 PR/阶段状态仍按各自候选引用，本节不代替其它工作流的集成检查。**当前 Sidebar 自身 UI 与 `paramsSchema` 已有源码，但完整用户 UI 资产、JSX/Vue 编译和 Tailwind 容器加载尚未接通。**
+
+采用 [UI 专项设计](../architecture/browser-framework/ui-development-and-style-isolation-r1.zh-CN.md)：框架由项目选择，基础 CSS 在实例容器按需加载；网页内 UI 优先 ShadowRoot；任意用户代码不进入特权 Sidebar。Tailwind 与 React/Vue 是独立维度，不设插件全局框架开关。
+
+专项归入 **E33 开发工具与资产构建**，复用 **E17/E20** 中适用的样式、资源处理基础，正式安装/停用生命周期与 **E12/E14** 对齐，特权边界纳入 **E40**。这些关联不是把完整 GM 兼容、Native Agent 或整个 E23 作为原生 UI 手动闭环的先决条件。原生 UI 手动验证可以在现有 Page 运行边界稳定后独立推进；正式安装能力仍须通过对应安装验收。
+
+实施顺序：
+
+1. 原生网页 UI：输入框、按钮、状态、结果与本地图片，贯通资源构建/导入、Shadow 挂载、交互、关闭/重开与受管资源清理。
+2. 复用同一资产与容器链增加 React、Vue 编译适配，以及可选 Tailwind；逐项验收框架版本、弹层、离线资源与产物容量。
+3. 确有复杂侧栏界面需求时，再实现独立 sandbox 展示文档与窄消息桥，继续使用当前 Authority/RunHost。
+
+**UI 开发不同于 E37 的 UserCSS 网站主题管理。** 原 188 项目录中的 DEV-003/004/010/011 是本专项的上层追踪入口，不表示其此前已经覆盖或验收 React/Vue/Tailwind。保留原 188 项与 E01～E40 的身份，不复制新总清单、不增加虚假完成率；专项详细行为及验收见上述设计。
+
+本轮只完成设计与真实缺口记录，没有新增运行时、放宽 CSP、安装框架依赖或执行真实 Chrome UI 测试。
