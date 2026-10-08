@@ -106,7 +106,7 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
         result.revision?.sourceHash===hash,'E_VERIFICATION','No matching durable completed Controller run');
       const effects=(await tx.all('commandJournal')).filter(value=>value?.runId===run.runId &&
         value.tag==='controller-operation' && value.state==='durable' &&
-        ['browser','user-script'].includes(value.envelope?.operation?.kind) &&
+        ['packaged','browser','user-script'].includes(value.envelope?.operation?.kind) &&
         value.nativeReceipts?.some(receipt=>receipt.stage==='result'));
       invariant(effects.length>0,'E_VERIFICATION','A native page operation receipt is required; no mock verification');
       row.stage='verified';
