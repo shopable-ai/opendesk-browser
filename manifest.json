@@ -16,7 +16,8 @@
   ],
   "optional_permissions": [
     "cookies",
-    "notifications"
+    "notifications",
+    "nativeMessaging"
   ],
   "optional_host_permissions": [
     "http://*/*",
@@ -51,5 +52,9 @@
   ],
   "side_panel": {
     "default_path": "ui/tool.html"
+  },
+  "options_ui": {
+    "page": "native-agent/settings.html",
+    "open_in_tab": true
   }
 }
