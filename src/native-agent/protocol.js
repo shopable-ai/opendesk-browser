@@ -20,15 +20,15 @@ export class AgentBridgeError extends Error {
 export const agentError = (code, message, outcome) => new AgentBridgeError(code, message, outcome);
 export const agentObject = x => x !== null && typeof x === 'object' && !Array.isArray(x);
 // Share the existing strict JSON canonicalization and SHA-256 with Controller.
-export const agentCanonical = value => canonical(value,{maxDepth:24});
-export const agentDigest = value => digest(value,{maxDepth:24});
+export const agentCanonical = canonical;
+export const agentDigest = digest;
 export function agentValidateRequest(message) {
   if (!agentObject(message) || message.v !== AGENT_VERSION || message.kind !== 'request' ||
     typeof message.requestId !== 'string' || !/^[a-zA-Z0-9._:-]{1,100}$/.test(message.requestId) ||
     !AGENT_METHODS.includes(message.method) || !agentObject(message.params))
-    throw agentError('E_SCHEMA', 'Invalid Native Agent request');
+    throw agentError('E_SCHEMA');
   if (new TextEncoder().encode(agentCanonical(message)).length > AGENT_MAX_BYTES)
-    throw agentError('E_LIMIT', 'Native Agent request exceeds message budget');
+    throw agentError('E_LIMIT');
   return message;
 }
 export function agentTargetFromSnapshot(snapshot) {
