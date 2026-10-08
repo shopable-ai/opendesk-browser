@@ -276,6 +276,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   function renderLocalDiscovery() {
     const parent=get('local-discover-cards');
+    const focused=doc.activeElement;
+    const focusedTaskId=parent.contains?.(focused) && focused?.dataset?.taskId || null;
+    let replacementFocus=null;
     parent.replaceChildren();
     let origin=null;
     if(currentPage?.status==='available') {
@@ -314,6 +317,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       card.setAttribute('aria-label',`选择 ${info.manifest.title}，返回我的任务。适用网站：${info.manifest.siteOrigins.join('、')}`);
       const icon=doc.createElement('span');icon.className='task-card-icon';
       icon.textContent=(info.manifest.title||row.taskId).slice(0,1).toUpperCase();
+      icon.setAttribute('aria-hidden','true');
       const copy=doc.createElement('span');copy.className='local-discovery-copy';
       const title=doc.createElement('strong');title.textContent=info.manifest.title;
       const description=doc.createElement('small');description.textContent=info.manifest.description;
@@ -322,13 +326,20 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       state.className='local-discovery-state'+(!row.enabled?' off':!matches?' other':'');
       state.textContent=!row.enabled?'已停用':matches?(localFilter==='current'?'':'当前网页适用'):'其他网站';
       card.append(icon,copy,state);
+      if(focusedTaskId===row.taskId)replacementFocus=card;
       card.addEventListener('click',()=>{
         if(disposed || !installed.some(value=>value.taskId===row.taskId))return;
         get('task-installed-list').value=row.taskId;
         renderInstalledSelection();
         navigate('tasks'); // Explicit Run click still performs native permission admission.
+        for(const next of get('task-installed-cards').querySelectorAll?.('.task-card')||[])
+          if(next.dataset.taskId===row.taskId){next.focus?.({preventScroll:true});break;}
       });
       parent.append(card);
+    }
+    if(focusedTaskId){
+      if(replacementFocus)replacementFocus.focus?.({preventScroll:true});
+      else get('local-discover-search').focus?.({preventScroll:true});
     }
     get('local-discover-status').textContent='';
   }
@@ -460,9 +471,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       ?latest.outcome?.ok?textValue(decodeValue(latest.outcome.valueWire)):
         `${latest.outcome?.error?.code || 'E_TASK'}：${latest.outcome?.error?.message || '执行失败'}`
       :'最近一次运行尚无可显示结果';
-    if(activeRunId&&runs.some(value=>value.runId===activeRunId)){
+    if(activeRunId&&row.taskId===runOwnerTaskId&&runs.some(value=>value.runId===activeRunId)){
       const live=matching.find(value=>value.runId===activeRunId);
-      if(live)get('task-status').textContent=`本次任务：${runStateNames[live.state]||live.state}`;
+      if(live)setTaskNotice(row.taskId,`本次任务：${runStateNames[live.state]||live.state}`);
     }
     update();
   }
@@ -530,12 +541,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       site=new URL(captured.url).origin;
       if(!info.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'此任务不适用于当前网站'};
       params=paramsFromForm(info.manifest.paramsSchema);
-      chosen={...chosen,manifestHash:info.manifestHash};
+      chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
       // The native permission request must begin within the trusted click.
       permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
     }catch(error){fail(error);return;}
-    running=true;activeRunId=null;get('task-result-panel').hidden=true;update();
-    get('task-status').textContent='正在授权并重新验证冻结的目标网页';
+    running=true;activeRunId=null;runOwnerTaskId=chosen.taskId;runOwnerTitle=chosen.title||chosen.taskId;
+    get('task-result-panel').hidden=true;update();
+    setTaskNotice(chosen.taskId,'正在授权并重新验证冻结的目标网页');
     (async()=>{
       if(!await permission)throw {code:'E_PERMISSION',message:'用户拒绝了网站授权'};
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
@@ -551,13 +563,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           expectedUrl:captured.url,expectedWindowId:captured.windowId},
         deadlineAt:Date.now()+30000});
       activeRunId=claim.runId;
-      get('task-status').textContent=`运行中：${resolved.manifest.title} · v${resolved.version}`;
+      setTaskNotice(chosen.taskId,`运行中：${resolved.manifest.title} · v${resolved.version}`);
       await host.completion;
-    })().catch(fail).finally(async()=>{
+    })().catch(error=>setTaskNotice(chosen.taskId,`${error?.code||'E_TASK'}：${error?.message||error}`)).finally(async()=>{
       running=false;
       if(disposed)return;
       try{await refreshHistory();}catch(error){fail(error);}
-      update();
+      renderTaskStatus();update();
     });
   }
   async function verify() {
@@ -613,11 +625,26 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     working=true;update();
     try{await fn();}catch(error){fail(error);}finally{working=false;update();}
   };
-  for(const [tab,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']])
+  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']];
+  for(const [index,[tab,id]] of tabOrder){
     listen(get(id),'click',()=>{
       navigate(tab);
       if(tab==='tasks'||tab==='discover')refresh(undefined,{skipUnchanged:true}).catch(fail);
     });
+    listen(get(id),'keydown',event=>{
+      let next;
+      if(event.key==='ArrowRight')next=(index+1)%tabOrder.length;
+      else if(event.key==='ArrowLeft')next=(index+tabOrder.length-1)%tabOrder.length;
+      else if(event.key==='Home')next=0;
+      else if(event.key==='End')next=tabOrder.length-1;
+      else return; // Enter/Space retain native button activation.
+      event.preventDefault();
+      navigate(tabOrder[next][0]);
+      get(tabOrder[next][1]).focus?.({preventScroll:true});
+      if(tabOrder[next][0]==='tasks'||tabOrder[next][0]==='discover')
+        refresh(undefined,{skipUnchanged:true}).catch(fail);
+    });
+  }
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
   listen(get('local-discover-open-catalog'),'click',()=>navigate('catalog'));
   listen(get('local-discover-search'),'input',()=>{
@@ -662,10 +689,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribeRun=host.subscribe(value=>{
     if(disposed)return;
     if(value?.runId&&value.runId===activeRunId) {
-      get('task-status').textContent=`任务状态：${runStateNames[value.state]||value.state||'运行中'}`;
+      setTaskNotice(runOwnerTaskId,`任务状态：${runStateNames[value.state]||value.state||'运行中'}`);
       if(terminal.has(value.state))refreshHistory().catch(fail);
     }
-    update();
+    renderTaskStatus();update();
   });
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected)refresh().catch(fail);});
   client.ready.then(()=>refresh()).catch(fail);
