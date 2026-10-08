@@ -120,3 +120,30 @@
 - [Tampermonkey docs](https://www.tampermonkey.net/documentation.php)、[ScriptCat types](https://github.com/scriptscat/scriptcat/blob/main/src/types/scriptcat.d.ts)、[ScriptCat GM bridge](https://github.com/scriptscat/scriptcat/blob/main/docs/references/architecture-gm-api.md) 提供竞争目标**而非实现已等价的证据**。
 
 **R8.1 先完成 P0，不抢跑 G1/G2。** 对每项结果分别标 SOURCE_IMPLEMENTED / COMPONENT_TESTED / BUILD_VERIFIED / CHROME_NATIVE_VERIFIED，并保留失败信息；源码静态扫描、Node Mock 或 ZIP 打包均不可替代真实 Chrome 用户脚本开关与真实站点效果。
+
+
+## 7. 补充 API 与指令（2026-10-09 查漏）
+
+新增参考 [R8 188 项能力总清单](../../product/browser-automation-feature-catalog-r8.zh-CN.md)。以下 API 在首轮 R8 逐项 GM 表中没有充分展开。**均不属于 R8.1 的 P0 安装闭环；不能因“在 Tampermonkey 文档中存在”而给 OpenDesk 写 SOURCE_IMPLEMENTED。**
+
+| 元数据/API/行为 | 官方证据/语义 | OpenDesk main 当前证据 | 决策等级与前置验证 |
+| --- | --- | --- | --- |
+| GM_addElement | Tampermonkey 支持向某个节点添加指定标签（不同世界/属性需要校验） | MISSING（未有 GM facade）；已有 DOM 能力不等于 GM_addElement | G0+ / P1 可选；仅受限元素和安全属性、执行世界与脚本生命周期测试 |
+| GM_getValues / GM_setValues / GM_deleteValues | TM v5.3+ 批量值 API，旧/新方法返回及失败原子性需比较 | MISSING；已有 SDK storage 不是 GM keyspace | G1 / P1；脚本隔离、批量写、重启恢复、同步缓存一致性 |
+| GM_getTab / GM_saveTab / GM_getTabs | TM 脚本私有标签状态；与 chrome.tabs 读取权限不是同一个能力 | MISSING | G3 / P3，需实测管理器间生命周期差异，暂不承诺 |
+| GM_audio.* | TM 音频静音/状态变更 API，涉及浏览器和应用上下文 | MISSING | LX，缺少足够本产品价值，审计后明确不实现即可 |
+| GM_log | 与管理器日志投影相关，要求序列化、隐私/资源限制 | MISSING，不能将 console.log 等同兼容接口 | G0 / P1，受控日志生命周期 |
+| window.onurlchange | Tampermonkey 兼容事件；ScriptCat 1.4.0 Release 提到 Navigation API 实现 | MISSING | P1；SPA 导航订阅行为单独测试，不能把每次路由变化变成整脚本重新注入 |
+| @run-in / @sandbox / @unwrap | 执行隔离或特殊运行时上下文 | 现有 D1 parser 对部分作识别与拒绝，不具备完整执行语义 | G3 / P3，MAIN/USER_SCRIPT 的 CSP、页面污染、用户承诺须逐项审计 |
+| @run-at context-menu | ScriptCat 特有时机，不是 Chrome document-start/end/idle 原生映射 | MISSING | P2 Trigger Adapter + 用户手势，明确是非标准扩展语义 |
+| @installURL / @updateURL / @downloadURL | Greasy Fork 可能剥离/替换某些更新指令；来源由可信下载入口另行确定 | @updateURL/@downloadURL 信息级识别；@installURL 语义未确认支持 | P1 执行前须有真实 importSourceUrl、更新域名/权限差异和固定 hash，不信声明即授权 |
+| @antifeature | Greasy Fork 对跟踪、广告、联盟、挖矿、收费等要求披露 | 元数据 parser 可识别 descriptive；**安装 UI 呈现与风险确认未证实** | P1 安装审查标签；无法发现的恶意行为不等于安全 |
+| 浏览器触发快捷键 / CustomEvent | Automa 官方 Trigger block 支持这类事件 | OpenDesk 未审全局 commands；CustomEvent 授权无产品实现证据 | P2/P3；来自网页的事件必须作为不可信触发建议，不直接越权启动 |
+| HTTP 请求拦截/改写 | Requestly 通过独立拦截与网络规则产品提供 | OpenDesk axiosx/GM_http 属**宿主发出的单次 HTTP**，不是拦截别的页面流量 | 高风险独立模块；近期拒绝与 GM_xhr 混淆 |
+
+### 新的跨浏览器和政策差异
+
+- [Firefox MV3 userScripts](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts) 规定 userScripts **只能作为 optional permission 申请**；[Chrome 文档](https://developer.chrome.com/docs/extensions/reference/api/userScripts) 则要求 manifest 中 userScripts install-time 声明，并在 Chrome 138+ 扩展详情里打开 Allow User Scripts。跨浏览器不能复制相同 manifest 宣布兼容。
+- Chrome 的扩展更新会清空原生 UserScript 注册。另需注意切换开关撤销后：Service Worker 内 chrome.userScripts 对象可能保持定义，但**调用方法仍抛错**。单纯使用 typeof chrome.userScripts 判断可用性不足，应以真实 API 尝试及失败关闭验证。
+- [Chrome Web Store 政策](https://developer.chrome.com/docs/webstore/program-policies/policies) 要求使用最少权限，不可借 UserScripts 的远程代码例外给特权 SW/Host 运行任意远程代码。当前所有网站与 Cookies 的安装期声明是现状事实，不是自动合规证明。
+- [Tampermonkey 官方 GM 列表](https://www.tampermonkey.net/documentation.php)、[Greasy Fork metadata 规则](https://greasyfork.org/en/help/meta-keys)、[Automa Trigger](https://www.goautoma.com/extension/docs/blocks/trigger.html)、[ScriptCat 1.5 Beta](https://github.com/scriptscat/scriptcat/releases) 用作新增条目来源。尚未真实浏览器复现的语义仍记 NOT_TESTED/UNVERIFIED。

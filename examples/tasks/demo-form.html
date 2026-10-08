@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 基础网页交互测试</title>
+<title>OpenDesk Browser · Browser Test Lab</title>
 <style>
 :root{font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#19283d;background:#f7f9fc;font-synthesis:none}
 *{box-sizing:border-box}
@@ -72,6 +72,8 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 #api-error{margin:8px 0 0;color:#a83f4b;font-size:12px;overflow-wrap:anywhere}
 .status[data-state="cancelled"] .indicator{background:#8998a9}
 
+@media(max-width:540px){.topbar-inner{padding:9px 15px}main{padding:0 13px;margin-top:23px}h1{font-size:22px}.unit{padding:16px}.field{flex-basis:100%}.controls{gap:7px}}
+
 .api-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
 .api-fields .field{min-width:0}
 .api-fields select,.api-fields input{width:100%}
@@ -85,28 +87,108 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 .api-response-details #api-response{margin:0;border:none;border-radius:0;max-height:230px}
 #api-bridge-hint{color:#516785}
 @media(max-width:540px){.api-fields{grid-template-columns:1fr}.api-fields .api-config-fields{max-width:none}}
-@media(max-width:540px){.topbar-inner{padding:9px 15px}main{padding:0 13px;margin-top:23px}h1{font-size:22px}.unit{padding:16px}.field{flex-basis:100%}.controls{gap:7px}}
+
+/* Browser Test Lab: presentation is separate from fixture DOM contracts. */
+:root{--lab-ink:#1b2c45;--lab-line:#dde6f0;scroll-behavior:smooth}
+body{background:linear-gradient(#ebf2fc 0,#f7f9fd 280px);color:var(--lab-ink)}
+.topbar{position:sticky;top:0;z-index:20;box-shadow:0 1px 0 #e3e9f1}
+.topbar-inner{max-width:1190px;min-height:63px}
+.brand-mark{background:#16315b;width:32px;height:32px}
+.brand-title{font-weight:800;letter-spacing:-.02em}
+.brand-note{display:block;font:800 9px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.1em}
+.header-actions{display:flex;align-items:center;gap:15px}
+.environment-label{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:#587292;display:flex;gap:7px;align-items:center}
+.environment-label::before{content:"";display:block;width:7px;height:7px;border-radius:100%;background:#19a276;box-shadow:0 0 0 3px #d6f7e8}
+main{max-width:1190px;margin:0 auto;padding:28px 22px 68px}
+.lab-hero{display:flex;justify-content:space-between;align-items:end;gap:20px;margin:0 2px 28px}
+.eyebrow,.section-caption{font:800 10px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.14em;color:#5a78a1}
+.eyebrow{margin:0 0 11px}
+h1{font-size:clamp(30px,3.8vw,42px);font-weight:800;letter-spacing:-.045em;line-height:1.1;margin:0 0 13px}
+.intro{font-size:14px;line-height:1.75;max-width:660px;margin:0;color:#61758e}
+.hero-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:17px}
+.hero-tags span{border:1px solid #d6e2f3;border-radius:100px;background:#fff9;color:#446286;padding:5px 10px;font-size:11px;font-weight:700}
+.hero-counter{flex:none;border-left:1px solid #ccdbed;padding:6px 0 6px 24px;color:#6a819a;font-size:12px}
+.hero-counter strong{font-size:36px;color:#162e51;letter-spacing:-.06em;line-height:1.1}
+.hero-counter span{margin-left:8px;font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.07em}
+.lab-grid{display:grid;grid-template-columns:212px minmax(0,1fr);gap:24px;align-items:start}
+.lab-navigation{position:sticky;top:84px;padding:16px 11px;border:1px solid var(--lab-line);background:#fff;border-radius:13px;box-shadow:0 7px 23px #1b38580a}
+.lab-navigation p{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:#536b86;letter-spacing:.08em;padding:0 10px}
+.lab-navigation a{display:flex;align-items:center;gap:11px;padding:10px;color:#526a86;text-decoration:none;border-radius:8px;font-weight:650;font-size:12px}
+.lab-navigation a:hover,.lab-navigation a:focus-visible{background:#edf4fe;color:#2052ad}
+.lab-navigation a span{color:#627a96;font:750 10px ui-monospace,SFMono-Regular,Consolas,monospace}
+.lab-navigation a[href="#lab-locator"]{background:#eff4ff;color:#285aba;margin-top:5px}
+.lab-navigation .navigation-tip{margin:14px 9px 2px;padding:13px 1px 0;border-top:1px solid #e5ebf3;color:#586d85;font:400 11px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;letter-spacing:0}
+.lab-content{min-width:0}
+.section-caption{margin:3px 0 10px 3px}
+.lab-content .sheet+.section-caption{margin-top:25px}
+.sheet{border-radius:14px;box-shadow:0 8px 25px #1e40600b}
+.unit{padding:24px 26px;scroll-margin-top:90px}
+.unit+.unit{border-top:1px solid #eaf0f5}
+.unit-heading{gap:12px;margin-bottom:13px}
+.unit-heading small{background:#edf3f9;padding:6px 8px;border-radius:6px;font-size:11px;color:#59769c}
+h2{font-size:15px;font-weight:780;color:#203a5a}
+button{transition:background .12s,border-color .12s}
+button.primary{background:#2559c4;border-color:#2559c4}
+button.primary:hover{background:#1b4aac}
+:focus-visible{outline:3px solid #88b4f7;outline-offset:3px}
+.lab-footer{margin:16px 4px;color:#536a85;font-size:11px;line-height:1.75}
+.fixture-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.fixture-card{min-width:0;background:linear-gradient(#fff,#fbfcff);border:1px solid #e2eaf3;border-radius:10px;padding:17px}
+.fixture-index{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.08em;color:#526d8c}
+.fixture-card h3{font-size:13px;letter-spacing:-.01em;margin:5px 0 7px}
+.fixture-card p{font-size:12px;line-height:1.7;color:#6a7e96;margin:0 0 12px}
+.fixture-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.fixture-controls .field{min-width:128px}
+.fixture-card button{min-height:36px;font-size:12px}
+.fixture-card input{font-size:12px}.fixture-card code{overflow-wrap:anywhere;word-break:break-word}
+.fixture-result{background:#f0f5fc;border-radius:7px;padding:10px 11px;min-height:36px;color:#355779!important;margin:9px 0 0!important;font-size:11px!important;overflow-wrap:anywhere}
+.fixture-result strong{color:#2655ab}
+.cover-stage{position:relative;max-width:245px;width:100%;margin-bottom:10px;padding:5px 0}
+.cover-shield{position:absolute;inset:0;background:#254775ed;color:#fff;border-radius:8px;font-size:11px;display:grid;place-items:center;z-index:1}
+.cover-shield[hidden]{display:none}
+.recipe{margin-top:18px;border-radius:10px;background:#142942;color:#eef6ff;overflow:hidden}
+.recipe summary{padding:13px 16px;cursor:pointer;font-size:12px;font-weight:700}
+.recipe pre{margin:0;border-top:1px solid #2e4765;padding:15px;overflow:auto;font:12px/1.75 ui-monospace,SFMono-Regular,Consolas,monospace}
+.fixture-warning{border-left:3px solid #7295c9;padding:9px 12px;background:#f1f6ff;color:#56708d;font-size:12px;line-height:1.8;margin:14px 0 0}
+@media(max-width:950px){.lab-grid{grid-template-columns:1fr;gap:14px}.lab-navigation{position:static;display:flex;flex-wrap:wrap;gap:4px;padding:8px}.lab-navigation a{padding:9px}.lab-navigation p,.lab-navigation .navigation-tip{display:none}.lab-navigation a[href="#lab-locator"]{margin-top:0}}
+@media(max-width:620px){main{padding:22px 12px 45px}.topbar-inner{padding-inline:12px}.environment-label{display:none}.lab-hero{display:block}.hero-counter{display:none}.fixture-grid{grid-template-columns:1fr}.unit{padding:19px 15px}.lab-navigation{overflow-x:auto;flex-wrap:nowrap}.lab-navigation a{white-space:nowrap}.lab-navigation a span{display:none}}
+@media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}button{transition:none}}
 </style>
 </head>
 <body>
-<header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark" aria-hidden="true">O</span>OpenDesk <span class="brand-note">/ 测试网页</span></div><button id="reset-all" type="button" class="text-button">重置页面</button></div></header>
+<header class="topbar">
+  <div class="topbar-inner"><div class="brand"><span class="brand-mark" aria-hidden="true">O</span><span class="brand-title">OpenDesk Browser<span class="brand-note">BROWSER TEST LAB</span></span></div><div class="header-actions"><span class="environment-label">LOCAL FIXTURE · 43111</span><button id="reset-all" type="button" class="text-button">↺ 重置场景</button></div></div>
+</header>
 <main>
-  <h1>网页交互示例</h1>
-  <p class="intro">读取文本、执行操作、等待异步结果、填写表单，并查看真实 HTTP 响应。</p>
+  <section class="lab-hero" aria-labelledby="lab-heading">
+    <div><p class="eyebrow">AUTOMATION / INTERACTION / LOCATOR</p><h1 id="lab-heading">Browser Test Lab</h1>
+      <p class="intro">OpenDesk Browser 的浏览器交互实验台：操作真实 DOM，检查选择器与响应状态，并为 Sidebar 草稿和 Page API 提供稳定验收目标。</p>
+      <div class="hero-tags"><span>原生 DOM</span><span>现代 Locator</span><span>异步与取消</span><span>HTTP GET</span></div></div>
+    <div class="hero-counter"><strong>07</strong><span>SCENES</span><p>一个入口 · 可复现测试</p></div>
+  </section>
+  <div class="lab-grid"><nav class="lab-navigation" aria-label="测试场景导航">
+    <p>SCENARIOS</p>
+    <a href="#lab-text"><span>01</span>文本与列表</a><a href="#lab-click"><span>02</span>点击与显隐</a>
+    <a href="#lab-async"><span>03</span>异步与取消</a><a href="#lab-form"><span>04</span>基础表单</a>
+    <a href="#lab-search"><span>05</span>动态搜索</a><a href="#lab-api"><span>06</span>真实 HTTP GET</a>
+    <a href="#lab-locator"><span>07</span>Locator 专项</a>
+    <p class="navigation-tip">测试状态来自可观察 DOM 和 HTTP，不代表扩展 RunHost 已通过验收。</p>
+  </nav><div class="lab-content">
+  <p class="section-caption">01 — 06 / CORE INTERACTIONS</p>
   <div class="sheet">
-    <section class="unit" aria-labelledby="text-title">
+    <section class="unit" id="lab-text" aria-labelledby="text-title">
       <div class="unit-heading"><small>01</small><h2 id="text-title">文本读取</h2></div>
       <h3 id="sample-title" data-testid="sample-title">周末阅读清单</h3>
       <p id="sample-text" class="sample-text" data-testid="sample-text">本周共有 3 项阅读计划，当前状态：等待开始。</p>
       <ul id="sample-list" class="chips"><li>产品设计</li><li>浏览器技术</li><li>交互体验</li></ul>
     </section>
-    <section class="unit" aria-labelledby="click-title">
+    <section class="unit" id="lab-click" aria-labelledby="click-title">
       <div class="unit-heading"><small>02</small><h2 id="click-title">按钮与 DOM 变化</h2></div>
       <div class="controls"><button id="click-button" class="primary" type="button">点击一次</button><button id="toggle-button" type="button" aria-expanded="false" aria-controls="extra-text">展开文字</button></div>
       <p class="result-line">累计点击 <output id="click-count" role="status" aria-live="polite">0</output> 次</p>
       <p id="extra-text" class="expanded" hidden>这是点击后出现的文字，可用于验证元素显示和文本读取。</p>
     </section>
-    <section class="unit" aria-labelledby="async-title">
+    <section class="unit" id="lab-async" aria-labelledby="async-title">
       <div class="unit-heading"><small>03</small><h2 id="async-title">网络请求与异步等待</h2></div>
       <div class="controls">
         <label for="delay">显示延迟</label>
@@ -119,7 +201,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       <div id="async-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="async-status-text">尚未发起请求</span></div>
       <div id="async-result" aria-live="polite"></div>
     </section>
-    <section class="unit" aria-labelledby="form-title">
+    <section class="unit" id="lab-form" aria-labelledby="form-title">
       <div class="unit-heading"><small>04</small><h2 id="form-title">简单表单</h2></div>
       <form id="demo-form" class="fields" autocomplete="off">
         <div class="field"><label for="name">姓名</label><input id="name" name="name" type="text" maxlength="40" placeholder="例如 Alice" required></div>
@@ -129,7 +211,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       <div id="form-result" class="feedback" role="status" aria-live="polite"></div>
       <p id="form-hint" role="alert"></p>
     </section>
-    <section class="unit" aria-labelledby="modern-title">
+    <section class="unit" id="lab-search" aria-labelledby="modern-title">
       <div class="unit-heading"><small>05</small><h2 id="modern-title">动态搜索 · Locator 测试</h2></div>
       <form id="search-form" autocomplete="off">
         <div class="field"><label for="keyword">搜索关键词</label><input id="keyword" name="keyword" type="search" value="旧的预填内容"></div>
@@ -139,7 +221,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       <div id="results" aria-live="polite"></div>
       <p id="search-count" aria-live="polite">提交次数：0</p>
     </section>
-    <section class="unit" aria-labelledby="api-title">
+    <section class="unit" id="lab-api" aria-labelledby="api-title">
       <div class="unit-heading"><small>06</small><h2 id="api-title">HTTP API · OpenDesk axiosx</h2></div>
       <div class="api-fields">
         <div class="field">
@@ -190,7 +272,63 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       <p id="api-error" data-testid="api-error" role="alert" hidden></p>
     </section>
   </div>
-  <p class="footnote">第 03 组保留旧异步场景；第 06 组优先测试授权后的 OpenDesk axiosx，Fetch 仅作跨域对照。请通过本地 HTTP 服务打开。</p>
+  <p class="section-caption">07 / LOCATOR ACCEPTANCE PLAYGROUND</p>
+  <div class="sheet"><section class="unit" id="lab-locator" aria-labelledby="locator-title">
+    <div class="unit-heading"><small>07</small><h2 id="locator-title">Locator 专项 · 唯一性与可操作性</h2></div>
+    <p class="sample-text">以下是可重复操作的真实 DOM Fixture。页面不会伪造 PASS；请通过扩展 Controller 的运行回执判定自动化成功。</p>
+    <div class="fixture-grid">
+      <article class="fixture-card" aria-labelledby="locator-duplicate-title">
+        <div class="fixture-index">LOCATOR / 01</div><h3 id="locator-duplicate-title">同名元素与严格匹配</h3>
+        <p>两个按钮同名，<code>getByRole('button',{name:'确认记录',exact:true})</code> 的计数应为 2，提交前必须唯一定位。</p>
+        <div class="fixture-controls">
+          <div id="locator-scope-a" role="group" aria-label="分区 A"><button id="locator-confirm-a" data-testid="locator-confirm-a" type="button">确认记录</button></div>
+          <div id="locator-scope-b" role="group" aria-label="分区 B"><button id="locator-confirm-b" data-testid="locator-confirm-b" type="button">确认记录</button></div>
+        </div>
+        <p id="locator-duplicate-result" class="fixture-result" role="status" aria-live="polite">等待操作 · 两个同名目标</p>
+      </article>
+      <article class="fixture-card" aria-labelledby="locator-state-title">
+        <div class="fixture-index">LOCATOR / 02</div><h3 id="locator-state-title">禁用、ARIA 与只读</h3>
+        <p>检查 disabled、aria-disabled 和 readonly；不可操作项不得被无意写入或提交。</p>
+        <div class="fixture-controls">
+          <div class="field"><label for="locator-readonly-field">只读样本</label><input id="locator-readonly-field" type="text" value="不可覆盖" readonly></div>
+          <button id="locator-disabled-button" type="button" disabled>原生禁用</button>
+          <button id="locator-aria-disabled" type="button" aria-disabled="true">ARIA 禁用</button>
+        </div>
+        <p class="fixture-result">预期：禁用元素不能提交；只读输入不能被 fill 覆盖。</p>
+      </article>
+      <article class="fixture-card" aria-labelledby="locator-cover-title">
+        <div class="fixture-index">LOCATOR / 03</div><h3 id="locator-cover-title">遮挡与真实命中</h3>
+        <p>先保持覆盖层，验证目标不可点击；解除后验证可点击且不会重复触发。</p>
+        <div class="cover-stage"><button id="locator-covered-target" data-testid="locator-covered-target" type="button">被遮挡的按钮</button><div id="locator-cover-shield" class="cover-shield" aria-hidden="true">遮挡层 · 阻止命中</div></div>
+        <div class="fixture-controls"><button id="locator-cover-toggle" type="button" aria-pressed="false" aria-controls="locator-cover-shield">解除遮挡</button></div>
+        <p class="fixture-result" role="status" aria-live="polite">实际点击次数：<strong id="locator-cover-count">0</strong></p>
+      </article>
+      <article class="fixture-card" aria-labelledby="locator-late-title">
+        <div class="fixture-index">LOCATOR / 04</div><h3 id="locator-late-title">延迟插入与等待</h3>
+        <p>点击后约 700ms 才生成目标。可验证 waitFor(visible)；重置取消尚未生效的回调。</p>
+        <div class="fixture-controls"><button id="locator-late-launch" type="button">延迟生成目标</button></div>
+        <div id="locator-late-result" class="fixture-controls"></div>
+        <p id="locator-late-status" class="fixture-result" role="status" aria-live="polite" data-state="idle">尚未生成目标</p>
+      </article>
+    </div>
+    <p class="fixture-warning"><strong>边界提示：</strong>这里的可视化 DOM 结果不是 Chrome 扩展验收证据。当前 Page API 不等于完整 Playwright；不承诺 Shadow DOM、跨 Frame、原生可信输入等能力。</p>
+    <details class="recipe"><summary>展开 Sidebar「开发」可运行的现代 Locator 示例</summary>
+      <pre>async function main() {
+  const matches = await page.getByRole('button', {name:'确认记录', exact:true}).count();
+  await page.getByTestId('locator-confirm-a').click();
+  await page.getByRole('button', {name:'延迟生成目标', exact:true}).click();
+  await page.getByTestId('locator-late-target').waitFor({state:'visible', timeout:3000});
+  return {
+    matches,
+    action: await page.locator('#locator-duplicate-result').textContent(),
+    delayed: await page.getByTestId('locator-late-target').textContent(),
+    readOnly: await page.locator('#locator-readonly-field').getAttribute('readonly')
+  };
+}</pre>
+    </details>
+  </section></div>
+  <p class="lab-footer">使用本地 HTTP 服务而不是 file://。第 03 组使用真实同源请求及客户端延迟，第 06 组显示真实 HTTP 状态。公网访问仅在点击发送时触发。</p>
+</div></div>
 </main>
 <script>
 (() => {
@@ -565,7 +703,59 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
   }
   syncApiControls();
 
+  // Locator playground only mutates observable fixture DOM. No pass/fail simulation.
+  for (const suffix of ['a', 'b']) get('locator-confirm-' + suffix).addEventListener('click', () => {
+    get('locator-duplicate-result').textContent = '实际点击：分区 ' + suffix.toUpperCase();
+  });
+  let coveredClicks = 0, lateGeneration = 0, lateTimer = null;
+  const shield = get('locator-cover-shield'), coverToggle = get('locator-cover-toggle');
+  get('locator-covered-target').addEventListener('click', () => {
+    get('locator-cover-count').textContent = String(++coveredClicks);
+  });
+  coverToggle.addEventListener('click', () => {
+    shield.hidden = !shield.hidden;
+    coverToggle.setAttribute('aria-pressed', String(shield.hidden));
+    coverToggle.textContent = shield.hidden ? '恢复遮挡' : '解除遮挡';
+  });
+  get('locator-late-launch').addEventListener('click', () => {
+    const generation = ++lateGeneration;
+    if (lateTimer !== null) clearTimeout(lateTimer);
+    get('locator-late-result').replaceChildren();
+    get('locator-late-status').dataset.state = 'loading';
+    get('locator-late-status').textContent = '等待 DOM 插入…';
+    lateTimer = setTimeout(() => {
+      if (generation !== lateGeneration) return;
+      const button = document.createElement('button');
+      button.id = 'locator-late-target';
+      button.dataset.testid = 'locator-late-target';
+      button.type = 'button';
+      button.textContent = '已出现的按钮';
+      button.addEventListener('click', () => {
+        get('locator-late-status').textContent = '实际点击：已出现的按钮';
+      });
+      get('locator-late-result').append(button);
+      get('locator-late-status').dataset.state = 'visible';
+      get('locator-late-status').textContent = '元素已插入 DOM';
+      lateTimer = null;
+    }, 700);
+  });
+  function resetLocatorPlayground() {
+    get('locator-duplicate-result').textContent = '等待操作 · 两个同名目标';
+    coveredClicks = 0;
+    get('locator-cover-count').textContent = '0';
+    shield.hidden = false;
+    coverToggle.setAttribute('aria-pressed', 'false');
+    coverToggle.textContent = '解除遮挡';
+    ++lateGeneration;
+    if (lateTimer !== null) clearTimeout(lateTimer);
+    lateTimer = null;
+    get('locator-late-result').replaceChildren();
+    get('locator-late-status').dataset.state = 'idle';
+    get('locator-late-status').textContent = '尚未生成目标';
+  }
+
   get('reset-all').addEventListener('click', () => {
+    resetLocatorPlayground();
     resetApiView();
     clicks = 0;
     get('click-count').textContent = '0';

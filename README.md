@@ -26,7 +26,7 @@ Controller 的 @require 不会被偷偷下载并运行进 Worker 或 Service Wor
 
 ## 统一网页交互测试入口
 
-人工检查 DOM、按钮、输入框、现代 Page API、Sidebar 草稿和真实 HTTP GET 时，**唯一标准页面**是 [`examples/tasks/demo-form.html`](examples/tasks/demo-form.html)：
+人工检查 DOM、按钮、输入框、现代 Page API、Sidebar 草稿、真实 HTTP GET 和 Locator 专项测试时，**唯一标准页面**是 [`examples/tasks/demo-form.html`](examples/tasks/demo-form.html)（七组场景、左侧导航和可重复 Locator Fixture，见 [R8 Browser Test Lab 规格](docs/framework/browser-test-lab-r8.zh-CN.md)）：
 
 ```sh
 python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
