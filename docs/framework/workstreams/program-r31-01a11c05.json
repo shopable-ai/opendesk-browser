@@ -18,7 +18,7 @@
     "docs/framework/workstreams/program-r31-01a11c05-evidence.json",
     "docs/framework/workstreams/program-r31-01a11c05.json",
     "docs/product/program-development-dual-format-and-sidebar.zh-CN.md",
-    "tests/fixtures/d1-userscript.html",
+    "examples/tasks/d1-userscript.html",
     "schemas/opendesk-program-draft.v1.schema.json",
     "scripts/build-program-project.mjs",
     "scripts/validate-program-project.mjs",
