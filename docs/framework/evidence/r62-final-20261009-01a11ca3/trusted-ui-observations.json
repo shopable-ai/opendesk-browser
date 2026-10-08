@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-08T18:54:28.794214+00:00",
+  "level": "summary of CUA observations; not raw ACK or formal acceptance",
+  "actions": [
+    "real Native enable and Chrome nativeMessaging Allow",
+    "real extension menu opened Sidebar",
+    "Discover opened full catalog and OS file picker"
+  ],
+  "notCompleted": [
+    "Task import",
+    "modern draft or saved execution",
+    "Task verify/available/install",
+    "standalone runs",
+    "full browser restart"
+  ],
+  "blockingToolMessage": "The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually before continuing.",
+  "recheck": "getState timed out30seconds; no new trusted input evidence"
+}

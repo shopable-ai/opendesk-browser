@@ -1,0 +1,65 @@
+{
+  "at": "2026-10-08T19:02:37.993803+00:00",
+  "ownedChrome": {
+    "pid": 73343,
+    "launcherPid": 73342,
+    "exited": true,
+    "profileRemoved": true,
+    "cleanupReceipt": "native-session-3/launcher-r62.cleanup.json",
+    "status": "PASS_CLEANUP_ONLY",
+    "fullUserQuitOrRestart": "NOT_TESTED"
+  },
+  "native": {
+    "socketAbsent": true,
+    "privateInstallationRestoredByteForByte": true,
+    "originalManifestContractReconstructed": true,
+    "exactOriginalManifestBytesArchived": false,
+    "privateCredentialBackup": "retained outside Git; not printed or committed",
+    "oldExtensionId": "historical only; discover fresh identities next run"
+  },
+  "ownedHttp": {
+    "pid": 89894,
+    "exited": true,
+    "portAfter": "",
+    "pageIdentityReceipt": "owned-http-resource.json",
+    "releaseReceipt": "owned-http-release.json"
+  },
+  "otherProcessesProfilesAndWorkspaces": "untouched",
+  "dist": "independent worktree only; exact latest packages retained",
+  "noReleaseOrPublish": true,
+  "allOwnedAttemptsCurrentObservation": [
+    {
+      "attempt": "native-session",
+      "originalCleanupStatus": "FAIL",
+      "originalErrorsRetained": 3,
+      "ownedPids": [
+        72135,
+        72136
+      ],
+      "currentPidsAbsent": true,
+      "currentProfileAbsent": true
+    },
+    {
+      "attempt": "native-session-2",
+      "originalCleanupStatus": "PASS",
+      "originalErrorsRetained": 0,
+      "ownedPids": [
+        73019,
+        73020
+      ],
+      "currentPidsAbsent": true,
+      "currentProfileAbsent": true
+    },
+    {
+      "attempt": "native-session-3",
+      "originalCleanupStatus": "PASS",
+      "originalErrorsRetained": 0,
+      "ownedPids": [
+        73342,
+        73343
+      ],
+      "currentPidsAbsent": true,
+      "currentProfileAbsent": true
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0,
+    "log": "docs/framework/evidence/r62-final-20261009-01a11ca3/check.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0,
+    "log": "docs/framework/evidence/r62-final-20261009-01a11ca3/build-production.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build:dev"
+    ],
+    "exitCode": 0,
+    "log": "docs/framework/evidence/r62-final-20261009-01a11ca3/build-development.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "verify"
+    ],
+    "exitCode": 0,
+    "log": "docs/framework/evidence/r62-final-20261009-01a11ca3/verify.log"
+  }
+]

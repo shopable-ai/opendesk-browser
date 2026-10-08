@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-08T18:44:59.882741+00:00",
+  "owner": "r62-final-20261009-01a11ca3",
+  "pid": 89894,
+  "command": "89894 63835 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks",
+  "cwdObservation": "p89894\nfcwd\nn/Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser",
+  "endpoint": "http://127.0.0.1:43111/demo-form.html",
+  "candidateSha256": "815af5458d617b4688a504cfc265f81427ccfd847a718210c4cc9eeeeb510383",
+  "servedSha256": "815af5458d617b4688a504cfc265f81427ccfd847a718210c4cc9eeeeb510383",
+  "state": "OWNED_MATCHING_PAGE",
+  "previousR7ReleaseRecord": "R7 resource-release.json shows original PID64009 exited and no43111 listener",
+  "laterPython78850": "absent before acquisition; no owner release receipt discovered",
+  "claimBasis": "OS bind succeeded after zero listeners; no existing process stopped or replaced",
+  "level": "page preflight only; no browser execution"
+}

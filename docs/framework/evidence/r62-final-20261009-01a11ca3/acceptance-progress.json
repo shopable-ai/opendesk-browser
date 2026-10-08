@@ -1,0 +1,127 @@
+{
+  "at": "2026-10-08T18:53:54.884759+00:00",
+  "workstreamId": "r62-final-20261009-01a11ca3",
+  "productInputCommit": "40d3bf5f93cfa0bf587ec6080a03de3302b27e6f",
+  "latestIntegratedMain": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+  "inheritedEvidenceCommit": "dd63f339a8fd4b07729cf8764b961de4150eb29c",
+  "productPackages": {
+    "production": "75dd897fee5a906dbe5de00b30c98d8c5b3d0ea8a5a7cca756e17660d478e73f",
+    "development": "e61be2a4604d567e754258f3224058bb84e554a115116d786c0e565076c383f7",
+    "productionServiceWorkerBytes": 324976,
+    "limit": 327680
+  },
+  "task": {
+    "taskId": "sample.modern-search",
+    "version": "1.0.0",
+    "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+    "manifestHash": "5bce863a91c5abd26513dc19a50c55eeb068eb030c7e0aa5a664b9f8e902984a"
+  },
+  "statuses": {
+    "SOURCE_CONFIRMED": "YES",
+    "COMPONENT_TESTED": "PASS_CURRENT_TARGETED_COMPONENT_ONLY",
+    "BUILD_VERIFIED": "PASS",
+    "NATIVE_CHROME_VERIFIED": "INCOMPLETE",
+    "AI_AGENT_E2E_VERIFIED": "PARTIAL_DIAGNOSTIC_ONLY",
+    "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
+    "FINAL_FRAMEWORK_ACCEPTED": "NO"
+  },
+  "componentEvidence": [
+    {
+      "scope": "latest main affected components including five driver tests",
+      "pass": 76,
+      "fail": 0,
+      "skip": 0,
+      "log": "latest-main-affected-components.log",
+      "note": "command also listed nonexistent sidebar-tools-package.test.mjs; no coverage attributed to it"
+    },
+    {
+      "scope": "actual sidebar-tools.test.mjs and sidebar-tools-host.test.mjs",
+      "pass": 4,
+      "fail": 0,
+      "skip": 0,
+      "log": "latest-main-sidebar-host-components.log"
+    },
+    {
+      "scope": "final driver including localized counter parser",
+      "pass": 7,
+      "fail": 0,
+      "skip": 0,
+      "log": "driver-components-counter-parser.log",
+      "overlap": "five cases overlap76; do not sum counts"
+    }
+  ],
+  "checks": {
+    "npmCi": "PASS",
+    "sourceCheck": "PASS",
+    "productionBuild": "PASS",
+    "developmentBuild": "PASS",
+    "packageVerify": "PASS"
+  },
+  "pagePreflight": {
+    "status": "PASS_PAGE_BYTES_ONLY",
+    "evidence": "preflight-owned-page/inputs.json",
+    "candidateSha256": "815af5458d617b4688a504cfc265f81427ccfd847a718210c4cc9eeeeb510383",
+    "servedSha256": "815af5458d617b4688a504cfc265f81427ccfd847a718210c4cc9eeeeb510383",
+    "httpOwner": "this workstream; Python89894; released"
+  },
+  "ownNativeDiagnostic": {
+    "status": "SETUP_CONNECTED_ONLY_OLD_PACKAGE",
+    "packageHash": "3972c99cbd4367a6e5b1bdb653741c892612408da8bde7aac72d75a25130f3de",
+    "evidence": "native-bridge-status-after-profile.json",
+    "nativeConnected": true,
+    "hostRegistrationsAtCLIObservation": [],
+    "uiObservation": "real CUA opened Sidebar/catalog; import/install did not complete",
+    "countOrAckClaim": "NONE",
+    "latestPackageNative": "NOT_TESTED"
+  },
+  "preservedFailures": [
+    {
+      "evidence": "native-session/launcher-r62-raw-failure.json",
+      "kind": "launcher process ownership observation failed; original cleanup FAIL retained"
+    },
+    {
+      "evidence": "native-session-2/session-failure.json",
+      "kind": "worker observer failed; cleanup retained"
+    },
+    {
+      "evidence": "preflight-shared.log",
+      "kind": "other workflow page mismatch rejected"
+    },
+    {
+      "evidence": "native-bridge-status.json",
+      "kind": "empty raw output before profile host binding; not receipt"
+    },
+    {
+      "evidence": "readonly-native-observation.log",
+      "kind": "stale worker target observer failed; fix tested in components only"
+    }
+  ],
+  "blocker": {
+    "source": "mcp__cua_repl",
+    "message": "Mac locked; manual unlock required for trusted native input",
+    "lastRecheck": "getState timed out30seconds; kernel reset",
+    "requiredUserAction": "unlock Mac; no reply yet",
+    "coordinationAuthorization": "not granted; no message to R7 sent; port became free then own bind succeeded"
+  },
+  "modernDraftAndSaved": "NOT_TESTED_CURRENT_CANDIDATE",
+  "uniqueRealNativeAckAndJournal": "NOT_COLLECTED",
+  "taskCandidateVerifiedAvailableExplicitInstall": "NOT_TESTED",
+  "twoMyTasksRunsWithNativeDisabled": "NOT_TESTED",
+  "fullSameProfileRestart": "NOT_TESTED; cleanup is not restart",
+  "remainingAbnormalLifecycle": "CURRENT_CANDIDATE_NATIVE_NOT_TESTED; inherited diagnostics keep limited grade",
+  "formalGates": {
+    "original603plus19": "NOT_TESTED_CURRENT_CANDIDATE",
+    "independentB05": "NOT_TESTED_CURRENT_CANDIDATE",
+    "1000mixed": "NOT_TESTED_CURRENT_CANDIDATE",
+    "10reconnect": "NOT_TESTED_CURRENT_CANDIDATE",
+    "twoExtensionDisableRounds": "NOT_TESTED_CURRENT_CANDIDATE",
+    "sixResourceBaselines": "NOT_TESTED_CURRENT_CANDIDATE",
+    "independentFinalF3": "NOT_TESTED_CURRENT_CANDIDATE",
+    "sameDistZipInstallation": "NOT_TESTED_CURRENT_CANDIDATE"
+  },
+  "formalLedgerClosure": "OPEN",
+  "scopeConflicts": "No denominator edits; future conflict requires exact caseId and evidence",
+  "releasePublishPerformed": false,
+  "metadataIntegrationCommit": "07db43ec619860674d0fcccfce94bef48e1a05e8",
+  "buildAndComponentReuse": "148 exact bound product input hashes unchanged; see metadata-main-reuse.json"
+}

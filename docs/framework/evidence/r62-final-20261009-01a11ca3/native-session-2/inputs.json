@@ -1,0 +1,131 @@
+{
+  "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+  "manifestHash": "5bce863a91c5abd26513dc19a50c55eeb068eb030c7e0aa5a664b9f8e902984a",
+  "candidateDemoSha256": "815af5458d617b4688a504cfc265f81427ccfd847a718210c4cc9eeeeb510383",
+  "package": {
+    "packageHash": "3972c99cbd4367a6e5b1bdb653741c892612408da8bde7aac72d75a25130f3de",
+    "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+    "files": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 21466,
+        "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 828,
+        "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 34347,
+        "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 35276,
+        "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 383,
+        "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 49539,
+        "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+      },
+      {
+        "path": "framework/sdk-resources.json",
+        "bytes": 359,
+        "sha256": "747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "licenses/jquery-MIT.txt",
+        "bytes": 1097,
+        "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 1201,
+        "sha256": "e1efc8ec08a08961b7d48304439ae802d3b9d60afa44034b8a8a5054d53f0034"
+      },
+      {
+        "path": "native-agent/settings.html",
+        "bytes": 1826,
+        "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+      },
+      {
+        "path": "native-agent/settings.js",
+        "bytes": 22157,
+        "sha256": "7018e9e3e7a0dcf7392e270f8512b4d4b815d8db5940da26587ad938d13b971d"
+      },
+      {
+        "path": "native-agent/transport.js",
+        "bytes": 29297,
+        "sha256": "112dff86a490ece497668e4420053ce0d48121e2de12360da177add825b30421"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 55082,
+        "sha256": "bd346556fa4a137b804a6255fefc6617ce1bcd01719dd0637bb6a54e9b90b377"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 4010,
+        "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 49683,
+        "sha256": "406de1f7b5ebffc7ce4a67696d5e35d24e27e9bae3b93cacec10cae6100c19f1"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 324976,
+        "sha256": "2c5145ba65ce9d41f1a03c7abcb10eba6f3cb2110a30965d6a2069d7799ea214"
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 19090,
+        "sha256": "cd3f89c5025b325830d114135ad47885d13a4a5f17d36d9e63038423c837976c"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 177721,
+        "sha256": "3bdcb693b3aaab75140d134dc6225e7e0ee35e24889a82592d9dca3845c6c79d"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 21232,
+        "sha256": "c27502c481bdc9029331aa1dda32bc06985dabe1edbacb3a64ddde1536722ac9"
+      },
+      {
+        "path": "vendor/jquery-3.7.1.min.js",
+        "bytes": 87533,
+        "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+      }
+    ]
+  }
+}

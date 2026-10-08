@@ -1,0 +1,101 @@
+{
+  "event": "adapter-cleanup",
+  "launcherPid": 72135,
+  "status": "FAIL",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-062511ys",
+  "profileIdentity": [
+    16777234,
+    17608489
+  ],
+  "profileStatus": "removed",
+  "children": [
+    {
+      "pid": 72136,
+      "state": "exited",
+      "returncode": 0
+    }
+  ],
+  "residual": [],
+  "errors": [
+    {
+      "kind": "cleanup",
+      "stage": "inspect-child",
+      "type": "RuntimeError",
+      "message": "Owned child arguments mismatch",
+      "inspectionReads": [
+        {
+          "columns": "pid=,ppid=,comm=",
+          "stdout": "72136 72135 /private/tmp/opendesk-r62-cft-b27a/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\n",
+          "stderr": "",
+          "returncode": 0,
+          "observedAt": 1791482551.4322
+        },
+        {
+          "columns": "command=",
+          "stdout": "(Google Chrome fo)\n",
+          "stderr": "",
+          "returncode": 0,
+          "observedAt": 1791482551.442142
+        }
+      ]
+    },
+    {
+      "kind": "original",
+      "stage": "lifetime-wait",
+      "type": "RuntimeError",
+      "message": "process-inspection-unavailable or ownership mismatch",
+      "inspectionReads": []
+    },
+    {
+      "kind": "original",
+      "stage": "global-launcher",
+      "type": "RuntimeError",
+      "message": "process-inspection-unavailable or ownership mismatch",
+      "inspectionReads": []
+    }
+  ],
+  "events": [
+    {
+      "event": "started",
+      "at": 1791482550.3585448,
+      "generation": 1,
+      "pid": 72136,
+      "launcherPid": 72135,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-062511ys",
+      "profileDevice": 16777234,
+      "profileInode": 17608489,
+      "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+    }
+  ],
+  "attempts": 3,
+  "inspectionExitObservations": [
+    {
+      "pid": 72136,
+      "returncode": 0,
+      "inspectionFailedAt": 1791482551.449398,
+      "pollAfterInspection": 1791482551.449405,
+      "error": {
+        "stage": "inspect-child",
+        "type": "RuntimeError",
+        "message": "Owned child PID/PPID/executable mismatch",
+        "inspectionReads": [
+          {
+            "columns": "pid=,ppid=,comm=",
+            "stdout": "72136 72135 (Google Chrome fo)\n",
+            "stderr": "",
+            "returncode": 0,
+            "observedAt": 1791482551.446294
+          },
+          {
+            "columns": "command=",
+            "stdout": "<defunct>\n",
+            "stderr": "",
+            "returncode": 0,
+            "observedAt": 1791482551.449376
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-08T18:51:26.451328+00:00",
+  "owner": "r62-final-20261009-01a11ca3",
+  "ownedHttp": {
+    "pid": 89894,
+    "beforeCommand": "89894 63835 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks",
+    "beforeCwd": "p89894\nfcwd\nn/Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser",
+    "signal": "SIGTERM",
+    "exited": true
+  },
+  "43111After": "",
+  "otherProcesses": "untouched"
+}

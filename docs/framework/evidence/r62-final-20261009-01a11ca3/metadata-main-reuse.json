@@ -1,0 +1,9 @@
+{
+  "latestMain": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+  "previousMain": "5769730beb9fddc6fc788a2702409ec06076feac",
+  "productInputCommit": "40d3bf5f93cfa0bf587ec6080a03de3302b27e6f",
+  "sourceInputFilesCompared": 148,
+  "sourceDifferences": [],
+  "note": "main additions are docs/evidence/testing assets and unrelated HTTP example; R6.2 product inputs unchanged, reuse component/build evidence without full rebuild",
+  "scope": "no native/formal grade promotion"
+}

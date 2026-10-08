@@ -1,0 +1,56 @@
+[
+  {
+    "targetId": "1CEEDCB6FF612B27C4ED9B15C60D7EB4",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+    "url": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "91CE58FD2A18DA54F356BE45C709E722"
+  },
+  {
+    "targetId": "A1BDDE012BB4EC4DDFE5E46D984F38B6",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+    "url": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "91CE58FD2A18DA54F356BE45C709E722"
+  },
+  {
+    "targetId": "B33FF8EA8D290C36EA7EF6EF16A78DCB",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://dhfjllkgepdhpglbmdlodjjncmknkebl/sw.js",
+    "url": "chrome-extension://dhfjllkgepdhpglbmdlodjjncmknkebl/sw.js",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "91CE58FD2A18DA54F356BE45C709E722"
+  },
+  {
+    "targetId": "FEE7ED5E30BDC59DABC969DDB34163D0",
+    "type": "page",
+    "title": "about:blank",
+    "url": "about:blank",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "91CE58FD2A18DA54F356BE45C709E722"
+  },
+  {
+    "targetId": "9D4D1EF139597BDE66EEF471A2E0C802",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "91CE58FD2A18DA54F356BE45C709E722"
+  },
+  {
+    "targetId": "379C475F13F70CA060CD10BDCEBE9AE0",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "91CE58FD2A18DA54F356BE45C709E722"
+  }
+]

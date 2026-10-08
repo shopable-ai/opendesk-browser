@@ -1,0 +1,9 @@
+AssertionError [ERR_ASSERTION]: External demo bytes cannot qualify this candidate
++ actual - expected
+
++ 'e88da478b847045ae8c2100abe3c7287f515873c02d97d5f96435440f06f6237'
+- '815af5458d617b4688a504cfc265f81427ccfd847a718210c4cc9eeeeb510383'
+
+    at inputs (file:///Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser/tests/framework/r62-native-acceptance.mjs:86:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async main (file:///Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser/tests/framework/r62-native-acceptance.mjs:161:37)

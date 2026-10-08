@@ -1,0 +1,9 @@
+{
+  "ownedChromePid": 73343,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-a2rzgzz1",
+  "extensionId": "dhfjllkgepdhpglbmdlodjjncmknkebl",
+  "profileManifest": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-a2rzgzz1/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+  "manifestSha256": "543e9ef31737c0285b8bca859f49979df9b9c9adf0c83f8f6ac2a6aa4382f056",
+  "reason": "Chromium DIR_USER_NATIVE_MESSAGING derives from overridden DIR_USER_DATA",
+  "source": "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/common/chrome_paths.cc#483"
+}

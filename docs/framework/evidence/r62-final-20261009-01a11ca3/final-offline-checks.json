@@ -1,0 +1,34 @@
+[
+  {
+    "name": "driver-components",
+    "command": [
+      "node",
+      "--test",
+      "tests/framework/r62-native-acceptance.test.mjs"
+    ],
+    "exitCode": 0,
+    "log": "docs/framework/evidence/r62-final-20261009-01a11ca3/driver-components.log"
+  },
+  {
+    "name": "check-final",
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0,
+    "log": "docs/framework/evidence/r62-final-20261009-01a11ca3/check-final.log"
+  },
+  {
+    "name": "readonly-native-observation",
+    "command": [
+      "node",
+      "tests/framework/r62-native-acceptance.mjs",
+      "inspect",
+      "--session=docs/framework/evidence/r62-final-20261009-01a11ca3/native-session-3/session.json",
+      "--evidence=docs/framework/evidence/r62-final-20261009-01a11ca3/readonly-observation"
+    ],
+    "exitCode": 1,
+    "log": "docs/framework/evidence/r62-final-20261009-01a11ca3/readonly-native-observation.log"
+  }
+]

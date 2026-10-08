@@ -1,0 +1,3 @@
+AssertionError [ERR_ASSERTION]: Exact recorded extension worker is required
+    at inspect (file:///Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser/tests/framework/r62-native-acceptance.mjs:116:5)
+    at async main (file:///Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser/tests/framework/r62-native-acceptance.mjs:251:35)
