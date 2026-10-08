@@ -4,7 +4,7 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LE
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map()}={}) {
   let enabled=false,port=null,ready=false,disposed=false,sequence=Promise.resolve();
-  const pending=new Map();
+  const pending=new Map(),store=api.storage.local;
   function exclusive(action) {
     const next=sequence.then(action);
     sequence=next.catch(()=>{});
@@ -20,7 +20,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     return matches[0];
   }
   const ledger=async()=>{
-    const entries=(await api.storage.local.get(AGENT_LEDGER_KEY))[AGENT_LEDGER_KEY];
+    const entries=(await store.get(AGENT_LEDGER_KEY))[AGENT_LEDGER_KEY];
     return entries&&typeof entries==='object'&&!Array.isArray(entries)?entries:{};
   };
   const error=(e)=>({code:e?.code||'E_EFFECT_UNKNOWN',message:e?.message||'E_EFFECT_UNKNOWN',
@@ -38,7 +38,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       if(Object.keys(rows).length>=AGENT_MAX_LEDGER)throw new AgentBridgeError('E_LIMIT');
       rows[req.requestId]={digest,method:req.method,registrationId:host.registrationId,state:'OUTCOME_UNKNOWN',
         createdAt:Date.now()};
-      await api.storage.local.set({[AGENT_LEDGER_KEY]:rows});
+      await store.set({[AGENT_LEDGER_KEY]:rows});
       return null;
     });
   }
@@ -51,7 +51,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
         ...(reply.result?.runId?{runId:reply.result.runId}:{}),
         ...(reply.error?.outcome==='OUTCOME_UNKNOWN'?{}:{reply}),
         updatedAt:Date.now()};
-      await api.storage.local.set({[AGENT_LEDGER_KEY]:rows});
+      await store.set({[AGENT_LEDGER_KEY]:rows});
     });
   }
   async function assertRun(runId) {
@@ -133,7 +133,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     });
   }
   const initial=(async()=>{
-    const configuration=await api.storage.local.get(AGENT_ENABLED_KEY);
+    const configuration=await store.get(AGENT_ENABLED_KEY);
     enabled=configuration[AGENT_ENABLED_KEY]===true&&
       await api.permissions.contains({permissions:['nativeMessaging']});
     if(enabled)connect();
@@ -148,11 +148,11 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(msg?.type==='enable') {
       if(!await api.permissions.contains({permissions:['nativeMessaging']}))
         throw new AgentBridgeError('E_PERMISSION_REQUIRED');
-      enabled=true;await api.storage.local.set({[AGENT_ENABLED_KEY]:true});connect();
+      enabled=true;await store.set({[AGENT_ENABLED_KEY]:true});connect();
       return {enabled,nativeConnected:ready};
     }
     if(msg?.type==='disable') {
-      enabled=false;await api.storage.local.set({[AGENT_ENABLED_KEY]:false});
+      enabled=false;await store.set({[AGENT_ENABLED_KEY]:false});
       const old=port;port=null;ready=false;old?.disconnect();
       return {enabled:false,nativeConnected:false};
     }
@@ -160,7 +160,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   }
   const onRemoved=permissions=>{
     if(!permissions?.permissions?.includes('nativeMessaging'))return;
-    enabled=false;api.storage.local.set({[AGENT_ENABLED_KEY]:false}).catch(()=>{});
+    enabled=false;store.set({[AGENT_ENABLED_KEY]:false}).catch(()=>{});
     const old=port;port=null;ready=false;old?.disconnect();
   };
   api.permissions.onRemoved?.addListener(onRemoved);
