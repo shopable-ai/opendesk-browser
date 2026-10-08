@@ -1,16 +1,16 @@
-// OpenDesk Sidebar「开发」草稿：通过现有 Page API 点击网页内的 axiosx 按钮。
-// 网页必须先通过「独立网页 SDK」批准 network 并安装 MAIN/ISOLATED 入口。
+// OpenDesk Sidebar「开发」草稿：通过 Page API 点击标准测试页的原生 fetch GET 按钮。
+// 保留历史文件名兼容旧链接；本例不调用 Page SDK axiosx，也不作为其验收证据。
 // 参数：{"url":"./request-sample.json","expected":"success"}。
-// 不直接调用 Worker axiosx，不使用页面任意求值或 DOM 强制改值。
+// 页面请求遵守浏览器 CORS；Worker axiosx 请使用 http-worker-axiosx-draft.js 单独验收。
 async function main() {
   const url = String(params.url ?? './request-sample.json');
   const expected = params.expected === 'error' ? 'error' : 'success';
   await page.getByLabel('请求 URL', {exact:true}).fill(url);
-  await page.getByRole('button', {name:'发送请求', exact:true}).click();
+  await page.getByRole('button', {name:'发送 GET', exact:true}).click();
   await page.locator('#api-status[data-state="' + expected + '"]')
     .waitFor({state:'visible', timeout:10000});
   return {
-    channel:'page-sdk-axiosx-through-page-api',
+    channel:'page-fetch-through-page-api',
     url,
     httpStatus:await page.locator('#api-http-status').textContent(),
     duration:await page.locator('#api-duration').textContent(),

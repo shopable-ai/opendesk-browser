@@ -1,0 +1,656 @@
+﻿2026-10-08T17:39:04.5140316Z Current runner version: '2.337.0'
+2026-10-08T17:39:04.5166870Z ##[group]Runner Image Provisioner
+2026-10-08T17:39:04.5167774Z Hosted Compute Agent
+2026-10-08T17:39:04.5168772Z Version: 20261002.596
+2026-10-08T17:39:04.5169454Z Commit: c3d12f3313a95f25162a1503be624f3b0617f8c0
+2026-10-08T17:39:04.5170315Z Build Date: 2026-10-02T22:28:27Z
+2026-10-08T17:39:04.5171056Z Worker ID: {4d5e8663-a554-4524-a4d2-947066ebac1b}
+2026-10-08T17:39:04.5171773Z Region: eastus2
+2026-10-08T17:39:04.5172428Z Cloud: Azure
+2026-10-08T17:39:04.5173006Z ##[endgroup]
+2026-10-08T17:39:04.5174775Z ##[group]Operating System
+2026-10-08T17:39:04.5175519Z Ubuntu
+2026-10-08T17:39:04.5176289Z 24.04.5
+2026-10-08T17:39:04.5177154Z LTS
+2026-10-08T17:39:04.5177888Z ##[endgroup]
+2026-10-08T17:39:04.5178938Z ##[group]Runner Image
+2026-10-08T17:39:04.5179938Z Image: ubuntu-24.04
+2026-10-08T17:39:04.5180813Z Version: 20261004.327.1
+2026-10-08T17:39:04.5182842Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261004.327/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-08T17:39:04.5185388Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261004.327
+2026-10-08T17:39:04.5187016Z ##[endgroup]
+2026-10-08T17:39:04.5188763Z ##[group]GITHUB_TOKEN Permissions
+2026-10-08T17:39:04.5191768Z Contents: read
+2026-10-08T17:39:04.5192654Z Metadata: read
+2026-10-08T17:39:04.5193666Z ##[endgroup]
+2026-10-08T17:39:04.5196593Z Secret source: Actions
+2026-10-08T17:39:04.5198351Z Cache mode: write
+2026-10-08T17:39:04.5199983Z Prepare workflow directory
+2026-10-08T17:39:04.5655051Z Prepare all required actions
+2026-10-08T17:39:04.5722810Z Getting action download info
+2026-10-08T17:39:04.7695861Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-08T17:39:04.8711106Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-08T17:39:05.0642310Z Complete job name: source-check
+2026-10-08T17:39:05.1422005Z ##[group]Run actions/checkout@v4
+2026-10-08T17:39:05.1422877Z with:
+2026-10-08T17:39:05.1423358Z   repository: shopable-ai/opendesk-browser
+2026-10-08T17:39:05.1427236Z   token: ***
+2026-10-08T17:39:05.1427675Z   ssh-strict: true
+2026-10-08T17:39:05.1428372Z   ssh-user: git
+2026-10-08T17:39:05.1428835Z   persist-credentials: true
+2026-10-08T17:39:05.1429332Z   clean: true
+2026-10-08T17:39:05.1429783Z   sparse-checkout-cone-mode: true
+2026-10-08T17:39:05.1430296Z   fetch-depth: 1
+2026-10-08T17:39:05.1430726Z   fetch-tags: false
+2026-10-08T17:39:05.1431165Z   show-progress: true
+2026-10-08T17:39:05.1431617Z   lfs: false
+2026-10-08T17:39:05.1432036Z   submodules: false
+2026-10-08T17:39:05.1432485Z   set-safe-directory: true
+2026-10-08T17:39:05.1432986Z   allow-unsafe-pr-checkout: false
+2026-10-08T17:39:05.1433699Z ##[endgroup]
+2026-10-08T17:39:05.2469729Z Syncing repository: shopable-ai/opendesk-browser
+2026-10-08T17:39:05.2472374Z ##[group]Getting Git version info
+2026-10-08T17:39:05.2473716Z Working directory is '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-08T17:39:05.2475467Z [command]/usr/bin/git version
+2026-10-08T17:39:05.2529703Z git version 2.55.0
+2026-10-08T17:39:05.2550244Z ##[endgroup]
+2026-10-08T17:39:05.2565729Z Temporarily overriding HOME='/home/runner/work/_temp/6fd5c1e0-b839-441e-bac8-c44709a59ee3' before making global git config changes
+2026-10-08T17:39:05.2568033Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-08T17:39:05.2571273Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T17:39:05.2622175Z Deleting the contents of '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-08T17:39:05.2631332Z ##[group]Initializing the repository
+2026-10-08T17:39:05.2641361Z [command]/usr/bin/git init /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T17:39:05.2712108Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-08T17:39:05.2713142Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-08T17:39:05.2714317Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-08T17:39:05.2715061Z hint: call:
+2026-10-08T17:39:05.2715467Z hint:
+2026-10-08T17:39:05.2715985Z hint: 	git config --global init.defaultBranch <name>
+2026-10-08T17:39:05.2716616Z hint:
+2026-10-08T17:39:05.2717191Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-08T17:39:05.2718498Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-08T17:39:05.2719238Z hint:
+2026-10-08T17:39:05.2719659Z hint: 	git branch -m <name>
+2026-10-08T17:39:05.2720130Z hint:
+2026-10-08T17:39:05.2720888Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-08T17:39:05.2722494Z Initialized empty Git repository in /home/runner/work/opendesk-browser/opendesk-browser/.git/
+2026-10-08T17:39:05.2733279Z [command]/usr/bin/git remote add origin https://github.com/shopable-ai/opendesk-browser
+2026-10-08T17:39:05.2777740Z ##[endgroup]
+2026-10-08T17:39:05.2779036Z ##[group]Disabling automatic garbage collection
+2026-10-08T17:39:05.2782088Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-08T17:39:05.2816925Z ##[endgroup]
+2026-10-08T17:39:05.2817835Z ##[group]Setting up auth
+2026-10-08T17:39:05.2824669Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-08T17:39:05.2859555Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-08T17:39:05.3223160Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-08T17:39:05.3269623Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-08T17:39:05.3536740Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-08T17:39:05.3578301Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-08T17:39:05.3822916Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-08T17:39:05.3866475Z ##[endgroup]
+2026-10-08T17:39:05.3867738Z ##[group]Fetching the repository
+2026-10-08T17:39:05.3877299Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +189a7037afce89efe7fef7772e781fd70643143c:refs/remotes/origin/main
+2026-10-08T17:39:08.9950811Z From https://github.com/shopable-ai/opendesk-browser
+2026-10-08T17:39:08.9952729Z  * [new ref]         189a7037afce89efe7fef7772e781fd70643143c -> origin/main
+2026-10-08T17:39:08.9957991Z ##[endgroup]
+2026-10-08T17:39:08.9959832Z ##[group]Determining the checkout info
+2026-10-08T17:39:08.9961757Z ##[endgroup]
+2026-10-08T17:39:08.9966007Z [command]/usr/bin/git sparse-checkout disable
+2026-10-08T17:39:09.0033780Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-08T17:39:09.0075595Z ##[group]Checking out the ref
+2026-10-08T17:39:09.0080861Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-08T17:39:10.0271652Z Updating files:  66% (8654/12960)
+2026-10-08T17:39:10.0329353Z Updating files:  67% (8684/12960)
+2026-10-08T17:39:10.0458492Z Updating files:  68% (8813/12960)
+2026-10-08T17:39:10.0549650Z Updating files:  69% (8943/12960)
+2026-10-08T17:39:10.0614919Z Updating files:  70% (9072/12960)
+2026-10-08T17:39:10.0672221Z Updating files:  71% (9202/12960)
+2026-10-08T17:39:10.0825736Z Updating files:  72% (9332/12960)
+2026-10-08T17:39:10.0903696Z Updating files:  73% (9461/12960)
+2026-10-08T17:39:10.0949289Z Updating files:  74% (9591/12960)
+2026-10-08T17:39:10.1102566Z Updating files:  75% (9720/12960)
+2026-10-08T17:39:10.1177952Z Updating files:  76% (9850/12960)
+2026-10-08T17:39:10.1234522Z Updating files:  77% (9980/12960)
+2026-10-08T17:39:10.1362170Z Updating files:  78% (10109/12960)
+2026-10-08T17:39:10.1454255Z Updating files:  79% (10239/12960)
+2026-10-08T17:39:10.1524732Z Updating files:  80% (10368/12960)
+2026-10-08T17:39:10.1577687Z Updating files:  81% (10498/12960)
+2026-10-08T17:39:10.1734466Z Updating files:  82% (10628/12960)
+2026-10-08T17:39:10.1812792Z Updating files:  83% (10757/12960)
+2026-10-08T17:39:10.1862332Z Updating files:  84% (10887/12960)
+2026-10-08T17:39:10.2016129Z Updating files:  85% (11016/12960)
+2026-10-08T17:39:10.2087836Z Updating files:  86% (11146/12960)
+2026-10-08T17:39:10.2194224Z Updating files:  87% (11276/12960)
+2026-10-08T17:39:10.2511962Z Updating files:  88% (11405/12960)
+2026-10-08T17:39:10.2822876Z Updating files:  89% (11535/12960)
+2026-10-08T17:39:10.2984370Z Updating files:  90% (11664/12960)
+2026-10-08T17:39:10.3060488Z Updating files:  91% (11794/12960)
+2026-10-08T17:39:10.3152040Z Updating files:  92% (11924/12960)
+2026-10-08T17:39:10.3511973Z Updating files:  93% (12053/12960)
+2026-10-08T17:39:10.4309163Z Updating files:  94% (12183/12960)
+2026-10-08T17:39:10.4654129Z Updating files:  95% (12312/12960)
+2026-10-08T17:39:10.5348444Z Updating files:  96% (12442/12960)
+2026-10-08T17:39:10.5951594Z Updating files:  97% (12572/12960)
+2026-10-08T17:39:10.6738853Z Updating files:  98% (12701/12960)
+2026-10-08T17:39:10.7132358Z Updating files:  99% (12831/12960)
+2026-10-08T17:39:10.7132983Z Updating files: 100% (12960/12960)
+2026-10-08T17:39:10.7133467Z Updating files: 100% (12960/12960), done.
+2026-10-08T17:39:10.7334282Z Switched to a new branch 'main'
+2026-10-08T17:39:10.7369615Z branch 'main' set up to track 'origin/main'.
+2026-10-08T17:39:10.7443758Z ##[endgroup]
+2026-10-08T17:39:10.7791533Z [command]/usr/bin/git log -1 --format=%H
+2026-10-08T17:39:10.7831064Z 189a7037afce89efe7fef7772e781fd70643143c
+2026-10-08T17:39:10.8365837Z ##[group]Run actions/setup-node@v4
+2026-10-08T17:39:10.8366168Z with:
+2026-10-08T17:39:10.8366392Z   node-version: 22
+2026-10-08T17:39:10.8366614Z   cache: npm
+2026-10-08T17:39:10.8366822Z   always-auth: false
+2026-10-08T17:39:10.8367050Z   check-latest: false
+2026-10-08T17:39:10.8370119Z   token: ***
+2026-10-08T17:39:10.8370340Z ##[endgroup]
+2026-10-08T17:39:10.9829520Z (node:2355) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-08T17:39:10.9830378Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-08T17:39:10.9839248Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-08T17:39:10.9849364Z ##[group]Environment details
+2026-10-08T17:39:11.3406705Z node: v22.23.3
+2026-10-08T17:39:11.3407317Z npm: 10.9.9
+2026-10-08T17:39:11.3407669Z yarn: 1.22.22
+2026-10-08T17:39:11.3409782Z ##[endgroup]
+2026-10-08T17:39:11.3430637Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-08T17:39:11.4561977Z /home/runner/.npm
+2026-10-08T17:39:11.5529035Z Cache hit for: node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce
+2026-10-08T17:39:11.5636044Z (node:2355) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-08T17:39:11.7566245Z Received 15714701 of 15714701 (100.0%), 88.7 MBs/sec
+2026-10-08T17:39:11.7566988Z Cache Size: ~15 MB (15714701 B)
+2026-10-08T17:39:11.7601232Z [command]/usr/bin/tar -xf /home/runner/work/_temp/e5af259a-842c-4b09-b4b3-0fc6470452e3/cache.tzst -P -C /home/runner/work/opendesk-browser/opendesk-browser --use-compress-program unzstd
+2026-10-08T17:39:11.8311641Z Cache restored successfully
+2026-10-08T17:39:11.8323606Z Cache restored from key: node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce
+2026-10-08T17:39:11.8501985Z ##[group]Run npm ci --ignore-scripts --no-audit --no-fund
+2026-10-08T17:39:11.8502758Z [36;1mnpm ci --ignore-scripts --no-audit --no-fund[0m
+2026-10-08T17:39:11.8735198Z shell: /usr/bin/bash -e {0}
+2026-10-08T17:39:11.8735507Z ##[endgroup]
+2026-10-08T17:39:13.9957574Z 
+2026-10-08T17:39:13.9964917Z added 240 packages in 2s
+2026-10-08T17:39:14.0477753Z ##[group]Run node --test tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs tests/environment/script-editor.test.mjs
+2026-10-08T17:39:14.0479162Z [36;1mnode --test tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs tests/environment/script-editor.test.mjs[0m
+2026-10-08T17:39:14.0480014Z [36;1mnode scripts/validate-program-project.mjs examples/programs/page-heading[0m
+2026-10-08T17:39:14.0480611Z [36;1mnode scripts/validate-program-project.mjs examples/programs/controller-title[0m
+2026-10-08T17:39:14.0481191Z [36;1mnode scripts/build-program-project.mjs examples/programs/page-heading[0m
+2026-10-08T17:39:14.0481752Z [36;1mnode scripts/build-program-project.mjs examples/programs/controller-title[0m
+2026-10-08T17:39:14.0555040Z shell: /usr/bin/bash -e {0}
+2026-10-08T17:39:14.0555334Z ##[endgroup]
+2026-10-08T17:39:14.1169785Z TAP version 13
+2026-10-08T17:39:14.9845393Z # Subtest: three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler
+2026-10-08T17:39:14.9852680Z ok 1 - three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler
+2026-10-08T17:39:14.9853881Z   ---
+2026-10-08T17:39:14.9854409Z   duration_ms: 774.344086
+2026-10-08T17:39:14.9854938Z   type: 'test'
+2026-10-08T17:39:14.9855310Z   ...
+2026-10-08T17:39:15.1270209Z # Subtest: Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim
+2026-10-08T17:39:15.1272950Z ok 2 - Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim
+2026-10-08T17:39:15.1274258Z   ---
+2026-10-08T17:39:15.1274510Z   duration_ms: 142.780033
+2026-10-08T17:39:15.1274842Z   type: 'test'
+2026-10-08T17:39:15.1275062Z   ...
+2026-10-08T17:39:15.1803093Z # Subtest: development mode emits readable program JS, draft metadata and a separate local source map only
+2026-10-08T17:39:15.1805740Z ok 3 - development mode emits readable program JS, draft metadata and a separate local source map only
+2026-10-08T17:39:15.1816440Z   ---
+2026-10-08T17:39:15.1816826Z   duration_ms: 53.08578
+2026-10-08T17:39:15.1817197Z   type: 'test'
+2026-10-08T17:39:15.1817467Z   ...
+2026-10-08T17:39:15.2136166Z # Subtest: development source map maps final generated throw position back to local authoring module
+2026-10-08T17:39:15.2137682Z ok 4 - development source map maps final generated throw position back to local authoring module
+2026-10-08T17:39:15.2138830Z   ---
+2026-10-08T17:39:15.2139330Z   duration_ms: 33.13704
+2026-10-08T17:39:15.2139704Z   type: 'test'
+2026-10-08T17:39:15.2140018Z   ...
+2026-10-08T17:39:15.2187782Z # Subtest: an unbundled asset is rejected rather than included in a supposedly complete project
+2026-10-08T17:39:15.2189530Z ok 5 - an unbundled asset is rejected rather than included in a supposedly complete project
+2026-10-08T17:39:15.2190337Z   ---
+2026-10-08T17:39:15.2190978Z   duration_ms: 5.596106
+2026-10-08T17:39:15.2191661Z   type: 'test'
+2026-10-08T17:39:15.2192133Z   ...
+2026-10-08T17:39:15.3566886Z # Subtest: webpack dependency failures report project, phase and importing source location
+2026-10-08T17:39:15.3569126Z ok 6 - webpack dependency failures report project, phase and importing source location
+2026-10-08T17:39:15.3569776Z   ---
+2026-10-08T17:39:15.3570113Z   duration_ms: 137.319372
+2026-10-08T17:39:15.3570705Z   type: 'test'
+2026-10-08T17:39:15.3571033Z   ...
+2026-10-08T17:39:15.3618949Z # Subtest: untrusted remote and dynamic ESM imports are rejected before Webpack
+2026-10-08T17:39:15.3620735Z ok 7 - untrusted remote and dynamic ESM imports are rejected before Webpack
+2026-10-08T17:39:15.3621360Z   ---
+2026-10-08T17:39:15.3621701Z   duration_ms: 5.649565
+2026-10-08T17:39:15.3622478Z   type: 'test'
+2026-10-08T17:39:15.3622814Z   ...
+2026-10-08T17:39:15.6364481Z # Subtest: a frozen output directory rejects replacement without quietly publishing new bytes
+2026-10-08T17:39:15.6365796Z ok 8 - a frozen output directory rejects replacement without quietly publishing new bytes
+2026-10-08T17:39:15.6366375Z   ---
+2026-10-08T17:39:15.6366925Z   duration_ms: 274.353304
+2026-10-08T17:39:15.6367256Z   type: 'test'
+2026-10-08T17:39:15.6367548Z   ...
+2026-10-08T17:39:15.6532966Z # Subtest: multi-file ESM authoring project is a source contract, not an installed program
+2026-10-08T17:39:15.6534266Z ok 9 - multi-file ESM authoring project is a source contract, not an installed program
+2026-10-08T17:39:15.6535163Z   ---
+2026-10-08T17:39:15.6535655Z   duration_ms: 30.565036
+2026-10-08T17:39:15.6536034Z   type: 'test'
+2026-10-08T17:39:15.6536343Z   ...
+2026-10-08T17:39:15.6537038Z # Subtest: imports cannot escape project or load remote modules at browser runtime
+2026-10-08T17:39:15.6538257Z ok 10 - imports cannot escape project or load remote modules at browser runtime
+2026-10-08T17:39:15.6538877Z   ---
+2026-10-08T17:39:15.6539180Z   duration_ms: 10.444455
+2026-10-08T17:39:15.6539532Z   type: 'test'
+2026-10-08T17:39:15.6540012Z   ...
+2026-10-08T17:39:15.6540779Z # Subtest: entry diagnostics distinguish missing and non-function defaults with source location
+2026-10-08T17:39:15.6541895Z ok 11 - entry diagnostics distinguish missing and non-function defaults with source location
+2026-10-08T17:39:15.6542578Z   ---
+2026-10-08T17:39:15.6542914Z   duration_ms: 7.877289
+2026-10-08T17:39:15.6543281Z   type: 'test'
+2026-10-08T17:39:15.6543594Z   ...
+2026-10-08T17:39:15.6544260Z # Subtest: dynamic import is not quietly kept as an unlocked runtime dependency
+2026-10-08T17:39:15.6545237Z ok 12 - dynamic import is not quietly kept as an unlocked runtime dependency
+2026-10-08T17:39:15.6545865Z   ---
+2026-10-08T17:39:15.6546189Z   duration_ms: 5.800114
+2026-10-08T17:39:15.6546574Z   type: 'test'
+2026-10-08T17:39:15.6546929Z   ...
+2026-10-08T17:39:15.6547669Z # Subtest: npm imports require declared dependencies and a committed matching npm lock
+2026-10-08T17:39:15.6549058Z ok 13 - npm imports require declared dependencies and a committed matching npm lock
+2026-10-08T17:39:15.6549713Z   ---
+2026-10-08T17:39:15.6550215Z   duration_ms: 10.48096
+2026-10-08T17:39:15.6550678Z   type: 'test'
+2026-10-08T17:39:15.6550994Z   ...
+2026-10-08T17:39:15.6551751Z # Subtest: Page/Controller source contracts remain discriminated without changing Task v1
+2026-10-08T17:39:15.6552929Z ok 14 - Page/Controller source contracts remain discriminated without changing Task v1
+2026-10-08T17:39:15.6553638Z   ---
+2026-10-08T17:39:15.6553970Z   duration_ms: 8.631814
+2026-10-08T17:39:15.6554363Z   type: 'test'
+2026-10-08T17:39:15.6554692Z   ...
+2026-10-08T17:39:15.6555327Z # Subtest: assets can be listed and hashed but never silently injected
+2026-10-08T17:39:15.6556206Z ok 15 - assets can be listed and hashed but never silently injected
+2026-10-08T17:39:15.6556870Z   ---
+2026-10-08T17:39:15.6557195Z   duration_ms: 11.952733
+2026-10-08T17:39:15.6557574Z   type: 'test'
+2026-10-08T17:39:15.6557892Z   ...
+2026-10-08T17:39:15.6559075Z # Subtest: importing a JS draft leaves saved versions and running source independent
+2026-10-08T17:39:15.6560150Z ok 16 - importing a JS draft leaves saved versions and running source independent
+2026-10-08T17:39:15.6560822Z   ---
+2026-10-08T17:39:15.6561150Z   duration_ms: 23.751467
+2026-10-08T17:39:15.6561532Z   type: 'test'
+2026-10-08T17:39:15.6561851Z   ...
+2026-10-08T17:39:15.6562744Z # Subtest: draft import rejects empty/oversized sources and active saves without overwriting the editor
+2026-10-08T17:39:15.6564094Z ok 17 - draft import rejects empty/oversized sources and active saves without overwriting the editor
+2026-10-08T17:39:15.6564884Z   ---
+2026-10-08T17:39:15.6565211Z   duration_ms: 7.178147
+2026-10-08T17:39:15.6565584Z   type: 'test'
+2026-10-08T17:39:15.6565921Z   ...
+2026-10-08T17:39:15.6567217Z # Subtest: catalog draft import updates dependency review from the new source without saving or running
+2026-10-08T17:39:15.6568881Z ok 18 - catalog draft import updates dependency review from the new source without saving or running
+2026-10-08T17:39:15.6569890Z   ---
+2026-10-08T17:39:15.6570205Z   duration_ms: 6.809628
+2026-10-08T17:39:15.6570564Z   type: 'test'
+2026-10-08T17:39:15.6570876Z   ...
+2026-10-08T17:39:15.6571722Z # Subtest: Save persists revision/hash without requesting permission, creating a Run, or executing code
+2026-10-08T17:39:15.6573005Z ok 19 - Save persists revision/hash without requesting permission, creating a Run, or executing code
+2026-10-08T17:39:15.6573740Z   ---
+2026-10-08T17:39:15.6574057Z   duration_ms: 4.873432
+2026-10-08T17:39:15.6574404Z   type: 'test'
+2026-10-08T17:39:15.6574713Z   ...
+2026-10-08T17:39:15.6575600Z # Subtest: reopened editor lists saved scripts without running and loads the selected latest head explicitly
+2026-10-08T17:39:15.6576944Z ok 20 - reopened editor lists saved scripts without running and loads the selected latest head explicitly
+2026-10-08T17:39:15.6577722Z   ---
+2026-10-08T17:39:15.6578031Z   duration_ms: 5.675047
+2026-10-08T17:39:15.6578531Z   type: 'test'
+2026-10-08T17:39:15.6578840Z   ...
+2026-10-08T17:39:15.6579557Z # Subtest: loading a historical revision does not turn it into the latest Save CAS head
+2026-10-08T17:39:15.6580640Z ok 21 - loading a historical revision does not turn it into the latest Save CAS head
+2026-10-08T17:39:15.6581275Z   ---
+2026-10-08T17:39:15.6581570Z   duration_ms: 7.56855
+2026-10-08T17:39:15.6581907Z   type: 'test'
+2026-10-08T17:39:15.6582115Z   ...
+2026-10-08T17:39:15.6582642Z # Subtest: Delete tombstones the latest head and refreshes the saved-script selector
+2026-10-08T17:39:15.6583682Z ok 22 - Delete tombstones the latest head and refreshes the saved-script selector
+2026-10-08T17:39:15.6584337Z   ---
+2026-10-08T17:39:15.6584647Z   duration_ms: 5.145759
+2026-10-08T17:39:15.6584921Z   type: 'test'
+2026-10-08T17:39:15.6585232Z   ...
+2026-10-08T17:39:15.6586077Z # Subtest: saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+2026-10-08T17:39:15.6587396Z ok 23 - saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B
+2026-10-08T17:39:15.6588288Z   ---
+2026-10-08T17:39:15.6588590Z   duration_ms: 11.125801
+2026-10-08T17:39:15.6588954Z   type: 'test'
+2026-10-08T17:39:15.6589251Z   ...
+2026-10-08T17:39:15.6590041Z # Subtest: a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+2026-10-08T17:39:15.6591251Z ok 24 - a brand-new unsaved draft runs with an empty script ID and never creates a saved revision
+2026-10-08T17:39:15.6591949Z   ---
+2026-10-08T17:39:15.6592261Z   duration_ms: 9.224447
+2026-10-08T17:39:15.6592611Z   type: 'test'
+2026-10-08T17:39:15.6592912Z   ...
+2026-10-08T17:39:15.6593841Z # Subtest: permission preparation rejects a switched page; closing the editor during permission never admits a run
+2026-10-08T17:39:15.6595293Z ok 25 - permission preparation rejects a switched page; closing the editor during permission never admits a run
+2026-10-08T17:39:15.6596086Z   ---
+2026-10-08T17:39:15.6596376Z   duration_ms: 15.072062
+2026-10-08T17:39:15.6596750Z   type: 'test'
+2026-10-08T17:39:15.6596977Z   ...
+2026-10-08T17:39:15.6597490Z # Subtest: Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+2026-10-08T17:39:15.6598457Z ok 26 - Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin
+2026-10-08T17:39:15.6598936Z   ---
+2026-10-08T17:39:15.6599151Z   duration_ms: 8.051409
+2026-10-08T17:39:15.6599402Z   type: 'test'
+2026-10-08T17:39:15.6599602Z   ...
+2026-10-08T17:39:15.6600131Z # Subtest: pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+2026-10-08T17:39:15.6600931Z ok 27 - pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result
+2026-10-08T17:39:15.6601577Z   ---
+2026-10-08T17:39:15.6601782Z   duration_ms: 7.874245
+2026-10-08T17:39:15.6602010Z   type: 'test'
+2026-10-08T17:39:15.6602216Z   ...
+2026-10-08T17:39:15.6602854Z # Subtest: late Save/Load replies do not overwrite another script selection or edits made during loading
+2026-10-08T17:39:15.6603652Z ok 28 - late Save/Load replies do not overwrite another script selection or edits made during loading
+2026-10-08T17:39:15.6604108Z   ---
+2026-10-08T17:39:15.6604315Z   duration_ms: 8.061489
+2026-10-08T17:39:15.6604540Z   type: 'test'
+2026-10-08T17:39:15.6604744Z   ...
+2026-10-08T17:39:15.6605183Z # Subtest: late saved-script selector load cannot overwrite edits made during loading
+2026-10-08T17:39:15.6605824Z ok 29 - late saved-script selector load cannot overwrite edits made during loading
+2026-10-08T17:39:15.6606223Z   ---
+2026-10-08T17:39:15.6606427Z   duration_ms: 6.093076
+2026-10-08T17:39:15.6606659Z   type: 'test'
+2026-10-08T17:39:15.6606861Z   ...
+2026-10-08T17:39:15.6607349Z # Subtest: an older snapshot reply cannot disable Run after a newer durable observation
+2026-10-08T17:39:15.6608062Z ok 30 - an older snapshot reply cannot disable Run after a newer durable observation
+2026-10-08T17:39:15.6608704Z   ---
+2026-10-08T17:39:15.6608934Z   duration_ms: 7.949537
+2026-10-08T17:39:15.6609187Z   type: 'test'
+2026-10-08T17:39:15.6609395Z   ...
+2026-10-08T17:39:15.6609853Z # Subtest: an older snapshot error cannot overwrite a newer successful durable view
+2026-10-08T17:39:15.6610517Z ok 31 - an older snapshot error cannot overwrite a newer successful durable view
+2026-10-08T17:39:15.6610934Z   ---
+2026-10-08T17:39:15.6611171Z   duration_ms: 8.526737
+2026-10-08T17:39:15.6611432Z   type: 'test'
+2026-10-08T17:39:15.6611635Z   ...
+2026-10-08T17:39:15.6612318Z # Subtest: the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing
+2026-10-08T17:39:15.6613352Z ok 32 - the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing
+2026-10-08T17:39:15.6613979Z   ---
+2026-10-08T17:39:15.6614188Z   duration_ms: 6.859533
+2026-10-08T17:39:15.6614452Z   type: 'test'
+2026-10-08T17:39:15.6614679Z   ...
+2026-10-08T17:39:15.6615273Z # Subtest: DOM preview binds frozen source, dependency choice and exact current document from trusted click
+2026-10-08T17:39:15.6616203Z ok 33 - DOM preview binds frozen source, dependency choice and exact current document from trusted click
+2026-10-08T17:39:15.6616727Z   ---
+2026-10-08T17:39:15.6616964Z   duration_ms: 4.663069
+2026-10-08T17:39:15.6617241Z   type: 'test'
+2026-10-08T17:39:15.6617489Z   ...
+2026-10-08T17:39:15.6618037Z # Subtest: DOM preview refuses to inject when the active document changes while permission is pending
+2026-10-08T17:39:15.6619124Z ok 34 - DOM preview refuses to inject when the active document changes while permission is pending
+2026-10-08T17:39:15.6619599Z   ---
+2026-10-08T17:39:15.6619803Z   duration_ms: 5.953197
+2026-10-08T17:39:15.6620043Z   type: 'test'
+2026-10-08T17:39:15.6620280Z   ...
+2026-10-08T17:39:15.6620794Z # Subtest: Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+2026-10-08T17:39:15.6621534Z ok 35 - Developer Stop cannot cancel the formal Task or another view using the shared RunHost
+2026-10-08T17:39:15.6621968Z   ---
+2026-10-08T17:39:15.6622167Z   duration_ms: 3.262432
+2026-10-08T17:39:15.6622403Z   type: 'test'
+2026-10-08T17:39:15.6622735Z   ...
+2026-10-08T17:39:15.6623415Z # Subtest: project import displays source while Save and Run freeze compiled bytes and the original hash
+2026-10-08T17:39:15.6624256Z ok 36 - project import displays source while Save and Run freeze compiled bytes and the original hash
+2026-10-08T17:39:15.6624748Z   ---
+2026-10-08T17:39:15.6624974Z   duration_ms: 11.19293
+2026-10-08T17:39:15.6625220Z   type: 'test'
+2026-10-08T17:39:15.6625445Z   ...
+2026-10-08T17:39:15.6625964Z # Subtest: invalid project envelope leaves the previous editor source and no execution or saved revision
+2026-10-08T17:39:15.6626914Z ok 37 - invalid project envelope leaves the previous editor source and no execution or saved revision
+2026-10-08T17:39:15.6627375Z   ---
+2026-10-08T17:39:15.6627574Z   duration_ms: 4.423272
+2026-10-08T17:39:15.6627798Z   type: 'test'
+2026-10-08T17:39:15.6628301Z   ...
+2026-10-08T17:39:15.6628507Z 1..37
+2026-10-08T17:39:15.6628705Z # tests 37
+2026-10-08T17:39:15.6628905Z # suites 0
+2026-10-08T17:39:15.6629107Z # pass 37
+2026-10-08T17:39:15.6629300Z # fail 0
+2026-10-08T17:39:15.6629495Z # cancelled 0
+2026-10-08T17:39:15.6629719Z # skipped 0
+2026-10-08T17:39:15.6629924Z # todo 0
+2026-10-08T17:39:15.6630154Z # duration_ms 1556.012985
+2026-10-08T17:39:15.7325428Z {
+2026-10-08T17:39:15.7325808Z   "status": "AUTHORING_VALID_NOT_PACKAGED",
+2026-10-08T17:39:15.7326231Z   "format": "opendesk.project.v1",
+2026-10-08T17:39:15.7326576Z   "id": "sample.page-heading",
+2026-10-08T17:39:15.7326877Z   "version": "0.1.0",
+2026-10-08T17:39:15.7327155Z   "runtimeKind": "page-userscript",
+2026-10-08T17:39:15.7327504Z   "entry": "src/main.js",
+2026-10-08T17:39:15.7327781Z   "sourceFormat": "esm",
+2026-10-08T17:39:15.7328054Z   "sources": [
+2026-10-08T17:39:15.7328395Z     {
+2026-10-08T17:39:15.7328677Z       "path": "src/describe.js",
+2026-10-08T17:39:15.7328987Z       "bytes": 90,
+2026-10-08T17:39:15.7329454Z       "sha256": "33630b96d0f97bc754cde6eaa0f333c16a9578030ea1b77fd8ac5e9d750c79dd"
+2026-10-08T17:39:15.7329918Z     },
+2026-10-08T17:39:15.7330123Z     {
+2026-10-08T17:39:15.7330340Z       "path": "src/dom.js",
+2026-10-08T17:39:15.7330616Z       "bytes": 99,
+2026-10-08T17:39:15.7331108Z       "sha256": "d59e7a651240bcf8b4ebce7cde9f83d71b14a5d28a96290c4bd09035abfc1d42"
+2026-10-08T17:39:15.7331576Z     },
+2026-10-08T17:39:15.7331792Z     {
+2026-10-08T17:39:15.7332018Z       "path": "src/main.js",
+2026-10-08T17:39:15.7332318Z       "bytes": 178,
+2026-10-08T17:39:15.7332748Z       "sha256": "6d54234fa41b59aaeb7412019faef70aefc7bc671ede9d03aca10277a9e5a73f"
+2026-10-08T17:39:15.7333193Z     }
+2026-10-08T17:39:15.7333406Z   ],
+2026-10-08T17:39:15.7333627Z   "assets": [],
+2026-10-08T17:39:15.7333888Z   "npmPackages": [],
+2026-10-08T17:39:15.7334186Z   "installable": false,
+2026-10-08T17:39:15.7334788Z   "note": "Source authoring metadata only. Validate/build/run through the existing OpenDesk program pipeline."
+2026-10-08T17:39:15.7335319Z }
+2026-10-08T17:39:15.8026772Z {
+2026-10-08T17:39:15.8027139Z   "status": "AUTHORING_VALID_NOT_PACKAGED",
+2026-10-08T17:39:15.8027542Z   "format": "opendesk.project.v1",
+2026-10-08T17:39:15.8027889Z   "id": "sample.controller-title",
+2026-10-08T17:39:15.8028417Z   "version": "1.0.0",
+2026-10-08T17:39:15.8028690Z   "runtimeKind": "controller",
+2026-10-08T17:39:15.8028958Z   "entry": "src/main.js",
+2026-10-08T17:39:15.8029214Z   "sourceFormat": "esm",
+2026-10-08T17:39:15.8029490Z   "sources": [
+2026-10-08T17:39:15.8029708Z     {
+2026-10-08T17:39:15.8029945Z       "path": "src/main.js",
+2026-10-08T17:39:15.8030227Z       "bytes": 126,
+2026-10-08T17:39:15.8030657Z       "sha256": "2b9c73582721b22e4c0670f6e3291d74b01e7a8f8384ee8e877b9eb4beeb2781"
+2026-10-08T17:39:15.8031144Z     },
+2026-10-08T17:39:15.8031378Z     {
+2026-10-08T17:39:15.8031614Z       "path": "src/title.js",
+2026-10-08T17:39:15.8031894Z       "bytes": 47,
+2026-10-08T17:39:15.8032335Z       "sha256": "f3248859b770c0287d5e14f3a819668baf742e199f21b02487b3560d44404c62"
+2026-10-08T17:39:15.8032782Z     }
+2026-10-08T17:39:15.8032968Z   ],
+2026-10-08T17:39:15.8033191Z   "assets": [],
+2026-10-08T17:39:15.8033439Z   "npmPackages": [],
+2026-10-08T17:39:15.8033699Z   "installable": false,
+2026-10-08T17:39:15.8034287Z   "note": "Source authoring metadata only. Validate/build/run through the existing OpenDesk program pipeline."
+2026-10-08T17:39:15.8034834Z }
+2026-10-08T17:39:16.4680516Z {
+2026-10-08T17:39:16.4681034Z   "format": "opendesk.build-artifact.v1",
+2026-10-08T17:39:16.4681568Z   "status": "BUILT_UNVERIFIED",
+2026-10-08T17:39:16.4681854Z   "installable": false,
+2026-10-08T17:39:16.4682147Z   "runtimeKind": "page-userscript",
+2026-10-08T17:39:16.4682771Z   "programId": "sample.page-heading",
+2026-10-08T17:39:16.4683064Z   "version": "0.1.0",
+2026-10-08T17:39:16.4683357Z   "sourceFormat": "esm",
+2026-10-08T17:39:16.4683652Z   "entryFormat": "async-main",
+2026-10-08T17:39:16.4684127Z   "entry": "src/main.js",
+2026-10-08T17:39:16.4684420Z   "buildMode": "production",
+2026-10-08T17:39:16.4684924Z   "buildHash": "623d850fadb321a8fca76883adb464f9600a6dbbc95414520981b4a34d3461e5",
+2026-10-08T17:39:16.4685377Z   "sourceModules": [
+2026-10-08T17:39:16.4685607Z     {
+2026-10-08T17:39:16.4685871Z       "path": "src/describe.js",
+2026-10-08T17:39:16.4686166Z       "bytes": 90,
+2026-10-08T17:39:16.4686602Z       "sha256": "33630b96d0f97bc754cde6eaa0f333c16a9578030ea1b77fd8ac5e9d750c79dd"
+2026-10-08T17:39:16.4687062Z     },
+2026-10-08T17:39:16.4687311Z     {
+2026-10-08T17:39:16.4687546Z       "path": "src/dom.js",
+2026-10-08T17:39:16.4687820Z       "bytes": 99,
+2026-10-08T17:39:16.4688562Z       "sha256": "d59e7a651240bcf8b4ebce7cde9f83d71b14a5d28a96290c4bd09035abfc1d42"
+2026-10-08T17:39:16.4689287Z     },
+2026-10-08T17:39:16.4689596Z     {
+2026-10-08T17:39:16.4689905Z       "path": "src/main.js",
+2026-10-08T17:39:16.4715710Z       "bytes": 178,
+2026-10-08T17:39:16.4716336Z       "sha256": "6d54234fa41b59aaeb7412019faef70aefc7bc671ede9d03aca10277a9e5a73f"
+2026-10-08T17:39:16.4716832Z     }
+2026-10-08T17:39:16.4717035Z   ],
+2026-10-08T17:39:16.4717257Z   "sourceFiles": [
+2026-10-08T17:39:16.4717513Z     {
+2026-10-08T17:39:16.4717753Z       "path": "src/describe.js",
+2026-10-08T17:39:16.4718061Z       "bytes": 90,
+2026-10-08T17:39:16.4719055Z       "sha256": "33630b96d0f97bc754cde6eaa0f333c16a9578030ea1b77fd8ac5e9d750c79dd"
+2026-10-08T17:39:16.4719714Z     },
+2026-10-08T17:39:16.4719919Z     {
+2026-10-08T17:39:16.4720154Z       "path": "src/dom.js",
+2026-10-08T17:39:16.4720449Z       "bytes": 99,
+2026-10-08T17:39:16.4720886Z       "sha256": "d59e7a651240bcf8b4ebce7cde9f83d71b14a5d28a96290c4bd09035abfc1d42"
+2026-10-08T17:39:16.4721322Z     },
+2026-10-08T17:39:16.4721564Z     {
+2026-10-08T17:39:16.4721799Z       "path": "src/main.js",
+2026-10-08T17:39:16.4722082Z       "bytes": 178,
+2026-10-08T17:39:16.4722507Z       "sha256": "6d54234fa41b59aaeb7412019faef70aefc7bc671ede9d03aca10277a9e5a73f"
+2026-10-08T17:39:16.4722951Z     }
+2026-10-08T17:39:16.4723145Z   ],
+2026-10-08T17:39:16.4723354Z   "npmPackages": [],
+2026-10-08T17:39:16.4723629Z   "npmLockSha256": null,
+2026-10-08T17:39:16.4723915Z   "sourceFile": "program.js",
+2026-10-08T17:39:16.4724393Z   "sourceHash": "623d850fadb321a8fca76883adb464f9600a6dbbc95414520981b4a34d3461e5",
+2026-10-08T17:39:16.4724861Z   "sourceBytes": 924,
+2026-10-08T17:39:16.4725170Z   "draftFile": "program.opendesk-draft.json",
+2026-10-08T17:39:16.4725505Z   "authoring": {
+2026-10-08T17:39:16.4725745Z     "files": [
+2026-10-08T17:39:16.4725955Z       {
+2026-10-08T17:39:16.4726218Z         "path": "src/describe.js",
+2026-10-08T17:39:16.4726505Z         "bytes": 90,
+2026-10-08T17:39:16.4726918Z         "sha256": "33630b96d0f97bc754cde6eaa0f333c16a9578030ea1b77fd8ac5e9d750c79dd"
+2026-10-08T17:39:16.4727352Z       },
+2026-10-08T17:39:16.4727548Z       {
+2026-10-08T17:39:16.4727787Z         "path": "src/dom.js",
+2026-10-08T17:39:16.4728042Z         "bytes": 99,
+2026-10-08T17:39:16.4728746Z         "sha256": "d59e7a651240bcf8b4ebce7cde9f83d71b14a5d28a96290c4bd09035abfc1d42"
+2026-10-08T17:39:16.4729189Z       },
+2026-10-08T17:39:16.4729385Z       {
+2026-10-08T17:39:16.4729615Z         "path": "src/main.js",
+2026-10-08T17:39:16.4729904Z         "bytes": 178,
+2026-10-08T17:39:16.4730332Z         "sha256": "6d54234fa41b59aaeb7412019faef70aefc7bc671ede9d03aca10277a9e5a73f"
+2026-10-08T17:39:16.4730760Z       }
+2026-10-08T17:39:16.4730972Z     ],
+2026-10-08T17:39:16.4731185Z     "webpackModules": [
+2026-10-08T17:39:16.4731464Z       "src/main.js"
+2026-10-08T17:39:16.4731684Z     ],
+2026-10-08T17:39:16.4731937Z     "buildMode": "production",
+2026-10-08T17:39:16.4732404Z     "buildHash": "623d850fadb321a8fca76883adb464f9600a6dbbc95414520981b4a34d3461e5"
+2026-10-08T17:39:16.4733114Z   },
+2026-10-08T17:39:16.4733342Z   "pageRules": {
+2026-10-08T17:39:16.4733721Z     "matches": [
+2026-10-08T17:39:16.4734115Z       "https://example.com/*"
+2026-10-08T17:39:16.4734507Z     ],
+2026-10-08T17:39:16.4735066Z     "excludeMatches": [],
+2026-10-08T17:39:16.4735446Z     "runAt": "document_idle",
+2026-10-08T17:39:16.4735810Z     "allFrames": false,
+2026-10-08T17:39:16.4736199Z     "world": "USER_SCRIPT"
+2026-10-08T17:39:16.4736539Z   },
+2026-10-08T17:39:16.4737181Z   "note": "Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted.",
+2026-10-08T17:39:16.4738744Z   "outputDirectory": "/home/runner/work/opendesk-browser/opendesk-browser/artifacts/programs/sample.page-heading/0.1.0/r31-production/623d850fadb321a8-9db55d16a669"
+2026-10-08T17:39:16.4739976Z }
+2026-10-08T17:39:17.1062754Z {
+2026-10-08T17:39:17.1063264Z   "format": "opendesk.build-artifact.v1",
+2026-10-08T17:39:17.1063814Z   "status": "BUILT_UNVERIFIED",
+2026-10-08T17:39:17.1064265Z   "installable": false,
+2026-10-08T17:39:17.1064687Z   "runtimeKind": "controller",
+2026-10-08T17:39:17.1065209Z   "programId": "sample.controller-title",
+2026-10-08T17:39:17.1065699Z   "version": "1.0.0",
+2026-10-08T17:39:17.1066114Z   "sourceFormat": "esm",
+2026-10-08T17:39:17.1066564Z   "entryFormat": "async-main",
+2026-10-08T17:39:17.1066962Z   "entry": "src/main.js",
+2026-10-08T17:39:17.1067346Z   "buildMode": "production",
+2026-10-08T17:39:17.1068285Z   "buildHash": "c8788deb74810cc24be36f6740614e5beeb7aea2b217159372bd096daed9f3dd",
+2026-10-08T17:39:17.1069073Z   "sourceModules": [
+2026-10-08T17:39:17.1069373Z     {
+2026-10-08T17:39:17.1069607Z       "path": "src/main.js",
+2026-10-08T17:39:17.1069902Z       "bytes": 126,
+2026-10-08T17:39:17.1070371Z       "sha256": "2b9c73582721b22e4c0670f6e3291d74b01e7a8f8384ee8e877b9eb4beeb2781"
+2026-10-08T17:39:17.1070815Z     },
+2026-10-08T17:39:17.1071038Z     {
+2026-10-08T17:39:17.1071267Z       "path": "src/title.js",
+2026-10-08T17:39:17.1071562Z       "bytes": 47,
+2026-10-08T17:39:17.1071997Z       "sha256": "f3248859b770c0287d5e14f3a819668baf742e199f21b02487b3560d44404c62"
+2026-10-08T17:39:17.1072413Z     }
+2026-10-08T17:39:17.1072626Z   ],
+2026-10-08T17:39:17.1072845Z   "sourceFiles": [
+2026-10-08T17:39:17.1073092Z     {
+2026-10-08T17:39:17.1073326Z       "path": "src/main.js",
+2026-10-08T17:39:17.1073608Z       "bytes": 126,
+2026-10-08T17:39:17.1074029Z       "sha256": "2b9c73582721b22e4c0670f6e3291d74b01e7a8f8384ee8e877b9eb4beeb2781"
+2026-10-08T17:39:17.1074456Z     },
+2026-10-08T17:39:17.1074676Z     {
+2026-10-08T17:39:17.1074885Z       "path": "src/title.js",
+2026-10-08T17:39:17.1075160Z       "bytes": 47,
+2026-10-08T17:39:17.1075585Z       "sha256": "f3248859b770c0287d5e14f3a819668baf742e199f21b02487b3560d44404c62"
+2026-10-08T17:39:17.1076006Z     }
+2026-10-08T17:39:17.1076240Z   ],
+2026-10-08T17:39:17.1076464Z   "npmPackages": [],
+2026-10-08T17:39:17.1076725Z   "npmLockSha256": null,
+2026-10-08T17:39:17.1077007Z   "sourceFile": "program.js",
+2026-10-08T17:39:17.1077494Z   "sourceHash": "c8788deb74810cc24be36f6740614e5beeb7aea2b217159372bd096daed9f3dd",
+2026-10-08T17:39:17.1077958Z   "sourceBytes": 758,
+2026-10-08T17:39:17.1078493Z   "draftFile": "program.opendesk-draft.json",
+2026-10-08T17:39:17.1078839Z   "authoring": {
+2026-10-08T17:39:17.1079088Z     "files": [
+2026-10-08T17:39:17.1079311Z       {
+2026-10-08T17:39:17.1079573Z         "path": "src/main.js",
+2026-10-08T17:39:17.1079863Z         "bytes": 126,
+2026-10-08T17:39:17.1080296Z         "sha256": "2b9c73582721b22e4c0670f6e3291d74b01e7a8f8384ee8e877b9eb4beeb2781"
+2026-10-08T17:39:17.1080740Z       },
+2026-10-08T17:39:17.1080968Z       {
+2026-10-08T17:39:17.1081197Z         "path": "src/title.js",
+2026-10-08T17:39:17.1081478Z         "bytes": 47,
+2026-10-08T17:39:17.1081905Z         "sha256": "f3248859b770c0287d5e14f3a819668baf742e199f21b02487b3560d44404c62"
+2026-10-08T17:39:17.1082339Z       }
+2026-10-08T17:39:17.1082536Z     ],
+2026-10-08T17:39:17.1082784Z     "webpackModules": [
+2026-10-08T17:39:17.1083331Z       "src/main.js"
+2026-10-08T17:39:17.1083569Z     ],
+2026-10-08T17:39:17.1083826Z     "buildMode": "production",
+2026-10-08T17:39:17.1084307Z     "buildHash": "c8788deb74810cc24be36f6740614e5beeb7aea2b217159372bd096daed9f3dd"
+2026-10-08T17:39:17.1084903Z   },
+2026-10-08T17:39:17.1085134Z   "siteOrigins": [
+2026-10-08T17:39:17.1085379Z     "https://example.com"
+2026-10-08T17:39:17.1085658Z   ],
+2026-10-08T17:39:17.1085883Z   "permissions": [
+2026-10-08T17:39:17.1086128Z     "page.automation"
+2026-10-08T17:39:17.1086375Z   ],
+2026-10-08T17:39:17.1086668Z   "candidateFile": "program.opendesk-task.json",
+2026-10-08T17:39:17.1087290Z   "note": "Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted.",
+2026-10-08T17:39:17.1088566Z   "outputDirectory": "/home/runner/work/opendesk-browser/opendesk-browser/artifacts/programs/sample.controller-title/1.0.0/r31-production/c8788deb74810cc2-a7079b35d0b6"
+2026-10-08T17:39:17.1089334Z }
+2026-10-08T17:39:17.1211301Z ##[group]Run npm run check
+2026-10-08T17:39:17.1211624Z [36;1mnpm run check[0m
+2026-10-08T17:39:17.1285082Z shell: /usr/bin/bash -e {0}
+2026-10-08T17:39:17.1285374Z ##[endgroup]
+2026-10-08T17:39:17.2414979Z 
+2026-10-08T17:39:17.2415547Z > opendesk-browser@0.1.0 check
+2026-10-08T17:39:17.2415967Z > node scripts/check-source.mjs
+2026-10-08T17:39:17.2416179Z 
+2026-10-08T17:39:21.6605836Z Syntax checked 160 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked
+2026-10-08T17:39:21.6862055Z Post job cleanup.
+2026-10-08T17:39:21.8192551Z (node:3658) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-08T17:39:21.8193405Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-08T17:39:21.8197231Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-b8ba1b1e75b534e8b18fa308aa4c06e83b4d486ff426239c6fd9007055bc4cce, not saving cache.
+2026-10-08T17:39:21.8358076Z Post job cleanup.
+2026-10-08T17:39:21.9256752Z [command]/usr/bin/git version
+2026-10-08T17:39:21.9305178Z git version 2.55.0
+2026-10-08T17:39:21.9348646Z Temporarily overriding HOME='/home/runner/work/_temp/e7648bb4-ba34-4f2a-b48a-c7f35a40fcf7' before making global git config changes
+2026-10-08T17:39:21.9349978Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-08T17:39:21.9354844Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-08T17:39:21.9399234Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-08T17:39:21.9435394Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-08T17:39:21.9723347Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-08T17:39:21.9760843Z http.https://github.com/.extraheader
+2026-10-08T17:39:21.9786291Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-08T17:39:21.9826686Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-08T17:39:22.0207399Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-08T17:39:22.0255255Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-08T17:39:22.0723932Z Cleaning up orphan processes
+2026-10-08T17:39:22.1124660Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

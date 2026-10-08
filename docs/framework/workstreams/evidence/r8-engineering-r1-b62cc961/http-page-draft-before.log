@@ -1,0 +1,50 @@
+✖ the actual HTTP Page draft drives the canonical fetch handler and reports 200 honestly (15.284318ms)
+✖ the actual HTTP Page draft drives the canonical fetch handler and reports 503 honestly (5.858037ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.320549
+
+✖ failing tests:
+
+test at tests/environment/basic-browser-page.test.mjs:227:4
+✖ the actual HTTP Page draft drives the canonical fetch handler and reports 200 honestly (15.284318ms)
+  AssertionError [ERR_ASSERTION]: draft must use the real accessible button name: 发送请求
+  
+  0 !== 1
+  
+      at Object.getByRole (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/basic-browser-page.test.mjs:254:14)
+      at main (evalmachine.<anonymous>:9:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/basic-browser-page.test.mjs:272:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/basic-browser-page.test.mjs:227:4
+✖ the actual HTTP Page draft drives the canonical fetch handler and reports 503 honestly (5.858037ms)
+  AssertionError [ERR_ASSERTION]: draft must use the real accessible button name: 发送请求
+  
+  0 !== 1
+  
+      at Object.getByRole (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/basic-browser-page.test.mjs:254:14)
+      at main (evalmachine.<anonymous>:9:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/basic-browser-page.test.mjs:272:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

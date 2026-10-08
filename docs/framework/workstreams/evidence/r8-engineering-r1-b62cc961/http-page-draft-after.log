@@ -1,0 +1,24 @@
+✔ real loopback HTTP server serves static JSON, HTML and true 404/non-JSON (49.646814ms)
+✔ real loopback HTTP server emits status/POST body and delayed responses (183.883993ms)
+✔ one ordinary HTML page exposes unique, stable automation targets (8.779271ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (2.558832ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (1.383059ms)
+✔ async scene sends only local fetches and distinguishes loading, 404, abort and timeout (1.2892ms)
+✔ explicit HTTP GET controls expose safe semantics and preserve offline-first operation (1.537306ms)
+✔ the single canonical page exposes seven navigable groups and honest Locator fixtures (3.073961ms)
+✔ Locator fixture actions, late insertion, and reset mutate only observable DOM (1525.252854ms)
+✔ HTTP panel sends no request until click and shows real status/content without HTML injection (7.560896ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 200 honestly (29.709224ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 503 honestly (14.087571ms)
+✔ HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies (9.667276ms)
+✔ minimal HTTP UI rejects invalid URLs without sending requests (1.99408ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (1.909665ms)
+✔ manual browser testing has exactly one canonical HTML and no obsolete advertised URL (1.375788ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1743.774193
