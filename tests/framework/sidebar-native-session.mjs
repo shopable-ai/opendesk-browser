@@ -3,6 +3,7 @@ import {createServer} from 'node:http';
 import {launchChrome} from './k5-sdk-native-launcher.mjs';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import path from 'node:path';
+import {createInterface} from 'node:readline';
 import {packageFingerprint} from '../../scripts/verify-package.mjs';
 const root=process.cwd(), dir=path.resolve(process.env.SIDEBAR_EVIDENCE_DIR || 'docs/framework/evidence/sidebar-native-20261008-01a119ff');
 const sessionFile=path.join(dir,'session.json');
@@ -20,11 +21,25 @@ async function start(extension) {
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${server.address().port}`;
   const binary=path.resolve('tests/.cache/m5-browsers/138.0.7204.183/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
   const extensionPath=path.resolve(extension||'dist/production');
-  const launched=await launchChrome({root,binary,extension:extensionPath,headed:true,directory:dir,label:'sidebar'});
+  const launched=await launchChrome({root,binary,extension:extensionPath,headed:true,directory:dir,label:'sidebar',sameProfileRestart:process.env.SIDEBAR_SAME_PROFILE_RESTART==='1'});
   const {endpoint,metadata}=launched;const profile=metadata.profile;
   const c=await connect(endpoint);await c.send('Target.setDiscoverTargets',{discover:true});let targets=(await c.send('Target.getTargets')).targetInfos;const created=await c.send('Target.createTarget',{url:origin+'/fixture'});const a={targetId:created.targetId};const b=await c.send('Target.createTarget',{url:origin+'/fixture'});await c.send('Target.activateTarget',{targetId:a.targetId});
   const sw=targets.find(t=>t.type==='service_worker'&&t.url.endsWith('/sw.js'));const session={observedAt:new Date().toISOString(),pid:metadata.pid,launcherPid:metadata.launcherPid,driverPid:process.pid,endpoint,origin,profile,extensionPath,extensionId:sw?.url.split('/')[2],A:a.targetId,B:b.targetId,version:await c.send('Browser.getVersion'),package:await packageFingerprint(extensionPath)};
   await writeFile(sessionFile,JSON.stringify(session,null,2)+'\n');c.close();console.log(JSON.stringify({sessionFile,pid:metadata.pid,origin,version:session.version,extensionId:session.extensionId}));
+  if(process.env.SIDEBAR_SAME_PROFILE_RESTART==='1') {
+    let restarting=false;
+    createInterface({input:process.stdin}).on('line',async line=>{
+      if(line.trim()!=='restart'||restarting)return;restarting=true;
+      try {
+        const client=await connect(session.endpoint);
+        const closing=client.send('Browser.close').catch(error=>({error:String(error)}));
+        const next=await launched.restart();await closing;client.close();
+        Object.assign(session,{pid:next.metadata.pid,endpoint:next.endpoint,generation:2,restartObserved:next.metadata.restartObserved,observedAt:new Date().toISOString()});
+        await writeFile(sessionFile,JSON.stringify(session,null,2)+'\n');
+        console.log(JSON.stringify({restarted:true,pid:session.pid,profile:session.profile}));
+      }catch(error){await writeFile(path.join(dir,'restart-error.json'),JSON.stringify({message:String(error)},null,2));console.error(error);}
+    });
+  }
   const save=()=>writeFile(path.join(dir,'server-events.json'),JSON.stringify(requests,null,2)+'\n');
   async function shutdown(){await save();await launched.copyLog();const cleanup=await launched.stop();await writeFile(path.join(dir,'cleanup.json'),JSON.stringify(cleanup,null,2)+'\n');server.close();process.exit(0);}process.on('SIGTERM',shutdown);process.on('SIGINT',shutdown);
 }
@@ -35,4 +50,14 @@ async function observe(label='observation') {
  s.extensionId=sw.url.split('/')[2];s.package=await packageFingerprint(s.extensionPath);const result={observedAt:new Date().toISOString(),label,session:s,native,pages,targets};const output=path.join(dir,label+'.json');await writeFile(output,JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({output,contexts:native.contexts,pages:pages.map(p=>({id:p.target.targetId,url:p.target.url,query:p.observation?.query,result:p.observation?.result,probe:p.observation?.probe,status:p.observation?.form?.['script-status'],task:p.observation?.form?.['script-task-id']}))}));
  }finally{c.close();}
 }
-if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve('tests/framework/sidebar-native-session.mjs')) {const command=process.argv[2];if(command==='start')await start(process.argv[3]);else if(command==='observe')await observe(process.argv[3]);else throw Error('Use start [extensionPath] | observe [label]');}
+async function armInputs() {
+ const s=JSON.parse(await readFile(sessionFile)),c=await connect(s.endpoint);
+ try {
+  const t=(await c.send('Target.getTargets')).targetInfos.find(t=>t.url.includes('/ui/tool.html?hostInstanceId='));
+  if(!t)throw Error('Live Side Panel missing');
+  const id=(await c.send('Target.attachToTarget',{targetId:t.targetId,flatten:true})).sessionId;
+  await evaluate(c,`(()=>{if(globalThis.__nativeUiInputs)return;globalThis.__nativeUiInputs=[];for(const type of ['input','change','click'])document.addEventListener(type,e=>{if(!e.target.id?.startsWith('script-'))return;globalThis.__nativeUiInputs.push({at:Date.now(),type,id:e.target.id,isTrusted:e.isTrusted,source:document.querySelector('#script-source').value,params:document.querySelector('#script-params').value,scriptId:document.querySelector('#script-id').value});},true);})()`,id);
+  console.log(JSON.stringify({armed:true,targetId:t.targetId}));
+ }finally{c.close();}
+}
+if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve('tests/framework/sidebar-native-session.mjs')) {const command=process.argv[2];if(command==='start')await start(process.argv[3]);else if(command==='observe')await observe(process.argv[3]);else if(command==='arm')await armInputs();else throw Error('Use start [extensionPath] | observe [label] | arm');}

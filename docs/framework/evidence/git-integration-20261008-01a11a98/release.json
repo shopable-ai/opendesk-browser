@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "releasedAt": "2026-10-08T09:30:31.455227+00:00",
+  "releasedByActualThreadId": "01a11a98-2ca3-7241-89e5-bbaec8b95b79",
+  "status": "released-serial-handoff",
+  "scope": "git-integration:isolated-web-priority",
+  "noOwnedOperationsInFlight": true,
+  "liveWorkspaceSourceChanged": false,
+  "liveControlledOperationsMayStillBeActive": true,
+  "otherActiveChatObserved": "01a11aa7-bb15-7910-a74c-cd844636fbeb",
+  "ownerSha256": "05d5a9b4bfdf9dd32f2b3701cc762c4f0159a010c710a68a814d9edf6a6a3ec1",
+  "acceptance": "docs/framework/evidence/git-integration-20261008-01a11a98/acceptance.json",
+  "nativeAcceptanceClaimed": false,
+  "finalFrameworkAcceptanceClaimed": false
+}

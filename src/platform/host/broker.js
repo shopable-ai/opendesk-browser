@@ -141,6 +141,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const routes = {
     commitControllerScript:(p,s)=>authority.commitControllerScript(p,s),
     getControllerScript:(p,s)=>authority.getControllerScript(p,s),
+    listControllerScripts:(p,s)=>authority.listControllerScripts(p,s),
     startControllerRun:(p,s)=>authority.startControllerRun(p,s),
     controllerOperation:(p,s)=>authority.controllerOperation(p,s),
     stopControllerRun:(p,s)=>authority.stopControllerRun(p,s),

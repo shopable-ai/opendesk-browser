@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "actualThreadId": "01a11a98-2ca3-7241-89e5-bbaec8b95b79",
+  "observedAt": "2026-10-08T09:24:16.696163+00:00",
+  "scope": "isolated Git integration only; prefer web-submitted solution",
+  "baseRemoteCommit": "968d2c209a035fb5ada4579aab9146c7ed508154",
+  "predecessorThreadId": "01a119ff-6a22-7382-b895-63ab72850cb1",
+  "predecessorStatus": "released-serial-handoff",
+  "predecessorOwnerSha256": "d2101228f730f8ffe2407f1aa389b6e28b6ccb4b2a1cf36b1871bcbb5a391f6f",
+  "liveWorkspace": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "liveWorkspaceSourceChanged": false,
+  "otherActiveChatObserved": "01a11aa7-bb15-7910-a74c-cd844636fbeb",
+  "otherActiveChatKeptRunning": true,
+  "liveControlledBrowserScenePreserved": true,
+  "noOwnedControlledBrowserOperations": true,
+  "authorization": "Latest human instruction prioritizes web-submitted implementation, abandons duplicated local code, and explicitly requires commit/push",
+  "discardedLocalDuplicates": [
+    "native-driver draft validation",
+    "Worker main epilogue and constructor relaxation",
+    "tool editor default main",
+    "duplicate draft and main compiler tests"
+  ],
+  "remainingChanges": [
+    "saved-script list route",
+    "history creation-time ordering and regression",
+    "same-profile native verification helper",
+    "historical handoff labels"
+  ],
+  "nativeAcceptanceClaimed": false,
+  "finalFrameworkAcceptanceClaimed": false,
+  "validation": {
+    "web-priority-targeted-tests.log": {
+      "status": "PASS",
+      "bytes": 13129,
+      "sha256": "47cb297fc6d0815ec808827a747e40fd398c376499fef741cfe87d64624694a4",
+      "baseRemoteCommit": "0737c3a20e253cc8ec1550f4b5b8708da492cf05",
+      "reuseReason": "Affected controller and package-boundary code unchanged by subsequent web workbench-only update; final packages rebuilt and verified separately"
+    },
+    "web-priority-package-tests.log": {
+      "status": "PASS",
+      "bytes": 4314,
+      "sha256": "adbd54d23c1e5bcf036b6062bdd6994b6cdd666dde43c417f1a444b838fbe57a",
+      "baseRemoteCommit": "0737c3a20e253cc8ec1550f4b5b8708da492cf05",
+      "reuseReason": "Affected controller and package-boundary code unchanged by subsequent web workbench-only update; final packages rebuilt and verified separately"
+    },
+    "final-web-source-check.log": {
+      "status": "PASS",
+      "bytes": 208,
+      "sha256": "90941b8fa20b2dc05431db6bf2f666a455ed4f444f86d06c0ac9e24f09932013",
+      "baseRemoteCommit": "968d2c209a035fb5ada4579aab9146c7ed508154"
+    },
+    "final-web-workbench-tests.log": {
+      "status": "PASS",
+      "bytes": 517,
+      "sha256": "034f51ee8cc0759c5f145b748640dddc169591bb000d89e47d21e1e47c7f0466",
+      "baseRemoteCommit": "968d2c209a035fb5ada4579aab9146c7ed508154"
+    },
+    "final-web-environment-tests.log": {
+      "status": "PASS",
+      "bytes": 8115,
+      "sha256": "59d8dad335e0298cb8db5e26245abcd27e74e78a6464fecb7b80e963a5f8e8d2",
+      "baseRemoteCommit": "968d2c209a035fb5ada4579aab9146c7ed508154"
+    },
+    "final-web-package-verify.log": {
+      "status": "PASS",
+      "bytes": 10022,
+      "sha256": "4d1134e042cb0e5ec23e57910151c7077343973820825df1fe463b832f9a907e",
+      "baseRemoteCommit": "968d2c209a035fb5ada4579aab9146c7ed508154"
+    }
+  },
+  "builds": {
+    "production": {
+      "status": "PASS",
+      "packageHash": "712b3b93f291616d46ac2400753914aa5ebf45e1f2ceeb45f07c1ba04ecd53a2",
+      "compiledInputsSha256": "08ca56d80656786005b830582b3b0cd4cbb6c5abe2c1f891a073afd4747465dc",
+      "receipt": "docs/framework/evidence/git-integration-20261008-01a11a98/build-production.json",
+      "installedInLiveBrowser": false
+    },
+    "development": {
+      "status": "PASS",
+      "packageHash": "d6c776f140ae498e600555a456c0d9ff7dbce2f7a681934af89d317be24b38b5",
+      "compiledInputsSha256": "08ca56d80656786005b830582b3b0cd4cbb6c5abe2c1f891a073afd4747465dc",
+      "receipt": "docs/framework/evidence/git-integration-20261008-01a11a98/build-development.json",
+      "installedInLiveBrowser": false
+    }
+  },
+  "isolatedOwnerSha256": "05d5a9b4bfdf9dd32f2b3701cc762c4f0159a010c710a68a814d9edf6a6a3ec1",
+  "validationCompletedAt": "2026-10-08T09:30:31.455227+00:00",
+  "formalSameCandidateNativeAcceptance": "NOT_RUN"
+}

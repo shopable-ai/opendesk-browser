@@ -105,6 +105,20 @@ test('Sidebar URL changing during revision pinning fails durably and releases th
   assert.equal(f.calls.length,0);
 });
 
+test('persistent history presents the latest task by creation time rather than storage key order',async()=>{
+  const f=await fixture(), revision=await f.commit(), first=await f.start(revision);
+  await f.finish(first);await f.authority.retireControllerTarget({runId:first.runId},f.sender);
+  const second=await f.start(revision);
+  await f.finish(second);await f.authority.retireControllerTarget({runId:second.runId},f.sender);
+  await f.storage.transaction(['runs'],'readwrite',async tx=>{
+    for(const [runId,createdAt] of [[first.runId,200],[second.runId,100]]) {
+      const row=await tx.get('runs',runId);await tx.put('runs',{...row,createdAt},runId);
+    }
+  });
+  const snapshot=await f.authority.snapshotControllerRun({},f.sender);
+  assert.deepEqual(snapshot.runs.map(run=>run.runId),[second.runId,first.runId]);
+});
+
 function packagedFailureReply(f, transform = reply => reply) {
   const send = f.api.tabs.sendMessage;
   f.api.tabs.sendMessage = (id, message, options, callback) => {

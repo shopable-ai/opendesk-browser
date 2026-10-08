@@ -173,7 +173,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const snapshot = await tx('readonly', async transaction => {
       await currentHost(transaction, host, sender);
       const slot = await transaction.get('runs', '@slot');
-      const runs = (await transaction.all('runs')).filter(run=>run.tag==='controller-run' && !run.tombstoned && run.namespace===namespace(host));
+      const runs = (await transaction.all('runs')).filter(run=>run.tag==='controller-run' && !run.tombstoned && run.namespace===namespace(host))
+        .sort((a,b)=>(a.createdAt || 0)-(b.createdAt || 0) || a.runId.localeCompare(b.runId));
       const run = request.runId ? runs.find(run=>run.runId===request.runId) : null;
       if (request.runId) invariant(run,'E_OWNER');
       const results = (await transaction.all('results')).filter(value=>value.tag==='controller-result' &&
