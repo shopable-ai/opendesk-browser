@@ -1,0 +1,112 @@
+# GOAL：OpenDesk Browser Native Agent Bridge R1 本地 Codex 接管、补齐受阻 Native Host、真实 Chrome/Codex 验收
+
+你现在是 Chrome MV3、Native Messaging、Node IPC、RunHost、Chrome User Scripts、安全/可靠性测试负责人；直接在本地执行，不以方案回答代替真正测试修复。
+
+## 0. 真实基线与协作
+
+主库：shopable-ai/opendesk-browser。
+云端候选分支：agent/native-agent-bridge-r1-20261008。
+起点 main：66f11874fa27f6de438155124a3f772129386f8b（历史快照，请重新 fetch 并核实）。
+不要在 main 直接写或建立另一套运行框架；优先复用这一候选分支的独立 worktree，不覆盖其他工作目录、owner 文件或 PR #7（集中权限）、#9（Sidebar R5）。不要为了修复本工作而新建重复功能分支。
+本工作流记录：docs/framework/workstreams/native-agent-bridge-r1-20261008.json。
+设计与组件映射：docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md。
+依赖源只读：shopable-ai/opendesk/lab/browser-automation-core/ 与 shopable-ai/todo-user/src-bex/。
+
+在本地：
+git fetch origin
+git worktree add ../opendesk-browser-native-r1 origin/agent/native-agent-bridge-r1-20261008
+（如 git 拒绝 detached，安全创建本 worktree 的 local branch；不要创建新的远端功能工作流。）
+
+先记录 git status / HEAD、正在运行的共享 Chrome/CFT、未提交文件、PR #7/#9、当前 Manifest/build 状态。独立 profile、测试端口和 artifacts，不争抢其他 Agent 的已预约 profile/端口。
+
+## 1. 当前真实部分结果：不得假报
+
+已提交源码包含：
+- src/native-agent/protocol.js / host-adapter.js / service-worker.js
+- src/platform/host/client.js、src/ui/tool-shell.js、src/sw.js 薄接线
+- src/native-agent/settings.*，src/entrypoints/settings.js
+- native-agent/wire.mjs / install.mjs / cli.mjs
+- Manifest/WXT/verify-package 12-entry 对应合同
+- native-agent 三个 environment tests
+- docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md
+
+**重大阻断：native-agent/native-host.mjs 尚未创建。此前网页版尝试两次写入均被工具安全拦截，因此不要说 Host / CLI / 原生通讯已经实现或通过。**
+
+先审查已提交代码（不是盲信），尤其检查：
+- nativeMessaging 的可选权限、Chrome Options 中真实用户 click；
+- SW 原生连接生命周期、host identity/nonce 和 port sender 验证；
+- SW requestDigest journal 与 Controller runId 可恢复映射；
+- 与 existing startControllerRun 的唯一权威一致性；
+- wire 60KiB UTF-8 限制及 max queue；
+- install.mjs 的 shell wrapper 正确 quoting、owner、symlink、socket stale；
+- native host 和 installation 是否保留其他 Demo 的 credentials/manifest；
+- 12 个 WXT entry、新 Options 页、默认不连接 Native 时 Sidebar 是否正常。
+
+## 2. 第一优先：补齐安全 Native Host，构成可运行闭环
+
+在 native-agent/native-host.mjs 补齐 macOS Node Native Messaging 进程：
+- 仅通过 Chrome 的原生 manifest \`allowed_origins\` 指定 extension ID 唤起；拒绝错误 origin/扩展 ID，拒绝非预期平台；
+- 对 stdio 使用四字节 little-endian UTF-8 字节长度 framing、60KiB 上限、严格 JSON 响应和 stdout 纯协议；stderr 诊断不含密钥/脚本；
+- 进程**同时**作为单一 Unix Socket IPC broker，不再二次启动旧 Demo 的 broker.mjs；socket 要在每次 Chrome 启动时显式创建，退出时只删除自己确实拥有的 socket inode；
+- Unix Socket 私有目录(0700)，socket 0600，客户端凭据 0600，密钥等长 timingSafeEqual 验证，版本及握手身份校验；
+- 有界客户端数、在途请求数、每连接写缓冲、验证请求 schema、超时与错误语义；
+- 执行已经被转发但 Host 断连 / ACK 超时的请求不得自动重放；
+- 定义 CLI 无 Host、无 Sidebar、Native 扩展权限未授权、host ready 超时状态的稳定错误码；
+- setup/update/doctor/cleanup 实际安装 manifest、Node wrapper、固定 extension ID、私有安装资产，不覆盖 \`org.opendesk.browser_core_demo\` 等旧 Demo。
+- **安全审计后再运行**；不执行仓库中的任意不审查脚本。
+
+## 3. 第二优先：修复原有新候选中的真实接口缺口
+
+源码/Node/CI 实测发现问题才修复；严禁重建 RunHost、Controller、Worker、Authority、Task DB。
+- Host 通过现有注册文档（registrationId、port 与 sender）转发，未就绪返回 E_HOST_NOT_READY，零任务槽占用。
+- draft 无 Save 即执行；saved 强制 scriptId/revision/contentHash 一致；返回 runId 不等于脚本已完成。
+- target.current 必须来自存活 Sidebar 当前窗口。run.start 带最近可信目标：windowId、tabId、frameId、documentId、URL、origin，启动前重新核对；target 缺少、变更、网站未授权全拒绝。
+- Agent / UI 启动共用 @slot，Stop/retirement/Result 仍来自正式 Controller。
+- 当前 SW storage.local requestId/digest/runId journal：同 ID 同数据不产生第二次副作用；不同数据冲突；丢 ACK 后能通过已有持久 Run journal 按 requestId 恢复观测（只读且通过现有 Authority，不新建执行旁路），否则报告 OUTCOME_UNKNOWN，绝不自动再次 Run。
+- 检查 Host close、Chrome 重启后 unknown 的边界；ledger 达容量时明确 fail-closed。
+- 独立认证 CLI、Native manifest origin、Extension、Host registration、已有能力 permission、具体 origin grants，不能把 native 接通当网页授权。
+- 不实现 untrusted external \`chrome.scripting.executeScript\` 路由或广义任意 DOM eval。
+
+## 4. 精确测试：组件 / 构建
+
+依次运行：
+npm ci --ignore-scripts --no-audit --no-fund
+node --test tests/environment/native-agent-wire.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-bridge.test.mjs
+npm run check
+npm run build
+npm run build:dev
+npm run verify
+node --test tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-runhost.test.mjs
+（检查并选择受影响 framework authority, target, run recovery focused tests。）
+按每个命令真实 exit code、日志、测试用例、候选 HEAD 留证据。CI 绿色只证明组件/包，不写 Native PASS。
+
+## 5. 真实 macOS Chrome + Codex 端到端
+
+用实际浏览器加载同一分支 build 的扩展，获取实际 \`chrome.runtime.id\`，不得用旧 Demo ID。以真实 Options 用户点击授予 nativeMessaging。网站 grant 由真实 Sidebar/Chrome 用户操作完成。安装/启动/诊断：
+node native-agent/cli.mjs setup --extension-id <real-extension-id>
+node native-agent/cli.mjs doctor
+打开同一个扩展 Side Panel，实际 Native Handshake；doctor 显示 extension ID、handshake 与活着的 Host。
+node native-agent/cli.mjs bridge.status
+node native-agent/cli.mjs target.current
+准备 request.json，明确用输出的 target + registrationId；draft:
+node native-agent/cli.mjs run.start --file /absolute/path/draft-request.json --request-id unique-1
+node native-agent/cli.mjs run.get --file /absolute/path/run-get.json
+参数文件的请求和响应字段以实际 CLI 合同为准。第一次先核对 Host 是否已正确安装、原 Native manifest 是否冲突，再启动。
+- draft 真实网页 Run / DOM 可观察业务效果。
+- saved 保存 r1/r2 时运行 pinned r1，不因 Save 变更。
+- A/B 同 URL 不串 tab；切 tab 不漂移；导航 documentId stale；权限撤销拒绝；新端口/new tab/current window 后重新获取 target，不修改业务脚本 hash。
+- 真正的 requestId 相同同 digest 不重复，改变源码/参数/目标冲突；丢 ACK、Socket/Native 断连是 OUTCOME_UNKNOWN、绝不自动重放；已获知 runId 可通过持久 Run/Result 跟踪。
+- 外部与 Sidebar 竞争同一 RunHost 的 slot；Stop/Worker retirement/资源 released；真实用户关闭 Sidebar 后无存活 Host 请求明确拒绝。
+- 关闭重开 Chrome、扩展重新加载、重建 Tab、新 CFT HTTP 端口后先 doctor + target.current 再 Run，不用历史假 target。
+- 执行后 native-agent/cli.mjs cleanup，并确保无残留 socket / Manifest，仅移除自己的 Host。
+- 退出/关闭 Native Host 和 Codex，本扩展 Sidebar **不安装 Host**仍可以运行已有 Available Task，确保独立用户闭环。
+- Chrome 原生测试必须使用有真实扩展安装/允许脚本/浏览器用户输入的证据；拒绝人工 DOM 赋值、模拟 isTrusted/伪造 native ack、未授权 executeScript。
+- 与 PR #7 的集中授权 UI 以及 PR #9 的最新 Sidebar UI 联合测试，不能覆盖其他工作流源文件。
+
+## 6. 交付门槛
+
+分别报告：
+SOURCE_IMPLEMENTED、COMPONENT_TESTED、PACKAGE_BUILD_VERIFIED、NATIVE_HOST_INSTALLED、CHROME_REAL_VERIFIED、CODEX_E2E_VERIFIED、FINAL_ACCEPTED。
+每项附当次 HEAD、真实命令、结果、可追溯日志；未测写 NOT_TESTED。
+关键安全质量：不得有第二 Executor、第二 Permission DB、目标漂移、未知副作用 replay、普通用户依赖 Native。
+合并前重新核对 main、PR #7/#9 同时变化和共享文件三方合并，按本 workstream 的独立 PR 串行集成，不在未经授权下强推 main；Native real acceptance 缺失时 PR 保持 Draft。
