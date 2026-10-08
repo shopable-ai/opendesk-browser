@@ -75,4 +75,4 @@ npm run verify
 
 每次只使用自己的 CFT clone、fresh profile、准确 PID 和扩展 dist；所有 UI 使用原生 CUA。CDP 仅用于只读观察、经授权的真实 MAIN SDK 调用和标注过的视口模拟。第一次发现 43112 被其他 Python 占用时没有停止它；它实际退出后才运行自己的精确端口组合。第二次释放 43111 后，新 Python PID 78850 接管，保持其进程与 main 工作目录不变。释放记录见独立资源 JSON。
 
-当前保留 Draft。剩余：明确 R7.2 与最新极简 GET 页的产品合同；Mac 解锁后，验证当前集成包的可信 SDK 安装与完整 HTTP 错误持久结果；按 PR 当前 HEAD 核对 CI。发布、main 合入、最终 F3 和 ZIP 安装不在此次已通过声明中。
+当前提交为 [Draft PR #26](https://github.com/shopable-ai/opendesk-browser/pull/26)。CI 按 PR 当前 HEAD 的在线 checks 判断，不能使用其他 SHA 的结果。剩余：明确 R7.2 与最新极简 GET 页的产品合同；Mac 解锁后，验证当前集成包的可信 SDK 安装与完整 HTTP 错误持久结果。合入仍需当前 HEAD CI 通过。发布、main 合入、最终 F3 和 ZIP 安装不在此次已通过声明中。

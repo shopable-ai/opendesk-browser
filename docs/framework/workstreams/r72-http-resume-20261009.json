@@ -67,7 +67,7 @@
       "integrated-build-development.log",
       "integrated-verify.log"
     ],
-    "ci": "Pending Draft PR; authoritative current HEAD checks are on GitHub, separate from frozen native identity"
+    "ci": "Live PR current HEAD checks: https://github.com/shopable-ai/opendesk-browser/pull/26/checks; do not reuse checks from another head"
   },
   "nativeEvidence": {
     "sidePanel": "final-native-db.json; exact run/result/revision/released table in the workstream Markdown",
@@ -84,12 +84,12 @@
     "Mac locked; integrated candidate needs native trusted SDK approval and HTTP error/result check"
   ],
   "remaining": [
-    "Current HEAD CI",
+    "CI gate: current HEAD checks on the PR, separate from native source identity",
     "Resolve page contract",
     "Integrated candidate targeted native check after unlock",
     "All final F3/ZIP/global acceptance gates remain NOT_TESTED"
   ],
-  "pr": null,
+  "pr": "https://github.com/shopable-ai/opendesk-browser/pull/26",
   "historicalPr": "https://github.com/shopable-ai/opendesk-browser/pull/20",
   "mainUpdated": false,
   "releasePerformed": false,

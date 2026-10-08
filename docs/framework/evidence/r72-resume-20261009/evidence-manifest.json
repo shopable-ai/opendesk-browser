@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-10-08T18:36:23.320154+00:00",
+  "generatedAt": "2026-10-08T18:40:25.110257+00:00",
   "directory": "docs/framework/evidence/r72-resume-20261009",
   "scope": "Raw and derived records, including failures and NOT_TESTED; inclusion is not a PASS",
   "files": [
@@ -228,6 +228,11 @@
       "path": "document-expression.js",
       "bytes": 104,
       "sha256": "5b79cf5b023f02078be947fb45875f4ff505ce6d2411a34b7231ef87bfa215a8"
+    },
+    {
+      "path": "draft-pr-created.json",
+      "bytes": 430,
+      "sha256": "117b765f6c8eca4cfa9ec4265bb21f4550e4c77b9403b71331497af7eedb55d5"
     },
     {
       "path": "evidence-validation.json",
