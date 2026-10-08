@@ -1,0 +1,31 @@
+{
+  "workstreamId": "parallel-governance-20261008",
+  "branch": "agent/parallel-workflow-20261008",
+  "baseCommit": "666c551bad1cd0982c55df4762e7a5776521c9e5",
+  "targetBranch": "main",
+  "status": "candidate-awaiting-integration",
+  "scope": "Replace project-wide exclusive writer with isolated parallel worktrees/branches and serialized main/native resource integration",
+  "changedFiles": [
+    "AGENTS.md",
+    "docs/framework/parallel-development.md",
+    "docs/framework/workstreams/parallel-governance-20261008.json"
+  ],
+  "productCodeChanged": false,
+  "tests": {
+    "remoteReadback": "PENDING",
+    "localGit": "NOT_TESTED",
+    "chromeSidePanel": "NOT_TESTED",
+    "nativeEvidence": "NOT_TESTED"
+  },
+  "conflicts": [
+    "Do not overwrite the currently active public-owner.json",
+    "Branch protection requires separate GitHub repository settings",
+    "Existing owner rules remain in force for main/native until adoption"
+  ],
+  "nextActions": [
+    "Review proposal against active native owner and local modifications",
+    "Apply main branch protection settings",
+    "Integrate governance PR without replacing owner record",
+    "Resume P0 draft execution implementation in its own isolated workstream"
+  ]
+}
