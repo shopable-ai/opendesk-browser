@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {controllerProgramBody} from '../../src/scripting/sandbox/worker-runtime.js';
+import {controllerProgramBody,installControlWorker} from '../../src/scripting/sandbox/worker-runtime.js';
 
 // These run the Worker compiler contract in Node; they are not native Chrome evidence.
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -29,4 +29,22 @@ test('prior async-body scripts still execute and return correctly', async () => 
 test('main faults are errors rather than silent empty results', async () => {
   await assert.rejects(execute('async function main() { throw new Error("boom"); }'),/boom/);
   await assert.rejects(execute('const main = "not callable";'),/main must be a function/);
+});
+
+test('worker fault preserves a bounded raw generated stack without claiming a source mapping',async()=>{
+  const listeners=new Map(),channel=new MessageChannel();
+  const scope={location:{href:'blob:test',origin:'null'},name:'test',
+    addEventListener:(name,callback)=>listeners.set(name,callback),removeEventListener:name=>listeners.delete(name),postMessage:()=>{}};
+  installControlWorker(scope);
+  const identity={runId:'run-stack-test',ownerEpoch:1};
+  try {
+    listeners.get('message')({data:{kind:'bind',identity,revision:{revision:1,sourceHash:'a'.repeat(64)},
+      target:{tabId:1,frameId:0,documentId:'test-document'}},ports:[channel.port2]});
+    const failed=new Promise(resolve=>{channel.port1.onmessage=({data})=>{if(data.kind==='error')resolve(data);};});
+    channel.port1.postMessage({kind:'execute',...identity,body:'async function main(){throw new Error("runtime fault");}',params:{}});
+    const reply=await failed;
+    assert.equal(reply.error.code,'E_CONTROL_EXECUTION');assert.equal(reply.error.message,'runtime fault');
+    assert.match(reply.error.stack,/Error: runtime fault/);assert.match(reply.error.stack,/<anonymous>/);
+    assert.ok(reply.error.stack.length<=4096);assert.equal(reply.error.sourceLocation,undefined);
+  }finally{channel.port1.close();channel.port2.close();}
 });

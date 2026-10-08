@@ -1,0 +1,50 @@
+{
+  "workstreamId": "r62-final-20261009-01a11ca3",
+  "threadId": "01a11ca3-efe6-72b0-bb0a-d6c0691c004c",
+  "branch": "agent/r62-final-20261009-01a11ca3",
+  "workspace": "/Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser",
+  "startHead": "dd63f339a8fd4b07729cf8764b961de4150eb29c",
+  "latestMain": "ca2eb0e29333dc74c2ab80721cd1ce6e0beab1d8",
+  "scope": "R6.2 real Agent to reusable Task and original formal acceptance",
+  "writeScope": [
+    "own workstream and evidence",
+    "bounded acceptance drivers",
+    "product files only for reproduced defects"
+  ],
+  "statuses": {
+    "SOURCE_CONFIRMED": "YES",
+    "COMPONENT_TESTED": "PASS_242_COMPONENT_ONLY",
+    "BUILD_VERIFIED": "INHERITED_OLD_CANDIDATE_ONLY",
+    "NATIVE_CHROME_VERIFIED": "INCOMPLETE",
+    "AI_AGENT_E2E_VERIFIED": "PARTIAL_DIAGNOSTIC_ONLY",
+    "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
+    "FINAL_FRAMEWORK_ACCEPTED": "NO"
+  },
+  "pr11": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/11",
+    "state": "merged"
+  },
+  "resources": {
+    "43111": {
+      "owner": "r72-resume-20261009",
+      "pid": 64009,
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser-r72-resume",
+      "servedSha256": "e88da478b847045ae8c2100abe3c7287f515873c02d97d5f96435440f06f6237",
+      "handoff": "NOT_GRANTED",
+      "contactAuthorization": "PENDING"
+    },
+    "chrome": "not acquired",
+    "nativeSocket": "not acquired",
+    "dist": "own worktree only"
+  },
+  "evidenceDirectory": "docs/framework/evidence/r62-final-20261009-01a11ca3",
+  "remaining": [
+    "exact candidate page and shared-resource handoff",
+    "modern draft and saved execution",
+    "Candidate Verified Available explicit UI install",
+    "two standalone executions and full same-profile Chrome restart",
+    "remaining lifecycle scenarios",
+    "original 603+19 independent B05 1000 mixed 10 reconnect two extension-disable six resources independent F3 ZIP installation"
+  ],
+  "updatedUtc": "2026-10-08T17:57:10.494890+00:00"
+}

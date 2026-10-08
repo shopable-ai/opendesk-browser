@@ -17,7 +17,7 @@ test('one ordinary HTML page exposes unique, stable automation targets',async()=
     'request-timeout','request-cancel','async-status','async-status-text',
     'async-result','demo-form','name','submit','search-form','keyword',
     'search-submit','search-status','search-count','results','reset-all',
-    'api-url','api-preset','api-send','api-cancel','api-status',
+    'api-url','api-send','api-status',
     'api-status-text','api-http-status','api-duration','api-content-type',
     'api-response','api-error'
   ]) assert(ids.includes(id),`must provide #${id}`);
@@ -67,10 +67,17 @@ test('async scene sends only local fetches and distinguishes loading, 404, abort
 
 test('explicit HTTP GET controls expose safe semantics and preserve offline-first operation',async()=>{
   const html=await load();
-  assert.match(html,/<label for="api-url">请求 URL<\/label>/);
+  assert.match(html,/<label class="visually-hidden" for="api-url">请求 URL<\/label>/);
   assert.match(html,/id="api-url"[^>]*value="\.\/demo-form\.html\?test-response=1"/);
-  assert.match(html,/https:\/\/api\.ipify\.org\?format=json/);
   assert.match(html,/id="api-response"[^>]*data-testid="api-response"/);
+  const section=html.match(/<section class="unit" id="lab-api"[\s\S]*?<\/section>/)?.[0];
+  assert.ok(section,'HTTP section exists');
+  assert.match(section,/class="api-command"/);
+  assert.match(section,/id="api-debug-data" hidden aria-hidden="true"/);
+  assert.match(section,/Chrome DevTools/);
+  assert.match(section,/网页 fetch/);
+  assert.doesNotMatch(section,/id="api-preset"|id="api-cancel"|<select\b|<textarea\b|<dl\b/);
+  assert.equal([...section.matchAll(/<button\b/g)].length,1,'HTTP section has only one action');
   assert.match(html,/credentials:'omit'/);
   assert.match(html,/method:'GET'/);
   assert.match(html,/mode:'cors'/);
@@ -114,7 +121,7 @@ function createApiDomHarness(html, handleFetch) {
   const initialApiUrl=html.match(/<input id="api-url"[^>]*value="([^"]+)"/)?.[1];
   assert.ok(initialApiUrl);
   nodes.get('api-url').value=initialApiUrl;
-  nodes.get('api-preset').value=initialApiUrl;
+  nodes.get('api-debug-data').hidden=true;
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.equal(scripts.length,1);
   new Script(scripts[0][1]).runInNewContext({
@@ -209,8 +216,8 @@ test('HTTP panel sends no request until click and shows real status/content with
   assert.equal(dom.nodes.get('api-status').dataset.state,'success');
   assert.equal(dom.nodes.get('api-http-status').textContent,'200');
   assert.equal(dom.nodes.get('api-response').textContent,'<h1>HTTP 200</h1>');
-  assert.equal(dom.nodes.get('api-response').hidden,false);
-  assert.equal(dom.nodes.get('api-cancel').disabled,true);
+  assert.equal(dom.nodes.get('api-debug-data').hidden,true);
+  assert.equal(dom.nodes.get('api-send').disabled,false);
 });
 
 test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies',async()=>{
@@ -221,14 +228,20 @@ test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late repl
   assert.equal(missing.nodes.get('api-http-status').textContent,'404');
   assert.match(missing.nodes.get('api-error').textContent,/HTTP 404/);
 
-  let deliver;
-  const cancelled=createApiDomHarness(html,()=>new Promise(resolve=>{deliver=resolve;}));
-  const running=cancelled.dispatch('api-send','click');
-  await cancelled.dispatch('api-cancel','click');
+  let deliver, signal;
+  const changed=createApiDomHarness(html,(_url,options)=>{
+    signal=options.signal;
+    return new Promise(resolve=>{deliver=resolve;});
+  });
+  const running=changed.dispatch('api-send','click');
+  changed.nodes.get('api-url').value='./changed.json';
+  await changed.dispatch('api-url','input');
+  assert.equal(signal.aborted,true,'changing URL aborts in-flight request');
   deliver(new Response('late reply',{status:200}));
   await running;
-  assert.equal(cancelled.nodes.get('api-status').dataset.state,'cancelled');
-  assert.equal(cancelled.nodes.get('api-response').textContent,'');
+  assert.equal(changed.nodes.get('api-status').dataset.state,'idle');
+  assert.equal(changed.nodes.get('api-response').textContent,'');
+  assert.equal(changed.nodes.get('api-send').disabled,false);
 
   let deliverReset;
   const reset=createApiDomHarness(html,()=>new Promise(resolve=>{deliverReset=resolve;}));
@@ -238,6 +251,21 @@ test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late repl
   await inFlight;
   assert.equal(reset.nodes.get('api-status').dataset.state,'idle');
   assert.equal(reset.nodes.get('api-response').textContent,'');
+});
+
+test('minimal HTTP UI rejects invalid URLs without sending requests',async()=>{
+  let requests=0;
+  const dom=createApiDomHarness(await load(),()=>{requests++;throw new Error('must not fetch');});
+  dom.nodes.get('api-url').value='javascript:alert(1)';
+  await dom.dispatch('api-send','click');
+  assert.equal(requests,0);
+  assert.equal(dom.nodes.get('api-status').dataset.state,'error');
+  assert.match(dom.nodes.get('api-error').textContent,/HTTP\(S\)/);
+  dom.nodes.get('api-url').value='https://user:secret@example.com/data';
+  await dom.dispatch('api-send','click');
+  assert.equal(requests,0,'credential-bearing URL must be rejected');
+  assert.equal(dom.nodes.get('api-status').dataset.state,'error');
+  assert.equal(dom.nodes.get('api-debug-data').hidden,true);
 });
 
 test('inline JavaScript parses without a third-party runtime or external resources',async()=>{
@@ -260,7 +288,7 @@ test('manual browser testing has exactly one canonical HTML and no obsolete adve
     'examples/tasks must not accumulate duplicate manual browser pages');
   for(const [name,content] of [['guide',guide],['root',root],['agents',agents]]) {
     assert.match(content,/http:\/\/127\.0\.0\.1:43111\/demo-form\.html/,name+' must publish one stable demo URL');
-    assert.doesNotMatch(content,/http:\/\/127\.0\.0\.1:\d+\/fixture\b/,name+' must not advertise a legacy temporary fixture URL');
+    assert.doesNotMatch(content,/http:\/\/127\.0\.0\.1:\d+\/(?:fixture|next)\b/,name+' must not advertise legacy temporary fixture/next URLs');
   }
   assert.match(root,/python3 -m http\.server 43111 --bind 127\.0\.0\.1 --directory examples\/tasks/);
 });

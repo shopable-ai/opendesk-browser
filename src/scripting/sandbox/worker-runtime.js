@@ -38,7 +38,8 @@ export function installControlWorker(scope) {
       started = true;
       function fail(error) {
         send({kind: 'error', runId: pin.runId, ownerEpoch: pin.ownerEpoch,
-          error: {code: error?.code || 'E_CONTROL_EXECUTION', name: error?.name || 'Error', message: String(error?.message || error)}});
+          error: {code: error?.code || 'E_CONTROL_EXECUTION', name: error?.name || 'Error', message: String(error?.message || error),
+            ...(typeof error?.stack === 'string' ? {stack:error.stack.slice(0,4096)} : {})}});
       }
       try {
         data.body = controllerProgramBody(data.body);

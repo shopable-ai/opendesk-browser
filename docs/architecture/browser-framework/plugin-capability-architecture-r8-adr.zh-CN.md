@@ -18,14 +18,15 @@
 
 约束：不设置“第三方脚本可直接使用全部 chrome API”；不为 ScriptCat 建照搬 Runtime；不引入独立的 TaskDB / AuthDB / NetworkBroker / Controller。GM facade 属于不可信 JS 功能投影，不是第二权威。
 
-## 2. 程序四维合同，而非把“运行形态”混成一维
+## 2. 程序五维合同，而非把“运行形态”混成一维
 
 | 维度 | 取值 | 说明 |
 | --- | --- | --- |
 | Authoring / Source | single classic .user.js；single async function main；multi-file ESM/package.json | 仅编写/构建形式，不自动获得更多权限；最终冻结来源 JS 字节、sourceHash 与依赖 manifest |
 | Runtime Kind | page-userscript；controller-task；background-script（未来）；usercss（未来） | 不同执行宿主、目标与脚本上下文；复用身份、审核、存储和日志 |
 | Trigger | manual-preview；installed-auto-document；manual-run；alarm-schedule（未来）；browser-event（未来）；external-agent（可选） | schedule 是触发器，不应自动创建新 Controller/Task DB；完整生命周期必须写入适配 |
-| Trust / Release | Draft → Candidate → Verified → Available → Installed → Enabled/Disabled → Retired | Page 与 Controller 使用同样“证据门槛思想”，但验证器、native receipts、运行效果不可互换 |
+| Trust / Release | Draft → Candidate → Verified → Available；Installed + Enabled/Disabled；Retired | 发行状态与安装状态分别存储；Page 与 Controller 的验证器、native receipts、运行效果不可互换；注册成功另记 observed 状态 |
+| Capability / Permission | manifest 资格、浏览器实际授予、脚本声明、应用能力、单次目标/身份 | 五者逐层收窄；源码格式、触发方式、AI 生成或安装状态均不能自行扩大权限 |
 
 **Runtime 映射**：
 - **Page Userscript**：chrome.userScripts USER_SCRIPT world（P0），匹配 URL/frame/runAt；没有 Controller page 对象；安装一次，文档自动执行，执行效果不会在 unregister 后自动回滚。
@@ -110,6 +111,8 @@ Chrome userScripts.register 与 IndexedDB 不共享原子事务。用**单一 wr
 
 **GM Value**：按 [ownerNamespace, programId, grantProfile] 分区，异步 GM.getValue 优先；同步 GM_getValue 只可提供经过启动握手初始化的冻结 local cache，写入失败的偏序与 remote listeners 必须有版本合同，绝不通过阻塞跨进程 RPC 伪造同步。
 
+**R8 Engineering 身份修正**：上述“登记世界/实例查权”是尚待实现的认证要求，不代表 Chrome `MessageSender` 能报告脚本身份。当前 Chrome 官方 runtime 合同没有 `scriptId` / `worldId` / `userScriptWorldId`；`sender.id` 是扩展 ID。专用事件只能证明消息来自本扩展关联的 USER_SCRIPT 通道。不能拿不可信 payload 的世界名去查询可信登记表后直接放权。具体否决门槛见下方 R8-EP-ADR-05。
+
 **GM XHR**：GmHttpAdapter 做 callback/event/Promise/abort 投影，Broker/NetworkService 执行受控 HTTP。现有 axiosx SDK 不能“注入后就绕开 CORS”，页面 fetch 依然受 CORS；扩展后台网络也要检查目的 host。当前驱动 credentials:omit、禁敏感头、短超时、文本 JSON；不应为实现 GM 直接开放任意 cookie/header、redirect、stream。未知请求效果不能主动重试导致重复 POST。
 
 **GM Resource / Download / Notification**：复用已锁资产与现有可信 chrome services，资源 URL/临时 Blob 生命周期严格限定；不公开通用 extension Web Accessible Resource 列表。
@@ -152,3 +155,44 @@ P0 采用门槛：正式 Page 可按规则安装/启停、同文档只执行一�
 - 定时器声称永久在线、秒级准点、exactly-once 远程副作用；
 - PR #11 未合仍称 Native Agent main 已完成；UI 增加第四一级页签或重写当前 Controller/TaskDB；
 - 任何未经过真实 Chrome/Codex E2E 的功能被标 CHROME_NATIVE_VERIFIED。
+
+## 10. R8 Engineering Program R1 增量决策
+
+> 2026-10-09（北京时间）。源码基线 `main@945cf92726fcadcd60ecb3dc70729029fb9f28e6`；复核 `main@0dcc23b6e1a3409a0dc06f2afd2884ed1e74a448` 的并行计划增量仅涉及文档，保留其 E01–E40 稳定任务 ID。以下为执行设计决策，**不是全部源码已实现**。任务、前置关系和逐项验收只在 [唯一执行计划](../../product/browser-automation-r8-implementation-plan.zh-CN.md) 维护；能力 ID 仍以 [188 项功能目录](../../product/browser-automation-feature-catalog-r8.zh-CN.md) 为准。`ACCEPTED_DESIGN` 不等于 `CHROME_NATIVE_VERIFIED`。
+
+| 决策 ID / 问题 | 明确结论 | 实施约束、延期或否决门槛 |
+| --- | --- | --- |
+| R8-EP-ADR-01 · GM 与既有 SDK | **ACCEPTED_DESIGN**：GM Facade → 专用身份准入 → 原 Broker/Authority → 原 Storage/Resource/Network/Chrome service。只新增方法签名、序列化、事件和错误投影 | 不给第三方脚本 SDK 的宿主会话凭证，不创建 GM 专用数据库/权限引擎/第二网络服务。GM Promise API 以相同安装身份调用驱动；原 SDK 合同保持 |
+| R8-EP-ADR-02 · Page 与 Controller 身份 | **ACCEPTED_DESIGN**：共享 owner namespace、资产引用、sourceHash、冻结 revision、依赖锁的基础设施，验证器按 runtimeKind 分派 | 保留 `opendesk.task.v1` 和 `opendesk.page-program.v1` 的现有哈希语义；需要新字段时显式版本化。Controller RunResult 不可充当 Page 自动安装证明；不把 `Available` 字符串当可信证明 |
+| R8-EP-ADR-03 · 五维正交 | **ACCEPTED_DESIGN**：sourceFormat、runtimeKind、trigger、publication/installation、capability 分别建模 | `Draft/Candidate/Verified/Available/Retired` 是发行子状态；`Installed`、enabled、native observed 状态独立。源码保存、执行成功、正式验证、安装持久化、Chrome 注册回执是五件不同的事。Agent/Skill 是 adapter，不凭空增加特权运行世界 |
+| R8-EP-ADR-04 · include/exclude | **DEFER_IMPLEMENTATION，保留拒绝**：有限 glob 可以作为未来适配目标，不能直接宣称完整传统正则兼容 | Chromium dynamic UserScript 实际为 `(matches OR includeGlobs) AND NOT excludeMatches AND NOT excludeGlobs`。不得用 `<all_urls>` 兜底纯 include，不照搬 content_scripts 的 AND。当前 D1 对 @include/@exclude 继续失败关闭；纯 include、query/fragment/编码/子域需目标版本 native 证据后才开放 [EP-S1][EP-S2] |
+| R8-EP-ADR-05 · USER_SCRIPT 可信消息 | **SECURITY_GATE**：使用专用 `onUserScriptMessage/onUserScriptConnect`，但还必须证明脚本实例身份 | Chrome sender 的 extension/tab/frame/document/origin 是必要条件，不足以推出哪个 program/world。MDN 的跨浏览器 `userScriptWorldId` 不能视为 Chrome 支持。定义可信注册实例凭证的创建、保密、绑定 document/revision/generation、过期与撤销，做兄弟脚本冒用/网页伪造/旧版本重放 native 测试。未证明前所有特权 GM 维持关闭 [EP-S3] |
+| R8-EP-ADR-06 · document-start 与授权 | **ACCEPTED_DESIGN，语义不可虚标**：安装时完成静态授权并预注册；早期 bootstrap 注入与异步权限就绪分别记录 | 无 GM 脚本可由已批准注册启动，但应用停用到 unregister 完成有竞态，必须定义生效边界并验证。若要求用户代码前异步实时授权，则不能保证用户代码仍在原生 document-start 时点、先于页面脚本执行；不可同时承诺零等待 document-start 和未知耗时的逐次权限确认。受影响 profile 明确延迟或拒绝，不能假称“补跑回 start” [EP-S1] |
+| R8-EP-ADR-07 · 注册/更新/撤权竞态 | **ACCEPTED_DESIGN**：本地 desired state 为权威，native registration 为派生状态；按资产串行，持久 operationId + generation 对账 | 先撤销 Broker 实例能力，再 unregister；迟到 register ACK 不覆盖新代次，补偿注销过期 ID。只处理本服务拥有的注册 ID；register/update 与 IDB 无跨系统原子性。保留已装旧版本直至新版本切换确认，不能把 unregister 当 DOM/远端效果回滚 [EP-S1] |
+| R8-EP-ADR-08 · Background/Cron | **ACCEPTED_DESIGN，R8.4**：Background 是无页面 DOM 的运行合同；Cron 是 TriggerDefinition，alarms 只负责唤醒 | 时区采用 IANA、固定解析版本，明确 DST gap/fold，默认 skip/coalesce，catch-up 有上限。持久 fireId/租约/代次借用现有 Journal；本地单次准入不等于远端 exactly-once。拒绝 SW 常驻、浏览器关闭继续执行、秒级准点承诺；Native 长任务独立授权 [EP-S4][EP-S5] |
+| R8-EP-ADR-09 · GM 网络与 axiosx | **ACCEPTED_DESIGN，R8.3**：fetch 仍是浏览器 Web API；axiosx 仍是 OpenDesk SDK；GM adapter 在同一受信网络层补兼容语义 | `@connect ∩ 已安装批准 ∩ capability ∩ 浏览器实际 host ∩ 实际目标/redirect`。不通过注入 axiosx 改变页面 CORS，不让脚本自由选择扩展代理 URL。Promise/callback、abort、readyState、responseType 各有独立合同；复用 PR #20 唯一真实 HTTP fixture，不新增同类服务器 |
+| R8-EP-ADR-10 · 单文件/多文件发布 | **ACCEPTED_DESIGN**：单文件编辑器与 ESM/package.json 是并行的创作入口，共同进入冻结资产、类型验证、同一发行/安装模型 | 优先验收 PR #22 的 authoring snapshot/build artifact 分离；不会在 main 重写另一套 source viewer。Source map 必须绑定构建模式、产物 hash 和原始路径；不把 bundle 当作者源码，也不强迫简单脚本建立项目 |
+| R8-EP-ADR-11 · Native/Agent | **ACCEPTED_DESIGN，复用 PR #11**：Native 仅为可选 adapter，六项已有 RPC 进入存活 Sidebar 的同一 RunHost | 默认关闭、安装授权独立；关闭 AI/Native 后正式 Task 仍可运行。Bridge ACK 是准入不是结果；未知副作用不重放。不能因模拟帧 Host IPC 或有 continue-on-error 的绿色 CI 就合并整个 Native 产品链 |
+| R8-EP-ADR-12 · UserCSS | **ACCEPTED_DESIGN，R8.6**：独立 usercss runtimeKind，复用资产、版本、匹配、安装状态与权限 | 首批仅受控普通 CSS 和基础元数据；不进入 JS Runtime，不获取 GM/任意 chrome 能力。Less/Stylus/uso、复杂 @var 和订阅同步延期，明确 style 冲突与撤除作用范围 |
+| R8-EP-ADR-13 · 当前默认广泛权限 | **PUBLIC_RELEASE_GATE**：保留用户已授权开发场景，公开发行前单独审查 manifest 用途、最小权限和隐私披露 | `<all_urls>`、cookies/notifications 是当前资格，不是第三方脚本授权。不能说所有敏感 API 都可改 optional；debugger/proxy/declarativeNetRequest 等需按官方支持范围决定必需、独立发行配置或延期。不得为假想未来插件申请所有权限 [EP-S6][EP-S7] |
+| R8-EP-ADR-14 · 防止三套版本/权限模型 | **ACCEPTED_DESIGN**：Task、GM 和可选插件共用规范 AssetRef 与 capability registry，适配层只投影能力 | 作者 `@version`、内部不可变 revision、安装 generation、触发 occurrence、GM API profile 分别记录，不混成一个版本号。禁止 TaskAuth/GMAuth/PluginAuth 三套独立权威；现有 IDB frameworkKV 做命名空间扩展，不新增第二持久库 |
+
+### 10.1 对旧段落的执行级修正
+
+1. 第 4.3 节的启动握手属于待证明方案。缺少真实脚本实例身份时，不能仅凭 `payload.worldId` 找到登记表就声称握手可信。E16（可信 GM 通道）是特权 GM 的硬前置，也是严格逐文档即时撤权承诺的前置。
+2. 停用操作以 native 对账完成作为“后续文档已停用”的可观察边界。在其之前显示 pending；对于必须零窗口拒绝的 profile，应采用已证明的启动认证方案或拒绝该 profile。已经运行的第三方代码及 DOM 效果不可通用撤销。
+3. Chrome 138+ 开关撤回后，存活 SW 的 `userScripts` 命名空间可能仍存在。Driver 的 availability 应实际调用方法并处理同步异常/Promise 拒绝，不能只判断对象存在。Chrome 133+ worldId、135+ execute、138+ 独立开关需要版本/能力探测 [EP-S1]。
+4. Chrome 150+ `persistAcrossSessions` 仍不能代替持久 TriggerDefinition、启动对账与错过处理；138–149 与 Firefox/Safari 不继承该保证。unpacked 的频率行为不是生产准时证明 [EP-S4]。
+5. 依赖字节锁只审批依赖内容，不能转化成整个脚本的权限批准。本轮修复 `page-dependencies.js`：迟到依赖报告只更新同依赖身份的资产列表，当前元数据重新准入；读取权限/文件/服务回复后及审批点击时都重新检查。`@antifeature` 是脚本自述的纯文本风险披露，缺少声明不代表安全；正式安装审查仍属后续任务。
+
+### 10.2 一手资料（本轮重新核实）
+
+- **EP-S1**：[Chrome User Scripts](https://developer.chrome.com/docs/extensions/reference/api/userScripts)，更新、执行世界、开关、注册和时机。
+- **EP-S2**：[Chromium UserScript::MatchesURL](https://chromium.googlesource.com/chromium/src/+/main/extensions/common/user_script.cc) 与 [User Scripts WebIDL](https://chromium.googlesource.com/chromium/src/+/main/extensions/common/api/user_scripts.webidl)，dynamic UserScript 使用 OR；本轮观察 user_script.cc blob `672b6fe2fd92c7f83272549a1f2b44c29c5dc674`。
+- **EP-S3**：[Chrome runtime MessageSender](https://developer.chrome.com/docs/extensions/reference/api/runtime#type-MessageSender) 与 [Chromium runtime.json](https://chromium.googlesource.com/chromium/src/+/main/extensions/common/api/runtime.json)；MDN 跨浏览器属性不能替代 Chrome 实现证据。
+- **EP-S4**：[Chrome Alarms](https://developer.chrome.com/docs/extensions/reference/api/alarms)，150+ 持久化与唤醒边界。
+- **EP-S5**：[Extension service worker lifecycle](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)，全局态丢失与终止恢复。
+- **EP-S6**：[Chrome permissions](https://developer.chrome.com/docs/extensions/reference/api/permissions)，optional 的例外及 origin pattern 的路径不作为网站授权边界。
+- **EP-S7**：[Chrome Web Store Policies](https://developer.chrome.com/docs/webstore/program-policies/policies)，最小权限、单一用途和用户提供脚本的受控 API 边界。
+
+以上来源用于确定设计约束，未执行对应跨版本原生测试；引用官方规范不改变功能的 `NOT_TESTED` 状态。

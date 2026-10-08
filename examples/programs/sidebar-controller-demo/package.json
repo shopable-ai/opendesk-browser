@@ -1,0 +1,36 @@
+{
+  "name": "@opendesk-examples/sidebar-controller-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sidebar 多文件 Controller Demo，使用现代 Locator 操作 Browser Test Lab 搜索表单",
+  "author": "OpenDesk examples",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.sidebar-controller-demo",
+    "runtimeKind": "controller",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "keyword": {
+          "type": "string",
+          "title": "搜索关键词",
+          "description": "Browser Test Lab 搜索关键词",
+          "default": "OpenDesk",
+          "minLength": 1,
+          "maxLength": 60
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,11 @@
+✔ R8 catalog has 188 single-owner capabilities, 40 complete tasks and an acyclic phased plan (3.774018ms)
+✔ omitted deferred capability, duplicate primary ownership and invented capability fail the coverage gate (5.391581ms)
+✔ invalid prerequisite, circular work ordering and duplicate catalog identity are rejected (9.250986ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 119.447955

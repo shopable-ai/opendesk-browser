@@ -48,6 +48,35 @@ export function createPageDependencyPanel({client,api,document:doc,getSource,set
     get('page-dependency-warnings').textContent=messages.join('\n');
     get('page-dependency-warnings').hidden=!messages.length;
   }
+  function assessCurrentSource() {
+    parsed=parseUserScriptDependencies(getSource());
+    const key=requireKey(parsed,mode());
+    admission=assessUserScriptExecution(parsed,{entryFormat:mode(),
+      dependenciesLocked:key===sourceKey && Boolean(get('page-dependency-lock').value)});
+    showAdmission();
+    return key;
+  }
+  function assertCurrentSource() {
+    const current=inputs(),metadata=parseUserScriptDependencies(current.sourceUtf8);
+    if(requireKey(metadata,current.entryFormat)!==sourceKey)
+      throw {code:'E_DEPENDENCY_LOCK_STALE',message:'依赖声明或入口已变化，请重新读取当前依赖'};
+    // A dependency approval does not authorize the script. Recheck its current
+    // policy at the click and after awaits, including edits without an input event.
+    assertUserScriptExecutable(metadata,{entryFormat:current.entryFormat,dependenciesLocked:true});
+  }
+  function showCurrentStatus() {
+    if(admission.status==='unsupported')
+      status('error','元数据含不支持的执行语义，请查看下方说明。');
+    else if(!parsed.requires.length)
+      status('empty','源码没有 @require；可以直接试运行。');
+    else if(review)
+      status('pending-review','资源已缓存，尚未批准。请核对实际来源与 SHA-256，再点击“确认来源并锁定”。');
+    else if(!report)
+      status('reading','正在读取依赖声明和本机已确认版本…');
+    else status(get('page-dependency-lock').value?'locked':'needs-review',get('page-dependency-lock').value
+      ? '已选择依赖锁；运行时仍会校验本地字节。修改正文无需重新锁定。'
+      : '请确认获取来源，读取资源后再审核并锁定；本步骤不会运行脚本。');
+  }
   function renderSources(rows) {
     const container=get('page-dependency-sources');container.replaceChildren();picks.clear();
     const localOrder=get('page-dependency-local-order');localOrder.replaceChildren(new Option('选择对应声明',''));
@@ -74,29 +103,29 @@ export function createPageDependencyPanel({client,api,document:doc,getSource,set
   }
   async function inspect(force=false,preferred) {
     if(disposed)return;
-    parsed=parseUserScriptDependencies(getSource());
-    const key=requireKey(parsed,mode());
-    admission=assessUserScriptExecution(parsed,{entryFormat:mode(),dependenciesLocked:Boolean(get('page-dependency-lock').value)});
-    showAdmission();
-    if(!force && key===sourceKey){controls();return;}
+    const key=assessCurrentSource();
+    if(!force && key===sourceKey){
+      if(!busy || admission.status==='unsupported')showCurrentStatus();
+      controls();return;
+    }
     const version=++sequence;sourceKey=key;report=null;review=null;
     get('page-dependency-review').textContent='';get('page-dependency-review').hidden=true;
     get('page-dependency-local-file').value='';
     renderLocks([],null);
     if(!parsed.requires.length){
       get('page-dependency-sources').replaceChildren();picks.clear();
-      status(admission.status==='unsupported'?'error':'empty',admission.status==='unsupported'?'元数据含不支持的执行语义，请查看下方说明。':'源码没有 @require；可以直接试运行。');
+      showCurrentStatus();
       controls();return;
     }
     status('reading','正在读取依赖声明和本机已确认版本…');controls();
     try {
       const result=await client.request('inspectPageDependencies',inputs());
       if(disposed || version!==sequence)return;
-      report=result;admission=result.admission;renderSources(result.requires);renderLocks(result.locks,preferred);showAdmission();
-      status(admission.status==='unsupported'?'error':get('page-dependency-lock').value?'locked':'needs-review',
-        admission.status==='unsupported'?'已理解源码；不支持的执行语义仍会阻断运行。':
-        get('page-dependency-lock').value?'已选择依赖锁；运行时仍会校验本地字节。修改正文无需重新锁定。':
-        '请确认获取来源，读取资源后再审核并锁定；本步骤不会运行脚本。');
+      if(assessCurrentSource()!==key){await inspect();return;}
+      // Asset choices/locks belong to the dependency identity. The report's
+      // admission belongs to older source bytes and must not replace live policy.
+      report=result;renderSources(result.requires);renderLocks(result.locks,preferred);
+      assessCurrentSource();showCurrentStatus();
     } catch(error){if(!disposed && version===sequence)fail(error);}
     finally {if(!disposed && version===sequence)controls();}
   }
@@ -128,24 +157,29 @@ export function createPageDependencyPanel({client,api,document:doc,getSource,set
       // Request only download origins, synchronously inside this trusted click.
       // Running-page permission is handled later by the independent Run action.
       permission=origins.length ? api.permissions.request({origins}) : Promise.resolve(true);
-    } catch(error){fail(error);return;}
+    } catch(error){assessCurrentSource();controls();fail(error);return;}
     const version=sequence;busy=true;review=null;controls();status('downloading','正在读取资源、校验原始字节并生成待审核记录…');
     (async()=>{
       if(!await permission)throw {code:'E_DEPENDENCY_PERMISSION',message:'用户未授权依赖下载来源'};
       if(disposed || version!==sequence)return;
+      assertCurrentSource();
       if(file)selections.push({order:localOrder,localFile:{name:file.name,bytesBase64:bytesToBase64(new Uint8Array(await file.arrayBuffer()))}});
       if(disposed || version!==sequence)return;
+      assertCurrentSource();
       const result=await client.request('preparePageDependencies',{...captured,explicitUserAction:true,selections});
       if(disposed || version!==sequence)return;
+      assertCurrentSource();
       review=result;
       get('page-dependency-review').textContent=result.entries.map(row=>
         `${row.order+1}. ${row.name}${row.version?' · '+row.version:''}\n声明：${row.originalUrl}\n实际来源：${row.resolvedUrl}\n获取方式：${row.acquisition}\n字节：${row.byteLength}\nSHA-256：${row.sha256}\n许可证：${row.license?.status==='known'?row.license.name:'未知或尚未核实'}\n${row.risk}`).join('\n\n');
       get('page-dependency-review').hidden=false;
       status('pending-review','资源已缓存，尚未批准。请核对实际来源与 SHA-256，再点击“确认来源并锁定”。');
-    })().catch(error=>{if(version===sequence)fail(error);}).finally(()=>{busy=false;controls();});
+    })().catch(error=>{if(!disposed && version===sequence){assessCurrentSource();fail(error);}}).finally(()=>{busy=false;controls();});
   }
   function approve(event) {
     if(!event.isTrusted || disposed || busy || !review)return;
+    try {assertCurrentSource();}
+    catch(error){assessCurrentSource();controls();fail(error);return;}
     const captured=review,version=sequence;busy=true;controls();status('approving','正在确认这组固定资源…');
     (async()=>{
       const result=await client.request('approvePageDependencies',{reviewId:captured.reviewId,explicitUserAction:true,
@@ -172,8 +206,7 @@ export function createPageDependencyPanel({client,api,document:doc,getSource,set
   }
   listen('page-dependency-add','click',add);listen('page-dependency-prepare','click',prepare);listen('page-dependency-approve','click',approve);
   listen('page-dependency-refresh','click',event=>{if(event.isTrusted)inspect(true,get('page-dependency-lock').value);});
-  listen('page-dependency-lock','change',()=>{status(get('page-dependency-lock').value?'locked':'needs-review',
-    get('page-dependency-lock').value?'已选择固定锁；执行前校验缓存字节，不会重新向 CDN 下载。':'请选择已确认版本或读取并锁定新的资源。');controls();});
+  listen('page-dependency-lock','change',()=>{assessCurrentSource();showCurrentStatus();controls();});
   listen('page-preview-entry','change',()=>inspect(true));listen('script-source','input',()=>inspect());
   client.ready.then(()=>inspect()).catch(fail);
   return {capture,get busy(){return busy;},refresh:inspect,dispose(){disposed=true;sequence++;
