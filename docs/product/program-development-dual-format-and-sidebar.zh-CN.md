@@ -2,6 +2,8 @@
 
 > 决策状态：采用；日期：2026-10-08。**这是今后给 AI/Codex 阅读的产品与操作入口**，不是新的 Sidebar 设计稿，也不是新的自动执行引擎。技术实施细节见 [多文件项目架构](../architecture/browser-framework/program-project-authoring-r1.zh-CN.md) 和 [依赖架构 D1](../architecture/browser-framework/userscript-dependencies-d1-adr.zh-CN.md)。
 
+2026-10-09 用户范围修正：旧 jQuery 版本及插件适配属于低优先级边缘问题，由程序优先处理；不扩展当前框架实施或原生验收。具体触发条件记在[旧 jQuery 兼容待办](../framework/backlog/legacy-jquery-compatibility.md)。
+
 ## 1. 一句话说明
 
 **复杂程序优先在本地用 ESM 多文件项目开发；简单 JavaScript 仍在原 Sidebar 编辑器中直接输入并运行。** 两者最终使用同一套既有运行与权限底座。不要把两种源码形态称为相互竞争的两个产品版本。

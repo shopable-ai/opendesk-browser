@@ -88,10 +88,11 @@ async function targetSession(client, session, targetName) {
 const observation = `(() => {
   const visible = node => Boolean(node.getClientRects().length) && getComputedStyle(node).visibility !== 'hidden';
   return {url:location.href,title:document.title,viewport:{width:innerWidth,height:innerHeight,documentWidth:document.documentElement.scrollWidth},
-    tab:document.documentElement.dataset.opendeskTab,activeElement:document.activeElement?.id,
+    tab:document.documentElement.dataset.opendeskTab,activeElement:document.activeElement?.id,scroll:{x:scrollX,y:scrollY},
     mainReferencesUnchanged:window.__d1MainReferences ? window.$===window.__d1MainReferences.dollar && window.jQuery===window.__d1MainReferences.jquery : null,
     controls:[...document.querySelectorAll('[id]')].map(node=>({id:node.id,value:node.value,text:node.textContent?.slice(0,8192),
-      visible:visible(node),disabled:node.disabled,checked:node.checked,open:node.open,state:node.dataset.state,
+      visible:visible(node),disabled:node.disabled,readOnly:node.readOnly,checked:node.checked,open:node.open,state:node.dataset.state,
+      rect:{x:node.getBoundingClientRect().x,y:node.getBoundingClientRect().y,width:node.getBoundingClientRect().width,height:node.getBoundingClientRect().height},
       stopOnly:node.dataset.stopOnly,ariaSelected:node.getAttribute('aria-selected'),tabIndex:node.tabIndex})),
     taskCards:[...document.querySelectorAll('[data-task-id]')].map(node=>({taskId:node.dataset.taskId,ariaPressed:node.getAttribute('aria-pressed'),visible:visible(node)})),
     resources:globalThis.OpenDeskResourceDiagnostics?.snapshot(),inputs:globalThis.__programInputs};
@@ -213,10 +214,10 @@ const command = process.argv[2];
 if (command==='start') await start();
 else {
   const session=JSON.parse(await readFile(sessionFile,'utf8'));
-  if(command==='preview-receipt') {await previewReceipt(session,process.argv[3]);process.exit(0);}
   execFileSync('/usr/bin/python3',['/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/check_instance.py',path.join(directory,'launcher-program-r3.json')],{stdio:'pipe'});
   const current=await packageFingerprint(session.extension);
   if(JSON.stringify(current)!==JSON.stringify(session.package))throw Error('Loaded candidate directory changed');
+  if(command==='preview-receipt') {await previewReceipt(session,process.argv[3]);process.exit(0);}
   const client=await connect(session.endpoint);
   try {
     if(command==='offline') {

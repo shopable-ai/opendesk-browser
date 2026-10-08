@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "workstreamId": "program-r31-01a11c05",
+  "branch": "agent/program-r3-native-01a11bdf",
+  "baseMainSha": "704dd8c",
+  "observedMainSha": "736884656fdab4229aad21889dbeeda1f14d4558",
+  "status": "HANDOFF_READY_PARTIAL_COMPONENT_ACCEPTANCE",
+  "scope": [
+    "Program R3.1 authoring source and executable artifact separation",
+    "Explicit development/production builds and local source maps",
+    "Native component execution evidence and cross-chat reuse"
+  ],
+  "modifiedFiles": [
+    ".agents/skills/opendesk-program-publish/SKILL.md",
+    "docs/architecture/browser-framework/program-project-authoring-r1.zh-CN.md",
+    "docs/framework/backlog/legacy-jquery-compatibility.md",
+    "docs/framework/workstreams/program-native-acceptance-r1.md",
+    "docs/framework/workstreams/program-r31-01a11c05-evidence.json",
+    "docs/framework/workstreams/program-r31-01a11c05.json",
+    "docs/product/program-development-dual-format-and-sidebar.zh-CN.md",
+    "examples/tasks/d1-userscript.html",
+    "schemas/opendesk-program-draft.v1.schema.json",
+    "scripts/build-program-project.mjs",
+    "scripts/validate-program-project.mjs",
+    "src/scripting/sandbox/worker-runtime.js",
+    "src/ui/program-source.js",
+    "src/ui/script-editor.js",
+    "src/ui/task-workbench.js",
+    "src/ui/tool-shell.css",
+    "src/ui/tool-shell.js",
+    "src/ui/tool.html",
+    "tests/environment/controller-main-entry.test.mjs",
+    "tests/environment/program-build.test.mjs",
+    "tests/environment/program-project.test.mjs",
+    "tests/environment/program-source.test.mjs",
+    "tests/environment/script-editor.test.mjs",
+    "tests/environment/sidebar-product-contract.test.mjs",
+    "tests/environment/task-workbench.test.mjs",
+    "tests/fixtures/program-draft.mjs",
+    "tests/framework/program-native-acceptance.mjs"
+  ],
+  "ownership": {
+    "workspace": "/Users/shopme/Documents/workspace/opendesk-browser-program-r3",
+    "writerThreadId": "01a11c05-c2e4-75e0-868a-bdcf59024615",
+    "writer": "HANDOFF_READY; no further product edits after new chat dispatch",
+    "centralOwnerModified": false,
+    "nativeResources": "RELEASED; own Chrome exited and profile deleted; other agents browsers untouched"
+  },
+  "validation": {
+    "automated": {
+      "tests": "PASS 187/187",
+      "sourceCheck": "PASS 137 files",
+      "developmentBuild": "PASS",
+      "productionBuild": "PASS",
+      "packageVerify": "PASS"
+    },
+    "native": "PARTIAL component evidence only",
+    "evidence": "docs/framework/workstreams/program-r31-01a11c05-evidence.json",
+    "entry": "docs/framework/workstreams/program-native-acceptance-r1.md",
+    "finalF3": "NOT_TESTED",
+    "zipInstall": "NOT_TESTED"
+  },
+  "dependenciesAndConflicts": [
+    "Latest origin/main changed after product freeze; synchronize and inspect affected inputs before integration",
+    "Other chats own R6.2/R6.3 native bridge and axiosx verification; do not duplicate or contend for main integration",
+    "Keep async main compiler bodies and final admitted source identities"
+  ],
+  "remaining": [
+    "same-profile whole-browser restart",
+    "saved-version reload",
+    "installed Task execution on this R31 candidate",
+    "formal frozen six-resource baseline",
+    "framework full contract/final F3/ZIP installation",
+    "PR review and safe main integration"
+  ],
+  "lowPriorityDeferred": [
+    "Legacy jQuery version/plugin compatibility; see docs/framework/backlog/legacy-jquery-compatibility.md"
+  ],
+  "pullRequest": null
+}
