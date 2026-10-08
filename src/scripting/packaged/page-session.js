@@ -93,8 +93,7 @@ export function installPackagedPageSession({api = globalThis.chrome, document: d
   }
   const installation = Object.freeze({dispose, snapshot: () => ({disposed, sessions: sessions.size,
     waits: [...sessions.values()].reduce((n, session) => n + session.registry.snapshot().waits, 0),
-    uploads: [...sessions.values()].reduce((n, session) => n + session.registry.snapshot().uploads, 0),
-    requests: [...sessions.values()].reduce((n, session) => n + session.requests.size, 0)})});
+    uploads: [...sessions.values()].reduce((n, session) => n + session.registry.snapshot().uploads, 0)})});
   api.runtime.onMessage.addListener(listener); win.addEventListener('pagehide', dispose, {once: true});
   installations.set(doc, installation); return installation;
 }
