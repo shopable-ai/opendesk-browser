@@ -10,6 +10,9 @@ export const PRIVATE_DIR = path.join(os.homedir(),'.opendesk-browser','native-ag
 export const INSTALL_FILE = path.join(PRIVATE_DIR,'install.json');
 export const SOCKET_FILE = path.join(PRIVATE_DIR,'agent.sock');
 export const MANIFEST_FILE = path.join(os.homedir(),'Library/Application Support/Google/Chrome/NativeMessagingHosts',HOST_NAME+'.json');
+export const CFT_MANIFEST_FILE = path.join(os.homedir(),'Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts',HOST_NAME+'.json');
+export const manifestFor = browser => browser === 'chrome' ? MANIFEST_FILE :
+  browser === 'cft' ? CFT_MANIFEST_FILE : (()=>{throw new WireError('E_BROWSER','Expected chrome or cft');})();
 const SOURCE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPTS = ['native-host.mjs','wire.mjs'];
 const extensionIdPattern = /^[a-p]{32}$/;
@@ -41,11 +44,13 @@ export function loadInstall() {
   }
   const info=JSON.parse(fs.readFileSync(INSTALL_FILE,'utf8'));
   if(info.name!==HOST_NAME || info.socketPath!==SOCKET_FILE ||
+    !['chrome','cft'].includes(info.browser||'chrome') ||
     !extensionIdPattern.test(info.extensionId) || !/^[a-f0-9]{64}$/.test(info.clientCredential))
     throw new WireError('E_INSTALL_INVALID');
   return info;
 }
-export function setup(extensionId) {
+export function setup(extensionId,browser='chrome') {
+  const manifestFile=manifestFor(browser);
   if(process.platform!=='darwin')throw new WireError('E_PLATFORM','macOS only in R1');
   if(!extensionIdPattern.test(extensionId || ''))throw new WireError('E_EXTENSION_ID','Supply actual 32-char Chrome extension ID');
   ensurePrivate();
@@ -53,12 +58,13 @@ export function setup(extensionId) {
   if(Buffer.byteLength(SOCKET_FILE)>=104)throw new WireError('E_SOCKET_PATH');
   const previous=fs.existsSync(INSTALL_FILE)?loadInstall():null;
   if(previous && previous.extensionId!==extensionId)throw new WireError('E_EXTENSION_ID_CONFLICT');
+  if(previous && (previous.browser||'chrome')!==browser)throw new WireError('E_BROWSER_CONFLICT','Cleanup old Native Agent setup before changing Chrome variant');
   for(const file of [...SCRIPTS,'native-host'])refuseLinks(path.join(PRIVATE_DIR,file));
   const expectedManifest={name:HOST_NAME,description:'OpenDesk Browser optional Native Agent',type:'stdio',
     path:path.join(PRIVATE_DIR,'native-host'),allowed_origins:['chrome-extension://'+extensionId+'/']};
-  refuseLinks(MANIFEST_FILE);
-  if(fs.existsSync(MANIFEST_FILE)) {
-    const actual=JSON.parse(fs.readFileSync(MANIFEST_FILE,'utf8'));
+  refuseLinks(manifestFile);
+  if(fs.existsSync(manifestFile)) {
+    const actual=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
     if(JSON.stringify(actual)!==JSON.stringify(expectedManifest))throw new WireError('E_MANIFEST_CONFLICT');
   }
   for(const file of SCRIPTS){
@@ -69,35 +75,39 @@ export function setup(extensionId) {
   const wrapper='#!/bin/sh\nexec '+quote(process.execPath)+' '+quote(path.join(PRIVATE_DIR,'native-host.mjs'))+' "$@"\n';
   fs.writeFileSync(path.join(PRIVATE_DIR,'native-host'),wrapper,{mode:0o700});
   fs.chmodSync(path.join(PRIVATE_DIR,'native-host'),0o700);
-  writeJson(INSTALL_FILE,{name:HOST_NAME,extensionId,socketPath:SOCKET_FILE,
+  writeJson(INSTALL_FILE,{name:HOST_NAME,extensionId,browser,socketPath:SOCKET_FILE,
     clientCredential:previous?.clientCredential||crypto.randomBytes(32).toString('hex'),
     createdAt:previous?.createdAt||new Date().toISOString(),installedAt:new Date().toISOString(),
     installRoot:PRIVATE_DIR});
-  fs.mkdirSync(path.dirname(MANIFEST_FILE),{recursive:true});
-  writeJson(MANIFEST_FILE,expectedManifest);
-  return {installed:true,extensionId,manifest:MANIFEST_FILE,nativeHost:expectedManifest.path};
+  fs.mkdirSync(path.dirname(manifestFile),{recursive:true});
+  writeJson(manifestFile,expectedManifest);
+  return {installed:true,extensionId,browser,manifest:manifestFile,nativeHost:expectedManifest.path};
 }
 export function doctor() {
-  let installed=false,extensionId=null,error=null;
+  let installed=false,extensionId=null,browser=null,manifestFile=null,error=null;
   try {
-    const info=loadInstall();extensionId=info.extensionId;
-    const manifest=JSON.parse(fs.readFileSync(MANIFEST_FILE,'utf8'));
+    const info=loadInstall();extensionId=info.extensionId;browser=info.browser||'chrome';
+    manifestFile=manifestFor(browser);
+    refuseLinks(manifestFile);
+    const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
     installed=manifest.name===HOST_NAME && manifest.path===path.join(PRIVATE_DIR,'native-host') &&
       JSON.stringify(manifest.allowed_origins)===JSON.stringify(['chrome-extension://'+extensionId+'/']);
     for(const file of SCRIPTS)installed &&= fs.existsSync(path.join(PRIVATE_DIR,file));
   }catch(e){error=e.code||'E_NOT_INSTALLED';}
-  return {installed,extensionId,socketExists:fs.existsSync(SOCKET_FILE),error,
+  return {installed,extensionId,browser,manifest:manifestFile,socketExists:fs.existsSync(SOCKET_FILE),error,
     note:'Socket existence does not prove an authenticated Chrome connection'};
 }
 export function cleanup() {
   const info=loadInstall();
+  const manifestFile=manifestFor(info.browser||'chrome');
   if(fs.existsSync(SOCKET_FILE))throw new WireError('E_SOCKET_IN_USE','Stop Chrome Native connection first');
-  if(fs.existsSync(MANIFEST_FILE)) {
-    const current=JSON.parse(fs.readFileSync(MANIFEST_FILE,'utf8'));
+  refuseLinks(manifestFile);
+  if(fs.existsSync(manifestFile)) {
+    const current=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
     if(current.name!==HOST_NAME || current.path!==path.join(PRIVATE_DIR,'native-host') ||
         JSON.stringify(current.allowed_origins)!==JSON.stringify(['chrome-extension://'+info.extensionId+'/']))
       throw new WireError('E_MANIFEST_CONFLICT');
-    fs.unlinkSync(MANIFEST_FILE);
+    fs.unlinkSync(manifestFile);
   }
   for(const file of [...SCRIPTS,'native-host','install.json']) {
     const target=path.join(PRIVATE_DIR,file);refuseLinks(target);if(fs.existsSync(target))fs.unlinkSync(target);
