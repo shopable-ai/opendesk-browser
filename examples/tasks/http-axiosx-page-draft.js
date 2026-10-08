@@ -1,7 +1,7 @@
 // OpenDesk Sidebar「开发」草稿：通过现有 Page API 点击网页内的 axiosx 按钮。
 // 网页必须先通过「独立网页 SDK」批准 network 并安装 MAIN/ISOLATED 入口。
 // 参数：{"url":"./request-sample.json","expected":"success"}。
-// 不直接调用 Worker axiosx，不使用 page.evaluate 或原生 DOM 改值。
+// 不直接调用 Worker axiosx，不使用页面任意求值或 DOM 强制改值。
 async function main() {
   const url = String(params.url ?? './request-sample.json');
   const expected = params.expected === 'error' ? 'error' : 'success';
