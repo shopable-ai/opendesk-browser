@@ -65,21 +65,13 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     requireValue(decision !== false, 'E_PERMISSION'); guard(state);
   }
   function race(state, promise) {
-    // A per-Locator clock can stop one operation without retiring the run.
-    const signals = [state.controller.signal, state.locatorAbort?.signal].filter(Boolean);
+    const signal = state.locatorAbort?.signal || state.controller.signal;
     return new Promise((resolve, reject) => {
-      let settled = false;
-      const listeners = signals.map(signal => () => finish(reject, signal.reason));
-      function finish(done, value) {
-        if (settled) return;
-        settled = true;
-        signals.forEach((signal, index) => signal.removeEventListener('abort', listeners[index]));
-        done(value);
-      }
-      Promise.resolve(promise).then(value => finish(resolve, value), cause => finish(reject, cause));
-      const aborted = signals.find(signal => signal.aborted);
-      if (aborted) finish(reject, aborted.reason);
-      else signals.forEach((signal, index) => signal.addEventListener('abort', listeners[index], {once: true}));
+      const abort = () => { signal.removeEventListener('abort', abort); reject(signal.reason); };
+      Promise.resolve(promise).then(value => { signal.removeEventListener('abort', abort); resolve(value); }, cause => {
+        signal.removeEventListener('abort', abort); reject(cause);
+      });
+      if (signal.aborted) abort(); else signal.addEventListener('abort', abort, {once: true});
     });
   }
   async function wait(state, promise, extra = {}) {
@@ -110,7 +102,13 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
   }
   async function native(state, owner, method, args, extra) {
     const namespace = ['tabs', 'windows', 'cookies', 'scripting', 'webNavigation'].find(name => api[name] === owner);
-    return step(state, () => chromeCall(api, owner, method, ...args), extra, `${namespace}.${method}`);
+    // A long Locator wait can create thousands of read-only native polls.
+    // Only the commit callback retains a native-stage receipt; commit intent
+    // and no-effect are persisted independently before/after its dispatch.
+    const locator = ['locatorAction','locatorWait'].includes(state.envelope.operation.method);
+    const silent = locator && (namespace === 'webNavigation' || namespace === 'tabs' &&
+      args[1]?.envelope?.operation.method !== 'locatorCommit');
+    return step(state, () => chromeCall(api, owner, method, ...args), extra, silent ? undefined : `${namespace}.${method}`);
   }
   async function verifyTarget(state, target = state.handoff?.to || state.envelope.target) {
     const frames = await native(state, api.webNavigation, 'getAllFrames', [{tabId: target.tabId}]);
@@ -580,6 +578,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     if (kind === 'packaged' && (method === 'locatorAction' || method === 'locatorWait')) {
       state.locatorExpiryAt = Math.min(deadlineAt ?? Infinity, clock.now() + (args[1].timeout ?? 30000));
       state.locatorAbort = new AbortController();
+      controller.signal.addEventListener('abort', () => state.locatorAbort?.abort(controller.signal.reason), {once:true});
       state.locatorTimer = setTimeout(() => state.locatorAbort?.abort(error('E_TIMEOUT')),
         Math.max(0, state.locatorExpiryAt - clock.now()));
     }
