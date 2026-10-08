@@ -119,14 +119,15 @@ function rectOf(el) {
 }
 function actionability(el, action, doc, win) {
   if (!visible(el, win)) return 'E_ELEMENT_NOT_VISIBLE';
-  if (el.matches?.(':disabled') || el.disabled || el.closest?.('fieldset[disabled]')) return 'E_ELEMENT_DISABLED';
+  if (el.matches?.(':disabled') || el.disabled || el.closest?.('fieldset[disabled]') ||
+      el.closest?.('[aria-disabled="true"]')) return 'E_ELEMENT_DISABLED';
   if (action === 'fill') {
     if (!(tag(el) === 'textarea' || tag(el) === 'input' && ['text','search','email','url','tel','password'].includes(el.type)))
       throw new PageError('E_INPUT_TARGET_UNSUPPORTED');
     if (el.readOnly) return 'E_INPUT_READONLY';
   }
-  const rect = rectOf(el), x = Math.max(0, rect.left) + Math.min(rect.width, win.innerWidth) / 2,
-    y = Math.max(0, rect.top) + Math.min(rect.height, win.innerHeight) / 2;
+  const rect = rectOf(el), x = (Math.max(0, rect.left) + Math.min(rect.right, win.innerWidth)) / 2,
+    y = (Math.max(0, rect.top) + Math.min(rect.bottom, win.innerHeight)) / 2;
   if (rect.right <= 0 || rect.bottom <= 0 || rect.left >= win.innerWidth || rect.top >= win.innerHeight ||
       x >= win.innerWidth || y >= win.innerHeight) return 'E_ELEMENT_OUTSIDE_VIEWPORT';
   if (typeof doc.elementFromPoint === 'function') {
