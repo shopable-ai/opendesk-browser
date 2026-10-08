@@ -122,3 +122,16 @@ SOURCE_IMPLEMENTED、COMPONENT_TESTED、PACKAGE_BUILD_VERIFIED、NATIVE_HOST_INS
 每项附当次 HEAD、真实命令、结果、可追溯日志；未测写 NOT_TESTED。
 关键安全质量：不得有第二 Executor、第二 Permission DB、目标漂移、未知副作用 replay、普通用户依赖 Native。
 合并前重新核对 main、PR #7/#9 同时变化和共享文件三方合并，按本 workstream 的独立 PR 串行集成，不在未经授权下强推 main；Native real acceptance 缺失时 PR 保持 Draft。
+
+## R6.2 接管补充：真实 AI → JavaScript Task 最小闭环
+
+在本地 Codex 先读取 docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md、examples/tasks/README.zh-CN.md、当前 PR #11 diff 和 CI。不要重建 Native Host、修改 Sidebar 三页签或修改已有 Task/Controller DB。云端 R6.2 提交不等于本地 worktree 已同步；保护所有未提交本地修改与独占 Chrome profile。
+
+1. 复核最新 main / PR #11 HEAD，记录代码来源。确认跨 Host run.get/run.stop 的 registrationId 归属与 finalize 失败的 OUTCOME_UNKNOWN。按需测试：node --test tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/agent-to-task-fixtures.test.mjs tests/environment/task-package-flow.test.mjs tests/framework/r5-modern-page-api.test.mjs；以及 npm run check、npm run build、npm run build:dev、npm run verify。
+2. 先按本提示词上文完成真实 Chrome/CFT 的 Native Messaging 安装、用户手势启用 Native、网站授权、当前 Side Panel 绑定、真实 target.current/run.start/get/stop、断连/撤权/导航/重启。不得用伪装的 Chromium API、Node ACK 或手工 DOM 修改替代原生回执。
+3. 在 http://127.0.0.1:43111/demo-form.html，借实际 Codex CLI 读取 examples/tasks/agent-observe-draft.js，构造 source.kind=draft 的 Native 请求；从真实 target.current 获取并原样使用 registrationId 和全部 windowId/tabId/frameId/documentId/url/origin。运行只读 page.observe，从 run.get 获取 durable 结果，确认没有网页写操作。
+4. 用 examples/tasks/modern-search-draft.js、参数 {"keyword":"OpenDesk"} 再次执行：必须真实 fill 覆盖预填、单次 click、waitFor 业务成功、读取 #results，记录真实 runId/resultId、sourceHash、target、原生 page-effect receipt、retirement 与页面提交次数。超时、丢 ACK 或未知副作用绝不新 requestId 自动补跑。
+5. 使用 script.save 的 CAS 验证版本不可变，并测试 pinned saved revision。使用 examples/tasks/modern-search.v1.opendesk-task.json 在原完整任务目录导入 Candidate，使用确切同源、同站点已完成的真实 runId 完成后台 Verification；经用户明确 Available 和 Install。关闭 Codex 和 Native Host 后由 Sidebar「我的任务」设置参数并再次执行，重启 Chrome 后复测，记录结果与同一扩展/ZIP 哈希。
+6. 分开输出 AI_AGENT_E2E_VERIFIED、JAVASCRIPT_RUN_VERIFIED、REVISION_PERSISTED、TASK_VERIFIED_AVAILABLE、INSTALLED_REUSABLE_VERIFIED，以及 SOURCE_CONFIRMED/COMPONENT_TESTED/BUILD_VERIFIED/NATIVE_CHROME_VERIFIED/FINAL_FRAMEWORK_ACCEPTED。每个 PASS 绑定同一候选、真实命令、原生 ID 与回执；无证据写 NOT_TESTED。Native 未满足规定验收前，PR #11 保持 Draft，禁止直接推 main、覆盖他人 Worktree 或删除分支。
+
+详细合同只有 docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md 一份；本节是既有本地接管提示词的增量，不创建第二套 Roadmap。
