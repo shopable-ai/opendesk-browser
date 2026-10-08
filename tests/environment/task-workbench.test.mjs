@@ -167,7 +167,9 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
   assert.equal(button.attributes['aria-controls'],'task-selected-workspace');
   assert.equal(group.children[1],f.get('task-selected-workspace'),'parameters and history remain under selected card');
   assert.match(button.children[1].children[0].textContent,/表单任务/);
-  assert.match(f.get('task-installed-detail').textContent,/输入表单/);
+  assert.match(button.children[1].children[1].textContent,/输入表单/,'card already communicates its purpose');
+  assert.match(f.get('task-installed-detail').textContent,/适用网站/,'secondary details show scope and permissions');
+  assert.doesNotMatch(f.get('task-installed-detail').textContent,/输入表单/,'R5 avoids repeating the task purpose');
   assert.doesNotMatch(f.get('task-installed-detail').textContent,/[a-f0-9]{64}/,'raw hashes belong in diagnostics');
   assert.equal(f.get('workbench-discover').hidden,true);
 });
@@ -184,7 +186,7 @@ test('Sidebar Discover searches installed tasks only and selects a task without 
   f.get('local-discover-search').fire('input');
   assert.match(f.get('local-discover-count').textContent,/0 个/);
   assert.equal(f.get('local-discover-cards').children.length,1,'empty search renders an explanation');
-  assert.match(f.get('local-discover-cards').children[0].textContent,/没有找到/);
+  assert.match(f.get('local-discover-cards').children[0].textContent,/没有匹配/);
   f.get('local-discover-search').value='表单';
   f.get('local-discover-search').fire('input');
   assert.equal(f.get('local-discover-cards').children.length,1);
@@ -299,7 +301,7 @@ test('two extension documents share only a refresh hint and re-read authoritativ
   const catalog=make({installedInitially:false,sharedStore:store});
   t.after(()=>{sidebar.ui.dispose();catalog.ui.dispose();});
   await tick();await tick();
-  assert.equal(sidebar.get('task-installed-cards').children[0].textContent.includes('还没有安装'),true);
+  assert.match(sidebar.get('task-installed-cards').children[0].textContent,/还没有任务/);
   catalog.ui.showCatalogPage();
   catalog.get('task-catalog-list').value='demo.form@1.0.0';
   catalog.get('task-catalog-list').fire('change');
