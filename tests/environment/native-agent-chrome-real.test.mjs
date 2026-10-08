@@ -83,7 +83,66 @@ function connectCDP(url) {
       });
     });
   });
+
 }
+
+test('real macOS Chrome: bare renderer/CDP control without extensions', {
+  // The control is only for explicit Chrome for Testing diagnostics, never
+  // a prerequisite for regular developer npm test on their own Mac.
+  skip:process.platform!=='darwin'||!process.env.CHROME_FOR_TESTING_BIN,
+  timeout:60000
+},async t=>{
+  const binary=chromeBinary();
+  assert.ok(binary,'Chrome for Testing binary is required for the baseline');
+  const [executable,browser]=binary;
+  const home=fs.mkdtempSync('/private/tmp/odbr-cft-baseline-');
+  const profile=path.join(home,'browser-profile');
+  const env={...process.env,HOME:home};
+  let child=null,cdp=null,debug='';
+  t.after(()=>{
+    cdp?.close();
+    if(child&&!child.killed)child.kill('SIGKILL');
+    fs.rmSync(home,{recursive:true,force:true});
+  });
+  try {
+    child=spawn(executable,[
+      '--headless=new','--no-first-run','--no-default-browser-check',
+      '--disable-gpu','--disable-dev-shm-usage',
+      '--disable-background-networking','--disable-sync',
+      '--remote-allow-origins=*','--remote-debugging-port=0',
+      '--disable-extensions',
+      '--user-data-dir='+profile,'about:blank'
+    ],{env,stdio:['ignore','ignore','pipe']});
+    child.stderr.on('data',bytes=>{debug=(debug+bytes.toString()).slice(-4000);});
+    child.on('error',error=>{debug=String(error);});
+    const port=await eventually(()=>{
+      const file=path.join(profile,'DevToolsActivePort');
+      if(!fs.existsSync(file))return null;
+      const value=Number(fs.readFileSync(file,'utf8').split('\n')[0]);
+      return Number.isSafeInteger(value)&&value>0?value:null;
+    },{timeout:25000,label:'bare Chrome DevTools port'});
+    const endpoint='http://127.0.0.1:'+port;
+    const created=await fetch(endpoint+'/json/new?'+encodeURIComponent('about:blank'),{method:'PUT'});
+    assert.equal(created.status,200,'bare Chrome must create a real blank tab');
+    const tab=await created.json();
+    cdp=await connectCDP(tab.webSocketDebuggerUrl);
+    const version=await cdp.call('Browser.getVersion');
+    assert.match(version.product||'',/^Chrome\//);
+    const result=await cdp.call('Runtime.evaluate',{
+      expression:'({alive:true,url:location.href})',returnByValue:true
+    });
+    assert.equal(result.result?.value?.alive,true,
+      'bare Chrome renderer must evaluate JavaScript without OpenDesk installed');
+    console.log('REAL_CHROME_UNEXTENDED_RENDERER=PASS browser='+browser+
+      ' version='+version.product);
+  }catch(error){
+    console.log('REAL_CHROME_UNEXTENDED_RENDERER=FAIL '+JSON.stringify({
+      code:error.code||'E_CDP_BASELINE',message:error.message,stderr:debug.slice(-1600)
+    }));
+    throw error;
+  }
+});
+
 test('real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake', {
   skip:process.platform!=='darwin',
   timeout:95000
