@@ -1,0 +1,40 @@
+{
+  "threadId": "01a11c20-fe11-7d51-9b1e-5d4919f7c938",
+  "branch": "agent/r62-local-acceptance-01a11c20",
+  "resourceState": "released",
+  "chromePid": null,
+  "browserBundleId": "com.google.chrome.for.testing.opendesk.r62.01a11c20",
+  "profile": null,
+  "profileSeed": "artifacts/r62-native-01a11c20/profile-native-disabled-final",
+  "extensionId": "oihfjkbnkhgcdeheabnnacjkjjjmiapf",
+  "nativeSocket": "/Users/shopme/.opendesk-browser/native-agent-r1/agent.sock",
+  "nativeHostPid": 1862,
+  "nativeManifest": "/Users/shopme/Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+  "profileNativeManifest": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-0hp24qpj/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+  "ownedHttpPort": 43220,
+  "ownedHttpPid": 89289,
+  "fixed43111": "NOT_OWNED; occupied by another workstream, never stopped or replaced",
+  "releasedResources": [
+    {
+      "chromePid": 89854,
+      "launcherPid": 89843,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-8pioguae",
+      "state": "terminated after completed released runs; flushed profile copied to own seed; original launcher cleanup completed"
+    },
+    {
+      "chromePid": 1823,
+      "launcherPid": 1799,
+      "state": "exited through native Quit menu; installed profile preserved"
+    },
+    {
+      "chromePid": 21941,
+      "launcherPid": 21930,
+      "state": "exited through native Quit menu; final profile preserved; socket absent"
+    }
+  ],
+  "evidenceDirectory": "docs/framework/evidence/r62-local-acceptance-01a11c20/",
+  "note": "No other workstream may use this profile/socket/manifest as its acceptance resource or reuse its native PASS. Updated to released only after actual process exit and preservation.",
+  "nativeSocketState": "absent after Options disabled",
+  "nativeManifestState": "installed manifest left intact, no active connection; matching per-profile copies confined to preserved test profiles",
+  "ownedHttpState": "terminated own Python PID89289; port43220 released"
+}
