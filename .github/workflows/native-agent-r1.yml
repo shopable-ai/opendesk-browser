@@ -56,3 +56,9 @@ jobs:
           node-version: '22'
       - name: Isolated real macOS Host process and CLI IPC (simulated Chrome framing; NOT Chrome E2E)
         run: node --test tests/environment/native-agent-macos-install.test.mjs
+      - name: Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)
+        continue-on-error: true
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
+          node --test tests/environment/native-agent-chrome-real.test.mjs
