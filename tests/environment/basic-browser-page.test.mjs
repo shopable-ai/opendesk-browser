@@ -112,3 +112,18 @@ test('R7.1 requests only on submit and handles HTTP, network, timeout, cancel, r
   assert.match(html, /credentials: 'omit'/);
   assert.match(html, /referrerPolicy: 'no-referrer'/);
 });
+
+
+test('R7.1 OpenDesk HTTP draft uses supported Page Locator actions and reads real DOM results', async () => {
+  const draft = await readFile('examples/tasks/http-fetch-draft.js', 'utf8');
+  assert.match(draft, /async function main\(\)/);
+  assert.match(draft, /page\.getByLabel\('API URL', \{exact:true\}\)\.fill\(url\)/);
+  assert.match(draft, /page\.getByRole\('button', \{name:'发送请求', exact:true\}\)\.click\(\)/);
+  assert.match(draft, /page\.locator\('#http-status\[data-state="/);
+  assert.match(draft, /\.waitFor\(\{state:'visible', timeout:10000\}\)/);
+  for (const target of ['#http-code','#http-duration','#http-content-type','#http-response','#http-error']) {
+    assert(draft.includes("page.locator('" + target + "').textContent()"), target);
+  }
+  assert.doesNotMatch(draft, /document\.(?:querySelector|getElementById)|page\.evaluate\(/);
+  assert.doesNotThrow(() => new Script(draft));
+});
