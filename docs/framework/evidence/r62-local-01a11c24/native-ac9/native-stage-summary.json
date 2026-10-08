@@ -1,0 +1,23 @@
+{
+  "candidateBuildHead": "ac9f188203bf65fbf42312f5ef44aef4e1fd1ee4",
+  "browserVersion": "154.0.8037.92",
+  "extensionId": "ommbmilbbgcbffacjphkonfcagdhbigg",
+  "extensionLoaded": true,
+  "nativeOptionsTrustedClick": true,
+  "nativePermissionPromptAllowed": true,
+  "chromeNativeApiTypeObservedThroughReadOnlyConsole": "function",
+  "hostConnected": false,
+  "doctorExit": 1,
+  "bridgeStatusExit": 1,
+  "lastCliError": "E_NATIVE_NOT_READY: socket absent",
+  "runId": null,
+  "resultId": null,
+  "nativeReceipt": null,
+  "workerRetirement": null,
+  "ownedDemoOrigin": "http://127.0.0.1:43227",
+  "requiredTaskOrigin": "http://127.0.0.1:43111",
+  "requiredOriginBlocked": "Port is externally owned; HTTP demo bytes differ from candidate",
+  "nativeChromeFormalAcceptance": "INCOMPLETE",
+  "profilePreservedAfterRealNativeQuit": "/private/tmp/opendesk-r62-profile-seed-01a11c24",
+  "resourcesReleased": true
+}

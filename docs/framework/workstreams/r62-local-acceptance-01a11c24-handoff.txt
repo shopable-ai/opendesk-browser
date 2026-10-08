@@ -1,0 +1,36 @@
+OpenDesk Browser R6.2 续接交接：用户要求“完成情况怎样，创建新对话，继续完善”。
+
+目标保持完整：让真实 Codex 经已有 Native CLI/Browser Core 制作 JavaScript Task，完成正式 Verification→Available→用户明确安装→我的任务执行，关闭 Codex/Native Host 后仍能长期运行；真实 Chrome 重启后保留版本、授权、参数、结果、历史；按原合同完成正式验收后才串行合入 main。默认中文，不重设计浏览器、不做新 MCP、不重建 Host、不改 Sidebar 三页签，不扩展采集/语音/任务树产品。
+
+必须读仓库 AGENTS.md、docs/framework/parallel-development.md、docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md 和三个目标示例。main 存在其他 Agent 未提交工作，不得写 main。新对话先创建自己的独立 managed worktree 和 agent/<任务>-<标识> 分支，基于最新 PR #11 或本交接分支 agent/r62-acceptance-01a11c24；不要编辑旧聊天工作区。旧来源工程只读；不新增依赖、不放宽 SW 安全和动态执行限制，不 reset/clean/force，不冒用其他 Agent 的验收或覆盖 public-owner 历史。
+
+已实施与证据：
+- 起始 PR11 daaf0cc7 与 main 冲突已三方合并；保护现代 Page API、Sidebar、demo-form/R7 HTTP、两种独立 Candidate 包身份以及 optional nativeMessaging。
+- Native 安全修复：reserve 后关闭/撤权/断线不再首次派发；旧 enable/storage/initial 不复活；用 dispatchId 仅关联 Host ACK，外部 requestId 仍用于 Controller、CLI、ledger 和 ACK 丢失后的持久对账；OUTCOME_UNKNOWN 不重放。
+- 修复分支 Draft PR #21 已由另一工作线合入 PR #11 的开发分支 ecaa8b944ec4c49ca7b2900f674ab8d4c8ea8f7c。未由本聊天合入 main，PR11 仍需原生/正式门槛。新对话必须核对实际最新远端状态，不沿用旧 SHA。
+- 原始 npm ci --ignore-scripts --no-audit --no-fund exit0。源码构建候选 ac9f188203bf65fbf42312f5ef44aef4e1fd1ee4：指定五文件 50/50、全部环境组件（排除明确真实 CFT 诊断）240/240；check/build/build:dev/verify exit0。生产 SW 324759 ≤327680；开发324931。所有130个产品构建输入在后续文档合并后仍精确相同。
+- 生产 packageHash 729c2bfe9b572e1d58d5e1f147e8d99d7f6118bbe6e3fdd7009429b5e05b12b7；开发1ab55f14fd63bcc34899dc58ad92ff006aa81cc9a9fa54fa62626876c145bb6b。
+- 证据及 ledger 在 docs/framework/evidence/r62-local-01a11c24/ 与 docs/framework/workstreams/r62-local-acceptance-01a11c24.json。修复前失败、修复后通过及独立只读复核都有原始日志。最新真实尝试 native-ac9/native-stage-summary.json，不是 PASS。
+
+真实 Native 当前情况：
+- 前一资源持有聊天 01a11c20 已明确 released，进程退出、socket不存在。本聊天的复核/备份过程中原安装已被外部清理，因此没有覆盖那个安装。
+- 本聊天用 cli setup --browser cft --extension-id ommbmilbbgcbffacjphkonfcagdhbigg 成功安装自己的 Host，未修改 Host 源码。全局安装目录 /Users/shopme/.opendesk-browser/native-agent-r1，manifest /Users/shopme/Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json。安装信息含认证 credential，禁止输出或提交。
+- 本聊天复制官方受控 CFT154 为 /private/tmp/opendesk-r62-cft-01a11c24/Google Chrome for Testing.app，改独立 bundle id com.google.chrome.for.testing.opendesk.r62.01a11c24 避免其他 CFT 窗口绑定；通过 chrome-testing-keychain launcher 启动 mock-keychain/profile，真实确认 SW extension ID ommbmilbbgcbffacjphkonfcagdhbigg，版本154.0.8037.92。
+- 已从真实 Options 点击“授权并启用”，浏览器权限弹窗真实点击“允许”。Options 显示 Native Agent 已启用而 Host 未连接。CLI doctor exit1/connectedfalse，bridge.status exit1 E_NATIVE_NOT_READY/socket不存在。尚未向 RunHost 派发业务请求。
+- 已在 Worker DevTools 用原生键盘只读查询 typeof chrome.runtime.connectNative，结果 function；没有手工 DOM 赋值、synthetic events、storage 注入或绕过授权。不要把这条诊断当 Native 请求完成证据。
+- profile root/NativeMessagingHosts 放了自己的 manifest 副本；只进行了上述一次连接尝试，尚未定位 disconnect原因。下一步查真实 onDisconnect错误/启动 stderr/CFT manifest路径，诊断后才按明确环境/代码变化重试；禁止盲目重放业务。
+- 本聊天 CFT PID31688 已经原生 Quit，launcher31676恢复后退出并清理原profile。自有 Python43227 session57139已停止，端口已检查关闭。最新 resources.json= released，native socket不存在。原生 Host安装留在用户级目录但未连接，供用户本次明确请求的新对话串行接管；接管前重新检查其他工作流是否已占用。不要使用任何别人的 profile/PASS。
+- 退出后的纯测试 profile seed 保存 /private/tmp/opendesk-r62-profile-seed-01a11c24。它是诊断材料，不是正式验收结果。新 worktree/build的 Extension ID可能不同，必须核对并以自己的受控Profile/manifest一致性继续。
+- 43111仍由另一个工作流占用。HTTP返回 demo-form.html 的 SHA256 e88da478b847045ae8c2100abe3c7287f515873c02d97d5f96435440f06f6237，与本候选18ccd79c9f35ca9db9b96dcca567c3ed00c7c896637d3d4a9d234911acfca005不同。不要停止/覆盖那个服务器，不能用其页面冒充本候选固定来源。此前自有43227可做Core诊断，但现代Task JSON siteOrigins锁定 http://127.0.0.1:43111，正式 Task验证必须拿到明确的43111资源交接并服务同一候选的 examples/tasks。
+
+剩余执行顺序：
+1 核对最新PR11/main/全部本地worktree、stash与未提交工作，自己的工作区安全同步。明确真实profile/native/socket/端口/dist单资源占用。
+2 解决当前Host不连接，真实Options和Sidebar点击分别完成 nativeMessaging/目标HTTP origin授权。bridge.status 与 target.current 必须输出本候选真实 registrationId/windowId/tabId/frameId/documentId/URL/origin。
+3 真实Codex Native CLI执行 examples/tasks/agent-observe-draft.js，原 RunHost run.get 持久结果；modern-search-draft.js 用现代Locator填写/点击/等待，业务结果/单次提交/原生回执都需观察。
+4 script.save 做 Revision CAS、sourceHash、保存版本锁定运行；Run/Result/Stop、归属、断线、撤权、旧documentId/导航、重启、丢ACK和 OUTCOME_UNKNOWN不重放反向测试。
+5 导入 examples/tasks/modern-search.v1.opendesk-task.json 初始 Candidate；同源码同站点真正完成且retirement released的RunId才能通过原 Verification→Available。用户本次目标明确要求安装测试Task，走产品UI安装，再“我的任务”运行。不得用临时成功或另一个示例包替代此包的验证。
+6 关闭Codex/禁用或关闭Host后独立执行已安装Task；完全Quit重开Chrome核对版本/授权/参数/结果/历史。
+7 正式框架合同保留603+19、独立B05、1000mixed/10reconnect/2轮禁插件、6项resource baseline、独立最终F3、与同一验收dist一致ZIP安装。逐项证据和账本关闭后才能合PR11最新main；任何必要原生未通过保持Draft，不发布，不清理仍需保留的分支。
+8 每次报告7个独立状态 SOURCE_CONFIRMED / COMPONENT_TESTED / BUILD_VERIFIED / NATIVE_CHROME_VERIFIED / AI_AGENT_E2E_VERIFIED / REUSABLE_TASK_VERIFIED / FINAL_FRAMEWORK_ACCEPTED。当前前三YES/PASS，Native INCOMPLETE，AI/Task NOT_TESTED，FINAL NO，没有本候选真实runId/resultId/receipt/retirement。
+
+本交接不是完成声明。新对话继续原完整目标，不从源码/静态绿色检查推断交付；约60秒报告具体成果。
