@@ -1,0 +1,24 @@
+name: Site access targeted checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [agent/site-access-once-20261008-1647]
+permissions:
+  contents: read
+jobs:
+  site-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Syntax and focused permission / Sidebar regressions
+        run: |
+          node --check src/ui/site-access.js
+          node --check src/ui/tool-shell.js
+          node --test tests/environment/site-access.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/framework/k2-sdk-ui-approval.test.mjs

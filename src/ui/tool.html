@@ -10,6 +10,17 @@
     <p id="script-current-page-status" role="status" data-state="resolving">当前网页：正在识别…</p>
     <p class="hint">自动跟随此窗口的活动网页。运行开始后切换网页，只影响下一次任务。</p>
   </section>
+  <section id="site-access" aria-labelledby="site-access-title">
+    <h2 id="site-access-title">网站权限</h2>
+    <p id="site-access-status" role="status" data-state="checking">正在查询 Chrome 网站权限…</p>
+    <details id="site-access-settings"><summary>开发者设置：一次性集中授权</summary>
+      <p class="hint">可一次批准所有 HTTP/HTTPS 网站，适合频繁调试不同网页。权限由 Chrome 保存，重启后通常无需重复批准；也可继续使用默认的逐站授权。</p>
+      <label><input id="site-access-cookies" type="checkbox">同时申请 Cookie 权限（敏感，只有确实需要时勾选）</label>
+      <label><input id="site-access-notifications" type="checkbox">同时申请通知权限</label>
+      <div class="row"><button id="site-access-grant" type="button">一次性授权全部网站</button><button id="site-access-refresh" type="button">刷新授权状态</button></div>
+      <p class="hint">此操作赋予扩展网站访问能力，不代表自动信任网页脚本或授权独立 SDK。仅限 HTTP/HTTPS 普通网页；Chrome 内部页面、浏览器受限页面、隐身和文件访问不在此范围。可在 chrome://extensions 的 OpenDesk Browser 详情中修改网站访问权限。</p>
+    </details>
+  </section>
   <section aria-labelledby="script-title"><h2 id="script-title">脚本</h2>
     <label for="script-list">已保存脚本</label>
     <div class="row"><select id="script-list"><option value="">正在读取已保存脚本…</option></select><button id="script-list-refresh">刷新</button><button id="script-list-load">加载最新</button></div>

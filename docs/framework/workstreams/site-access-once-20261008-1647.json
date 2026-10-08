@@ -1,0 +1,27 @@
+{
+  "id": "site-access-once-20261008-1647",
+  "branch": "agent/site-access-once-20261008-1647",
+  "baselineMainSha": "50f5f5875250331e7f2fcf9fd390fbd97316220c",
+  "scope": "Sidebar site permission onboarding only; existing SDK/Controller authorization remains unchanged",
+  "changedFiles": [
+    "src/ui/site-access.js",
+    "src/ui/tool-shell.js",
+    "src/ui/tool.html",
+    "src/ui/tool-shell.css",
+    "tests/environment/site-access.test.mjs",
+    "docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md",
+    ".github/workflows/site-access-once.yml",
+    "docs/framework/workstreams/site-access-once-20261008-1647.json"
+  ],
+  "localNodeTests": "NOT_TESTED (GitHub-only workspace)",
+  "nativeSidePanel": "NOT_TESTED (local Chrome profile unavailable)",
+  "nativePersistence": "NOT_TESTED",
+  "regression": "Targeted GitHub Actions required before integration",
+  "constraints": [
+    "Chrome native permission is not app-level SDK grant",
+    "Never auto-reapprove on revoked permission",
+    "Do not modify global owner or other workstreams",
+    "Do not merge without verification"
+  ],
+  "evidence": "GitHub PR and commit identifiers once created"
+}
