@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
 import {spawn,spawnSync} from 'node:child_process';
 
 // Experimental REAL Chrome Native Messaging smoke, not Codex/Side Panel E2E.
@@ -69,7 +68,7 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   assert.ok(binary,'No installed real Google Chrome or CFT; cannot claim Chrome E2E');
   const [executable,browser]=binary,ext=path.resolve('dist/production');
   assert.ok(fs.existsSync(path.join(ext,'manifest.json')),'Build production package first');
-  const home=fs.mkdtempSync(path.join(os.tmpdir(),'opendesk-chrome-real-'));
+  const home=fs.mkdtempSync('/private/tmp/odbr-');
   const profile=path.join(home,'browser-profile'),env={...process.env,HOME:home};
   let child=null,debug='',cdp=null;
   t.after(()=>{
