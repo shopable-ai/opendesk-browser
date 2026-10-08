@@ -79,6 +79,25 @@ test('Chrome permission removal invalidates live status and disposal detaches li
   await assert.rejects(f.controller.grant({isTrusted:true}),{code:'E_HOST_CLOSED'});
 });
 
+test('native approval remains valid when an onAdded refresh supersedes its UI observation', async t => {
+  const f = fixture(); t.after(() => f.controller.dispose());
+  const normalContains = f.api.permissions.contains;
+  let sendLateEvent = true;
+  f.api.permissions.contains = async query => {
+    const value = await normalContains(query);
+    if (sendLateEvent) {
+      sendLateEvent = false;
+      queueMicrotask(() => f.onAdded.fire({origins:[...ALL_WEB_ORIGINS]}));
+    }
+    return value;
+  };
+  const actual = await f.controller.grant({isTrusted:true});
+  assert.equal(actual.websites,true);
+  await f.controller.refresh();
+  assert.equal(f.states.at(-1).phase,'granted');
+  assert.equal(f.requests.length,1);
+});
+
 test('narrow browser permissions do not claim all-site access', async t => {
   const f = fixture(); t.after(() => f.controller.dispose());
   f.native.cookies = true;
