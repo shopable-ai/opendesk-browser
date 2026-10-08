@@ -1,7 +1,7 @@
 # OpenDesk Browser Native Agent Bridge R1：正式运行链可选入口
 
 日期：2026-10-08。主干起点 66f11874fa27f6de438155124a3f772129386f8b。
-分支：agent/native-agent-bridge-r1-20261008。状态：**SOURCE_PARTIAL / NATIVE_NOT_TESTED / NOT_READY_FOR_MERGE**。
+分支：agent/native-agent-bridge-r1-20261008。状态：**NATIVE_HOST_SOURCE_IMPLEMENTED / NATIVE_NOT_TESTED / NOT_READY_FOR_MERGE**。
 
 ## 产品边界
 
@@ -14,7 +14,7 @@ R1 不改 Sidebar 三页签、不引入第二 Controller、TargetAuthority、Run
 | 历史来源 | 复用内容 | 目标 R1 文件 | 调用者与验证 |
 | --- | --- | --- | --- |
 | \`opendesk/lab/browser-automation-core/protocol.mjs\` | 32 位小端 Native frame / UTF-8 实际字节、逐行 IPC 和有界 decoder | \`native-agent/wire.mjs\` | CLI / Native Host；\`native-agent-wire.test.mjs\` |
-| 旧 \`native-host.mjs\` + \`broker.mjs\` | Chrome origin 约束、客户端凭证认证、私有 Socket、stdout 协议隔离、断连不重放 | \`native-agent/native-host.mjs\` **尚未落盘（阻断）** | Chrome connectNative → Host → CLI；需要真实 Mac 验证 |
+| 旧 \`native-host.mjs\` + \`broker.mjs\` | Chrome origin 约束、客户端凭证认证、私有 Socket、stdout 协议隔离、断连不重放 | \`native-agent/native-host.mjs\` **已实现；需要真实 macOS Chrome 验证** | Chrome connectNative → Host → CLI；需要真实 Mac 验证 |
 | 旧 \`setup.mjs\` / \`installation.mjs\` | 绑定明确扩展 ID、注册 manifest、安装隔离、保留同名旧 Demo 文件 | \`native-agent/install.mjs\` | \`native-agent/cli.mjs setup/update/doctor/cleanup\`，Mac 待测 |
 | 旧 \`client.mjs\` / MCP demo | 明确 requestId 与零自动动作重试的 CLI 边界 | \`native-agent/cli.mjs\` | Codex CLI；待 Host 实现和本机验证 |
 | 旧浏览器 DOM Core + \`todo-user/src-bex\` | **只复用目标快照与结果行为语义，不复用旧执行器** | \`src/native-agent/host-adapter.js\` | 仅消费真实 \`RunHost.start()/stop()\`、Controller 查询 |
@@ -61,7 +61,7 @@ SW / Native / CLI 断连或者超时，只返回 \`OUTCOME_UNKNOWN\`，不能重
 
 macOS R1 源码安装目录预定 \`~/.opendesk-browser/native-agent-r1\`，使用独立 Native manifest 名称 \`com.shopable.opendesk_browser.agent\`，Chrome \`allowed_origins\` 绑定本次 Extension ID。不要采用旧 Demo ID。\`setup\` 复制本机 Node 组件快照至私有目录，并将证书式随机令牌写在 0600 文件；Native Host stdout 仅允许 UTF-8 长度帧，诊断走 stderr。Host 进程同时作为本地 Broker，不需要二次启动。
 
-**当前实施阻断：\`native-agent/native-host.mjs\` 未被工具允许写入。** 因此 setup / doctor 源码即使存在，也不能宣称 Native 已运行；必须在本地 Codex 阶段补齐并审阅此 Host，再进行真实测试。任何 \`NATIVE_PASS\` / \`CODex_E2E_PASS\` 标记当前均为假。
+**最新实施状态（2026-10-08）：** Native Host 源码已提交到现有 PR #11 分支；新增 Node 模拟 IPC 测试验证长度帧、扩展 ID 约束、凭证认证、私有 Socket、重复请求限制和未知副作用处理。先前“文件尚未落盘”是历史阻断，不再代表最新代码。**真实 macOS 安装、Chrome Native Messaging、Options 授权、Codex E2E、Chrome 重启和最终候选打包验收仍未完成**；任何 NATIVE_PASS 或 CODEX_E2E_PASS 标记当前均不成立。
 
 下一阶段：\`docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt\`。
 
