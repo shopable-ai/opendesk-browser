@@ -54,9 +54,11 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       await store.set({[AGENT_LEDGER_KEY]:rows});
     });
   }
-  async function assertRun(runId) {
+  async function assertRun(runId,host) {
     if(typeof runId!=='string'||!runId)throw new AgentBridgeError('E_SCHEMA');
-    if(!Object.values(await ledger()).some(x=>x.method==='run.start'&&x.runId===runId))
+    // A run is owned by the exact registered Sidebar Host that admitted it.
+    if(!Object.values(await ledger()).some(x=>x.method==='run.start'&&x.runId===runId&&
+      x.registrationId===host.registrationId&&x.state==='ACKNOWLEDGED'))
       throw new AgentBridgeError('E_PERMISSION');
   }
   function dispatch(host,req) {
@@ -88,8 +90,8 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(!enabled)throw new AgentBridgeError('E_PERMISSION');
     if(req.method==='bridge.status')return {extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,
       nativeConnected:ready,enabled,hostRegistrations:live().map(p=>p.registrationId)};
-    if(req.method==='run.get'||req.method==='run.stop')await assertRun(req.params.runId);
     const host=hostFor(req.params);
+    if(req.method==='run.get'||req.method==='run.stop')await assertRun(req.params.runId,host);
     if(AGENT_MUTATIONS.includes(req.method)) {
       const old=await reserve(req,host);
       if(old) {
@@ -98,7 +100,12 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       }
     }
     const reply=await dispatch(host,req);
-    if(AGENT_MUTATIONS.includes(req.method))await finalize(req,reply);
+    if(AGENT_MUTATIONS.includes(req.method)) {
+      // The Host may have performed an action even if the ACK cannot be made durable.
+      // Do not misreport a storage failure after dispatch as FAILED_CONFIRMED.
+      try {await finalize(req,reply);}
+      catch {throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');}
+    }
     return normalize(req.requestId,reply);
   }
   async function receive(req,source) {
