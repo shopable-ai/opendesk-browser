@@ -70,9 +70,9 @@
 - `tests/environment/agent-to-task-fixtures.test.mjs`：验证观察草稿可独立执行但无页面操作，以及现代 Task 包哈希确实对应现有 JS；**仅组件层证据**。
 
 本地端到端的顺序：打开本 HTTP 页面并取得权限 → 运行只读观察 → 编写/试运行现代 JS → 检查真实原生页面与持久结果 → 保存不可变版本 → 在完整目录导入 Candidate 并人工核对 → 用户设为 Available、安装 → 关闭 Codex/Native 再由 Sidebar「我的任务」重复运行。完整协议、安全与失败边界以 [Agent → Task R1 唯一合同](../../docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md) 为准；Native 原生验收前不得声明整个流程 PASS。
-## R7.1 HTTP API 验证与旧 fixture 边界
+## R7.1 HTTP API 验证与唯一人工测试入口
 
-**人工验收以 `http://127.0.0.1:43111/demo-form.html` 为唯一推荐入口**，上方启动命令保持不变。`http://127.0.0.1:49375/fixture` 是另一个测试服务的历史入口；其端口和路由不由本示例提供，不能当作本演示 HTML 的替代 URL。已有专用框架或回归测试依赖的 fixture 不应仅因为迁移人工验收而删除。
+**人工操作、Sidebar 草稿、Page API 和 HTTP 演示只使用 `http://127.0.0.1:43111/demo-form.html`。** 上方 HTTP 启动命令保持不变，不需要启动其他测试服务。旧的临时测试服务器路由（例如 `/fixture`）是专项原生验收的内部资源，不能作为人工演示网页地址；相关目录 `tests/prototypes/**/fixture/` 不随人工入口统一而删除，它们由独立测试运行器引用。
 
 在页面第 06 组，保持默认 `./demo-form.html?test-response=1`，点击「发送 GET」：应看到 `#api-status[data-state="success"]`、实际 `#api-http-status` 为 200、响应类型含 `text/html`，且 `#api-response` 可读取页面 HTML 前段。改填 `./__opendesk_expected_404__.json` 再发送，应看到 404、`data-state="error"` 及服务器返回正文。切换示例地址只填入，不自动发请求。
 

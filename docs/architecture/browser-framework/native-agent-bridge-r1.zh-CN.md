@@ -94,3 +94,12 @@ Chrome 官方文档在版本 **146 起**区分 macOS 上 Google Chrome 和 Chrom
 既有 [Native CI 37793448204](https://github.com/shopable-ai/opendesk-browser/actions/runs/37793448204) 于 8ab0ada6 HEAD 生产 sw.js=324759 bytes，上限 327680 bytes，Node、源码检查、双构建、verify 均通过。**此为本轮修改前的历史基线，新增提交必须重新验证**。Native Host 的 macOS Actions 使用真实临时 Host/Socket，但 Chrome 帧仍为模拟。
 
 Agent 观察、draft/saved JS、Candidate→Verification→Available→Install 和脱离 AI 的复用仅在 [Agent→Task R1 合同](agent-to-task-contract-r1.zh-CN.md) 中定义；不向 Native 新增直接发布 RPC，也不伪造已验证状态。真实 Mac Chrome/Codex、用户手势、站点 grant、documentId、断线、关闭 Bridge 后普通 Task 仍需现场验收。当前 NATIVE_CHROME_VERIFIED=NOT_TESTED、AI_AGENT_E2E_VERIFIED=NOT_TESTED、FINAL_FRAMEWORK_ACCEPTED=NO。
+
+
+### 独立 CFT profile 的 Native Host 注册目录
+
+真实 CFT 154 验收确认：有效的 `--user-data-dir` 会覆盖用户 Native Messaging 注册位置。`--browser cft` 写入默认 `Google/ChromeForTesting/NativeMessagingHosts`，但独立浏览器实际读取 `<user-data-dir>/NativeMessagingHosts`（不加 `Default/`）；不会回退到默认用户目录。仅有 canonical manifest 不能证明独立实例已注册。
+
+按本任务受控启动报告取得真实 profile 路径，在现有 CLI `setup --browser cft --extension-id <实际ID>` 成功后，将它生成的 **同一 manifest** 登记到该 profile 的 `NativeMessagingHosts`。目录或文件若存在不同内容必须保留并拒绝覆盖；核对 allowed_origins、Host 路径与文件字节一致，再通过真实 Options 点击「授权并启用」发起新的连接。此步骤只补独立 profile 的浏览器注册，不改变 Host/CLI 的凭据、协议和执行链，也不应复制用户个人 Chrome 数据。该 profile 删除时会一同移除这份登记；canonical 安装的 cleanup 仍由现有 CLI 执行。
+
+路径行为依据 [Chromium M154 用户 Native Messaging 目录](https://github.com/chromium/chromium/blob/334b65d254ccc35df4fca82706d1753227b01039/chrome/common/chrome_paths.cc#L478-L483) 和 [user-data-dir 路径覆盖](https://github.com/chromium/chromium/blob/334b65d254ccc35df4fca82706d1753227b01039/chrome/app/chrome_main_delegate.cc#L602-L629)。Chrome/CFT 146 的默认目录区别参见 [Chrome 官方 Native Messaging 文档](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging#native-messaging-host-location)。本地失败与恢复原始记录在 `docs/framework/evidence/r62-local-acceptance-01a11c20/`。

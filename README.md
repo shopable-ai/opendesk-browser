@@ -24,6 +24,16 @@ Controller 的 @require 不会被偷偷下载并运行进 Worker 或 Service Wor
 
 独立Chrome MV3工程，当前交付范围为02A基础环境。工具窗口可重复打开/聚焦，固定包内classic健康脚本绑定明确tab/frame/document。采集模块显示“尚未接入”；生产运行、停止、恢复、IDB、下载回执与授权待02B，选区与模板采集待03。
 
+## 统一网页交互测试入口
+
+人工检查 DOM、按钮、输入框、现代 Page API、Sidebar 草稿和真实 HTTP GET 时，**唯一标准页面**是 [`examples/tasks/demo-form.html`](examples/tasks/demo-form.html)：
+
+```sh
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+```
+
+然后打开 **http://127.0.0.1:43111/demo-form.html**。完整操作说明见 [示例 README](examples/tasks/README.zh-CN.md)，契约测试是 `node --test tests/environment/basic-browser-page.test.mjs`。临时原生验证服务的 `/fixture` 路由不是此页面的替代入口；不要复制旧会话中的临时端口用于人工验收。已有 `tests/prototypes/**/fixture/` 是测试运行器直接依赖的专用资源，除非连同相关运行器、断言、证据审查并确认无引用，否则不要清理。
+
 ## 本地构建
 
 ```sh
