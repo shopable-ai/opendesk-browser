@@ -587,7 +587,17 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           // its execute receipt, is a known lookup failure.
           const failedWithoutEffect = error.code === 'E_USER_SCRIPTS_UNAVAILABLE' &&
             envelope.operation.kind === 'user-script' && !hasNativeEffect(operation);
-          operation.state = error.code === 'E_CANCELLED' || error.code === 'E_TIMEOUT' ? 'cancelled' :
+          // A dispatched Locator commit may have changed the page even when its
+          // callback was lost or a stop/timeout won the race. Only an explicit
+          // same-document no-effect receipt clears the latest commit intent.
+          let locatorEffectUnknown = false;
+          if (envelope.operation.kind === 'packaged' && envelope.operation.method === 'locatorAction')
+            for (const receipt of operation.nativeReceipts || []) {
+              if (receipt.stage === 'locator.commitIntent') locatorEffectUnknown = true;
+              else if (receipt.stage === 'locator.commitNoEffect') locatorEffectUnknown = false;
+            }
+          operation.state = locatorEffectUnknown ? 'effect_unknown' :
+            error.code === 'E_CANCELLED' || error.code === 'E_TIMEOUT' ? 'cancelled' :
             failedWithoutEffect ? 'failed' : 'effect_unknown';
           operation.failure = typed(error); operation.deliveryState = 'fenced';
           await transaction.put('commandJournal', operation, key);
