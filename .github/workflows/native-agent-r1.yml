@@ -1,0 +1,46 @@
+name: Native Agent R1 components and package
+on:
+  push:
+    branches:
+      - agent/native-agent-bridge-r1-20261008
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'native-agent/**'
+      - 'src/native-agent/**'
+      - 'src/entrypoints/settings.js'
+      - 'src/platform/host/client.js'
+      - 'src/sw.js'
+      - 'src/ui/tool-shell.js'
+      - 'manifest.json'
+      - 'scripts/**'
+      - 'wxt.config.mjs'
+      - 'tests/environment/native-agent-*.test.mjs'
+      - '.github/workflows/native-agent-r1.yml'
+permissions:
+  contents: read
+jobs:
+  bridge-components:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Frozen dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Native bridge protocol, Host and request ledger components (NOT real Chrome)
+        run: node --test tests/environment/native-agent-wire.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-bridge.test.mjs
+      - name: Shared Sidebar and Controller regressions
+        run: node --test tests/environment/script-editor.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs
+      - name: Source and packaging contracts
+        run: npm run check
+      - name: Production WXT packaging
+        run: npm run build
+      - name: Development WXT packaging
+        run: npm run build:dev
+      - name: Verify actual production/development output
+        run: npm run verify
