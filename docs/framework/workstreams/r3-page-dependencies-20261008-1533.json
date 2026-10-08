@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "workstreamId": "r3-page-dependencies-20261008-1533",
+  "branch": "agent/r3-page-script-dependencies-20261008-1533",
+  "baseMainSha": "7bf72497c14d97a2b5cdedd642c4599c46c1983f",
+  "status": "draft-implementation-not-integrated",
+  "ownership": {
+    "workspace": "GitHub connector independent candidate branch; Mac workspace NOT_ACCESSIBLE",
+    "sharedNativeResources": "NOT_CLAIMED",
+    "centralOwnerModified": false
+  },
+  "scope": [
+    "P0 static main and legacy audit",
+    "P1 reusable USER_SCRIPT registration descriptor with authority caller contract",
+    "P2 exact package jQuery 3.7.1",
+    "R3 architecture docs and evidence"
+  ],
+  "excluded": [
+    "Controller RunHost/Authority/Storage replacement",
+    "Task Candidate/Verification/Available bypass",
+    "P0 unsaved controller draft implementation owned by PR #4",
+    "Native chrome acceptance",
+    "MAIN mode",
+    "local JS import"
+  ],
+  "modifiedFiles": [
+    "docs/architecture/browser-framework/third-party-library-map.md",
+    "docs/architecture/browser-framework/script-runtime-and-dependencies.md",
+    "docs/architecture/browser-framework/implementation-status.md",
+    "docs/architecture/browser-framework/README.md",
+    "src/scripting/user-scripts/page-program-package.js",
+    "src/scripting/user-scripts/packaged-dependencies.js",
+    "src/vendor/jquery-3.7.1.min.js",
+    "src/vendor/jquery-3.7.1.LICENSE.txt",
+    "scripts/build-contract.mjs",
+    "scripts/build.mjs",
+    "scripts/verify-package.mjs",
+    "tests/environment/page-program-package.test.mjs",
+    "docs/framework/workstreams/r3-page-dependencies-20261008-1533.json",
+    "scripts/check-source.mjs"
+  ],
+  "targetedTest": {
+    "command": "node --test tests/environment/page-program-package.test.mjs",
+    "location": "current isolated container with same staged module/test files",
+    "result": "PASS",
+    "passed": 4,
+    "failed": 0,
+    "evidence": "conversation tool output Ab45aF",
+    "isNativeChrome": false
+  },
+  "evidenceLevels": {
+    "source": "SOURCE_CONFIRMED",
+    "build": "NOT_TESTED",
+    "chrome": "NOT_TESTED",
+    "userFlow": "NOT_TESTED"
+  },
+  "blockers": [
+    "main lacks Task Candidate/Verification/Available state and v3 taskAssets",
+    "PR #4 separately changes unsaved Controller run admission",
+    "Mac repository/dist/ZIP/CFT not mounted and independent native run not performed"
+  ],
+  "compatibility": {
+    "existingBrokerUntouched": true,
+    "existingControllerAuthorityUntouched": true,
+    "storageSchemaUntouched": true,
+    "oldPublicOwnerUntouched": true,
+    "remoteCode": "not-loaded"
+  },
+  "next": [
+    "integrate with verified Task Available broker before register",
+    "Chrome match/nonmatch/disable/native DOM + identity check",
+    "exact WXT package+ZIP hash and same Chrome profile evidence"
+  ],
+  "source": {
+    "legacySha": "0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5",
+    "auditAttachmentSha256": "40d1bb9392f4450b26bb030a082fa393fb867d8b41ca0965a41d79d9c171ee72",
+    "jqueryUpstream": "jquery/jquery@3.7.1:dist/jquery.min.js",
+    "jquerySha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+  },
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/5",
+  "nativeChromeStatus": "NOT_TESTED",
+  "buildStatus": "NOT_TESTED"
+}

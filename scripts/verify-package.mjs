@@ -3,7 +3,7 @@ import {join, resolve, dirname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
-import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY} from './build-contract.mjs';
+import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
@@ -17,14 +17,17 @@ export const SANDBOX_CSP = `sandbox allow-scripts; ${SANDBOX_META_CSP}`;
 export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js'], matches: ['http://*/*', 'https://*/*']}]);
 export const FIXED_ASSETS = Object.freeze({
   'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},
-  'licenses/todo-user-vue-MIT.txt': {bytes: 1096, sha256: 'e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29'}
+  'licenses/todo-user-vue-MIT.txt': {bytes: 1096, sha256: 'e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29'},
+  'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
   'ui/tool.html': ['tool-shell.css', 'tool-shell.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
   [SANDBOX_HTML]: ['sandbox.js']
 });
-const expectedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
+const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
+const vendorJS = Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output);
+const expectedJS = [...generatedJS, ...vendorJS].sort();
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -237,13 +240,22 @@ export async function verifyPackage(directory) {
   for (const file of required) if (!files.includes(file)) throw new Error(`Missing required resource: ${file}`);
   const js = files.filter(path => path.endsWith('.js'));
   if (!same(js, expectedJS)) throw new Error(`Unexpected JS/chunks: ${js}`);
-  const allowed = [...required, ...expectedJS.map(path => `${path}.map`)];
+  const allowed = [...required, ...generatedJS.map(path => `${path}.map`)];
   if (files.some(path => !allowed.includes(path))) throw new Error('Unexpected packaged asset');
   const mapFiles = files.filter(path => path.endsWith('.map'));
-  if (mapFiles.length && mapFiles.length !== js.length) throw new Error('Incomplete source map asset set');
+  if (mapFiles.length && mapFiles.length !== generatedJS.length) throw new Error('Incomplete source map asset set');
   const boundaries = [];
   for (const file of js) {
-    const text = await readFile(join(root, file), 'utf8');
+    const bytes = await readFile(join(root, file));
+    const vendor = Object.values(PINNED_USER_SCRIPT_LIBRARIES).find(row => row.output === file);
+    if (vendor) {
+      // Approved upstream bytes are not a privileged code entry; do not run the
+      // WXT IIFE policy on minified upstream vendor code. Verify exact bytes instead.
+      if (bytes.length !== vendor.bytes || digest(bytes) !== vendor.sha256 || files.includes(file + '.map'))
+        throw new Error(`Pinned vendor asset mismatch: ${file}`);
+      continue;
+    }
+    const text = bytes.toString('utf8');
     const inspection = inspectScript(text, file);
     assertClassicIIFE(text, file);
     if (inspection.approvedAsyncBodyConstructors) boundaries.push({file, ...inspection, execution: 'Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox'});

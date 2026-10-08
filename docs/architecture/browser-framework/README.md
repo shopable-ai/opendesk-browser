@@ -1,120 +1,191 @@
-# OpenDesk Browser 工程地图：先看功能，再看文件与调用
+# OpenDesk Browser：浏览器自动化与网页用户脚本框架
 
-> 修订日期：2026-10-07。本文是人工阅读入口，不是测试通过证书。
-> 旧版事实源：`shopable-ai/todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5` 的 `src-bex`。
-> 新版源码观察点：`opendesk-browser@cdef268b861060a84731134088580844b2632994`；`src` 子树为 `38cc631a3d4d792453149788a2c1a620f74d34b6`。
-> 本轮只修订本目录文档；没有运行新的产品测试、构建或原生浏览器验收。没有接管产品 owner。
+> 2026-10-05，架构定位修订。首先解释框架的浏览器能力与运行模型，再解释内部层次。
+> LEGACY 是旧源码事实，CURRENT 是固定版本的实现事实，TARGET 是设计建议。设计写入不等于功能实现、独立审查通过或浏览器验收通过；本文不改变产品授权、执行 owner 或原有测试状态。
 
-## 一、先回答：这个框架让用户做什么？
+## 1. 一句话定位
 
-OpenDesk Browser 的核心是浏览器自动化与网页增强，不只是一个 HTTP 代理，也不只是一个脚本编辑器。理解它要分清两种程序运行方式，以及共享服务：
+**OpenDesk Browser 是以浏览器扩展为运行载体的浏览器自动化与网页用户脚本框架：通过 Puppeteer 风格的 ChromePage API 驱动网页，通过页面用户脚本增强网页，并为这些程序提供受控的浏览器与宿主服务。**
 
-```text
-浏览器自动化：在页面外运行控制程序
-  程序 → page.goto / click / type / evaluate → 操作明确的网页
+在产品层，它既可以承载油猴类脚本管理器，也可以承载浏览器自动化工作台。二者不是两个独立底座，也不意味着已经完整兼容 Tampermonkey 或 Puppeteer。
 
-网页增强：在页面内运行脚本
-  网页打开或手动触发 → 页面脚本 → 增加按钮、修改 DOM、监听事件
+“保存脚本”和“请求一次 HTTP”不是足够完整的框架划分：前者是资产管理动作，后者是共享能力调用；它们没有说明程序如何操作浏览器，也遗漏了页面内用户脚本的运行与生命周期。
 
-共享服务：为程序提供扩展代办能力
-  axiosx / AppStorage / AppLocal / 工具服务 → HTTP、存储、资源等
-```
-
-页面 SDK 是服务入口，不是第三种执行引擎。页面脚本只操作本页 DOM 时，不应被画成每一步都经过后台；使用扩展特权时才进入相应服务链。
-
-旧版有 ChromePage 自动化、页面业务脚本注入、服务桥三类事实。新版有明确绑定的自动化、独立页面 SDK 和共享底座；**不能由已有 evaluate 或 SDK 推导出完整的“安装—匹配网址—自动注入—停用—清理”用户脚本管理闭环已经完成**。这项用户需求要保留，但是否实现应单独查证。
-
-## 二、推荐阅读顺序
-
-| 要回答的问题 | 阅读位置 |
-|---|---|
-| 我原来能做的事情，现在怎么做？哪些变了？ | [新旧功能与任务调用链](legacy-to-target-map.md) |
-| 旧框架具体由哪些文件、函数和技术组成？ | [旧框架源码事实](legacy-src-bex-framework.md) |
-| 新版谁负责运行、传话、授权、执行、保存结果？ | [新版实现与最小目标](current-and-target-framework.md) |
-| 为什么不能仅凭测试数量判断完成？ | 本文第三节及任务地图的验收字段 |
-
-同一功能使用固定的“场景编号”串联这几份文档。场景编号仅用于文档检索，不新建运行协议、不取代原有迁移账本编号。
-
-## 三、每项功能必须同时回答三个问题
-
-| 维度 | 需要写出的事实 | 不能偷换成什么 |
-|---|---|---|
-| 实现接通情况 | 真实入口、文件、函数、通信方式、最终执行点、返回路径 | 类名存在不等于用户可调用 |
-| 行为兼容情况 | 输入、目标、执行环境、返回值、错误、生命周期是否保持 | 新机制更安全不等于旧消费者兼容 |
-| 验证情况 | 测试用例、实际结果、源码版本、构建包、未测场景 | 历史报告或组件通过不等于当前浏览器验收 |
-
-例如“页面请求另一个站点”可以同时处于：**正式调用链已接通；凭据和重定向行为改变；本次未复验当前构建**。不要再将三个结论压成一个含义不清的“已迁移”。
-
-迁移术语采用中文为主，保留检索别名：仅旧版（LEGACY ONLY）、新旧都有（LEGACY + CURRENT）、仅新版（CURRENT ONLY）、已迁移（MIGRATED）、部分迁移（PARTIALLY MIGRATED）、机制替代（REPLACED）、尚未迁移（NOT YET MIGRATED）、待核实（UNKNOWN）。“已迁移”必须说明具体行为和证据范围，不能代表整个能力族都已验收。
-
-证据仍可使用原 L0—L6，但以实际记录为准：源码、接口、入口、组件、集成、历史浏览器、当前同版浏览器。它们不是自动升级的分数；当前浏览器检查也不能替代旧消费者兼容检查。
-
-## 四、文件调用链怎样写才有用？
+## 2. 核心模型：两类脚本运行方式，共享浏览器能力
 
 ```text
-用户想完成的任务
-→ 从哪个按钮或脚本发起
-→ 哪个文件的哪个函数接收
-→ 通过函数调用、DOM 事件、扩展消息或 MessagePort 传递
-→ 哪个函数检查授权和目标
-→ 哪个函数真正修改网页、发 HTTP 或写存储
-→ 返回如何关联原始调用
-→ 失败、停止、导航、重启时怎样收尾
+OpenDesk Browser：浏览器自动化 / 网页增强
+│
+├─ 产品与入口
+│   脚本库、编辑/导入、启用/停用、匹配规则、工具栏、页面按钮、调试
+│
+├─ 控制脚本运行方式：从页面之外驱动浏览器
+│   JavaScript 控制程序
+│     → ChromePage / ChromeElement / Keyboard
+│     → 定位、点击、输入、导航、等待、读取、页面计算
+│     → 明确的 tab / frame / document
+│   当前对应：Controller / RunHost / 固定操作与受控 userScripts 执行
+│
+├─ 页面用户脚本运行方式：在网页内部增强网页
+│   已安装、启用并获准的脚本
+│     → 匹配网址与注入时机，或手动触发
+│     → 页面执行环境中的 document / DOM / 事件
+│     → 增加按钮、修改界面、填写表单、监听页面变化
+│   当前只存在部分机制与旧业务注入；完整通用管理闭环尚未证明
+│
+├─ 共享服务能力
+│   HTTP、持久/会话存储、通知、资源、下载与所需浏览器服务
+│   → axiosx / AppStorage / AppLocal 等 API 外观
+│   → Page SDK 也可以供获准的普通网页业务程序调用
+│
+└─ 共同可信底座
+    脚本版本与身份、来源和目标授权、消息协议、平台适配、运行状态与结果
 ```
 
-箭头只表示已经追踪的调用或通信。`import` 只能证明依赖；测试绕过正式入口只能证明对应组件；尚无实现的连接要写“缺口”，不能画成实线。
+这是逻辑职责图，不是要求每条调用按所有方框顺序执行。页面用户脚本可以直接访问其文档的 DOM；不应强迫它绕到后台再通过 ChromePage 操作同一个 DOM。需要扩展特权的请求才进入对应服务准入路径。
 
-任务地图同时保留旧版链和新版链，不强制一个旧文件只对应一个新文件。旧 `background.ts` 的职责分散到多个新模块很正常；必须解释每个模块接走哪项责任，而不是只列目录。
+页面 SDK 是能力入口，不是第三种脚本运行环境。扩展工具、网页按钮、F12 是触发位置，也不是三套运行引擎。脚本不使用 HTTP 或存储时，仍然可以是完整的浏览器自动化或网页增强功能。
 
-## 五、用旧概念理解新版
+## 3. ChromePage 的准确角色：Puppeteer 风格的浏览器自动化 API
 
-| 你熟悉的旧概念 | 新版对应责任 | 先看哪里 |
+应保留用户熟悉的 Page / Element / Keyboard 编程模型：
+
+```js
+// 当前 Controller 脚本正文示例；运行前由工具绑定获准目标。
+// 假设测试页具有 #query、#search、#result，且输入框最初为空。
+await page.waitForSelector('#query');
+await page.type('#query', 'OpenDesk');
+await page.click('#search');
+await page.waitForSelector('#result');
+return { title: await page.title() };
+```
+
+语义：等待输入框 → 输入 → 点击 → 等待结果元素 → 读取目标标题。结果元素出现不等于业务查询成功，实际案例还要检查结果新鲜度与业务值。
+
+| 能力族 | 代表接口 | 要保留的语义 |
 |---|---|---|
-| 后台拿着一个 page 对象运行程序 | 每次运行获得绑定目标的 page；程序运行与授权分开 | `run-host.js`、`framework/context.js`、`framework/ChromePage.js` |
-| 拼一段 JS 送进页面 | 固定 DOM 操作、受控页面计算和 MAIN 代码分别走不同路径 | `framework/control/native-driver.js`、`scripting/packaged/`、`scripting/user-scripts/` |
-| 网页通过事件找后台帮忙 | 页面 SDK 和隔离转发脚本传递请求 | `framework/sdk/`、`agents/page-relay.js` |
-| 后台 switch 调对应服务 | 消息分发与统一授权，再由具体服务执行 | `platform/host/broker.js`、`authority.js`、`sdk-methods.js` |
-| 保存临时变量或配置 | 持久 KV、浏览器会话值、操作记录分别保存 | `platform/storage/` |
-| 脚本结束、用户点停止 | 程序结果、取消记录、执行资源、目标页面分别收尾 | `run-host.js`、`controller-methods.js` |
-| 生成文件并下载 | 结果、产物字节、下载尝试和浏览器回执分别追踪 | `ui/script-editor.js`、`platform/downloads/` |
+| 页面与导航 | title、content、url、goto、reload | 对明确网页读取或导航 |
+| 元素定位与读取 | $、$$、ChromeElement、snapshot | 明确快照与可操作对象的差别 |
+| 交互 | click、type、Keyboard | 动作对象、返回值、等待与失败定义明确 |
+| 等待 | waitForSelector、waitForFunction、waitForTimeout | 明确条件、超时、取消与文档失效 |
+| 页面计算 | evaluate、$eval、$$eval | 在指定页面执行用户定义计算，而非高权限后台任意执行 |
+| 浏览器资源 | screenshot、cookies、uploadFile 等 | 单项声明支持范围、权限和平台限制 |
 
-这里是责任解释，不代表所有请求都按表格顺序经过每一层。控制脚本的 axiosx 与普通网页的 axiosx 共用便利接口，但授权身份和调用链不同。
+**基于 Puppeteer 接口模型封装，不等于底层使用 Puppeteer 包或完整复刻其行为。**旧 `ChromePage.ts` 的 `_execute` 直接调用旧 Chrome API 或 WebView；不能仅因接口同名就声称使用 Puppeteer 执行引擎。
 
-## 六、本次必须纠正的旧文档结论
+例如 Puppeteer 的 `Page.content()` 返回含 DOCTYPE 的完整 HTML，旧 OpenDesk `content()` 返回 body.innerHTML；旧 $/$$ 为 DOM 快照而非 Puppeteer live ElementHandle。迁移应记录这些差异，不静默破坏旧消费者。也不能因新 Puppeteer 有 locator 等接口，就默认本项目已有该接口。
 
-### 1. 不能继续说后续没有产品源码变化
+Page 的绑定是浏览器上下文与受控目标，而不是当前活动标签的别名。可信导航可以更新 Page 的当前 document 身份；旧 document 的元素和在途操作不能因此自动得到新文档的权限。
 
-先前将 `01b48dcb…` 视为当前全部产品源码的说法不准确。直接读取 Git 树可见：
+源码：[Page API](../../../src/framework/ChromePage.js)、[Run context](../../../src/framework/context.js)、[固定 DOM 操作](../../../src/scripting/packaged/registry.js)、[旧 ChromePage](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts)。
 
-| 源码观察点 | src 子树 |
+## 4. 油猴类产品能力：不是只有“能运行一段 JS”
+
+下面是标准用户脚本风格的**语义示例**。它展示目标产品体验，不代表当前 OpenDesk 已实现该元数据解析或 GM 兼容。
+
+```js
+// ==UserScript==
+// @name         订单页统计按钮
+// @match        https://example.test/orders*
+// @run-at       document-end
+// @grant        none
+// ==/UserScript==
+
+(() => {
+  if (document.getElementById('opendesk-order-count')) return;
+  const button = document.createElement('button');
+  button.id = 'opendesk-order-count';
+  button.textContent = '统计当前订单';
+  button.addEventListener('click', () => {
+    const count = document.querySelectorAll('#orders tbody tr').length;
+    alert(`当前页面有 ${count} 条订单`);
+  });
+  document.body.append(button);
+})();
+```
+
+完整语义是：安装并启用 → 打开匹配网页 → 在指定时机运行 → 网页出现按钮 → 点击时执行本页逻辑。脚本初始函数返回后，按钮和事件仍可存在；不能按一次短 RPC 已完成就认为页面脚本生命周期结束。
+
+油猴类最小产品闭环应明确：脚本安装/保存与版本、启停、URL 匹配/排除、注入时机、frame 范围、执行世界、每文档实例、防重复注入、日志与错误，以及升级和卸载后的行为。
+
+自动匹配执行必须基于预先批准的脚本与站点范围，不要求每次刷新都重新点运行，也不允许匹配规则本身自动授予特权。SPA 路由变化与完整文档导航须分开定义，不能默认每次路由变化重注入。
+
+### 三项不同承诺
+
+- **油猴类使用体验**：安装脚本后在匹配网页运行、增强网页。
+- **用户脚本格式/GM API 兼容**：@match、@run-at、GM.* 等逐项合同与兼容测试。
+- **完整生态兼容**：现有第三方脚本、依赖、更新与执行世界行为的兼容。
+
+第一项可以作为产品目标；第二、三项不能由第一项推导。GM_setValue 的按脚本存储与 AppStorage 的历史命名空间也不能只换函数名。
+
+## 5. 服务语义：为自动化、用户脚本和网页集成提供能力
+
+在当前已安装并获准 Page SDK 的网页主世界中：
+
+```js
+const sdk = globalThis.OpenDeskSDK;
+if (!sdk) throw new Error('请先通过扩展工具安装并授权 SDK');
+await sdk.ready();
+const response = await sdk.axiosx.get('https://api.example.test/status');
+console.log(response.status, response.data);
+```
+
+URL 为占位示例，须替换为获准的测试地址。语义是“来源网页 A 请求扩展访问获准接口 B，结果返回 A 的这次调用”。ready 可能复用 Hello，不能代替本次授权检查。
+
+Controller 内也能使用服务外观，但其身份和命名空间由运行上下文决定。页面用户脚本将来可以获得对应的受控服务适配；不能通过把 MAIN 世界的 Page SDK 直接暴露给所有脚本，就宣称完成按脚本隔离。
+
+[SDK entry](../../../src/framework/sdk/entry.js)、[服务合同](../../../src/framework/sdk/registry.js)、[Controller Worker](../../../src/scripting/sandbox/worker-runtime.js)。
+
+## 6. 四个必须独立记录的维度
+
+| 维度 | 可选情况 | 不能混淆 |
+|---|---|---|
+| 程序来源 | 保存、导入、可信工具临时调试 | 有临时脚本需求不等于普通网页可提交后台任意代码；运行前冻结输入 |
+| 触发方式 | 手动、页面按钮、网址匹配、事件 | 自动匹配不等于自动授权；F12 不额外授予后台权限 |
+| 执行环境 | Controller Worker、页面 USER_SCRIPT、明确批准的 MAIN | 有 document 的页面脚本不能被强制塞入无 DOM 的 Worker |
+| 能力范围 | DOM、ChromePage、HTTP、存储、通知等 | API 存在不等于当前身份有权调用 |
+
+来源文档 A、自动化目标文档 T、网络目标 origin B 也是不同对象。@match 指定脚本适用网页；network target 指定可请求哪里；二者都不代替实际 tab/frame/document 的校验。
+
+## 7. 共同底座，不同生命周期与信任边界
+
+| 对象 | 身份与生命周期 |
 |---|---|
-| `01b48dcb…` 对应根树 `8ea3d1d352b41bb75b994f03a03d545993f5295e` | `a3238198acfe19915d9081b5f470a5bff4d153f8` |
-| 本次 `cdef268b…` 对应根树 `ea4eb456853b3a8162995df01167cb8d51796ba8` | `38cc631a3d4d792453149788a2c1a620f74d34b6` |
+| Controller 任务 | run + epoch + 固定代码版本 + 目标；成功、失败、停止、未知效果及资源回收 |
+| 页面用户脚本 | 可信 script identity + revision + 文档实例；装载、活动、停用与文档退出 |
+| Page SDK 请求 | 原始来源文档 + grant + request/digest；请求结果与交付检查 |
 
-二者不同。当前重新读取的 `context.js`、`sdk-broker.js`、`run-host.js`、`script-editor.js` 也显示实质变化。大规模提交比较的返回文件列表可能不完整；不能因为可见部分只有文档就断言没有源码变化。
+CURRENT Page SDK 使用来源文档/origin 授权，不是脚本级授权。TARGET 用户脚本的可信身份必须由安装/准入与绑定通道证明，不能相信网页消息里的 scriptId；MAIN 世界共享代码也不具有天然的脚本间隔离。
 
-旧 P1 的 239+237 测试和包哈希只绑定旧报告自己的版本。历史浏览器报告仍保留价值，但本轮没有完成所有已有报告到当前源码/构建的重新绑定，不能外推当前完成数量。
+统一持久化、协议、authority 和 driver，不意味着所有脚本都占用同一个长任务 slot、使用同一存储键空间或处于同一个执行世界。页面内直接 DOM 修改不经过每次后台准入，不能宣称获得与受控 ChromePage 命令相同的逐动作日志或强制停止能力。
 
-### 2. 旧 goto 不是 tabs.update 链
+禁止高权限扩展上下文任意 eval，不等于禁止用户提供的 JavaScript。用户脚本能力通过符合平台要求的 userScripts 等受控路径承接。unregister 不能被解释为撤销已发生的页面效果；页面脚本停用必须分别描述未来注入、特权服务拒绝和已运行页面逻辑的清理限制。
 
-[旧 ChromePage.goto](https://github.com/shopable-ai/todo-user/blob/0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex/ChromePage.ts#L190-L225) 实际构造 `window.location.href`，交给 `eval`；另用 `tabs.onUpdated` 等待。`tabs.update` 属于本次看到的新版导航执行路径。旧 `_execute` 只传 `{active:true}`，不能擅自补成 `{active:true,currentWindow:true}`。
+## 8. 当前状态与下一步
 
-### 3. 文件名不能证明旧消费者存在
+| 主线 | 当前证据 | 后续决定 |
+|---|---|---|
+| Puppeteer 风格 Automation | ChromePage、context、Controller、固定操作、页面计算路径已存在 | 保留并按旧语义/目标文档/真实效果验收 |
+| 页面用户脚本 | 旧项目有页面应用脚本注入；新项目有 userScripts 页面计算机制 | 不能算完整管理器；应补设计与独立用户链验证，不隐去此核心范围 |
+| Page SDK / services | 独立 SDK 与后台服务已实现；P1 候选有 A/B 批准 UI | 完成同包真实调用验证，不等于用户脚本产品已完成 |
+| 网页按钮启动完整任务 | 旧 raw executeScript 有启动意图，但没有可靠整段结果协议 | 保留场景，通过受限脚本引用与现有运行管理承接 |
 
-本次读取 `assets/js/testMonkey.esm.js` 没有返回可用代码，因此不能把它直接列为已确认的 ChromePage 消费者或回归脚本。业务文件也要检查真正可达的调用，排除注释、示例和提前 return 后的代码。
+先完成正在推进的 P1 授权/服务链及 ChromePage 对照验证，不与其产品写入竞争。随后以“安装一个只修改 DOM 的脚本 → 匹配网页自动装载 → 刷新与停用”证明页面用户脚本闭环，再验证它使用受控服务和按脚本隔离；不自动开启新阶段产品实现。
 
-## 七、P1 的位置与后续推进
+## 9. 文档与证据入口
 
-P1.2 是页面服务的来源、能力、目标授权；P1.3 是可信工具批准与原生权限入口；P1.4 是正式页面 SDK 到 HTTP 执行与结果的用户链。它们不能代替全部浏览器自动化、页面增强、下载与生命周期验收。
+| 文档 | 作用 |
+|---|---|
+| 本 README | 浏览器框架定位、两类脚本运行模型、语义调用 |
+| [Legacy](legacy-src-bex-framework.md) | 旧 ChromePage、服务桥、脚本启动与页面注入事实 |
+| [CURRENT / TARGET](current-and-target-framework.md) | 现有组件、目标边界、状态 owner、验收切片 |
+| [迁移地图](legacy-to-target-map.md) | 旧能力逐项决定；不能把限定拒绝算作正向迁移成功 |
+| [第三方库迁移双表](third-party-library-map.md) | Legacy 加载环境、旧/新用户功能迁移、证据分层和 UNKNOWN |
+| [页面脚本与依赖决策](script-runtime-and-dependencies.md) | R3 决策 ID、USER_SCRIPT world、安全/依赖/停止边界 |
+| [R3 实施状态](implementation-status.md) | 最新 R3 独立候选的真实实现、未通过事项与交接 |
 
-**第一优先级：校准版本与三条高频任务链。**用当前源码固定“自动化操作网页”“网页请求扩展服务”“网页触发/装载脚本”，逐条确认旧调用者，绑定已有测试与缺口。
+有效 Contracts/Invariants 仍由已批准合同与源码 schema 负责；[机器账本](../../framework/source-compatibility-ledger.json) 保留迁移 ID；tests/evidence 负责真实验证。首页修订不删除来源事实、不将候选自动批准为产品合同。
 
-**第二优先级：先验收用户任务，再扩功能。**复用现有 A/B/C 页面、工作台、控制脚本入口；记录网页变化、服务次数、原 Promise、停止/导航/撤权等结果，不只记录内部状态。
+固定来源：Legacy `todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5`；主线文档修订前 `opendesk-browser@bb2038f992b1ad79311fc8436433a655f76ff735`（产品源码来自此前 6214b5e）；本轮观察到 P1 候选 `426409791a35acb6a6e5eb3f6fcc8b0600f562b5`。38763c7 到该候选的后续差异为构建/测试相关，不能据此增加本轮原生 PASS。本轮未全读大型 ledger，未执行浏览器验收。
 
-**第三优先级：按任务缺口下发开发目标。**页面增强闭环、网页按钮启动完整任务等未闭合需求，必须明确当前缺哪一环、用户是否接受行为变化、由哪个现有模块承接；不自动启动新的产品重构。
-
-## 八、本机与范围边界
-
-当前容器实际检查后，两个 `/Users/shopme/Documents/workspace/...` 路径均未挂载。本轮使用远端固定版本，未核对 Mac 工作区的未提交变化。取得本机源码后优先补本机差异和真实业务调用者；不要重复猜架构。
-
-本目录负责解释关系，原有 schema/合同负责约束，迁移账本保留原编号，测试和原始证据负责验证。修订文档不修改这些资产的通过标志。
+官方依据：[Puppeteer Page](https://pptr.dev/api/puppeteer.page)、[Page.content](https://pptr.dev/api/puppeteer.page.content)、[Tampermonkey 文档](https://www.tampermonkey.net/documentation.php?locale=en)、[Chrome userScripts](https://developer.chrome.com/docs/extensions/reference/api/userScripts)、[Content scripts 与执行世界](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)。
