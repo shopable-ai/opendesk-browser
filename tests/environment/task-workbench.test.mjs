@@ -242,17 +242,27 @@ test('full-size catalog keeps its own reader after real install and re-reads the
   assert.equal(f.get('task-run').disabled,false,'installed task is eligible on its own website');
 });
 
-test('installed Discover keeps its own useful dock without running or requesting permission',async t=>{
+test('idle Discover has no fixed footer and inline import still opens the authenticated catalog',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('tab-discover');
-  assert.equal(f.get('discover-dock').hidden,false,'idle Discover has a navigation dock');
-  await f.click('discover-to-tasks');
-  assert.equal(f.get('workbench-tasks').hidden,false);
+  assert.equal(f.get('workspace-dock').hidden,true,'idle local search leaves all height for results');
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('workspace-dock').hidden,false,'task Run is visible in My Tasks');
   await f.click('tab-discover');
-  await f.click('discover-to-catalog');
-  assert.equal(f.catalogOpens.length,1,'explicit catalog button opens the existing extension surface');
+  await f.click('local-discover-open-catalog');
+  assert.equal(f.catalogOpens.length,1,'inline import opens existing full-page catalog');
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
+});
+
+test('R5 result/history stay out of sight until a task has runs',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  assert.equal(f.get('task-result-panel').hidden,true);
+  assert.equal(f.get('task-history-panel').hidden,true);
+  await f.click('tab-discover');
+  assert.equal(f.get('task-result-panel').hidden,true);
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('task-history-panel').hidden,true);
 });
 
 test('card view retains original action identities, history and parameter form across tab changes',async t=>{
