@@ -50,7 +50,11 @@ jobs:
       - name: Complete environment Node regression (does not replace native Chrome E2E)
         run: npm test
   macos-native-host-ipc:
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
