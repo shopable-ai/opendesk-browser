@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "source": "opendesk-browser-local-fixture",
+  "message": "本地 HTTP JSON 请求成功",
+  "items": [
+    {"id": 1, "label": "文本读取"},
+    {"id": 2, "label": "点击与 DOM 更新"},
+    {"id": 3, "label": "真实 HTTP 响应"}
+  ]
+}
