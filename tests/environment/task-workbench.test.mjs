@@ -84,9 +84,10 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.deepEqual(f.starts[0].target,{mode:'borrowed',tabId:9,frameId:0,documentId:'doc-9',
     expectedUrl:'https://a.example/',expectedWindowId:7});
   await f.click('tab-discover');
-  assert.equal(f.get('workbench-discover').hidden,true,'catalog must not occupy the Side Panel');
-  assert.equal(f.catalogOpens.length,1);
-  assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
+  assert.equal(f.get('workbench-local-discover').hidden,false,'Sidebar Discover must show installed local tasks');
+  assert.equal(f.get('workbench-discover').hidden,true,'full catalog must not occupy the Side Panel');
+  assert.equal(f.catalogOpens.length,0,'Sidebar Discover must not open a marketplace tab');
+  assert.equal(f.get('local-discover-cards').children.length,1,'matching installed task is discoverable');
   await f.click('tab-develop');
   assert.equal(f.get('workbench-develop').hidden,false);
   assert.equal(f.host.currentRun,'run-task-1','switching Sidebar views must never retire RunHost');
@@ -144,7 +145,48 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
   assert.equal(f.get('workbench-discover').hidden,true);
 });
 
-test('opening a full-size catalog reuses the workbench with no Sidebar discovery tab',async t=>{
+test('Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('tab-discover');
+  assert.equal(f.get('workbench-local-discover').hidden,false);
+  assert.equal(f.get('workbench-discover').hidden,true);
+  assert.equal(f.get('local-discover-count').textContent.includes('1 个'),true);
+  assert.equal(f.get('local-discover-cards').children.length,1);
+  assert.equal(f.catalogOpens.length,0);
+  f.get('local-discover-search').value='不存在的任务';
+  f.get('local-discover-search').fire('input');
+  assert.match(f.get('local-discover-count').textContent,/0 个/);
+  assert.equal(f.get('local-discover-cards').children.length,1,'empty search renders an explanation');
+  assert.match(f.get('local-discover-cards').children[0].textContent,/没有找到/);
+  f.get('local-discover-search').value='表单';
+  f.get('local-discover-search').fire('input');
+  assert.equal(f.get('local-discover-cards').children.length,1);
+  assert.equal(f.get('local-discover-cards').children[0].dataset.taskId,'demo.form');
+  f.get('local-discover-cards').children[0].fire('click');
+  assert.equal(f.get('workbench-tasks').hidden,false,'selection returns to My Tasks');
+  assert.equal(f.get('task-installed-list').value,'demo.form');
+  assert.equal(f.starts.length,0,'discover selection must not start a run');
+  assert.equal(f.permissions.length,0,'discover selection must not request new page permissions');
+  assert.equal(f.catalogOpens.length,0);
+  await f.click('open-catalog');
+  assert.equal(f.catalogOpens.length,1,'explicit full catalog opens an extension tab');
+  assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
+});
+
+test('Discover filter controls are real view filters and cannot start another run',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('tab-discover');
+  await f.click('local-filter-disabled');
+  assert.equal(f.get('local-filter-disabled').attributes['aria-pressed'],'true');
+  assert.match(f.get('local-discover-count').textContent,/0 个/,'enabled task must not show as disabled');
+  await f.click('local-filter-all');
+  assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
+  assert.equal(f.get('local-discover-cards').children.length,1);
+  assert.equal(f.starts.length,0);
+  assert.equal(f.permissions.length,0);
+});
+
+test('opening the separate full-size catalog preserves its import and management view',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   f.ui.showCatalogPage();
   assert.equal(f.get('workbench-discover').hidden,false);
