@@ -57,7 +57,11 @@
     <div class="row"><label for="sdk-tab">网页</label><select id="sdk-tab"><option value="">请选择具体网页</option></select><button id="sdk-refresh">刷新网页列表</button></div>
     <div class="row"><label for="sdk-document">精确文档</label><select id="sdk-document" disabled><option value="">先选择网页，再选择文档</option></select></div>
     <fieldset id="sdk-capabilities"><legend>允许的服务（仅授予勾选项）</legend></fieldset>
-    <div class="row"><button id="sdk-install" disabled>授权选定文档并安装 SDK</button></div>
+    <label for="sdk-target-origins">额外批准的目标 origin（每行一个，最多 8 条）</label>
+    <textarea id="sdk-target-origins" rows="3" maxlength="18000" spellcheck="false" placeholder="https://api.example.com&#10;http://127.0.0.1:43111" aria-describedby="sdk-target-help"></textarea>
+    <p id="sdk-target-help">留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。</p>
+    <details open><summary>本次批准快照（来源、精确 document、服务与目标）</summary><pre id="sdk-approval-preview" aria-live="polite"></pre></details>
+    <div class="row"><button id="sdk-install" disabled>明确批准此快照并安装 SDK</button></div>
     <p id="sdk-status" role="status" data-state="idle">请选择网页、文档和服务</p><pre id="sdk-result" aria-label="SDK 安装结果"></pre>
   </section>
   <section aria-labelledby="health-title"><h2 id="health-title">目标健康检查</h2>

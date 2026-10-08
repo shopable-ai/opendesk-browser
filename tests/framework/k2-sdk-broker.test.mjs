@@ -35,7 +35,7 @@ async function fixture({fetchImpl, brokerOptions = {}, extraCapabilities = []} =
   };
   const api = {runtime:{id:'extension',getURL:p => `chrome-extension://extension/${p}`},storage:{session},
     permissions:{contains:async () => allowed},
-    webNavigation:{getAllFrames:async () => [{frameId:0,documentId,url:'https://fixture.example/page'}]},
+    webNavigation:{getAllFrames:async () => [{frameId:0,documentId,documentLifecycle:'active',errorOccurred:false,url:'https://fixture.example/page'}]},
     notifications:{create:(id,options,callback) => { nativeCalls.push({method:'notify',options}); callback('native-notification'); }}};
   const sender = {id:'extension',url:'https://fixture.example/page',frameId:0,documentId,documentLifecycle:'active',tab:{id:2,incognito:false}};
   const hostSender = {...sender,url:api.runtime.getURL('ui/tool.html'),documentId:'tool-document',tab:{id:1,incognito:false}};

@@ -76,3 +76,26 @@ test('R7: durable timestamps require an actual calendar date and explicit timezo
       error => error.code === 'E_SCHEMA', observedAt);
   }
 });
+
+test('build schema compaction retains the full canonical contract deterministically', async () => {
+  const {compactSchemaSource} = await import('../../scripts/compact-schema.mjs');
+  const source = await readFile(new URL('../../src/platform/schema.js', import.meta.url), 'utf8');
+  const original = JSON.parse(await readFile(new URL('../../docs/contracts/schema.json', import.meta.url), 'utf8'));
+  const code = compactSchemaSource(source);
+  // Evaluate the real build transform in an isolated Node module, never privileged browser code.
+  const {default: compacted} = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+  assert.deepEqual(schema, original);
+  assert.deepEqual(compacted, original);
+  assert.equal(compactSchemaSource(source), code);
+  assert.ok(code.length < source.length - 3000);
+});
+
+test('schema compaction rejects missing export and preserves object-looking strings as data', async () => {
+  const {compactSchemaSource} = await import('../../scripts/compact-schema.mjs');
+  assert.throws(() => compactSchemaSource('globalThis.schema = {}'), /Expected generated schema default export/);
+  const objectText = JSON.stringify({type:'string',minLength:1,maxLength:128,pattern:'^[A-Za-z0-9._:-]+$'});
+  const fixture = 'export default ' + JSON.stringify({literal:objectText}) + ';\n';
+  const code = compactSchemaSource(fixture);
+  const {default: value} = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+  assert.deepEqual(value, {literal:objectText});
+});

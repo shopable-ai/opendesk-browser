@@ -114,7 +114,15 @@ export async function loadOriginalApi48Catalog(root) {
   const manifest = JSON.parse(manifestBytes);
   const ref = manifest.files.find(file => file.path.endsWith('/test-spec-v5.json'));
   assert(ref, 'Approved original specification is missing');
-  const specPath = path.resolve(root, ref.path), bytes = await readFile(specPath);
+  // The approved manifest was frozen on a Mac; its SHA identifies the bytes,
+  // while its original absolute workspace prefix cannot exist in Linux CI.
+  // Rebase only that exact historical prefix to this checkout. Never weaken
+  // the manifest/spec SHA check or substitute a different fixture.
+  const frozenRoot = '/Users/shopme/Documents/workspace/opendesk-browser';
+  const relativeSpec = path.isAbsolute(ref.path) ? path.relative(frozenRoot, ref.path) : ref.path;
+  assert(relativeSpec && relativeSpec !== '.' && !path.isAbsolute(relativeSpec) &&
+    relativeSpec !== '..' && !relativeSpec.startsWith('..' + path.sep), 'Approved spec must stay under the repository');
+  const specPath = path.resolve(root, relativeSpec), bytes = await readFile(specPath);
   assert.equal(sha(bytes), ref.sha256, 'Approved original specification integrity failure');
   const spec = JSON.parse(bytes);
   assert.equal(spec.cases.length, 603, 'Original case denominator changed');

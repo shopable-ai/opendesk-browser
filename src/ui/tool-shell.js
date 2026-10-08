@@ -2,6 +2,7 @@ import {PROTOCOL, permissionPattern} from '../environment.js';
 import {createHostClient} from '../platform/host/client.js';
 import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
 import {createScriptEditor} from './script-editor.js';
+import {createSdkApproval, snapshotSdkApproval} from './sdk-approval.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 
@@ -69,8 +70,10 @@ const sdkInstall = document.querySelector('#sdk-install');
 const sdkStatus = document.querySelector('#sdk-status');
 const sdkResult = document.querySelector('#sdk-result');
 const sdkCapabilities = document.querySelector('#sdk-capabilities');
+const sdkTargets = document.querySelector('#sdk-target-origins');
+const sdkPreview = document.querySelector('#sdk-approval-preview');
 const capabilityLabels = {
-  network: 'HTTP 网络请求（仅选定站点）', 'storage.persistent': '持久存储',
+  network: 'HTTP 网络请求（仅本次精确批准的来源与目标）', 'storage.persistent': '持久存储',
   'storage.session': '浏览器会话存储', notifications: '通知', 'device.id': '稳定应用 ID',
   'network.info': '外部网络信息（当前未启用）'
 };
@@ -89,15 +92,34 @@ function sdkDisplay(state, message, data) {
   sdkResult.textContent = data === undefined ? '' : JSON.stringify(data, null, 2);
 }
 function sdkError(error) { sdkDisplay('error', `${error.code || 'E_TARGET'}：${error.message || error}`); }
-function sdkUpdateButton() { sdkInstall.disabled = sdkBusy || !sdkDocuments.has(sdkDocument.value) || !selectedCapabilities().length; }
+const sdkSelection = () => ({document:sdkDocuments.get(sdkDocument.value),
+  capabilities:selectedCapabilities(), targetText:sdkTargets.value});
+function sdkUpdateButton() {
+  let valid = false;
+  try { sdkPreview.textContent = JSON.stringify(snapshotSdkApproval(sdkSelection()), null, 2); valid = true; }
+  catch (error) { sdkPreview.textContent = `${error.code || 'E_SCHEMA'}：${error.message}`; }
+  sdkInstall.disabled = sdkBusy || !valid;
+}
+const sdkApproval = createSdkApproval({api:chrome, client:foundationClient, permissionPattern, readSelection:sdkSelection,
+  onBusy(value) { sdkBusy = value; sdkUpdateButton(); },
+  onState({state,message,snapshot,receipt,error,lastConfirmedReceipt}) {
+    sdkDisplay(state,message,{approvalSnapshot:snapshot,receipt,error,
+      lastConfirmedReceipt,historyNotice:'历史回执不证明当前授权仍有效，也不代表当前输入已批准'});
+  }});
+function sdkInputsChanged() {
+  sdkApproval.invalidate(); sdkUpdateButton();
+}
 function clearSdkDocument() {
   sdkSelectionVersion++; sdkDocuments = new Map();
+  sdkApproval.invalidate('文档列表已变化，请重新选择精确文档并批准');
   sdkDocument.replaceChildren(new Option('请选择当前精确文档', ''));
   sdkDocument.disabled = true; sdkUpdateButton();
 }
 async function refreshSdkTabs() {
   clearSdkDocument(); sdkTab.replaceChildren(new Option('请选择具体网页', ''));
+  const version = sdkSelectionVersion;
   const tabs = await chrome.tabs.query({});
+  if (version !== sdkSelectionVersion) return;
   for (const tab of tabs) {
     if (tab.incognito || !Number.isInteger(tab.id) || !/^https?:\/\//.test(tab.url || '')) continue;
     sdkTab.append(new Option(`[${tab.id}] ${tab.title || tab.url} — ${tab.url}`, String(tab.id)));
@@ -123,28 +145,18 @@ async function refreshSdkDocuments() {
 foundationClient.ready.catch(sdkError);
 listen(document.querySelector('#sdk-refresh'), 'click', () => refreshSdkTabs().catch(sdkError));
 listen(sdkTab, 'change', () => refreshSdkDocuments().catch(sdkError));
-listen(sdkDocument, 'change', sdkUpdateButton);
-listen(sdkCapabilities, 'change', sdkUpdateButton);
+listen(sdkDocument, 'change', sdkInputsChanged);
+listen(sdkCapabilities, 'change', sdkInputsChanged);
+listen(sdkTargets, 'input', sdkInputsChanged);
 listen(sdkInstall, 'click', event => {
-  // permissions.request must run synchronously in this trusted click, before any await.
-  const selected = sdkDocuments.get(sdkDocument.value), capabilities = selectedCapabilities();
-  if (!event.isTrusted || sdkBusy || !selected || !capabilities.length) return;
-  let permission;
-  try {
-    permission = chrome.permissions.request({origins: [permissionPattern(selected.url)],
-      ...(capabilities.includes('notifications') ? {permissions: ['notifications']} : {})});
-  } catch (error) { sdkError(error); return; }
-  sdkBusy = true; sdkUpdateButton(); sdkDisplay('installing', '正在授权并安装选定文档…');
-  const version = sdkSelectionVersion;
-  (async () => {
-    if (!await permission) throw {code: 'E_PERMISSION', message: '授权被拒绝，未安装 SDK'};
-    if (version !== sdkSelectionVersion || sdkDocuments.get(selected.documentId) !== selected)
-      throw {code: 'E_DOCUMENT_STALE', message: '选定文档已变更，请重新选择'};
-    const data = await foundationClient.request('installSdk', {tabId: selected.tabId, frameId: selected.frameId,
-      documentId: selected.documentId, capabilities});
-    sdkDisplay('installed', '已向选定文档安装 SDK；网页 ready() 将验证真实授权', data);
-  })().catch(sdkError).finally(() => { sdkBusy = false; sdkUpdateButton(); });
+  if (!event.isTrusted || sdkBusy || sdkInstall.disabled) return;
+  // Permissions are requested synchronously by the approved snapshot handler.
+  sdkApproval.approve(event).catch(error => {
+    console.warn('SDK approval was not confirmed', error);
+  });
 });
+const sdkPermissionsRemoved = () => sdkApproval.invalidate('浏览器权限撤销已被观察；当前显示不再证明授权有效，请重新批准');
+chrome.permissions.onRemoved.addListener(sdkPermissionsRemoved);
 const sdkNavigation = details => {
   if (String(details.tabId) !== sdkTab.value) return;
   clearSdkDocument(); sdkDisplay('stale', '网页已导航，请重新选择当前文档并授权');
@@ -159,6 +171,7 @@ browserListenersAttached = true;
 refreshSdkTabs().catch(sdkError);
 listen(window, 'pagehide', () => {
   chrome.webNavigation.onCommitted.removeListener(sdkNavigation); chrome.tabs.onRemoved.removeListener(sdkTabRemoved);
+  chrome.permissions.onRemoved.removeListener(sdkPermissionsRemoved); sdkApproval.dispose();
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;

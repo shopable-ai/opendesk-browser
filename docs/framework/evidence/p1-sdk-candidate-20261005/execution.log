@@ -1,0 +1,109 @@
+P1 candidate execution excerpts
+source commit: 01b48dcb49b31844d30c0e6fdeed1756e5046f11
+source tree: 8ea3d1d352b41bb75b994f03a03d545993f5295e
+These are excerpts of actual tool output, not a generated test suite or expected PASS.
+ANSI cursor escapes removed; no assertions removed. Full log SHA256s are in verification.json.
+
+=== install-race-before-fix.log ===
+✖ late failure of an old installation does not revoke a newer approved scope in the same document (11.147632ms)
+✔ native injection failure preserves its error and retires the actual installation grant (2.909241ms)
+✖ installation cleanup fences immediately while persistence waits without invalidating quick reapproval (9.601011ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.99291
+
+✖ failing tests:
+
+test at tests/framework/k2-sdk-installation-race.test.mjs:48:1
+✖ late failure of an old installation does not revoke a newer approved scope in the same document (11.147632ms)
+  Error [FoundationError]: SDK grant is inactive or has an unknown format
+      at invariant (file:///mnt/data/opendesk-browser/src/platform/protocol.js:27:25)
+      at readGrant (file:///mnt/data/opendesk-browser/src/platform/host/sdk-methods.js:50:5)
+    code: 'E_GRANT_REVOKED'
+  +   code: 'E_DOCUMENT_STALE'
+  -   code: 'E_GRANT_REVOKED'
+    code: 'ERR_ASSERTION',
+    expected: { code: 'E_GRANT_REVOKED' },
+
+=== lifecycle-before-fix.log ===
+✔ late failure of an old installation does not revoke a newer approved scope in the same document (14.123821ms)
+✔ native injection failure preserves its error and retires the actual installation grant (2.920668ms)
+✔ installation cleanup fences immediately while persistence waits without invalidating quick reapproval (7.052772ms)
+✖ authority refuses prerender at grant, injection and dispatch boundaries (2.121579ms)
+✖ authority refuses cached at grant, injection and dispatch boundaries (1.26779ms)
+✖ authority refuses pending deletion at grant, injection and dispatch boundaries (1.216595ms)
+✖ authority refuses missing lifecycle at grant, injection and dispatch boundaries (1.392714ms)
+✖ authority refuses unknown lifecycle at grant, injection and dispatch boundaries (1.250574ms)
+✖ authority refuses failed navigation at grant, injection and dispatch boundaries (1.44425ms)
+✔ exact installation cleanup cannot be mixed with a native origin removal (2.895971ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 4
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 112.612902
+
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+
+=== final-k2.log ===
+✔ real B HTTP is reached through existing axiosx/broker; native permission alone and unapproved C produce zero requests (47.889515ms)
+✔ 100 same-ID concurrent actual HTTP requests produce exactly one B observation and no replay after receipt (125.996387ms)
+✔ changed args/deadline conflict without new B HTTP; different request IDs are not merged (31.408133ms)
+✔ observed revocation and immediate regrant cannot deliver or replay an already observed B request (17.289935ms)
+✔ removing target native permission alone blocks B while source A remains authorized (5.069084ms)
+✔ late failure of an old installation does not revoke a newer approved scope in the same document (18.782145ms)
+✔ native injection failure preserves its error and retires the actual installation grant (2.964321ms)
+✔ installation cleanup fences immediately while persistence waits without invalidating quick reapproval (14.153751ms)
+✔ authority refuses prerender at grant, injection and dispatch boundaries (6.088208ms)
+✔ authority refuses cached at grant, injection and dispatch boundaries (7.50082ms)
+✔ authority refuses pending deletion at grant, injection and dispatch boundaries (8.318426ms)
+✔ authority refuses missing lifecycle at grant, injection and dispatch boundaries (4.615936ms)
+✔ authority refuses unknown lifecycle at grant, injection and dispatch boundaries (3.971195ms)
+✔ authority refuses failed navigation at grant, injection and dispatch boundaries (4.220744ms)
+✔ exact installation cleanup cannot be mixed with a native origin removal (2.423584ms)
+ℹ tests 239
+ℹ suites 0
+ℹ pass 239
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1587.41193
+
+=== final-compiled-complete.log ===
+ℹ tests 237
+ℹ suites 0
+ℹ pass 237
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18897.788026
+
+=== final-check.log ===
+
+> opendesk-browser@0.1.0 check
+> node scripts/check-source.mjs
+
+Syntax checked 91 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked
+
+=== final-production.log ===
+[fixed-entry] sw.js: 259348/262144 bytes
+{"mode":"production","builder":"wxt","status":"passed","packageHash":"61ac11ca50496025f51fe42eccc2709f9b08d85de60ec53c852efa5276b657b5","assets":19}
+
+=== final-development.log ===
+[fixed-entry] sw.js: 259473/524288 bytes
+{"mode":"development","builder":"wxt","status":"passed","packageHash":"8c1e3706f3c470cc9afd2d3ec813d54f46798fc989289f9099657d7b643fe436","assets":30}
+
+=== Native boundary ===
+Startup: BLOCKED. Native user chain: NOT_TESTED.
+DevToolsActivePort was not observed within startup limit.
+Observed managed policy: ExtensionInstallBlocklist=["*"], URLBlocklist=["*"].
+Policies were not modified. Only owned, command-verified process groups were stopped; their exit was verified.

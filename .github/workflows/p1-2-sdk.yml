@@ -1,0 +1,56 @@
+name: P1 focused SDK candidate checks
+
+# This workflow never runs on main, deploys, or opens a browser.
+on:
+  push:
+    branches: [codex/p1-2-sdk-target-origins-20261004]
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'tests/framework/**'
+      - 'tests/environment/**'
+      - 'docs/contracts/schema.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'wxt.config.mjs'
+      - '.github/workflows/p1-2-sdk.yml'
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact candidate without retained credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - name: Use Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Record source and runtime identity
+        run: |
+          git rev-parse HEAD
+          git status --short
+          node --version
+          npm --version
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Full-import SDK target, UI, actual HTTP count and schema regressions
+        run: node --test --test-reporter=spec tests/framework/k2*.test.mjs
+      - name: Source checks
+        if: ${{ !cancelled() }}
+        run: npm run check
+      - name: Production build and package verification
+        id: production
+        if: ${{ !cancelled() }}
+        run: npm run build
+      - name: Development build and package verification
+        id: development
+        if: ${{ !cancelled() }}
+        run: npm run build:dev
+      - name: Compiled SDK, HTTP, control, environment and package mutation regressions
+        if: ${{ !cancelled() && steps.production.outcome == 'success' && steps.development.outcome == 'success' }}
+        run: node --test --test-reporter=spec tests/framework/k[345]*.test.mjs tests/environment/*.test.mjs

@@ -1,10 +1,11 @@
-// Lossless build-time factoring of repeated schema data. Validation rules and
-// property order are unchanged; runtime consumers only read this frozen contract.
-export function compactSchemaSource(source) {
-  const marker = 'export default ';
-  const start = source.indexOf(marker);
-  if (start < 0) throw new Error('Expected generated schema default export');
-  const schema = JSON.parse(source.slice(start + marker.length).trim().replace(/;$/, ''));
+import {Buffer} from 'node:buffer';
+
+// Schema is reviewed JSON data, not executable user code.  The SW bundle has
+// a hard 256 KiB production gate.  Factor repeated objects as before and,
+// when smaller, pack the fixed UTF-8 JSON with a deterministic 16-bit LZW
+// dictionary.  The decoded object retains every key, value and ordering.
+// No runtime eval, dynamic import, network resource or new trust boundary.
+function factorObjects(schema) {
   const counts = new Map(), names = new Map(), declarations = [];
   function count(value) {
     if (!value || typeof value !== 'object') return;
@@ -24,4 +25,72 @@ export function compactSchemaSource(source) {
   }
   const body = render(schema);
   return `${declarations.join('\n')}\nexport default ${body};\n`;
+}
+
+function packUtf8(input) {
+  const dictionary = new Map();
+  for (let i = 0; i < 256; i++) dictionary.set(String.fromCharCode(i), i);
+  let next = 256, word = '';
+  const codes = [];
+  for (const byte of input) {
+    const char = String.fromCharCode(byte), joined = word + char;
+    if (dictionary.has(joined)) { word = joined; continue; }
+    codes.push(dictionary.get(word));
+    if (next < 65535) dictionary.set(joined, next++);
+    word = char;
+  }
+  if (word) codes.push(dictionary.get(word));
+  // Fixed-width bit packing (9-16 bits) omits unused high bits of the LZW
+  // code space.  The byte budget must not depend on wasteful 16-bit padding.
+  const width = Math.max(9, Math.ceil(Math.log2(next)));
+  const result = Buffer.alloc(Math.ceil(codes.length * width / 8));
+  let bitOffset = 0;
+  for (const code of codes) for (let bit = width - 1; bit >= 0; bit--) {
+    if (code & (1 << bit)) result[bitOffset >> 3] |= 1 << (7 - (bitOffset & 7));
+    bitOffset++;
+  }
+  return {encoded: result.toString('base64'), width, count: codes.length};
+}
+
+function packModule(value) {
+  const {encoded, width, count} = packUtf8(Buffer.from(JSON.stringify(value), 'utf8'));
+  return `// Constant reviewed schema; only synchronous data decompression.
+const packed=${JSON.stringify(encoded)},width=${width},count=${count};
+function unpackSchema(source) {
+  const bytes=atob(source), dictionary=Array.from({length:256},(_,i)=>String.fromCharCode(i));
+  let bitOffset=0, next=256;
+  const read=()=>{
+    if(bitOffset+width>bytes.length*8) throw new Error('Invalid packaged schema');
+    let code=0;
+    for(let bit=0;bit<width;bit++) {
+      code=(code<<1)|((bytes.charCodeAt(bitOffset>>3)>>(7-(bitOffset&7)))&1);
+      bitOffset++;
+    }
+    return code;
+  };
+  let previous=dictionary[read()];
+  if(previous===undefined) throw new Error('Invalid packaged schema');
+  const pieces=[previous];
+  for(let index=1;index<count;index++) {
+    const code=read();
+    const entry=dictionary[code]??(code===next?previous+previous[0]:undefined);
+    if(entry===undefined) throw new Error('Invalid packaged schema');
+    pieces.push(entry);
+    if(next<65535) dictionary[next++]=previous+entry[0];
+    previous=entry;
+  }
+  const raw=Uint8Array.from(pieces.join(''),c=>c.charCodeAt(0));
+  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw));
+}
+export default unpackSchema(packed);
+`;
+}
+
+export function compactSchemaSource(source) {
+  const marker = 'export default ';
+  const start = source.indexOf(marker);
+  if (start < 0) throw new Error('Expected generated schema default export');
+  const schema = JSON.parse(source.slice(start + marker.length).trim().replace(/;$/, ''));
+  const shared = factorObjects(schema), packed = packModule(schema);
+  return packed.length < shared.length ? packed : shared;
 }

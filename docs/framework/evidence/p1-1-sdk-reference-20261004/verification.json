@@ -1,0 +1,75 @@
+{
+  "scope": "P1.1 isolated branch candidate, not a completed P1 or native product acceptance",
+  "baseCommit": "feae947190c843b3161c2ac75a2274a76684c606",
+  "branch": "codex/p1-1-sdk-reference-authority-20261004",
+  "sourceFiles": [
+    {
+      "path": "src/platform/host/broker.js",
+      "bytes": 11268,
+      "gitBlobSha": "995f8a70b7471f54006cd2bb3ea5dd001f1a670b",
+      "sha256": "9819e1ba4566bbf71336efdb91d2b7e2d1cb36a859ee10e5a5713a96af479575"
+    },
+    {
+      "path": "src/platform/host/sdk-methods.js",
+      "bytes": 25976,
+      "gitBlobSha": "eef8c419c220d6d1bffa38cd17ce0da809faac52",
+      "sha256": "4ae7097bdf8b4a362e042a87ff7f1514a2780378be64644571ebecd06cfa8a71"
+    },
+    {
+      "path": "tests/framework/k2-sdk-reference-authority.test.mjs",
+      "bytes": 15721,
+      "gitBlobSha": "fe9e0867ce7fa96b94406cba217f2d427b1dcd45",
+      "sha256": "fb4b912606a93e0a003c5b71eeb528433ae3de7deed362bad0bd24e1ef6faa15"
+    }
+  ],
+  "environment": {
+    "node": "v22.16.0",
+    "platform": "Linux container; not the user Mac workspace",
+    "network": "Container git/raw download unavailable; sources read through GitHub connector"
+  },
+  "verification": {
+    "syntax": {
+      "status": "PASS",
+      "files": [
+        "src/platform/host/broker.js",
+        "src/platform/host/sdk-methods.js",
+        "tests/framework/k2-sdk-reference-authority.test.mjs"
+      ]
+    },
+    "isolatedUnit": {
+      "status": "PASS",
+      "pass": 64,
+      "fail": 0,
+      "log": "isolated-unit.tap",
+      "scope": "Exact createSdkRequestHandler function and full sdkMethods/registry/codec; only used real protocol/environment helper slices loaded; Chrome and storage are test fixtures; unrelated broker startup and full repository import graph NOT executed"
+    },
+    "beforeAfterCharacterization": {
+      "status": "PASS",
+      "beforePass": 53,
+      "beforeFail": 0,
+      "afterPass": 53,
+      "afterFail": 0,
+      "scope": "Same handler-level cases against original source and candidate using the same isolated loader"
+    },
+    "initialFinding": {
+      "status": "FIXED_AND_RECHECKED",
+      "detail": "Baseline comparison found that a matched but unprojectable operation previously assigned an own-undefined invocation field. Candidate now returns a matched-record envelope so the broker preserves this shape. Initial result 52 PASS / 1 FAIL; subsequent before/after 53/53 each."
+    },
+    "fullRepositoryRegression": "NOT_RUN",
+    "build": "NOT_RUN",
+    "nativeChrome": "NOT_TESTED",
+    "B05": "NOT_TESTED",
+    "macOS": "NOT_TESTED"
+  },
+  "ownership": {
+    "mainChanged": false,
+    "ownerFileChanged": false,
+    "handoffClaimed": false,
+    "authorization": "User explicitly permitted direct work on a new branch. Only isolated candidate branch updated; main merge requires fresh serial handoff."
+  },
+  "next": [
+    "Run the new test and existing k2-sdk-broker.test.mjs on a full checkout without the isolated loader",
+    "Recheck live workspace/owner before any merge",
+    "Only after P1.1 integration verification, implement P1.2 cross-origin target grant"
+  ]
+}
