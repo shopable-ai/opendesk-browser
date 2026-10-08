@@ -49,7 +49,7 @@ test('modern search retains an initially filled field and deliberately replaces 
   assert.match(html,/results\.textContent = '结果：' \+ term/);
 });
 
-test('async scene sends only local fetches and distinguishes loading, 404, abort and timeout',async()=>{
+test('legacy async scene uses local fetches and distinguishes loading, 404, abort and timeout',async()=>{
   const html=await load();
   assert.match(html,/\.\/demo-form\.html\?test-response=1/);
   assert.match(html,/\.\/__opendesk_expected_404__\.json/);
