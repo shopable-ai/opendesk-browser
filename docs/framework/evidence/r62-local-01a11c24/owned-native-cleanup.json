@@ -1,0 +1,16 @@
+[
+  {
+    "report": "chrome155-launch.json",
+    "pid": 89719,
+    "pidAlive": false,
+    "profileExists": false,
+    "shutdownMethod": "SIGINT to owned launcher"
+  },
+  {
+    "report": "chrome154-launch.json",
+    "pid": 90607,
+    "pidAlive": false,
+    "profileExists": false,
+    "shutdownMethod": "SIGINT to owned launcher"
+  }
+]

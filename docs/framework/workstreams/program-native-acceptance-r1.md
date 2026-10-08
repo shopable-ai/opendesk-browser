@@ -59,3 +59,9 @@
 ## 续接范围
 
 新聊天只负责 Program R3.1 源码/产物分离的剩余收敛与测试证据复用。已通过的本候选用例先校验哈希并复用；先观察 main/PR 漂移和其它正在工作的聊天，再判断是否有真正缺口。继承本工作区和原始证据须明确完成 writer 交接；不要从 main 共享目录继续写，也不要重开已经释放的 profile 或改写旧 receipt。不得以旧候选验收覆盖更新后的 SDK/入口；必要时形成新候选并仅执行有明确依据的受影响验证。
+
+## Final Integration R2 候选去重记录（2026-10-09）
+
+Program #22 已归入仍为 Draft 的 Native #11 集成候选。#23 延续其已实现的源码/产物隔离，新增可重复审计历史证据的只读工具，且将内部 D1 测试输入固定在 `tests/fixtures/program/d1-userscript.html`。该文件与先前 `tests/fixtures/d1-userscript.html` **字节 SHA 完全一致**，保留历史 evidence index 的旧来源标识，不把历史源文件路径重写为当前新候选的原生回执。合并时只保留 Program 内部新路径，公开人工测试入口依旧唯一 `examples/tasks/demo-form.html`。
+
+此条说明仅证明代码候选的去重关系，不变更 Chrome/Codex、Saved reload、Installed Task、完整重启、F3/ZIP 的 `NOT_TESTED` 结论。后续只能在相同最终提交及真实环境上关闭这些门槛。

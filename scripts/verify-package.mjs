@@ -4,8 +4,8 @@ import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
-import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
+import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
@@ -23,6 +23,7 @@ export const FIXED_ASSETS = Object.freeze({
 });
 const HTML_REFERENCES = Object.freeze({
   'ui/tool.html': ['tool-shell.css', 'tool-shell.js'],
+  'native-agent/settings.html': ['settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
   [SANDBOX_HTML]: ['sandbox.js']
 });
@@ -85,7 +86,7 @@ export async function verifySdkResourceManifest(directory) {
   return actual;
 }
 export function verifyManifest(manifest) {
-  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
+  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
   if (!same(manifest.permissions, REQUIRED_BROWSER_API_PERMISSIONS)) throw new Error('Unexpected required browser API permissions');
@@ -96,6 +97,7 @@ export function verifyManifest(manifest) {
   if (!same(manifest.background, {service_worker: 'sw.js'})) throw new Error('Unexpected or missing worker entry');
   if (!same(Object.keys(manifest.action || {}), ['default_title'])) throw new Error('Unexpected action resource/entry');
   if (!same(manifest.side_panel, {default_path: 'ui/tool.html'})) throw new Error('Unexpected or missing Side Panel entry');
+  if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
   if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
   if (manifest.optional_host_permissions || manifest.content_scripts || manifest.externally_connectable) throw new Error('Unapproved optional host or page exposure');
@@ -147,6 +149,15 @@ function assertClassicIIFE(text, file) {
       call.callee.params.length || call.callee.async || call.callee.generator)
     throw new Error(`Non-classic IIFE output in ${file}`);
 }
+// Narrow exception: the classic MV3 worker may import its ONE pinned,
+// same-extension Native transport asset synchronously at boot. The package
+// verifier separately requires the asset and includes its bytes in the hash.
+// All computed, remote, arbitrary and non-worker importScripts remain forbidden.
+function approvedNativeImport(callee,call,file) {
+  return file==='sw.js' && callee?.type==='Identifier' && callee.name==='importScripts' &&
+    call?.type==='CallExpression' && call.callee===callee && call.arguments?.length===1 &&
+    call.arguments[0]?.type==='Literal' && call.arguments[0].value==='native-agent/transport.js';
+}
 export function inspectScript(text, file, options = {}) {
   const ast = parseScript(text, file, options.sourceType || 'script');
   const scopes = new WeakMap(), declarations = [], bindings = new WeakMap();
@@ -190,7 +201,7 @@ export function inspectScript(text, file, options = {}) {
     const parent = ancestors.at(-1);
     if (node.type === 'ImportExpression' || node.type === 'ImportDeclaration' || (/^Export/.test(node.type) && !allowedSourceExport(node, file))) throw new Error(`Non-classic syntax in ${file}`);
     if (node.type === 'Identifier' && !nonReference(node, parent)) {
-      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name}`);
+      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file) && !approvedNativeImport(node,parent,file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name}`);
       if (binding && resolveBinding(node) === binding && node !== approved.id) {
         if (parent?.type !== 'NewExpression' || parent.callee !== node || parent.arguments.length !== 7 ||
           ['page','params','axiosx','AppStorage','AppLocal','storage'].some((name,index)=>parent.arguments[index]?.value!==name) || property(parent.arguments[6]) !== 'body') throw new Error(`Unapproved dynamic constructor use in ${file}`);
@@ -199,7 +210,7 @@ export function inspectScript(text, file, options = {}) {
     }
     if (node.type === 'MemberExpression' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(property(node))) throw new Error(`Dynamic execution in ${file}: ${property(node)}`);
     if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file}`);
-    if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
+    if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
   });
   if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);
   if (/__webpack_require__\.e\s*\(|https?:\/\/[^\s'"]+\.js(?:[?#][^\s'"]*)?(?=['"\s]|$)|\brequire\(['"](?:node:|fs|net|http)/.test(text)) throw new Error(`Remote/lazy/runtime-host execution in ${file}`);

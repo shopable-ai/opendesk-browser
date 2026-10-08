@@ -1,0 +1,87 @@
+✔ reserved mutation never dispatches across disable (14.091ms)
+✔ reserved mutation never dispatches across permission-removed (6.122042ms)
+✔ reserved mutation never dispatches across disconnect-reconnect (6.259916ms)
+✔ reserved mutation never dispatches across disable-enable (6.25725ms)
+✔ reserved mutation never dispatches across dispose (6.252375ms)
+✔ Native permission is rechecked immediately before dispatch (6.087459ms)
+✔ a late disconnect from an old Native port cannot cancel a new connection request (12.313958ms)
+✖ a pending enable permission check cannot overwrite disable (0.965958ms)
+✖ a pending enable permission check cannot overwrite permission-removed (0.183ms)
+✖ a pending enable storage write cannot persist over a newer disable (1.263958ms)
+✖ an old Host ACK cannot match a new connection read with the same external requestId (17.856083ms)
+✔ enabled Native handshake sends version and correct extension identity (1.81725ms)
+✔ default-off requires a packaged Settings sender and real granted Native permission (1.091916ms)
+✔ request hash journal deduplicates after real Host admission; conflicting bytes fail (7.998083ms)
+✔ dispatched but unanswered calls are never retried, even if same id reappears (8.765583ms)
+✔ no live registered Host means no run reservation or Worker execution (1.54575ms)
+✔ run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records (1.418833ms)
+✔ ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays (16.594208ms)
+✔ run.get and run.stop remain pinned to the original authenticated Host registration (24.98ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 15
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 246.009916
+
+✖ failing tests:
+
+test at tests/environment/native-agent-bridge.test.mjs:104:3
+✖ a pending enable permission check cannot overwrite disable (0.965958ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:113:25)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_PERMISSION' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:104:3
+✖ a pending enable permission check cannot overwrite permission-removed (0.183ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:113:25)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_PERMISSION' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:120:1
+✖ a pending enable storage write cannot persist over a newer disable (1.263958ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:132:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_PERMISSION' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:137:1
+✖ an old Host ACK cannot match a new connection read with the same external requestId (17.856083ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to:
+  
+  'reused-read'
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:158:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'reused-read',
+    expected: 'reused-read',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,137 @@
+# GOAL：OpenDesk Browser Native Agent Bridge R1 本地 Codex 接管、审查已实现 Native Host、真实 Chrome/Codex 验收
+
+你现在是 Chrome MV3、Native Messaging、Node IPC、RunHost、Chrome User Scripts、安全/可靠性测试负责人；直接在本地执行，不以方案回答代替真正测试修复。
+
+## 0. 真实基线与协作
+
+主库：shopable-ai/opendesk-browser。
+云端候选分支：agent/native-agent-bridge-r1-20261008。
+起点 main：66f11874fa27f6de438155124a3f772129386f8b（历史快照，请重新 fetch 并核实）。
+不要在 main 直接写或建立另一套运行框架；优先复用这一候选分支的独立 worktree，不覆盖其他工作目录、owner 文件或 PR #7（集中权限）、#9（Sidebar R5）。不要为了修复本工作而新建重复功能分支。
+本工作流记录：docs/framework/workstreams/native-agent-bridge-r1-20261008.json。
+设计与组件映射：docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md。
+依赖源只读：shopable-ai/opendesk/lab/browser-automation-core/ 与 shopable-ai/todo-user/src-bex/。
+
+在本地：
+git fetch origin
+git worktree add ../opendesk-browser-native-r1 origin/agent/native-agent-bridge-r1-20261008
+（如 git 拒绝 detached，安全创建本 worktree 的 local branch；不要创建新的远端功能工作流。）
+
+先记录 git status / HEAD、正在运行的共享 Chrome/CFT、未提交文件、PR #7/#9、当前 Manifest/build 状态。独立 profile、测试端口和 artifacts，不争抢其他 Agent 的已预约 profile/端口。
+
+## 1. 当前真实部分结果：不得假报
+
+已提交源码包含：
+- src/native-agent/protocol.js / host-adapter.js / service-worker.js
+- src/platform/host/client.js、src/ui/tool-shell.js、src/sw.js 薄接线
+- src/native-agent/settings.*，src/entrypoints/settings.js
+- native-agent/wire.mjs / install.mjs / cli.mjs
+- Manifest/WXT/verify-package 12-entry 对应合同
+- native-agent 三个 environment tests
+- docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md
+
+**最新进度：native-agent/native-host.mjs 已提交 PR #11。** GitHub macOS-15 独立 HOME 已验证真实 Native Host 安装/Unix Socket/CLI IPC，并使用模拟 Chrome 消息帧；生产/开发 WXT 包经 CI 核验。该级别不是 Chrome/Codex E2E。接管时审计已有 Host、Chrome/CFT 独立 manifest、Schema SW-only 压缩和最新 CI，勿重建。用户本机原始 Chrome/Side Panel/可信权限/页面效果及 Codex 全链仍未验收，必须现场重新执行。
+
+先审查已提交代码（不是盲信），尤其检查：
+- nativeMessaging 的可选权限、Chrome Options 中真实用户 click；
+- SW 原生连接生命周期、host identity/nonce 和 port sender 验证；
+- SW requestDigest journal 与 Controller runId 可恢复映射；
+- 与 existing startControllerRun 的唯一权威一致性；
+- wire 60KiB UTF-8 限制及 max queue；
+- install.mjs 的 shell wrapper 正确 quoting、owner、symlink、socket stale；
+- native host 和 installation 是否保留其他 Demo 的 credentials/manifest；
+- 12 个 WXT entry、新 Options 页、默认不连接 Native 时 Sidebar 是否正常。
+
+## 2. 第一优先：审查并验证已实现的 Native Host，完成真正浏览器闭环
+
+审计、修复并在真实 macOS 上验证现有 native-agent/native-host.mjs（已经在仓库中，不要重建另一个进程）：
+- 仅通过 Chrome 的原生 manifest \`allowed_origins\` 指定 extension ID 唤起；拒绝错误 origin/扩展 ID，拒绝非预期平台；
+- 对 stdio 使用四字节 little-endian UTF-8 字节长度 framing、60KiB 上限、严格 JSON 响应和 stdout 纯协议；stderr 诊断不含密钥/脚本；
+- 进程**同时**作为单一 Unix Socket IPC broker，不再二次启动旧 Demo 的 broker.mjs；socket 要在每次 Chrome 启动时显式创建，退出时只删除自己确实拥有的 socket inode；
+- Unix Socket 私有目录(0700)，socket 0600，客户端凭据 0600，密钥等长 timingSafeEqual 验证，版本及握手身份校验；
+- 有界客户端数、在途请求数、每连接写缓冲、验证请求 schema、超时与错误语义；
+- 执行已经被转发但 Host 断连 / ACK 超时的请求不得自动重放；
+- 定义 CLI 无 Host、无 Sidebar、Native 扩展权限未授权、host ready 超时状态的稳定错误码；
+- setup/update/doctor/cleanup 实际安装 manifest、Node wrapper、固定 extension ID、私有安装资产，不覆盖 \`org.opendesk.browser_core_demo\` 等旧 Demo。
+- **安全审计后再运行**；不执行仓库中的任意不审查脚本。
+
+## 2.5. 已实现的固定 Native 传输包装及构建证据（务必先复核）
+
+- 原分支现有 `src/entrypoints/transport.js`、`src/native-agent/transport.js`。经典 SW 仅允许同步加载打包好的 `native-agent/transport.js`，不是动态远程脚本，不得引入其它 importScripts 或开放网站可调用的业务 Controller。
+- `scripts/build-contract.mjs` 与 `wxt.config.mjs` 固定 **13 个 WXT 入口**，生产 `sw.js` **320 KiB 上限保持不变**；`scripts/verify-package.mjs` 的 AST 例外只能匹配字面量固定路径且仅限 `sw.js`，否则拒绝。
+- 代码在 `9f4635ae3d1bb1a04fec810599305656972005a8` 历史 HEAD 的 Native、Sidebar、依赖、授权 4 项 CI 及生产/开发 build/verify 全部 PASS；另有 macOS-15 隔离 Host/CLI 真实 Unix Socket、Google Chrome / CFT 安装路径（模拟 Chrome 帧）2/2 PASS，Actions run `37792731631`。**这些都不是本机真实 Chrome Native 或 Codex 的 E2E。最新 HEAD 一旦变化必须重新跑受影响验收。**
+- 真实 Chrome 要特别验证：关闭 Native 时固定脚本不造成 Sidebar 或 Service Worker 启动失败；真正启用 Native 时相同受授权 Host 连接被正确分发；重启、断连、错误 extensionId 仍拒绝。**Node CI 的 PASS 不能充当这些原生结论。**
+
+## 3. 第二优先：修复原有新候选中的真实接口缺口
+
+源码/Node/CI 实测发现问题才修复；严禁重建 RunHost、Controller、Worker、Authority、Task DB。
+- Host 通过现有注册文档（registrationId、port 与 sender）转发，未就绪返回 E_HOST_NOT_READY，零任务槽占用。
+- draft 无 Save 即执行；saved 强制 scriptId/revision/contentHash 一致；返回 runId 不等于脚本已完成。
+- target.current 必须来自存活 Sidebar 当前窗口。run.start 带最近可信目标：windowId、tabId、frameId、documentId、URL、origin，启动前重新核对；target 缺少、变更、网站未授权全拒绝。
+- Agent / UI 启动共用 @slot，Stop/retirement/Result 仍来自正式 Controller。
+- 当前 SW storage.local requestId/digest/runId journal：同 ID 同数据不产生第二次副作用；不同数据冲突；丢 ACK 后能通过已有持久 Run journal 按 requestId 恢复观测（只读且通过现有 Authority，不新建执行旁路），否则报告 OUTCOME_UNKNOWN，绝不自动再次 Run。
+- 检查 Host close、Chrome 重启后 unknown 的边界；ledger 达容量时明确 fail-closed。
+- 独立认证 CLI、Native manifest origin、Extension、Host registration、已有能力 permission、具体 origin grants，不能把 native 接通当网页授权。
+- 不实现 untrusted external \`chrome.scripting.executeScript\` 路由或广义任意 DOM eval。
+
+## 4. 精确测试：组件 / 构建
+
+依次运行：
+npm ci --ignore-scripts --no-audit --no-fund
+node --test tests/environment/native-agent-wire.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-bridge.test.mjs
+node --test tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-package.test.mjs tests/environment/compact-schema.test.mjs
+# 只在真实 macOS（独立 HOME）执行隔离 Native Host/CLI 测试；这仍使用模拟 Chrome 帧：
+# node --test tests/environment/native-agent-macos-install.test.mjs
+npm run check
+npm run build
+npm run build:dev
+npm run verify
+node --test tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-runhost.test.mjs
+（检查并选择受影响 framework authority, target, run recovery focused tests。）
+按每个命令真实 exit code、日志、测试用例、候选 HEAD 留证据。CI 绿色只证明组件/包，不写 Native PASS。
+
+## 5. 真实 macOS Chrome + Codex 端到端
+
+用实际浏览器加载同一分支 build 的扩展，获取实际 \`chrome.runtime.id\`，不得用旧 Demo ID。以真实 Options 用户点击授予 nativeMessaging。网站 grant 由真实 Sidebar/Chrome 用户操作完成。安装/启动/诊断：
+node native-agent/cli.mjs setup --extension-id <real-extension-id>
+# 若实际使用 Chrome for Testing 146+：
+# node native-agent/cli.mjs setup --browser cft --extension-id <real-extension-id>
+node native-agent/cli.mjs doctor
+打开同一个扩展 Side Panel，实际 Native Handshake；doctor 显示 extension ID、handshake 与活着的 Host。
+node native-agent/cli.mjs bridge.status
+node native-agent/cli.mjs target.current
+准备 request.json，明确用输出的 target + registrationId；draft:
+node native-agent/cli.mjs run.start --file /absolute/path/draft-request.json --request-id unique-1
+node native-agent/cli.mjs run.get --file /absolute/path/run-get.json
+参数文件的请求和响应字段以实际 CLI 合同为准。第一次先核对 Host 是否已正确安装、原 Native manifest 是否冲突，再启动。
+- draft 真实网页 Run / DOM 可观察业务效果。
+- saved 保存 r1/r2 时运行 pinned r1，不因 Save 变更。
+- A/B 同 URL 不串 tab；切 tab 不漂移；导航 documentId stale；权限撤销拒绝；新端口/new tab/current window 后重新获取 target，不修改业务脚本 hash。
+- 真正的 requestId 相同同 digest 不重复，改变源码/参数/目标冲突；丢 ACK、Socket/Native 断连是 OUTCOME_UNKNOWN、绝不自动重放；已获知 runId 可通过持久 Run/Result 跟踪。
+- 外部与 Sidebar 竞争同一 RunHost 的 slot；Stop/Worker retirement/资源 released；真实用户关闭 Sidebar 后无存活 Host 请求明确拒绝。
+- 关闭重开 Chrome、扩展重新加载、重建 Tab、新 CFT HTTP 端口后先 doctor + target.current 再 Run，不用历史假 target。
+- 执行后 native-agent/cli.mjs cleanup，并确保无残留 socket / Manifest，仅移除自己的 Host。
+- 退出/关闭 Native Host 和 Codex，本扩展 Sidebar **不安装 Host**仍可以运行已有 Available Task，确保独立用户闭环。
+- Chrome 原生测试必须使用有真实扩展安装/允许脚本/浏览器用户输入的证据；拒绝人工 DOM 赋值、模拟 isTrusted/伪造 native ack、未授权 executeScript。
+- 与 PR #7 的集中授权 UI 以及 PR #9 的最新 Sidebar UI 联合测试，不能覆盖其他工作流源文件。
+
+## 6. 交付门槛
+
+分别报告：
+SOURCE_IMPLEMENTED、COMPONENT_TESTED、PACKAGE_BUILD_VERIFIED、NATIVE_HOST_INSTALLED、CHROME_REAL_VERIFIED、CODEX_E2E_VERIFIED、FINAL_ACCEPTED。
+每项附当次 HEAD、真实命令、结果、可追溯日志；未测写 NOT_TESTED。
+关键安全质量：不得有第二 Executor、第二 Permission DB、目标漂移、未知副作用 replay、普通用户依赖 Native。
+合并前重新核对 main、PR #7/#9 同时变化和共享文件三方合并，按本 workstream 的独立 PR 串行集成，不在未经授权下强推 main；Native real acceptance 缺失时 PR 保持 Draft。
+
+## R6.2 接管补充：真实 AI → JavaScript Task 最小闭环
+
+在本地 Codex 先读取 docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md、examples/tasks/README.zh-CN.md、当前 PR #11 diff 和 CI。不要重建 Native Host、修改 Sidebar 三页签或修改已有 Task/Controller DB。云端 R6.2 提交不等于本地 worktree 已同步；保护所有未提交本地修改与独占 Chrome profile。
+
+1. 复核最新 main / PR #11 HEAD，记录代码来源。确认跨 Host run.get/run.stop 的 registrationId 归属与 finalize 失败的 OUTCOME_UNKNOWN。按需测试：node --test tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/agent-to-task-fixtures.test.mjs tests/environment/task-package-flow.test.mjs tests/framework/r5-modern-page-api.test.mjs；以及 npm run check、npm run build、npm run build:dev、npm run verify。
+2. 先按本提示词上文完成真实 Chrome/CFT 的 Native Messaging 安装、用户手势启用 Native、网站授权、当前 Side Panel 绑定、真实 target.current/run.start/get/stop、断连/撤权/导航/重启。不得用伪装的 Chromium API、Node ACK 或手工 DOM 修改替代原生回执。
+3. 在 http://127.0.0.1:43111/demo-form.html，借实际 Codex CLI 读取 examples/tasks/agent-observe-draft.js，构造 source.kind=draft 的 Native 请求；从真实 target.current 获取并原样使用 registrationId 和全部 windowId/tabId/frameId/documentId/url/origin。运行只读 page.observe，从 run.get 获取 durable 结果，确认没有网页写操作。
+4. 用 examples/tasks/modern-search-draft.js、参数 {"keyword":"OpenDesk"} 再次执行：必须真实 fill 覆盖预填、单次 click、waitFor 业务成功、读取 #results，记录真实 runId/resultId、sourceHash、target、原生 page-effect receipt、retirement 与页面提交次数。超时、丢 ACK 或未知副作用绝不新 requestId 自动补跑。
+5. 使用 script.save 的 CAS 验证版本不可变，并测试 pinned saved revision。使用 examples/tasks/modern-search.v1.opendesk-task.json 在原完整任务目录导入 Candidate，使用确切同源、同站点已完成的真实 runId 完成后台 Verification；经用户明确 Available 和 Install。关闭 Codex 和 Native Host 后由 Sidebar「我的任务」设置参数并再次执行，重启 Chrome 后复测，记录结果与同一扩展/ZIP 哈希。
+6. 分开输出 AI_AGENT_E2E_VERIFIED、JAVASCRIPT_RUN_VERIFIED、REVISION_PERSISTED、TASK_VERIFIED_AVAILABLE、INSTALLED_REUSABLE_VERIFIED，以及 SOURCE_CONFIRMED/COMPONENT_TESTED/BUILD_VERIFIED/NATIVE_CHROME_VERIFIED/FINAL_FRAMEWORK_ACCEPTED。每个 PASS 绑定同一候选、真实命令、原生 ID 与回执；无证据写 NOT_TESTED。Native 未满足规定验收前，PR #11 保持 Draft，禁止直接推 main、覆盖他人 Worktree 或删除分支。
+
+详细合同只有 docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md 一份；本节是既有本地接管提示词的增量，不创建第二套 Roadmap。
