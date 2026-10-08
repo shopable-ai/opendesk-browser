@@ -19,7 +19,7 @@ class Element {
 globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const html=await readFile('src/ui/tool.html','utf8');
-const make=()=>{
+const make=({installedInitially=true}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
   const doc={getElementById:get,createElement:()=>new Element(),documentElement:{dataset:{}}};
@@ -27,8 +27,9 @@ const make=()=>{
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
       properties:{name:{type:'string',title:'姓名',minLength:1,maxLength:30,default:'Alice'}},required:['name'],additionalProperties:false}};
-  const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:true,enabled:true};
+  const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:installedInitially,enabled:true};
   const installed={taskId:row.taskId,version:row.version,scriptId:programId,manifestHash,enabled:true};
+  let installedState=installedInitially?[installed]:[];
   const starts=[],permissions=[],stops=[],catalogOpens=[];
   let target={status:'available',url:'https://a.example/',tabId:9,windowId:7,documentId:'doc-9'};
   const page={
@@ -38,7 +39,10 @@ const make=()=>{
   const client={ready:Promise.resolve(),subscribeConnection:()=>()=>{},
     controller:{snapshotControllerRun:async()=>structuredClone(view)},
     async request(method,payload) {
-      if(method==='listTaskCatalog')return {catalog:[structuredClone(row)],installed:[structuredClone(installed)]};
+      if(method==='listTaskCatalog')return {catalog:[structuredClone(row)],installed:structuredClone(installedState)};
+      if(method==='installTask'){
+        installedState=[installed];row.installed=true;return structuredClone(installed);
+      }
       if(method==='resolveInstalledTask')return {taskId:row.taskId,version:row.version,scriptId:programId,
         revision:1,contentHash:hash,manifestHash,manifest};
       if(method==='getTaskCandidate')return {package:{sourceUtf8:'async function main(){return true;}'}};
@@ -173,12 +177,16 @@ test('task result, history and controls are projected within the selected card w
     assert(f.get(id),'original handler ID must survive redesign: '+id);
 });
 
-test('original catalog UI remains in the full-page surface after navigation, not a Side Panel third tab',async t=>{
-  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+test('full-page catalog installation updates the existing task workbench without navigating to a hidden task pane',async t=>{
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();
   f.ui.showCatalogPage();
-  f.ui.navigate('tasks');
-  assert.equal(f.get('task-dock').hidden,true,'catalog surface never presents task RunHost dock');
-  assert.equal(f.get('workbench-tasks').hidden,false,'view identity changes only when explicitly navigated');
-  f.ui.showCatalogPage();
-  assert.equal(f.get('workbench-discover').hidden,false);
+  f.get('task-catalog-list').value='demo.form@1.0.0';
+  f.get('task-catalog-list').fire('change');
+  assert.equal(f.get('task-install').disabled,false);
+  await f.click('task-install');
+  assert.equal(f.get('workbench-discover').hidden,false,'reader must remain visible after install');
+  assert.equal(f.get('task-dock').hidden,true,'full catalog does not expose an inactive Run dock');
+  assert.match(f.get('task-install-feedback').textContent,/已安装/);
+  assert.equal(f.get('task-installed-cards').children.length,1,'existing task list was re-read');
+  assert.equal(f.get('task-run').disabled,false,'installed task is eligible for its matching page');
 });
