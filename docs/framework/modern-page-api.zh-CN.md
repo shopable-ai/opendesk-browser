@@ -65,3 +65,14 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 `tests/framework/r5-modern-page-api.test.mjs` 是 Node 模拟 DOM/Chrome callback 的组件验证，覆盖真实模块（非替代实现）；`.github/workflows/sidebar-r1-p0.yml` 执行该定向测试，`.github/workflows/r3-source-package.yml` 执行源码检查和构建。它们 **不代表真实 Chrome 页面自动化或 AI 制作端到端 PASS**。
 
 本地 Chrome 接续：加载当前成功构建的 `dist/development`，在仓库执行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，访问 `http://127.0.0.1:43111/demo-form.html`；从 Sidebar「开发」使用新草稿脚本和参数运行两次，检查预填值覆盖、按钮同文档重绘、提交次数仅各增加一次、结果经 RunHost/Controller 进入 Durable Result。不要使用外部 Playwright 点击/填写作为 OpenDesk 动作的证据。真实 Chrome/Agent 验证前分别记为 NOT_TESTED。
+
+
+## R5.2：动作期限和观察负载收敛（2026-10-08）
+
+- 单次 Locator 动作或等待的期限从 Driver 进入首次 Authority/Target RPC 前计时，涵盖 prepare、commit 和回执；与运行期限取较早者。局部超时不应直接终止整个 Controller 运行。**commit 已送出且回执不明**仍以既有未知效果模型处理，绝不自动重放；尚无网页提交时可记录已知无副作用的失败回执。
+- prepare 采用两次连续动画帧重新检查节点身份和矩形稳定性；拒绝禁用、ARIA 禁用/只读、inert、pointer-events:none 和被遮挡元素。它仍不会滚动、聚焦或发送页面事件；离屏元素仍不自动滚动。
+- observe 额外强制内部遍历上限（`budget.maxVisited`，随 maxNodes 调整，最高 3000）与定位验证次数上限（`budget.maxLocatorChecks=40`）。在整页超过 1200 元素时跳过代价过高的全局语义建议，保留能够核验的原生 CSS、TestId、局部范围建议。多组同名按钮在具备唯一 id 的 form/dialog 中优先使用经实际定位验证的容器范围。**仅 `locator` 非 null 才表明该建议被当前运行时重新定位并校验唯一性。**
+- `truncated:true` 表示节点数、输出字符、深度或遍历上限导致不能代表完整页面；观察输出包含已访问数量/验证数量，不输出输入框的当前值，默认跳过 hidden/aria-hidden 子树。maxChars 限制节点数据（JSON 长度），响应本身另有固定元数据开销。
+- 仅完成的只读 Locator RPC 可以释放 Page Session 去重记录；`locatorCommit` 与旧有可能产生网页副作用的请求继续保留缓存。Controller Journal 将多次 read-only 轮询的原生回执保留最近样本及计数，分别保留 commitIntent 和 commitNoEffect 证据。
+
+这些属于源码/组件层质量增强，不等于已完成真实 Chrome Sidebar→Durable Result、外部 AI Agent E2E 验收；在提供原生执行回执前必须标记为 NOT_TESTED。
