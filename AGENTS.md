@@ -27,15 +27,19 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 最终成功仅在逐项身份一致的完整原始证据、正式账本关闭、独立最终F3接受、与已验收dist一致的ZIP安装验收通过后成立。组件、旧候选、超时、NOT_TESTED、限定静态review不算正式PASS或最终F3。
 
-## 写入、身份和可信输入边界
+## 多 Agent 并行写入与可信边界（2026-10-08 修订）
 
-唯一writer登记在 `docs/framework/public-owner.json`。新对话必须先读取真实串行释放，重新检查受控进程与在途操作，再用实际threadId登记并保存acceptance；不得覆盖仍活跃的owner，不恢复前任Goal或自动创建其他对话。
+**不再实行全项目唯一 writer。** 多个 AI Agent 可以同时实现不同任务，但每个写入 Agent 必须使用自己的 Git worktree（或独立文件系统工作区）、自己的 `agent/<任务>-<标识>` 分支以及独立测试产物；不得让两个 Agent 同时编辑一个工作目录或互相改写分支。只读审计 Agent 不受写入限制。详见 `docs/framework/parallel-development.md`。
 
-旧 `src-bex`、`/Users/shopme/Documents/workspace/opendesk` 及其他来源工程只读。保留工作区差异、旧receipt和全部原始证据；不新增依赖、不commit/push/publish，不扩大ChromePage.js范围，不恢复旧目录运行树。
+`main` 是唯一正式集成分支，不是所有 Agent 的共享编辑区。普通 Agent 在各自分支可以按当前用户明确授权 commit/push 并发起 PR；**不得直接更新、强推或重置 main**。合入 main 的动作须由获授权的集成者串行执行：核查最新 main、未提交工作、依赖、变更冲突、定向测试、真实验收等级与 PR 内容；未验证的变更保留草稿 PR，不宣称已交付。仓库保护规则（PR/检查/审批）应在 GitHub 中配置，文档不能替代服务端保护。
 
-owner属于product inputs，释放与接管需要如实核对sourceFingerprint、product/verification inputs、receipt、dist和ZIP。元数据变化而实际编译输入与产物不变时，不无理由全量重建，不修改旧receipt冒充新冻结。
+`docs/framework/public-owner.json` 是旧的全局 writer 登记及历史交接证据，**不要覆写、伪造释放或修改历史身份**。在新协作规则正式合入 main 前，它仍约束既有 main/native 产品写入；合入后不再用于阻止独立分支开发。对真实 Chrome/CFT profile、固定端口、共享数据库、dist、ZIP、最终候选与发布，仍实行单资源占用/明确交接，不允许多 Agent 争用或伪造 native PASS。每个分支的进度、约束、证据在独立 PR 和 `docs/framework/workstreams/` 的专属文件中保存，不争抢同一份全局状态文件。
 
-仅使用受控CFT、真实sender、可信原生输入；禁止DOM赋值、synthetic events、伪造native ack或放宽合同/身份。保留精确controller-result/runId/resultId、result自身revision/sourceHash、retirement released、Save完整输入观察与唯一真实native ack。未知native effect、缺失回执、撤权、document/owner变化继续保守拦截，禁止盲目重放。
+旧 `src-bex`、`/Users/shopme/Documents/workspace/opendesk` 及其他来源工程只读。保留工作区差异、旧 receipt 和全部原始证据；不新增依赖，不扩大 ChromePage.js 范围，不恢复旧目录运行树。分支提交不等于发布；没有额外授权不执行 release/publish。冲突要显式解决和审计，禁止 `git reset --hard`、`git clean`、强推他人分支或覆盖并行 `main()` 入口升级。
+
+原 owner 与冻结候选的 sourceFingerprint、product/verification inputs、receipt、dist 和 ZIP 均属于可追溯证据。元数据变化不等于正式验收变更，禁止重写旧 receipt 冒充新冻结。
+
+仅使用受控 CFT、真实 sender、可信原生输入；禁止 DOM 赋值、synthetic events、伪造 native ack 或放宽合同/身份。保留精确 controller-result/runId/resultId、result 自身 revision/sourceHash、retirement released、Save 完整输入观察与唯一真实 native ack。未知 native effect、缺失回执、撤权、document/owner 变化继续保守拦截，禁止盲目重放。
 
 ## 进度表达
 
