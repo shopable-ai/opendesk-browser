@@ -29,7 +29,7 @@ class Element {
 globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const html=await readFile('src/ui/tool.html','utf8');
-const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
+const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
   const doc={getElementById:get,createElement:()=>{const node=new Element();node.ownerDocument=doc;return node;},documentElement:{dataset:{}},activeElement:null};
@@ -86,7 +86,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
     async stop(request){stops.push(request);active=null;return{state:'stopped'};},
     subscribe:()=>()=>{}
   };
-  const api={permissions:{request:value=>{permissions.push(value);return Promise.resolve(true);}},
+  const api={storage:draftStorage?{session:draftStorage}:undefined,permissions:{request:value=>{permissions.push(value);return Promise.resolve(true);}},
     runtime:{getURL:path=>'chrome-extension://extension/'+path,sendMessage:async message=>{draftMessages.push(message);return {ok:true};}},
     tabs:{create:async request=>{catalogOpens.push(request);return {id:99};}}};
   const ui=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,importDraft:source=>importedDrafts.push(source)});
@@ -315,6 +315,21 @@ test('card view retains original action identities, history and parameter form a
   await f.click('tab-discover');await f.click('tab-develop');await f.click('tab-my-tasks');
   assert.equal(form.children.find(node=>node.dataset.taskParam==='name').value,'unchanged');
   assert.equal(f.get('task-installed-cards').children[0].children[1],f.get('task-selected-workspace'));
+});
+
+test('reopening My Tasks restores independent parameter drafts without permissions or execution',async t=>{
+  const values={};const draftStorage={get:async key=>({[key]:structuredClone(values[key])}),
+    set:async next=>Object.assign(values,structuredClone(next))};
+  const first=make({secondTask:true,draftStorage});await tick();await tick();
+  first.get('task-param-name').value='First';first.get('task-params-form').fire('input');
+  first.get('task-installed-cards').children[1].children[0].fire('click');
+  first.get('task-param-name').value='Second';first.get('task-params-form').fire('input');
+  await tick();first.ui.dispose();
+  const second=make({secondTask:true,draftStorage});t.after(()=>second.ui.dispose());await tick();await tick();
+  assert.equal(second.get('task-param-name').value,'First');
+  second.get('task-installed-cards').children[1].children[0].fire('click');
+  assert.equal(second.get('task-param-name').value,'Second');
+  assert.equal(second.starts.length,0);assert.equal(second.permissions.length,0);
 });
 
 test('switching between two installed tasks preserves each independent unsaved parameter input',async t=>{

@@ -16,6 +16,43 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
   let localQuery='', localFilter='current';
   const parameterDrafts=new Map();
+  let parameterDraftKey, parametersEdited=false, parameterSerial='', parameterWrites=Promise.resolve();
+  function rememberParams() {
+    if(!renderKey)return;
+    const prior={};
+    for(const control of get('task-params-form').children){
+      const name=control?.dataset?.taskParam;
+      if(name)prior[name]=control.type==='checkbox'?{checked:control.checked}:{value:control.value};
+    }
+    parameterDrafts.set(renderKey,prior);
+  }
+  function persistParams() {
+    parametersEdited=true;rememberParams();
+    if(!parameterDraftKey)return;
+    const value=[...parameterDrafts],serial=JSON.stringify(value);
+    if(serial===parameterSerial)return;
+    parameterSerial=serial;
+    parameterWrites=parameterWrites.then(()=>api.storage.session.set({[parameterDraftKey]:value}))
+      .catch(error=>console.warn('Task parameter drafts could not be retained',error));
+  }
+  async function restoreParams() {
+    if(!api.storage?.session)return;
+    await currentPageTarget?.ready;
+    if((await api.tabs?.getCurrent?.())?.id)return;
+    const windowId=currentPageTarget?.snapshot?.windowId;
+    if(!Number.isSafeInteger(windowId))return;
+    const key=`opendesk.sidebar.task-params.v1:${windowId}`,saved=(await api.storage.session.get(key))[key];
+    if(disposed)return;
+    if(!parametersEdited&&Array.isArray(saved)&&JSON.stringify(saved).length<=100000){
+      for(const entry of saved){
+        if(Array.isArray(entry)&&typeof entry[0]==='string'&&entry[1]&&typeof entry[1]==='object')
+          parameterDrafts.set(entry[0],entry[1]);
+      }
+      renderKey=null;
+    }
+    parameterDraftKey=key;
+    if(parametersEdited)persistParams();
+  }
   // A late RunHost event must update the launching task, never the newly selected one.
   const taskNotices=new Map();
   let runOwnerKey=null, runOwnerTitle='';
@@ -107,14 +144,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function renderForm(row) {
     const wrapper=get('task-params-form'),key=identity(row);
     if(renderKey===key)return;
-    if(renderKey) {
-      const prior={};
-      for(const control of wrapper.children) {
-        const name=control?.dataset?.taskParam;
-        if(name)prior[name]=control.type==='checkbox'?{checked:control.checked}:{value:control.value};
-      }
-      parameterDrafts.set(renderKey,prior);
-    }
+    rememberParams();
     renderKey=key;clearChildren(wrapper);
     const schema=row.manifest.paramsSchema;
     for(const [name,rule] of Object.entries(schema.properties)) {
@@ -678,6 +708,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     renderCatalogCards();
   });
   listen(get('task-params-form'),'submit',event=>event.preventDefault());
+  listen(get('task-params-form'),'input',persistParams);
+  listen(get('task-params-form'),'change',persistParams);
   listen(get('task-installed-list'),'change',renderInstalledSelection);
   listen(get('task-catalog-list'),'change',renderCandidate);
   listen(get('task-run'),'click',run);
@@ -705,7 +737,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     renderTaskStatus();update();
   });
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected)refresh().catch(fail);});
-  client.ready.then(()=>refresh()).catch(fail);
+  client.ready.then(async()=>{
+    await restoreParams().catch(error=>console.warn('Task parameter drafts could not be restored',error));
+    if(!disposed)return refresh();
+  }).catch(fail);
   navigate('tasks');update();
   return {navigate,showCatalogPage,refresh,receiveDraft(sourceUtf8) {
     if(disposed || catalogSurface || typeof importDraft !== 'function')throw {code:'E_HOST_NOT_FOUND',message:'Sidebar 编辑器不可用'};

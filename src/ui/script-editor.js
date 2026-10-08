@@ -30,6 +30,18 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
   let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
+  const draftFields={source:'script-source',params:'script-params',id:'script-id',revision:'script-revision'};
+  const captureDraft=()=>Object.fromEntries(Object.entries(draftFields).map(([key,id])=>[key,find(id).value]));
+  const initialDraft=JSON.stringify(captureDraft());
+  let draftKey, draftSerial='', draftWrites=Promise.resolve();
+  function persistDraft() {
+    if(!draftKey)return;
+    const value=captureDraft(),serial=JSON.stringify(value);
+    if(serial===draftSerial)return;
+    draftSerial=serial;
+    draftWrites=draftWrites.then(()=>api.storage.session.set({[draftKey]:value}))
+      .catch(error=>console.warn('Sidebar draft could not be retained',error));
+  }
   let scriptListSequence = 0, ownedDraftRunId = null;
   let currentRevision, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
@@ -66,6 +78,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   }
   function update() {
     if (disposed) return;
+    persistDraft();
     renderRevisionState();
     find('script-save').disabled = editingBusy; find('script-load').disabled = editingBusy;
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
@@ -448,7 +461,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   on('script-history-open','click',()=>read(find('script-history-run').value));
   on('script-download','click',downloadResult); on('script-download-result','change',update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
-  on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',update);
+  on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',update); on('script-params','input',update);
   listen(find('script-run'), 'click', start);
   listen(find('page-preview-run'), 'click', previewPage);
   on('script-stop','click',async () => {
@@ -462,13 +475,30 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const unsubscribeRun = host.subscribe(next => {
     if (disposed) return;
     if (currentTask?.runId === next.runId) renderTask({...currentTask,...next});
-    update();
+    // RunHost releases its local owner after notifying terminal observers.
+    queueMicrotask(update);
   });
   const unsubscribeCurrentPage = currentPageTarget?.subscribe(renderCurrentPage);
   currentPageTarget?.ready?.catch(fail);
   const recoverView = () => read('').catch(error=>{projection=undefined;update();fail(error);});
   const unsubscribeConnection = client.subscribeConnection?.(event=>{if(event.connected) recoverView();});
   client.ready.then(recoverView).catch(fail);
+  if(api.storage?.session)Promise.resolve(currentPageTarget?.ready).then(async()=>{
+    // A catalog tab shares the window but must not overwrite its Sidebar draft.
+    if((await api.tabs.getCurrent?.())?.id)return;
+    const windowId=currentPageTarget?.snapshot?.windowId;
+    if(!Number.isSafeInteger(windowId))return;
+    const key=`opendesk.sidebar.editor-draft.v1:${windowId}`;
+    const saved=(await api.storage.session.get(key))[key];
+    if(disposed)return;
+    if(JSON.stringify(captureDraft())===initialDraft && saved &&
+        Object.keys(draftFields).every(name=>typeof saved[name]==='string') &&
+        new TextEncoder().encode(saved.source).length<=100000){
+      for(const [name,id] of Object.entries(draftFields))find(id).value=saved[name];
+      dependencyPanel.refresh();
+    }
+    draftKey=key;update();
+  }).catch(error=>console.warn('Sidebar draft could not be restored',error));
   refreshTabs().catch(fail); refreshScripts({silent: true}).catch(fail); update();
   return {host, importDraft(sourceUtf8) {
     if (disposed || editingBusy) throw {code:'E_BUSY',message:'编辑器正在保存或已经关闭，请稍后重新导入'};

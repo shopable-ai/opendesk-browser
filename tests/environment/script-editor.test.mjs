@@ -24,15 +24,15 @@ class Element {
 globalThis.Option=class extends Element {constructor(text,value){super();this.textContent=text;this.value=value;}};
 const event=()=>{const e=new Element();return {addListener:fn=>e.addEventListener('event',fn),removeListener:fn=>e.removeEventListener('event',fn),emit:(...args)=>{for(const fn of e.listeners.get('event')||[])fn(...args);}};};
 const html=await readFile('src/ui/tool.html','utf8');
-async function fixture(persisted={scripts:[],runs:[],results:[]}) {
+async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, {contextTabId}={}) {
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
   const traces=[], permissions=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate;
   const tabs=new Map([[11,{id:11,windowId:7,url:'https://a.example/',title:'A',incognito:false}],[12,{id:12,windowId:7,url:'https://b.example/',title:'B',incognito:false}]]);
-  const api={runtime:{getURL:p=>'chrome-extension://extension/'+p},permissions:{request:request=>{permissions.push(request);traces.push('permission');return permission;}},
-    tabs:{onActivated:event(),onUpdated:event(),onRemoved:event(),query:async query=>[...tabs.values()].filter(row=>!query.active||row.id===activeTab).map(row=>({...row,active:row.id===activeTab}))},
+  const api={storage:draftStorage?{session:draftStorage}:undefined,runtime:{getURL:p=>'chrome-extension://extension/'+p},permissions:{request:request=>{permissions.push(request);traces.push('permission');return permission;}},
+    tabs:{getCurrent:async()=>contextTabId?{id:contextTabId}:undefined,onActivated:event(),onUpdated:event(),onRemoved:event(),query:async query=>[...tabs.values()].filter(row=>!query.active||row.id===activeTab).map(row=>({...row,active:row.id===activeTab}))},
     windows:{getCurrent:async()=>({id:7}),onRemoved:event()},
     webNavigation:{onCommitted:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),getAllFrames:async({tabId})=>[{frameId:0,documentId:'doc-'+tabId,url:tabs.get(tabId).url,documentLifecycle:'active'}]}};
   const controller={
@@ -91,6 +91,46 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}) {
     switchTab:async()=>{activeTab=12;api.tabs.onActivated.emit({windowId:7,tabId:12});await tick();},
     dispose(){editor.dispose();target.dispose();}};
 }
+
+test('reopening the editor restores window-scoped source and params without starting or saving',async t=>{
+  const values={};
+  const storage={get:async key=>({[key]:structuredClone(values[key])}),set:async next=>Object.assign(values,structuredClone(next))};
+  const first=await fixture(undefined,storage);
+  first.find('script-source').value='async function main() { return "unsaved reopen"; }';
+  first.find('script-source').fire('input');
+  first.find('script-params').value='{"value":42}';first.find('script-params').fire('input');
+  await tick();first.dispose();
+  const second=await fixture(undefined,storage);t.after(()=>second.dispose());
+  assert.equal(second.find('script-source').value,'async function main() { return "unsaved reopen"; }');
+  assert.equal(second.find('script-params').value,'{"value":42}');
+  assert.equal(second.permissions.length,0);assert.equal(second.starts.length,0);assert.equal(second.commits.length,0);
+  assert.equal(second.editor.host.currentRun,null);
+});
+
+test('another window draft and the catalog editor never replace the Sidebar draft',async t=>{
+  const other={source:'other window source',params:'{}',id:'other',revision:''};
+  const values={'opendesk.sidebar.editor-draft.v1:8':other};let reads=0,writes=0;
+  const storage={get:async key=>{reads++;return {[key]:structuredClone(values[key])};},
+    set:async next=>{writes++;Object.assign(values,structuredClone(next));}};
+  const sidebar=await fixture(undefined,storage);t.after(()=>sidebar.dispose());
+  assert.equal(sidebar.find('script-source').value,'return params.value;');
+  assert.deepEqual(values['opendesk.sidebar.editor-draft.v1:8'],other);
+  const before={reads,writes};
+  const catalog=await fixture(undefined,storage,{contextTabId:99});t.after(()=>catalog.dispose());
+  catalog.editor.importDraft('async function main() { return "catalog"; }');await tick();
+  assert.deepEqual({reads,writes},before,'catalog never reads or writes the Sidebar draft key');
+});
+
+test('a delayed draft restore never overwrites newly imported source',async t=>{
+  const gate=deferred(),values={};
+  const storage={get:async key=>{await gate.promise;return {[key]:{source:'old stored source',params:'{}',id:'old',revision:''}};},
+    set:async next=>Object.assign(values,structuredClone(next))};
+  const f=await fixture(undefined,storage);t.after(()=>f.dispose());
+  f.editor.importDraft('async function main() { return "new import"; }');gate.resolve();await tick();await tick();
+  assert.equal(f.find('script-source').value,'async function main() { return "new import"; }');
+  assert.equal(Object.values(values)[0].source,f.find('script-source').value);
+  assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);
+});
 
 test('importing a JS draft leaves saved versions and running source independent',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
@@ -219,6 +259,23 @@ test('permission preparation rejects a switched page; closing the editor during 
     const f=await fixture();t.after(()=>f.dispose());const permission=deferred();f.setPermission(permission.promise);await f.click('script-save');await f.click('script-run');
     if(close)f.dispose();else await f.switchTab();permission.resolve(true);await tick();await tick();
     assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);if(!close)assert.match(f.find('script-status').textContent,/E_DOCUMENT_STALE/);
+  }
+});
+
+test('shared RunHost completion or Stop restores the draft Run button after another consumer settles',async t=>{
+  for (const stop of [false,true]) {
+    const f=await fixture();t.after(()=>f.dispose());
+    assert.equal(f.find('script-run').disabled,false);
+    const claim=await f.editor.host.start({source:{kind:'draft',sourceUtf8:'return params.value;'},
+      params:{value:7},target:{mode:'borrowed',tabId:11,frameId:0,documentId:'doc-11',expectedUrl:'https://a.example/'},
+      deadlineAt:Date.now()+30000});
+    await tick();
+    assert.equal(f.find('script-run').disabled,true);
+    if(stop){await f.editor.host.stop({runId:claim.runId,controller:true});await f.editor.host.completion;await tick();}
+    else await f.finish(7);
+    assert.equal(f.persisted.runs[0].retirementState,'released');
+    assert.equal(f.editor.host.currentRun,null);
+    assert.equal(f.find('script-run').disabled,false,'a settled task must not leave the editor disabled');
   }
 });
 

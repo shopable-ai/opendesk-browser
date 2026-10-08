@@ -105,7 +105,7 @@ details>section{margin-top:10px}
 .local-discovery-search-row{display:flex;align-items:center;gap:7px}
 #local-discover-search{flex:1;min-width:0;min-height:38px;font-size:13px;background:#fff;border-color:#cbd6e6}
 .local-discovery-import{flex:none;min-height:38px;background:#f0f4ff;color:#3156ad;border:1px solid #ccdafa;padding:7px 12px;font-size:12px;font-weight:700}
-.local-discovery-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;padding:8px 0 10px}
+.local-discovery-filters{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px}
 .local-discovery-filters button{flex:none;min-height:32px;padding:6px 11px;background:transparent;color:#526783;border:1px solid #dde5f0;border-radius:18px;font-size:12px;font-weight:650}
 .local-discovery-filters button[aria-pressed=true]{background:#eaf0ff;border-color:#b6c9f6;color:#2b52ab}
 .local-discovery-list{display:grid;gap:0;background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden}
