@@ -223,18 +223,6 @@ browser_toolset_20260801：单一声明默认展开 27 项、可额外开启 4 �
 - 只读核查 OpenDesk GitHub main（可能落后本机）；本次无 GitHub Actions/原生 Chrome 测试、无 npm build、无新 Agent 运行代码。
 - 文档作为候选架构决策，不代表合并到 main；合并须按 [parallel-development.md](https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/parallel-development.md) 串行集成并经用户/集成者审阅。
 
-## R6.2 从研究进入实施：2026-10-08 增量核实（PR #11 候选）
-
-> 研究之后源码已更新。本节不覆盖历史研究判断。核查的 main HEAD：704dd8cac140cf2ff9d7c2959ca041f9102848da；PR #11 已通过 CI 的基线 HEAD：8ab0ada6f619d8c0f08637bce0f5352cd1059b5f。后续提交须重新验证。
-
-- **现代 Page API 已实现受限 Locator 子集**：src/framework/ChromePage.js、src/framework/locator.js、src/framework/control/locator-contract.js、src/scripting/packaged/locator-dom.js 已包含 getByRole/getByLabel/getByText/locator、fill/click/waitFor/observe。详情以 [现代 Page API](../../framework/modern-page-api.zh-CN.md) 为准；不是完整 Playwright 的可信键鼠或 AX Tree。不要按原研究缺口重复开发。
-- **保留 Native Messaging 候选，不另建 Browser MCP**：PR #11 已实现 Native Host/CLI、固定包内 SW transport、六项受控方法和同一 Authority/RunHost，仍需真实 Chrome/Codex 验收。没有实证证明替代方案更好前，不将其替换成 HTTP/WebSocket。
-- **构建阻断最新已解决**：[Native CI 37793448204](https://github.com/shopable-ai/opendesk-browser/actions/runs/37793448204) 在基线 8ab0ada6 完成 Node、生产/开发 WXT、verify。生产 sw.js 精确 324759 bytes，低于原 327680 bytes；固定 13 个 WXT 入口，未提高预算。新 R6.2 提交仍需要同 HEAD 的 CI，不能借旧绿色结果。
-- **本轮真正新增内容**：在现有 Bridge 中收紧 runId 的 Host 归属和 ACK 存储失败的 OUTCOME_UNKNOWN；使用 [唯一 Agent → Task R1 合同](agent-to-task-contract-r1.zh-CN.md) 串联只读观察草稿、现代 JS、不可变 Candidate、正式 Verified/Available/Installed 和脱离 AI 的重复运行。
-- **未完成门槛**：截至本次源代码核查，NATIVE_CHROME_VERIFIED、AI_AGENT_E2E_VERIFIED、REUSABLE_TASK_VERIFIED 为 NOT_TESTED，FINAL_FRAMEWORK_ACCEPTED=NO。PR #11 继续 Draft，达到原生验收和协作门槛后才可合并 main。
-
-R6.2 未更改 Modern Page API 的公开方法和旧接口兼容性，因此不额外修改其合同；Sidebar 三页签和单文件/多文件开发边界亦保持不变。
-
 ## 10. R6.2 实施状态同步（2026-10-08，非补做市场研究）
 
 本节晚于第 4/7/9 节的研究快照；研究阶段“缺少现代 Locator / 语义观察 / 外部 Agent Bridge”的判断**不可当作目前仍缺失**。
@@ -246,3 +234,7 @@ R6.2 未更改 Modern Page API 的公开方法和旧接口兼容性，因此不�
 - 真实 Chrome Native 端到端、用户授权、Codex 调用及 Installed 无 AI 重播尚未完成，保留 PR #11 和 PR #20 的独立验收/合并门槛。记录：`docs/framework/workstreams/r6-2-agent-to-task-20261008.json`。
 
 近期取舍保持**先使已存在 Native 方案闭环**；除非原生实验证明不可行，不以新的 HTTP/WS/MCP 替换它。以上是源码/组件与最新 CI 的分层状态更新，不宣称已完成原生验收。
+
+### R6.2 Native 分支安全合同补充（候选、尚未经真实浏览器验证）
+
+Native PR #11 在现有 Controller/RunHost 基础上收紧了 `run.get/run.stop` 的 Host 注册归属，以及 ACK 写入 `chrome.storage.local` 失败时的 `OUTCOME_UNKNOWN` 判定。固定 `native-agent/transport.js` 仍通过唯一受审计的包内 `importScripts` 接线，不新增任意特权执行入口。Native CI 所证实的 macOS Host/Unix Socket 属于使用模拟 Chrome 帧的受控测试，不能代替真实 Chrome/Codex 验收；同一最终候选的原生证据缺失时继续保留 Draft。
