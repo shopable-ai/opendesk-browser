@@ -126,4 +126,11 @@ node examples/tasks/http-test-server.mjs 43111
 | 独立 Chromium | 真实浏览器打开上述本地页面，实际点击并检查 DOM、Network 和窄屏截图 | 网页 Fetch、浏览器 CORS、交互与布局；非扩展 Page API |
 | OpenDesk MV3 原生链 | 真实 Chrome 安装扩展、可信手势授权、Sidebar 草稿与原签名任务、持久 Run/Result 回执 | Page API 和任务链本机验收；未执行时标记 `NOT_TESTED` |
 
-本轮没有引入 Axios/`axiosx`：仓库当前 `package.json` 不包含 Axios，默认分支代码搜索也未发现这两个符号。原生 `fetch()` 已足够验证页面 HTTP 行为；扩展自己的跨源权限、RunHost、Native Agent 仍需独立验证，不受测试页面通过与否影响。
+**注意：R7.1 此 PR 当前实现的是网页自身的原生 `fetch()`，不是注入式 `axiosx` 验收。** 旧版文字称“仓库未找到 `axiosx`”是不正确的：`main` 已包含自研 `src/framework/sdk/http.js` 的 Axios 风格 `axiosx.get/post/put/delete` 门面，并通过 `src/framework/sdk/entry.js` 在明确授权安装后暴露 `window.OpenDeskSDK.axiosx` 和 `window.axiosx`；安装由 `src/platform/host/broker.js` 向精确 document 注入 ISOLATED relay 与 MAIN SDK。独立 Controller Worker 也从 `src/scripting/sandbox/worker-runtime.js` 获得自己的 `axiosx` 服务对象。这**不是** `npm axios`，不用为测试网页引入 Axios/CDN。
+
+对两条 `axiosx` 通道均需额外进行真实 Chrome 验收：
+
+- **网页 MAIN SDK**：在扩展工具页「独立网页 SDK」选择当前 tab、精确 document、`network` 能力、目标 origin（跨源时），通过真实用户点击批准与安装；再在该网页内执行 `await window.OpenDeskSDK.ready()`，并通过 `await window.OpenDeskSDK.axiosx.get('http://127.0.0.1:43111/request-sample.json', {responseType:'json'})` 读取 `status/data`。未注入、拒权、导航或撤权时应明确失败，不回退到普通 `fetch()` 冒充 SDK 成功。
+- **Controller Worker**：在 Sidebar 获得原有运行授权后执行 `async function main() { return (await axiosx.get('http://127.0.0.1:43111/request-sample.json', {responseType:'json'})).data; }`，通过独立 Worker→受控 HTTP driver 返回。此路径不等于网页 MAIN 全局注入。
+
+两个 SDK API 都受正式 broker / authority / 站点权限 / 网络目标授权与调用预算约束；`src/framework/sdk/registry.js` 不支持任意 Axios config、`withCredentials:true` 或 Authorization/Cookie 请求头；`src/platform/chrome/network.js` 使用 `credentials:'omit'`、`redirect:'manual'`。网页 Fetch 与扩展 SDK HTTP 的错误、CORS 和回执必须分层记录。尚未在真实 Chrome 验收时写 `NOT_TESTED`。当前远端 `main` 也有同目录的并行改动，PR #20 在合入前必须逐项比对、去重和解决冲突，不能用这个旧文件覆盖最新 `main`。
