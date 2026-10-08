@@ -29,7 +29,7 @@ const make=()=>{
       properties:{name:{type:'string',title:'姓名',minLength:1,maxLength:30,default:'Alice'}},required:['name'],additionalProperties:false}};
   const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:true,enabled:true};
   const installed={taskId:row.taskId,version:row.version,scriptId:programId,manifestHash,enabled:true};
-  const starts=[],permissions=[],stops=[];
+  const starts=[],permissions=[],stops=[],catalogOpens=[];
   let target={status:'available',url:'https://a.example/',tabId:9,windowId:7,documentId:'doc-9'};
   const page={
     get snapshot(){return target;},subscribe:fn=>{fn(target);return()=>{};},
@@ -60,9 +60,11 @@ const make=()=>{
     async stop(request){stops.push(request);active=null;return{state:'stopped'};},
     subscribe:()=>()=>{}
   };
-  const api={permissions:{request:value=>{permissions.push(value);return Promise.resolve(true);}}};
+  const api={permissions:{request:value=>{permissions.push(value);return Promise.resolve(true);}},
+    runtime:{getURL:path=>'chrome-extension://extension/'+path},
+    tabs:{create:async request=>{catalogOpens.push(request);return {id:99};}}};
   const ui=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc});
-  return {ui,get,page,host,view,starts,permissions,stops,
+  return {ui,get,page,host,view,starts,permissions,stops,catalogOpens,
     click:async(id,trusted=true)=>{get(id).fire('click',{isTrusted:trusted});await tick();await tick();}};
 };
 
@@ -81,8 +83,13 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.deepEqual(f.starts[0].params,{name:'Bob'});
   assert.deepEqual(f.starts[0].target,{mode:'borrowed',tabId:9,frameId:0,documentId:'doc-9',
     expectedUrl:'https://a.example/',expectedWindowId:7});
-  await f.click('tab-discover');assert.equal(f.get('workbench-discover').hidden,false);
-  assert.equal(f.host.currentRun,'run-task-1','switching pages must never retire RunHost');
+  await f.click('tab-discover');
+  assert.equal(f.get('workbench-discover').hidden,true,'catalog must not occupy the Side Panel');
+  assert.equal(f.catalogOpens.length,1);
+  assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
+  await f.click('tab-develop');
+  assert.equal(f.get('workbench-develop').hidden,false);
+  assert.equal(f.host.currentRun,'run-task-1','switching Sidebar views must never retire RunHost');
   f.host.complete({ok:true});await tick();await tick();
   assert.match(f.get('task-result').textContent,/"ok": true/);
   assert.match(f.get('task-history').children[0].children[0].textContent,/run-task-1/);
