@@ -49,18 +49,19 @@
     }
   ],
   "sourceAndComponentEvidence": {
-    "state": "GITHUB_SOURCE_COMMITTED",
+    "state": "NATIVE_HOST_SOURCE_IMPLEMENTED",
     "testCommands": [
       "npm ci --ignore-scripts --no-audit --no-fund",
       "node --test tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs",
       "npm run check",
       "npm run build",
       "npm run build:dev",
-      "npm run verify"
+      "npm run verify",
+      "node --test tests/environment/native-agent-native-host.test.mjs"
     ],
-    "localRuntime": "NOT_TESTED",
-    "githubActions": "PASS on 16a780d76a92ccb605bf226caa8b4ace674374ed (Native and shared regression / source / production+development WXT builds / verify); site-access merge 28c8385e integration checks PENDING",
-    "build": "CI_VERIFIED on 16a780d76a92ccb605bf226caa8b4ace674374ed"
+    "localRuntime": "ISOLATED_LINUX_NODE_NATIVE_HOST_SIMULATION_PASS_8_OF_8; NOT macOS/Chrome",
+    "githubActions": "Latest branch CI source/tests checked; production WXT sw.js byte ceiling currently under correction, do not claim full PASS until latest HEAD succeeds",
+    "build": "BLOCKED: latest branch CI production package sw.js > 320KiB ceiling, development and verify NOT_RUN on failing jobs"
   },
   "nativeEvidence": {
     "chromeExtension": "NOT_TESTED",
@@ -72,9 +73,9 @@
     "finalAcceptance": "NO"
   },
   "blocker": {
-    "code": "NATIVE_HOST_FILE_BLOCKED",
+    "code": "MACOS_NATIVE_AND_FINAL_PACKAGE_ACCEPTANCE_MISSING",
     "path": "native-agent/native-host.mjs",
-    "detail": "Two GitHub connector write attempts for the outside-browser Native Host were blocked by tool safety review. Do not treat setup or CLI as functional until this component is implemented and audited in local Codex.",
+    "detail": "Host source now exists on this PR branch; Linux-only Node IPC simulation 8/8 passed. Real macOS install, Chrome Native Messaging handshake and Codex E2E are unavailable here. The strict SW build budget must pass at the latest HEAD before Ready/merge.",
     "workContinuesVia": "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt"
   },
   "architecture": "Native is a developer-only opt-in entry; SW handles durable idempotence and a live authenticated Host port, existing RunHost starts the one Controller Worker and durable result",
@@ -83,10 +84,19 @@
   "rollback": "Close or revert only dedicated PR, retain historical run receipts and independent modules",
   "pr": "https://github.com/shopable-ai/opendesk-browser/pull/11",
   "updatedAt": "2026-10-08",
-  "currentMainObserved": "28389f5edc6210a3774698600c518be37867ad7b",
+  "currentMainObserved": "MOVING; refresh origin/main immediately before merge; current web session observed 2c7dd821e0bc358af52a99cf7e90025d9cee481f",
   "integrationNotes": [
     "PR #9 (Sidebar R5) merged; centralized site-access from other workstreams is in main 28389f5 and was kept when merging into this workstream",
     "Latest independent feature merge commit: 28c8385efdd3f86691f41ba0f8ddf7fd251e409c; CI with centralized authorization in progress",
-    "Native Host file remains missing; macOS/Chrome/Codex end-to-end MUST remain NOT_TESTED"
-  ]
+    "Native Host file remains missing; macOS/Chrome/Codex end-to-end MUST remain NOT_TESTED",
+    "2026-10-08: Native Host committed and focused simulated Node IPC test added; original source blocker resolved; no real Chrome assertion.",
+    "2026-10-08: strict 320 KiB production Service Worker budget blocked CI after Native source; optimizer experiments reverted; focused code-size refactor pending CI.",
+    "2026-10-08: another agent branch agent/sidebar-ui-r6-20261008-focus-owner-2113 exists and must not be pruned as completed."
+  ],
+  "previousSourceBlocker": {
+    "code": "NATIVE_HOST_FILE_BLOCKED",
+    "path": "native-agent/native-host.mjs",
+    "detail": "Two GitHub connector write attempts for the outside-browser Native Host were blocked by tool safety review. Do not treat setup or CLI as functional until this component is implemented and audited in local Codex.",
+    "workContinuesVia": "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt"
+  }
 }
