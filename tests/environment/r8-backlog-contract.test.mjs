@@ -7,57 +7,94 @@ const planUrl = new URL('../../docs/product/browser-automation-r8-implementation
 const identifiers = text => [...text.matchAll(/\b[A-Z]+-\d{3}\b/g)].map(match => match[0]);
 const unique = items => [...new Set(items)];
 const duplicates = items => unique(items.filter((id,index) => items.indexOf(id) !== index));
+const requiredFields = ['功能映射','用户价值 / 契合度','优先级/阶段/复杂度/风险','源码与实际证据',
+  '复用 / 必改范围','API / 数据 / 生命周期','前置','独立验收','本地 Chrome / Codex','阻断 / 下一步'];
 
-// Traceability only. Passing here does NOT certify any runtime feature or native Chrome acceptance.
+// Traceability only. A complete plan does NOT certify runtime or Chrome acceptance.
+// Read one primary-owner line per task card, not every mention or a historical appendix.
 function examine(catalog,plan) {
   const catalogIds = [...catalog.matchAll(/^\|\s*([A-Z]+-\d{3})\s*\|/gm)].map(match => match[1]);
-  const taskSection = /^## 五、[^\n]*\n([\s\S]*?)^## 六、/m.exec(plan)?.[1] ?? '';
-  const taskRows = [...taskSection.matchAll(/^\|\s*\*\*E(\d{2})\b[^|\n]*\|\s*([^|\n]+)\|/gm)];
-  const taskIds = taskRows.map(row => 'E' + row[1]);
-  if (/^### 全程 E40\b/m.test(taskSection)) taskIds.push('E40');
-  const mappedIds = taskRows.flatMap(row => identifiers(row[2]));
-  mappedIds.push(...identifiers(/^功能 ID：([^\n；]+)/m.exec(taskSection)?.[1] ?? ''));
-  const supplement = [...taskSection.matchAll(/^\|\s*(E\d{2}(?:\s*,\s*E\d{2})*)\s*\|\s*([A-Z]+-\d{3}(?:\s*,\s*[A-Z]+-\d{3})*)\s*\|\s*(保留回归|延期评估|不实现)\s*\|/gm)];
-  const supplementIds = supplement.flatMap(row => identifiers(row[2]));
-  mappedIds.push(...supplementIds);
-  const taskSet = new Set(taskIds),catalogSet = new Set(catalogIds),mappedSet = new Set(mappedIds);
-  return {
-    catalogIds,taskIds,supplementIds,
+  const cards = [...plan.matchAll(/^### (E\d{2}) · ([^\n]+)\n([\s\S]*?)(?=^#{1,3} |$(?![\s\S]))/gm)]
+    .map(([,id,title,body]) => {
+      const mappings = [...body.matchAll(/^- \*\*功能映射\*\*：([^\n]*)/gm)];
+      const prerequisite = /^- \*\*前置\*\*：([^\n]*)/m.exec(body)?.[1] ?? '';
+      const phaseLine = /\*\*优先级\/阶段\/复杂度\/风险\*\*：([^\n]*)/.exec(body)?.[1] ?? '';
+      return {id,title,body,mappings,features:mappings.flatMap(row=>identifiers(row[1])),
+        phases:[...phaseLine.matchAll(/R8\.(\d+)/g)].map(row=>Number(row[1])),
+        prerequisiteOwners:unique([...prerequisite.matchAll(/\b(E\d{2})(?:\.\d+)?\b/g)].map(row=>row[1])),
+        // E08.1 is a scoped slice; only whole-task prerequisites define the task DAG.
+        dependencies:unique([...prerequisite.matchAll(/\bE\d{2}\b(?!\.\d)/g)].map(row=>row[0]))};
+    });
+  const taskIds = cards.map(card=>card.id), taskSet = new Set(taskIds);
+  const mappedIds = cards.flatMap(card=>card.features), mappedSet = new Set(mappedIds);
+  const catalogSet = new Set(catalogIds), byId = new Map(cards.map(card=>[card.id,card]));
+  const visited = new Set(), active = new Set(), cycles = [];
+  function visit(id) {
+    if (active.has(id)) {cycles.push(id);return;}
+    if (visited.has(id) || !byId.has(id)) return;
+    active.add(id);
+    for (const dependency of byId.get(id).dependencies) visit(dependency);
+    active.delete(id);visited.add(id);
+  }
+  for (const id of taskIds) visit(id);
+  return {catalogIds,taskIds,mappedIds,
     catalogDuplicates:duplicates(catalogIds),taskDuplicates:duplicates(taskIds),
-    missing:catalogIds.filter(id => !mappedSet.has(id)),
-    unknown:unique(mappedIds.filter(id => !catalogSet.has(id))),
-    unknownOwners:unique(supplement.flatMap(row => row[1].split(/\s*,\s*/)).filter(id => !taskSet.has(id))),
-    dispositions:unique(supplement.map(row => row[3])),
-    phaseHeadings:unique([...taskSection.matchAll(/^### R8\.([0-6])\b/gm)].map(row => 'R8.' + row[1])),
-  };
+    duplicateOwners:duplicates(mappedIds),
+    missing:catalogIds.filter(id=>!mappedSet.has(id)),
+    unknown:unique(mappedIds.filter(id=>!catalogSet.has(id))),
+    unknownPrerequisites:unique(cards.flatMap(card=>card.prerequisiteOwners).filter(id=>!taskSet.has(id))),
+    cycles:unique(cycles),
+    invalidCards:cards.filter(card=>card.mappings.length!==1 || !card.features.length ||
+      !card.phases.length || card.phases.some(phase=>phase<0 || phase>6) ||
+      requiredFields.some(field=>!card.body.includes('**'+field+'**')) ||
+      !/\bC=[1-5](?!\d)/.test(card.body) || !/\bR=[1-5](?!\d)/.test(card.body) ||
+      [...card.body.matchAll(/\b[CR]=(\d+)/g)].some(row=>Number(row[1])<1 || Number(row[1])>5)).map(card=>card.id),
+    phases:unique([...plan.matchAll(/^\|\s*(R8\.[0-6])\b/gm)].map(row=>row[1]))};
 }
 
 const [catalog,plan] = await Promise.all([readFile(catalogUrl,'utf8'),readFile(planUrl,'utf8')]);
 
-test('R8 catalog 188 unique IDs map to all E01–E40 work packages or explicit dispositions', () => {
+test('R8 catalog has 188 single-owner capabilities, 40 complete tasks and an acyclic phased plan', () => {
   const x = examine(catalog,plan);
   assert.equal(x.catalogIds.length,188);
   assert.deepEqual(x.catalogDuplicates,[]);
-  assert.deepEqual(x.taskIds,Array.from({length:40},(_,i)=>'E' + String(i+1).padStart(2,'0')));
+  assert.deepEqual(x.taskIds,Array.from({length:40},(_,i)=>'E'+String(i+1).padStart(2,'0')));
   assert.deepEqual(x.taskDuplicates,[]);
-  assert.deepEqual(x.phaseHeadings,Array.from({length:7},(_,i)=>'R8.' + i));
-  assert.equal(x.supplementIds.length,35,'appendix accounts for 35 formerly unmapped IDs');
+  assert.equal(x.mappedIds.length,188);
+  assert.deepEqual(x.duplicateOwners,[]);
   assert.deepEqual(x.missing,[]);
   assert.deepEqual(x.unknown,[]);
-  assert.deepEqual(x.unknownOwners,[]);
-  assert.deepEqual(x.dispositions.sort(),['保留回归','延期评估','不实现'].sort());
+  assert.deepEqual(x.unknownPrerequisites,[]);
+  assert.deepEqual(x.cycles,[]);
+  assert.deepEqual(x.invalidCards,[]);
+  assert.deepEqual(x.phases,Array.from({length:7},(_,i)=>'R8.'+i));
 });
 
-test('omitted deferred capability cannot silently pass the coverage gate', () => {
-  assert.match(plan,/GM-020,GM-021/);
-  const x = examine(catalog,plan.replace('GM-020,GM-021','GM-021'));
-  assert.deepEqual(x.missing,['GM-020']);
+test('omitted deferred capability, duplicate primary ownership and invented capability fail the coverage gate', () => {
+  const omitted = plan.replace(/(^- \*\*功能映射\*\*：[^\n]*)\bGM-020\b/gm,'$1');
+  assert.notEqual(omitted,plan);
+  assert.deepEqual(examine(catalog,omitted).missing,['GM-020']);
+  const duplicate = plan.replace(/(^- \*\*功能映射\*\*：)/m,'$1AUTO-001、');
+  assert.deepEqual(examine(catalog,duplicate).duplicateOwners,['AUTO-001']);
+  const invented = plan.replace(/(^- \*\*功能映射\*\*：)/m,'$1GM-999、');
+  assert.deepEqual(examine(catalog,invented).unknown,['GM-999']);
 });
 
-test('invalid work owner and duplicate feature ID are caught', () => {
-  assert.match(plan,/\| E27,E39 \| ECO-006/);
-  const badOwner = examine(catalog,plan.replace('| E27,E39 | ECO-006','| E99 | ECO-006'));
-  assert.deepEqual(badOwner.unknownOwners,['E99']);
+test('invalid prerequisite, circular work ordering and duplicate catalog identity are rejected', () => {
+  assert.match(plan,/- \*\*前置\*\*：无。/);
+  const badOwner = plan.replace('- **前置**：无。','- **前置**：E99。');
+  assert.deepEqual(examine(catalog,badOwner).unknownPrerequisites,['E99']);
+  const badSliceOwner = plan.replace('- **前置**：无。','- **前置**：E99.1。');
+  assert.deepEqual(examine(catalog,badSliceOwner).unknownPrerequisites,['E99']);
+  const circular = plan.replace('- **前置**：无。','- **前置**：E02。');
+  assert.ok(examine(catalog,circular).cycles.length>0);
   const duplicated = examine(catalog.replace('| INS-003 |','| INS-001 |'),plan);
   assert.ok(duplicated.catalogDuplicates.includes('INS-001'));
+  const badRisk = plan.replace('C=2，R=3。','C=6，R=3。');
+  assert.deepEqual(examine(catalog,badRisk).invalidCards,['E01']);
+  const badPhase = plan.replace('A；R8.0，持续更新','A；R8.9，持续更新');
+  assert.notEqual(badPhase,plan);
+  assert.deepEqual(examine(catalog,badPhase).invalidCards,['E01']);
+  const missingContract = plan.replace('**API / 数据 / 生命周期**','**合同未填写**');
+  assert.deepEqual(examine(catalog,missingContract).invalidCards,['E01']);
 });

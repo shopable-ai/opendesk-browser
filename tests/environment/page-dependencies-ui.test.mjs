@@ -225,3 +225,69 @@ test('review freezes dependency source selectors and lock status does not claim 
   assert.equal(select.disabled,false);
   assert.equal(f.get('page-dependency-local-file').disabled,false);
 });
+
+test('a late dependency inspection cannot replace the admission of current metadata with the old source policy',async t=>{
+  for(const directive of ['@grant GM_getValue','@resource token https://first.example.org/token.txt','@include *://*/*']) {
+    const f=await fixture({locked:true});t.after(()=>f.panel.dispose());
+    const pending=f.gate('inspectPageDependencies');
+    f.click('page-dependency-refresh');await settle();
+    await f.edit(source().replace('// ==/UserScript==','// '+directive+'\n// ==/UserScript=='));
+    assert.match(f.get('page-dependency-warnings').textContent,/E_/);
+    pending.resolve();await settle();
+    assert.match(f.get('page-dependency-warnings').textContent,/E_/,directive+' remains blocked after old report');
+    assert.equal(f.get('page-dependency-prepare').disabled,true);
+    assert.equal(f.get('page-dependency-approve').disabled,true);
+    assert.equal(f.get('page-dependency-status').dataset.state,'error');
+    assert.throws(()=>f.panel.capture(),error=>error.code.startsWith('E_'));
+  }
+});
+
+test('repairing metadata during inspection uses current admission and retains a dependency-only lock',async t=>{
+  const blocked=source().replace('// ==/UserScript==','// @grant GM_getValue\n// ==/UserScript==');
+  const f=await fixture({sourceUtf8:blocked,locked:true});t.after(()=>f.panel.dispose());
+  const pending=f.gate('inspectPageDependencies');f.click('page-dependency-refresh');await settle();
+  await f.edit(source());pending.resolve();await settle();
+  assert.doesNotMatch(f.get('page-dependency-warnings').textContent,/E_GRANT_UNSUPPORTED/);
+  assert.equal(f.get('page-dependency-prepare').disabled,false);
+  assert.equal(f.panel.capture().lockId,'existing-lock');
+  assert.equal(f.permissions.length,0,'policy edits do not request a new download grant');
+});
+
+test('a newly unsupported policy cancels acquisition after the permission await even when dependencies are unchanged',async t=>{
+  for(const dispatchInput of [true,false]) {
+    const f=await fixture();t.after(()=>f.panel.dispose());
+    const permission=deferred();f.setPermission(permission.promise);await f.prepare();
+    const changed=source().replace('// ==/UserScript==','// @grant GM_getValue\n// ==/UserScript==');
+    if(dispatchInput)await f.edit(changed);else f.get('script-source').value=changed;
+    permission.resolve(true);await settle();
+    assert.equal(f.requests.filter(row=>row.method==='preparePageDependencies').length,0);
+    assert.equal(f.get('page-dependency-approve').disabled,true);
+    assert.equal(f.get('page-dependency-prepare').disabled,true);
+    assert.match(f.get('page-dependency-warnings').textContent,/E_GRANT_UNSUPPORTED/);
+    assert.match(f.get('page-dependency-status').textContent,/E_GRANT_UNSUPPORTED/);
+  }
+});
+
+test('approval revalidates current source even when an importer did not dispatch an input event',async t=>{
+  for(const edit of [
+    source().replace('// ==/UserScript==','// @grant GM_getValue\n// ==/UserScript=='),
+    source([secondUrl])
+  ]) {
+    const f=await fixture();t.after(()=>f.panel.dispose());await f.prepare();
+    f.get('script-source').value=edit;
+    await f.approve();
+    assert.equal(f.requests.filter(row=>row.method==='approvePageDependencies').length,0);
+    assert.match(f.get('page-dependency-status').textContent,/E_GRANT_UNSUPPORTED|E_DEPENDENCY_LOCK_STALE/);
+  }
+});
+
+test('declared antifeatures remain visible as untrusted plain text through inspection and source edits',async t=>{
+  const disclosure='tracking <img src=x onerror=alert(1)>';
+  const declared=source().replace('// ==/UserScript==','// @antifeature '+disclosure+'\n// ==/UserScript==');
+  const f=await fixture({sourceUtf8:declared});t.after(()=>f.panel.dispose());
+  assert.ok(f.get('page-dependency-warnings').textContent.includes(disclosure));
+  assert.match(f.get('page-dependency-warnings').textContent,/W_ANTIFEATURE_DECLARED/);
+  assert.equal(f.get('page-dependency-warnings').children.length,0,'source text cannot create markup');
+  await f.edit(source());
+  assert.doesNotMatch(f.get('page-dependency-warnings').textContent,/W_ANTIFEATURE_DECLARED/);
+});

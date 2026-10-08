@@ -1,0 +1,6 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 pack
+> node scripts/pack.mjs production
+
+{"status":"passed","mode":"production","packageHash":"4b5c7f0abe22d4d98e297a34253fe4b106fdb9af30649498b5d2d4adede71649","zipSha256":"5764eb84ce44595f36cfa3e0f2bec20b18164309066cbda45f050c58908a0f98","bytes":358315}

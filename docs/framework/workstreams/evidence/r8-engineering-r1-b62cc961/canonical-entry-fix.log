@@ -1,0 +1,20 @@
+✔ one ordinary HTML page exposes unique, stable automation targets (7.096344ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (1.769791ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (1.685397ms)
+✔ async scene sends only local fetches and distinguishes loading, 404, abort and timeout (0.982534ms)
+✔ explicit HTTP GET controls expose safe semantics and preserve offline-first operation (1.060248ms)
+✔ the single canonical page exposes seven navigable groups and honest Locator fixtures (2.544951ms)
+✔ Locator fixture actions, late insertion, and reset mutate only observable DOM (1526.949184ms)
+✔ HTTP panel sends no request until click and shows real status/content without HTML injection (7.537231ms)
+✔ HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies (5.326706ms)
+✔ minimal HTTP UI rejects invalid URLs without sending requests (2.049338ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (1.984163ms)
+✔ manual browser testing has exactly one canonical HTML and no obsolete advertised URL (1.92812ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1659.116789
