@@ -38,7 +38,7 @@
 
 ## R7 基础交互测试：一个 HTML 即可
 
-主入口仍是 `http://127.0.0.1:43111/demo-form.html`。页面是一张简单的内容/表单网页，**不是测试管理后台**。只需 Python 静态 HTTP 服务，不新增服务器依赖、API 或 HTML：
+主入口仍是 `http://127.0.0.1:43111/demo-form.html`。页面是一张简单的内容/表单网页，**不是测试管理后台**。默认只需 Python 静态 HTTP 服务；R7.1 增加了一个同源 JSON 夹具和可选的 Node 测试服务，主 HTML 仍只有一个：
 
 | 能力 | 页面选择器 | 可断言的结果 |
 | --- | --- | --- |
@@ -58,3 +58,66 @@
 - 通过 `file://` 打开时真实同源 `fetch` 不受支持，必须使用上述本地 HTTP 地址。扩展侧 RunHost、权限和原生回执需要在真实 Chrome 单独验收。
 
 定向静态/兼容契约检查：`node --test tests/environment/basic-browser-page.test.mjs`。
+
+
+## R7.1：在同一页面发送真实 HTTP 请求
+
+默认运行方式（仅 Python 标准库，保持旧入口不变）：
+
+```bash
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+# 打开 http://127.0.0.1:43111/demo-form.html
+```
+
+「HTTP 与异步请求」区域的**真实 HTTP 请求**表单默认使用 `GET ./request-sample.json`。点击「发送请求」后，浏览器直接调用原生 `fetch()`，显示真实 HTTP 状态码、响应耗时、Content-Type、JSON（或原始文本）及错误。响应区域使用可折叠 `<details><pre>` 与 `textContent`，不执行返回的 HTML/脚本。预览超过 60,000 个字符截断。`http-example` 只填入示例 URL，**切换选项不会自动访问第三方**。输入自定义 URL 后切换为「自定义 URL」。
+
+| 实际操作 | 稳定 DOM 目标 | 行为及断言 |
+| --- | --- | --- |
+| 选择 URL 样例 | `#http-example` | 只填充 `#http-url`；不发请求 |
+| 编辑方法和地址 | `#http-method`、`#http-url` | GET 默认为 `./request-sample.json`；POST 出现 `#http-body` |
+| 设置客户端超时 | `#http-timeout` | 100–30000 ms（默认 5000） |
+| 发起请求 | `#http-send`（提交 `#http-form`） | `#http-status[data-state="loading"]`，然后进入终态 |
+| 查看状态/耗时/类型 | `#http-code`、`#http-duration`、`#http-content-type` | 显示服务器真实状态码和页面测量的毫秒数 |
+| 查看响应 | `#http-response-details`、`#http-response` | 展开后显示 JSON 格式化文本或非 JSON 原文 |
+| 查看错误 | `#http-error`、`#http-status` | HTTP 非 2xx、网络失败、JSON 解析失败、超时均可区分；CORS 与离线不能可靠区分 |
+| 取消 | `#http-cancel` | 取消当前请求，`data-state="cancelled"`；禁用取消按钮 |
+| 覆盖或重置 | 连续提交 `#http-send`，或 `#reset-all` | 前一次请求中止；旧响应不能覆盖新结果，重置回本地 JSON |
+
+上述关键元素同时带有与 ID 同名的 `data-testid`，可由项目已支持的 `page.locator('#http-url')`、`page.click('#http-send')`、`page.waitForSelector('#http-response')` 等 API 访问；具体可用方法必须以当前 SDK 为准。**直接测试网页 DOM、Node HTTP 服务或 Playwright 独立浏览器，不等于扩展内 ChromePage 的原生回执验证。**
+
+### 同源请求场景和可选的真实延迟服务
+
+Python 静态服务即可测试：`./request-sample.json`（200 JSON）、`./demo-form.html`（200 HTML 文本）、`./__opendesk_expected_404__.json`（404）、重复请求、新请求覆盖旧请求、`http://127.0.0.1:43112/request-sample.json`（若没有服务监听，即连接失败）。`file://` 不是正式测试入口。HTTP POST 对 Python 静态服务可能得到 `501`，这是实际服务行为，不应标记为测试失败。
+
+如需可重现的**服务端**响应延迟、状态码、POST 和浏览器 CORS 场景，可改用本仓库自带且无 npm 依赖的辅助服务（不要让两个服务同时占用 43111）：
+
+```bash
+node examples/tasks/http-test-server.mjs 43111
+# 页面：http://127.0.0.1:43111/demo-form.html
+# 真实延迟：GET ./__test__/delay?ms=1500
+# 真实 429：GET ./__test__/status?code=429
+# 真实 500：GET ./__test__/status?code=500
+# 纯文本：GET ./__test__/text
+# POST JSON 回显：POST ./__test__/echo
+```
+
+服务仅监听 `127.0.0.1`，只开放已列出的资源与测试端点，`ms` 上限为 5000。若要验证 CORS，另起一个 `node examples/tasks/http-test-server.mjs 43112`，从 43111 页面请求 `http://127.0.0.1:43112/request-sample.json`。43112 确实有响应但**未提供 `Access-Control-Allow-Origin`**，浏览器应在页面 Fetch 层报网络型错误；DevTools Network 中可确认 CORS 详情。不同端口就是不同 origin；Node `fetch()` 不实施浏览器的 CORS 限制，不能把其结果视为 CORS 浏览器验收。测试真正的超时：选择 `GET ./__test__/delay?ms=2000`、超时 `300`；测试取消：超时 `5000`，发起延迟请求后立刻点击取消；完成后的耗时记录包含请求与响应体读取时间。
+
+### 公网示例：只有用户点击后发送
+
+- **城市查询**：Open-Meteo Geocoding API，`name=Beijing`，无需 API Key；响应字段如 `results` 可能随地区、匹配条件和供应方数据变化。
+- **天气查询**：Open-Meteo Forecast API，北京坐标，返回当前天气数据；不读取浏览器地理位置。官方说明浏览器 CORS、无须密钥，免费接口仅用于非商业用途，有公开配额与不保证 SLA 的限制。
+- **公网 IP**：`https://ipwho.is/`，主动访问会让提供商获得请求源的公网 IP（代理/VPN 下为出口 IP），同时可获取推断位置。IP 提供商有配额及 CORS 的域名计数规则，请勿高频自动请求。
+
+官方说明：[Open-Meteo / API 与 CORS](https://github.com/open-meteo/open-meteo)、[Open-Meteo / 许可与限制](https://open-meteo.com/en/terms)、[ipwho.is / 免费接口与限额](https://ipwhois.io/documentation)。外部服务可能因网络、地域、限速、CORS 策略或服务变化失败；**外部成功必须由当前真实浏览器响应验证，不能由 README 示例推定**。
+
+### 自动化验证等级（必须分开记录）
+
+| 层级 | 验收方式 | 证明范围 |
+| --- | --- | --- |
+| 源码契约 | `node --test tests/environment/basic-browser-page.test.mjs` | 旧签名表单任务、现代搜索 DOM 和 HTTP 控件存在，内联 JS 可解析 |
+| 本地真实 HTTP | `node --test tests/environment/basic-browser-http.test.mjs` | Node HTTP 实际 200/404/429、HTML、纯文本、POST 和 abort；非浏览器验收 |
+| 独立 Chromium | 真实浏览器打开上述本地页面，实际点击并检查 DOM、Network 和窄屏截图 | 网页 Fetch、浏览器 CORS、交互与布局；非扩展 Page API |
+| OpenDesk MV3 原生链 | 真实 Chrome 安装扩展、可信手势授权、Sidebar 草稿与原签名任务、持久 Run/Result 回执 | Page API 和任务链本机验收；未执行时标记 `NOT_TESTED` |
+
+本轮没有引入 Axios/`axiosx`：仓库当前 `package.json` 不包含 Axios，默认分支代码搜索也未发现这两个符号。原生 `fetch()` 已足够验证页面 HTTP 行为；扩展自己的跨源权限、RunHost、Native Agent 仍需独立验证，不受测试页面通过与否影响。
