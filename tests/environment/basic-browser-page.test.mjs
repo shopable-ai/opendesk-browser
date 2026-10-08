@@ -108,6 +108,11 @@ function createApiDomHarness(html, handleFetch) {
   }
   const nodes=new Map([...html.matchAll(/\bid="([^"]+)"/g)]
     .map(([,id])=>[id,new FakeNode(id)]));
+  // Model the input's actual initial value, not a blank JavaScript stub.
+  const initialApiUrl=html.match(/<input id="api-url"[^>]*value="([^"]+)"/)?.[1];
+  assert.ok(initialApiUrl);
+  nodes.get('api-url').value=initialApiUrl;
+  nodes.get('api-preset').value=initialApiUrl;
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.equal(scripts.length,1);
   new Script(scripts[0][1]).runInNewContext({
