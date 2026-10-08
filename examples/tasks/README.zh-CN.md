@@ -114,4 +114,4 @@ node --test tests/environment/basic-browser-page.test.mjs
 
 完整的合并策略、场景矩阵、失败用例和独立专家质量评分门槛参阅 [Browser Test Lab R8 规格](../../docs/framework/browser-test-lab-r8.zh-CN.md)。
 
-**历史临时入口**：`locator-acceptance.html` 及用户本机 `http://127.0.0.1:64687/next` 都未出现在当前仓库 `main` 的受管理人工 HTML 页面目录中。它们可能由本地专项运行器或遗留开发服务器提供。禁止将它们当成标准测试首页，也不要未确认调用者便删除资源；具体排查步骤见 [Browser Test Lab R8 规格](../../docs/framework/browser-test-lab-r8.zh-CN.md)。
+**历史临时入口**：`locator-acceptance.html` 与本机 64687 端口的 `/next` 均不属于当前仓库 `main` 受管理的人工测试页面。它们可能由本地专项运行器或遗留开发服务器提供。禁止将它们当成标准测试首页，也不要未确认调用者便删除资源；具体排查步骤见 [Browser Test Lab R8 规格](../../docs/framework/browser-test-lab-r8.zh-CN.md)。
