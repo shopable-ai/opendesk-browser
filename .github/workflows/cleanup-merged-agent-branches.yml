@@ -30,7 +30,7 @@ jobs:
             const candidates = [
               {name:'agent/sidebar-ui-r2-20261008-review',pr:8,sha:'e05bcd37017ff1b30620d798f4dc534399424c3f'},
               {name:'agent/sidebar-ui-r5-20261008',pr:9,sha:'d62d7c8ff35650c0d508f1180f43ea9a799eaf0a'},
-              {name:'agent/sidebar-r41-sync-20261008-x8ttm7ta',pr:10,sha:'3a877ef0e16afb660ffe21eccc43b895cfe4280b'},
+              {name:'agent/sidebar-r41-sync-20261008-x8ttm7ta',pr:10,sha:'a3bb8a9a82e043d165107f239c0e2e1ba8f826ec'},
               {name:'agent/site-access-once-20261008-1647',pr:7,sha:'935dcb2a28560c0dc429e3b30aeb807297dfabf7',supersededBy:12},
             ];
             async function removeWhenSafe(entry) {
