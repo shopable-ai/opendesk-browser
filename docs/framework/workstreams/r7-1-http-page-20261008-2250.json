@@ -14,23 +14,28 @@
   ],
   "collisionRisk": "仅演示页面、定向测试和独立证据；与 Native PR #11 的 RunHost、Sidebar 和构建输入无重叠；main 漂移或其他 PR 修改相同文件需先复核。",
   "validation": {
-    "sourceContract": "NOT_TESTED",
-    "isolatedNodeHttp": "PASS — 独立 Linux 容器复制同版 helper/fixture，真实 HTTP 200 JSON、404 JSON、429、纯文本、延迟和 POST echo；AbortController 40ms 中止均经 Node fetch 断言；尚非正式仓库 test 文件回执",
-    "staticPythonHttp": "NOT_TESTED",
-    "isolatedChromiumDomHttpCors": "NOT_TESTED",
-    "externalPublicApi": "NOT_TESTED",
-    "macNativeChromeExtension": "NOT_TESTED",
-    "signedV1Task": "NOT_TESTED",
-    "modernPageApiDraft": "NOT_TESTED",
-    "packageBuild": "NOT_TESTED",
-    "integrationMain": "NOT_MERGED"
+    "sourceContract": "PASS — node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs: 9/9, fail 0, against exact remote Git blob SHA verified in isolated Linux container",
+    "isolatedNodeHttp": "PASS — real loopback HTTP: JSON 200, HTML 200, text/plain 200, real 404 and 429, POST 200 echo, invalid POST 400, real delay and AbortError (Node 22 test).",
+    "staticPythonHttp": "PASS — python3 -m http.server using exact fixture HTML/JSON, real status 200 JSON, 200 HTML, 404",
+    "isolatedChromiumDom": "PASS — Chromium rendered current HTML via page.set_content (direct navigation blocked by environment policy); 1280px and 390px interactions: click count, toggle, form submit, dynamic search, preset UI, POST fields, reset, no horizontal overflow or page errors. Screenshots /mnt/data/opendesk-r71-1280-actual-dom.png and /mnt/data/opendesk-r71-390-actual-dom.png in ephemeral agent sandbox, not native Chrome.",
+    "isolatedChromiumHttpCors": "NOT_TESTED — actual navigation even to data: / 127.0.0.1 blocked by ERR_BLOCKED_BY_ADMINISTRATOR in this runner. DOM set_content cannot substitute for network.",
+    "externalPublicApi": "NOT_TESTED — API docs confirm interfaces but no successful external browser request observed.",
+    "macNativeChromeExtension": "NOT_TESTED — no user Mac Chrome / CFT profile or trusted native extension receipt accessible here.",
+    "signedV1Task": "SOURCE_CONTRACT_PASS — signed JSON SHA unchanged, legacy selector/entry checks. NATIVE=NOT_TESTED.",
+    "modernPageApiDraft": "BROWSER_DOM_PASS — recreated submit button / async result verified; extension Page API = NOT_TESTED.",
+    "packageBuild": "NOT_TESTED — no local npm install/build; task-page tests isolated from full packaging.",
+    "integrationMain": "NOT_MERGED — branch PR awaits real Chrome validation / serial integration"
   },
-  "evidenceNote": "本工作流 GitHub 独立分支提交。网页自身 fetch、模拟延时、扩展 Page API、MV3 可信原生执行必须分层区分；未在本机用户 macOS 运行。",
+  "evidenceNote": "All HTTP Node checks made real local TCP requests, not setTimeout-only simulated responses. Chromium DOM screenshots are real rendering from GitHub blob-identical HTML but page navigation / Fetch tests are blocked by current runner's network administrator. Old delay buttons explicitly remain client-side simulation. No native ACK or external API success claimed.",
   "nativeReceiptPaths": [],
-  "browserScreenshotPaths": [],
+  "browserScreenshotPaths": [
+    "/mnt/data/opendesk-r71-1280-actual-dom.png (agent sandbox only)",
+    "/mnt/data/opendesk-r71-390-actual-dom.png (agent sandbox only)"
+  ],
   "blocking": [
-    "尚无受控 macOS Chrome Extension/Side Panel 实际运行回执；不得宣称 FINAL_ACCEPTED",
-    "PR 需依据最新 main、检查与本地 Codex 验收串行集成"
+    "Browser HTTP Fetch/CORS not verified because navigation is blocked by administrator in available runner; must re-run in user-controlled CFT",
+    "Native Chrome Extension, signed task end-to-end, and OpenDesk Page API real run receipts NOT_TESTED",
+    "Merge to main only after main drift/conflict check, PR tests, native evidence, and authorized integration"
   ],
   "prUrl": null
 }
