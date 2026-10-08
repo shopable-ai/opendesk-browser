@@ -36,11 +36,13 @@ export function readInstalledConfiguration() {
   restricted(infoPath);
   const info=JSON.parse(fs.readFileSync(infoPath,'utf8'));
   if (info.name!==HOST_NAME || info.installRoot!==ROOT ||
+      !['chrome','cft'].includes(info.browser||'chrome') ||
       info.socketPath!==path.join(ROOT,'agent.sock') || !EXTENSION_ID.test(info.extensionId) ||
       !/^[a-f0-9]{64}$/.test(info.clientCredential)) throw new WireError('E_INSTALL_INVALID');
   restricted(path.join(ROOT,'wire.mjs'));
   restricted(path.join(ROOT,'native-host.mjs'));
-  const manifestFile=path.join(home,'Library/Application Support/Google/Chrome/NativeMessagingHosts',HOST_NAME+'.json');
+  const manifestFolder=(info.browser||'chrome')==='cft'?'ChromeForTesting':'Chrome';
+  const manifestFile=path.join(home,'Library/Application Support/Google',manifestFolder,'NativeMessagingHosts',HOST_NAME+'.json');
   if (fs.lstatSync(manifestFile).isSymbolicLink()) throw new WireError('E_MANIFEST_CONFLICT');
   const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
   if (manifest.name!==HOST_NAME || manifest.type!=='stdio' ||
