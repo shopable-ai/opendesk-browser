@@ -6,7 +6,7 @@
   "authorization": "Current user requested pull, complete the merge, commit and push. Submit on an isolated agent branch under AGENTS.md; main integration remains through reviewed PR.",
   "sourceWorkspace": "/Users/shopme/Documents/workspace/opendesk-browser",
   "isolatedWorkspace": "/Users/shopme/.codex/worktrees/sidebar-r41-integration/opendesk-browser",
-  "scope": "Submit the existing R4.1 changes and merge the latest R5 main, preserving both the approved compact UI and source-only draft handoff. No new dependency, runtime, storage authority or product redesign.",
+  "scope": "Submit existing R4.1 changes and merge R5 plus dependency-manager main updates. Preserve approved UI, source-only draft handoff and parameter retention; refresh the new dependency UI on imported drafts. No new dependency or authority.",
   "dependencies": [
     "R4 installed cards, independent catalog, parameter drafts and catalog refresh channel at 66f11874fa27f6de438155124a3f772129386f8b"
   ],
@@ -45,33 +45,33 @@
   "verification": {
     "status": "passed",
     "components": {
-      "passed": 61,
+      "passed": 123,
       "failed": 0,
       "skipped": 0,
-      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/component-tests.log"
+      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/component-tests.log"
     },
     "source": {
-      "syntaxCheckedFiles": 114,
-      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/source-check.log"
+      "syntaxCheckedFiles": 122,
+      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/source-check.log"
     },
     "commands": {
-      "components": "node --test --test-reporter=spec tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/framework/run-host-recovery.test.mjs",
+      "components": "node --test --test-reporter=spec tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/framework/run-host-recovery.test.mjs tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-dependencies-ui.test.mjs tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/boundaries.test.mjs",
       "source": "npm run check",
       "observerSyntax": "node --check tests/framework/sidebar-r41-observer.mjs",
-      "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds npm run build",
-      "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds npm run build:dev",
+      "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds npm run build",
+      "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds npm run build:dev",
       "package": "npm run verify",
       "diff": "git diff --cached --check origin/main"
     },
     "builds": {
       "production": {
-        "packageHash": "bd8a4138e0a8a01185dbe2eecc5b6371ff248ae9c123d9b0322787d5ad2d9316",
-        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds/build-production.json",
+        "packageHash": "a64532763b45ed650c041cf181b73e020a893b78c421d9d7bebab0029a314f3c",
+        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds/build-production.json",
         "sourceDriftDuringBuild": []
       },
       "development": {
-        "packageHash": "d44dcc8f0063b3027edbcaacb940fe9a76df1b84d935ced9a0632f6af8217d0f",
-        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds/build-development.json",
+        "packageHash": "27109db4219e692e420c4a368e93e17ca6926e0dd6ba6b69d5ae74fdce3c83db",
+        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/builds/build-development.json",
         "sourceDriftDuringBuild": []
       }
     }
@@ -106,7 +106,7 @@
     "Native validation for this merged candidate and its own package identity",
     "Formal acceptance and installation evidence remain open"
   ],
-  "updatedAt": "2026-10-08T12:35:13.534849+00:00",
+  "updatedAt": "2026-10-08T12:44:15.243165+00:00",
   "initialSubmissionCommit": "94d8c1f63999c705eee6be8edb058196aad273ce",
   "originalLocalFilesSha256": {
     "docs/architecture/sidebar-product-contract.zh-CN.md": "e0742f38652b1c77563ed6de9d62bf174b90014ed2513171ed16d30bbe79c35c",
@@ -162,9 +162,46 @@
           }
         }
       }
+    },
+    {
+      "againstMain": "0874755e8b2902653abe844f658163dbbecbf8c6",
+      "verification": {
+        "status": "passed",
+        "components": {
+          "passed": 61,
+          "failed": 0,
+          "skipped": 0,
+          "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/component-tests.log"
+        },
+        "source": {
+          "syntaxCheckedFiles": 114,
+          "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/source-check.log"
+        },
+        "commands": {
+          "components": "node --test --test-reporter=spec tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/framework/run-host-recovery.test.mjs",
+          "source": "npm run check",
+          "observerSyntax": "node --check tests/framework/sidebar-r41-observer.mjs",
+          "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds npm run build",
+          "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds npm run build:dev",
+          "package": "npm run verify",
+          "diff": "git diff --cached --check origin/main"
+        },
+        "builds": {
+          "production": {
+            "packageHash": "bd8a4138e0a8a01185dbe2eecc5b6371ff248ae9c123d9b0322787d5ad2d9316",
+            "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds/build-production.json",
+            "sourceDriftDuringBuild": []
+          },
+          "development": {
+            "packageHash": "d44dcc8f0063b3027edbcaacb940fe9a76df1b84d935ced9a0632f6af8217d0f",
+            "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds/build-development.json",
+            "sourceDriftDuringBuild": []
+          }
+        }
+      }
     }
   ],
-  "latestIntegratedMain": "0874755e8b2902653abe844f658163dbbecbf8c6",
+  "latestIntegratedMain": "ff81aeabd3f1e0fe79198c5b2cc3928102c39295",
   "subsequentMainMerge": {
     "reason": "Remote main advanced to R5 via PR #9 after the first push; PR #10 became conflicted.",
     "resolvedFiles": [
@@ -176,5 +213,17 @@
       "tests/environment/task-workbench.test.mjs",
       "examples/tasks/README.zh-CN.md"
     ]
+  },
+  "dependencyMainMerge": {
+    "reason": "Remote main advanced again with dependency-manager / page-preview consumers and shared editor changes.",
+    "merge": "Three-way Git merge completed without textual conflicts.",
+    "semanticRepair": "Catalog importDraft now calls the existing dependencyPanel.refresh after replacing source, matching the load paths; dependency UI updates without permission, save or execution.",
+    "regression": {
+      "test": "catalog draft import updates dependency review from the new source without saving or running",
+      "before": "FAIL: no new-source inspection occurred",
+      "after": "PASS",
+      "beforeLog": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/import-dependency-regression-before.log",
+      "afterLog": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-ff81aea/import-dependency-regression-after.log"
+    }
   }
 }

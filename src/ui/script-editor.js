@@ -478,6 +478,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-id').value = `import-${Date.now()}`;
     find('script-revision').value = '';
     find('script-source').value = sourceUtf8;
+    // File/catalog handoff replaces source program bytes; refresh @require review.
+    dependencyPanel.refresh();
     update(); display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length,

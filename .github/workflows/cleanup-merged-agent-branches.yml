@@ -25,7 +25,7 @@ jobs:
             const candidates = [
               {name:'agent/sidebar-ui-r2-20261008-review',pr:8,sha:'e05bcd37017ff1b30620d798f4dc534399424c3f'},
               {name:'agent/sidebar-ui-r5-20261008',pr:9,sha:'d62d7c8ff35650c0d508f1180f43ea9a799eaf0a'},
-              {name:'agent/sidebar-r41-sync-20261008-x8ttm7ta',pr:10,sha:'3a60543c59680aa7f20c7f2c98e75da40e42ef0f'},
+              {name:'agent/sidebar-r41-sync-20261008-x8ttm7ta',pr:10,sha:'3a877ef0e16afb660ffe21eccc43b895cfe4280b'},
               {name:'agent/site-access-once-20261008-1647',pr:7,sha:'935dcb2a28560c0dc429e3b30aeb807297dfabf7',supersededBy:12},
             ];
             async function removeWhenSafe(entry) {
@@ -61,11 +61,12 @@ jobs:
               }
             }
             for (const entry of candidates) await removeWhenSafe(entry);
-            // PR #12 is removed only on its own GitHub 'merged' close event.
-            // The live event's head SHA is checked immediately before deletion.
+            // Future integration branches: only same-repo, merged PR close events.
+            // A ref is removed iff it still points to that exact merged PR head SHA.
             const closed = context.payload.pull_request;
-            if (context.eventName === 'pull_request' && closed?.merged && closed.number === 12 &&
+            if (context.eventName === 'pull_request' && closed?.merged &&
                 closed.head?.repo?.full_name === `${owner}/${repo}` &&
-                closed.head.ref === 'agent/site-access-r5-integration-20261008') {
-              await removeWhenSafe({name:closed.head.ref,pr:12,sha:closed.head.sha});
+                closed.head.ref.startsWith('agent/') &&
+                closed.head.ref !== 'main') {
+              await removeWhenSafe({name:closed.head.ref,pr:closed.number,sha:closed.head.sha});
             }
