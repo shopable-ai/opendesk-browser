@@ -470,7 +470,16 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const unsubscribeConnection = client.subscribeConnection?.(event=>{if(event.connected) recoverView();});
   client.ready.then(recoverView).catch(fail);
   refreshTabs().catch(fail); refreshScripts({silent: true}).catch(fail); update();
-  return {host, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
+  return {host, importDraft(sourceUtf8) {
+    if (disposed || editingBusy) throw {code:'E_BUSY',message:'编辑器正在保存或已经关闭，请稍后重新导入'};
+    if (typeof sourceUtf8 !== 'string' || !sourceUtf8.trim() || new TextEncoder().encode(sourceUtf8).length > 100000)
+      throw {code:'E_LIMIT',message:'导入草稿必须为非空 JavaScript，且不超过 100000 字节'};
+    currentRevision = undefined;
+    find('script-id').value = `import-${Date.now()}`;
+    find('script-revision').value = '';
+    find('script-source').value = sourceUtf8;
+    update(); display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
+  }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length,
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))}}), dispose() {
     if (disposed) return; disposed = true; dependencyPanel.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();

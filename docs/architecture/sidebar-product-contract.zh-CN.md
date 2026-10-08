@@ -13,8 +13,8 @@
 → 打开 Sidebar
 → Sidebar 显示 Current Page = A
 → 编辑或加载 JavaScript
-→ Save 生成明确 revision
-→ Run 冻结这一刻的页面与 revision
+→ 可选 Save 生成明确 revision；未保存草稿可直接运行
+→ Run 冻结这一刻的页面、编辑器源码与参数
 → 在真实点击手势内请求权限
 → 再次验证冻结目标
 → 进入既有 RunHost
@@ -50,7 +50,7 @@ Sidebar UI
 ├─ Program Revision: source / revision / contentHash
 └─ CurrentPageTarget: window / tab / main document
           ↓ Run click
-freeze candidate + saved revision
+freeze candidate + current draft source / explicit installed revision
           ↓ trusted permission request
 revalidate exact candidate
           ↓
@@ -86,7 +86,9 @@ Sidebar 只拥有 UI 与 CurrentPageTarget。不得新增第二套 JavaScript ex
 点击 Run 时同时冻结：
 
 - Current Page 的 windowId / tabId / frameId / documentId / URL / origin。
-- 明确保存的 script revision / contentHash。
+- 开发草稿的准确源码与后台计算的 sourceHash；已安装任务的明确 revision / contentHash。
+
+保存与运行彼此独立，运行中编辑或保存 C 不改变启动时草稿 B 的结果身份。早期提示词中的“先保存才能运行”仅适用于旧版入口，已被 R4 草稿准入合同替代；历史文件与原始回执保留。
 
 权限请求必须直接发生在真实 click gesture 内。权限完成后必须重新观察 Sidebar 所属 window 的 Current Page，并逐项比较冻结身份。如果 tab、document 或 URL 已变化，返回 `E_DOCUMENT_STALE`，要求用户重新点击 Run；不得改为运行新页面。
 
@@ -151,7 +153,7 @@ Controller 默认 Current Page 不代表自动安装 OpenDeskSDK。SDK 仍要求
 
 ## 六个关键测试故事
 
-- **A 普通运行**：A + Sidebar → Save → Run → 只有 A 被修改。
+- **A 普通运行**：A + Sidebar → 未保存草稿（也可先保存）→ Run → 只有 A 被修改。
 - **B 同 URL 干扰页**：A/B URL 相同，A active → Run → 只能操作 A。
 - **C 运行中切页**：Run A → 切 B → Current Page = B，同时 Running Target = A。
 - **D 准备阶段切页**：A 点击 Run → 权限/准备期间切 B → 本次 Run 以 `E_DOCUMENT_STALE` 失败。
@@ -167,7 +169,7 @@ Controller 默认 Current Page 不代表自动安装 OpenDeskSDK。SDK 仍要求
 - 新增第二套 target authority 吗？必须 NO。
 - 运行期间使用 dynamic active-tab target 吗？必须 NO。
 - Controller 与 SDK authorization 合并了吗？必须 NO。
-- Save / Run / Result 的关系改变了吗？必须 NO。
+- 草稿 Run、保存版本与历史 Result 彼此独立的 R4 关系改变了吗？必须 NO。
 
 ## Sidebar Web Implementation（2026-10-08）
 

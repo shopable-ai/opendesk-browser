@@ -1,0 +1,61 @@
+# OpenDesk Browser 续接：让我看见真实 Sidebar、重新跑测试、继续完成用户闭环
+
+请直接在 /Users/shopme/Documents/workspace/opendesk-browser 执行，默认中文。继承当前分支和未提交修改，不新建分支、不提交、不推送、不合并，不覆盖其他会话修改或 public-owner.json。先读实际 AGENTS.md 与相关模块约定；旧来源工程只读。不要只输出计划，不要等待我回复“继续”。
+
+一、先用我看得懂的话说明现状
+
+上一轮完成的是关键机制的代表验证和四项阻断修复，不是产品正式完成。历史基线为 main，HEAD 62f9ceca132f7355b6b66c23f4d38ea7da91292f；未提交源码属于候选身份，不能只凭 HEAD 判断一致。
+
+已修复：Worker 没有调用 async function main()；Driver 错误拒绝合法未保存草稿；broker 缺少已保存脚本列表路由；重开侧栏时运行历史顺序错误。已有真实证据覆盖草稿快照、页面读写、用户脚本、导航、权限拒绝、外部文档变化、错误/等待超时/停止、面板关闭及整浏览器重启恢复。页面 type/click 当前是普通 DOM 事件机制，不能当作浏览器可信输入通过。
+
+仍缺：我的任务／发现／开发三页签，以及 Task Candidate→正式验证→Available→固定版本任务运行、任务包安装闭环。旧报告 formalAcceptance=false；不能把组件测试或代表场景当成整个产品正式验收。
+
+只读取以下已有资料，核对其适用性，不重审全部历史：
+- docs/framework/testing-guide.md 的“当前入口”。
+- docs/framework/evidence/sidebar-key-mechanisms-20261008-01a11aa7/round.md。
+- 同目录 integrated/report.json 与 integrated/build-receipt.json。
+
+历史开发包 hash：51d48036d8ed6279cbd18a67a63fdbea67393a6949a1c9f4f475887b18af0b7d。先核对当前 sourceInputs、diff、实际包；不同源码/构建只能参考旧证据，不能拼成整体 PASS。保留旧报告，不直接运行会覆盖它的旧 check-evidence.mjs。中央生成 receipt 不是上一轮当前候选的唯一凭据，以独立保存的 receipt 为准。
+
+二、这次必须实际运行测试
+
+先输出一张短表：能力｜当前实现｜本次要验证什么｜明确通过条件｜执行入口。随后立即运行以下定向检查，保存本次日志并读取实际退出码及 pass/fail/skip：
+
+npm run check
+node --test tests/environment/sidebar-draft-runhost.test.mjs tests/environment/current-page-target.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/framework/k3-worker-context-entry.test.mjs tests/framework/k3-native-driver.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/run-host-recovery.test.mjs
+node --test --test-name-pattern='exact Worker' tests/framework/k5-package.test.mjs
+
+这些只是定向组件检查，不证明真实侧栏可用。检查当前 dist/development 是否对应源码；不一致时运行 npm run build:dev，把新 receipt 复制到本次独立证据目录，并保留既有历史 receipt。不要默认运行 npm test、双环境 verify、全量矩阵、1000 mixed、10 reconnect 或“两轮回归”。
+
+三、让我实际看到真实 Side Panel
+
+上一轮测试浏览器已清理，不能假设旧窗口、profile、端口或 session 还活着。复用 tests/framework/sidebar-native-session.mjs 与现有 launcher，创建本次独立证据目录和专用 CFT 配置，显示真实浏览器窗口，从扩展菜单打开真实 Side Panel。普通 tool.html 标签页、直接 Controller 调用和 DevTools 不能替代该路径。
+
+启动入口：
+SIDEBAR_EVIDENCE_DIR=docs/framework/evidence/<本次唯一目录> SIDEBAR_SAME_PROFILE_RESTART=1 node tests/framework/sidebar-native-session.mjs start dist/development
+
+启动终端保持 stdin 开放；使用 exec 工具时设置 tty:true。打开真实面板后按指南运行 arm 和 observe；它们只观察，不替插件完成操作。编辑、Save、Run、Stop、授权和面板开关使用原生输入。需要 USER_SCRIPT 时核对 Chrome 的“允许运行用户脚本”开关。
+
+实际演示：
+1. 保存源码 A；编辑为未保存 B，参数 {"value":7}，从真实 Sidebar 点击运行。
+2. B 使用现有 async function main()、page/params 全局上下文，等待受控网页 Release，随后输入→点击→等待→读取结果。
+3. 等待期间把编辑器改成 C、参数改成99，切到第二个同 URL 页面，再回原目标页面原生点击 Release。不要因操作拖过实际运行时限而误判。
+4. 独立观察必须证明：原页面发生预期变化，第二页没有对应变化；对应 runId/resultId 返回 B/7；仍只有已保存的 A 版本；运行资源已释放。不要只看 success:true。
+5. 展示侧栏结果和目标网页截图，明确告诉我“这条路径现在通过了什么”。截图保存到本次目录，并在回复中用可见图片展示；清理后截图仍能复核。
+6. 定向复验抛错、Stop、关闭/重开面板的终态。复验首次失败，不盲目重放未知副作用。持久化恢复涉及修改或候选身份变化时，再做同 profile 整浏览器重启：证明旧 PID/Worker 已结束、新实例恢复、扩展身份和包一致，并从侧栏再次运行。旧报告只读回不算本次重启测试。
+
+四、发现阻断立即修复，再继续剩余功能
+
+公共前置条件失败先修它，不继续派发依赖测试。确定性失败没有代码、环境或观察方法变化时不重复跑。保留首次失败及修复后结果。尽量用已有 runner/夹具，不重建测试框架、不新增依赖。
+
+当前路径通过后，继续原目标中真实缺口：先核对 Task Candidate→验证→Available→固定版本任务运行的实际实现与消费者，再补最小必要闭环，并据实际模块约定接通三页签及安装入口。普通用户运行必须绑定已验证版本；草稿或新版本不能替换既有任务或在途运行；未验证/失败候选不得准入。不得用假任务、直接改数据库或测试专用执行器冒充产品闭环。设计中的实质分歧才提出一个具体问题，同时继续独立工作。
+
+五、进度与完成判断
+
+约每60秒用简短中文说明：已经得到什么实际结果，当前阻断，下一步在证明什么。不要用测试数量或百分比代表产品进度。
+
+最终给一张表：能力｜实际场景｜本次通过/失败/阻塞/未执行｜新证据｜剩余缺口。另说明实际修改文件、同一候选身份、未重跑内容及理由、主要耗时、下一项具体工作。
+
+“本次选定测试完成”必须同时具备：命令确实结束且结果已读；真实页面变化和返回值与同一次运行对应；必要终态/清理证据齐全；证据绑定同一源码与构建；失败没有被重试覆盖。存在未执行项就明确写出，不能称全产品测试完成。
+
+保留正式合同603+19、独立B05、1000 mixed/10 reconnect/两轮禁插件、六项资源baseline、独立F3、ZIP安装一致性；本轮代表验证不回填正式合同 PASS。只有候选稳定并进入正式验收阶段才执行必要长测试。结束时清理自己的测试资源、保留截图和日志，不影响日常浏览器。只更新现有测试指南当前入口及一份简明本轮记录。

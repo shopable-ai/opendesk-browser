@@ -32,7 +32,7 @@ const outputRoot = resolve('dist', mode);
 // Hash the actual WXT output, never source files or a previous package receipt.
 await writeFile(resolve(outputRoot, SDK_RESOURCE_MANIFEST), JSON.stringify(await createSdkResourceManifest(outputRoot), null, 2) + '\n');
 const report = await verifyPackage(outputRoot);
-const evidence = 'docs/framework/evidence/wxt/builds';
+const evidence = process.env.OPENDESK_BUILD_EVIDENCE_DIR || 'docs/framework/evidence/wxt/builds';
 await mkdir(evidence, {recursive: true});
 await writeFile(`${evidence}/build-${mode}.json`, JSON.stringify({mode, builder: 'WXT0.21.4/Vite7.3.6/Rollup', status: 'passed', cwd: process.cwd(), sourceInputs: inputsBefore, sourceDriftDuringBuild, report}, null, 2) + '\n');
 console.log(JSON.stringify({mode, builder: 'wxt', status: 'passed', packageHash: report.packageHash, assets: report.files.length}));
