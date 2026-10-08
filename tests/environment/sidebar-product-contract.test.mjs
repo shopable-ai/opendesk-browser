@@ -52,7 +52,7 @@ test('ordinary Sidebar sections precede folded engineering tools and preserve ev
   const html=await read('src/ui/tool.html'), css=await read('src/ui/tool-shell.css');
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);
   assert.equal(new Set(ids).size,ids.length);
-  for(const id of ['current-page-title','script-title','task-title','result-title','tool-diagnostics','script-advanced'])assert(ids.includes(id));
+  for(const id of ['script-current-page-title','script-title','task-title','result-title','tool-diagnostics','script-advanced','tab-discover','workbench-local-discover','task-selected-workspace','discover-dock'])assert(ids.includes(id));
   const advanced=html.slice(html.indexOf('<details id="tool-diagnostics">'));
   for(const id of ['sdk-install','check-source','check-target','scraping-panel'])assert(advanced.includes(`id="${id}"`));
   assert.match(css,/min-width:0/);assert.match(css,/overflow-wrap:anywhere/);
