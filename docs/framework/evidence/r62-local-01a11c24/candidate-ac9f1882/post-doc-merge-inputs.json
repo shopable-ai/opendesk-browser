@@ -1,0 +1,21 @@
+{
+  "checkedUtc": "2026-10-08T16:24:01.207528+00:00",
+  "verifiedBuildHead": "ac9f188203bf65fbf42312f5ef44aef4e1fd1ee4",
+  "integratedPrHead": "d061d1394c3f11bceb5df7127c5c287f1429f4aa",
+  "newUpstreamFiles": [
+    "docs/architecture/browser-framework/plugin-capability-architecture-r8-adr.zh-CN.md",
+    "docs/product/browser-automation-r8-roadmap.zh-CN.md"
+  ],
+  "sourceIdentityChecks": {
+    "production": {
+      "sourceInputCount": 130,
+      "drift": [],
+      "packageHash": "729c2bfe9b572e1d58d5e1f147e8d99d7f6118bbe6e3fdd7009429b5e05b12b7"
+    },
+    "development": {
+      "sourceInputCount": 130,
+      "drift": [],
+      "packageHash": "1ab55f14fd63bcc34899dc58ad92ff006aa81cc9a9fa54fa62626876c145bb6b"
+    }
+  }
+}
