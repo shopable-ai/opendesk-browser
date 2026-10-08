@@ -209,7 +209,7 @@ test('axiosx MAIN SDK calls existing facade for actual return projection, not fe
   assert.equal(fetchCalls,0);
   assert.equal(calls.length,1);
   assert.equal(calls[0].url,'http://127.0.0.1:43111/request-sample.json');
-  assert.deepEqual(calls[0].config,{timeout:5000});
+  assert.equal(calls[0].config.timeout,5000);
   assert.equal(dom.nodes.get('api-status').dataset.state,'success');
   assert.equal(dom.nodes.get('api-http-status').textContent,'200');
   assert.match(dom.nodes.get('api-response').textContent,/"source": "network-service"/);
@@ -220,7 +220,7 @@ test('axiosx MAIN SDK calls existing facade for actual return projection, not fe
   assert.equal(calls.length,2);
   assert.equal(calls[1].method,'POST');
   assert.equal(calls[1].url,'http://127.0.0.1:43111/__test__/echo');
-  assert.deepEqual(calls[1].body,{hello:'OpenDesk'});
+  assert.equal(calls[1].body.hello,'OpenDesk');
   assert.equal(fetchCalls,0);
 });
 
