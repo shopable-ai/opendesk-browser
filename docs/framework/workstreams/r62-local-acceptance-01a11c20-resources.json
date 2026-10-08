@@ -35,6 +35,8 @@
   "evidenceDirectory": "docs/framework/evidence/r62-local-acceptance-01a11c20/",
   "note": "No other workstream may use this profile/socket/manifest as its acceptance resource or reuse its native PASS. Updated to released only after actual process exit and preservation.",
   "nativeSocketState": "absent after Options disabled",
-  "nativeManifestState": "installed manifest left intact, no active connection; matching per-profile copies confined to preserved test profiles",
-  "ownedHttpState": "terminated own Python PID89289; port43220 released"
+  "nativeManifestState": "removed through existing CLI cleanup only after exact own extension ID and absent socket confirmed",
+  "ownedHttpState": "terminated own Python PID89289; port43220 released",
+  "nativeManifestSha256BeforeRemoval": "682ee4eee8f456c72e3f8f8cc15215f06a95930e96364de2d6e6f30883625d5e",
+  "privateSetupBackup": "artifacts/r62-native-01a11c20/private-install-before-cleanup (0700, local only, credentials not committed)"
 }
