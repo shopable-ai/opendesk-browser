@@ -1,6 +1,6 @@
 # OpenDesk Browser · 一页看懂运行架构（D2）
 
-> 更新：2026-10-08。这里只说明**真实源码已接线的能力**，不是功能愿景或 Chrome 验收通过声明。详细技术约束见 [D1 ADR](userscript-dependencies-d1-adr.zh-CN.md)。
+> 更新：2026-10-08。这里只说明**真实源码已接线的能力**，不是功能愿景或 Chrome 验收通过声明。**Sidebar 操作与 UI 版本约束见[双形态脚本操作指南](../../product/program-development-dual-format-and-sidebar.zh-CN.md)，保留 R6 真实 HTML 的三个页签和原有按钮位置**。详细技术约束见 [D1 ADR](userscript-dependencies-d1-adr.zh-CN.md)。
 
 ## 1. 先记住三个概念
 

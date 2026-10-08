@@ -97,8 +97,6 @@
     <label for="script-source" class="visually-hidden">JavaScript 编辑器，草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
-    <div class="developer-import-row"><button type="button" id="script-import-button">打开本地 JS</button><label for="script-import-file" class="visually-hidden">导入已编译 JS 或单文件脚本（不会自动保存或运行）</label><input id="script-import-file" type="file" accept=".js,text/javascript,application/javascript" hidden></div>
-    <p id="page-preview-inline-status" role="status" hidden></p>
     <details class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
@@ -145,6 +143,7 @@
         <label><input type="checkbox" id="page-preview-jquery"> 加载扩展内固定 jQuery 3.7.1</label>
         <p class="hint">仅用于没有 @require 的 async main 脚本；新依赖请使用上面的声明与锁定流程。原生迁移验收完成前保留此入口。</p>
       </details>
+      <button id="page-preview-run" type="button" disabled>在当前网页试运行 DOM 脚本</button>
       <p id="page-preview-status" role="status">需先在扩展详情中允许用户脚本，并授权当前网站。</p>
       <pre id="page-preview-result" aria-label="即时页面脚本结果">尚未运行</pre>
     </details>
@@ -216,7 +215,7 @@
     <div class="dock-buttons"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
   </div>
   <div id="develop-dock" class="dock-actions" hidden>
-    <div class="dock-buttons"><button id="script-run" disabled title="通过 Controller / ChromePage 执行当前草稿">运行自动化</button><button id="page-preview-run" type="button" disabled title="通过 USER_SCRIPT 执行当前网页 JavaScript">运行网页 JS</button><button id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
+    <div class="dock-buttons"><button id="script-run" disabled>运行草稿</button><button id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
   </div>
 </footer>
 <script src="tool-shell.js"></script>
