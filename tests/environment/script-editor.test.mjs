@@ -242,6 +242,10 @@ test('DOM preview binds frozen source, dependency choice and exact current docum
   assert.equal(f.permissions.length,1,'only explicit native user gesture requests website permission');
   f.find('script-source').value='async function main(){return "modified";}';
   f.find('page-preview-jquery').checked=false;
+  assert.equal(f.find('page-preview-run').disabled,true,'no overlapping user-script preview while permission is pending');
+  assert.equal(f.find('script-run').disabled,true,'do not start Controller while page preview is pending');
+  f.find('script-run').fire('click',{isTrusted:true});
+  assert.equal(f.starts.length,0,'trusted click must not start Controller while preview is pending');
   pending.resolve(true);
   await tick();await tick();
   assert.equal(f.previews.length,1);
@@ -264,4 +268,19 @@ test('DOM preview refuses to inject when the active document changes while permi
   await tick();await tick();
   assert.equal(f.previews.length,0,'stale document cannot be sent to the Broker');
   assert.match(f.find('page-preview-status').textContent,/E_DOCUMENT_STALE/);
+});
+
+test('Developer Stop cannot cancel the formal Task or another view using the shared RunHost',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const selected=f.target.capture();
+  const claim=await f.editor.host.start({source:{kind:'draft',sourceUtf8:'return "other view";'},
+    params:{value:1},target:{mode:'borrowed',tabId:selected.tabId,frameId:0,
+      documentId:selected.documentId,expectedUrl:selected.url,expectedWindowId:selected.windowId}});
+  assert.equal(typeof claim.runId,'string');
+  assert.equal(f.find('script-stop').disabled,true,'this editor has not admitted that run');
+  f.find('script-stop').fire('click',{isTrusted:true});
+  await tick();
+  assert.equal(f.traces.some(row=>Array.isArray(row)&&row[0]==='durable-stop'),false);
+  assert.equal(f.editor.host.currentRun,claim.runId,'foreign run must remain active');
+  await f.finish({ok:true});
 });
