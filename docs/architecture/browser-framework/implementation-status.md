@@ -1,5 +1,31 @@
 # R3 当前实施状态（人工交接，不代替机器账本）
 
+## 2026-10-08 后续主干复核（覆盖下方早期快照的当前状态判断）
+
+> 以下状态按 GitHub 主干实际源码及 CI 核对；下方原始 R3 分支记录完整保留作为历史快照。主干已发生多次集成，下文早期“Candidate 缺失 / async main 缺失 / PR #4 未合并 / R3 未合并”等描述不再适用于最新主干。不要据此重复实施。
+
+| 产品链环节 | 最新源码事实 | 证据与未关闭事项 |
+|---|---|---|
+| 开发草稿与 Controller | `src/ui/script-editor.js` 草稿无需保存可运行；`src/scripting/sandbox/worker-runtime.js` 可执行 `async function main()`；共用 RunHost/Authority | Chrome 原生会话、Stop、重启闭环未在本轮重验 |
+| Task Candidate → Verification → Available | `src/platform/tasks/contract.js` 与 `service.js` 已有不可变任务包、真实运行证据与 Available 检查；安装与 paramsSchema 已接入现有 Broker | Task v1 为单 HTTP(S) origin 的 Controller Task；IndexedDB v2 的 `frameworkKV` 承载任务资产，不应将此前的 v3 设想再误判为必须重建 |
+| Sidebar 用户工作台 | `src/ui/task-workbench.js`、`tool.html`：已安装任务卡片、可信表单、独立全页发现目录、分类搜索、运行记录、候选安装 | UI 与 SDK / Chrome 原生完整用户流程仍须在固定候选验收 |
+| Page Program 底层 | `src/scripting/user-scripts/page-program-package.js` 已可编译 USER_SCRIPT 注册描述，含受信 Available 回执合同；`src/vendor/jquery-3.7.1.min.js` 带固定哈希 | **尚未接入**正式受信 `Available + Installed + Enabled` 到 `chrome.userScripts.register/unregister` 的持久 URL 匹配链 |
+| Page Script 即时试运行 | `src/scripting/user-scripts/preview.js` 通过既有 Broker、精确 documentId、用户站点授权调用原生 `userScripts.execute`；Sidebar 可选择固定 jQuery 3.7.1 | 2026-10-08 提交 c313a6b、3d24e82、2c8bf77；CI/Node 是组件证据，**Chrome 用户脚本开关、真实 DOM 效果与 MAIN 引用保持仍 NOT_TESTED** |
+| 原生 / ZIP 正式交付 | R3 与 Sidebar 定向 CI、生产/开发构建可提供构建级证据 | **NATIVE_CHROME_VERIFIED = NOT_TESTED；FINAL_FRAMEWORK_ACCEPTED = NO**。不能用 Linux Node/WXT 取代真实 Chrome 安装与浏览器重启 |
+
+### 最新执行优先级
+
+1. 在固定候选下，用真实 Chrome 138+ 打开扩展详情「允许用户脚本」，验收开发页当前文档一次性 `async main` 的 DOM 效果、精准 documentId、错误、撤权和固定 jQuery MAIN 隔离。不得人工伪造 native ack。
+2. 为页面脚本建立**正式资产与准入桥接**：拓展经验证的 Page Program 类型及依赖锁，通过现有 Authority 的真实 Available + Installed + Enabled 证明调用 `chrome.userScripts.register/unregister`，完善重启/升级对账。不得将普通 Controller Task 的 `entryFormat='async-main'` 偷换为页面自动脚本或通过 UI 传入假证明。
+3. 原生验收 reload once / nonmatch zero / disable next-document zero、脚本匹配授权、第三方库先后加载、页面 SPA / 关闭重启与安全边界；完成后才按机器账本与同版本 ZIP 开展最终 F3 验收。
+
+本阶段决策详情：[R3 Page Script 预览](page-script-preview-20261008.zh-CN.md)、[原 R3 设计](script-runtime-and-dependencies.md)。
+
+---
+
+## 以下为先前冻结的 R3 分支历史快照（保留原文，不再用于判定最新主干完成度）
+
+
 > 记录日：2026-10-08；源 main：`7bf72497c14d97a2b5cdedd642c4599c46c1983f`；工作分支：`agent/r3-page-script-dependencies-20261008-1533`；提交 / PR 见实际 GitHub，**未合 main**。
 > 实际 Mac 工作区、工作区脏文件、local dist/ZIP、CFT profile、运行中 Writer 进程：**NOT_ACCESSIBLE**。旧 `public-owner.json` 仍记录 `active-implementation`（历史身份不得更改）；`AGENTS.md` 已在 main 允许独立分支并行写，禁止共享 main 和 native 环境。
 > 证据等级：`SOURCE_CONFIRMED` 与新增纯模块的局部 Node 测试。只读的 Legacy 审计来自完整附件；**BUILD_VERIFIED/CHROME_TESTED/USER_FLOW_VERIFIED 均 NOT_TESTED**。
