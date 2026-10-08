@@ -1,0 +1,21 @@
+{
+  "threadId": "01a11c24-7b4a-73c3-8716-d02256d1a154",
+  "resourceState": "released",
+  "extensionId": "ommbmilbbgcbffacjphkonfcagdhbigg",
+  "nativeManifest": "/Users/shopme/Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+  "nativeSocket": "/Users/shopme/.opendesk-browser/native-agent-r1/agent.sock",
+  "profile": null,
+  "ownedHttpPort": null,
+  "updatedUtc": "2026-10-08T16:51:45.636494+00:00",
+  "priorOwnerReleased": "native-ac9/prior-owner-release.json",
+  "priorInstallation": "Already removed externally before any mutation; empty backup directory contains no credentials",
+  "chromePid": null,
+  "cdpPort": 59429,
+  "nativeManifestProfileCopy": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-bgujiawj/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+  "browserBundleId": "com.google.chrome.for.testing.opendesk.r62.01a11c24",
+  "profileSeed": "/private/tmp/opendesk-r62-profile-seed-01a11c24",
+  "ownedHttpState": "stopped owned session 57139; port43227 closed",
+  "nativeSocketAbsent": true,
+  "nativeManifestState": "Own installed manifest retained inactive for user-requested continuation; no Native PASS",
+  "ownerContinuation": "New chat must create its own write worktree; profile seed is diagnostic evidence"
+}

@@ -17,7 +17,7 @@ test('one ordinary HTML page exposes unique, stable automation targets',async()=
     'request-timeout','request-cancel','async-status','async-status-text',
     'async-result','demo-form','name','submit','search-form','keyword',
     'search-submit','search-status','search-count','results','reset-all',
-    'api-url','api-preset','api-send','api-cancel','api-status',
+    'api-url','api-send','api-status',
     'api-status-text','api-http-status','api-duration','api-content-type',
     'api-response','api-error'
   ]) assert(ids.includes(id),`must provide #${id}`);
@@ -67,10 +67,17 @@ test('async scene sends only local fetches and distinguishes loading, 404, abort
 
 test('explicit HTTP GET controls expose safe semantics and preserve offline-first operation',async()=>{
   const html=await load();
-  assert.match(html,/<label for="api-url">请求 URL<\/label>/);
+  assert.match(html,/<label class="visually-hidden" for="api-url">请求 URL<\/label>/);
   assert.match(html,/id="api-url"[^>]*value="\.\/demo-form\.html\?test-response=1"/);
-  assert.match(html,/https:\/\/api\.ipify\.org\?format=json/);
   assert.match(html,/id="api-response"[^>]*data-testid="api-response"/);
+  const section=html.match(/<section class="unit" id="lab-api"[\s\S]*?<\/section>/)?.[0];
+  assert.ok(section,'HTTP section exists');
+  assert.match(section,/class="api-command"/);
+  assert.match(section,/id="api-debug-data" hidden aria-hidden="true"/);
+  assert.match(section,/Chrome DevTools/);
+  assert.match(section,/网页 fetch/);
+  assert.doesNotMatch(section,/id="api-preset"|id="api-cancel"|<select\b|<textarea\b|<dl\b/);
+  assert.equal([...section.matchAll(/<button\b/g)].length,1,'HTTP section has only one action');
   assert.match(html,/credentials:'omit'/);
   assert.match(html,/method:'GET'/);
   assert.match(html,/mode:'cors'/);
@@ -92,13 +99,15 @@ function createApiDomHarness(html, handleFetch) {
       this.disabled=false;
       this.dataset={state:'idle'};
       this.listeners=new Map();
+      this.children=[];
     }
     addEventListener(type, listener) {
       if (!this.listeners.has(type)) this.listeners.set(type,[]);
       this.listeners.get(type).push(listener);
     }
     reset() {}
-    replaceChildren() { this.textContent=''; }
+    replaceChildren(...items) { this.textContent=''; this.children=items; }
+    append(item) { this.children.push(item); }
     setAttribute(name, value) { this[name]=String(value); }
     dispatch(type) {
       return Promise.all((this.listeners.get(type)||[]).map(listener=>listener({
@@ -112,7 +121,7 @@ function createApiDomHarness(html, handleFetch) {
   const initialApiUrl=html.match(/<input id="api-url"[^>]*value="([^"]+)"/)?.[1];
   assert.ok(initialApiUrl);
   nodes.get('api-url').value=initialApiUrl;
-  nodes.get('api-preset').value=initialApiUrl;
+  nodes.get('api-debug-data').hidden=true;
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.equal(scripts.length,1);
   new Script(scripts[0][1]).runInNewContext({
@@ -126,6 +135,68 @@ function createApiDomHarness(html, handleFetch) {
   },{timeout:2000});
   return {nodes, dispatch:(id,type)=>nodes.get(id).dispatch(type)};
 }
+
+
+test('the single canonical page exposes seven navigable groups and honest Locator fixtures',async()=>{
+  const html=await load();
+  for(const id of ['lab-text','lab-click','lab-async','lab-form','lab-search','lab-api','lab-locator']) {
+    assert.match(html,new RegExp('id="'+id+'"'));
+    assert.match(html,new RegExp('href="#'+id+'"'));
+  }
+  for(const id of ['locator-confirm-a','locator-confirm-b','locator-readonly-field',
+    'locator-disabled-button','locator-aria-disabled','locator-cover-shield',
+    'locator-covered-target','locator-cover-toggle','locator-cover-count',
+    'locator-late-launch','locator-late-result','locator-late-status']) {
+    assert.match(html,new RegExp('id="'+id+'"'));
+  }
+  assert.match(html,/id="locator-confirm-a" data-testid="locator-confirm-a"/);
+  assert.match(html,/id="locator-confirm-b" data-testid="locator-confirm-b"/);
+  assert.match(html,/id="locator-readonly-field"[^>]*readonly>/);
+  assert.match(html,/id="locator-disabled-button"[^>]*disabled>/);
+  assert.match(html,/id="locator-aria-disabled"[^>]*aria-disabled="true"/);
+  assert.match(html,/id="locator-cover-shield"/);
+  assert.match(html,/button\.dataset\.testid = 'locator-late-target'/);
+  assert.match(html,/resetLocatorPlayground\(\);/);
+  assert.match(html,/真实 DOM/);
+  assert.doesNotMatch(html,/测试全部通过|自动验收 PASS/);
+});
+
+test('Locator fixture actions, late insertion, and reset mutate only observable DOM',async()=>{
+  const dom=createApiDomHarness(await load(),()=>{throw new Error('unexpected fetch');});
+  await dom.dispatch('locator-confirm-a','click');
+  assert.equal(dom.nodes.get('locator-duplicate-result').textContent,'实际点击：分区 A');
+  await dom.dispatch('locator-confirm-b','click');
+  assert.equal(dom.nodes.get('locator-duplicate-result').textContent,'实际点击：分区 B');
+
+  const cover=dom.nodes.get('locator-cover-shield');
+  assert.equal(cover.hidden,false);
+  await dom.dispatch('locator-cover-toggle','click');
+  assert.equal(cover.hidden,true);
+  assert.equal(dom.nodes.get('locator-cover-toggle')['aria-pressed'],'true');
+  // FakeNode dispatch cannot emulate browser hit-testing. Native Chrome must separately verify occlusion.
+  await dom.dispatch('locator-covered-target','click');
+  assert.equal(dom.nodes.get('locator-cover-count').textContent,'1');
+
+  await dom.dispatch('locator-late-launch','click');
+  assert.equal(dom.nodes.get('locator-late-status').dataset.state,'loading');
+  assert.equal(dom.nodes.get('locator-late-result').children.length,0);
+  await new Promise(resolve=>setTimeout(resolve,760));
+  const targets=dom.nodes.get('locator-late-result').children;
+  assert.equal(targets.length,1);
+  assert.equal(targets[0].id,'locator-late-target');
+  assert.equal(targets[0].dataset.testid,'locator-late-target');
+  assert.equal(dom.nodes.get('locator-late-status').dataset.state,'visible');
+
+  await dom.dispatch('locator-late-launch','click');
+  await dom.dispatch('reset-all','click');
+  assert.equal(dom.nodes.get('locator-late-status').dataset.state,'idle');
+  assert.equal(dom.nodes.get('locator-late-result').children.length,0);
+  assert.equal(dom.nodes.get('locator-cover-count').textContent,'0');
+  assert.equal(cover.hidden,false);
+  await new Promise(resolve=>setTimeout(resolve,760));
+  assert.equal(dom.nodes.get('locator-late-result').children.length,0,
+    'cancelled delayed insertion must not resurrect after reset');
+});
 
 test('HTTP panel sends no request until click and shows real status/content without HTML injection',async()=>{
   const seen=[];
@@ -145,8 +216,8 @@ test('HTTP panel sends no request until click and shows real status/content with
   assert.equal(dom.nodes.get('api-status').dataset.state,'success');
   assert.equal(dom.nodes.get('api-http-status').textContent,'200');
   assert.equal(dom.nodes.get('api-response').textContent,'<h1>HTTP 200</h1>');
-  assert.equal(dom.nodes.get('api-response').hidden,false);
-  assert.equal(dom.nodes.get('api-cancel').disabled,true);
+  assert.equal(dom.nodes.get('api-debug-data').hidden,true);
+  assert.equal(dom.nodes.get('api-send').disabled,false);
 });
 
 test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies',async()=>{
@@ -157,14 +228,20 @@ test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late repl
   assert.equal(missing.nodes.get('api-http-status').textContent,'404');
   assert.match(missing.nodes.get('api-error').textContent,/HTTP 404/);
 
-  let deliver;
-  const cancelled=createApiDomHarness(html,()=>new Promise(resolve=>{deliver=resolve;}));
-  const running=cancelled.dispatch('api-send','click');
-  await cancelled.dispatch('api-cancel','click');
+  let deliver, signal;
+  const changed=createApiDomHarness(html,(_url,options)=>{
+    signal=options.signal;
+    return new Promise(resolve=>{deliver=resolve;});
+  });
+  const running=changed.dispatch('api-send','click');
+  changed.nodes.get('api-url').value='./changed.json';
+  await changed.dispatch('api-url','input');
+  assert.equal(signal.aborted,true,'changing URL aborts in-flight request');
   deliver(new Response('late reply',{status:200}));
   await running;
-  assert.equal(cancelled.nodes.get('api-status').dataset.state,'cancelled');
-  assert.equal(cancelled.nodes.get('api-response').textContent,'');
+  assert.equal(changed.nodes.get('api-status').dataset.state,'idle');
+  assert.equal(changed.nodes.get('api-response').textContent,'');
+  assert.equal(changed.nodes.get('api-send').disabled,false);
 
   let deliverReset;
   const reset=createApiDomHarness(html,()=>new Promise(resolve=>{deliverReset=resolve;}));
@@ -174,6 +251,21 @@ test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late repl
   await inFlight;
   assert.equal(reset.nodes.get('api-status').dataset.state,'idle');
   assert.equal(reset.nodes.get('api-response').textContent,'');
+});
+
+test('minimal HTTP UI rejects invalid URLs without sending requests',async()=>{
+  let requests=0;
+  const dom=createApiDomHarness(await load(),()=>{requests++;throw new Error('must not fetch');});
+  dom.nodes.get('api-url').value='javascript:alert(1)';
+  await dom.dispatch('api-send','click');
+  assert.equal(requests,0);
+  assert.equal(dom.nodes.get('api-status').dataset.state,'error');
+  assert.match(dom.nodes.get('api-error').textContent,/HTTP\(S\)/);
+  dom.nodes.get('api-url').value='https://user:secret@example.com/data';
+  await dom.dispatch('api-send','click');
+  assert.equal(requests,0,'credential-bearing URL must be rejected');
+  assert.equal(dom.nodes.get('api-status').dataset.state,'error');
+  assert.equal(dom.nodes.get('api-debug-data').hidden,true);
 });
 
 test('inline JavaScript parses without a third-party runtime or external resources',async()=>{
@@ -196,7 +288,7 @@ test('manual browser testing has exactly one canonical HTML and no obsolete adve
     'examples/tasks must not accumulate duplicate manual browser pages');
   for(const [name,content] of [['guide',guide],['root',root],['agents',agents]]) {
     assert.match(content,/http:\/\/127\.0\.0\.1:43111\/demo-form\.html/,name+' must publish one stable demo URL');
-    assert.doesNotMatch(content,/http:\/\/127\.0\.0\.1:\d+\/fixture\b/,name+' must not advertise a legacy temporary fixture URL');
+    assert.doesNotMatch(content,/http:\/\/127\.0\.0\.1:\d+\/(?:fixture|next)\b/,name+' must not advertise legacy temporary fixture/next URLs');
   }
   assert.match(root,/python3 -m http\.server 43111 --bind 127\.0\.0\.1 --directory examples\/tasks/);
 });

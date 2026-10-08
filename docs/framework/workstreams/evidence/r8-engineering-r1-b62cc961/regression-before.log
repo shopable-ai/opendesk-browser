@@ -1,0 +1,107 @@
+✔ pasting @require only inspects; trusted acquisition requests permission synchronously and full-hash approval unlocks unsaved edits (24.75861ms)
+✔ changing declarations clears an old lock and a late old review cannot replace the current source or become approvable (3.082115ms)
+✔ approved cached bytes can be locked for explicitly selected classic mode without a CDN permission prompt (2.514289ms)
+✔ permission refusal stops acquisition and local files preserve their original bytes without a CDN request (2.751999ms)
+✔ add dependency edits only the true metadata block, leaves examples intact and refuses to hide an incomplete header (3.73775ms)
+✔ closing or changing source while permission/file reading is pending cancels acquisition and old approval handlers (4.73716ms)
+✔ review freezes dependency source selectors and lock status does not claim cache verification (2.408704ms)
+✖ a late dependency inspection cannot replace the admission of current metadata with the old source policy (2.005611ms)
+✖ repairing metadata during inspection uses current admission and retains a dependency-only lock (2.379731ms)
+✖ a newly unsupported policy cancels acquisition after the permission await even when dependencies are unchanged (1.70596ms)
+✖ approval revalidates current source even when an importer did not dispatch an input event (1.624109ms)
+✖ declared antifeatures remain visible as untrusted plain text through inspection and source edits (6.114137ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 7
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 148.695188
+
+✖ failing tests:
+
+test at tests/environment/page-dependencies-ui.test.mjs:229:1
+✖ a late dependency inspection cannot replace the admission of current metadata with the old source policy (2.005611ms)
+  AssertionError [ERR_ASSERTION]: @grant GM_getValue remains blocked after old report
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/page-dependencies-ui.test.mjs:237:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'W_USER_SCRIPT_ISOLATION：本模式始终使用隔离 USER_SCRIPT；@grant none 不会切换到网页 MAIN，也不提供 unsafeWindow 或 GM API。\nW_RUN_AT_DEFAULT：未声明 @run-at，正式页面合同按 document-idle 解释。\nW_PREVIEW_TIMING：这是当前主文档的即时调试；不会重放 @run-at 时机，也不会安装自动运行。',
+    expected: /E_/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/environment/page-dependencies-ui.test.mjs:245:1
+✖ repairing metadata during inspection uses current admission and retains a dependency-only lock (2.379731ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /E_GRANT_UNSUPPORTED/. Input:
+  
+  'E_GRANT_UNSUPPORTED：脚本声明了尚未实现的 GM 或宿主权限，可以编辑，但不能运行。\n' +
+    'W_USER_SCRIPT_ISOLATION：本模式始终使用隔离 USER_SCRIPT；@grant none 不会切换到网页 MAIN，也不提供 unsafeWindow 或 GM API。\n' +
+    'W_RUN_AT_DEFAULT：未声明 @run-at，正式页面合同按 document-idle 解释。\n' +
+    'W_PREVIEW_TIMING：这是当前主文档的即时调试；不会重放 @run-at 时机，也不会安装自动运行。'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/page-dependencies-ui.test.mjs:250:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'E_GRANT_UNSUPPORTED：脚本声明了尚未实现的 GM 或宿主权限，可以编辑，但不能运行。\nW_USER_SCRIPT_ISOLATION：本模式始终使用隔离 USER_SCRIPT；@grant none 不会切换到网页 MAIN，也不提供 unsafeWindow 或 GM API。\nW_RUN_AT_DEFAULT：未声明 @run-at，正式页面合同按 document-idle 解释。\nW_PREVIEW_TIMING：这是当前主文档的即时调试；不会重放 @run-at 时机，也不会安装自动运行。',
+    expected: /E_GRANT_UNSUPPORTED/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at tests/environment/page-dependencies-ui.test.mjs:256:1
+✖ a newly unsupported policy cancels acquisition after the permission await even when dependencies are unchanged (1.70596ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/page-dependencies-ui.test.mjs:261:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/page-dependencies-ui.test.mjs:266:1
+✖ approval revalidates current source even when an importer did not dispatch an input event (1.624109ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/page-dependencies-ui.test.mjs:274:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/page-dependencies-ui.test.mjs:279:1
+✖ declared antifeatures remain visible as untrusted plain text through inspection and source edits (6.114137ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(f.get('page-dependency-warnings').textContent.includes(disclosure))
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/b62cc961ca59/opendesk-browser/tests/environment/page-dependencies-ui.test.mjs:283:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

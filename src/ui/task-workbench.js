@@ -2,6 +2,7 @@ import {permissionPattern} from '../environment.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {createTaskPackage, validateTaskParams} from '../platform/tasks/contract.js';
 import {digestUtf8} from '../platform/protocol.js';
+import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
 const terminal=new Set(['completed','failed','stopped','interrupted']);
@@ -9,8 +10,9 @@ const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正�
 const textValue=value=>value===undefined?'undefined':JSON.stringify(value,null,2);
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
-  document:doc=globalThis.document,importDraft}) {
+  document:doc=globalThis.document,importDraft,executionSource}) {
   const get=id=>doc.getElementById(id);
+  const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
@@ -522,7 +524,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const captured=currentPageTarget.capture(); // Freeze site before first await.
     const saved=await client.controller.getControllerScript({scriptId:id,revision});
     if(get('script-id').value.trim()!==id || Number(get('script-revision').value)!==revision ||
-       saved.sourceUtf8!==get('script-source').value)
+      saved.sourceUtf8!==editorSource())
       throw {code:'E_REVISION',message:'脚本版本或编辑内容已变化，请重新确认并保存'};
     const manifest={format:'opendesk.task.v1',taskId:get('task-dev-id').value.trim(),
       version:get('task-dev-version').value.trim(),title:get('task-dev-title').value.trim(),
@@ -544,11 +546,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // Capture the File first, then allow the same file to be selected again
     // after either a successful import or a rejected/failed handoff.
     get('task-package-file').value='';
-    if(file.size>100000)throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
+    if(file.size>PROGRAM_DRAFT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
     const sourceUtf8=await file.text();
-    if(file.name.toLowerCase().endsWith('.js')) {
+    const parsed=file.name.toLowerCase().endsWith('.js') ? null : JSON.parse(sourceUtf8);
+    const project=parsed?.format===PROGRAM_DRAFT_FORMAT ? await validateProgramDraft(parsed) : null;
+    if(!project && file.size>100000)throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
+    if(project || file.name.toLowerCase().endsWith('.js')) {
+      const draft=project || sourceUtf8;
       if(catalogSurface) {
-        const response=await api.runtime.sendMessage({protocol:'opendesk.sidebar.draft-import.v1',sourceUtf8}).catch(error=>{
+        const response=await api.runtime.sendMessage({protocol:'opendesk.sidebar.draft-import.v1',
+          ...(project ? {draft} : {sourceUtf8})}).catch(error=>{
           const message=error?.message || String(error);
           if(message.includes('Receiving end does not exist'))return;
           throw {code:'E_DRAFT_TRANSPORT',message};
@@ -557,14 +564,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         get('task-catalog-status').textContent='已导入同窗口 Sidebar 的未保存草稿；返回目标网页，在「开发」明确运行。未保存、未安装、未自动执行。';
         return;
       }
-      get('script-id').value=`import-${Date.now()}`;
-      get('script-revision').value='';
-      get('script-source').value=sourceUtf8;
-      get('script-source').dispatchEvent(new Event('input',{bubbles:true}));
+      if(importDraft)await importDraft(draft);
+      else {
+        get('script-id').value=`import-${Date.now()}`;
+        get('script-revision').value='';
+        get('script-source').value=sourceUtf8;
+        get('script-source').dispatchEvent(new Event('input',{bubbles:true}));
+      }
       navigate('develop');
       get('task-dev-status').textContent='JavaScript 已进入未保存草稿；不能跳过任务验证直接安装';
     }else{
-      const value=await client.request('importTaskPackage',{package:JSON.parse(sourceUtf8)});
+      const value=await client.request('importTaskPackage',{package:parsed});
       await refresh(identity(value));announce();
       get('task-catalog-status').textContent=`已导入待验证任务 ${identity(value)}；未自动赋予可信状态`;
     }
@@ -653,10 +663,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   async function fork() {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择任务'};
     const value=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
-    get('script-id').value=`draft-${row.taskId}-${Date.now()}`;
-    get('script-revision').value='';
-    get('script-source').value=value.package.sourceUtf8;
-    get('script-source').dispatchEvent(new Event('input',{bubbles:true}));
+    if(importDraft)await importDraft(value.package.sourceUtf8);
+    else {
+      get('script-id').value=`draft-${row.taskId}-${Date.now()}`;
+      get('script-revision').value='';
+      get('script-source').value=value.package.sourceUtf8;
+      get('script-source').dispatchEvent(new Event('input',{bubbles:true}));
+    }
     navigate('develop');
     get('task-dev-status').textContent='已复制独立未保存草稿；原已安装版本未变化';
   }
@@ -744,7 +757,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   navigate('tasks');update();
   return {navigate,showCatalogPage,refresh,receiveDraft(sourceUtf8) {
     if(disposed || catalogSurface || typeof importDraft !== 'function')throw {code:'E_HOST_NOT_FOUND',message:'Sidebar 编辑器不可用'};
-    importDraft(sourceUtf8);
+    const applied=importDraft(sourceUtf8);
+    if(applied?.then)return applied.then(() => {if(!disposed)navigate('develop');});
     navigate('develop');
   },dispose() {
     if(disposed)return;disposed=true;

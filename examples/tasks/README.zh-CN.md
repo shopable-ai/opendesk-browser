@@ -56,7 +56,7 @@
 | 取消/超时 | `#request-cancel`、`#request-timeout` | `data-state="cancelled"` 或 `"timeout"`，无迟到的成功结果 |
 | 老版任务 | `#name`、`#submit`、`#done` | 填写姓名后出现“已提交：…” |
 | 现代 Locator | `#keyword`、`#search-submit`、`#search-status`、`#results` | 搜索按钮重建且等待后结果正确 |
-| HTTP GET | `#api-url`、`#api-send`、`#api-status`、`#api-http-status`、`#api-response` | 真实返回状态码、耗时、响应类型和正文；错误、取消、超时分状态 |
+| HTTP GET | `#api-url`、`#api-send`、`#api-status`、`#api-http-status` | 页面只有输入框和 GET 按钮；真实响应在 DevTools Network 查看；隐藏 `#api-response` 保留脚本断言兼容 |
 
 - **真实网络请求**：成功场景通过 `fetch('./demo-form.html?test-response=1')` 读取当前 HTML；错误场景访问固定不存在的路径，Python 静态服务应返回 HTTP 404。
 - **延迟为客户端可控等待**（300ms、1.2s、3s），不是服务器真实变慢。超时按钮使用 700ms 客户端期限；所有异步结果均由实际 DOM 表达，不依赖伪造测试 PASS。
@@ -66,13 +66,20 @@
 
 定向静态/兼容契约检查：`node --test tests/environment/basic-browser-page.test.mjs`。
 
-## R7.1 HTTP API 验证与唯一人工测试入口
+## R8.1 HTTP GET 极简验收（取代 R7.1 旧操作步骤）
 
-**人工操作、Sidebar 草稿、Page API 和 HTTP 演示只使用 `http://127.0.0.1:43111/demo-form.html`。** 上方 HTTP 启动命令保持不变，不需要启动其他测试服务。旧的临时测试服务器路由（例如 `/fixture`）是专项原生验收的内部资源，不能作为人工演示网页地址；相关目录 `tests/prototypes/**/fixture/` 不随人工入口统一而删除，它们由独立测试运行器引用。
+**唯一人工入口仍是 `http://127.0.0.1:43111/demo-form.html`。** 第 06 组不再是接口调试面板，只有一个 URL 输入框和一个「发送 GET」按钮；页面不再展示预设选择、取消按钮、HTTP 元数据表或响应正文。也不新增 POST 控件。
 
-在页面第 06 组，保持默认 `./demo-form.html?test-response=1`，点击「发送 GET」：应看到 `#api-status[data-state="success"]`、实际 `#api-http-status` 为 200、响应类型含 `text/html`，且 `#api-response` 可读取页面 HTML 前段。改填 `./__opendesk_expected_404__.json` 再发送，应看到 404、`data-state="error"` 及服务器返回正文。切换示例地址只填入，不自动发请求。
+默认 URL 为 `./demo-form.html?test-response=1`。点击 GET 后，可见 `#api-status[data-state="success"]` 和真实 `#api-http-status` 为 200；打开 Chrome DevTools → **Network → Fetch/XHR** 可查看请求 URL、Headers、HTTP 状态码及 Response。需验证 404 时，将输入框改成 `./__opendesk_expected_404__.json` 后点击一次 GET。只有用户点击按钮时才发送请求，绝不自动连外网。修改 URL 或重置会中止旧请求并清理状态；8 秒超时依然有效，不允许旧请求迟到覆盖新结果。请求不带 Cookie、不接受 URL 中账号密码，且严格限制 HTTP(S)。
 
-需要验证外部真实 JSON 时，在下拉框选择「公网 IP JSON」，明确点击发送：成功时响应正文会显示 `ip` 字段；该示例会访问第三方服务，受网络与 CORS 条件影响，失败不能直接归因于 OpenDesk Page API。也可以手工输入自己的 HTTP(S) URL，页面只发 GET、不携带 Cookie，最多显示前 4096 字节；不支持在这个单页里假装静态 Python 服务能够处理 POST。8 秒超时会中止请求；取消、重新发送、修改 URL、页面重置都不能让旧响应覆盖新状态。
+为兼容旧的 **Sidebar Page API 草稿读取**，`#api-duration`、`#api-content-type` 和 `#api-response` 依然存在于隐藏的 `#api-debug-data` 内；可以用 `textContent()` 读取，但它们**不再绘制为调试面板**。正文仅记录前 4096 字节，不执行响应 HTML。
+
+### CORS、axiosx 和网络调试的界限
+
+- 本页发出的是**网页原生 fetch**，受浏览器 CORS 限制。一次同源 200 只能证明这个 GET 发生并成功，**不能证明跨域被解决**。
+- OpenDesk SDK `axiosx` 走受信宿主的 `NetworkService`，有独立的目标来源授权和执行回执。其专项测试应复用 `tests/framework/fixtures/sdk-target-origins/server.mjs` 的 A/B/C 受控服务及扩展 Controller 测试链；不要在 `window` 上造假的同名 axiosx。
+- 页面请求在当前标签 DevTools Network 查看；由**扩展后台**发出的 SDK 请求可能需要在扩展 Service Worker 的 DevTools Network、Fixture 服务请求记录及 Controller 回执中查看，不能仅用网页标签的 Network 面板判定没有请求。
+- 自行输入外部 URL 可以检验对应目标服务器的 CORS 行为，但失败可能是外网故障、服务端拒绝或 CORS，不能直接判定 SDK 故障。
 
 可通过以下 **现代 Page API 草稿**验证真实页面 DOM 回执（不需要新增脚本文件）：
 
@@ -90,3 +97,27 @@ async function main() {
 ```
 
 表单和现代搜索依旧分别使用 `#name/#submit/#done`、`#keyword/#search-submit/#results`，旧版任务包及 SHA 不变。运行 `node --test tests/environment/basic-browser-page.test.mjs` 验证页面契约和轻量 DOM 行为；该检查 **不等于** 完整 Chrome MV3 → RunHost → Controller → Durable Result 原生验收。真正的 Chrome 结果需由 Sidebar 记录运行 ID、结果 ID 和操作回执；没有时记 `NATIVE_NOT_VERIFIED`。
+
+
+## R8 Browser Test Lab：七组场景，同一个人工入口
+
+当前 `demo-form.html` 已增强为轻量 **Browser Test Lab**，通过单页导航显示 01–06 原有场景及 **07 Locator 专项验收**。仍然是普通 HTML 页面，不是独立测试管理平台，也不要求额外构建产物或外部依赖。启动与访问 URL 完全不变。
+
+新场景提供四项可观察 Fixture：
+
+| 能力 | 控件或观察位置 | 预期 |
+| --- | --- | --- |
+| 同名元素 | `#locator-confirm-a` / `#locator-confirm-b` | 精确名称匹配返回 2 个；按 testid 只点击对应分区，结果写入 `#locator-duplicate-result` |
+| 禁用与只读 | `#locator-disabled-button` / `#locator-aria-disabled` / `#locator-readonly-field` | 禁用按钮不得被自动化提交；readonly 不允许 fill 覆盖 |
+| 遮挡 | `#locator-covered-target` / `#locator-cover-toggle` / `#locator-cover-count` | 默认有覆盖层、解除后点击数真实增加 |
+| 延迟 DOM | `#locator-late-launch` / 动态 `[data-testid="locator-late-target"]` | 点击后约 700 毫秒生成目标；重置或再次启动取消旧定时任务 |
+
+第 07 组包含可以复制到 Sidebar「开发」的现代 `async function main()` 草稿。**页面仅表现可观察 DOM 事实**，不能代替 Sidebar → RunHost → 原生 Chrome → Controller Durable Result 的真实操作与身份回执。新测试回归与旧契约共同执行：
+
+```sh
+node --test tests/environment/basic-browser-page.test.mjs
+```
+
+完整的合并策略、场景矩阵、失败用例和独立专家质量评分门槛参阅 [Browser Test Lab R8 规格](../../docs/framework/browser-test-lab-r8.zh-CN.md)。
+
+**历史临时入口**：`locator-acceptance.html` 与本机 64687 端口的 `/next` 均不属于当前仓库 `main` 受管理的人工测试页面。它们可能由本地专项运行器或遗留开发服务器提供。禁止将它们当成标准测试首页，也不要未确认调用者便删除资源；具体排查步骤见 [Browser Test Lab R8 规格](../../docs/framework/browser-test-lab-r8.zh-CN.md)。

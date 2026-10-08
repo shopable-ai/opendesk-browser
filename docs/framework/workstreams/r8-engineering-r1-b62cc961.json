@@ -1,0 +1,639 @@
+{
+  "schemaVersion": 1,
+  "workstreamId": "r8-engineering-r1-b62cc961",
+  "recordedAtUtc": "2026-10-08T17:17:26.659816+00:00",
+  "repository": "shopable-ai/opendesk-browser",
+  "owner": "root main integrator; isolated agent/r8-engineering-r1-b62cc961",
+  "scope": {
+    "taskIds": [
+      "E01",
+      "E06",
+      "E08.1",
+      "E40.1"
+    ],
+    "productChange": "Current metadata admission cannot be replaced by a stale dependency inspection; approval revalidates source; antifeature declarations are rendered as untrusted text.",
+    "nonClosure": [
+      "Full E08 and E40 remain PARTIAL",
+      "No formal Page installation, privileged GM, Cron or cross-browser closure",
+      "No replacement Controller, Authority, RunHost, database, network service or Sidebar"
+    ]
+  },
+  "git": {
+    "initialMain": "945cf92726fcadcd60ecb3dc70729029fb9f28e6",
+    "parallelPlanMain": "0dcc23b6e1a3409a0dc06f2afd2884ed1e74a448",
+    "testLabMain": "71fa54e204ad5963fc8127dd67b671548296ccda",
+    "mainIntegratedForValidation": "c2538e995bce0f3d92076a0ba0d9b03e206ced2c",
+    "productCommit": "84dc3c7abe08505ae5e24849315dc8dd5587932d",
+    "planCommit": "77f3ee5",
+    "validationCodeCommit": "0ce88a856bd345195a37fe8c67056ec6a2063763",
+    "delivery": "Final main delivery is determined by the GitHub PR merge commit and ancestry containing this record; no native PR is authorized by this evidence.",
+    "noForcePush": true,
+    "historicalOwnerAndReceiptsPreserved": true,
+    "latestMainMerged": "36cdb638dc755f1be266eac745d09ce2e384a2c1",
+    "latestDocsMergeCommit": "1d0b55a"
+  },
+  "implementation": {
+    "source": "SOURCE_IMPLEMENTED",
+    "component": "COMPONENT_TESTED",
+    "build": "BUILD_VERIFIED",
+    "chromeNative": "NOT_TESTED",
+    "userTask": "NOT_TESTED",
+    "finalFrameworkAccepted": false,
+    "runtimeFiles": [
+      {
+        "path": "src/ui/page-dependencies.js",
+        "sha256": "e16fd3929db26956e0668d1ad408828a28ea34aba6855508026e6c8fe1b3824e"
+      },
+      {
+        "path": "src/scripting/user-scripts/dependency-metadata.js",
+        "sha256": "7e7c757b01b2f09e52a43a1eca490977f399159a7f286c38ab0e4f29c322a785"
+      }
+    ],
+    "regressionCases": [
+      "delayed inspect after new grant/resource/include metadata",
+      "repair restores current admission while retaining dependency lock",
+      "unsupported metadata during permission await, including silent import without input event",
+      "approval rechecks current metadata and dependency identity",
+      "antifeature markup remains literal text and updates with source"
+    ],
+    "securityBoundary": "Dependency approval is approval of immutable dependency bytes, not installation or an application capability grant. Authoritative Host checks were retained."
+  },
+  "validation": [
+    {
+      "kind": "regression-before",
+      "base": "945cf927",
+      "result": "5 newly added behavior cases failed on old implementation",
+      "log": "regression-before.log"
+    },
+    {
+      "kind": "targeted-components",
+      "sourceCommit": "84dc3c7abe08505ae5e24849315dc8dd5587932d",
+      "command": "node --test tests/environment/page-dependencies-ui.test.mjs tests/environment/dependency-metadata.test.mjs tests/environment/dependency-manager.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-program-package.test.mjs tests/environment/script-editor.test.mjs tests/environment/page-script-preview.test.mjs",
+      "tests": 71,
+      "pass": 71,
+      "fail": 0,
+      "log": "final-components.log"
+    },
+    {
+      "kind": "environment-product",
+      "sourceCommit": "84dc3c7abe08505ae5e24849315dc8dd5587932d",
+      "command": "npm test",
+      "tests": 197,
+      "pass": 197,
+      "fail": 0,
+      "skip": 0,
+      "log": "final-environment-tests.log"
+    },
+    {
+      "kind": "main-drift-regression",
+      "main": "71fa54e204ad5963fc8127dd67b671548296ccda",
+      "tests": 198,
+      "pass": 197,
+      "fail": 1,
+      "reason": "canonical guide re-advertised a legacy localhost URL",
+      "log": "integration-environment-tests.log"
+    },
+    {
+      "kind": "canonical-repair",
+      "localCommit": "c84585f",
+      "finalAdoptedConcurrentCommit": "ca3e7655f8054494b024ccca3e2d7aab50ce8638",
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "log": "canonical-entry-fix.log",
+      "note": "Equivalent remote wording retained at merge; no test was weakened and no legacy process was stopped."
+    },
+    {
+      "kind": "environment-after-first-merge",
+      "tests": 198,
+      "pass": 198,
+      "fail": 0,
+      "log": "integration-environment-tests-after.log"
+    },
+    {
+      "kind": "environment-delivery",
+      "validationCodeCommit": "0ce88a856bd345195a37fe8c67056ec6a2063763",
+      "command": "npm test",
+      "tests": 201,
+      "pass": 201,
+      "fail": 0,
+      "skip": 0,
+      "log": "delivery-environment-tests.log",
+      "note": "Later reviewed changes affect the plan contract only, separately rerun below; remote PR checks bind the final exact candidate."
+    },
+    {
+      "kind": "plan-contract-reviewed",
+      "command": "node --test tests/environment/r8-backlog-contract.test.mjs",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "log": "backlog-contract-reviewed.log",
+      "testSourceSha256": "c82663cc24cb4410dfd3be1449373b0af640928f364dad5dc013a42e62fb6d77",
+      "checks": [
+        "188 unique catalog IDs",
+        "40 stable task cards",
+        "exactly one primary owner for each capability",
+        "required fields and C/R ranges",
+        "valid per-task phases and all seven phase rows",
+        "unknown prerequisite parent including E99.1",
+        "strong whole-task DAG",
+        "negative omission/duplicate/unknown/cycle/range/field/phase cases"
+      ],
+      "scope": "Subtask semantic ordering is explicit in the plan and independently reviewed; parser checks are not product or Chrome tests."
+    },
+    {
+      "kind": "source-check",
+      "command": "npm run check",
+      "files": 139,
+      "status": "passed",
+      "log": "delivery-source-check.log"
+    },
+    {
+      "kind": "build-input-revalidation",
+      "sourceInputsPerMode": 122,
+      "drifts": 0,
+      "receipt": "source-input-revalidation.json"
+    },
+    {
+      "kind": "package-verification",
+      "command": "npm run verify",
+      "status": "passed",
+      "log": "delivery-verify-package.log"
+    }
+  ],
+  "packages": [
+    {
+      "status": "passed",
+      "mode": "production",
+      "packageHash": "4b5c7f0abe22d4d98e297a34253fe4b106fdb9af30649498b5d2d4adede71649",
+      "zipSha256": "5764eb84ce44595f36cfa3e0f2bec20b18164309066cbda45f050c58908a0f98",
+      "bytes": 358315,
+      "buildReceipt": "build-production.json",
+      "packReceipt": "pack-production.json",
+      "nativeZipAcceptance": "NOT_TESTED"
+    },
+    {
+      "status": "passed",
+      "mode": "development",
+      "packageHash": "f2ba88748aa159accf0475cfcc8ffe3240b717929fcf683dbeb2a1d254c3a2f6",
+      "zipSha256": "1211cbabdfba499449a1423e663dd492ac08097c1afdee44ac9fb5a00d71e4e1",
+      "bytes": 964614,
+      "buildReceipt": "build-development.json",
+      "packReceipt": "pack-development.json",
+      "nativeZipAcceptance": "NOT_TESTED"
+    }
+  ],
+  "productionWorkerBudget": {
+    "bytes": 327366,
+    "limit": 327680,
+    "remaining": 314,
+    "limitChanged": false
+  },
+  "plan": {
+    "path": "docs/product/browser-automation-r8-implementation-plan.zh-CN.md",
+    "stableTaskIds": "E01–E40",
+    "tasks": 40,
+    "capabilities": 188,
+    "singlePrimaryAssignments": 188,
+    "missing": 0,
+    "unknown": 0,
+    "duplicateOwners": 0,
+    "catalogSourceStatus": {
+      "SOURCE_IMPLEMENTED": 21,
+      "PARTIAL": 75,
+      "MISSING": 92,
+      "NOT_AUDITED": 0
+    },
+    "statusCountsAreNotCompletionPercentages": true,
+    "modules": 15,
+    "phases": [
+      "R8.0",
+      "R8.1",
+      "R8.2",
+      "R8.3",
+      "R8.4",
+      "R8.5",
+      "R8.6"
+    ],
+    "adr": "R8-EP-ADR-01 through R8-EP-ADR-14",
+    "independentScoreDimensions": 11,
+    "independentTaskScores": {
+      "dimensions": [
+        "value",
+        "fit",
+        "complexity",
+        "risk"
+      ],
+      "scale": "1–5 separately, retained from concurrent main36cdb63",
+      "qualityScoreDimensionsScale": "11 independent /100 dimensions, no average"
+    }
+  },
+  "reviews": [
+    {
+      "reviewer": "chrome_adr_audit",
+      "productCommit": "84dc3c7abe08505ae5e24849315dc8dd5587932d",
+      "result": "accepted for narrow source/component scope",
+      "independentTests": [
+        {
+          "tests": 22,
+          "scope": "earlier affected UI and metadata tests"
+        },
+        {
+          "tests": 2,
+          "scope": "final silent-input and approval cases"
+        }
+      ],
+      "resolved": "Both prepare catch branches refresh current diagnostics; no input event required. No blocking source issue remained. Native not tested."
+    },
+    {
+      "reviewer": "chrome_adr_audit",
+      "scope": "40-task plan, sender authentication, subtask prerequisites and upgraded CI contract",
+      "result": "accepted after corrections",
+      "independentContractTests": 3,
+      "finalEnhancementTests": "Root 3/3; reviewer code inspection, no redundant rerun",
+      "resolved": [
+        "No fictitious Chrome sender world field",
+        "E07.1 → E08 → E09 → E07.2 order",
+        "Early E27.1 vs later E27.2 prerequisites",
+        "E31 explicitly depends on E30",
+        "E99.1 parent and per-card phase negative checks"
+      ]
+    },
+    {
+      "reviewer": "backlog_plan",
+      "scope": "isolated task-plan authoring and source audit",
+      "planSourceCommit": "bf8c3002ff40efa5aed82c189989e690b34f61e2",
+      "result": "40 tasks,188 unique assignments,12 GFM tables,11 score dimensions"
+    },
+    {
+      "reviewer": "pr_integration_audit",
+      "scope": "PR11/20/22 code/CI provenance and fixture recovery",
+      "result": "Local duplicate PR22 repair superseded by equivalent remote e5cd4b4; no remote write performed"
+    }
+  ],
+  "relatedPrSnapshot": {
+    "raw": "github-pr-snapshot.json",
+    "observedAtUtc": "2026-10-08 17:06:46 UTC",
+    "pullRequests": [
+      {
+        "number": 11,
+        "url": "https://github.com/shopable-ai/opendesk-browser/pull/11",
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "base": "main",
+        "base_sha": "0dcc23b6e1a3409a0dc06f2afd2884ed1e74a448",
+        "head": "agent/native-agent-bridge-r1-20261008",
+        "head_sha": "33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd",
+        "merge_commit_sha": null,
+        "merged_at": null
+      },
+      {
+        "number": 20,
+        "url": "https://github.com/shopable-ai/opendesk-browser/pull/20",
+        "state": "closed",
+        "draft": false,
+        "merged": true,
+        "base": "agent/native-agent-bridge-r1-20261008",
+        "base_sha": "bdb3bf9b55a56dfbc70e2fb2b30b70a11252cc42",
+        "head": "agent/r7-1-http-page-20261008-2250",
+        "head_sha": "66cfcbd67fb2393d0addaa3d81b15c273ed6710a",
+        "merge_commit_sha": "33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd",
+        "merged_at": "2026-10-08T17:04:34Z"
+      },
+      {
+        "number": 22,
+        "url": "https://github.com/shopable-ai/opendesk-browser/pull/22",
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "base": "main",
+        "base_sha": "945cf92726fcadcd60ecb3dc70729029fb9f28e6",
+        "head": "agent/program-r3-native-01a11bdf",
+        "head_sha": "bb0669c54d5eb7621077ee617efc5d5ace0f781e",
+        "merge_commit_sha": "ab2bcaf615b02589683510dc5d2b1c1d94ebd54b",
+        "merged_at": null
+      }
+    ],
+    "critical": "PR20 merged into the Native candidate branch, not main. Its source branch was later removed by the existing remote workflow; work is retained in 33a551a6 ancestry."
+  },
+  "relatedCi": [
+    {
+      "pr": "11 + merged 20",
+      "testedSha": "33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd",
+      "event": "push",
+      "runId": 37813749061,
+      "componentJobId": 113436938535,
+      "nativeComponentPass": 47,
+      "sharedComponentPass": 56,
+      "environment": {
+        "tests": 249,
+        "pass": 245,
+        "skip": 4,
+        "fail": 0
+      },
+      "sourceChecks": 155,
+      "productionAndDevelopmentAndVerify": "passed",
+      "raw": "github-job-113436938535.log",
+      "macJobId": 113436938851,
+      "hostIpc": {
+        "pass": 3,
+        "chromeFrames": "simulated"
+      },
+      "realChromeDiagnostic": {
+        "chrome": "155.0.8059.39",
+        "extensionLoaded": true,
+        "nativeManifestInstalled": true,
+        "pass": 0,
+        "fail": 1,
+        "error": "Inspector.detached Render process gone; CDP Runtime.evaluate timeout",
+        "continueOnError": true,
+        "nativeEndToEnd": "NOT_TESTED"
+      },
+      "macRaw": "github-job-113436938851.log"
+    },
+    {
+      "pr": 22,
+      "headSha": "bb0669c54d5eb7621077ee617efc5d5ace0f781e",
+      "testedMergeSha": "ab2bcaf615b02589683510dc5d2b1c1d94ebd54b",
+      "baseSha": "945cf92726fcadcd60ecb3dc70729029fb9f28e6",
+      "runId": 37811795168,
+      "jobId": 113430239797,
+      "programComponentsPass": 118,
+      "canonicalPass": 11,
+      "sourceChecks": 140,
+      "buildAndVerify": "passed",
+      "fixtureFix": "e5cd4b47cb07848fcaae1078d99c6014e8728549",
+      "fixturePath": "tests/fixtures/d1-userscript.html",
+      "nativeEndToEnd": "NOT_TESTED",
+      "remaining": [
+        "Saved-version reload",
+        "Installed Task user flow",
+        "Same-profile whole-browser restart",
+        "Final F3/ZIP acceptance"
+      ]
+    },
+    {
+      "pr": "11 including nested PR20 and PR22",
+      "testedSha": "75e4cde417bc885e7bf2117beca8ac66c56fabb7",
+      "event": "push",
+      "runId": 37815030847,
+      "componentJobId": 113441346897,
+      "nativeComponentPass": 47,
+      "sharedComponentPass": 58,
+      "environment": {
+        "tests": 258,
+        "pass": 254,
+        "skip": 4,
+        "fail": 0
+      },
+      "sourceChecks": 157,
+      "buildAndVerify": "passed",
+      "productionPackageHash": "f7923ca48742439bc86102aadc78455d00af48eacc63183881de7553a6a29f2d",
+      "developmentPackageHash": "a9af0f2ceb240d540be3167d19078cd09388d635e3c5b8240be78a43f22ae1d7",
+      "raw": "github-job-113441346897.log",
+      "macJobId": 113441346340,
+      "hostIpcSimulatedChromePass": 3,
+      "realChromeDiagnostic": {
+        "version": "155.0.8059.39",
+        "extensionLoaded": true,
+        "manifestInstalled": true,
+        "pass": 0,
+        "fail": 1,
+        "error": "CDP Runtime.evaluate timeout in Options",
+        "continueOnError": true,
+        "fullNativeAndCodex": "NOT_TESTED"
+      },
+      "macRaw": "github-job-113441346340.log",
+      "oldPr22NativeEvidenceMayBeReusedAsCurrent": false
+    }
+  ],
+  "mergeAudit": {
+    "base": "c2538e995bce0f3d92076a0ba0d9b03e206ced2c",
+    "nativeCombined": "33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd",
+    "programPr22": "bb0669c54d5eb7621077ee617efc5d5ace0f781e",
+    "nativeCombinedVsMainConflicts": [
+      "examples/tasks/README.zh-CN.md",
+      "examples/tasks/demo-form.html",
+      "tests/environment/basic-browser-page.test.mjs"
+    ],
+    "programVsMainConflicts": [],
+    "nativeCombinedVsProgramConflicts": [
+      "src/ui/tool-shell.js"
+    ],
+    "nativeAndHttpInMain": false
+  },
+  "pr22LocalRecovery": {
+    "codeCommit": "ebd87e9991940e9098daa586330a3241094169da",
+    "mainSyncCommit": "a4c06cb709383a58f3196636148e323c89c1bd92",
+    "evidenceCommit": "deb1a90aa7f6d381b422fe29acdfaa6fde3f1dfd",
+    "pushed": false,
+    "reason": "Ancestor precondition detected concurrent remote e5cd4b4/bb0669c, so push was not executed. The equivalent remote path and byte-identical fixture were retained.",
+    "testedLocally": {
+      "components": 157,
+      "sourceChecks": 140,
+      "buildAndVerify": "passed"
+    },
+    "fixtureSha256": "68693f07b071b0f8c4a75173fe4a7dc5769c9ce4e77195e89d509644478b4045",
+    "native": "NOT_TESTED"
+  },
+  "nextActions": [
+    "Integrate only this independently reviewed product/docs/test PR into main using exact-head checks",
+    "Continue E03/E04/E05 acceptance on PR11 combined Native/HTTP/Program candidate; PR20 and PR22 are already nested merges, not main delivery",
+    "Implement E07.1/E09 Page Candidate persistence and type-specific proof rejection before E07.2 installation",
+    "Keep E12/E16 privileged GM identity gate closed until native instance authentication is proven"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/backlog-contract-reviewed.log",
+      "sha256": "36b68caa0858e0cfbf436064fea1bf6ce61bd7b8f52c227e2e112f9f55ba8dc8",
+      "bytes": 450
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/build-development.json",
+      "sha256": "1e1b2179924b5af6c54dbdeb573adbf5896c0b85e88d3243b7e108dfb7801ec3",
+      "bytes": 27878
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/build-production.json",
+      "sha256": "478944cf168702075ef739541353758f78fbb264c70029341950b7c779b2d5b8",
+      "bytes": 25983
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/canonical-entry-fix.log",
+      "sha256": "3a56e1d66713fd4a331534354bb92124011195e0fb182601715ab3295a91ff30",
+      "bytes": 1283
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/delivery-environment-tests.log",
+      "sha256": "60abd5b609908456e703d04dc39b167206a5a9474f61afbe28ace330707f3f32",
+      "bytes": 22282
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/delivery-pack-development.log",
+      "sha256": "8129e1c4e6707a0007e43bc6b64ff8b8d28119351172a9531d2cab5ad8f66ec3",
+      "bytes": 387
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/delivery-pack-production.log",
+      "sha256": "e76815a24bdda8478e57301115b442976b53ed88ca6bc14597769b67020cf3ef",
+      "bytes": 381
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/delivery-source-check.log",
+      "sha256": "95e13732c3f75b5af7a247d900fb6d71f7635391f7068866cfe609de12b0a7b1",
+      "bytes": 307
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/delivery-verify-package.log",
+      "sha256": "e9439b41eff910dddfae4b9a79039c1e1451957ecc3e2ae45f6079609330e626",
+      "bytes": 10123
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/environment-tests.log",
+      "sha256": "d29870721a8267472baa067b36ba2ceff7c46af9ce54541bd0fed812bd3d4327",
+      "bytes": 21886
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log",
+      "sha256": "1463040e6497012be1ab92c61d8816a8c9a73e0af78682d621e84c235cfc2629",
+      "bytes": 6005
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log",
+      "sha256": "a3afd10c0d586383cd9093f2b5d40f5c41d7cb3bdb6bf7fad3bfe9d82ba13943",
+      "bytes": 4685
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-components.log",
+      "sha256": "07a961e14d89a63d056527a5045d534c0fcb4c2c3e9f30b8491aa9d66b411046",
+      "bytes": 8275
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-environment-tests.log",
+      "sha256": "17998d27e6474ccb0e01faa0f1ff623080c8c03777797fb5c07c18ec2c5f3a0a",
+      "bytes": 21874
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-source-check.log",
+      "sha256": "605c33f4bd1a8fe33cfb2c2767a22a1635c1e5a7c869b339742ea13c291c0724",
+      "bytes": 307
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-verify-package.log",
+      "sha256": "e9439b41eff910dddfae4b9a79039c1e1451957ecc3e2ae45f6079609330e626",
+      "bytes": 10123
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log",
+      "sha256": "f29d3f7d9c59998c76c675f0eccc520f9ff4db5cb386340c6f26f512c9149413",
+      "bytes": 198841
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log",
+      "sha256": "fc68f763b3709350c88ceefbaad519f79e44cfcaa63d0980f1f41636ba7d070a",
+      "bytes": 38050
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log",
+      "sha256": "82cf473336aae5a0367fc21192b49f29c65b2eb2cf4be4f260b65d6000f78dc4",
+      "bytes": 37205
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log",
+      "sha256": "cfba73bcc150c88651a2cd864dc9c8874e077635b5961c043dda0a2f1390f451",
+      "bytes": 204243
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-pr-snapshot-final.json",
+      "sha256": "7faabe512d6f7235adab4ada831317ae3e9920e9f4c6fea53a95567b69b83ec0",
+      "bytes": 1651
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-pr-snapshot.json",
+      "sha256": "3d8df04e1ae4eee26c7c0d76175a18a9340c65d027e2d202d762ef513994ef47",
+      "bytes": 15666
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integration-environment-tests-after.log",
+      "sha256": "1805f4ee6e5cce0a493797339b27b6f1e328e64217b1eff820bf1c2e4f8e0da5",
+      "bytes": 21989
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integration-environment-tests.log",
+      "sha256": "ccfd96a8d131df49ff094e5ddb9c67bb7087664a170ae559641b98c873da6b5c",
+      "bytes": 35681
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/integration-source-check.log",
+      "sha256": "605c33f4bd1a8fe33cfb2c2767a22a1635c1e5a7c869b339742ea13c291c0724",
+      "bytes": 307
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/pack-development.json",
+      "sha256": "bd419ef2471bd23357a9df5278a2f48fa518c0d55d85586926f1022b20cd0b29",
+      "bytes": 237
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/pack-production.json",
+      "sha256": "7ad9ddc78ba61a3b91a9979e121e43e1661d5e89232a5fc62a106139d71e45b5",
+      "bytes": 236
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log",
+      "sha256": "c46aecdb0a051bf052e1edb5c907e7337e54f92d0f97820907534a05a7c4a0d9",
+      "bytes": 6565
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/source-input-revalidation.json",
+      "sha256": "d687870229506c02bf71720572c2131e579213abd812d9efa5fc372aeb7cd65b",
+      "bytes": 585
+    }
+  ],
+  "finalRelatedPrSnapshot": {
+    "raw": "github-pr-snapshot-final.json",
+    "observedAtUtc": "2026-10-08 17:20:58 UTC",
+    "note": "PR #20 and #22 are merged into the Native candidate branch; only PR #11 targets main and remains Draft.",
+    "pullRequests": [
+      {
+        "number": 11,
+        "url": "https://github.com/shopable-ai/opendesk-browser/pull/11",
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "base": "main",
+        "base_sha": "0dcc23b6e1a3409a0dc06f2afd2884ed1e74a448",
+        "head": "agent/native-agent-bridge-r1-20261008",
+        "head_sha": "75e4cde417bc885e7bf2117beca8ac66c56fabb7",
+        "merge_commit_sha": null,
+        "merged_at": null
+      },
+      {
+        "number": 20,
+        "url": "https://github.com/shopable-ai/opendesk-browser/pull/20",
+        "state": "closed",
+        "draft": false,
+        "merged": true,
+        "base": "agent/native-agent-bridge-r1-20261008",
+        "base_sha": "bdb3bf9b55a56dfbc70e2fb2b30b70a11252cc42",
+        "head": "agent/r7-1-http-page-20261008-2250",
+        "head_sha": "66cfcbd67fb2393d0addaa3d81b15c273ed6710a",
+        "merge_commit_sha": "33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd",
+        "merged_at": "2026-10-08T17:04:34Z"
+      },
+      {
+        "number": 22,
+        "url": "https://github.com/shopable-ai/opendesk-browser/pull/22",
+        "state": "closed",
+        "draft": false,
+        "merged": true,
+        "base": "agent/native-agent-bridge-r1-20261008",
+        "base_sha": "33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd",
+        "head": "agent/program-r3-native-01a11bdf",
+        "head_sha": "a54de78004db8fc2cfaac681a1a230c45e208f90",
+        "merge_commit_sha": "a2e1bda59bf74fabfb9ae3cd2b882c483cdc1383",
+        "merged_at": "2026-10-08T17:11:02Z"
+      }
+    ]
+  }
+}

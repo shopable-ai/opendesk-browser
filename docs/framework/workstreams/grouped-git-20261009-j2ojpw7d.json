@@ -1,6 +1,6 @@
 {
   "workstreamId": "grouped-git-20261009-j2ojpw7d",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED_FOR_PUSH",
   "branch": "agent/functional-commits-20261009-j2ojpw7d",
   "baseMain": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
   "originalOriginMain": "ca2eb0e29333dc74c2ab80721cd1ce6e0beab1d8",
@@ -403,24 +403,198 @@
   "verification": {
     "copyHashes": "PASS",
     "jsonParseCount": 30,
-    "diffCheck": "PASS",
-    "componentTests": "NOT_TESTED_PENDING_INTEGRATION",
+    "diffCheck": "PASS_LOCAL_DIFF_AGAINST_INTEGRATION_REMOTE",
+    "componentTests": {
+      "status": "PASS",
+      "tests": 73,
+      "passed": 73,
+      "failed": 0,
+      "log": "docs/framework/evidence/grouped-git-20261009-j2ojpw7d/components.log"
+    },
     "native": "NOT_TESTED_FOR_COMBINED_BRANCH",
     "build": "NOT_TESTED_FOR_COMBINED_BRANCH",
     "finalF3": "NOT_TESTED",
-    "zipInstallation": "NOT_TESTED"
+    "zipInstallation": "NOT_TESTED",
+    "plannedCommands": [
+      "node --test tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/program-source.test.mjs tests/framework/r5-modern-page-api.test.mjs",
+      "node scripts/check-source.mjs",
+      "git diff --check"
+    ],
+    "sourceCheck": {
+      "status": "PASS",
+      "files": 161,
+      "log": "docs/framework/evidence/grouped-git-20261009-j2ojpw7d/check-source-shared-dependencies.log",
+      "dependencyReuse": "Read existing node_modules through NODE_PATH after byte-identical package.json and package-lock.json check; no install or dependency change."
+    },
+    "initialSourceCheck": "ENVIRONMENT_FAILURE_MODULE_ACORN_MISSING; raw log preserved before using matching existing dependencies",
+    "upstreamWhitespace": "Existing upstream raw evidence logs have whitespace warnings in the staged merge diff; local changes against origin/main have none. Raw upstream files preserved."
   },
   "evidenceReuse": {
     "archive": "docs/framework/evidence/r52-final-20261009-01a11c0d",
     "recordedArchiveIntegrity": "PASS",
-    "policy": "Preserve original receipts and package identity; do not promote historical native PASS to the merged branch."
+    "policy": "Preserve original receipts and package identity; do not promote historical native PASS to the merged branch.",
+    "verifiedAnchorsAndNativeCases": [
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/acceptance.json",
+        "sha256": "d10c9b3ed44ee7dd7f3538bf94f540cd289b97b78c655939b0b3a604126036d1"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/source-binding.json",
+        "sha256": "a53d8d3d77b1ecfe485b1f8ba9ebc3e998a1577e88b4b458bd1ef53cf599b4bd"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/delivery-binding.json",
+        "sha256": "5c102d1f7f6ed2fdc648403560fb64cacccceaba470a4688b18b0ab3e0c15e28"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/component-delivery.log",
+        "sha256": "b743647479622d1ca647c9b4f8da2e19e1186f807e438dd0691cf202b8b436bf"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/check-delivery.log",
+        "sha256": "c9b0143d546b26d1f35227ad9cf536ed93c1cba2befc2114e5efe84a4ee70393"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/verify-main.log",
+        "sha256": "818393c3dbe72f4c346006cff50229533ec2e5d51022fed245b9f58245a73ec6"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/cleanup.json",
+        "sha256": "087bc15878417569ff186b1d644024363ce1b76263044c32a8a8ce9df24353e9"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revocation-cleanup.json",
+        "sha256": "377ae586475c5fc869ec28b3abe56655460d8aa39860423dd629a4eb5c927076"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/main-round1.json",
+        "sha256": "6f97cd7e8afc654aee9364803faf4bb1c85499a29f3e79cb55c2669fd6d7e6e3"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/main-round2.json",
+        "sha256": "8a04e881bd24ec713c0b623eb9cedc08ba1085bfd3387fc1665ef9de80102275"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/demo-observation.json",
+        "sha256": "bc10509db1d53cb834e62d05f41b81973ceffa2f25481601233bf62beb9b0258"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/locator.json",
+        "sha256": "68474fd9edc3a733c31aa3105f40ba5a11e35331c045c773c64209751d70adf7"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/stalled-prepare.json",
+        "sha256": "30b98464bbaeea9a5f9f7735b0e6792a8489a023e2c89932156ac11d6d3d1a8f"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/duplicate-commit.json",
+        "sha256": "5d1a9e3aa0c3e56c1463caaa5f7fd54aedbbdb9d6ed4cc6fabbb7a0efbefe16c"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/drop-commit.json",
+        "sha256": "cc22a03aa3b18db4236dba8ca8d226ce2479a8d9dc7e03f896bd154f9f67c633"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revoke-prepare.json",
+        "sha256": "a4cc044a667e66b04ffd9fac1bfd605d14fde0f0f824993ba166e2503ed83653"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revoke-ui-attempt.json",
+        "sha256": "32514e02da5dd5ed2aef37e0809420a46e14cc0fa80a6a0c5bddb17b28d837ff"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/replace-document.json",
+        "sha256": "7f0eeb07881c5cad53fe5413623ba55a1f0b4060c4bdd24f327be8aa19d3ccbf"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/stopped-late-receipt.json",
+        "sha256": "21f06f59b7483b2cf629da85c8580ca5c8b7ae4e9bfec7d2558462a08fdaf053"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/overlap-writes.json",
+        "sha256": "35f7358ce199e0d6ec561d9d8d8d390fe446e40308c52388a6f95e1d796ee820"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/readonly-wait.json",
+        "sha256": "aaf5addc7264cd9fc7e94e6ea8e158678cad8867d00b8fdbae88d5afaf130602"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/run-deadline.json",
+        "sha256": "2f455bfa1d513ce28a042d0bed4edf402164da80fe9ce9e33c223d9c06a05693"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/site-access-withheld.json",
+        "sha256": "375e6818ddededd82f552b45c559dd5abc3d1647e7d871c76ff9d1069707e68e"
+      }
+    ],
+    "changedOriginalProductInputs": [
+      "manifest.json",
+      "scripts/build-contract.mjs",
+      "scripts/build-program-project.mjs",
+      "scripts/build.mjs",
+      "scripts/compact-schema.mjs",
+      "scripts/validate-program-project.mjs",
+      "scripts/verify-package.mjs",
+      "src/platform/host/client.js",
+      "src/scripting/sandbox/worker-runtime.js",
+      "src/scripting/user-scripts/dependency-metadata.js",
+      "src/sw.js",
+      "src/ui/page-dependencies.js",
+      "src/ui/script-editor.js",
+      "src/ui/task-workbench.js",
+      "src/ui/tool-shell.css",
+      "src/ui/tool-shell.js",
+      "src/ui/tool.html",
+      "types/opendesk-page.d.ts",
+      "wxt.config.mjs"
+    ],
+    "currentNativeDecision": "AFFECTED_INPUTS: historical receipts remain scoped to the original package; merged branch native/build/F3/ZIP NOT_TESTED."
   },
   "resources": {
     "browser": "NOT_USED",
     "ports": [],
     "dist": "NOT_USED",
-    "zip": "NOT_USED"
+    "zip": "NOT_USED",
+    "status": "released; browser, fixed ports, dist and ZIP were not occupied"
   },
-  "pullIntegration": "PENDING",
-  "push": "PENDING"
+  "pullIntegration": "RESOLVED_AND_COMPONENT_VERIFIED",
+  "push": {
+    "remote": "origin",
+    "branch": "agent/functional-commits-20261009-j2ojpw7d",
+    "force": false
+  },
+  "integrationRemoteMain": "3569a1738380a1a94a19cd342608f1c39c579287",
+  "conflicts": [
+    {
+      "path": "src/ui/script-editor.js",
+      "resolution": "Preserve the remote program-source input listener and local parameter listener; persist and restore the validated project envelope and exact compiled bytes."
+    }
+  ],
+  "integrationRepairFiles": [
+    "src/ui/script-editor.js",
+    "src/ui/program-source.js",
+    "tests/environment/script-editor.test.mjs"
+  ],
+  "groupCommits": [
+    [
+      "d74fa9bb07540aad76e54efc76d2346b23ccc1d6",
+      "Keep Sidebar edits available after closing the panel"
+    ],
+    [
+      "75ea3dded1aa52819965958de6d6317283c004a2",
+      "Prevent moving targets from receiving locator actions"
+    ],
+    [
+      "e3706c6b98f041f596aff8c5ceebb3a326bb72f9",
+      "Keep R5.2 acceptance claims traceable to original inputs"
+    ],
+    [
+      "268122f4d8dd976ed87ddfd580093a95a8655030",
+      "Avoid repeating unchanged tests across chats"
+    ],
+    [
+      "a415d26dbdf1b8155b9104dc1c66b0593eadd2b3",
+      "Resume Sidebar acceptance from the agreed user flow"
+    ]
+  ]
 }

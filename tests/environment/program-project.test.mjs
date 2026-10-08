@@ -31,9 +31,36 @@ test('multi-file ESM authoring project is a source contract, not an installed pr
 test('imports cannot escape project or load remote modules at browser runtime',async()=>{
   await fixture(async(root)=>{
     await writeFile(join(root,'src/main.js'),"import x from 'https://evil.example/x.js';\nexport default x;");
-    await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_IMPORT'));
+    await assert.rejects(validateProgramProject(root),error=>{
+      assert.equal(error.code,'E_PROJECT_IMPORT');
+      assert.equal(error.project,root.split('/').pop());
+      assert.equal(error.phase,'validate');
+      assert.equal(error.location.file,'src/main.js');
+      assert.equal(error.location.line,1);
+      return true;
+    });
     await writeFile(join(root,'src/main.js'),"import x from '../../escape.js';\nexport default x;");
     await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_PATH'));
+  });
+});
+
+test('entry diagnostics distinguish missing and non-function defaults with source location',async()=>{
+  await fixture(async(root)=>{
+    await writeFile(join(root,'src/main.js'),"export const value = 1;");
+    await assert.rejects(validateProgramProject(root),error=>{
+      assert.equal(error.code,'E_PROJECT_ENTRY');
+      assert.equal(error.phase,'validate');
+      assert.equal(error.location,'src/main.js');
+      return true;
+    });
+    await writeFile(join(root,'src/main.js'),"export default 1;");
+    await assert.rejects(validateProgramProject(root),error=>{
+      assert.equal(error.code,'E_PROJECT_ENTRY');
+      assert.equal(error.phase,'validate');
+      assert.equal(error.location.file,'src/main.js');
+      assert.equal(error.location.line,1);
+      return true;
+    });
   });
 });
 test('dynamic import is not quietly kept as an unlocked runtime dependency',async()=>{
@@ -45,7 +72,13 @@ test('dynamic import is not quietly kept as an unlocked runtime dependency',asyn
 test('npm imports require declared dependencies and a committed matching npm lock',async()=>{
   await fixture(async(root,pkg)=>{
     await writeFile(join(root,'src/main.js'),"import {debounce} from 'lodash-es';\nexport default async function main(){return debounce;}");
-    await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_IMPORT'));
+    await assert.rejects(validateProgramProject(root),error=>{
+      assert.equal(error.code,'E_PROJECT_IMPORT');
+      assert.equal(error.phase,'validate');
+      assert.equal(error.location.file,'src/main.js');
+      assert.equal(error.location.line,1);
+      return true;
+    });
     pkg.dependencies={'lodash-es':'4.17.21'};
     await writeFile(join(root,'package.json'),JSON.stringify(pkg));
     await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_FILE'));

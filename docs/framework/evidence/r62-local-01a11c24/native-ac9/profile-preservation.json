@@ -1,0 +1,6 @@
+{
+  "launcherPid": 31676,
+  "chromePid": 31688,
+  "launcherPausedForPostExitCopy": true,
+  "reason": "Copy only after real Chrome Quit before launcher removes its owned temp profile"
+}

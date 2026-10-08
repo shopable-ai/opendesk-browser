@@ -9,6 +9,7 @@
 复杂脚本优先使用 **多文件 ESM + package.json 的 opendesk 字段**，传统单文件 JS 仍在 Sidebar「开发」直接运行。`npm run build:program -- <目录>` 将页面项目构建为本地 `program.js`，将 Controller 项目构建为 `program.js` 与可导入的 Task v1 Candidate JSON；**构建和导入仍不意味着已通过 Chrome 验证或已安装**。
 
 - [多文件 ESM 与 AI 编辑/发布规则](docs/architecture/browser-framework/program-project-authoring-r1.zh-CN.md) ｜ [AI 发布 Skill](.agents/skills/opendesk-program-publish/SKILL.md) ｜ [示例程序](examples/programs/page-heading/README.md)
+- [多文件 Page/Controller/资源 Demo](examples/programs/README.md) ｜ [Program API 中文说明](docs/framework/sidebar-project-api-r1.zh-CN.md) ｜ [文件夹与图片资源接入设计](docs/architecture/browser-framework/sidebar-project-intake-r1.zh-CN.md)
 
 - [一页读懂脚本、依赖、执行与安装（D2）](docs/architecture/browser-framework/userscript-framework-quickstart.zh-CN.md)：先看这篇，避免把「已接线」「组件测试」「真实 Chrome」混为一谈。
 - [Browser Framework 架构与 ChromePage](docs/architecture/browser-framework/README.md)：完整框架职责。
@@ -26,7 +27,7 @@ Controller 的 @require 不会被偷偷下载并运行进 Worker 或 Service Wor
 
 ## 统一网页交互测试入口
 
-人工检查 DOM、按钮、输入框、现代 Page API、Sidebar 草稿和真实 HTTP GET 时，**唯一标准页面**是 [`examples/tasks/demo-form.html`](examples/tasks/demo-form.html)：
+人工检查 DOM、按钮、输入框、现代 Page API、Sidebar 草稿、真实 HTTP GET 和 Locator 专项测试时，**唯一标准页面**是 [`examples/tasks/demo-form.html`](examples/tasks/demo-form.html)（七组场景、左侧导航和可重复 Locator Fixture，见 [R8 Browser Test Lab 规格](docs/framework/browser-test-lab-r8.zh-CN.md)）：
 
 ```sh
 python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks

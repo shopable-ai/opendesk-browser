@@ -5,6 +5,7 @@ import {hashArtifactBytes} from '../platform/downloads/blob-lifecycle.js';
 import {BUDGETS, invariant} from '../platform/protocol.js';
 import {createPageDependencyPanel, dependencyMessage} from './page-dependencies.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
+import {createProgramSourceView} from './program-source.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -31,8 +32,13 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
   let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
   const draftFields={source:'script-source',params:'script-params',id:'script-id',revision:'script-revision'};
-  const captureDraft=()=>Object.fromEntries(Object.entries(draftFields).map(([key,id])=>[key,find(id).value]));
-  const initialDraft=JSON.stringify(captureDraft());
+  const captureDraft=()=>{
+    const value=Object.fromEntries(Object.entries(draftFields).map(([key,id])=>[key,find(id).value]));
+    value.source=programSource.source();
+    const programDraft=programSource.snapshot();
+    if(programDraft)value.programDraft=programDraft;
+    return value;
+  };
   let draftKey, draftSerial='', draftWrites=Promise.resolve();
   function persistDraft() {
     if(!draftKey)return;
@@ -51,6 +57,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
+  const programSource = createProgramSourceView({document:doc,listen,onChange:() => {dependencyPanel?.refresh();update();}});
+  const initialDraft=JSON.stringify(captureDraft());
   function display(state, message, value) {
     if (disposed) return;
     status.dataset.state = state; status.textContent = message;
@@ -70,7 +78,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       node.textContent = `已加载 r${currentRevision.revision}；本次运行始终使用编辑器当前草稿`;
       return;
     }
-    const dirty = find('script-source').value !== currentRevision.sourceUtf8;
+    const dirty = programSource.source() !== currentRevision.sourceUtf8;
     node.dataset.dirty = String(dirty);
     node.textContent = dirty
       ? `已保存 r${currentRevision.revision} · 存在未保存修改 · 运行草稿不会覆盖已保存版本`
@@ -84,10 +92,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
     find('script-run').disabled = editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
-      !find('script-source').value.trim() || mode.value === 'current' && currentPageState?.status !== 'available';
+      !programSource.source().trim() || programSource.kind() === 'page-userscript' || mode.value === 'current' && currentPageState?.status !== 'available';
     find('script-stop').disabled = stopping || !ownedDraftRunId || host.currentRun !== ownedDraftRunId;
     find('page-preview-run').disabled = previewBusy || dependencyPanel?.busy || editingBusy || running || !!host.currentRun ||
-      !find('script-source').value.trim() || currentPageState?.status !== 'available';
+      !programSource.source().trim() || programSource.kind() === 'controller' || currentPageState?.status !== 'available';
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
@@ -205,7 +213,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     const {url, ...target} = selected; return {target,url};
   }
   async function save() {
-    const id = scriptId(), source = find('script-source').value;
+    const id = scriptId(), source = programSource.source();
     const row = await host.controller.commitControllerScript({scriptId:id, expectedRevision:revisions.get(id) || 0,
       sourceUtf8:source});
     if (disposed) return;
@@ -214,25 +222,25 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     display('saved', `${id} · r${row.revision} 已持久保存；${host.currentRun ? '当前任务继续使用启动时的版本' : '保存不会运行脚本'}`);
   }
   async function load() {
-    const id = scriptId(), revisionText = find('script-revision').value.trim(), source = find('script-source').value;
+    const id = scriptId(), revisionText = find('script-revision').value.trim(), source = programSource.source();
     const row = await host.controller.getControllerScript({scriptId:id,
       ...(revisionText ? {revision:Number(revisionText)} : {})});
     if (disposed) return;
-    if (scriptId() !== id || find('script-revision').value.trim() !== revisionText || find('script-source').value !== source)
+    if (scriptId() !== id || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
-    find('script-source').value = row.sourceUtf8; remember(row, {head: !revisionText || revisions.get(id) === row.revision});
+    programSource.replaceSource(row.sourceUtf8); remember(row, {head: !revisionText || revisions.get(id) === row.revision});
     dependencyPanel.refresh();
     display('loaded', `已加载持久版本 r${row.revision}`);
   }
   async function loadLatestFromList() {
-    const id = scriptList.value, activeId = scriptId(), revisionText = find('script-revision').value.trim(), source = find('script-source').value;
+    const id = scriptList.value, activeId = scriptId(), revisionText = find('script-revision').value.trim(), source = programSource.source();
     if (!id) throw {code:'E_REVISION',message:'请选择已保存脚本'};
     const selectedHead = revisions.get(id);
     const row = await host.controller.getControllerScript({scriptId:id});
     if (disposed) return;
-    if (scriptList.value !== id || scriptId() !== activeId || find('script-revision').value.trim() !== revisionText || find('script-source').value !== source)
+    if (scriptList.value !== id || scriptId() !== activeId || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
-    find('script-id').value = id; find('script-source').value = row.sourceUtf8;
+    find('script-id').value = id; programSource.replaceSource(row.sourceUtf8);
     dependencyPanel.refresh();
     remember(row);
     if (selectedHead !== row.revision) await refreshScripts({silent: true});
@@ -368,7 +376,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       // Freeze exact editor bytes, params and target inside the trusted click
       // before permissions.request or any await.
       chosen = selection(); params = JSON.parse(find('script-params').value);
-      sourceUtf8 = find('script-source').value;
+      sourceUtf8 = programSource.source();
+      if (programSource.kind() === 'page-userscript') throw {code:'E_PROGRAM_KIND',message:'这是 Page 项目，请使用网页用户脚本试运行'};
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
         message:'这是页面用户脚本，请展开“网页用户脚本”并选择经典脚本或 async main 试运行；Controller 草稿运行不解释这些元数据。'};
@@ -422,6 +431,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       // Freeze source, dependency and document during the trusted click,
       // before permission request or any asynchronous work.
       captured=currentPageTarget.capture();
+      if (programSource.kind() === 'controller') throw {code:'E_PROGRAM_KIND',message:'这是 Controller 项目，请使用运行草稿'};
       pageSource=dependencyPanel.capture();sourceUtf8=pageSource.sourceUtf8;
       withJquery=find('page-preview-jquery').checked === true && !find('page-preview-jquery').disabled && pageSource.entryFormat==='async-main';
       if(!sourceUtf8.trim())throw {code:'E_SOURCE',message:'请输入 async function main()'};
@@ -443,8 +453,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     })().catch(error=>displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)))
       .finally(()=>{previewBusy=false;update();});
   }
-  dependencyPanel=createPageDependencyPanel({client,api,document:doc,getSource:()=>find('script-source').value,
-    setSource:value=>{find('script-source').value=value;update();},onState:update});
+  dependencyPanel=createPageDependencyPanel({client,api,document:doc,getSource:()=>programSource.source(),
+    setSource:value=>{programSource.replaceSource(value);update();},onState:update});
   const onNavigation = details => {
     if (String(details.tabId) === tab.value) clearDocuments();
   };
@@ -461,7 +471,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   on('script-history-open','click',()=>read(find('script-history-run').value));
   on('script-download','click',downloadResult); on('script-download-result','change',update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
-  on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',update); on('script-params','input',update);
+  on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',() => {programSource.replaceSource(programSource.source());update();});
+  on('script-params','input',update);
   listen(find('script-run'), 'click', start);
   listen(find('page-preview-run'), 'click', previewPage);
   on('script-stop','click',async () => {
@@ -494,23 +505,37 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     if(JSON.stringify(captureDraft())===initialDraft && saved &&
         Object.keys(draftFields).every(name=>typeof saved[name]==='string') &&
         new TextEncoder().encode(saved.source).length<=100000){
-      for(const [name,id] of Object.entries(draftFields))find(id).value=saved[name];
-      dependencyPanel.refresh();
+      const unchanged=()=>!disposed && JSON.stringify(captureDraft())===initialDraft;
+      const restored=saved.programDraft ? await programSource.importProject(saved.programDraft,unchanged) : unchanged();
+      if(restored && !disposed){
+        if(!saved.programDraft)programSource.replaceSource(saved.source);
+        for(const [name,id] of Object.entries(draftFields))if(name!=='source')find(id).value=saved[name];
+        dependencyPanel.refresh();
+      }
     }
     draftKey=key;update();
   }).catch(error=>console.warn('Sidebar draft could not be restored',error));
   refreshTabs().catch(fail); refreshScripts({silent: true}).catch(fail); update();
-  return {host, importDraft(sourceUtf8) {
-    if (disposed || editingBusy) throw {code:'E_BUSY',message:'编辑器正在保存或已经关闭，请稍后重新导入'};
-    if (typeof sourceUtf8 !== 'string' || !sourceUtf8.trim() || new TextEncoder().encode(sourceUtf8).length > 100000)
-      throw {code:'E_LIMIT',message:'导入草稿必须为非空 JavaScript，且不超过 100000 字节'};
+  function applyImported(sourceUtf8) {
     currentRevision = undefined;
     find('script-id').value = `import-${Date.now()}`;
     find('script-revision').value = '';
-    find('script-source').value = sourceUtf8;
-    // File/catalog handoff replaces source program bytes; refresh @require review.
-    dependencyPanel.refresh();
-    update(); display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
+    programSource.replaceSource(sourceUtf8);
+    dependencyPanel.refresh(); update();
+    display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
+  }
+  return {host,executionSource:programSource.source, importDraft(sourceUtf8) {
+    if (disposed || editingBusy) throw {code:'E_BUSY',message:'编辑器正在保存或已经关闭，请稍后重新导入'};
+    if (sourceUtf8 && typeof sourceUtf8 === 'object') {
+      editingBusy = true; update();
+      return programSource.importProject(sourceUtf8).then(value => {
+        if (disposed) throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};
+        applyImported(value.sourceUtf8);
+      }).finally(() => {editingBusy=false;if(!disposed)update();});
+    }
+    if (typeof sourceUtf8 !== 'string' || !sourceUtf8.trim() || new TextEncoder().encode(sourceUtf8).length > 100000)
+      throw {code:'E_LIMIT',message:'导入草稿必须为非空 JavaScript，且不超过 100000 字节'};
+    applyImported(sourceUtf8);
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length,
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))}}), dispose() {

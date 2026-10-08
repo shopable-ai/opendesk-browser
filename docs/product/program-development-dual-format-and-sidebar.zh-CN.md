@@ -2,6 +2,8 @@
 
 > 决策状态：采用；日期：2026-10-08。**这是今后给 AI/Codex 阅读的产品与操作入口**，不是新的 Sidebar 设计稿，也不是新的自动执行引擎。技术实施细节见 [多文件项目架构](../architecture/browser-framework/program-project-authoring-r1.zh-CN.md) 和 [依赖架构 D1](../architecture/browser-framework/userscript-dependencies-d1-adr.zh-CN.md)。
 
+2026-10-09 用户范围修正：旧 jQuery 版本及插件适配属于低优先级边缘问题，由程序优先处理；不扩展当前框架实施或原生验收。具体触发条件记在[旧 jQuery 兼容待办](../framework/backlog/legacy-jquery-compatibility.md)。
+
 ## 1. 一句话说明
 
 **复杂程序优先在本地用 ESM 多文件项目开发；简单 JavaScript 仍在原 Sidebar 编辑器中直接输入并运行。** 两者最终使用同一套既有运行与权限底座。不要把两种源码形态称为相互竞争的两个产品版本。
@@ -11,7 +13,7 @@
 | 面向 | 临时任务、个人简单脚本、传统油猴脚本 | AI/Codex、复杂项目、多人或长期维护 |
 | 源码 | Sidebar 文本编辑器或 .js 草稿 | 一个项目目录，package.json 中声明 opendesk，src/*.js 等 |
 | 第三方库 | UserScript 的 @require 需先审核锁定 | 本地静态 import + npm/package-lock；在受信构建阶段打包 |
-| 必须保存/安装吗 | **不必**，点击即可尝试本次运行 | **不必**，先构建为本地 program.js 即可作为草稿试运行 |
+| 必须保存/安装吗 | **不必**，点击即可尝试本次运行 | **不必**，构建后导入 program.opendesk-draft.json 即可作为草稿试运行 |
 | 正式安装 | 单次运行不等于安装 | Controller 可生成待验证 Task v1 JSON；Page 正式安装仍待完善 |
 
 **源码形态与执行环境是两个独立维度**：页面 JS（document/DOM）由 USER_SCRIPT 执行，自动化 JS（page/ChromePage）由已有 Controller/RunHost 执行。任何一种源码形态都不能绕过相应运行环境的授权与验证。
@@ -79,11 +81,15 @@ npm ci --ignore-scripts
 npm run build:program -- examples/programs/page-heading
 ~~~
 
-构建命令给出实际 `outputDirectory`，位于本地被 Git 忽略的 `artifacts/programs/...`。该目录包含 `program.js`（固定、经典 JS 产物）和 `artifact.json`（哈希/来源/BUILT_UNVERIFIED 说明）。
+构建命令给出实际 `outputDirectory`，位于本地被 Git 忽略的 `artifacts/programs/...`。该目录包含 `program.js`（固定执行产物）、`artifact.json`（构建来源/哈希/BUILT_UNVERIFIED）和 `program.opendesk-draft.json`（源文件快照 + 完整执行字节）。R3.1 输出目录同时绑定运行字节与源码图身份，保留旧不可变产物。
 
-将 program.js 放进 Sidebar，有两条既有路径：
-1. **最快**：复制 program.js 整个源码到 Sidebar「开发」的原编辑器，再按第 3 节的 **网页 DOM 用户脚本**模式调试。
-2. **不复制粘贴**：保持同窗口 Sidebar 开启 → 在「发现」点击 **「导入」** → 打开原来的独立完整任务目录 → 找到 **「导入任务包 JSON 或 JavaScript 草稿」**，选择 program.js。目录通过原有受信本地消息把 .js 交给**同窗口** Sidebar，转到「开发」的**未保存草稿**。然后在「网页用户脚本 · 依赖与试运行」明确点击试运行。若找不到同窗口 Sidebar，按已有提示返回目标窗口重试。
+日常推荐操作：保持同窗口 Sidebar 开启 →「发现 → 导入」进入已有独立完整任务目录 → 在文件导入处选择 **program.opendesk-draft.json** → 返回「开发」。界面展示项目 ID、版本、入口、真实源文件快照和构建模式/大小/哈希；编译产物只在「高级诊断」折叠区显示。快照只读，在本地修改 `src/*.js` 后重新构建并导入，浏览器不会自行编译 ESM 或把快照当作执行字节。选择源文件仅切换查看内容。
+
+Page 在原「网页用户脚本 · 依赖与试运行」折叠区明确点击试运行；Controller 使用原底栏「运行草稿」。这两种操作仍先验证权限和冻结目标。构建或导入不会保存、运行、授权或安装。
+
+兼容入口：仍可导入/粘贴旧 `program.js`。无源文件快照时明确显示「已编译程序」，产物默认折叠，提示回本地修改；不假装恢复项目。加载旧保存版本和从已安装任务复制草稿也使用同样的展示方式。点击「新建单文件草稿」恢复普通可编辑 JavaScript。
+
+调试构建：`npm run build:program -- examples/programs/page-heading --mode development`。Controller 同理。开发产物可读，额外输出本地 `program.js.map`；生产默认仍压缩且不包含映射。Source Map 不随草稿包导入扩展，也不进入生产安装包。构建错误给出项目、阶段、错误码与实际存在的源位置；运行错误保留原始生成堆栈，不在没有映射时编造 `src/main.js` 行号。
 
 **Controller 自动化程序：**
 
@@ -114,3 +120,16 @@ npm run build:program -- examples/programs/controller-title
 下一步应先验证：**同一程序构建 → 原 R6 独立目录导入 .js → Sidebar 原编辑器 → 明确用户点击 → Chrome 原生返回 → 断网重用、换页/撤权失败关闭**。再完善 Page 类型正式安装，不为了这条路径大改 Sidebar。
 
 **以后所有 Sidebar UI 调整都以 R6 为比较基线**，逐项保留既有 DOM 控件、三页签和运行/停止所有权；任何新方案应先说明必要性并进行真实视觉预览，不得直接用示意 UI 替代现行产品。
+
+## 7. UI、React/Vue 与 Tailwind 的开发边界（2026-10-09）
+
+详见 [UI 开发与样式隔离 R1](../architecture/browser-framework/ui-development-and-style-isolation-r1.zh-CN.md)。当前已有插件自身界面和 `paramsSchema` 原生参数表单；页面脚本可使用 DOM API。**这不等于当前已提供 React/Vue/Tailwind 的正式多文件 UI 开发闭环。**
+
+- 不使用框架仍是正式路径。简单任务继续使用现成参数表单，复杂网页小工具才需要自定义 UI。
+- React/Vue 属于项目的渲染选择；Tailwind 是可选的构建期样式工具，可以与原生、React、Vue 分别组合。
+- 基础 CSS 按 UI 容器启用，网页内 UI 优先独立 ShadowRoot。选择启用不等于已经隔离；不得向网站全局注入完整 Tailwind reset。
+- 当前校验/构建入口只直接处理 `.js/.mjs`；CSS/图片资产未贯通，JSX/TSX/Vue 单文件组件没有正式编译适配。现有文件选择器也不等于目录导入入口。
+- 用户任意 UI 代码不能直接作为特权 Sidebar 组件运行；简单表单继续由宿主渲染，复杂侧栏应用另行实现独立展示文档。
+- 下一批先完成原生网页 UI 的资产、挂载、交互与清理，再在同一链路接 React/Vue/Tailwind。无需因该需求等待完整 UserCSS 管理器，也不扩展 Sidebar 一级页签。
+
+本节是新需求的设计补充；UI 资源通道、框架适配和真实 Chrome 支持状态仍以实际代码与验收证据为准。

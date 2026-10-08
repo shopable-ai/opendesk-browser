@@ -162,9 +162,7 @@ test('installed task can be explicitly forked into an independent unsaved editor
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-fork-draft');
   assert.equal(f.get('workbench-develop').hidden,false);
-  assert.match(f.get('script-id').value,/^draft-demo\.form-/);
-  assert.equal(f.get('script-revision').value,'');
-  assert.match(f.get('script-source').value,/async function main/);
+  assert.match(f.importedDrafts.at(-1),/async function main/,'fork delegates to the same source/compiled-artifact importer');
 });
 
 /* task-owned-stop-and-document-race-r3: focused UI regressions; this is not native Chrome evidence. */
