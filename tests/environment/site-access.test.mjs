@@ -1,0 +1,146 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {ALL_WEB_ORIGINS, siteAccessPermissionRequest, siteAccessSatisfies,
+  createSiteAccess} from '../../src/ui/site-access.js';
+
+function event() {
+  const listeners = new Set();
+  return {addListener(fn) { listeners.add(fn); }, removeListener(fn) { listeners.delete(fn); },
+    fire(value) { for (const fn of [...listeners]) fn(value); },
+    get size() { return listeners.size; }};
+}
+function fixture() {
+  const onAdded = event(), onRemoved = event(), requests = [], states = [];
+  const native = {websites:false,cookies:false,notifications:false};
+  let permissionOutcome = true;
+  const api = {permissions:{
+    onAdded,onRemoved,
+    contains:async ({origins,permissions}) => origins?.length ? native.websites
+      : (permissions || []).every(p => native[p] === true),
+    request(request) {
+      requests.push(structuredClone(request));
+      if (!permissionOutcome) return Promise.resolve(false);
+      native.websites = true;
+      for (const p of request.permissions || []) native[p] = true;
+      onAdded.fire(request);
+      return Promise.resolve(true);
+    }
+  }};
+  const controller = createSiteAccess({api,onState:state=>states.push(state)});
+  return {api,native,controller,requests,states,onAdded,onRemoved,
+    deny() { permissionOutcome = false; }};
+}
+
+test('centralized permission request is the exact declared optional HTTP(S) host range', () => {
+  assert.deepEqual(ALL_WEB_ORIGINS,['http://*/*','https://*/*']);
+  assert.deepEqual(siteAccessPermissionRequest(),{origins:['http://*/*','https://*/*']});
+  assert.deepEqual(siteAccessPermissionRequest({cookies:true,notifications:true}),
+    {origins:['http://*/*','https://*/*'],permissions:['cookies','notifications']});
+  assert.throws(() => siteAccessPermissionRequest({cookies:'yes'}),{code:'E_SCHEMA'});
+  assert.equal(siteAccessSatisfies({websites:true,cookies:false,notifications:false},{}),true);
+  assert.equal(siteAccessSatisfies({websites:true,cookies:false,notifications:false},{cookies:true}),false);
+});
+
+test('explicit trusted click requests all websites and selected optional APIs before first await', async t => {
+  const f = fixture(); t.after(() => f.controller.dispose());
+  await f.controller.refresh();
+  assert.equal(f.requests.length,0,'startup/refresh may never prompt');
+  const granted = f.controller.grant({isTrusted:true},{cookies:true,notifications:true});
+  assert.deepEqual(f.requests,[{origins:['http://*/*','https://*/*'],permissions:['cookies','notifications']}]);
+  const state = await granted;
+  assert.deepEqual(state,{websites:true,cookies:true,notifications:true});
+  assert.equal(f.states.at(-1).phase,'granted');
+  await f.controller.refresh();
+  assert.equal(f.requests.length,1,'refresh and subsequent runs do not repeat the onboarding request');
+});
+
+test('untrusted events cannot grant permissions; native denial cannot turn into local approval', async t => {
+  const f = fixture();t.after(() => f.controller.dispose());
+  await assert.rejects(f.controller.grant({isTrusted:false}),{code:'E_GESTURE'});
+  assert.equal(f.requests.length,0);
+  f.deny();
+  await assert.rejects(f.controller.grant({isTrusted:true},{cookies:true}),{code:'E_PERMISSION'});
+  assert.equal(f.controller.snapshot.websites,false);
+  assert.equal(f.states.at(-1).phase,'denied');
+});
+
+test('Chrome permission removal invalidates live status and disposal detaches listeners', async () => {
+  const f = fixture();
+  await f.controller.grant({isTrusted:true});
+  f.native.websites = false;
+  f.onRemoved.fire({origins:['http://*/*','https://*/*']});
+  await f.controller.refresh();
+  assert.equal(f.controller.snapshot.websites,false);
+  assert.equal(f.states.at(-1).phase,'limited');
+  assert.equal(f.requests.length,1,'permission removal is observed, not silently reapproved');
+  f.controller.dispose();
+  assert.equal(f.onAdded.size,0);
+  assert.equal(f.onRemoved.size,0);
+  await assert.rejects(f.controller.grant({isTrusted:true}),{code:'E_HOST_CLOSED'});
+});
+
+test('native approval remains valid when an onAdded refresh supersedes its UI observation', async t => {
+  const f = fixture(); t.after(() => f.controller.dispose());
+  const normalContains = f.api.permissions.contains;
+  let sendLateEvent = true;
+  f.api.permissions.contains = async query => {
+    const value = await normalContains(query);
+    if (sendLateEvent) {
+      sendLateEvent = false;
+      queueMicrotask(() => f.onAdded.fire({origins:[...ALL_WEB_ORIGINS]}));
+    }
+    return value;
+  };
+  const actual = await f.controller.grant({isTrusted:true});
+  assert.equal(actual.websites,true);
+  await f.controller.refresh();
+  assert.equal(f.states.at(-1).phase,'granted');
+  assert.equal(f.requests.length,1);
+});
+
+test('developer site permission controls coexist with the main three-tab workbench', async () => {
+  const {readFile} = await import('node:fs/promises');
+  const [html,shell,css]=await Promise.all([
+    readFile('src/ui/tool.html','utf8'),
+    readFile('src/ui/tool-shell.js','utf8'),
+    readFile('src/ui/tool-shell.css','utf8')]);
+  const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);
+  assert.equal(new Set(ids).size,ids.length,'each DOM id remains unique');
+  const developStart=html.indexOf('id="workbench-develop"');
+  const siteSection=html.indexOf('id="site-access"');
+  assert.ok(developStart>0 && siteSection>developStart && html.indexOf('id="script-title"')>siteSection,
+    'site permission onboarding lives inside the develop tab');
+  assert.match(shell,/createTaskWorkbench/);
+  assert.match(shell,/createSiteAccess/);
+  assert.match(shell,/siteAccess\.dispose\(\); taskWorkbench\.dispose\(\)/);
+  assert.match(css,/\.workbench-nav/);
+  assert.match(css,/#site-access-status/);
+});
+
+test('narrow browser permissions do not claim all-site access', async t => {
+  const f = fixture(); t.after(() => f.controller.dispose());
+  f.native.cookies = true;
+  const state = await f.controller.refresh();
+  assert.equal(state.websites,false);
+  assert.equal(state.cookies,true);
+  assert.equal(siteAccessSatisfies(state,{cookies:true}),false);
+});
+
+test('R5 optional one-time authorization retains all controls and original runners',async()=>{
+  const [html,script,css]=await Promise.all([
+    readFile('src/ui/tool.html','utf8'),
+    readFile('src/ui/tool-shell.js','utf8'),
+    readFile('src/ui/tool-shell.css','utf8')]);
+  const advanced=html.indexOf('<details id="script-advanced">');
+  const access=html.indexOf('id="site-access"');
+  assert.ok(advanced>=0 && access>advanced,'nested under developer advanced');
+  const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
+  assert.equal(new Set(ids).size,ids.length);
+  for(const id of ['site-access-status','site-access-grant','site-access-refresh','site-access-cookies',
+    'site-access-notifications','script-run','script-stop','task-run','task-stop','page-dependency-panel'])
+    assert(ids.includes(id),id);
+  assert.match(script,/siteAccess\.grant\(event,siteAccessOptions\(\)\)/);
+  assert.match(script,/siteAccess\.dispose\(\)/);
+  assert.match(css,/#site-access-status\[data-state=granted\]/);
+});
