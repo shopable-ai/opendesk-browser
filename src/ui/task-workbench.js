@@ -16,6 +16,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
   let localQuery='', localFilter='current';
   const parameterDrafts=new Map();
+  // A late RunHost event must update the launching task, never the newly selected one.
+  const taskNotices=new Map();
+  let runOwnerTaskId=null, runOwnerTitle='';
   const listeners=[];
   // This channel is a hint only. The recipient always re-reads the authoritative
   // Task Catalog through the existing Host Client; no task data crosses it.
@@ -46,8 +49,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     for(const [element,view] of [
       ['tasks','tasks'],['local-discover','discover'],['develop','develop'],['discover','catalog']
     ])get('workbench-'+element).hidden=view!==name;
-    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']])
-      get(id).setAttribute('aria-selected',String(name===view));
+    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']]) {
+      const tab=get(id);
+      tab.setAttribute('aria-selected',String(name===view));
+      tab.tabIndex=name===view?0:-1;
+    }
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
     if(name==='discover')renderLocalDiscovery();
@@ -72,6 +78,18 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const candidate=()=>catalog.find(row=>identity(row)===get('task-catalog-list').value);
   const installedRow=()=>installed.find(row=>row.taskId===get('task-installed-list').value);
   const candidateFor=row=>row && catalog.find(value=>value.taskId===row.taskId&&value.version===row.version);
+  function renderTaskStatus() {
+    const taskId=installedRow()?.taskId;
+    const otherOwner=runOwnerTaskId && runOwnerTaskId!==taskId && (running || (activeRunId && host.currentRun===activeRunId));
+    get('task-status').textContent=otherOwner
+      ? `「${runOwnerTitle}」${activeRunId && host.currentRun===activeRunId?'正在运行，底部可停止':'正在准备，暂不可启动其他任务'}`
+      :taskId?taskNotices.get(taskId)||'':'';
+  }
+  function setTaskNotice(taskId,message) {
+    if(!taskId)return;
+    taskNotices.set(taskId,message);
+    renderTaskStatus();
+  }
   const formatCandidate=row=>{
     if(!row)return '尚无候选任务';
     const manifest=row.manifest;
@@ -179,6 +197,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function renderInstalledCards() {
     const parent=get('task-installed-cards'),selected=get('task-installed-list').value,
       workspace=get('task-selected-workspace');
+    const focused=doc.activeElement;
+    const focusedTaskId=parent.contains?.(focused) && focused?.dataset?.taskId || null;
+    const focusedInWorkspace=workspace.contains?.(focused) || false;
+    let replacementFocus=null;
     // Move the same live controls under the selected card, never recreate them.
     // Keeping the original nodes preserves input focus, listeners and run ownership.
     parent.replaceChildren();
@@ -188,6 +210,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       empty.className='hint';
       empty.textContent='还没有任务。前往「发现」→「导入」添加本地任务。';
       parent.append(empty,workspace);
+      if(focusedInWorkspace)get('tab-my-tasks').focus?.({preventScroll:true});
       return;
     }
     let attached=false;
@@ -201,6 +224,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       button.setAttribute('aria-controls','task-selected-workspace');
       const badge=doc.createElement('span');badge.className='task-card-icon';
       badge.textContent=(info?.manifest.title || row.taskId).slice(0,1).toUpperCase();
+      badge.setAttribute('aria-hidden','true');
       const copy=doc.createElement('span');copy.className='task-card-copy';
       const title=doc.createElement('strong');title.textContent=info?.manifest.title || row.taskId;
       const subtitle=doc.createElement('small');subtitle.textContent=info?.manifest.description || '已安装任务';
@@ -208,12 +232,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const state=doc.createElement('span');state.className='task-card-state'+(row.enabled?'':' off');
       state.textContent=row.enabled?'':'已停用';
       button.append(badge,copy,state);
-      button.addEventListener('click',()=>{get('task-installed-list').value=row.taskId;renderInstalledSelection();});
+      if(focusedTaskId===row.taskId)replacementFocus=button;
+      button.addEventListener('click',()=>{
+        const wasFocused=doc.activeElement===button;
+        get('task-installed-list').value=row.taskId;renderInstalledSelection();
+        if(wasFocused) {
+          for(const next of get('task-installed-cards').querySelectorAll?.('.task-card')||[])
+            if(next.dataset.taskId===row.taskId){next.focus?.({preventScroll:true});break;}
+        }
+      });
       group.append(button);
       if(row.taskId===selected){workspace.hidden=false;group.append(workspace);attached=true;}
       parent.append(group);
     }
     if(!attached){workspace.hidden=true;parent.append(workspace);}
+    if(focusedInWorkspace && focused?.isConnected!==false)focused.focus?.({preventScroll:true});
+    else replacementFocus?.focus?.({preventScroll:true});
   }
   function renderInstalled() {
     const sel=get('task-installed-list'),prior=sel.value;
@@ -234,8 +268,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-result-panel').hidden=true;
     get('task-history-panel').hidden=true;
     get('task-result').textContent='';
-    get('task-status').textContent=activeRunId && host.currentRun===activeRunId
-      ? '已有任务正在运行，可使用底部停止按钮' : '';
+    renderTaskStatus();
     if(info)renderForm(info);
     else{renderKey=null;clearChildren(get('task-params-form'));}
     renderInstalledCards();
