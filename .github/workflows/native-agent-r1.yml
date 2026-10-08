@@ -56,8 +56,16 @@ jobs:
           node-version: '22'
       - name: Isolated real macOS Host process and CLI IPC (simulated Chrome framing; NOT Chrome E2E)
         run: node --test tests/environment/native-agent-macos-install.test.mjs
+      - name: Install Chrome for Testing for real unpacked MV3 diagnostic
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        continue-on-error: true
+        with:
+          chrome-version: stable
       - name: Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)
         continue-on-error: true
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.cft.outputs.chrome-path }}
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           npm run build
