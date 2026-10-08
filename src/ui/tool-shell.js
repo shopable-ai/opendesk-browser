@@ -62,29 +62,24 @@ const listen = (element, event, listener, options) => {
 };
 const accessStatus=document.querySelector('#site-access-status');
 const accessGrant=document.querySelector('#site-access-grant');
-const accessCookies=document.querySelector('#site-access-cookies');
-const accessNotifications=document.querySelector('#site-access-notifications');
-const siteAccessOptions=()=>({cookies:accessCookies.checked,notifications:accessNotifications.checked});
 let siteAccessView={phase:'checking',message:'正在查询 Chrome 网站权限',snapshot:null,busy:false};
 function renderSiteAccess(view=siteAccessView){
   siteAccessView=view;
   accessStatus.dataset.state=view.phase;
   accessStatus.textContent=view.message+(view.snapshot
     ? `（Cookie：${view.snapshot.cookies?'已授权':'未授权'}；通知：${view.snapshot.notifications?'已授权':'未授权'}）` : '');
-  const satisfied=siteAccessSatisfies(view.snapshot,siteAccessOptions());
+  const satisfied=siteAccessSatisfies(view.snapshot);
   accessGrant.disabled=view.busy||satisfied;
-  accessGrant.textContent=satisfied?'所选权限已授权':'一次性授权全部网站';
+  accessGrant.textContent=satisfied?'全部网站已授权':'恢复全部网站访问';
 }
 const siteAccess=createSiteAccess({api:chrome,onState:renderSiteAccess});
 listen(accessGrant,'click',event=>{
   // permissions.request must be invoked synchronously in a trusted click.
-  siteAccess.grant(event,siteAccessOptions()).catch(error=>
+  siteAccess.grant(event).catch(error=>
     console.warn('Chrome site access not granted',error));
 });
 listen(document.querySelector('#site-access-refresh'),'click',()=>
   siteAccess.refresh().catch(error=>console.warn('Chrome site access refresh failed',error)));
-listen(accessCookies,'change',()=>renderSiteAccess());
-listen(accessNotifications,'change',()=>renderSiteAccess());
 siteAccess.refresh().catch(error=>console.warn('Chrome site access check failed',error));
 
 Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.freeze({

@@ -1,0 +1,70 @@
+{
+  "workstreamId": "r6-2-agent-to-task-20261008",
+  "integrationBranch": "main",
+  "branchPolicy": "AUTHORIZED_MAIN_INTEGRATION; no feature branch or Worktree created",
+  "baseMain": "a6a54507b4c3e1d020596da47a26215498bd4c45",
+  "scope": "Reuse modern Locator and optional existing Native Agent to prepare read-only observe → draft → immutable Task Candidate → verification → user install → no-AI replay",
+  "files": [
+    "docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md",
+    "docs/architecture/browser-framework/ai-browser-agent-ecosystem-r6-20261008.zh-CN.md",
+    "examples/tasks/agent-observe-draft.js",
+    "examples/tasks/agent-modern-search.v1.opendesk-task.json",
+    "tests/environment/agent-to-task-contract.test.mjs",
+    ".github/workflows/sidebar-r1-p0.yml",
+    "docs/framework/workstreams/r6-2-agent-to-task-20261008.json"
+  ],
+  "untouchedParallelPaths": [
+    "examples/tasks/demo-form.html",
+    "examples/tasks/README.zh-CN.md",
+    "tests/environment/basic-browser-page.test.mjs",
+    "src/native-agent/**",
+    "native-agent/**",
+    "src/sw.js",
+    "src/run-host.js",
+    "src/platform/tasks/**",
+    "docs/framework/public-owner.json"
+  ],
+  "frozenSample": {
+    "source": "examples/tasks/modern-search-draft.js",
+    "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+    "manifestHash": "a40fe6471506743a785ab32fd85a48f3991a641fb3c28741735c20e799d13812",
+    "siteOrigin": "http://127.0.0.1:43111",
+    "stage": "CANDIDATE_ONLY_NOT_VERIFIED"
+  },
+  "verification": {
+    "localHashAndSyntax": "PASS (Node SHA-256, package-source equality and JS syntax only)",
+    "targetNodeTests": "node --test tests/environment/agent-to-task-contract.test.mjs tests/environment/basic-browser-page.test.mjs tests/environment/task-package-flow.test.mjs tests/framework/r5-modern-page-api.test.mjs",
+    "targetBuild": "npm run check && npm run build && npm run build:dev && npm run verify",
+    "sameCommitGitHubCI": "PASS at 38f7eaf742befe417a61ba4f0982522696eda995; subsequent main commits require affected-scope recheck",
+    "SOURCE_CONFIRMED": "YES",
+    "COMPONENT_TESTED": "PASS at 38f7eaf: added 5/5; combined Sidebar/Task/Controller 142/142; R5.2 Locator 15/15; additional driver regressions PASS",
+    "BUILD_VERIFIED": "PASS at 38f7eaf: npm run check, WXT production/development builds, package verify (main, no Native bridge)",
+    "NATIVE_CHROME_VERIFIED": "NOT_TESTED",
+    "AI_AGENT_E2E_VERIFIED": "NOT_TESTED",
+    "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
+    "FINAL_FRAMEWORK_ACCEPTED": "NO"
+  },
+  "parallelPRs": {
+    "11": "DRAFT existing Native Agent Bridge; parallel development active. Do not merge before real Mac Chrome/Codex validation; reconcile duplicate agent-to-task sample/docs with main.",
+    "20": "DRAFT R7.1 HTTP page workflow; main already carries some overlapping HTML/basic browser tests from parallel direct commits; remaining server/fixture/test files are not yet in main. Do not delete without complete integration."
+  },
+  "nativeHistory": {
+    "testedPRHead": "8ab0ada6f619d8c0f08637bce0f5352cd1059b5f",
+    "ciRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37793448204",
+    "swProductionBytes": 324759,
+    "swBudgetBytes": 327680,
+    "nativeHostIPC": "PASS_WITH_SIMULATED_CHROME",
+    "realChrome": "NOT_TESTED"
+  },
+  "followUp": "Use existing local Codex acceptance prompt on PR #11; only merge each completed PR after real native gate, then delete exact verified merged branch",
+  "updatedAt": "2026-10-08",
+  "mainIntegration": {
+    "commit": "38f7eaf742befe417a61ba4f0982522696eda995",
+    "ci": [
+      "https://github.com/shopable-ai/opendesk-browser/actions/runs/37801162421",
+      "https://github.com/shopable-ai/opendesk-browser/actions/runs/37801162351"
+    ],
+    "scope": "R6.2 code/doc+fixture candidate; CI proves packaged main, not PR #11 and not Native Chrome",
+    "result": "COMPONENT_AND_BUILD_PASS"
+  }
+}
