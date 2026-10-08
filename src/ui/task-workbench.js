@@ -13,6 +13,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
+  let localQuery='', localFilter='current';
   const listeners=[];
   const listen=(node,event,fn)=>{node.addEventListener(event,fn);listeners.push({node,event,fn});};
   const fail=error=>{
@@ -20,30 +21,32 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const message=`${error?.code || 'E_TASK'}：${error?.message || error}`;
     get('task-status').textContent=message;
     get('task-catalog-status').textContent=message;
+    get('local-discover-status').textContent=message;
     get('task-dev-status').textContent=message;
   };
   const option=(name,value)=>new Option(name,value);
   function navigate(name) {
-    if(!['tasks','discover','develop'].includes(name))return;
-    if(name==='discover'&&!catalogSurface) {
-      // The full catalog opens as the same packaged, authenticated tool.html
-      // document in a browser TAB. No new privileged sender or trust bypass.
+    if(!['tasks','discover','develop','catalog'].includes(name))return;
+    if(name==='catalog'&&!catalogSurface) {
+      // Package import and installation live only in a separate full-size
+      // extension tab. Sidebar Discover is a view of installed local tasks.
       Promise.resolve().then(()=>api.tabs.create({url:api.runtime.getURL('ui/tool.html')})).catch(fail);
       return;
     }
-    for(const value of ['tasks','discover','develop']){
-      get('workbench-'+value).hidden=value!==name;
-      get(value==='tasks'?'tab-my-tasks':value==='discover'?'tab-discover':'tab-develop')
-        .setAttribute('aria-selected',String(value===name));
-    }
+    for(const [element,view] of [
+      ['tasks','tasks'],['local-discover','discover'],['develop','develop'],['discover','catalog']
+    ])get('workbench-'+element).hidden=view!==name;
+    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']])
+      get(id).setAttribute('aria-selected',String(name===view));
     get('task-dock').hidden=catalogSurface || name!=='tasks';
     get('develop-dock').hidden=catalogSurface || name!=='develop';
-    if(doc.documentElement?.dataset) doc.documentElement.dataset.opendeskTab=name;
+    if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
+    if(name==='discover')renderLocalDiscovery();
   }
   function showCatalogPage() {
     catalogSurface=true;
     if(doc.documentElement?.dataset) doc.documentElement.dataset.opendeskSurface='catalog';
-    navigate('discover');
+    navigate('catalog');
   }
   const identity=row=>`${row.taskId}@${row.version}`;
   const candidate=()=>catalog.find(row=>identity(row)===get('task-catalog-list').value);
@@ -176,6 +179,67 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     renderInstalledCards();
     update();refreshHistory().catch(fail);
   }
+  function renderLocalDiscovery() {
+    const parent=get('local-discover-cards');
+    parent.replaceChildren();
+    let origin=null;
+    if(currentPage?.status==='available') {
+      try {origin=new URL(currentPage.url).origin;} catch { /* No stale site fallback. */ }
+    }
+    for(const value of ['current','all','disabled'])
+      get('local-filter-'+value).setAttribute('aria-pressed',String(localFilter===value));
+    const rows=installed.map(row=>({row,info:candidateFor(row)}))
+      .filter(item=>item.info && (
+        localFilter==='all' ||
+        localFilter==='disabled' && !item.row.enabled ||
+        localFilter==='current' && item.row.enabled && origin &&
+          item.info.manifest.siteOrigins.includes(origin)
+      ))
+      .filter(({row,info})=>[
+        info.manifest.title,info.manifest.description,row.taskId,...info.manifest.siteOrigins
+      ].join(' ').toLocaleLowerCase().includes(localQuery));
+    get('local-discover-count').textContent=`找到 ${rows.length} 个已安装任务 · 本机共 ${installed.length} 个`;
+    if(!rows.length) {
+      const empty=doc.createElement('p');
+      empty.className='local-discovery-empty';
+      empty.textContent=!installed.length
+        ? '还没有安装任务。可前往完整任务目录导入、验证并安装。'
+        : localFilter==='current' && !origin
+          ? '当前网页不可识别；请选择「全部已安装」查看本地任务。'
+          : localFilter==='current' && !localQuery
+            ? '当前网页没有匹配的已启用任务。可以切换到「全部已安装」。'
+            : '没有找到匹配的本机任务，请修改关键词或筛选条件。';
+      parent.append(empty);
+    }
+    for(const {row,info} of rows) {
+      const matches=!!origin && info.manifest.siteOrigins.includes(origin);
+      const card=doc.createElement('button');card.type='button';
+      card.className='local-discovery-card';card.dataset.taskId=row.taskId;
+      card.setAttribute('aria-label',`选择 ${info.manifest.title}，返回我的任务`);
+      const icon=doc.createElement('span');icon.className='task-card-icon';
+      icon.textContent=(info.manifest.title||row.taskId).slice(0,1).toUpperCase();
+      const copy=doc.createElement('span');copy.className='local-discovery-copy';
+      const title=doc.createElement('strong');title.textContent=info.manifest.title;
+      const description=doc.createElement('small');description.textContent=info.manifest.description;
+      const scope=doc.createElement('small');
+      scope.textContent=`适用网站：${info.manifest.siteOrigins.join('、')}`;
+      copy.append(title,description,scope);
+      const state=doc.createElement('span');
+      state.className='local-discovery-state'+(!row.enabled?' off':!matches?' other':'');
+      state.textContent=!row.enabled?'已停用':matches?'网站匹配':'其他网站';
+      card.append(icon,copy,state);
+      card.addEventListener('click',()=>{
+        if(disposed || !installed.some(value=>value.taskId===row.taskId))return;
+        get('task-installed-list').value=row.taskId;
+        renderInstalledSelection();
+        navigate('tasks'); // Explicit Run click still performs native permission admission.
+      });
+      parent.append(card);
+    }
+    get('local-discover-status').textContent=localFilter==='current'
+      ? '仅按当前网站精确来源筛选；实际运行仍需检查网页身份、权限与参数。'
+      : '这里仅包含本机已安装任务；导入和安装新版本请使用完整任务目录。';
+  }
   function renderCatalog(preserve) {
     const sel=get('task-catalog-list'),old=preserve||sel.value;
     sel.replaceChildren(option(catalog.length?'请选择候选版本':'目录中没有任务',''));
@@ -254,7 +318,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const result=await client.request('listTaskCatalog',{});
     if(disposed||seq!==catalogSequence)return;
     catalog=result.catalog;installed=result.installed;
-    renderInstalled();renderCatalog(preferred);
+    renderInstalled();renderCatalog(preferred);renderLocalDiscovery();
   }
   async function refreshHistory() {
     const seq=++historySequence,row=installedRow();
@@ -308,7 +372,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const value=await client.request('importTaskPackage',{package:pkg});
     await refresh(identity(value));
     get('task-dev-status').textContent=`已创建待验证候选 ${identity(value)}；请先运行相同源码并提供真实 runId`;
-    navigate('discover');
+    navigate('catalog');
   }
   async function readFile() {
     const file=get('task-package-file').files?.[0];
@@ -419,7 +483,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   };
   for(const [tab,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']])
     listen(get(id),'click',()=>navigate(tab));
-  listen(get('open-catalog'),'click',()=>navigate('discover'));
+  listen(get('open-catalog'),'click',()=>navigate('catalog'));
+  listen(get('local-discover-open-catalog'),'click',()=>navigate('catalog'));
+  listen(get('local-discover-search'),'input',()=>{
+    localQuery=get('local-discover-search').value.trim().toLocaleLowerCase();
+    renderLocalDiscovery();
+  });
+  for(const value of ['current','all','disabled'])
+    listen(get('local-filter-'+value),'click',()=>{
+      localFilter=value;renderLocalDiscovery();
+    });
   listen(get('task-search'),'input',()=>{
     catalogQuery=get('task-search').value.trim().toLocaleLowerCase();
     renderCatalogCards();
@@ -448,7 +521,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   listen(get('task-toggle'),'click',asyncAction(toggle));
   listen(get('task-uninstall'),'click',asyncAction(uninstall));
   listen(get('task-fork-draft'),'click',asyncAction(fork));
-  const unsubscribePage=currentPageTarget?.subscribe(next=>{currentPage=next;update();});
+  const unsubscribePage=currentPageTarget?.subscribe(next=>{
+    currentPage=next;update();renderLocalDiscovery();
+  });
   const unsubscribeRun=host.subscribe(value=>{
     if(disposed)return;
     if(value?.runId&&value.runId===activeRunId) {
