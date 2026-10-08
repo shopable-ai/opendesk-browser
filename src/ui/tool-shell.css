@@ -240,11 +240,3 @@ details>section{margin-top:10px}
 #site-access-status[data-state=granted]{color:#138263}
 #site-access-status[data-state=denied],#site-access-status[data-state=error]{color:#ae3d4b}
 #site-access .row button{flex:1 1 130px}
-/* D2: keep quick single-file runs visible; dependency settings stay optional. */
-.developer-import-row{display:flex;justify-content:flex-end;margin:-3px 0 6px}
-#script-import-button{min-height:30px;padding:5px 9px;font-size:11px;font-weight:650;background:transparent;color:#385b92;border:1px solid #d8e3f2}
-#page-preview-inline-status{font-size:11px;line-height:1.5;color:#365271;background:#edf3fc;border-radius:7px;padding:6px 8px;margin:4px 0 7px}
-#page-preview-inline-status[data-state=error]{color:#a43c4a;background:#fff2f3}
-#page-preview-run{flex:1;min-width:0;background:#eaf0ff;color:#3455a6;border:1px solid #c3d1f0}
-#develop-dock .dock-buttons{flex-wrap:wrap}
-#develop-dock #script-run{min-width:0}

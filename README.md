@@ -4,6 +4,8 @@
 
 ## 当前框架与真实进度（先读这里）
 
+**日常操作首选：[保留 Sidebar R6 的单文件运行与多文件项目使用指南](docs/product/program-development-dual-format-and-sidebar.zh-CN.md)**。此文档明确三页签原样保留、旧有按钮位置和「发现 → 导入」的真实路径；不要把示意图当作产品替代设计。
+
 复杂脚本优先使用 **多文件 ESM + package.json 的 opendesk 字段**，传统单文件 JS 仍在 Sidebar「开发」直接运行。`npm run build:program -- <目录>` 将页面项目构建为本地 `program.js`，将 Controller 项目构建为 `program.js` 与可导入的 Task v1 Candidate JSON；**构建和导入仍不意味着已通过 Chrome 验证或已安装**。
 
 - [多文件 ESM 与 AI 编辑/发布规则](docs/architecture/browser-framework/program-project-authoring-r1.zh-CN.md) ｜ [AI 发布 Skill](.agents/skills/opendesk-program-publish/SKILL.md) ｜ [示例程序](examples/programs/page-heading/README.md)
