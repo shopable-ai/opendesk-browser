@@ -60,7 +60,29 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 #search-status{font-size:13px;color:#176546;margin:10px 0 0}
 #results{font-size:13px;color:#344d70;margin-top:5px}
 #search-count{font-size:12px;color:#61728a;margin:6px 0 0}
+
 .footnote{font-size:12px;color:#5c6e85;margin:12px 0 0}
+.http-lab{margin-bottom:17px}
+.http-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:11px}
+.http-toolbar p{font-size:12px;color:#476283;margin:0}
+.http-toolbar label{display:flex;align-items:center;gap:8px}
+#http-example{max-width:210px}
+.http-fields{display:grid;grid-template-columns:104px minmax(0,1fr) 110px;gap:9px}
+.http-fields .field{min-width:0}
+.http-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px}
+.http-options{margin-top:10px}
+#http-post-fields{margin-top:9px}
+#http-body{display:block;width:100%;min-height:68px;resize:vertical;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;border:1px solid #cbd5e1;border-radius:8px;padding:9px;color:#20324b;background:#fff}
+.http-meta{display:flex;flex-wrap:wrap;gap:7px 17px;margin:7px 0 0;color:#53677f;font-size:12px}
+.http-meta output{color:#203650;font-weight:750;font-variant-numeric:tabular-nums}
+#http-error{margin:8px 0 0;color:#a83f4b;font-size:12px;overflow-wrap:anywhere}
+.http-response{margin-top:9px;border:1px solid #e0e6ee;border-radius:8px;background:#f7f9fc}
+.http-response summary{cursor:pointer;padding:9px 11px;color:#405873;font-size:12px;font-weight:650}
+#http-response{margin:0;padding:3px 11px 12px;max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#24354e}
+.simulated{border-top:1px dashed #dce5f0;padding-top:13px;margin-top:15px}
+.simulated h3{font-size:12px;font-weight:750;color:#52647c;margin:0 0 9px;letter-spacing:0}
+.simulated .status{margin-top:9px}
+@media(max-width:540px){.http-fields{grid-template-columns:minmax(0,1fr) 110px}.http-fields .http-url-field{grid-column:1/-1;grid-row:2}.http-toolbar label{width:100%;justify-content:space-between}#http-example{flex:1;max-width:none}.http-meta{gap:7px 13px}}
 @media(max-width:540px){.topbar-inner{padding:9px 15px}main{padding:0 13px;margin-top:23px}h1{font-size:22px}.unit{padding:16px}.field{flex-basis:100%}.controls{gap:7px}}
 </style>
 </head>
@@ -68,7 +90,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 <header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark" aria-hidden="true">O</span>OpenDesk <span class="brand-note">/ 测试网页</span></div><button id="reset-all" type="button" class="text-button">重置页面</button></div></header>
 <main>
   <h1>网页交互示例</h1>
-  <p class="intro">读取文字、点击按钮、等待异步响应，再填写简单表单。</p>
+  <p class="intro">读取文本、点击按钮、发送真实 HTTP 请求，以及填写表单与动态搜索。</p>
   <div class="sheet">
     <section class="unit" aria-labelledby="text-title">
       <div class="unit-heading"><small>01</small><h2 id="text-title">文本读取</h2></div>
@@ -83,8 +105,40 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       <p id="extra-text" class="expanded" hidden>这是点击后出现的文字，可用于验证元素显示和文本读取。</p>
     </section>
     <section class="unit" aria-labelledby="async-title">
-      <div class="unit-heading"><small>03</small><h2 id="async-title">网络请求与异步等待</h2></div>
-      <div class="controls">
+      <div class="unit-heading"><small>03</small><h2 id="async-title">HTTP 与异步请求</h2></div>
+      <div class="http-lab" aria-labelledby="http-title">
+        <div class="http-toolbar">
+          <p id="http-title"><strong>真实 HTTP 请求</strong> · 浏览器原生 Fetch</p>
+          <label for="http-example">示例
+            <select id="http-example" data-testid="http-example">
+              <option value="local-json" selected>本地 JSON · 200</option>
+              <option value="local-html">本地 HTML · 200</option>
+              <option value="local-404">本地不存在 · 404</option>
+              <option value="city">城市 · Open-Meteo</option>
+              <option value="weather">天气 · Open-Meteo</option>
+              <option value="ip">公网 IP · ipwho.is</option>
+              <option value="custom">自定义 URL</option>
+            </select>
+          </label>
+        </div>
+        <form id="http-form" autocomplete="off">
+          <div class="http-fields">
+            <div class="field"><label for="http-method">Method</label><select id="http-method" data-testid="http-method"><option>GET</option><option>POST</option></select></div>
+            <div class="field http-url-field"><label for="http-url">API URL</label><input id="http-url" data-testid="http-url" type="text" spellcheck="false" value="./request-sample.json" required></div>
+            <div class="field"><label for="http-timeout">超时 (ms)</label><input id="http-timeout" data-testid="http-timeout" type="number" min="100" max="30000" step="100" value="5000" required></div>
+          </div>
+          <div id="http-post-fields" hidden><label for="http-body">POST JSON 内容</label><textarea id="http-body" spellcheck="false">{"hello":"OpenDesk"}</textarea></div>
+          <div class="http-actions"><button id="http-send" data-testid="http-send" type="submit" class="primary">发送请求</button><button id="http-cancel" data-testid="http-cancel" type="button" disabled>取消请求</button></div>
+        </form>
+        <div id="http-status" data-testid="http-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="http-status-text">尚未发送</span></div>
+        <div class="http-meta"><span>状态：<output id="http-code" data-testid="http-code">—</output></span><span>耗时：<output id="http-duration" data-testid="http-duration">—</output></span><span>类型：<output id="http-content-type">—</output></span></div>
+        <p id="http-error" data-testid="http-error" role="alert" hidden></p>
+        <details id="http-response-details" class="http-response"><summary>响应内容</summary><pre id="http-response" data-testid="http-response">发送后显示服务端真实返回内容</pre></details>
+        <p class="footnote">公网示例只在点击发送后访问第三方；IP 查询会向服务商公开请求的来源 IP。CORS 阻止和断网通常不能从网页内精确区分。</p>
+      </div>
+      <div class="simulated">
+        <h3>原有异步场景 · 真实本地 fetch + 客户端模拟延迟</h3>
+        <div class="controls">
         <label for="delay">显示延迟</label>
         <select id="delay"><option value="300">300 毫秒</option><option value="1200" selected>1.2 秒</option><option value="3000">3 秒</option></select>
         <button id="request-success" type="button" class="primary">请求成功</button>
@@ -94,6 +148,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       </div>
       <div id="async-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="async-status-text">尚未发起请求</span></div>
       <div id="async-result" aria-live="polite"></div>
+      </div>
     </section>
     <section class="unit" aria-labelledby="form-title">
       <div class="unit-heading"><small>04</small><h2 id="form-title">简单表单</h2></div>
@@ -116,7 +171,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       <p id="search-count" aria-live="polite">提交次数：0</p>
     </section>
   </div>
-  <p class="footnote">网络成功和 HTTP 404 使用真实同源 fetch；显示延迟、超时由页面控制，非服务器响应延迟。请通过本地 HTTP 服务打开。</p>
+  <p class="footnote">请通过本地 HTTP 服务打开；原有异步按钮的延迟是客户端模拟，以上 HTTP 表单显示的是实际网络响应。</p>
 </main>
 <script>
 (() => {
@@ -214,6 +269,154 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
     activeRequest.controller.abort();
   });
 
+
+  // This lab sends requests only after an explicit form submission.
+  // It does not grant the page or the extension additional cross-origin permissions.
+  const httpPresets = {
+    'local-json': './request-sample.json',
+    'local-html': './demo-form.html',
+    'local-404': './__opendesk_expected_404__.json',
+    city: 'https://geocoding-api.open-meteo.com/v1/search?name=Beijing&count=2&language=zh&format=json',
+    weather: 'https://api.open-meteo.com/v1/forecast?latitude=39.9&longitude=116.4&current=temperature_2m,relative_humidity_2m&timezone=Asia%2FShanghai',
+    ip: 'https://ipwho.is/'
+  };
+  const httpForm = get('http-form');
+  const httpExample = get('http-example'), httpUrl = get('http-url');
+  const httpMethod = get('http-method'), httpCancel = get('http-cancel');
+  const httpStatus = get('http-status'), httpStatusText = get('http-status-text');
+  const httpCode = get('http-code'), httpDuration = get('http-duration');
+  const httpContentType = get('http-content-type'), httpError = get('http-error');
+  const httpResponse = get('http-response'), httpResponseDetails = get('http-response-details');
+  let activeHttp = null;
+  function setHttpState(state, message, error = '') {
+    httpStatus.dataset.state = state;
+    httpStatusText.textContent = message;
+    httpError.textContent = error;
+    httpError.hidden = !error;
+  }
+  function abortActiveHttp(reason) {
+    const previous = activeHttp;
+    activeHttp = null;
+    if (previous) {
+      previous.reason = reason;
+      clearTimeout(previous.timer);
+      previous.controller.abort();
+    }
+    httpCancel.disabled = true;
+  }
+  function resetHttp() {
+    abortActiveHttp('reset');
+    httpForm.reset();
+    httpExample.value = 'local-json';
+    httpUrl.value = httpPresets['local-json'];
+    get('http-post-fields').hidden = true;
+    httpCode.textContent = '—';
+    httpDuration.textContent = '—';
+    httpContentType.textContent = '—';
+    httpResponse.textContent = '发送后显示服务端真实返回内容';
+    httpResponseDetails.open = false;
+    setHttpState('idle', '尚未发送');
+  }
+  httpExample.addEventListener('change', () => {
+    const preset = httpPresets[httpExample.value];
+    if (preset) {
+      httpUrl.value = preset;
+      httpMethod.value = 'GET';
+      get('http-post-fields').hidden = true;
+    }
+  });
+  httpUrl.addEventListener('input', () => { httpExample.value = 'custom'; });
+  httpMethod.addEventListener('change', () => {
+    get('http-post-fields').hidden = httpMethod.value !== 'POST';
+  });
+  httpCancel.addEventListener('click', () => {
+    if (!activeHttp) return;
+    activeHttp.reason = 'user';
+    activeHttp.controller.abort();
+  });
+  async function runHttp() {
+    abortActiveHttp('superseded');  // Previous completion cannot overwrite the newer request.
+    httpCode.textContent = '—';
+    httpDuration.textContent = '—';
+    httpContentType.textContent = '—';
+    httpResponse.textContent = '';
+    httpResponseDetails.open = false;
+    let url;
+    try {
+      if (!/^https?:$/.test(location.protocol)) throw new Error('请使用本地 HTTP 服务打开页面，不能使用 file://');
+      url = new URL(httpUrl.value.trim(), location.href);
+      if (!/^https?:$/.test(url.protocol) || url.username || url.password) {
+        throw new Error('仅支持不包含账号密码的 HTTP / HTTPS URL');
+      }
+    } catch (error) {
+      setHttpState('error', 'URL 无效', error instanceof Error ? error.message : String(error));
+      return;
+    }
+    const req = {controller: new AbortController(), reason: '', timer: null};
+    activeHttp = req;
+    httpCancel.disabled = false;
+    const timeoutMs = Number(get('http-timeout').value);
+    const startedAt = performance.now();
+    setHttpState('loading', '正在请求…');
+    req.timer = setTimeout(() => {
+      if (activeHttp !== req) return;
+      req.reason = 'timeout';
+      req.controller.abort();
+    }, timeoutMs);
+    try {
+      const options = {method: httpMethod.value, signal: req.controller.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'};
+      if (httpMethod.value === 'POST') {
+        options.headers = {'Content-Type': 'application/json'};
+        options.body = get('http-body').value;
+      }
+      const response = await fetch(url.href, options);
+      if (activeHttp !== req) return;
+      httpCode.textContent = 'HTTP ' + response.status;
+      const raw = await response.text();
+      if (activeHttp !== req) return;
+      if (req.controller.signal.aborted) throw new DOMException('已中止', 'AbortError');
+      const contentType = response.headers.get('content-type') || '未提供';
+      httpContentType.textContent = contentType.split(';')[0].trim();
+      let display = raw;
+      let parseError = '';
+      if (/(?:^application\/json\b|\+json\b)/i.test(contentType)) {
+        try { display = JSON.stringify(JSON.parse(raw), null, 2); }
+        catch { parseError = '响应声明为 JSON，但解析失败（已显示原始文本）'; }
+      }
+      httpResponse.textContent = display.length > 60000 ? display.slice(0, 60000) + '\n…（预览已截断）' : display || '（空响应）';
+      httpResponseDetails.open = true;
+      httpDuration.textContent = Math.round(performance.now() - startedAt) + ' ms';
+      if (!response.ok) {
+        setHttpState('error', 'HTTP 请求失败', '服务器返回 HTTP ' + response.status + (response.statusText ? ' ' + response.statusText : ''));
+      } else if (parseError) {
+        setHttpState('error', 'JSON 解析失败', parseError);
+      } else {
+        setHttpState('success', '请求成功 · 已读取真实响应');
+      }
+    } catch (error) {
+      if (activeHttp !== req) return;
+      httpDuration.textContent = Math.round(performance.now() - startedAt) + ' ms';
+      if (req.reason === 'timeout') {
+        setHttpState('timeout', '请求超时', '请求超过 ' + timeoutMs + ' ms，已取消');
+      } else if (req.controller.signal.aborted) {
+        setHttpState('cancelled', '请求已取消');
+      } else {
+        const message = error instanceof Error ? error.message : String(error);
+        setHttpState('error', '网络请求失败', '可能是 CORS、离线、DNS 或连接失败；浏览器未提供可区分的原因。' + message);
+      }
+    } finally {
+      clearTimeout(req.timer);
+      if (activeHttp === req) {
+        activeHttp = null;
+        httpCancel.disabled = true;
+      }
+    }
+  }
+  httpForm.addEventListener('submit', event => {
+    event.preventDefault();
+    void runHttp();
+  });
+
   const form = get('demo-form'), name = get('name');
   name.addEventListener('input', () => {
     get('form-hint').textContent = '';
@@ -269,6 +472,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
     toggle.textContent = '展开文字';
     abandonRequest();
     showAsync('idle', '尚未发起请求');
+    resetHttp();
     get('delay').value = '1200';
     form.reset();
     get('done')?.remove();
