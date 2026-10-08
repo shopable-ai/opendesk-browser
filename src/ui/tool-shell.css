@@ -1,113 +1,154 @@
-:root{font-family:system-ui,sans-serif;color:#172033;background:#f2f4f7;font-size:14px;line-height:1.5;color-scheme:light}
-*{box-sizing:border-box}
-body{margin:0;min-width:0}
-header{padding:18px 16px;background:#172033;color:white}
-h1{font-size:21px;margin:0}
-header p{margin:6px 0 0;opacity:.8}
-main{max-width:980px;margin:auto;padding:12px;min-width:0}
-section{background:white;border:1px solid #d9dfe8;border-radius:10px;padding:14px;margin-bottom:12px;min-width:0}
-h2{margin:0 0 12px;font-size:17px}
-p{margin:8px 0;overflow-wrap:anywhere}
-.page-title{font-weight:600}
-.identity{font:12px/1.6 ui-monospace,monospace;overflow-wrap:anywhere}
-.hint,aside{color:#536176;font-size:12px}
-.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;min-width:0}
-label{display:block;margin:6px 0}
-input,select{width:100%;min-width:0;padding:9px;border:1px solid #8993a4;border-radius:6px;background:white;color:inherit;font:inherit}
-.row input,.row select{flex:1 1 120px;width:auto;max-width:100%}
-input[type=checkbox]{width:auto;min-width:0;flex:none;margin-right:6px;vertical-align:middle}
-button{max-width:100%;padding:9px 12px;background:#214bc0;color:white;border:0;border-radius:6px;cursor:pointer;font:inherit;overflow-wrap:anywhere}
-button:disabled{opacity:.45;cursor:default}
-.actions{gap:6px}
-.actions button{flex:1 1 auto;padding:9px 8px}
-textarea{display:block;width:100%;min-width:0;margin:8px 0 12px;padding:10px;border:1px solid #8993a4;border-radius:6px;font:13px/1.6 ui-monospace,monospace;resize:vertical;tab-size:2}
-pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;min-height:26px;max-height:360px;overflow:auto;background:#f5f7fb;padding:10px;font:12px/1.6 ui-monospace,monospace}
-details{margin:12px 0}
-summary{cursor:pointer;color:#33466b;overflow-wrap:anywhere}
-details>section{margin-top:12px}
-#script-revision{max-width:150px}
-#script-version{font-size:12px;overflow-wrap:anywhere}
-#script-current-page-status[data-state=unavailable],#script-status[data-state=error],#sdk-status[data-state=error],#status[data-error=true]{color:#aa2538}
-#script-current-page-status[data-state=available]{color:#17683b}
-#script-version[data-dirty=true]{color:#8a5a00;font-weight:600}
-#script-running-target[data-state=running]{font-weight:600}
-#scraping-panel{border-left:4px solid #cb8a25}
-:focus-visible{outline:2px solid #214bc0;outline-offset:2px}
-@media(max-width:340px){main{padding:8px}section{padding:12px}.actions button{flex-basis:100%}}
-
-/* One Side Panel document; page switches never unmount the running RunHost. */
-[hidden]{display:none!important}
-.workbench-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 12px}
-.workbench-nav button{min-width:0;background:#e4e9f3;color:#283951;font-weight:600;border-radius:8px;padding:11px 4px}
-.workbench-nav button[aria-selected=true]{background:#214bc0;color:#fff}
-.task-detail{background:#f7f9fd;border:1px solid #dce3ed;border-radius:8px;padding:10px;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
-#task-params-form{min-width:0}
-#task-params-form label{font-weight:600;margin-top:10px}
-#task-params-form input[type=checkbox]{width:auto}
-#task-params-form .hint{font-weight:400}
-#task-params-form select{width:100%}
-#task-history{overflow-wrap:anywhere}
-#task-history ol{margin:8px 0;padding-left:20px}
-#task-history li{margin-bottom:8px}
-@media(max-width:340px){.workbench-nav{gap:4px}.workbench-nav button{font-size:12px;padding:10px 2px}}
-
-
-/* Sidebar R3: readable light surfaces and a fixed working dock.
- * The full task catalog reuses the same authenticated tool document in a tab.
+/* OpenDesk Browser Sidebar R5: a compact personal tool, not a dashboard.
+ * Single source of truth for layout rules; full-page catalog rules retained below.
+ * Four-pixel spacing rhythm: 4 / 8 / 12 / 16, with touch targets kept usable.
  */
-html,body{height:100%;overflow:hidden}
-body{display:flex;flex-direction:column;background:#f5f7fb;color:#1d2b45}
-.workspace-header{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 15px;background:#fff;color:#172a45;border-bottom:1px solid #dce5f0}
-.workspace-brand{display:flex;align-items:center;gap:9px;min-width:0}
-.workspace-logo{display:grid;place-items:center;width:31px;height:31px;flex:none;border-radius:9px;background:#e5ecff;color:#2d4d9e;font-size:18px;font-weight:850}
-.workspace-header h1{font-size:15px;line-height:1.3;letter-spacing:-.02em;color:#172742}
-.workspace-header p{font-size:11px;line-height:1.3;margin:2px 0 0;color:#4e617b;opacity:1}
-.catalog-open{flex:none;background:#edf3ff;color:#294fa5;border:1px solid #cedcf9;padding:8px 10px;font-weight:700;border-radius:9px;font-size:11px}
-.catalog-open:hover{background:#e4edff}
-.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid #e2e8f1;background:#fff;padding:0 12px;margin:0;gap:0}
-.workbench-nav button{border:0;border-bottom:2px solid transparent;border-radius:0;min-width:0;background:#fff;color:#6f7f97;padding:11px 5px;font-size:12px;font-weight:650}
-.workbench-nav button[aria-selected=true]{background:#fff;color:#2f58c0;border-bottom-color:#4365d6;box-shadow:none}
-#workspace-content{flex:1;overflow-y:auto;overscroll-behavior:contain;min-height:0;width:100%;max-width:980px;margin:0 auto;padding:15px;scrollbar-width:thin}
-#workspace-content>div[hidden]{display:none!important}
-#workspace-content section{border:1px solid #e1e7f0;border-radius:13px;box-shadow:0 2px 8px #24395806;padding:14px;margin-bottom:12px;background:#fff}
-#workspace-content section h2{font-size:15px;letter-spacing:-.015em;margin:0 0 8px}
-#workspace-content section p.hint{font-size:11px;color:#697b92}
-#workspace-content button{border-radius:9px}
-#workspace-content input,#workspace-content select,#workspace-content textarea{border-color:#d8e2ef}
-#workspace-content .row{gap:7px}
-.workspace-dock{flex:none;background:#fff;border-top:1px solid #e0e7f1;padding:10px 15px 12px}
-.dock-actions[hidden]{display:none!important}
-.dock-caption{display:block;color:#708097;font-size:10px;margin-bottom:7px}
-.dock-buttons{display:flex;gap:7px;align-items:stretch}
-.dock-buttons button{font-size:12px;font-weight:700;padding:10px;border-radius:9px}
-#task-run,#script-run{background:#365ed6;color:#fff;flex:1;border:1px solid #365ed6;box-shadow:0 2px 5px #2a55bd17}
-#task-stop,#script-stop,#script-save{background:#f7f9fd;color:#526682;border:1px solid #d9e2ef;flex:none}
-.dock-buttons button:disabled{opacity:.45}
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:#1b2c49;background:#f5f7fb;color-scheme:light;--ink:#1b2c49;--sub:#53647e;--line:#e1e8f1;--blue:#365eda;--paper:#fff}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden;min-width:0}
+body{display:flex;flex-direction:column;margin:0;background:#f5f7fb}
+h1,h2,h3{margin:0;letter-spacing:-.015em}
+p{margin:7px 0;overflow-wrap:anywhere}
+main{min-width:0}
+section{min-width:0}
+.hint,aside{font-size:12px;color:var(--sub)}
+.identity{font:11px/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
+.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:8px 0;min-width:0}
+label{display:block;margin:7px 0 4px}
+input,select,textarea{width:100%;min-width:0;border:1px solid #cbd6e6;border-radius:8px;background:#fff;color:var(--ink);font:inherit;padding:8px 10px}
+input,select{min-height:36px}
+input[type=checkbox]{width:auto;min-height:0;margin-right:6px}
+textarea{display:block;margin:6px 0 10px;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;tab-size:2}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;max-height:300px;overflow:auto;background:#f5f7fb;padding:9px;border-radius:8px;font:11px/1.55 ui-monospace,monospace}
+button{max-width:100%;border:0;border-radius:8px;background:var(--blue);color:white;padding:8px 11px;min-height:34px;font:inherit;cursor:pointer;overflow-wrap:anywhere}
+button:disabled{opacity:.48;cursor:not-allowed}
+button:hover:not(:disabled){filter:brightness(.97)}
+details{margin:9px 0}
+summary{cursor:pointer;color:#37516f;overflow-wrap:anywhere}
+details>section{margin-top:10px}
+:focus-visible,#workspace-content :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
-.task-card-list{display:grid;gap:8px;margin:12px 0}
-.task-card{display:flex;text-align:left;align-items:center;gap:10px;border:1px solid #e1e7f0!important;background:#fff!important;border-radius:12px!important;padding:11px!important;width:100%;color:#233750!important;min-width:0}
-.task-card:hover,.catalog-card:hover{border-color:#a7b9ec!important}
-.task-card[aria-pressed=true]{border-color:#9db5fb!important;box-shadow:0 0 0 2px #e8efff}
-.task-card-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;background:#edf2ff;color:#4166be;font-weight:800;font-size:16px}
+#script-current-page-status[data-state=unavailable],#script-status[data-state=error],#sdk-status[data-state=error],#status[data-error=true]{color:#ae3d4b}
+#script-current-page-status[data-state=available]{color:#138263}
+#script-version[data-dirty=true]{color:#92651a;font-weight:600}
+#script-running-target[data-state=running]{font-weight:650}
+#scraping-panel{border-left:3px solid #c68b37}
+#script-revision{max-width:150px}
+#script-version{font-size:11px;overflow-wrap:anywhere}
+.row input,.row select{flex:1 1 120px;width:auto;max-width:100%}
+
+/* Shared chrome stays small; discover has no bottom dock when idle. */
+.workspace-header{flex:none;display:flex;align-items:center;min-height:47px;padding:8px 12px;background:#fff;color:var(--ink);border-bottom:1px solid var(--line)}
+.workspace-brand{display:flex;align-items:center;gap:9px;min-width:0}
+.workspace-logo{display:grid;place-items:center;flex:none;width:27px;height:27px;background:#e7edff;border-radius:8px;color:#3456a6;font-size:15px;font-weight:800}
+.workspace-header h1{font-size:14px;font-weight:750;line-height:1.25}
+.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}
+.workbench-nav button{min-width:0;min-height:40px;padding:10px 4px 9px;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
+.workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
+#workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px 11px;margin:0 auto}
+#workspace-content>div[hidden]{display:none!important}
+#workspace-content .tasks-surface,#workspace-content .local-discovery-section,#workspace-content .developer-target,#workspace-content .developer-editor{padding:0;border:0;box-shadow:none;background:transparent;margin:0 0 8px}
+.workspace-dock{flex:none;background:#fff;border-top:1px solid var(--line);padding:8px 11px 10px}
+.dock-actions[hidden]{display:none!important}
+.dock-buttons{display:flex;align-items:stretch;gap:8px}
+.dock-buttons button{min-height:38px;padding:8px 10px;border-radius:9px;font-size:12px;font-weight:700}
+#task-run,#script-run{background:var(--blue);color:#fff;flex:1;border:1px solid var(--blue)}
+#task-stop,#script-stop,#script-save{flex:none;background:#f7f9fd;color:#435873;border:1px solid #d6dfed}
+#task-stop:disabled,#script-stop:disabled{display:none}
+
+/* Installed tasks: one compact list, detail/params inside the selected row. */
+.task-card-list{display:grid;gap:6px;margin:0}
+.task-card-group{min-width:0;background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.task-card-group.selected{border-color:#aac0f4;box-shadow:0 0 0 1px #e7eeff}
+.task-card{display:flex;align-items:center;text-align:left;gap:9px;width:100%;min-height:58px;padding:9px 10px!important;color:var(--ink)!important;background:transparent!important;border:0!important;border-radius:0!important}
+.task-card:hover{background:#fafcff!important}
+.task-card:focus-visible{outline-offset:-3px}
+.task-card-icon{display:grid;place-items:center;flex:none;width:29px;height:29px;border-radius:8px;background:#eef3ff;color:#365fbd;font-size:14px;font-weight:750}
 .task-card-copy{flex:1;min-width:0}
-.task-card-copy strong{display:block;font-size:12px;font-weight:700;line-height:1.3}
-.task-card-copy small{display:block;color:#7c8da5;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px}
-.task-card-state{font-size:10px;white-space:nowrap;color:#2d805d;background:#eaf7f1;padding:3px 7px;border-radius:50px}
-.task-card-state.off{color:#896726;background:#faf1df}
-#task-installed-detail{font-size:11px;line-height:1.7;white-space:pre-wrap;border:1px solid #e6ecf5;border-radius:10px;background:#f8faff}
-#task-result{font-size:11px;color:#344767;background:#f8faff}
-#task-history{font-size:11px}
-.history-heading{font-size:13px!important;margin-top:18px!important}
-.developer-target{padding:9px 12px!important;background:#f9fbff!important;margin-bottom:9px!important}
+.task-card-copy strong{display:block;font-size:12px;font-weight:720;line-height:1.35;overflow-wrap:anywhere}
+.task-card-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;color:#62748e;font-size:11px;line-height:1.4;margin-top:2px}
+.task-card-state,.local-discovery-state{flex:none;color:#805b19;background:#fbf1df;border-radius:20px;padding:3px 7px;font-size:10px;white-space:nowrap}
+.task-card-state:empty,.local-discovery-state:empty{display:none}
+.task-card-state:not(.off):not(:empty){background:#e6f5ef;color:#176f54}
+.task-selected-workspace{min-width:0;border-top:1px solid #e5ebf5;padding:9px 11px 10px;background:#fff}
+#task-current-site{margin:0 0 5px;font:11px/1.4 system-ui,sans-serif;font-weight:650;color:#15724e}
+#task-current-site[data-state=unmatched],#task-current-site[data-state=unavailable]{color:#a4424e}
+#task-params-form{min-width:0;margin:4px 0 7px}
+#task-params-form:empty{display:none}
+#task-params-form label{font-weight:650;font-size:11px;margin:7px 0 4px}
+#task-params-form .hint{font-size:11px;font-weight:400;margin:3px 0}
+#task-params-form input[type=checkbox]{width:auto;min-height:0}
+#task-params-form select{width:100%}
+#task-status{font-size:11px;line-height:1.45;color:#405c80;background:#f2f6ff;border-radius:7px;padding:7px 8px;margin:5px 0}
+#task-status:empty{display:none}
+.task-result-panel{border-top:1px solid #edf0f7;margin-top:8px;padding-top:8px}
+.task-result-heading{margin:0 0 4px;font-size:11px;font-weight:700;color:#526685}
+#task-result{margin:0;max-height:160px;border:1px solid #e8edf4;background:#f7f9fc}
+.task-history-panel,.task-scope-panel,.task-tools{border-top:1px solid #edf0f5;margin:8px 0 0;padding-top:7px}
+.task-history-panel>summary,.task-scope-panel>summary,.task-tools>summary{font-size:11px;font-weight:650;color:#476180}
+#task-installed-detail{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.6;color:#526784;margin:8px 0 0}
+.task-history-entries{display:grid;gap:6px;margin:8px 0}
+.task-history-entry{border:1px solid #e6edf5;background:#fcfdff;border-radius:8px;padding:0 8px;min-width:0}
+.task-history-entry>summary{padding:8px 0;font-size:11px;font-weight:650}
+.task-history-entry pre{margin:0 0 7px;max-height:140px}
+.task-history-tech{font-size:10px}
+.task-history-tech summary{font-size:10px}
+#task-history{overflow-wrap:anywhere;font-size:11px}
+.task-tools .row{margin:7px 0}
+.task-tools .row button{background:#eff3fb;color:#365273;border:1px solid #dce4f0;font-size:11px;min-height:33px}
+.task-tools details{margin:6px 0}
+.task-tools .hint{font-size:11px;line-height:1.45}
+.catalog-open{background:#eef3ff!important;color:#3657a7!important}
+.task-card-list>.hint{background:#fff;border:1px dashed var(--line);padding:16px 12px;border-radius:10px;margin:0}
+
+/* Installed-only Discover: search, concise filters, scannable rows. */
+.local-discovery-search-row{display:flex;align-items:center;gap:7px}
+#local-discover-search{flex:1;min-width:0;min-height:38px;font-size:12px;background:#fff;border-color:#cbd6e6}
+.local-discovery-import{flex:none;min-height:38px;background:#f0f4ff;color:#3156ad;border:1px solid #ccdafa;padding:7px 12px;font-size:12px;font-weight:700}
+.local-discovery-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;padding:8px 0 10px}
+.local-discovery-filters button{flex:none;min-height:32px;padding:6px 11px;background:transparent;color:#526783;border:1px solid #dde5f0;border-radius:18px;font-size:11px;font-weight:650}
+.local-discovery-filters button[aria-pressed=true]{background:#eaf0ff;border-color:#b6c9f6;color:#2b52ab}
+.local-discovery-list{display:grid;gap:0;background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.local-discovery-list:empty{display:none}
+.local-discovery-card{display:flex;align-items:center;text-align:left;gap:9px;width:100%;min-height:62px;padding:9px 10px!important;border:0!important;border-bottom:1px solid #edf0f5!important;border-radius:0!important;background:#fff!important;color:var(--ink)!important}
+.local-discovery-card:last-child{border-bottom:0!important}
+.local-discovery-card:hover{background:#f8faff!important}
+.local-discovery-copy{flex:1;min-width:0;overflow-wrap:anywhere}
+.local-discovery-copy strong{display:block;font-size:12px;line-height:1.35}
+.local-discovery-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:11px;line-height:1.4;color:#60728a;margin-top:3px}
+.local-discovery-state{background:#e9f5ee;color:#176f54}
+.local-discovery-state.other{background:#f1f4fa;color:#5b6f89}
+.local-discovery-state.off{background:#fbf1df;color:#825d21}
+.local-discovery-empty{padding:18px 12px;margin:0;color:#566c87;font-size:12px;line-height:1.6;text-align:center;overflow-wrap:anywhere}
+#local-discover-status:not(:empty){color:#a4424e;font-size:11px;margin:8px 0}
+
+/* Develop: page signal and code first; results, library, DOM and SDK on demand. */
+.developer-target{padding:2px 0 6px!important}
 .developer-target p{margin:0 0 4px}
 #script-current-page-status{font-size:11px!important;font-weight:650}
-.developer-target details{margin:6px 0 0}
-.developer-target summary{font-size:10px;color:#7b89a0}
-#script-source{min-height:180px;max-height:410px;background:#fbfcff;border-color:#dce4f2;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
-#script-library-tools{border-top:1px solid #e7ecf5;padding-top:9px}
-#script-library-tools>summary{font-weight:650}
-#script-library-tools label{font-size:11px;color:#64748b}
-#script-library-tools details{margin:10px 0}
+#developer-target-detail{margin:2px 0 5px}
+#developer-target-detail summary{font-size:11px}
+#script-source{min-height:260px;height:min(45vh,380px);max-height:70vh;margin:4px 0 6px;padding:11px;border:1px solid #cbd8e9;border-radius:10px;background:#fbfcff;color:#253a58;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
+#script-source:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.developer-params{margin:5px 0 8px}
+.developer-params summary,.developer-run-technical summary,.developer-results summary{font-size:11px;font-weight:650;color:#496381}
+#script-status,#script-task-status{font-size:11px;line-height:1.5;margin:6px 0}
+#script-status:empty,#script-task-status:empty{display:none}
+.developer-run-technical{margin:7px 0}
+.developer-run-technical p{font-size:11px;margin:4px 0}
+.developer-results{border-top:1px solid var(--line);padding-top:8px;margin:8px 0 10px}
+.developer-results-body{padding-top:8px}
+#script-result{margin:0 0 8px;max-height:250px;border:1px solid #e4ebf5;color:#304560;background:#f7f9fd}
+.developer-results .row,.developer-results label{margin:7px 0}
+#script-library-tools,#page-preview-tools,#script-advanced{border-top:1px solid var(--line);padding-top:9px;margin:11px 0}
+#script-library-tools>summary,#page-preview-tools>summary,#script-advanced>summary{font-size:12px;font-weight:650}
+#script-library-tools label,#script-advanced label{font-size:11px;color:#526681}
+#tool-diagnostics{border-top:1px solid var(--line);padding-top:10px;margin:12px 0}
+#tool-diagnostics>summary{font-size:11px}
+#tool-diagnostics section{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px;margin-bottom:9px}
+#tool-diagnostics h2{font-size:14px;margin:0 0 8px}
+
+/* Existing authenticated full-size catalog: keep its reader and install UI. */
 #workbench-discover .catalog-section{background:transparent;border:0;box-shadow:none;padding:0}
 .catalog-intro h2{font-size:25px!important;letter-spacing:-.04em!important;margin:0 0 6px!important}
 .catalog-intro .eyebrow{margin:4px 0;color:#7187af;letter-spacing:.12em;font-weight:800;font-size:10px}
@@ -133,8 +174,8 @@ body{display:flex;flex-direction:column;background:#f5f7fb;color:#1d2b45}
 [data-opendesk-surface=catalog] #workbench-discover{min-height:100%}
 @media(max-width:900px){.catalog-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){
-#workspace-content{padding:12px}
-#workspace-content section{padding:12px}
+#workspace-content{padding:10px 11px}
+#workspace-content .catalog-section{padding:12px}
 .workspace-header{padding:11px 12px}
 .workspace-dock{padding:9px 12px 12px}
 .catalog-card-grid{grid-template-columns:1fr}
@@ -161,96 +202,21 @@ body{display:flex;flex-direction:column;background:#f5f7fb;color:#1d2b45}
 @media(max-width:850px){.catalog-layout{grid-template-columns:1fr}.catalog-reader{position:static}.catalog-layout .catalog-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.catalog-layout .catalog-card-grid{grid-template-columns:1fr}}
 
-/* Side Panel Discover searches ONLY installed local tasks.
- * The full package directory continues to live in its own extension tab.
- */
-.local-discovery-intro h2{font-size:17px!important;margin:0 0 6px!important}
-.local-discovery-intro .hint{margin:0 0 12px;line-height:1.65}
-#local-discover-search{width:100%;background:#fff;border:1px solid #cbd7e9;border-radius:9px;padding:11px;font-size:12px}
-.local-discovery-filters{display:flex;gap:6px;overflow-x:auto;padding:11px 0 8px;max-width:100%;scrollbar-width:thin}
-.local-discovery-filters button{flex:none;padding:7px 10px;background:#f7f9fd;color:#52647e;border:1px solid #dce5f2;border-radius:100px!important;font-size:11px;font-weight:650}
-.local-discovery-filters button[aria-pressed=true]{background:#e9f0ff;color:#294caa;border-color:#b6c9f6}
-#local-discover-count{margin:2px 0 11px;color:#64758d}
-.local-discovery-list{display:grid;gap:8px}
-.local-discovery-card{width:100%;display:flex;text-align:left;align-items:flex-start;gap:10px;min-width:0;padding:12px!important;background:#fff!important;color:#1f3452!important;border:1px solid #dce5f1!important;border-radius:12px!important}
-.local-discovery-card:hover{border-color:#9eb6ef!important;background:#fafcff!important}
-.local-discovery-copy{flex:1;min-width:0;overflow-wrap:anywhere}
-.local-discovery-copy strong{display:block;font-size:12px;line-height:1.4}
-.local-discovery-copy small{display:block;font-size:11px;line-height:1.55;color:#60738e;margin-top:3px}
-.local-discovery-state{flex:none;font-size:10px;border-radius:99px;padding:3px 7px;background:#e8f5ef;color:#247251;white-space:nowrap}
-.local-discovery-state.off{background:#fbf1df;color:#825d21}
-.local-discovery-state.other{background:#f1f4fa;color:#5d708e}
-.local-discovery-empty{background:#f8fafd;color:#526784;border:1px dashed #cad8eb;border-radius:11px;padding:24px 14px;text-align:center;font-size:12px;line-height:1.7}
-.local-discovery-footer{margin-top:15px;padding-top:13px;border-top:1px solid #e8edf5;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#687b95;font-size:11px}
-.local-discovery-footer button{border:1px solid #cbdafa!important;background:#eff4ff!important;color:#294fa5!important;font-size:11px;font-weight:700;padding:8px 10px}
-@media(max-width:340px){.local-discovery-card{padding:10px!important}.local-discovery-filters button{padding:7px 8px;font-size:10.5px}}
 
-/* Historical R2 card-group design, merged with current R3 installed Discover. */
-/* Sidebar UI R2: selected task's details, results, and history belong immediately
- * underneath its card. Preserve all existing DOM identities and RunHost ownership. */
-#workspace-content{scroll-padding-bottom:24px}
-.task-card-group{background:#fff;border:1px solid #e0e7f0;border-radius:13px;overflow:hidden;min-width:0}
-.task-card-group.selected{border-color:#a0b6ed;box-shadow:0 0 0 2px #eaf0ff}
-.task-card-group .task-card{margin:0;border:0!important;border-radius:0!important;box-shadow:none!important;min-height:67px}
-.task-card-group .task-card:focus-visible{outline-offset:-3px}
-.task-card-copy strong{font-size:13px;line-height:1.35;overflow-wrap:anywhere}
-.task-card-copy small{font-size:11px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45}
-.task-card-state{align-self:center}
-.task-selected-workspace{border-top:1px solid #e6ecf5;padding:12px 13px 14px;background:#fdfefe;min-width:0}
-.task-selected-workspace[hidden]{display:none!important}
-.task-selected-workspace .task-detail{border:0;padding:0;margin:0 0 10px;background:transparent;color:#526784;font-size:11px;line-height:1.6}
-#task-current-site{margin:8px 0;font-size:11px;color:#356e5a;font-family:inherit;font-weight:650}
-#task-params-form{padding-top:7px;border-top:1px solid #edf1f7;margin-top:11px}
-#task-params-form label{font-size:11px;color:#455a75}
-#task-params-form input,#task-params-form select{background:#fff}
-#task-status{font-size:11px;color:#587092;background:#f2f6ff;padding:9px;border-radius:8px;line-height:1.6}
-#task-result{font-size:11px;line-height:1.55;max-height:160px;overflow:auto;border:1px solid #e5ebf4;border-radius:9px;background:#f7faff;color:#344863}
-.task-history-panel{border-top:1px solid #e7edf5;padding-top:11px;margin:14px 0 4px}
-.task-history-panel>summary{font-size:12px;font-weight:730;color:#354f77}
-.task-history-panel>summary span{font-weight:450;color:#71819a}
-.task-history-entries{display:grid;gap:7px;margin-top:10px}
-.task-history-entry{border:1px solid #e6edf5;background:#fff;border-radius:9px;padding:0 10px;min-width:0}
-.task-history-entry summary{padding:9px 0;color:#425673;font-size:11px;font-weight:650}
-.task-history-entry pre{margin:0 0 10px;max-height:135px;overflow:auto;background:#f6f8fc;border-radius:7px}
-.task-history-entry .task-history-tech{margin:0 0 9px;font-size:10px}
-.task-history-tech summary{padding:4px 0;font-size:10px;color:#63748b}
-.task-history-tech pre{font-size:10px;word-break:break-all}
-.task-selected-workspace .row{margin:10px 0}
-.task-selected-workspace .row button{background:#f0f4fb;border:1px solid #dae3f0;color:#38516f;font-size:11px;font-weight:640}
-.task-selected-workspace details>summary{font-size:11px}
-#workbench-tasks>.task-card-list{width:100%}
-#workbench-develop .developer-params{margin:8px 0 11px;border:1px solid #e7edf5;border-radius:9px;padding:10px;background:#fbfcff}
-#workbench-develop .developer-params summary{font-size:11px;font-weight:670;color:#526786}
-#workbench-develop .developer-feedback{margin:11px 0 13px;padding:12px;border:1px solid #e4eaf3;border-radius:11px;background:#f9fbff;min-width:0}
-#workbench-develop .developer-feedback h2{font-size:13px;margin-bottom:8px}
-#workbench-develop .developer-run-state{padding:10px 12px}
-#workbench-develop .developer-run-state p{font-size:11px}
-#workbench-develop .developer-results{background:#fff}
-#script-source{min-height:260px;max-height:70vh;background:#172740;color:#ecf2ff;border:1px solid #324665;line-height:1.7;padding:12px}
-#script-source:focus-visible{outline:2px solid #789bfa;outline-offset:2px}
-#script-result{background:#f4f7fc;border:1px solid #e7edf5;border-radius:8px;max-height:260px;overflow:auto}
+/* Shared catalog detail and trusted feedback. */
 .install-feedback:not(:empty){padding:10px 12px;background:#eaf4ed;border-radius:9px;color:#196647;font-size:11px;line-height:1.6}
 #workbench-discover .catalog-reader-facts strong{color:#233b5a}
 #workbench-discover .catalog-card{min-height:150px}
-#workspace-content input:focus-visible,#workspace-content select:focus-visible,#workspace-content button:focus-visible,
-#workspace-content textarea:focus-visible,#workspace-content summary:focus-visible{outline:2px solid #365ed6;outline-offset:2px}
 @media(max-width:340px){
-.workspace-header{gap:5px}
-.workspace-brand{gap:6px}
-.workspace-header h1{font-size:13px}
-.workspace-header p{font-size:10px}
-.catalog-open{font-size:10px;padding:7px}
-.task-selected-workspace{padding:10px}
-.dock-buttons{flex-wrap:wrap}
-.dock-buttons button{flex:1 1 calc(50% - 7px)}
-#script-run{flex-basis:100%}
+  .workspace-header{padding:7px 10px}
+  #workspace-content{padding:8px 9px}
+  .workspace-dock{padding:8px 9px}
+  .workbench-nav{padding:0 8px}
+  .task-selected-workspace{padding:8px 9px}
+  .local-discovery-card{gap:7px;padding:8px!important}
+  .local-discovery-filters button{padding:6px 9px}
+  .dock-buttons{flex-wrap:wrap}
+  .dock-buttons button{flex:1 1 calc(50% - 6px)}
+  #script-run{flex-basis:100%}
 }
-
-/* R4: preserve original R3 light code colors and three-tab information architecture. */
-.task-result-heading{margin:11px 0 6px;font-size:11px;font-weight:750;color:#4c6180}
-#discover-dock .dock-buttons button{font-size:11px}
-#discover-to-tasks{flex:1;background:#355ed2;color:#fff}
-#discover-to-catalog{background:#f0f4ff;border:1px solid #ccdbf7;color:#3159b6}
-#workbench-develop #script-source{background:#fbfcff;color:#253a58;border:1px solid #dce4f2;min-height:245px;max-height:70vh}
-
-@media(max-width:340px){.task-selected-workspace{padding:10px}.dock-buttons button{flex:1 1 calc(50% - 8px)}}
+@media(prefers-reduced-motion:no-preference){.task-card,.local-discovery-card,.local-discovery-filters button{transition:background-color .12s,border-color .12s}}

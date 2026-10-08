@@ -21,7 +21,7 @@ test('R3 remains immutable reference; R4 preview keeps installed Discover and in
   assert(inline,'R4 has real inline demo behavior');
   assert.doesNotThrow(()=>new Script(inline), 'R4 inline JavaScript must parse');
 });
-test('official sidebar preserves all three views, existing privileged controls and card-level history',async()=>{
+test('R5 official sidebar preserves three views, privileged controls, compact discovery and task history',async()=>{
   const [html,css,work]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/task-workbench.js')
   ]);
@@ -29,12 +29,27 @@ test('official sidebar preserves all three views, existing privileged controls a
   assert.equal(ids.length,new Set(ids).size,'no duplicate DOM IDs');
   for(const value of ['tab-my-tasks','tab-discover','tab-develop','workbench-local-discover',
     'task-selected-workspace','task-history','task-params-form','task-run','task-stop',
-    'discover-dock','discover-to-catalog','script-source','script-run','script-save',
+    'workspace-dock','task-result-panel','task-history-panel','local-discover-open-catalog','script-source','script-run','script-save',
     'page-preview-run','sdk-install','task-install-feedback'])assert(ids.includes(value),'preserved '+value);
+  assert.doesNotMatch(html,/id="discover-dock"|id="discover-to-catalog"/,'idle Discover should have no persistent footer');
   assert.match(work,/function renderLocalDiscovery\(/);
   assert.match(work,/group\.append\(workspace\)/,'active task owns its details');
   assert.match(work,/new BroadcastChannel|new globalThis\.BroadcastChannel/);
   assert.match(work,/listTaskCatalog/,'broadcast does not replace authoritative data');
   assert.match(css,/task-history-entry/);
   assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+});
+
+test('R5 keeps one derived interactive prototype with installed-only compact discovery',async()=>{
+  const r5=await read('examples/ui/sidebar-r5-compact-preview.html');
+  assert.match(r5,/drawLocalDiscoveryR5/);
+  assert.match(r5,/renderDockR5/);
+  assert.match(r5,/data-tab="discover"/);
+  assert.match(r5,/r5-search/);
+  assert.match(r5,/搜索已安装任务/);
+  assert.match(r5,/ui\.tab==='discover'&&!active/,'idle Discover has no footer');
+  assert.match(r5,/所有|模拟点击不代表真实 Chrome/);
+  const inline=r5.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert(inline,'one self-contained clickable HTML demo');
+  assert.doesNotThrow(()=>new Script(inline),'R5 prototype script must parse');
 });
