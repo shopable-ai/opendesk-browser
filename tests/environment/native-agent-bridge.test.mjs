@@ -76,8 +76,12 @@ test('dispatched but unanswered calls are never retried, even if same id reappea
   await f.service.handleSettings({type:'enable'},sender);
   f.native().onMessage.fire({v:1,kind:'hello'});
   f.native().onMessage.fire(message('save-1','script.save',p));
-  await drain();await drain();assert.equal(f.requests.length,1);
-  assert.equal(f.responses.at(-1).error.code,'E_EFFECT_UNKNOWN');
+  // Native onDisconnect and storage.local persistence complete asynchronously.
+  // Wait for the exact request's response, not a fixed number of event-loop turns.
+  for(let i=0;i<200&&!f.responses.some(x=>x.requestId==='save-1'&&x.error?.code==='E_EFFECT_UNKNOWN');i++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.requests.length,1);
+  assert.equal(f.responses.findLast(x=>x.requestId==='save-1')?.error?.code,'E_EFFECT_UNKNOWN');
   assert.equal(f.stored[AGENT_LEDGER_KEY]['save-1'].state,'OUTCOME_UNKNOWN');
 });
 test('no live registered Host means no run reservation or Worker execution',async t=>{
