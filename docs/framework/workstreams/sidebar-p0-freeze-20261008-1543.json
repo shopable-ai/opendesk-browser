@@ -19,7 +19,8 @@
       "tests/environment/sidebar-draft-runhost.test.mjs",
       "tests/environment/script-editor.test.mjs",
       "tests/framework/k3-controller-authority.test.mjs",
-      "docs/framework/workstreams/sidebar-p0-freeze-20261008-1543.json"
+      "docs/framework/workstreams/sidebar-p0-freeze-20261008-1543.json",
+      ".github/workflows/sidebar-r1-p0.yml"
     ],
     "runnerFix": "structuredClone(target) before first await, use snapshot for controller admission",
     "regressionCoverage": [
@@ -33,14 +34,15 @@
   },
   "tests": {
     "preFixRuntimeHarness": "FAIL: target.tabId changed from 7 to 99 after start before client.ready; fetched current PR4 RunHost body",
-    "postFixRuntimeHarness": "PENDING",
+    "postFixRuntimeHarness": "PASS: actual fetched modified src/run-host.js body exercised with dependency stubs; draft/saved target and params stay at original captured values while awaiting ready. Isolated JS check, not Node or Chrome.",
     "nodeTest": "NOT_TESTED (Mac workspace unavailable; no repository checkout in current session)",
     "nativeChrome": "NOT_TESTED",
     "DOM": "NOT_TESTED",
     "HTTP": "NOT_TESTED",
     "IndexedDB": "NOT_TESTED",
     "browserRestart": "NOT_TESTED",
-    "F3": "NOT_TESTED"
+    "F3": "NOT_TESTED",
+    "githubActions": "REQUESTED: targeted workflow on separate candidate branch; execution result must be checked, not assumed"
   },
   "integration": {
     "mergeMain": "NO",
