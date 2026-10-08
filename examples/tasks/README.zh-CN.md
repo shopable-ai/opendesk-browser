@@ -60,9 +60,9 @@
 
 定向静态/兼容契约检查：`node --test tests/environment/basic-browser-page.test.mjs`。
 
-## R7.1 HTTP API 验证与旧 fixture 边界
+## R7.1 HTTP API 验证与唯一人工测试入口
 
-**人工验收以 `http://127.0.0.1:43111/demo-form.html` 为唯一推荐入口**，上方启动命令保持不变。`http://127.0.0.1:49375/fixture` 是另一个测试服务的历史入口；其端口和路由不由本示例提供，不能当作本演示 HTML 的替代 URL。已有专用框架或回归测试依赖的 fixture 不应仅因为迁移人工验收而删除。
+**人工操作、Sidebar 草稿、Page API 和 HTTP 演示只使用 `http://127.0.0.1:43111/demo-form.html`。** 上方 HTTP 启动命令保持不变，不需要启动其他测试服务。旧的临时测试服务器路由（例如 `/fixture`）是专项原生验收的内部资源，不能作为人工演示网页地址；相关目录 `tests/prototypes/**/fixture/` 不随人工入口统一而删除，它们由独立测试运行器引用。
 
 在页面第 06 组，保持默认 `./demo-form.html?test-response=1`，点击「发送 GET」：应看到 `#api-status[data-state="success"]`、实际 `#api-http-status` 为 200、响应类型含 `text/html`，且 `#api-response` 可读取页面 HTML 前段。改填 `./__opendesk_expected_404__.json` 再发送，应看到 404、`data-state="error"` 及服务器返回正文。切换示例地址只填入，不自动发请求。
 

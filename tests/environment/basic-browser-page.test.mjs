@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {Script} from 'node:vm';
 
@@ -183,4 +183,20 @@ test('inline JavaScript parses without a third-party runtime or external resourc
   assert.doesNotThrow(()=>new Script(scripts[0][1]));
   assert.doesNotMatch(html,/<script[^>]+src=/);
   assert.doesNotMatch(html,/<link[^>]+href=/);
+});
+
+test('manual browser testing has exactly one canonical HTML and no obsolete advertised URL',async()=>{
+  const [files, guide, root, agents] = await Promise.all([
+    readdir('examples/tasks'),
+    readFile('examples/tasks/README.zh-CN.md','utf8'),
+    readFile('README.md','utf8'),
+    readFile('AGENTS.md','utf8')
+  ]);
+  assert.deepEqual(files.filter(file=>file.endsWith('.html')).sort(),['demo-form.html'],
+    'examples/tasks must not accumulate duplicate manual browser pages');
+  for(const [name,content] of [['guide',guide],['root',root],['agents',agents]]) {
+    assert.match(content,/http:\/\/127\.0\.0\.1:43111\/demo-form\.html/,name+' must publish one stable demo URL');
+    assert.doesNotMatch(content,/http:\/\/127\.0\.0\.1:\d+\/fixture\b/,name+' must not advertise a legacy temporary fixture URL');
+  }
+  assert.match(root,/python3 -m http\.server 43111 --bind 127\.0\.0\.1 --directory examples\/tasks/);
 });
