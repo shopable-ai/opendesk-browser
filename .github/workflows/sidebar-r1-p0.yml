@@ -21,4 +21,4 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test draft/saved transport, editor, controller authority and run recovery
-        run: node --test tests/environment/sidebar-draft-runhost.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/script-editor.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/run-host-recovery.test.mjs
+        run: node --test tests/environment/sidebar-draft-runhost.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/task-workbench.test.mjs tests/environment/script-editor.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/run-host-recovery.test.mjs
