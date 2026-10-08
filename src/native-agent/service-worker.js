@@ -2,7 +2,7 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LE
   AGENT_MUTATIONS,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
-export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),clock={now:()=>Date.now()}}={}) {
+export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map()}={}) {
   let enabled=false,port=null,ready=false,disposed=false,sequence=Promise.resolve();
   const pending=new Map();
   function exclusive(action) {
@@ -23,7 +23,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     const entries=(await api.storage.local.get(AGENT_LEDGER_KEY))[AGENT_LEDGER_KEY];
     return entries&&typeof entries==='object'&&!Array.isArray(entries)?entries:{};
   };
-  const error=(e)=>({code:e?.code||'E_EFFECT_UNKNOWN',message:e?.message||e?.code||'E_EFFECT_UNKNOWN',
+  const error=(e)=>({code:e?.code||'E_EFFECT_UNKNOWN',message:e?.message||'E_EFFECT_UNKNOWN',
     outcome:e?.outcome||'FAILED_CONFIRMED'});
   const response=(requestId,data)=>({v:AGENT_VERSION,kind:'response',requestId,...data});
   const normalize=(id,msg)=>response(id,msg?.error?{error:msg.error}:{result:msg.result});
@@ -37,7 +37,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       }
       if(Object.keys(rows).length>=AGENT_MAX_LEDGER)throw new AgentBridgeError('E_LIMIT');
       rows[req.requestId]={digest,method:req.method,registrationId:host.registrationId,state:'OUTCOME_UNKNOWN',
-        createdAt:clock.now()};
+        createdAt:Date.now()};
       await api.storage.local.set({[AGENT_LEDGER_KEY]:rows});
       return null;
     });
@@ -50,7 +50,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
         state:reply.error?(reply.error.outcome==='OUTCOME_UNKNOWN'?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED'):'ACKNOWLEDGED',
         ...(reply.result?.runId?{runId:reply.result.runId}:{}),
         ...(reply.error?.outcome==='OUTCOME_UNKNOWN'?{}:{reply}),
-        updatedAt:clock.now()};
+        updatedAt:Date.now()};
       await api.storage.local.set({[AGENT_LEDGER_KEY]:rows});
     });
   }
@@ -63,13 +63,13 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     return new Promise((resolve,reject)=>{
       const timeout=setTimeout(()=>{
         pending.delete(req.requestId);
-        reject(new AgentBridgeError('E_EFFECT_UNKNOWN','E_EFFECT_UNKNOWN','OUTCOME_UNKNOWN'));
+        reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       },135000);
       pending.set(req.requestId,{host,resolve,reject,timeout});
       try{host.postMessage({type:'native-agent.request',registrationId:host.registrationId,request:req});}
       catch{
         clearTimeout(timeout);pending.delete(req.requestId);
-        reject(new AgentBridgeError('E_EFFECT_UNKNOWN','E_EFFECT_UNKNOWN','OUTCOME_UNKNOWN'));
+        reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       }
     });
   }
@@ -79,7 +79,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(!item||item.host!==from||msg.registrationId!==from.registrationId)return true;
     pending.delete(msg.requestId);clearTimeout(item.timeout);
     if(Object.hasOwn(msg,'result')===Object.hasOwn(msg,'error'))
-      item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN','E_EFFECT_UNKNOWN','OUTCOME_UNKNOWN'));
+      item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
     else item.resolve(msg);
     return true;
   }
@@ -94,7 +94,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       const old=await reserve(req,host);
       if(old) {
         if(old.reply)return normalize(req.requestId,old.reply);
-        throw new AgentBridgeError('E_EFFECT_UNKNOWN','E_EFFECT_UNKNOWN','OUTCOME_UNKNOWN');
+        throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
       }
     }
     const reply=await dispatch(host,req);
@@ -127,7 +127,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     connected.onDisconnect.addListener(()=>{
       if(port===connected){port=null;ready=false;}
       for(const [id,item] of pending) {
-        clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN','E_EFFECT_UNKNOWN','OUTCOME_UNKNOWN'));
+        clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
         pending.delete(id);
       }
     });
