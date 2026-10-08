@@ -61,14 +61,16 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 #results{font-size:13px;color:#344d70;margin-top:5px}
 #search-count{font-size:12px;color:#61728a;margin:6px 0 0}
 .footnote{font-size:12px;color:#5c6e85;margin:12px 0 0}
-.api-url-field{flex-basis:100%}
-#api-url{font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
-#api-preset{min-width:218px}
-.api-meta{display:flex;flex-wrap:wrap;gap:7px 16px;margin:10px 0 0;color:#586b82;font-size:12px}
-.api-meta div{display:flex;gap:5px;min-width:0}
-.api-meta dt{font-weight:750;white-space:nowrap}
-.api-meta dd{margin:0;overflow-wrap:anywhere}
-#api-response{margin:10px 0 0;max-height:200px;overflow:auto;background:#f6f8fb;border:1px solid #e1e8f1;border-radius:8px;padding:10px 12px;color:#243951;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+/* HTTP GET is a single compact action; Network DevTools owns full diagnostics. */
+.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.api-command{display:flex;gap:9px;align-items:stretch;min-width:0;margin-top:12px}
+#api-url{flex:1;min-width:0;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+#api-send{flex:none;min-width:111px}
+#api-status{margin:11px 0 0;flex-wrap:wrap;gap:8px}
+.api-status-code{display:inline-flex;align-items:center;padding:2px 7px;border:1px solid #dde8f5;border-radius:5px;background:#f3f7fd;color:#375676;font:750 11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace}
+#api-status[data-state="success"] .api-status-code{border-color:#c8e9d7;color:#176b46;background:#f2fbf5}
+#api-status[data-state="error"] .api-status-code{border-color:#f1d3d3;color:#aa414b;background:#fff6f5}
+#api-tip{margin-top:9px}
 #api-error{margin:8px 0 0;color:#a83f4b;font-size:12px;overflow-wrap:anywhere}
 .status[data-state="cancelled"] .indicator{background:#8998a9}
 
@@ -208,33 +210,17 @@ button.primary:hover{background:#1b4aac}
       <p id="search-count" aria-live="polite">提交次数：0</p>
     </section>
     <section class="unit" id="lab-api" aria-labelledby="api-title">
-      <div class="unit-heading"><small>06</small><h2 id="api-title">真实 HTTP GET · 响应检查</h2></div>
-      <div class="fields">
-        <div class="field api-url-field">
-          <label for="api-url">请求 URL</label>
-          <input id="api-url" name="api-url" type="text" inputmode="url" maxlength="600" spellcheck="false" value="./demo-form.html?test-response=1" aria-describedby="api-tip">
-        </div>
-        <div class="field">
-          <label for="api-preset">示例地址（只填入，不发送）</label>
-          <select id="api-preset">
-            <option value="./demo-form.html?test-response=1">本地同源 HTML · 无需外网</option>
-            <option value="https://api.ipify.org?format=json">公网 IP JSON · 第三方</option>
-          </select>
-        </div>
-        <div class="controls">
-          <button id="api-send" class="primary" type="button">发送 GET</button>
-          <button id="api-cancel" type="button" disabled>取消请求</button>
-        </div>
+      <div class="unit-heading"><small>06</small><h2 id="api-title">HTTP GET · 网络请求</h2></div>
+      <div class="api-command">
+        <label class="visually-hidden" for="api-url">请求 URL</label>
+        <input id="api-url" name="api-url" type="url" maxlength="600" spellcheck="false" autocomplete="off" value="./demo-form.html?test-response=1" placeholder="https://api.example.com/data" aria-describedby="api-tip">
+        <button id="api-send" class="primary" type="button">发送 GET</button>
       </div>
-      <p id="api-tip" class="footnote">仅点击「发送 GET」才访问所填地址；跨域请求须获得服务器 CORS 许可。请求不携带 Cookie；公网 IP 示例会连接第三方服务。</p>
-      <div id="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text">尚未发送请求</span></div>
-      <dl class="api-meta">
-        <div><dt>HTTP</dt><dd id="api-http-status">—</dd></div>
-        <div><dt>耗时</dt><dd id="api-duration">—</dd></div>
-        <div><dt>响应类型</dt><dd id="api-content-type">—</dd></div>
-      </dl>
-      <pre id="api-response" data-testid="api-response" aria-live="polite" hidden></pre>
+      <div id="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text">尚未发送请求</span><output id="api-http-status" class="api-status-code" aria-label="HTTP 状态">—</output></div>
+      <p id="api-tip" class="footnote">通过 Chrome DevTools → Network 查看协议、Headers 与响应。本页使用网页 fetch，跨域需服务器允许 CORS；不代表扩展 axiosx 已通过验收。</p>
       <p id="api-error" role="alert" hidden></p>
+      <!-- Keep machine-readable DOM for existing Sidebar drafts, without a large response viewer. -->
+      <div id="api-debug-data" hidden aria-hidden="true"><output id="api-duration">—</output><output id="api-content-type">—</output><pre id="api-response" data-testid="api-response"></pre></div>
     </section>
   </div>
   <p class="section-caption">07 / LOCATOR ACCEPTANCE PLAYGROUND</p>
@@ -441,8 +427,7 @@ button.primary:hover{background:#1b4aac}
 
   // Explicit GET test: actual response metadata, no mock success labels.
   // Preview is capped at 4096 UTF-8 bytes; never insert response HTML into the DOM.
-  const apiUrl = get('api-url'), apiPreset = get('api-preset');
-  const apiSend = get('api-send'), apiCancel = get('api-cancel');
+  const apiUrl = get('api-url'), apiSend = get('api-send');
   const apiStatus = get('api-status'), apiStatusText = get('api-status-text');
   const apiResponse = get('api-response'), apiError = get('api-error');
   let activeApi = null;
@@ -456,7 +441,6 @@ button.primary:hover{background:#1b4aac}
     get('api-duration').textContent = '—';
     get('api-content-type').textContent = '—';
     apiResponse.textContent = '';
-    apiResponse.hidden = true;
     apiError.textContent = '';
     apiError.hidden = true;
   }
@@ -468,7 +452,6 @@ button.primary:hover{background:#1b4aac}
       previous.controller.abort();
     }
     apiSend.disabled = false;
-    apiCancel.disabled = true;
   }
   async function readApiPreview(response) {
     const limit = 4096;
@@ -514,7 +497,6 @@ button.primary:hover{background:#1b4aac}
     const request = {controller:new AbortController(), timer:null, timedOut:false, started:performance.now()};
     activeApi = request;
     apiSend.disabled = true;
-    apiCancel.disabled = false;
     showApiStatus('loading', '正在发送 GET…');
     request.timer = setTimeout(() => {
       request.timedOut = true;
@@ -531,12 +513,11 @@ button.primary:hover{background:#1b4aac}
       get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
       get('api-content-type').textContent = response.headers.get('content-type') || '（未提供）';
       apiResponse.textContent = preview.body + (preview.truncated ? '\n…（正文已截断）' : '');
-      apiResponse.hidden = false;
       if (response.ok) {
-        showApiStatus('success', 'HTTP 请求完成');
+        showApiStatus('success', '请求成功 · 详情见 Network');
       } else {
-        showApiStatus('error', 'HTTP 请求返回错误');
-        apiError.textContent = 'HTTP ' + response.status + ' · 请检查返回正文';
+        showApiStatus('error', '服务器返回错误 · 详情见 Network');
+        apiError.textContent = 'HTTP ' + response.status + ' · 请在 Network 查看响应';
         apiError.hidden = false;
       }
     } catch (error) {
@@ -558,24 +539,12 @@ button.primary:hover{background:#1b4aac}
       if (activeApi === request) {
         activeApi = null;
         apiSend.disabled = false;
-        apiCancel.disabled = true;
       }
     }
   }
   apiSend.addEventListener('click', () => runApiRequest());
-  apiCancel.addEventListener('click', () => {
-    if (!activeApi) return;
-    activeApi.controller.abort();
-    showApiStatus('cancelled', '已取消请求');
-  });
-  apiPreset.addEventListener('change', () => {
-    abortApiRequest();
-    apiUrl.value = apiPreset.value;
-    clearApiView();
-  });
   apiUrl.addEventListener('input', () => {
     abortApiRequest();
-    apiPreset.selectedIndex = -1;
     clearApiView();
   });
 
@@ -635,7 +604,6 @@ button.primary:hover{background:#1b4aac}
     resetLocatorPlayground();
     abortApiRequest();
     apiUrl.value = './demo-form.html?test-response=1';
-    apiPreset.value = apiUrl.value;
     clearApiView();
     clicks = 0;
     get('click-count').textContent = '0';
