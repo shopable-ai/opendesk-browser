@@ -289,7 +289,7 @@ test('two extension documents share only a refresh hint and re-read authoritativ
   const catalog=make({installedInitially:false,sharedStore:store});
   t.after(()=>{sidebar.ui.dispose();catalog.ui.dispose();});
   await tick();await tick();
-  assert.equal(sidebar.get('task-installed-cards').children[0].children[0].textContent.includes('尚未安装'),true);
+  assert.equal(sidebar.get('task-installed-cards').children[0].textContent.includes('还没有安装'),true);
   catalog.ui.showCatalogPage();
   catalog.get('task-catalog-list').value='demo.form@1.0.0';
   catalog.get('task-catalog-list').fire('change');
