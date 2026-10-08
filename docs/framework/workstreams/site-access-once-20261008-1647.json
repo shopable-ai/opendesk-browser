@@ -16,7 +16,7 @@
   "localNodeTests": "NOT_TESTED (GitHub-only workspace)",
   "nativeSidePanel": "NOT_TESTED (local Chrome profile unavailable)",
   "nativePersistence": "NOT_TESTED",
-  "regression": "Targeted GitHub CI green; overall merge candidate blocked pending unrelated build-policy contract resolution and actual Chrome native verification",
+  "regression": "Targeted GitHub CI green on source+race fix, 46/46; overall merge candidate blocked pending unrelated build-policy contract resolution and actual Chrome native verification",
   "constraints": [
     "Chrome native permission is not app-level SDK grant",
     "Never auto-reapprove on revoked permission",
@@ -27,11 +27,11 @@
   "targetedCi": {
     "status": "PASSED",
     "workflow": "Site access targeted checks",
-    "runId": 37752918198,
-    "jobId": 113230267602,
+    "runId": 37753263703,
+    "jobId": 113231445699,
     "syntax": "PASSED",
-    "nodeTests": "45 passed / 0 failed",
-    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37752918198"
+    "nodeTests": "46 passed / 0 failed",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37753263703"
   },
   "otherCi": {
     "status": "FAILED_UNRELATED",
