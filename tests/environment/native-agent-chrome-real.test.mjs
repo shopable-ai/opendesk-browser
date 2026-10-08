@@ -200,7 +200,10 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     await eventually(async()=>{
       snapshot=await status();
       const diagnosis=cli(['doctor'],env);
-      return diagnosis.status===0&&snapshot.includes('已启用')&&snapshot.includes('已连接');
+      // Options renders once after enable; Native hello may complete later.
+      // Doctor must establish an authenticated connection, and the independent
+      // bridge.status assertions below verify its actual ID/connected/enabled.
+      return diagnosis.status===0&&snapshot.includes('已启用');
     },{timeout:uiAssist?60000:18000,label:'Native handshake after Chrome Options trusted click'});
   }catch(e){
     console.log('REAL_CHROME_NATIVE_HANDSHAKE=NOT_VERIFIED; Options status='+JSON.stringify(snapshot));
