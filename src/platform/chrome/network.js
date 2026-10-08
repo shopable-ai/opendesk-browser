@@ -80,7 +80,10 @@ export function createNetworkService({fetchImpl = globalThis.fetch, authorize, c
       const projection = {data: responseData, status: response.status, statusText: response.statusText,
         headers: responseHeaders, config: {...normalized, method: method.toLowerCase(), url: target.href}};
       await abortable(context.recordNativeReceipt?.(projection), controller.signal);
-      if (!response.ok) throw fail('E_HTTP', `HTTP ${response.status}`, {status: response.status, response: projection});
+      if (!response.ok) {
+        await abortable(authorize({capability:'network',url:target.href,method,phase:'post'}, context), controller.signal);
+        throw fail('E_HTTP', `HTTP ${response.status}`, {status: response.status, response: projection});
+      }
       if (context.method?.startsWith('AXIOS_')) await context.recordEffect?.(projection);
       await abortable(authorize({capability: 'network', url: target.href, method, phase: 'post'}, context), controller.signal);
       if (controller.signal.aborted) throw controller.signal.reason;

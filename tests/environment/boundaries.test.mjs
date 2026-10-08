@@ -1,29 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createWindowShell, createHealthProbe, isToolSender, PROTOCOL, httpUrl, permissionPattern} from '../../src/environment.js';
+import {configureSidePanel, createHealthProbe, isToolSender, PROTOCOL, httpUrl, permissionPattern} from '../../src/environment.js';
 import {createEnvironmentHost} from '../../src/run-host.js';
 
 const extension = 'fixture-extension';
 const toolUrl = `chrome-extension://${extension}/ui/tool.html`;
-test('concurrent window requests create once; new worker discovers existing window', async () => {
-  const windows = []; let creations = 0; let focused = 0;
-  const api = {runtime: {getURL: () => toolUrl}, windows: {
-    getAll: async () => windows,
-    create: async options => { creations++; await new Promise(done => setTimeout(done, 10)); const window = {id: 42, tabs: [{url: options.url}]}; windows.push(window); return window; },
-    update: async () => { focused++; }
-  }};
-  const shell = createWindowShell(api);
-  const [a, b] = await Promise.all([shell.open(), shell.open()]);
-  assert.equal(a.windowId, b.windowId); assert.equal(creations, 1);
-  assert.equal((await createWindowShell(api).open()).reused, true); assert.equal(focused, 1);
+test('product shell configures the Chrome Side Panel action and never creates a popup', async () => {
+  let configured = 0, popups = 0;
+  const api = {sidePanel:{setPanelBehavior:async options=>{configured++;assert.deepEqual(options,{openPanelOnActionClick:true});}},
+    windows:{create:async()=>{popups++;}}};
+  assert.deepEqual(await configureSidePanel(api), {openPanelOnActionClick:true});
+  assert.equal(configured,1); assert.equal(popups,0);
 });
-test('tool sender rejects foreign id, URL, frame, inactive document and missing document', () => {
+test('tool sender accepts top-level Side Panel documents and rejects foreign or nested senders', () => {
   const api = {runtime: {id: extension, getURL: () => toolUrl}};
-  const good = {id: extension, url: toolUrl, frameId: 0, documentId: 'd', documentLifecycle: 'active'};
-  assert.equal(isToolSender(api, good), true);
-  for (const changed of [{id: 'evil'}, {url: 'https://example.com'}, {frameId: 1}, {documentId: ''}, {documentLifecycle: 'cached'}, {tab: {incognito: true}}]) {
-    assert.equal(isToolSender(api, {...good, ...changed}), false);
+  const sidePanel = {id: extension, url: toolUrl, documentId: 'side-doc', documentLifecycle: 'active'};
+  const tabTool = {id: extension, url: toolUrl, frameId: 0, documentId: 'tab-doc', documentLifecycle: 'active',
+    tab: {id: 7, incognito: false}};
+  assert.equal(isToolSender(api, sidePanel), true);
+  assert.equal(isToolSender(api, {...sidePanel, frameId: 0}), true);
+  assert.equal(isToolSender(api, tabTool), true);
+  for (const changed of [{id: 'evil'}, {url: 'https://example.com'}, {frameId: 1}, {documentId: ''}, {documentLifecycle: 'cached'}]) {
+    assert.equal(isToolSender(api, {...sidePanel, ...changed}), false);
   }
+  assert.equal(isToolSender(api, {...tabTool, frameId: 1}), false);
+  assert.equal(isToolSender(api, {...tabTool, tab: {id: 7, incognito: true}}), false);
 });
 test('URL policy rejects restricted/file/credentials and preserves exact origin including port', () => {
   for (const value of ['chrome://settings', 'file:///tmp/test', 'javascript:alert(1)', 'https://user:pass@example.com/']) assert.throws(() => httpUrl(value));
@@ -94,21 +95,10 @@ test('missing module has no capabilities or runner and can be mounted/disposed',
   assert.equal(host.productionRunHostImplemented, false); host.dispose();
 });
 
-test('focus failure while original exists must not create another tool window', async () => {
-  let created = 0;
-  const api = {runtime:{getURL:()=>toolUrl},windows:{
-    getAll:async()=>[{id:42,tabs:[{url:toolUrl}]}], get:async()=>({id:42}),
-    update:async()=>{throw Error('focus failure');},create:async()=>{created++;return{id:43};}
-  }};
-  await assert.rejects(createWindowShell(api).open(), {code:'E_TARGET'}); assert.equal(created,0);
-});
-test('window API query failure is not evidence that the existing window disappeared', async () => {
-  let created = 0;
-  const api = {runtime:{getURL:()=>toolUrl},windows:{
-    getAll:async()=>[{id:42,tabs:[{url:toolUrl}]}], get:async()=>{throw Error('temporary query failure');},
-    update:async()=>{throw Error('focus failure');},create:async()=>{created++;return{id:43};}
-  }};
-  await assert.rejects(createWindowShell(api).open(), {code:'E_TARGET'}); assert.equal(created,0);
+test('Side Panel configuration failure is surfaced without a popup fallback', async () => {
+  let popups=0;
+  const api={sidePanel:{setPanelBehavior:async()=>{throw Error('configuration failed');}},windows:{create:async()=>{popups++;}}};
+  await assert.rejects(configureSidePanel(api),{code:'E_TARGET'});assert.equal(popups,0);
 });
 test('unknown authorization mode is rejected before another injection', async () => {
   const {probe,state}=fixture(); await probe.bind(3,'https://example.com','optional');
@@ -147,4 +137,16 @@ test('document invalidation and revoke while awaiting reply reject late health s
     if(invalidate==='reload')probe.forgetTab(3);else granted=false;
     pending();await assert.rejects(response,{code:invalidate==='reload'?'E_TARGET':'E_PERMISSION'});
   }
+});
+
+test('missing Side Panel sender documentId resolves only unique native instance context', async () => {
+  const {resolveToolSender} = await import('../../src/environment.js');
+  const url=toolUrl+'?hostInstanceId=host-unique', sender={id:extension,url,origin:`chrome-extension://${extension}`};
+  let contexts=[{contextType:'SIDE_PANEL',documentUrl:url,documentId:'native-side-doc',frameId:0,incognito:false}];
+  const api={runtime:{id:extension,getURL:()=>toolUrl,getContexts:async query=>{assert.deepEqual(query,{contextTypes:['SIDE_PANEL'],documentUrls:[url]});return contexts;}}};
+  const resolved=await resolveToolSender(api,sender);assert.equal(resolved.documentId,'native-side-doc');assert(isToolSender(api,resolved));
+  for(const changed of [{...sender,url:toolUrl},{...sender,id:'foreign'},{...sender,frameId:1},{...sender,documentId:'forged',url:'https://evil.example/ui/tool.html'},{...sender,tab:{id:1}}])await assert.rejects(resolveToolSender(api,changed),{code:'E_OWNER'});
+  contexts=[...contexts,...contexts];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});
+  contexts=[];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});
+  contexts=[{contextType:'TAB',documentUrl:url,documentId:'wrong',frameId:0,incognito:false}];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});
 });

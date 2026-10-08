@@ -23,6 +23,15 @@ profile-*/
 raw-cdp*.json
 raw-cdp*.jsonl
 
+# Generated acceptance evidence stays on disk; existing tracked evidence stays tracked.
+# Contracts, ledgers and source snapshots outside this directory remain versioned.
+/docs/framework/evidence/
+
+# Generated test output directories; keep test code and fixtures versioned.
+/tests/**/evidence/
+/tests/**/results/
+/tests/**/downloads/
+
 # Local credentials
 .env
 .env.*

@@ -22,6 +22,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
   templateModuleFactory = createScrapingModule} = {}) {
   const client = suppliedClient || createHostClient(api);
   const controllerResources = new Set();
+  const contextResources = new Set();
   const artifactResources = createHostBlobRegistry({clock});
   const ownsClient = !suppliedClient;
   const contracts = {contractVersion:CONTRACT_VERSION, contractHash:CONTRACT_HASH, compilerVersion:'1.0.0', budgets:BUDGETS,
@@ -45,13 +46,21 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
     .map(method => [method, request => client.request(method, request)]));
   async function start(request) {
-    if (request?.scriptId !== undefined) return startController(request);
+    if (request?.source !== undefined || request?.scriptId !== undefined)
+      return startController(request);
     return startScraping(request);
   }
-  async function startController({scriptId, revision, contentHash, params, target, deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()}) {
+  async function startController({scriptId, revision, contentHash, source, params, target, deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()}) {
     if (disposed || active) throw new FoundationError('E_OWNER', 'RunHost already owns a task or is disposed');
     // Reserve locally before the first await; the durable @slot remains the
     // cross-host authority. Serialization failure creates no admission.
+    // Capture the caller's exact source variant before the first await. The
+    // service worker hashes and durably authenticates draft bytes at admission.
+    // Legacy saved runs retain their original r1 pin request unchanged.
+    const sourceRequest = source === undefined ? {scriptId, revision, contentHash} : {source: structuredClone(source)};
+    // Keep the exact target captured by the caller even while client.ready is pending.
+    // The UI's trusted-click snapshot is necessary but must not rely on caller object ownership.
+    const capturedTarget = structuredClone(target);
     const paramsWire = encodeValue(params), local = {controllerRun: true, state: 'preparing', controller: new AbortController()};
     let admitted, admissionDone;
     const admission = new Promise(resolve => { admissionDone = resolve; }); admissions.add(admission);
@@ -59,7 +68,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     try {
       await client.ready;
       if (disposed) throw new FoundationError('E_HOST_CLOSED', 'RunHost disposed during admission');
-      const claim = await controls.startControllerRun({scriptId, revision, contentHash, paramsWire, target, deadlineAt, requestId});
+      const claim = await controls.startControllerRun({...sourceRequest, paramsWire, target: capturedTarget, deadlineAt, requestId});
       local.runId = claim.runId;
       if (claim.duplicate) throw new FoundationError('E_EFFECT_UNKNOWN', 'Existing run is observable; its script is never replayed');
       admitted = claim;
@@ -71,6 +80,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
         transport: {request: envelope => controls.controllerOperation({envelope})}, signal: local.controller.signal,
         deadline: performance.now() + Math.max(0, claim.deadlineAt - clock.now()), dom: doc});
       local.context = context;
+      contextResources.add(context);
       const controller = controllerFactory({context, document: doc,
         sandboxURL: api.runtime.getURL('scripting/sandbox/sandbox.html'),
         workerURL: api.runtime.getURL('scripting/sandbox/worker-runtime.js')});
@@ -81,7 +91,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       return claim;
     } catch (error) {
       if (admitted && !local.control) {
-        local.context?.dispose(); local.runId=admitted.runId;
+        local.context?.dispose(); contextResources.delete(local.context); local.runId=admitted.runId;
         local.settlementRequest={runId:admitted.runId,requestId:`${admitted.runId}:finish`,status:disposed?'host-closed':'error',
           error:{code:error.code||'E_CONTROL_EXECUTION',message:error.message},workerRetired:true};
         try {lastCompletion=Promise.resolve(await settleController(local));}
@@ -117,7 +127,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       const outcome = {runId: claim.runId, state: 'paused_unknown', pendingSettlement: !!local.settlementRequest,
         error: {code: error.code || 'E_EFFECT_UNKNOWN', message: error.message}};
       notify(outcome); return outcome;
-    } finally { local.context?.dispose(); if (active === local && !local.pendingSettlement) active = undefined; }
+    } finally { local.context?.dispose(); contextResources.delete(local.context); if (active === local && !local.pendingSettlement) active = undefined; }
   }
   async function settleController(local) {
     let settled, failure;
@@ -231,6 +241,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     controller: controls, artifactResources, get completion() { return lastCompletion; }, get currentRun() { return active?.runId || null; },
     start, stop, subscribe:listener=>{observers.add(listener);return()=>observers.delete(listener);},
     resourceSnapshot: () => ({client: client.resourceSnapshot?.() ?? {}, blobs: artifactResources.resourceSnapshot?.() ?? {},
-      controllers:[...controllerResources].map(control=>control.resourceSnapshot?.() || {})}),
+      controllers:[...controllerResources].map(control=>control.resourceSnapshot?.() || {}),
+      contexts:[...contextResources].map(context=>context.resourceSnapshot()), host:{subscriptions:observers.size}}),
     dispose};
 }

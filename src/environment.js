@@ -17,9 +17,37 @@ export function httpUrl(value) {
 }
 export function permissionPattern(value) { const url = httpUrl(value); return `${url.protocol}//${url.hostname}/*`; }
 export function isToolSender(api, sender) {
-  return sender?.id === api.runtime.id && sender.url === api.runtime.getURL('ui/tool.html') &&
+  // Side Panel extension documents are not tab frames, so Chrome may omit
+  // sender.tab and sender.frameId. If a tab is present, require its top frame;
+  // otherwise accept only the packaged top-level extension document.
+  const topLevel = sender?.tab ? sender.frameId === 0 : sender?.frameId === undefined || sender.frameId === 0;
+  return sender?.id === api.runtime.id && isToolDocumentUrl(api, sender.url) &&
     typeof sender.documentId === 'string' && sender.documentId.length > 0 &&
-    sender.frameId === 0 && (!sender.documentLifecycle || sender.documentLifecycle === 'active') && !sender.tab?.incognito;
+    topLevel && (!sender.documentLifecycle || sender.documentLifecycle === 'active') && !sender.tab?.incognito;
+}
+function isToolDocumentUrl(api, value) {
+  try {
+    const url = new URL(value), base = new URL(api.runtime.getURL('ui/tool.html'));
+    return url.protocol === base.protocol && url.host === base.host && url.pathname === base.pathname && !url.hash &&
+      (!url.search || [...url.searchParams].length === 1 &&
+        /^[A-Za-z0-9._:-]{1,128}$/.test(url.searchParams.get('hostInstanceId') || ''));
+  } catch { return false; }
+}
+// Chrome Side Panel MessageSender can omit documentId. Resolve it only from
+// a unique native context for this packaged host instance, never from payload.
+export async function resolveToolSender(api, sender) {
+  if (isToolSender(api, sender)) return sender;
+  if (sender?.documentId || sender?.id !== api.runtime.id || sender.tab ||
+      sender.frameId !== undefined && sender.frameId !== 0 ||
+      !isToolDocumentUrl(api, sender.url) ||
+      !new URL(sender.url).searchParams.has('hostInstanceId'))
+    throw new EnvironmentError('E_OWNER', 'Unresolved packaged tool sender');
+  const contexts = await api.runtime.getContexts({contextTypes:['SIDE_PANEL'], documentUrls:[sender.url]});
+  const matches = contexts.filter(context => context.contextType === 'SIDE_PANEL' &&
+    context.documentUrl === sender.url && context.frameId === 0 && !context.incognito &&
+    typeof context.documentId === 'string' && context.documentId.length > 0);
+  if (matches.length !== 1) throw new EnvironmentError('E_OWNER', 'Side Panel document is missing or ambiguous');
+  return Object.freeze({...sender, documentId:matches[0].documentId, frameId:matches[0].frameId});
 }
 export function validTarget(target) {
   if (!target || !Number.isInteger(target.tabId) || target.tabId < 0 || target.frameId !== 0 ||
@@ -31,25 +59,12 @@ export function validTarget(target) {
   return target;
 }
 
-export function createWindowShell(api) {
-  let opening;
-  const url = api.runtime.getURL('ui/tool.html');
-  async function discoverOrCreate() {
-    const windows = await api.windows.getAll({populate: true, windowTypes: ['popup']});
-    const existing = windows.find(win => !win.incognito && win.tabs?.some(tab => tab.url === url));
-    if (existing) {
-      try { await api.windows.update(existing.id, {focused: true}); return {windowId: existing.id, reused: true}; }
-      catch { throw new EnvironmentError('E_TARGET', '现有工具窗口无法聚焦，请重试'); }
-    }
-    const created = await api.windows.create({url, type: 'popup', width: 1020, height: 740, focused: true});
-    return {windowId: created.id, reused: false};
-  }
-  return {
-    open() {
-      if (!opening) opening = discoverOrCreate().finally(() => { opening = undefined; });
-      return opening;
-    }
-  };
+export async function configureSidePanel(api) {
+  if (typeof api?.sidePanel?.setPanelBehavior !== 'function')
+    throw new EnvironmentError('E_TARGET', 'Chrome Side Panel API 不可用');
+  try { await api.sidePanel.setPanelBehavior({openPanelOnActionClick: true}); }
+  catch { throw new EnvironmentError('E_TARGET', '无法配置 Chrome Side Panel 入口'); }
+  return {openPanelOnActionClick: true};
 }
 
 export function createHealthProbe(api, {timeoutMs = 8000} = {}) {

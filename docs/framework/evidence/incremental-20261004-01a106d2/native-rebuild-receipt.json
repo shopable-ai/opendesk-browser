@@ -1,12 +1,12 @@
 {
-  "productInputsSha256": "63087cd9f4df120dd63792429c13a15230bb108f28d32616f2d6942f999c18c0",
-  "verificationInputsSha256": "00dc1ceedb022d650291e25a44490ef2afd25483d3f15a9a0d8f5650055f425d",
-  "runnerSha256": "4936100dc790f1e344c22083a078ddfbec6f1e5470938f4c8de108520f6fc127",
+  "productInputsSha256": "41f8ba557c0226153f2810a2eb01eea37bf18f61ec8f3e08b2d54112ccc4679f",
+  "verificationInputsSha256": "17fb0956e1fbcf3d52868b93cf8c8998164f615b9b1290814a4ba405aae63e72",
+  "runnerSha256": "303ad21220b4a9842187126751ec586a38f93209480b89cc8ec555a0f0a342ef",
   "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
-  "sourceHash": "f402050208a4759cd8ce7196dc5b5431383cbd79dcf0c4b071f099d42c976941",
+  "sourceHash": "8fc23738e4251011c4576601de3b24cc8a2d91cc7d8c5e96803a569bdf68c233",
   "packages": {
-    "production": "5893057009280761f80837ba73a7faba07c99684e54efb8debe8d4dabb85359f",
-    "development": "97dabf8d275e9179c41cc11b83c7e40d374712c5c432f313d7e519dbf65e930c"
+    "production": "6cddb1636783b1ebf13c2561372c95bff3a96030d366211efbb7505ece671e02",
+    "development": "eca078851db0c081256cd490ef40e9a4f0ff310151c273970bde36c78cf30468"
   },
   "readyForControllerNative": true,
   "executionWindow": {
@@ -14,5 +14,5 @@
     "sdkRunnerIdle": true
   },
   "candidateIdentity": "docs/framework/evidence/incremental-20261004-01a106d2/candidate-identity.json",
-  "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-05T06-07-01.627Z-incremental-T6-candidate3-candidate_build_bound"
+  "snapshotPath": "docs/framework/evidence/wxt/snapshots/2026-10-06T17-31-32.271Z-G1-candidate10-single-input-native-observation-candidate_build_bound"
 }

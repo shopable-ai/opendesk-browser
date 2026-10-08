@@ -6,7 +6,7 @@ import {createSdkBroker} from './sdk-broker.js';
 import {createTabsService} from '../chrome/tabs.js';
 import {SDK_FILES} from '../../framework/sdk/registry.js';
 import {PROTOCOL, FoundationError, invariant, newId, canonical} from '../protocol.js';
-import {httpUrl, isToolSender} from '../../environment.js';
+import {httpUrl, isToolSender, resolveToolSender} from '../../environment.js';
 import {bytesToBase64} from '../page-port/codec.js';
 import {BUDGETS} from '../protocol.js';
 
@@ -183,6 +183,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     if (message.type === 'BOOTSTRAP_READY') return consumer ? consumer.bootstrapReady(message.payload,sender) : unavailable();
     if (message.type === 'TARGET_READY') return consumer ? consumer.agentReady(message.payload,sender) : unavailable();
     if (['AGENT_READY','PAGE_DATA','PAGE_END','PAGE_EFFECT','PAGE_ERROR','SOURCE_RESULT','SOURCE_PREVIEW_DATA','SOURCE_PREVIEW_END','SOURCE_ERROR'].includes(message.type)) return consumer ? consumer.handleAgentMessage(message,sender) : unavailable();
+    sender = await resolveToolSender(api, sender);
     invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
     if (!consumer && templateOperations.has(message.type)) unavailable();
     const route = Object.hasOwn(routes, message.type) ? routes[message.type] : undefined;

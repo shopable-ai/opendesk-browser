@@ -20,6 +20,30 @@ const installations = new WeakMap();
 const names = ['OpenDeskSDK', 'service', 'CHROME_PAGE_TYPE', 'axiosx', 'AppStorage', 'AppLocal', 'createNotify', 'serverUtils', 'sleep', 'getFingerprint',
   'generateEventId', 'decodeBase64', 'ChromeBridgeEvents', 'ChromeBridgeOperationCompleted', 'callChromeBridgeInterface', 'executeInBg', 'executeScript',
   'getObjectFromLocalStorage', 'saveObjectInLocalStorage', 'removeObjectFromLocalStorage'];
+const emptyCounts = () => ({pending: 0, timers: 0, subscriptions: 0, ports: 0, workers: 0, blobs: 0});
+const addCounts = (target, counts = {}) => {
+  for (const name of Object.keys(target)) target[name] += counts[name];
+};
+const observedResource = (scope, value) => {
+  if (value && typeof value.resourceDiagnostics === 'function') return value.resourceDiagnostics();
+  return Object.freeze({scope, counts: null, observationMissing: 'resource counters unavailable'});
+};
+function aggregateDiagnostics(state, sleep, callbacks) {
+  const counts = emptyCounts(), resources = [];
+  for (const frame of state.frames) resources.push(observedResource('bridge', frame.bridge));
+  const transports = new Set([...state.frames].map(frame => frame.transport));
+  for (const transport of transports) resources.push(observedResource('transport', transport));
+  if (sleep) resources.push(observedResource('sdk.sleep', sleep));
+  resources.push({scope: 'sdk.callbacks', counts: {...emptyCounts(), subscriptions: callbacks.size}, observationMissing: null});
+  resources.push(Object.freeze({scope: 'sdk.pagehide', counts: Object.freeze({...emptyCounts(), subscriptions: state.pagehideSubscribed && !state.disposed ? 1 : 0}),
+    observationMissing: null}));
+  const missing = resources.filter(resource => resource?.observationMissing || !Object.keys(counts).every(name =>
+    Number.isSafeInteger(resource?.counts?.[name]) && resource.counts[name] >= 0));
+  if (missing.length) return {counts: null, observationMissing: missing.map(resource => ({scope: resource.scope, reason: resource.observationMissing ?? 'resource counters unavailable'})),
+    resources: Object.freeze(resources)};
+  for (const resource of resources) addCounts(counts, resource.counts);
+  return {counts: Object.freeze(counts), observationMissing: null, resources: Object.freeze(resources)};
+}
 function refreshInstallation(transport, global) {
   const state = installations.get(this);
   if (!state || state.global !== global) throw fail('E_SDK_GLOBAL_CONFLICT', 'SDK installation belongs to another global');
@@ -71,7 +95,7 @@ export function installPageSdk({global = globalThis, transport} = {}) {
     try { return existing.refresh(nextTransport, global); }
     catch (error) { nextTransport.dispose?.(); throw error; }
   }
-  const state = {global, frames: new Set(), current: undefined, disposed: false};
+  const state = {global, frames: new Set(), current: undefined, disposed: false, pagehideSubscribed: false};
   const ChromeBridgeEvents = new Map();
   state.cleanup = () => {
     for (const frame of state.frames) {
@@ -98,10 +122,11 @@ export function installPageSdk({global = globalThis, transport} = {}) {
     global.window?.removeEventListener('pagehide', onPageHide);
     const transports = new Set();
     for (const frame of state.frames) { frame.bridge.dispose(error); transports.add(frame.transport); }
-    transports.forEach(value => value.dispose?.()); ChromeBridgeEvents.clear();
+    transports.forEach(value => value.dispose?.()); ChromeBridgeEvents.clear(); sdkSleep.dispose();
   };
   const onPageHide = () => dispose();
   const storage = createStorageFacades(call);
+  const sdkSleep = createSleep();
   const send = (name, args = {}) => {
     if (!Object.hasOwn(BACKGROUND_SERVICE_METHODS, name)) return Promise.reject(fail('E_SERVICE_UNSUPPORTED', 'Unknown legacy bridge service'));
     return call(name, args).then(data => ({data}));
@@ -111,9 +136,13 @@ export function installPageSdk({global = globalThis, transport} = {}) {
     bexUrl:(args = {}) => call('bexUrl', args), requestResource:args => call('requestResource', args)});
   const sdk = Object.freeze({sdkVersion: SDK_VERSION, ready: () => state.current.bridge.ready(), call, service, resources:createResourceConsumers(service),
     axiosx: createHttp(call), ...storage, createNotify: createNotifications(call), serverUtils: createServers(call),
-    sleep: createSleep(), getFingerprint, UtilDevice: createDeviceUtils({call, navigator: global.navigator, context: global}),
+    sleep: sdkSleep, getFingerprint, UtilDevice: createDeviceUtils({call, navigator: global.navigator, context: global}),
     UtilInfo: createNetworkInfo(call), formatJSON, dispose,
-    diagnostics: () => ({pending: [...state.frames].reduce((sum, frame) => sum + frame.bridge.diagnostics().pending, 0), disposed: state.disposed})});
+    diagnostics: () => {
+      const aggregate = aggregateDiagnostics(state, sdkSleep, ChromeBridgeEvents);
+      return {scope: 'OpenDeskSDK', pending: [...state.frames].reduce((sum, frame) => sum + frame.bridge.diagnostics().pending, 0), disposed: state.disposed,
+        counts: aggregate.counts, observationMissing: aggregate.observationMissing, resources: aggregate.resources};
+    }});
   const storageExports = {AppStorage: storage.AppStorage, AppLocal: storage.AppLocal, getObjectFromLocalStorage: storage.getObjectFromLocalStorage,
     saveObjectInLocalStorage: storage.saveObjectInLocalStorage, removeObjectFromLocalStorage: storage.removeObjectFromLocalStorage};
   const exports = Object.freeze({OpenDeskSDK: sdk, service, CHROME_PAGE_TYPE, axiosx: sdk.axiosx, ...storageExports, createNotify: sdk.createNotify, serverUtils: sdk.serverUtils,
@@ -124,7 +153,7 @@ export function installPageSdk({global = globalThis, transport} = {}) {
   record.refresh(nextTransport, global);
   for (const [name, value] of Object.entries(exports)) Object.defineProperty(global, name, {value, enumerable: true, writable: false, configurable: false});
   Object.defineProperty(global, installationKey, {value: record});
-  global.window?.addEventListener('pagehide', onPageHide, {once: true});
+  if (global.window) { global.window.addEventListener('pagehide', onPageHide, {once: true}); state.pagehideSubscribed = true; }
   return sdk;
 }
 export function initPageSdk() {

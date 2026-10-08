@@ -1,0 +1,230 @@
+继续完成 OpenDesk Browser：旧 src-bex 浏览器自动化核心的迁移升级。
+请执行下面的授权任务到正式验收和安装交付完成，不停在分析或计划阶段。
+这是一份包含既有结论的串行交接提示词。先理解当前事实，再补真实缺口；避免重新审计和重复测试。
+
+一、目标、工程与范围
+
+  目标工程：/Users/shopme/Documents/workspace/opendesk-browser
+  只读来源：/Users/shopme/Documents/workspace/todo-user-vue/src-bex
+            /Users/shopme/Documents/workspace/opendesk
+  既有来源快照、旧 receipt、原始失败和工作区全部差异都必须保留。
+
+  将旧浏览器核心按职责迁入当前工程，保留已约定公开 API、页面 SDK、公共服务、资源与调用语义。
+  修复实际执行、目标绑定、异步回程、停止、持久结果和生命周期缺陷。
+  最后交付同一已验收 dist 对应的 ZIP，并完成真实安装验收。
+
+  不继续完善网页采集、模板、分页；现存采集模块只保留迁移必需的薄边界和去耦。
+  不开发选区、预览、采集引擎、模板工作流、分页采集、采集业务导出。
+  不开发语音控制；旧 txt2voice 文件不构成需求或本期实现证据。
+  不开发可视化任务树界面；任务树是纯文本沟通方式。
+  之前扩展产品目标及“5/8、63%”统计已作废，不再引用。
+
+二、先确认真实释放，再接管唯一 writer 与创建新 Goal
+
+  先只读：
+    AGENTS.md
+    docs/framework/prompts/goal-src-bex-migration-20261007.txt
+    docs/framework/public-owner.json
+    docs/framework/evidence/handoff-20261007-01a115e3-next/continuation.json
+    docs/framework/evidence/handoff-20261007-01a115e3-next/release.json
+    docs/framework/evidence/handoff-20261007-01a115e3-next/successor-ready.json
+    docs/framework/evidence/handoff-20261007-01a115e3-next/identity-at-release.json
+    docs/framework/evidence/handoff-20261007-01a115e3-next/new-goal-prompt.txt
+
+  前任实际 threadId：01a115e3-b765-74e3-a55f-51ca2de5f18e。
+  核对 owner 的释放状态、受控 CFT/launcher/native runner、在途操作以及原始清理证据。
+  用本对话实际 threadId 登记唯一 writer，保存 acceptance，再创建并执行新的持续 Goal。
+  不覆盖活跃 owner，不恢复前任 Goal，不自动创建其他用户对话。
+  原生验收需要独占受控浏览器窗口；只操作本工程受控 CFT，不动个人 Chrome。
+
+三、现在完成到哪里：不要把“正式关闭为零”误读为“实现为零”
+
+  浏览器核心、控制工作台、隔离 Worker、页面 SDK、服务与持久结果的主要实现链已经存在。
+  目前处于真实驱动补齐和定向缺陷修复阶段，尚未进入完整最终候选验收。
+  正式兼容账本仍 0/603，SDK 正式账本仍 0/19；最终 F3 与 ZIP 安装均未接受。
+  不计算产品完成百分比，也不把组件测试数量换算为功能进度。
+
+  本轮新完成的实际成果：
+
+    Cookie 写入和删除真实失败
+      已补真实 native callback 错误观察及保守 effect_unknown/fenced 证据。
+      写入：受控 HTTP 页面设置不安全的 __Secure- Cookie，Chrome 实际拒绝。
+      删除：授权预检后，在精确 callback 屏障处真实撤销本地测试 origin 权限；实际 chrome.cookies.remove 拒绝。
+      只接受实际 set/remove callback 栈和产品 chromeCall 捕获的 Error；无 fake chrome API、sender 或 ack。
+      两项均验证单次提交、无成功 Cookie 回执、精确 run/owner/document/revision、A/B Cookie 不变。
+      unknown effect 不盲目重放；按实际 UI Stop 完成 Worker retirement released，六资源恢复 baseline。
+      候选40、生产包/CFT138：2/2 supplemental 原生 PASS。
+      这补齐“真实失败驱动”缺口；不代表原603 ERR/FENCE 已正式关闭。
+      文件：tests/framework/k5-controller-cookie-fault.mjs、对应 .test.mjs、k5-controller-product-native.mjs。
+      摘要：docs/framework/evidence/continuation-20261007-01a115e3/cookie-native-progress.json。
+      原始：docs/framework/evidence/f2-controller-product-native/native-2026-10-07T11-10-36.799Z-8de9a1f4。
+
+    addScriptTag content 修改目标页面 HTML/DOM
+      已通过真实工作台保存源码、选择固定版本、精确绑定 A 文档并运行。
+      page.addScriptTag({content}) 的代码在目标页面 MAIN 执行，等待异步完成、返回 undefined。
+      脚本真实创建 section，写入 HTML、设置 MAIN marker；随后 $eval 和 evaluateExpression 读回。
+      USER_SCRIPT evaluate 读取不到 MAIN marker；控制 Worker 没有 document。
+      A 获得唯一目标节点，B 不变，四次操作实际完成、结果自身 revision/sourceHash 准确、retirement released、资源回 baseline。
+      候选43、生产包/CFT138：SCRIPT-CONTENT-EXACT-DOCUMENT supplemental PASS。
+      文件：tests/framework/k5-controller-script-content.mjs、对应 .test.mjs、原生主 runner。
+      摘要：docs/framework/evidence/continuation-20261007-01a115e3/script-content-native-progress.json。
+      原始：docs/framework/evidence/f2-controller-product-native/native-2026-10-07T11-34-50.977Z-df2d5dd9。
+
+    脚本资源拒绝合同的实际缺陷
+      原批准 RESOURCE01-API16-LIMIT 要求 remote URL → E_REMOTE_CODE_UNSUPPORTED。
+      当前原预检错误地返回 E_RESOURCE_URL_UNSUPPORTED；已在已有 tagOptions 内修正，无新增公开成员或职责扩展。
+      字符串 onload、module 仍按 E_OPTION_UNSUPPORTED 拒绝；原配方与批准分母未改。
+      候选44、生产包/CFT138：原用例真实工作台 PASS，六断言、页面操作零派发、A/B 不变、准确结果与资源释放。
+      摘要：docs/framework/evidence/continuation-20261007-01a115e3/script-refusal-native-progress.json。
+      原始：docs/framework/evidence/f2-controller-product-native/native-2026-10-07T11-48-21.660Z-ec96a0ac。
+
+    样式预检及真实移除驱动：代码已完成，原生尚待验证
+      RESOURCE01-API17-ERR：混合 url/content 参数应在预检拒绝为 E_OPTION_UNSUPPORTED。
+      RESOURCE01-API17-LIMIT：远程 URL、@import、url() 均应为 E_REMOTE_RESOURCE_UNSUPPORTED、零派发。
+      已修已有 tagOptions 的拒绝语义；组件定向检查通过。
+      已连接原 API17 OK/ERR/LIMIT；原 API17 OK 配方保持 inline CSS，不用别的输入替换。
+      OK 驱动在真实 Worker HTTP barrier 暂停时，通过只读 CDP 记录实际 STYLE backendNodeId/objectId/text/精确文档与颜色。
+      之后读取同一节点断开、A 颜色和 head 样式恢复，再释放观察器 object；released 状态单独不能证明样式移除。
+      文件：tests/framework/k5-controller-style-observer.mjs、对应 .test.mjs；original-cases helper 和主 native runner。
+      80 项定向组件检查 PASS：style-disposal-targeted-r1.log；源码静态检查通过。
+      候选45 的四个原生用例在“首次目标选择、尚未 Start”时因用户要求交接停止，全部 NOT_TESTED。
+      不能将中断写成产品 FAIL，也不能把组件通过写成原生 PASS。
+
+  先前原生材料可以作为功能证据，不能跨候选继承最终 PASS：
+    候选32：G1 四行112/112；候选33：G2 功能100/100、三行已具资格。
+    候选34：生产/CFT155 定向25/25，退出清理通过；限定 exit inspector review 不是最终 F3。
+    相关索引在 docs/framework/evidence/continuation-20261007-01a11545/。
+    本轮未重复跑全量 G1/G2。
+
+四、add script/HTML 的职责结论已经确认，不要重新误解为只允许沙箱内计算
+
+  控制源码在 opaque Blob Worker 沙箱运行；page 是有授权和身份绑定的代理。
+  page.addScriptTag({content}) 能执行目标页面代码并修改页面 HTML/DOM，这是要求保留的旧浏览器能力。
+  MAIN 与 USER_SCRIPT 是不同执行世界；安全边界由 capability、精确 document、run/owner/revision 校验及回执维护。
+  不能用测试 runner 的 DOM 赋值或 synthetic events 冒充这项能力；上述修改由真实保存的用户脚本通过 page API 完成。
+  当前 content 并不保证留下可查询 script 标签；URL 路径是登记的 packaged SDK 资源。
+  远程脚本、module、字符串 onload 继续拒绝。不承诺能强行停止已派发且可能产生外部效果的 MAIN 代码。
+  没有确认独立公开“写入任意 HTML”API；content() 是读 HTML，$/$$ 在 Worker 返回快照。
+
+五、最新候选与安装产物的身份
+
+  最后已构建冻结候选：45。
+  目录：docs/framework/evidence/continuation-20261007-01a115e3/candidate45/。
+  sourceHash：0fba15c64a42c2f758e1d2d37711994a896b90fd39f344e3edb16598437eba0d。
+  生产 packageHash：bdba1b2f4aa004cf28da72537c70a657719519d8ad9192c3a0707b0fb28f9d69。
+  开发 packageHash：bfb874e81dba6234e07d6a0323d0ecacd0fc30ce903536793f07c164bd52cca1。
+  生产 ZIP SHA256：205c00123c9ed451946106839e14898418d45d4d6d467974affda96335df38d4。
+  开发 ZIP SHA256：cedcb43373bc6b1f1b14b13550ed2ee4064afad68391af61c081dd38174b5b69。
+  artifacts/opendesk-browser-production.zip 与 development.zip 均逐项文件集合/字节等于对应 dist。
+  生产与开发构建均通过；95+95 实际编译输入在交接时逐项核对未漂移。
+  这仅是构建和内容一致性，不是最终安装验收通过。
+
+  候选40/43 原生证据用的是旧实际产物；44/45 是预检实际修复后的新构建。
+  旧产物已分别保存在：
+    docs/framework/evidence/continuation-20261007-01a115e3/pre-script-url-fix-build/
+    docs/framework/evidence/continuation-20261007-01a115e3/pre-style-refusal-fix-build/
+  各自 archive-identity.json 记录原文件字节身份，旧 receipt 全部保留。
+
+  owner 释放、接管和提示词属于元数据输入，接管后旧45 receipt 不能假装仍绑定当前输入。
+  若95+95编译输入、dist和ZIP未变：只做新 owner 下的输入重资格与新 receipt，不因元数据变化重建。
+  使用原 --contract-check、inputIdentity/checkpoint、当前真实 package/ZIP 身份生成新候选记录；旧记录不覆盖。
+  现有 evidence 下 requalify-verification.mjs 展示了核对方法；硬编码路径、lane、candidate 名称需按实际新对话如实调整。
+  qualify-style-build.mjs 已用于45，不能重新执行覆盖45；其 flag:wx 是保护旧记录。
+
+六、当前原生中断与观察器问题：先处理已有事实，不重跑诊断过程
+
+  用户于本轮要求状态与新对话完整交接，前任停止了45的四用例验证。
+  中断原始目录：docs/framework/evidence/f2-controller-product-native/native-2026-10-07T12-00-17.313Z-8d45b5b5。
+  原生 UI 显示 Stop disabled，仍为第一次 target-mode 选择，没有选择完成 ack，没有执行到 Start。
+  精确 owned launcher PID46795 收到 SIGTERM，CFT PID46796 退出，launcher exit0，临时 profile 删除。
+  随后 scoped runner PID46793 的清理继续向已断开的 CDP 通道发读请求，未及时退出，前任将其 SIGTERM结束。
+  原始 cleanup.json 中早期解释与最终断开观察诊断分别保存，不覆写原材料。
+  connect() 已有 onclose 对现存 pending 的 rejection；不要误称“完全没有 onclose”。
+  缺口是 send() 没有 closed/readyState 快速拒绝，并且失败清理会继续对失效通道发读请求，每次等45秒。
+  依据 raw-cdp.jsonl：浏览器退出后仍有 Runtime.evaluate/Target.getTargets 发送，缺少回程。
+  这是 native 测试观察器退出问题，不是已证明的产品功能失败。
+  需要修复时只改测试通道的关闭处理，做必要定向检查；不为它改产品、全量回归或重建扩展。
+
+七、下一轮实际顺序：从现成实现和真实缺口继续
+
+  1. 完成串行接管、实际 threadId、acceptance、新 Goal 和新的真实输入 receipt。
+  2. 定向修复上述已断开 CDP 的测试清理问题，防止交接/失败时层层45秒等待。
+  3. 在同一当前候选上完成已接入的四项原用例：
+       RESOURCE01-API16-LIMIT
+       RESOURCE01-API17-OK
+       RESOURCE01-API17-ERR
+       RESOURCE01-API17-LIMIT
+     命令形状：
+       node tests/framework/k5-controller-product-native.mjs \
+         --original-api48=RESOURCE01-API16-LIMIT,RESOURCE01-API17-OK,RESOURCE01-API17-ERR,RESOURCE01-API17-LIMIT \
+         --native --headed --native-ui-assist --native-selection=assist \
+         --mode=production --chrome=138 --permission-timeout=180000 \
+         --rebuild-receipt=<新对话真实 receipt>
+     Mac 下原生 select 默认键盘选择曾未正确提交；使用真实 CUA AX 菜单点击与读回。
+     native ack 必须发生在真实动作和读回之后，精确绑定 requestId/pid/targetId/selector/desired，文件只创建一次。
+     不使用 DOM setValue、synthetic change、伪造 native ack、绕过权限或 CLI flags 开启用户脚本。
+  4. 然后推进剩余旧核心消费者/原生驱动；Cookie supplemental 和 content supplemental 已完成，不重新发明驱动。
+     接口48的原生 helper 当前连接22个原 caseId；“连接”不等于22项全部已原生通过，更不等于603关闭。
+     API16-OK 仍需要实际工作台 allowPageSdk、真实 Hello/AppLocal Promise、重复加载监听数量观察。
+     packaged SDK URL 是 chrome.runtime.getURL('framework/sdk-main.js')；bexUrl 为真实公开根 URL。
+     URL load ack 不等于 Hello 完成；必须显式观察 OpenDeskSDK.ready() 与 AppLocal 最终返回。
+     API16-ERR 无登记的 missing-resource 故障入口，不能删改已构建资源制造假证据。
+     API16-FENCE 仍需真实导航/撤权前后派发屏障及 unknown effect 证据，不能人工伪造ctx/native effect。
+     对每个阻塞先查当前消费者和代码是否仍缺；缺驱动就补驱动，有实际功能缺陷才修改产品。
+  5. 实现与驱动收敛后冻结一个最终候选，集中做正式完整验收和安装交付。
+
+八、功能任务树：继续按实际功能名推进，不能只有测试编号
+
+  详细已有树：docs/framework/evidence/continuation-20261007-01a115e3/function-task-tree.txt。
+  保留旧符号 → 新职责模块 → 实际消费者 → 真实入口 → 验证 的关系。
+  每个小任务记录已实施、组件证据、原生证据、正式关闭、实际缺口、文件、依赖和通过条件。
+
+  旧功能迁移映射
+    已梳理旧 ChromePage/ChromeElement/Keyboard、bridge/SDK、公共服务和资源到现有模块、消费者和入口。
+    当前具体细节在功能树；不要重新冻结历史审计替代实施。剩余是逐项真实驱动与正式账本闭合。
+  浏览器页面操作
+    目标选择/授权/精确文档绑定、导航/输入/点击/等待/读取/Cookie 已有主实现与旧原生材料。
+    Cookie native 失败保守拦截已新补；脚本修改目标 HTML 已实证。
+    样式成功后的同节点移除尚待本轮已备好的真实驱动；导航、撤权与已派发效果仍按保守 fence。
+  控制脚本与工作台
+    源码/参数编辑、保存固定版本、运行/返回/异常、真实 Worker Stop、双任务隔离、结算/资源释放已存在。
+    使用实际入口及旧原生材料推进，不再把已有主实现当成全部待重写。
+    最终同候选仍需覆盖准确 controller-result/runId/resultId、结果自己的 revision/sourceHash 和 released retirement。
+  独立页面 SDK 与公共服务
+    授权安装、真实 relay/sender、异步回程、HTTP/存储/通知/资源、重连/文档失效/撤权已有实现和部分材料。
+    19项正式闭合、独立B05及相应完整驱动仍未完成；URL加载不能代替Hello或服务Promise结果。
+  持久结果与下载
+    保存/读回、结果自己的版本身份、关闭重开及下载生命周期已有主实现/部分原生证据。
+    最终仍须真实完成回执、文件逐字节一致和资源回收，不能以“下载已点击”关闭。
+  最终安装交付
+    最新 production/development build、ZIP/dist逐项一致已验证。
+    同候选全合同、独立最终复核和ZIP安装尚未接受，这是完成的最后硬门槛。
+
+九、如何判断完成及避免过度测试
+
+  产品完成只在以下全部成立时成立：
+    原603＋19逐项身份一致的完整原始证据；独立B05。
+    原1000 mixed／10 reconnect／2轮禁插件；六项资源数值baseline。
+    同一最终候选必要完整G1/G2与正式账本关闭。
+    独立最终F3接受；ZIP与已验收dist一致；实际安装入口验收通过。
+  NOT_TESTED、超时、旧候选、组件PASS、限定静态review不计正式PASS/F3。
+  若某原 case 与最新排除业务范围确实冲突，记录caseId和差异；不静默改分母，不为凑数开发采集业务。
+
+  本轮Cookie候选35–39、content候选41–42主要是在修观察器的作用域/副作用读取/编码/IDB顺序问题。
+  原始失败已保留；40、43得到真实PASS后，没有继续重复该同一版本用例。
+  44、45有实际预检编译输入变化才进行了构建；不要把“多候选”一律当成产品被反复重写。
+  但观察器诊断占比偏高，下一轮应收敛：优先复用现成驱动和结论，合并同一修复阶段的定向验证。
+  修复阶段只跑能证明本次变化的最小组件/原生检查；没有代码、环境或观察方式变化，不重试同一失败。
+  观察器变化不能触发全量G1/G2；只重新资格绑定当前输入，不用改产品或重建来配合观察器。
+  同候选全量合同留到实现和驱动收敛后集中执行一次；必须重试时写清具体变化和原因。
+  禁止用测试数量、通过率或任意等权功能分组计算产品完成百分比。
+
+十、执行约束与沟通
+
+  不新增依赖；不commit/push/publish；旧来源只读；不扩展ChromePage.js公开范围或职责。
+  本轮ChromePage.js仅修已有tagOptions的合同错误码/参数拒绝，未加功能成员。
+  仅受控CFT、真实sender、可信原生输入；保留完整Save输入观察与唯一真实native ack。
+  未知native effect、回执缺失、撤权、document/owner变化必须保守阻止旧任务，禁止盲重放。
+  使用Codex native子代理做有价值的独立有界子任务；不自动另建用户对话，不启未授权OMX runtime。
+  首条说当前具体缺口、要改文件、通过条件；约60秒报告实际成果与下一项实际功能。
+  不只给计划；发现缺口直接修复并做必要验证，直到上述正式成功条件成立。

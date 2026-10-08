@@ -10,9 +10,12 @@ import path from 'node:path';
 import os from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
-import {PROTOCOL, SDK_VERSION, SDK_METHODS} from '../../src/framework/sdk/registry.js';
+import {PROTOCOL, SDK_VERSION, SDK_METHODS, normalizeMethod} from '../../src/framework/sdk/registry.js';
 import {discoverAdmissionPoint} from './k5-sdk-admission-abort-native-selector.mjs';
 import {inspectPausedAdmission} from './k5-sdk-admission-abort-native-inspect.mjs';
+import {observeNativeToolResources, composeNativeSdkResources, validateNativeResourceBaseline, validateNativeSdkDisposal} from './k5-sdk-native-resource-observation.mjs';
+import {validateNativeSelectionReceipt} from './k5-sdk-native-selection-receipt.mjs';
+import {armNativeRecoveryGate} from './b05-native-recovery-gate.mjs';
 import {discoverStorageObservations, inspectNativeKvSubmission, readFrame, assertPublicUnknown,
   exactBreakpointLocation, requireFreshWorkerContext} from './b05-native-observers.mjs';
 
@@ -239,10 +242,10 @@ export function discoverBarriers(source) {
 
 class NotObserved extends Error { constructor(message) { super(message); this.code = 'E_NATIVE_NOT_OBSERVED'; } }
 const projectError = error => ({code:error.code, message:error.message, stack:error.stack});
-async function until(operation, description, ms = 12000) {
+export async function until(operation, description, ms = 12000) {
   const deadline = Date.now() + ms;
   while (Date.now() < deadline) { const value = await operation(); if (value) return value; await sleep(40); }
-  throw new Error(`Timed out: ${description}`);
+  throw new NotObserved(`Native observation timed out: ${description}`);
 }
 async function connect(url, label, log) {
   const socket = new WebSocket(url), pending = new Map(), listeners = new Set(); let next = 0, closed = false;
@@ -275,30 +278,66 @@ async function evaluate(client, expression, contextId) {
   return result.result.value;
 }
 
-function rawPageRequest(payload) {
-  return new Promise(resolve => {
-    const timeout = setTimeout(() => { window.removeEventListener('OPEN_DESK_SDK_RESULT',receive); resolve({observationTimeout:true}); },35000);
-    function receive(event) {
-      const message = JSON.parse(event.detail); if (message.requestId !== payload.requestId) return;
-      clearTimeout(timeout); window.removeEventListener('OPEN_DESK_SDK_RESULT',receive); resolve(message.response);
-    }
-    window.addEventListener('OPEN_DESK_SDK_RESULT',receive);
-    window.dispatchEvent(new CustomEvent('CHROME_BRIDGE_INTERFACE',{detail:JSON.stringify({protocol:'opendesk.foundation.v1',type:'SDK_REQUEST',payload})}));
-  });
-}
-const rawExpression = payload => `(${rawPageRequest.toString()})(${JSON.stringify(payload)})`;
-function observePage() {
+export function observePage() {
   globalThis.__b05 = {events:[],settlements:{},requests:{}};
   for (const name of ['OPEN_DESK_SDK_READY','OPEN_DESK_SDK_RESULT','CHROME_BRIDGE_INTERFACE']) {
-    window.addEventListener(name,event => __b05.events.push({at:Date.now(),name,message:JSON.parse(event.detail)}));
+    window.addEventListener(name,event => {
+      const message=JSON.parse(event.detail);__b05.events.push({at:Date.now(),name,message});
+      const requestId=message.payload?.requestId ?? message.requestId;
+      if(name==='CHROME_BRIDGE_INTERFACE'&&message.type==='SDK_REQUEST') {
+        __b05.requests[requestId]??={settlements:0};__b05.requests[requestId].payload=message.payload;
+      } else if(name==='OPEN_DESK_SDK_RESULT'&&__b05.requests[requestId]) {
+        // Record the real transport packet separately from the original public
+        // SDK Promise settlement. Observers never settle a product callback.
+        __b05.requests[requestId].nativeResponse=message.response;
+      }
+    });
   }
 }
-function sdkCall(method,args) {
+export function sdkCall(method,args) {
   return OpenDeskSDK.call(method,args).then(value => ({ok:true,value,undefinedResult:value===undefined}),
     error => ({ok:false,publicErrorKeys:Object.keys(error),error:{code:error.code,message:error.message,
       ...Object.fromEntries(['stage','status','response','invocation'].filter(key=>Object.hasOwn(error,key)).map(key=>[key,error[key]]))}}));
 }
-const sdkExpression = (method,args) => `(${sdkCall.toString()})(${JSON.stringify(method)},${JSON.stringify(args)})`;
+export const sdkValueExpression = value => value === undefined ? 'undefined' : Array.isArray(value)
+  ? `[${value.map(sdkValueExpression).join(',')}]` : value !== null && typeof value === 'object'
+    ? `({${Object.entries(value).map(([key,item])=>`[${JSON.stringify(key)}]:${sdkValueExpression(item)}`).join(',')}})` : JSON.stringify(value);
+const sdkExpression = (method,args) => `(${sdkCall.toString()})(${JSON.stringify(method)},${sdkValueExpression(args)})`;
+export function sdkInvocationExpression(method,args,slot) {
+  return `(()=>{const slot=${JSON.stringify(slot)},eventStart=__b05.events.length;__b05.settlements[slot]={settlements:0};
+    ${sdkExpression(method,args)}.then(response=>{const entry=__b05.settlements[slot];entry.settlements++;entry.response=response;
+      const requests=__b05.events.slice(eventStart).filter(x=>x.name==='CHROME_BRIDGE_INTERFACE'&&x.message.type==='SDK_REQUEST'&&x.message.payload?.method===${JSON.stringify(method)});
+      if(requests.length===1){const requestId=requests[0].message.payload.requestId;entry.requestId=requestId;const request=__b05.requests[requestId];request.settlements++;request.response=response;request.originalSdkSlot=slot;}
+    });return true;})()`;
+}
+export function observedSdkInvocation(events,{since,method}) {
+  const requests=events.slice(since).filter(event=>event.name==='CHROME_BRIDGE_INTERFACE'&&event.message.type==='SDK_REQUEST');
+  if(!requests.length)return null;
+  if(requests.length!==1||requests[0].message.payload?.method!==method)throw new NotObserved('Public SDK invocation observation is ambiguous; no request identity substituted');
+  return structuredClone(requests[0].message.payload);
+}
+export function bindPublicSdkPayload(planned,observed) {
+  assert.equal(observed.method,planned.method,'Observed public SDK invocation method differs');
+  assert.deepEqual(observed.argsWire,encodeValue(normalizeMethod(planned.method,decodeValue(planned.argsWire))),'Observed public SDK input differs after its approved normalization');
+  assert.equal(typeof observed.requestId,'string');assert(observed.requestId);
+  assert(Number.isSafeInteger(observed.deadlineAt)&&observed.deadlineAt>0,'Actual SDK deadline is missing');
+  assert.deepEqual(Object.keys(observed).sort(),['argsWire','deadlineAt','method','requestId']);
+  const observation={planned:structuredClone(planned),actual:structuredClone(observed),source:'installed public OpenDeskSDK.call'};
+  Object.assign(planned,observed);return observation;
+}
+export function nativeResourceCleanup(evidence) {
+  const baseline=evidence.nativeResourceBaseline;
+  if(baseline?.status!=='PASS')return {status:'NOT_TESTED',before:null,after:null,scope:'tool-and-selected-sdk-document',
+    reason:baseline?'Original owner baseline did not complete':'SDK initialization or absent native resource observations are not a before/after lifecycle baseline'};
+  if(baseline.transition==='explicit-sdk-dispose') {
+    validateNativeSdkDisposal(baseline.before,baseline.after);
+    return {status:'NOT_TESTED',before:null,after:null,scope:baseline.before.scope,
+      reason:'Actual SDK release delta is validated separately; disposal is not an unchanged owner baseline',release:{status:'PASS',before:baseline.before,after:baseline.after}};
+  }
+  validateNativeResourceBaseline(baseline.before,baseline.after);
+  return {status:'PASS',before:{...baseline.before.counts},after:{...baseline.after.counts},scope:baseline.before.scope,
+    selected:baseline.before.selected,hostTargetId:baseline.before.owners.tool.hostTargetId,productObservations:baseline};
+}
 function snapshotInTool() {
   return (async () => {
     const databases = await indexedDB.databases();
@@ -379,15 +418,39 @@ async function runNative(options, packageBefore, barriers) {
     if (!res.destroyed) {res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify({token,effect:true}));} held.delete(token);
   };
   const hits = token => http.filter(hit=>new URL(hit.url,origin).searchParams.get('token')===token && hit.method==='POST');
+  const nativePrerequisiteFailures=new Map(),resourceObservers=new Map();
   async function caseRun(label,id,operation) {
     if(options.selectedCases&&!options.selectedCases.includes(id)) {
       const record={id,label,status:'NOT_TESTED',reason:'Not selected in this bounded native slice; required denominator retained',evidence:{}};
       report.cases.push(record);return record;
     }
+    if(nativePrerequisiteFailures.has(label)) {
+      const record={id,label,status:'NOT_TESTED',reason:'A prior native prerequisite/observation failed; no further input was executed in this session',
+        prerequisiteFailure:nativePrerequisiteFailures.get(label),evidence:{}};report.cases.push(record);return record;
+    }
     const startMono=performance.now(),startCdpSequence=cdpSequence,startHttpRecordCount=http.length;
     const record={id,label,startedAt:new Date().toISOString(),status:'NOT_TESTED',evidence:{}}; report.cases.push(record);
-    try { await operation(record.evidence); record.status='PASS'; }
-    catch (error) { record.status=error.code==='E_NATIVE_NOT_OBSERVED'?'NOT_TESTED':error.code==='E_NATIVE_PERMISSION_WAIT'?'BLOCKED':'FAIL';record.error=projectError(error);record.reason=error.message; }
+    try {
+      const resourceObserver=resourceObservers.get(label);
+      if(resourceObserver)record.evidence.nativeResourceBaseline={before:await resourceObserver()};
+      await operation(record.evidence);
+      record.operationAssertionsPassed=true;
+      if(resourceObserver) {
+        const baseline=record.evidence.nativeResourceBaseline;baseline.after=await resourceObserver();
+        if(id==='B05.SDK.navigation-no-replay') {
+          assert.notEqual(baseline.after.selected.documentId,baseline.before.selected.documentId);
+          baseline.transition='native-document-replacement';baseline.status='NOT_TESTED';
+          baseline.reason='Original SDK owner was destroyed; new-document counters cannot substitute for its baseline';
+          record.status='NOT_TESTED';record.reason=baseline.reason;
+        } else if(id==='B05.SDK.delivery-failure') {
+          validateNativeSdkDisposal(baseline.before,baseline.after);baseline.transition='explicit-sdk-dispose';baseline.status='PASS';
+          record.status='PASS';
+        } else {validateNativeResourceBaseline(baseline.before,baseline.after);baseline.status='PASS';record.status='PASS';}
+      } else {
+        record.status='PASS';
+      }
+    } catch (error) { record.status=error.code==='E_NATIVE_NOT_OBSERVED'?'NOT_TESTED':error.code==='E_NATIVE_PERMISSION_WAIT'?'BLOCKED':'FAIL';record.error=projectError(error);record.reason=error.message;
+      nativePrerequisiteFailures.set(label,{id,status:record.status,error:record.error}); }
     record.measurements={elapsedMs:performance.now()-startMono,rawCdpSequenceStart:startCdpSequence,rawCdpSequenceEnd:cdpSequence,
       httpRecordCountStart:startHttpRecordCount,httpRecordCountEnd:http.length,...record.evidence.measurements};
     record.endedAt=new Date().toISOString(); await write('report.json',report);
@@ -396,7 +459,7 @@ async function runNative(options, packageBefore, barriers) {
   try {
     for (const label of options.labels) {
       const directory=path.join(output,label); await mkdir(directory,{recursive:true});
-      const binary=await realpath(options.binary || path.join(root,`tests/.cache/m5-browsers/${label==='138'?'138.0.7204.183':'154.0.8037.92'}/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`));
+      const binary=await realpath(options.binary || path.join(root,`tests/.cache/m5-browsers/${label==='138'?'138.0.7204.183':'155.0.8059.39'}/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`));
       const session={label,binary:{path:binary,sha256:sha256(await readFile(binary))},extension:options.extension,
         launcher:{path:LAUNCHER,sha256:binding.sourceHashes[LAUNCHER],python:PYTHON,startedAt:new Date().toISOString()}};report.sessions.push(session);
       const browserArgs=['--remote-debugging-port=0',`--load-extension=${options.extension}`,`--disable-extensions-except=${options.extension}`,
@@ -490,12 +553,23 @@ async function runNative(options, packageBefore, barriers) {
           if(before.value===desired)return {selector,desired,before,after:before,input:'Existing selection from this session; no UI mutation'};
           assert(options.nativeUiAssist,'Use --native-ui-assist for actual macOS select menus');
           await browser.send('Target.activateTarget',{targetId:toolId});
+          const uiLabel=await evaluate(tool,`(()=>{const el=document.querySelector(${JSON.stringify(selector)});return document.querySelector('label[for="'+el.id+'"]')?.textContent.trim();})()`);
+          assert.equal(typeof uiLabel,'string');assert(uiLabel);
           const request={state:'native-selection-assist',label,pid:session.pid,launcherPid:child.pid,endpoint,
-            toolId,targetId:toolId,selector,desired,optionIndex:index,before,
-            instruction:'Leader CUA must commit this exact option in the bound native Chrome window; no DOM assignment or synthetic UI events'};
+            toolId,targetId:toolId,selector,desired,optionIndex:index,before,uiLabel,requestId:randomUUID(),createdAt:Date.now(),
+            instruction:'Leader CUA must commit this exact option, then write the matching completion and AX witness after native readback; no DOM assignment or synthetic UI events'};
+          request.ackPath=path.join(directory,`native-selection-ui-ack-${request.requestId}.json`);
           await write(`${label}/pending-native-selection.json`,request);console.log(JSON.stringify({...request,output,path:path.join(directory,'pending-native-selection.json')}));
-          const after=await until(async()=>{const view=await inspect();return view.value===desired&&view;},`native exact SDK selection ${selector}`,options.permissionTimeout);
-          const receipt={...request,state:'selection-observed',after,input:'Native UI assist; readback verified; leader CUA action transcript required'};
+          const completed=await until(async()=>{
+            const after=await inspect();if(after.value!==desired)return null;
+            try{const ack=JSON.parse(await readFile(request.ackPath,'utf8')),witness={...JSON.parse(await readFile(ack.witnessPath,'utf8')),path:ack.witnessPath};
+              const observation={requestId:request.requestId,targetId:toolId,selector,desired,at:Date.now(),after};
+              const validation=validateNativeSelectionReceipt({request,ack,witness,observation,finalDom:await inspect()});return {after,ack,observation,validation};
+            }catch(error){if(error.code==='ENOENT'||error instanceof SyntaxError)return null;
+              if(error.code==='E_NATIVE_NOT_OBSERVED')throw error;
+              throw Object.assign(new NotObserved('Native selection receipt could not be read'),{observation:{requestId:request.requestId,ackPath:request.ackPath,error:projectError(error)}});}
+          },`native exact SDK selection ${selector} and genuine completion receipt`,options.permissionTimeout);
+          const receipt={...request,state:'selection-observed',...completed,input:'Native UI assist; matching completion, AX witness and exact DOM readback verified'};
           (session.uiSelections??=[]).push(receipt);log({endpoint:`${label}:native-ui-assist`,direction:'observed',message:receipt});
           await write(`${label}/pending-native-selection.json`,receipt);return receipt;
         }
@@ -543,22 +617,27 @@ async function runNative(options, packageBefore, barriers) {
         const post = token => payload('AXIOS_POST',{url:`${origin}/hold?token=${token}`,data:{effect:token,f:false,z:0}});
         async function start(payload) {
           assert.deepEqual(Object.keys(payload).sort(),['argsWire','deadlineAt','method','requestId']);
-          await evaluate(page,`__b05.requests[${JSON.stringify(payload.requestId)}]={settlements:0};${rawExpression(payload)}.then(value=>{const entry=__b05.requests[${JSON.stringify(payload.requestId)}];entry.settlements++;entry.response=value;});true`);
+          const actual=await startSdk(payload.method,decodeValue(payload.argsWire),`public-${payload.requestId}`);
+          const binding=bindPublicSdkPayload(payload,actual);
+          await write(`${label}/sdk-invocation-${actual.requestId}.json`,binding);
+          return binding;
         }
         const observations=()=>evaluate(page,'__b05');
         async function startSdk(method,args,slot) {
           const count=(await observations()).events.length;
-          await evaluate(page,`__b05.settlements[${JSON.stringify(slot)}]={settlements:0};${sdkExpression(method,args)}.then(response=>{
-            const entry=__b05.settlements[${JSON.stringify(slot)}];entry.settlements++;entry.response=response;});true`);
-          return until(async()=>{const event=(await observations()).events.slice(count).find(x=>x.name==='CHROME_BRIDGE_INTERFACE'&&x.message.payload?.method===method);
-            return event?.message.payload;},'actual SDK invocation request');
+          await evaluate(page,sdkInvocationExpression(method,args,slot));
+          return until(async()=>observedSdkInvocation((await observations()).events,{since:count,method}),'actual SDK invocation request');
         }
         async function resources() {
-          const result={at:new Date().toISOString(),documentId:session.target.documentId,
-            main:await evaluate(page,'OpenDeskSDK.diagnostics()'),relay:await evaluate(page,'__openDeskSdkRelayV1.diagnostics()',nativeContext.id),
-            unobserved:['host.pending','timers','ports','workers','blobs','main.subscriptions']};
-          assert(Number.isInteger(result.main.pending)&&Number.isInteger(result.relay.pending)&&Number.isInteger(result.relay.subscriptions));
-          return result;
+          try {
+            const toolObservation=await observeNativeToolResources({evaluateTool:expression=>evaluate(tool,expression),
+              nativeTargets:async()=>(await browser.send('Target.getTargets')).targetInfos,hostTargetId:session.target.toolId});
+            const main=await evaluate(page,'OpenDeskSDK.diagnostics()'),relay=await evaluate(page,'__openDeskSdkRelayV1.diagnostics()',nativeContext.id);
+            const frames=await evaluate(tool,`chrome.webNavigation.getAllFrames({tabId:${tabId}})`),frame=frames.find(row=>row.documentId===session.target.documentId&&row.frameId===0);
+            if(!frame)throw new NotObserved('Actual admitted SDK document is no longer current');
+            const selected={tabId,frameId:frame.frameId,documentId:frame.documentId};
+            return {...composeNativeSdkResources({tool:toolObservation,main,relay,selected}),main,relay,documentId:selected.documentId,nativeContext};
+          } catch(error) { if(error.code==='E_CAMPAIGN_OBSERVATION_MISSING')throw new NotObserved(error.message);throw error; }
         }
         async function stopWorker(evidence,recovery) {
           if(!workerClient)await until(worker,'live native SW before physical stop');
@@ -573,6 +652,7 @@ async function runNative(options, packageBefore, barriers) {
           stop.versionStopped=await until(()=>swEvents.slice(swEventStart).flatMap(x=>x.params.versions||[]).find(x=>x.versionId===version.versionId&&x.scriptURL===old.url&&x.runningStatus==='stopped'),'exact native SW version stopped');
           stop.targetAbsent=true;stop.physicalTerminationObserved=true;
           retiredWorkers.add(workerClient);workerClient.close();workerClient=null;session.worker=null;
+          if(recovery)await recovery.afterPhysicalStop(stop);
           // A native Hello wakes recovery without allocating another SDK op.
           const waking=evaluate(page,`chrome.runtime.sendMessage(${JSON.stringify({protocol:PROTOCOL,type:'SDK_HELLO',payload:{sdkVersion:SDK_VERSION}})})`,nativeContext.id);
           const [wake,replacement]=await Promise.all([waking,recovery?recovery.wait():until(worker,'replacement native SW')]);
@@ -581,6 +661,8 @@ async function runNative(options, packageBefore, barriers) {
             const identity=await evaluate(replacement.client,'({id:chrome.runtime.id,manifest:chrome.runtime.getManifest()})');
             assert.equal(identity.id,session.extensionId);assert.equal(identity.manifest.name,manifest.name);assert.equal(identity.manifest.version,manifest.version);
             workerClient=replacement.client;session.worker={...replacement.target,identity,executionContexts:replacement.contexts};
+            recovery.assertCoverage();stop.freshNativeContext=evidence.recoveryStartup.executionContext;
+            stop.targetReused=session.worker.targetId===old.targetId;
           } else assert.notEqual(session.worker.targetId,old.targetId);
           stop.replacementTargetId=session.worker.targetId;
         }
@@ -651,125 +733,11 @@ async function runNative(options, packageBefore, barriers) {
           return {async close(){off();await handling;if(retiredWorkers.has(client))return;try{await client.send('Debugger.removeBreakpoint',{breakpointId:installed.breakpointId});}catch{}}};
         }
         async function gateStorageRecovery(evidence) {
-          const old=session.worker,point=barriers.points['B05.native-kv-submission'],oldContexts=old.executionContexts;
-          if(!point||!oldContexts.length||oldContexts.some(context=>!context.uniqueId))
-            throw new NotObserved('Exact native KV point / old worker context unique IDs unavailable');
-          const filter=[{type:'service_worker',exclude:false},{exclude:true}],owned=[],pending=new Set();
-          const gate=evidence.recoveryStartup={status:'NOT_TESTED',oldTargetId:old.targetId,oldContexts,filter,attachments:[]};
-          let expecting=false,replacement,failure,closing=false,candidate;
-          function childClient(sessionId) {
-            const removals=[];
-            const client={send:(method,params)=>browser.send(method,params,sessionId),on(listener){
-              const off=browser.on(event=>{if(event.sessionId===sessionId)listener(event);});removals.push(off);return off;
-            },close(){for(const off of removals)off();}};
-            clients.push(client);return client;
-          }
-          async function attached(event) {
-            const attachment=event.params,client=childClient(attachment.sessionId),scripts=[],contexts=[],pauses=[],resolved=[];
-            const item={attachment,client,debuggerEnabled:false,tracer:null,breakpointId:null,instrumentation:null,detached:false};owned.push(item);
-            gate.attachments.push(attachment);
-            // Existing sessions can be waiting on auto-attach while the original
-            // F018 cut is paused in its own debugger. Never resume that cut here.
-            if(closing||!expecting||attachment.targetInfo.url!==old.url) {
-              await client.send('Runtime.runIfWaitingForDebugger');return;
-            }
-            if(candidate)throw new NotObserved('Multiple replacement worker startup attachments; coverage is ambiguous');
-            candidate=item;
-            if(attachment.targetInfo.type!=='service_worker'||attachment.waitingForDebugger!==true)
-              throw new NotObserved('Replacement worker did not attach before execution');
-            client.on(message=>{
-              if(message.method==='Debugger.scriptParsed')scripts.push(message.params);
-              if(message.method==='Runtime.executionContextCreated')contexts.push(message.params.context);
-              if(message.method==='Debugger.paused')pauses.push(message.params);
-              if(message.method==='Debugger.breakpointResolved')resolved.push(message.params);
-              if(!closing&&(message.method==='Inspector.targetCrashed'||gate.executionContext&&
-                (message.method==='Runtime.executionContextsCleared'||message.method==='Runtime.executionContextDestroyed'&&
-                  (message.params.executionContextUniqueId===gate.executionContext.uniqueId||message.params.executionContextId===gate.executionContext.id)))) {
-                failure=new NotObserved('Observed replacement worker/context was lost during recovery coverage');
-                gate.status='NOT_TESTED';gate.error=projectError(failure);
-              }
-            });
-            await client.send('Debugger.enable');item.debuggerEnabled=true;
-            await client.send('Runtime.enable');
-            const installed=await client.send('Debugger.setBreakpointByUrl',{url:old.url,...point.location});
-            item.breakpointId=installed.breakpointId;
-            let script=scripts.find(row=>row.url===old.url),startupPause;
-            if(!script) {
-              item.instrumentation=(await client.send('Debugger.setInstrumentationBreakpoint',{instrumentation:'beforeScriptExecution'})).breakpointId;
-              await client.send('Runtime.runIfWaitingForDebugger');
-              startupPause=await until(()=>pauses.find(row=>row.reason==='instrumentation'),'replacement beforeScriptExecution pause',6000);
-              script=scripts.find(row=>row.scriptId===startupPause.callFrames[0].location.scriptId&&row.url===old.url);
-              if(!script)throw new NotObserved('Startup instrumentation did not pause the exact bundled worker script');
-            }
-            const actual=(await client.send('Debugger.getScriptSource',{scriptId:script.scriptId})).scriptSource;
-            if(sha256(actual)!==barriers.sourceHash)throw new NotObserved('Replacement startup bundle SHA differs from the unchanged production package');
-            const executionContext=requireFreshWorkerContext(script,contexts,oldContexts);
-            const resolutions=[...installed.locations,
-              ...resolved.filter(row=>row.breakpointId===installed.breakpointId).map(row=>row.location)]
-              .filter((row,index,rows)=>rows.findIndex(other=>other.scriptId===row.scriptId&&other.lineNumber===row.lineNumber&&other.columnNumber===row.columnNumber)===index);
-            if(resolutions.some(row=>row.scriptId!==script.scriptId||row.lineNumber!==point.location.lineNumber||row.columnNumber!==point.location.columnNumber))
-              throw new NotObserved('Startup URL breakpoint relocated or resolved in another script');
-            const resolution=exactBreakpointLocation(point,resolutions,script.scriptId);
-            // traceKv also requires the exact native getPossibleBreakpoints
-            // codepoint and requested/resolved/paused equality in this session.
-            item.tracer=await traceKv(client,script.scriptId,evidence,{breakpointId:installed.breakpointId,actualLocation:resolution},executionContext);
-            gate.sourceHash=sha256(actual);gate.script=script;gate.executionContext=executionContext;
-            gate.requestedLocation=point.location;gate.actualLocation=resolution;gate.startupPause=startupPause??null;
-            gate.observerInstalledAt=new Date().toISOString();
-            if(failure)throw failure;if(closing)throw new NotObserved('Startup observation ended before validated resume');
-            if(item.instrumentation) {
-              await client.send('Debugger.removeBreakpoint',{breakpointId:item.instrumentation});item.instrumentation=null;
-              await client.send('Debugger.resume');
-            } else await client.send('Runtime.runIfWaitingForDebugger');
-            gate.resumedAt=new Date().toISOString();gate.status='OBSERVED';
-            replacement={target:attachment.targetInfo,client,contexts};
-          }
-          const off=browser.on(event=>{
-            if(event.method==='Target.detachedFromTarget') {
-              const item=owned.find(row=>row.attachment.sessionId===event.params.sessionId);
-              if(item)item.detached=true;
-              if(!closing&&item===candidate) {
-                failure=new NotObserved('Replacement observer session detached during recovery coverage');
-                gate.status='NOT_TESTED';gate.error=projectError(failure);
-              }
-              return;
-            }
-            if(event.method!=='Target.attachedToTarget'||event.params.targetInfo.type!=='service_worker')return;
-            const task=attached(event).catch(error=>{
-              failure=error.code==='E_NATIVE_NOT_OBSERVED'?error:new NotObserved(`Startup observation unavailable: ${error.message}`);
-              gate.status='NOT_TESTED';gate.error=projectError(error);
-            });
-            pending.add(task);task.finally(()=>pending.delete(task));
-          });
-          const recovery={expectReplacement(){expecting=true;},async wait(){
-            try {return await until(()=>{if(failure)throw failure;return replacement;},'gated replacement native SW');}
-            catch(error){gate.status='NOT_TESTED';throw error.code==='E_NATIVE_NOT_OBSERVED'?error:new NotObserved(`Replacement startup gate not observed: ${error.message}`);}
-          },assertCoverage(){if(failure)throw failure;if(gate.status!=='OBSERVED')throw new NotObserved('Recovery startup KV coverage unavailable');},async close(){
-            closing=true;gate.coverageEndedAt=new Date().toISOString();
-            // Release only owned startup waits. Debugger.disable is confined to
-            // the replacement session; old native cut sessions are never resumed.
-            for(const item of owned) {
-              if(item.detached)continue;
-              if(item.tracer)await item.tracer.close();
-              for(const breakpointId of [item.instrumentation,item.tracer?null:item.breakpointId].filter(Boolean))
-                try{await item.client.send('Debugger.removeBreakpoint',{breakpointId});}catch{}
-              try{await item.client.send('Runtime.runIfWaitingForDebugger');}catch{}
-              if(item.debuggerEnabled)try{await item.client.send('Debugger.disable');}catch{}
-            }
-            try{await browser.send('Target.setAutoAttach',{autoAttach:false,waitForDebuggerOnStart:false,flatten:true,filter});}catch{}
-            off();
-            await Promise.allSettled([...pending]);
-            for(const item of owned) {
-              if(!item.detached)try{await browser.send('Target.detachFromTarget',{sessionId:item.attachment.sessionId});}catch{}
-              item.client.close();
-            }
-            if(candidate?.client===workerClient) {retiredWorkers.add(workerClient);workerClient=null;session.worker=null;}
-          }};
-          try {
-            await browser.send('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true,filter});
-            await Promise.allSettled([...pending]);if(failure)throw failure;
-            gate.armedAt=new Date().toISOString();return recovery;
-          } catch(error) {await recovery.close();throw error;}
+          const recovery=await armNativeRecoveryGate({browser,clients,old:session.worker,
+            point:barriers.points['B05.native-kv-submission'],sourceHash:barriers.sourceHash,evidence,until,traceKv,projectError});
+          const close=recovery.close;
+          recovery.close=async()=>{await close();if(workerClient){retiredWorkers.add(workerClient);workerClient=null;session.worker=null;}};
+          return recovery;
         }
         const prerequisite=await caseRun(label,'B05.SDK.no-controller',async evidence=>{
           evidence.before=await evaluate(tool,'({tab:document.querySelector("#sdk-tab").value,document:document.querySelector("#sdk-document").value,disabled:document.querySelector("#sdk-install").disabled,capabilities:[...document.querySelectorAll("[name=sdk-capability]:checked")].map(x=>x.value)})');
@@ -782,6 +750,10 @@ async function runNative(options, packageBefore, barriers) {
           const grants=snap.data.stores.commandJournal.filter(row=>row.value.tag==='sdk-grant'&&row.value.documentId===session.target.documentId&&row.value.active);assert.equal(grants.length,1);evidence.grants=grants;evidence.sdkObservations=await observations();
         });
         if(prerequisite.status!=='PASS')throw new NotObserved('Native product authorization prerequisite did not pass');
+        resourceObservers.set(label,async()=>until(async()=>{
+          const observation=await resources();
+          return observation.counts.pending===0&&observation.counts.timers===0&&observation;
+        },'actual admitted SDK/relay/tool promises and timers are quiescent',35000));
         const valueKey=`b05-value-${randomUUID()}`;
         await caseRun(label,'B05.SDK.promise-values',async evidence=>{
           evidence.set=await evaluate(page,sdkExpression('APPSTORAGE_SETITEM',{key:valueKey,value:false}));assert(evidence.set.ok&&evidence.set.undefinedResult);
@@ -814,7 +786,7 @@ async function runNative(options, packageBefore, barriers) {
             admissions:snap.data.stores.commandJournal.filter(row=>row.value.tag==='sdk-request'&&row.value.opKey===evidence.rows.operation.opKey).length,
             serviceRuns:evidence.rows.runs.length,operations:ops(snap).filter(row=>row.requestId===duplicatePayload.requestId).length,httpWrites:hits(duplicateToken).length};
           assert.equal(evidence.measurements.admissions,1);assert.equal(evidence.measurements.controllerRuns,0);
-          evidence.pageReturn=await evaluate(page,rawExpression(duplicatePayload));assert.deepEqual(evidence.pageReturn,evidence.native100.responses[0]);
+          evidence.nativeReplay=await native(duplicatePayload);assert.deepEqual(evidence.nativeReplay,evidence.native100.responses[0]);
           evidence.effectCount=hits(duplicateToken).length;assert.equal(evidence.effectCount,1);evidence.http=hits(duplicateToken);evidence.sdkObservations=await observations();
         });
         await caseRun(label,'B05.SDK.conflict',async evidence=>{
@@ -888,9 +860,14 @@ async function runNative(options, packageBefore, barriers) {
             const writes=()=>evidence.nativeKvTrace.submissions.filter(row=>row.value.namespace===op.namespace&&row.value.key===key);
             if(evidence.nativeKvTrace.errors.length)throw new NotObserved('Native KV submission trace incomplete');assert.equal(writes().length,1);
             evidence.barrier.observedState={state:op.state,runState:run.state,resultId:op.resultId,nativeKvSubmissions:writes().length,brokerReceiptPresent:false};
+            // The original post-commit cut remains paused through physical termination.
+            // Remove its native tracer before termination can interrupt a frame read.
+            await tracer.close();tracer=null;
+            evidence.originalCutStillPaused=await readFrame(barrier.client,paused.callFrames[0],point.contextExpression+'.requestId');
+            assert.equal(evidence.originalCutStillPaused,request.requestId);
             recovery=await gateStorageRecovery(evidence);
             await stopWorker(evidence,recovery);recovery.assertCoverage();
-            await tracer.close();tracer=null;await barrier.close();barrier=null;
+            await barrier.close();barrier=null;
             const recovered=await snapshot('storage-recovered',evidence),recoveredOp=operation(recovered,request);
             assert.equal(boundRows(recovered,recoveredOp).runs[0].value.state,'completed');
             evidence.replay=await retryWithinDeadline(request,evidence);assert.equal(evidence.replay.ok,true);
@@ -941,7 +918,7 @@ async function runNative(options, packageBefore, barriers) {
             }
             if(pointId===CP3) {
               evidence.originalSdk=await until(async()=>{const entry=(await observations()).settlements.unknown;return entry?.response&&entry;},'original SDK Promise settles');
-              unknownPublic={payload:request,original:evidence.originalSdk,replay:evidence.replay,operation:afterOp,http:hits(token),pageReplay:await evaluate(page,rawExpression(request))};
+              unknownPublic={payload:request,original:evidence.originalSdk,replay:evidence.replay,operation:afterOp,http:hits(token)};
             }
           } finally {if(barrier)await barrier.close();if(held.has(token))release(token);}
         });
@@ -949,14 +926,13 @@ async function runNative(options, packageBefore, barriers) {
           if(!unknownPublic)throw new NotObserved('Real public SDK invocation at the unknown crash point was not observed');
           Object.assign(evidence,unknownPublic);assert.equal(evidence.original.settlements,1);
           assertPublicUnknown(evidence.replay,evidence.payload,evidence.operation);
-          assertPublicUnknown(evidence.pageReplay,evidence.payload,evidence.operation);
           if(!evidence.original.response.error?.invocation)throw new NotObserved('Original SDK Promise lost the worker callback before a broker reference could arrive; native/page replay references observed, original public error reference unavailable');
           assertPublicUnknown(evidence.original.response,evidence.payload,evidence.operation);
           assert(evidence.original.response.publicErrorKeys.every(key=>['code','stage','status','response','invocation'].includes(key)),'Original SDK Error exposes non-public fields');
           assert.equal(evidence.http.length,1);await snapshot('unknown-public-reference',evidence);
         });
         await caseRun(label,'B05.SDK.revocation-no-replay',async evidence=>{
-          const token=`revoke-${randomUUID()}`;evidence.resources={status:'NOT_TESTED',before:await resources(),reason:'Host/timer/port/worker/blob counters are not exposed'};
+          const token=`revoke-${randomUUID()}`;evidence.resources={before:await resources()};
           let request,barrier;
           try {
             barrier=await arm(CP2,evidence);request=await startSdk('AXIOS_POST',decodeValue(post(token).argsWire),'revocation');evidence.payload=request;
@@ -967,7 +943,7 @@ async function runNative(options, packageBefore, barriers) {
           evidence.removed=await evaluate(tool,'chrome.permissions.remove({origins:["http://127.0.0.1/*"]})');assert.equal(evidence.removed,true);release(token);
           evidence.denied=await native(request);assert.equal(evidence.denied.ok,false);assert(['E_PERMISSION','E_GRANT_REVOKED'].includes(evidence.denied.error.code));
           evidence.resources.after=await until(async()=>{const value=await resources();return value.main.pending===0&&value.relay.pending===0&&value;},'revocation retires visible pending SDK and relay requests');
-          assert.equal(evidence.resources.after.relay.subscriptions,evidence.resources.before.relay.subscriptions);
+          validateNativeResourceBaseline(evidence.resources.before,evidence.resources.after);evidence.resources.status='PASS';
           evidence.originalSdk=(await observations()).settlements.revocation;assert.equal(evidence.originalSdk.settlements,1);assert.equal(evidence.originalSdk.response.ok,false);
           evidence.regrant=await install();evidence.old=await native(request);assert.equal(evidence.old.ok,false);assert.equal(evidence.old.error.code,'E_GRANT_REVOKED');
           const after=operation(await snapshot('revoke-after',evidence),request);assert.equal(after.opId,before.opId);assert.equal(after.grantIncarnation,before.grantIncarnation);assert.equal(hits(token).length,1);evidence.http=hits(token);evidence.sdkObservations=await observations();
@@ -990,7 +966,7 @@ async function runNative(options, packageBefore, barriers) {
           evidence.notTestedVariants=['navigation old-sender negative control','notification permission removal/regrant'];
         });
         await caseRun(label,'B05.SDK.navigation-no-replay',async evidence=>{
-          const token=`navigate-${randomUUID()}`;evidence.resources={status:'NOT_TESTED',before:await resources(),reason:'Destroyed-document and host resources cannot be fully observed'};
+          const token=`navigate-${randomUUID()}`;evidence.resources={status:'NOT_TESTED',before:await resources(),reason:'Old document counters cannot be sampled after its actual destruction; new-document counts are recorded separately'};
           let request,barrier;
           try {barrier=await arm(CP2,evidence);request=await startSdk('AXIOS_POST',decodeValue(post(token).argsWire),'navigation');evidence.payload=request;await barrier.wait();}
           finally {if(barrier)await barrier.close();}
@@ -1106,13 +1082,12 @@ async function runNative(options, packageBefore, barriers) {
         preconditions:{realChrome:true,isolatedProfile:env.profile,packageHash:packageBefore.packageHash},input:record.evidence.payload??record.evidence.oldPayload??null,
         expected:EXPECTATIONS[record.id]??{requiredCase:record.id},actual:record.evidence,
         evidence:[{path:path.join(output,relative),sha256:sha256(bytes)}],...(record.measurements?{measurements:record.measurements}:{}),
-        cleanup:{status:'NOT_TESTED',before:record.evidence.resources?.before??null,after:record.evidence.resources?.after??record.evidence.resources?.newDocument??null,
-          ...(record.evidence.resources?{productObservations:record.evidence.resources}:{}),
-          unobserved:record.evidence.resources?.before?.unobserved??['pending','timers','subscriptions','ports','workers','blobs'],
+        cleanup:{...nativeResourceCleanup(record.evidence),
+          ...(record.evidence.resources?{additionalProductObservations:record.evidence.resources}:{}),
           sessionTeardown:(()=>{const session=report.sessions.find(x=>x.label===record.label);return{
             pid:session.pid??null,launcherPid:session.launcher.pid??null,pidAliveAfterExit:session.pidAliveAfterExit,
             launcherAliveAfterExit:session.launcherAliveAfterExit,profileRemoved:session.profileRemoved};})(),
-          scope:'Session teardown observations are not a per-case product resource baseline'}});
+          teardownScope:'Session teardown is recorded separately from the native product resource baseline'}});
     }
     for(const group of records.values())group.pass=options.labels.every(label=>group.observations.some(x=>x.environmentId===(label==='138'?'minimum':'stable')&&x.pass));
     const rawRefs=[];
@@ -1130,7 +1105,7 @@ async function runNative(options, packageBefore, barriers) {
       group.sourceHashes={...binding.sourceHashes};
       for(const observation of group.observations) {
         observation.evidence.push(...rawRefs);
-        const label=observation.environmentId==='minimum'?'138':'154';
+        const label=observation.environmentId==='minimum'?'138':'155';
         for(const relative of [`${label}/launcher-report.json`,`${label}/launch-process.json`,`${label}/session-cleanup.json`]) {
           const bytes=await readFile(path.join(output,relative));observation.evidence.push({path:path.join(output,relative),sha256:sha256(bytes)});
         }
@@ -1141,8 +1116,11 @@ async function runNative(options, packageBefore, barriers) {
     }
     report.resultRecords=[...records.values()];
     report.cleanup={serverClosed:true,pidsTerminated:report.sessions.every(x=>x.pidAliveAfterExit===false&&x.launcherAliveAfterExit===false),
-      profilesRemoved:report.sessions.every(x=>x.profileRemoved===true),productResourceBaseline:{status:'NOT_TESTED',
-        unobserved:['pending','timers','subscriptions','ports','workers','blobs']}};
+      profilesRemoved:report.sessions.every(x=>x.profileRemoved===true),productResourceBaseline:{status:'NOT_TESTED',scope:'tool-and-selected-sdk-document',
+        observedCases:report.cases.filter(row=>row.evidence.nativeResourceBaseline?.status==='PASS'&&!row.evidence.nativeResourceBaseline.transition).map(row=>({id:row.id,label:row.label})),
+        releasedCases:report.cases.filter(row=>row.evidence.nativeResourceBaseline?.status==='PASS'&&row.evidence.nativeResourceBaseline.transition==='explicit-sdk-dispose').map(row=>({id:row.id,label:row.label})),
+        missingCases:report.cases.filter(row=>row.evidence.nativeResourceBaseline?.status!=='PASS'||row.evidence.nativeResourceBaseline.transition).map(row=>({id:row.id,label:row.label})),
+        reason:'Per-case native counters are recorded when observed; initialization, unexecuted cases and destroyed original owners do not establish a complete B05 resource baseline'}};
     report.notClaimed=['full B05 closure','destroyed-worker native abort callback','all original603 cases','1000 mixed rounds','10 reconnect rounds','2 plugin disables','independent final review','browser session storage lifetime'];
     await write('schema.json',evidenceSchema);await write('barrier-plan.json',barriers);await write('raw-server.json',http);await write('results.json',{results:report.resultRecords});await write('report.json',report);
   }
@@ -1163,7 +1141,7 @@ async function main() {
     console.log('B05 preparation runner. No browser/build by default.\n'+
       '  --inspect-package [--extension=/absolute/existing/production]  read-only hash/AST inspection\n'+
       '  --schema  print native evidence schema and required cases\n'+
-      '  --run --expected-package-hash=SHA256 --headed --native-ui-assist [--chrome=138|154|all]\n'+
+      '  --run --expected-package-hash=SHA256 --headed --native-ui-assist [--chrome=138|155|all]\n'+
       '        [--cases=comma-separated-exact-IDs (prerequisites included; other cases NOT_TESTED)]\n'+
       '        [--binary=/absolute/chrome (one label only)] [--permission-timeout=120000]\n'+
       'Evidence/profile: a fresh OS temp directory. Exit 0=bounded selected assertions; 1=failure; 3=NOT_TESTED.\n'+
@@ -1183,7 +1161,7 @@ async function main() {
   const expected=option('expected-package-hash');assert(/^[a-f0-9]{64}$/.test(expected??''),'Pin the already built production package hash before --run');
   assert.equal(packageBefore.packageHash,expected,'Package changed since approved inspection');
   assert.equal(typeof WebSocket,'function','Use the existing Node runtime with global WebSocket (Node 22+); do not install dependencies');
-  const label=option('chrome','all'),labels=label==='all'?['138','154']:[label];assert(labels.every(x=>['138','154'].includes(x)));
+  const label=option('chrome','all'),labels=label==='all'?['138','155']:[label];assert(labels.every(x=>['138','155'].includes(x)));
   const binary=option('binary');assert(!binary||labels.length===1,'Custom binary requires one explicit Chrome label');
   const permissionTimeout=Number(option('permission-timeout',flag('headed')?'120000':'20000'));assert(Number.isSafeInteger(permissionTimeout)&&permissionTimeout>0&&permissionTimeout<=300000);
   const requestedCases=option('cases')?.split(',');

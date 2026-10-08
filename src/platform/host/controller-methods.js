@@ -1,10 +1,10 @@
 import {createNetworkService} from '../chrome/network.js';
 import {normalizeMethod, SDK_METHODS} from '../../framework/sdk/registry.js';
-import {FoundationError, invariant, newId, canonical, digest, digestUtf8} from '../protocol.js';
+import {FoundationError, BUDGETS, invariant, newId, canonical, digest, digestUtf8} from '../protocol.js';
 import {encodeValue, decodeValue} from '../page-port/codec.js';
 import {decodeValue as decodeControlValue, encodeValue as encodeControlValue} from '../../framework/control/value.js';
 import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} from '../target/index.js';
-import {createControllerDriver} from '../../framework/control/native-driver.js';
+import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} from '../../framework/control/native-driver.js';
 
 const stores = ['runs', 'commandJournal', 'results'];
 const live = new Set(['preparing', 'running']);
@@ -147,11 +147,22 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return row;
     });
   }
+  async function listControllerScripts(request, sender) {
+    fields(request ?? {}, []);
+    const host = await assertHost(sender);
+    return storage.transaction(['scriptHeads', 'commandJournal'], 'readonly', async transaction => {
+      await currentHost(transaction, host, sender);
+      return (await transaction.all('scriptHeads'))
+        .filter(row => row?.tag === 'script-head' && row.namespace === namespace(host) && !row.tombstoned)
+        .map(row => ({scriptId: row.scriptId, revision: row.revision, contentHash: row.contentHash}))
+        .sort((a, b) => a.scriptId.localeCompare(b.scriptId));
+    });
+  }
   function project(run) {
     if (!run) return null;
     return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
-      'scriptId', 'contentHash'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
+      'scriptId', 'contentHash', 'sourceKind'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
   }
   async function snapshotControllerRun(request, sender) {
     fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);
@@ -183,11 +194,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       results:snapshot.results.filter(row=>!denied.has(row.runId)),resultDeliveryDenied:[...denied]};
   }
   function selection(target) {
-    fields(target, target?.mode === 'owned' ? ['mode', 'url'] : ['mode', 'tabId', 'frameId', 'documentId']);
+    fields(target, target?.mode === 'owned' ? ['mode', 'url'] : ['mode', 'tabId', 'frameId', 'documentId', 'expectedUrl', 'expectedWindowId']);
     invariant(['owned', 'borrowed'].includes(target.mode), 'E_TARGET', 'Explicit target ownership is required');
     if (target.mode === 'owned') httpUrl(target.url);
     else invariant(Number.isSafeInteger(target.tabId) && target.tabId >= 0 && Number.isSafeInteger(target.frameId) && target.frameId >= 0 &&
       typeof target.documentId === 'string' && target.documentId, 'E_TARGET', 'Exact borrowed document required');
+    if (target.expectedUrl !== undefined) httpUrl(target.expectedUrl);
+    if (target.expectedWindowId !== undefined) invariant(target.mode === 'borrowed' && Number.isSafeInteger(target.expectedWindowId) &&
+      target.expectedWindowId >= 0 && target.frameId === 0 && target.expectedUrl !== undefined, 'E_TARGET', 'Current Page window required');
   }
   async function waitDocument(run, tabId, {bootstrapUrl, documentId, changedFrom} = {}) {
     for (;;) {
@@ -248,11 +262,59 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return {...observed, creationId: intent.creationId};
   }
   async function startControllerRun(request, sender) {
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'paramsWire', 'target', 'deadlineAt'],
-      ['requestId', 'scriptId', 'revision', 'contentHash', 'paramsWire', 'target', 'deadlineAt']);
-    id(request.requestId); id(request.scriptId); selection(request.target); decodeValue(request.paramsWire);
-    invariant(Number.isSafeInteger(request.revision) && request.revision > 0 && /^[a-f0-9]{64}$/.test(request.contentHash), 'E_REVISION');
+    selection(request.target);
+    let changed = false;
+    const target = request.target;
+    const activated = info => {if (info.windowId === target.expectedWindowId && info.tabId !== target.tabId) changed = true;};
+    const updated = (tabId, change, tab) => {
+      if (tabId !== target.tabId) return;
+      if (['loading', 'unloaded'].includes(change.status) || change.pendingUrl ||
+          (change.url !== undefined && change.url !== target.expectedUrl) || tab?.incognito) changed = true;
+    };
+    const navigated = details => {
+      if (details.tabId === target.tabId && details.frameId === target.frameId &&
+          ((details.documentId !== undefined && details.documentId !== target.documentId) || details.url !== target.expectedUrl)) changed = true;
+    };
+    const removed = tabId => {if (tabId === target.tabId) changed = true;};
+    const navigating = details => {if (details.tabId === target.tabId && details.frameId === target.frameId) changed = true;};
+    const windowRemoved = windowId => {if (windowId === target.expectedWindowId) changed = true;};
+    const fences = [[api.tabs.onActivated, activated], [api.tabs.onUpdated, updated], [api.tabs.onRemoved, removed],
+      [api.webNavigation.onBeforeNavigate, navigating], [api.webNavigation.onCommitted, navigated], [api.webNavigation.onHistoryStateUpdated, navigated],
+      [api.webNavigation.onReferenceFragmentUpdated, navigated], [api.windows?.onRemoved, windowRemoved]];
+    const assertCandidate = () => invariant(!changed, 'E_DOCUMENT_STALE', 'Captured Current Page changed during admission');
+    if (target.expectedWindowId !== undefined) for (const [event, listener] of fences) event?.addListener(listener);
+    try { return await prepareControllerRun(request, sender, assertCandidate); }
+    finally { if (target.expectedWindowId !== undefined) for (const [event, listener] of fences) event?.removeListener(listener); }
+  }
+  async function prepareControllerRun(request, sender, assertCandidate) {
+    // A single admission API supports exact saved revisions and immutable draft
+    // snapshots. The original top-level saved request remains compatible.
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt'],
+      ['requestId', 'paramsWire', 'target', 'deadlineAt']);
+    id(request.requestId); selection(request.target); decodeValue(request.paramsWire);
+    const variant = request.source, isDraft = variant?.kind === 'draft';
+    if (variant !== undefined) {
+      invariant(!['scriptId', 'revision', 'contentHash'].some(key => Object.hasOwn(request, key)),
+        'E_SCHEMA', 'Select one source variant without legacy source fields');
+      invariant(variant?.kind === 'draft' || variant?.kind === 'saved', 'E_SCHEMA', 'Unknown controller source variant');
+      fields(variant, isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash'],
+        isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash']);
+    }
+    const saved = isDraft ? null : variant || request;
+    const draftSourceUtf8 = isDraft ? variant.sourceUtf8 : undefined;
+    if (isDraft) {
+      invariant(typeof draftSourceUtf8 === 'string' &&
+        new TextEncoder().encode(draftSourceUtf8).byteLength <= BUDGETS.maxRawFrameBytes - 8192,
+        'E_LIMIT', 'Draft source exceeds safe host message budget');
+      // Reject unpaired surrogates, preserving an exact UTF-8 hash contract.
+      encodeValue(draftSourceUtf8);
+    } else {
+      id(saved.scriptId);
+      invariant(Number.isSafeInteger(saved.revision) && saved.revision > 0 &&
+        /^[a-f0-9]{64}$/.test(saved.contentHash), 'E_REVISION');
+    }
     invariant(Number.isSafeInteger(request.deadlineAt) && request.deadlineAt > now(), 'E_TIMEOUT');
+    const sourceHash = isDraft ? await digestUtf8(draftSourceUtf8) : saved.contentHash;
     const host = await assertHost(sender), requestDigest = await digest(request, wireCanonicalOptions);
     const selectedOrigin = request.target.mode === 'owned' ? httpUrl(request.target.url).origin : null;
     let observed;
@@ -262,6 +324,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const admissionKey = `controller-start:${canonical([host.registrationId, request.requestId])}`;
     const admitted = await tx('readwrite', async transaction => {
       await currentHost(transaction, host, sender);
+      assertCandidate();
       const old = await transaction.get('commandJournal', admissionKey);
       if (old) {
         invariant(old.requestDigest === requestDigest, 'E_REQUEST_CONFLICT');
@@ -269,9 +332,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       }
       const slot = await transaction.get('runs', '@slot');
       invariant(!slot?.currentRunId, 'E_OWNER', 'Previous controller target has not retired');
-      const runId = newId(), run = {tag: 'controller-run', runId, namespace: namespace(host), principal: host.principal,
+      const runId = newId(), scriptId = isDraft ? `draft:${runId}` : saved.scriptId;
+      const run = {tag: 'controller-run', runId, namespace: namespace(host), principal: host.principal,
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,
-        browserSessionIncarnation: session, scriptId: request.scriptId, contentHash: request.contentHash,
+        browserSessionIncarnation: session, scriptId, contentHash: sourceHash, sourceKind: isDraft ? 'draft' : 'saved',
+        ...(isDraft ? {draftSourceUtf8} : {}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(request.paramsWire), selection: structuredClone(request.target),
         startUrl: request.target.mode === 'owned' ? httpUrl(request.target.url).href : null,
@@ -280,31 +345,44 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         retirementState: 'not-started', target: null, identity: null, revision: null, createdAt: now()};
       await transaction.put('runs', run, runId);
       await lease(transaction, run);
-      const pinned = await storage.pinScriptRevision(scriptContext(host, sender, run), request, transaction);
-      run.revision = {scriptId: run.scriptId, revision: pinned.revision.revision,
-        sourceHash: pinned.revision.contentHash, pinKey: pinned.pinKey};
+      let pinned;
+      if (isDraft) {
+        // Draft bytes live only on this authoritative run; never create an
+        // apparent saved script head, revision or long-lived revision pin.
+        invariant(await digestUtf8(run.draftSourceUtf8) === sourceHash, 'E_HASH', 'Draft source changed at admission');
+        run.revision = {kind: 'draft', scriptId: run.scriptId, revision: 1, sourceHash};
+      } else {
+        pinned = await storage.pinScriptRevision(scriptContext(host, sender, run), saved, transaction);
+        run.revision = {scriptId: run.scriptId, revision: pinned.revision.revision,
+          sourceHash: pinned.revision.contentHash, pinKey: pinned.pinKey};
+      }
       await transaction.put('runs', run, runId);
       await transaction.put('runs', {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
       await transaction.put('commandJournal', {tag: 'controller-start', runId, requestDigest}, admissionKey);
       return {run, pinned, duplicate: false};
-    }, [...stores, 'scriptHeads', 'scriptRevisions']);
+    }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions']);
     const run = admitted.run;
     if (admitted.duplicate) return {runId: run.runId, state: run.state, duplicate: true, runRevision: run.runRevision};
     try {
       const pinned = admitted.pinned;
       if (!observed) observed = await createOwned(run, host, sender);
-      await verifyControllerTarget({api, target: observed});
-      return tx('readwrite', async transaction => {
+      await verifyControllerTarget({api, target: observed, expectedUrl: request.target.expectedUrl, expectedWindowId:request.target.expectedWindowId});
+      return await tx('readwrite', async transaction => {
         const current = await owner(transaction, await transaction.get('runs', run.runId), host, sender, {active: true});
+        assertCandidate();
         current.target = {...observed, targetSessionId: newId(), targetVersion: 1, mode: request.target.mode, browserSessionIncarnation: session};
         current.identity = {tag: 'controller-run', runId: current.runId, hostInstanceId: host.hostInstanceId, hostDocumentId: host.hostDocumentId,
           ownerEpoch: current.ownerEpoch, scriptId: current.scriptId, revision: current.revision.revision, contentHash: current.contentHash, target: current.target};
+        if (isDraft) invariant(await digestUtf8(current.draftSourceUtf8) === current.revision.sourceHash,
+          'E_HASH', 'Admitted draft bytes do not match their SHA-256');
         current.state = 'running'; current.runRevision++; current.eventSeq++;
         boundTargets.set(current.runId, current.target);
         creatingTabs.delete(current.runId);
         await transaction.put('runs', current, current.runId);
         await lease(transaction, current);
-        return {...project(current), sourceUtf8: pinned.revision.sourceUtf8, paramsWire: current.paramsWire};
+        assertCandidate();
+        return {...project(current), sourceUtf8: isDraft ? current.draftSourceUtf8 : pinned.revision.sourceUtf8,
+          paramsWire: current.paramsWire};
       });
     } catch (error) {
       // No control realm has been created yet. Preserve uncertain creation facts;
@@ -436,14 +514,34 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       try {
         const reply = serviceCall ? await executeService() : await driver.execute(envelope, {signal:abort.signal,deadlineAt:run.deadlineAt,recordReceipt});
         invariant(reply?.requestId === envelope.requestId, 'E_RESULT_FORMAT');
-        if (reply.error) throw Object.assign(new Error(reply.error.message), reply.error);
-        const valueWire = encodeValue(decodeControlValue(reply.value));
+        const valueWire = reply.error ? undefined : encodeValue(decodeControlValue(reply.value));
         // Record observed native effect before checking delivery permission.
         // Cancellation cannot erase the receipt or make this request replayable.
         await tx('readwrite', async transaction => {
           const operation = await transaction.get('commandJournal', key);
           invariant(operation?.requestDigest === requestDigest && operation.submissionCount === 1, 'E_REQUEST_CONFLICT');
-          operation.state = 'durable'; operation.valueWire = valueWire; operation.receiptAt = now(); operation.reply = reply;
+          if(reply.error){
+            const kind=envelope.operation.kind;
+            const cookiePreflight=kind==='browser'&&COOKIE_PREFLIGHT_METHODS.includes(envelope.operation.method);
+            const stage=kind==='user-script'?'userScripts.finalFailure':kind==='packaged'?'packaged.finalFailure':cookiePreflight?'cookies.preflightFailure':undefined;
+            const failure=stage&&operation.nativeReceipts?.find(receipt=>receipt.stage===stage&&receipt.requestId===envelope.requestId);
+            invariant(failure?.receipt?.frameId===envelope.target.frameId&&failure.receipt.documentId===envelope.target.documentId&&
+              same(failure.receipt.error,reply.error)&&(kind!=='packaged'||(failure.receipt.runId===envelope.identity.runId&&
+                failure.receipt.ownerEpoch===envelope.identity.ownerEpoch)),'E_RESULT_FORMAT',
+            'A failed native reply requires its validated target-bound completion receipt');
+            if(cookiePreflight) {
+              const receipts=operation.nativeReceipts,results=receipts.filter(receipt=>receipt.stage==='result');
+              invariant(receipts.filter(receipt=>receipt.stage===stage).length===1&&
+                failure.receipt.phase==='input-preflight'&&failure.receipt.method===envelope.operation.method&&
+                failure.receipt.runId===envelope.identity.runId&&failure.receipt.ownerEpoch===envelope.identity.ownerEpoch&&
+                COOKIE_PREFLIGHT_CODES.includes(reply.error.code)&&results.length===1&&
+                results[0].requestId===envelope.requestId&&same(results[0].receipt,reply)&&
+                receipts.every(receipt=>receipt.requestId===envelope.requestId&&['webNavigation.getAllFrames',stage,'result'].includes(receipt.stage)),
+                'E_RESULT_FORMAT','Cookie input failure requires its exact zero-dispatch checkpoint and result');
+            }
+            operation.effectState='failure-observed';operation.failure=structuredClone(reply.error);
+          }else operation.valueWire=valueWire;
+          operation.state = 'durable'; operation.receiptAt = now(); operation.reply = reply;
           if (reply.handoff) operation.targetTransition = {navigationIntentId: envelope.requestId,
             from: structuredClone(reply.handoff.from), to: structuredClone(reply.handoff.to)};
           await transaction.put('commandJournal', operation, key);
@@ -534,7 +632,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const expired = now() >= run.deadlineAt;
       const state = expired && terminal === 'completed' ? 'stopped' : terminal;
       const result = {tag: 'controller-result', resultId: run.resultId, runId, namespace: run.namespace, principal: run.principal,
-        revision: run.revision, state, outcome: state === 'completed' ? {ok: true, valueWire: outcome.valueWire} :
+        revision: run.revision, sourceKind: run.sourceKind, state, outcome: state === 'completed' ? {ok: true, valueWire: outcome.valueWire} :
           {ok: false, error: run.cancelSeq || expired ? typed(new FoundationError(expired ? 'E_TIMEOUT' : run.terminalReason || 'E_CANCELLED', 'Controller fenced')) : outcome.error},
         committedAt: now()};
       if (result.outcome.ok) decodeValue(result.outcome.valueWire);
@@ -605,7 +703,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         absence = 'owned-tabs.get-not-found';
       } else absence = 'not-created-before-dispatch';
     }
-    if (host && run.revision) await storage.releaseScriptRevisionPin(scriptContext(host, sender, run, {retiring: true}),
+    if (host && run.revision?.pinKey) await storage.releaseScriptRevisionPin(scriptContext(host, sender, run, {retiring: true}),
       {scriptId: run.scriptId, revision: run.revision.revision});
     return tx('readwrite', async transaction => {
       const current = await transaction.get('runs', run.runId), slot = await transaction.get('runs', '@slot');
@@ -614,11 +712,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         slot.retirementId === run.retirementId && slot.releaseCount === 0, 'E_OWNER');
       if (host) await owner(transaction, current, host, sender);
       current.retirementState = 'released'; current.runRevision++;
+      // Once the Worker is conclusively retired, preserve sourceHash and
+      // result identity but do not retain uncommitted draft source bytes.
+      if (current.sourceKind === 'draft') delete current.draftSourceUtf8;
       await transaction.put('runs', current, current.runId);
       await lease(transaction, current);
       // Host disappearance cannot call a host-authorized revision API. Release
       // only this existing exact pin after realm/target retirement is proven.
-      if (!host && current.revision) {
+      if (!host && current.revision?.pinKey) {
         const pin = await transaction.get('commandJournal', current.revision.pinKey);
         invariant(pin?.runId === current.runId && pin.opKey === `controller-pin:${current.runId}`, 'E_OWNER');
         await transaction.put('commandJournal', {...pin, released: true}, current.revision.pinKey);
@@ -715,7 +816,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return {replayed: 0};
     });
   }
-  return Object.freeze({commitControllerScript, getControllerScript, tombstoneControllerScript, garbageCollectControllerScript,
+  return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
     startControllerRun, controllerOperation, stopControllerRun,
     finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, recoverControllers});
 }

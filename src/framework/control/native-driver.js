@@ -35,9 +35,12 @@ function validate(envelope) {
 
 // Authority owns admission, revision/lease/grants, durable navigation intent and
 // result persistence. This driver only observes and dispatches exact native APIs.
+export const COOKIE_PREFLIGHT_METHODS=Object.freeze(['cookies','setCookie','deleteCookie']);
+export const COOKIE_PREFLIGHT_CODES=Object.freeze(['E_COOKIE_FORMAT','E_COOKIE_SCOPE','E_COOKIE_PARTITION_UNSUPPORTED','E_PERMISSION_DENIED']);
 export function createControllerDriver({api = globalThis.chrome, authorize, clock = Date} = {}) {
   requireValue(api && typeof authorize === 'function' && typeof clock.now === 'function', 'E_PAGE_CONTEXT_REQUIRED');
   const runs = new Map(), retired = new Set();
+  const finalFailures = new WeakMap();
   if (!unavailableByAPI.has(api)) unavailableByAPI.set(api, new Set());
   const unavailable = unavailableByAPI.get(api);
   function guard(state) {
@@ -128,7 +131,17 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     await verifyTarget(state);
     requireValue(reply?.requestId === envelope.requestId && reply.runId === envelope.identity.runId &&
       reply.ownerEpoch === envelope.identity.ownerEpoch, 'E_RESULT_FORMAT');
-    if (reply.error) throw new PageError(reply.error.code || 'E_PAGE_EXECUTION', reply.error.message);
+    if (reply.error) {
+      requireValue(typeof reply.error.code === 'string' && reply.error.code && typeof reply.error.message === 'string', 'E_RESULT_FORMAT');
+      const failure = new PageError(reply.error.code, reply.error.message);
+      // Only this admitted operation is complete. A derived packaged call may
+      // fail before its enclosing browser operation has a known final effect.
+      if (state.envelope.operation.kind !== 'packaged' || envelope !== state.envelope) throw failure;
+      const projected = {code: failure.code, name: failure.name, message: failure.message};
+      await saveReceipt(state, 'packaged.finalFailure', {frameId: envelope.target.frameId,
+        documentId: envelope.target.documentId, runId: reply.runId, ownerEpoch: reply.ownerEpoch, error: projected});
+      const marker = {}; finalFailures.set(marker, projected); return marker;
+    }
     return controlDecodeValue(reply.value);
   }
   async function userScriptsAvailable(state) {
@@ -155,6 +168,20 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       requireValue(Array.isArray(replies) && replies.length === 1 && replies[0].frameId === state.envelope.target.frameId &&
         replies[0].documentId === state.envelope.target.documentId, 'E_TARGET');
       if (replies[0].error) throw new PageError('E_PAGE_EXECUTION', replies[0].error);
+      if(replies[0].result?.ok===false){
+        const error=replies[0].result.error;
+        requireValue(error&&typeof error.code==='string'&&error.code&&typeof error.message==='string'&&
+          error.cause&&typeof error.cause.message==='string','E_RESULT_FORMAT');
+        let failure;
+        try{readPageEvaluationResult(replies[0].result);}catch(cause){failure=cause;}
+        requireValue(failure instanceof PageError&&typeof failure.code==='string'&&typeof failure.message==='string','E_RESULT_FORMAT');
+        const original=failure.cause, projected={code:failure.code,name:failure.name,message:failure.message,
+          ...(original&&typeof original.message==='string'?{cause:{...(typeof original.name==='string'?{name:original.name}:{}),message:original.message}}:{})};
+        // A raw execute callback is not enough. This receipt is recorded only
+        // after exact frame/document validation and decoding its final failure.
+        await saveReceipt(state,'userScripts.finalFailure',{frameId:replies[0].frameId,documentId:replies[0].documentId,error:projected});
+        const marker={};finalFailures.set(marker,projected);return marker;
+      }
       return readPageEvaluationResult(replies[0].result);
     } finally { if (!state.controller.signal.aborted) state.run.waits.delete(state.envelope.requestId); }
   }
@@ -231,11 +258,26 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     const currentURL = await verifyTarget(state), method = state.envelope.operation.method;
     // Validate every input and grant before native cookie reads or writes.
     let values;
-    if (method === 'cookies') {
-      requireValue(state.args.length === 1 && Array.isArray(state.args[0]) && state.args[0].length <= 100, 'E_COOKIE_SCOPE');
-      values = [...new Set((state.args[0].length ? state.args[0] : [currentURL]).map(httpURL))];
-    } else values = state.args.map(value => normalizeCookie(value, currentURL, method === 'deleteCookie', clock.now()));
-    for (const value of values) await permission(state, 'pre', {url: typeof value === 'string' ? value : value.url});
+    try {
+      if (method === 'cookies') {
+        requireValue(state.args.length === 1 && Array.isArray(state.args[0]) && state.args[0].length <= 100, 'E_COOKIE_SCOPE');
+        values = [...new Set((state.args[0].length ? state.args[0] : [currentURL]).map(httpURL))];
+      } else values = state.args.map(value => normalizeCookie(value, currentURL, method === 'deleteCookie', clock.now()));
+      for (const value of values) {
+        const url=typeof value==='string'?value:value.url;
+        requireValue(new URL(url).origin===state.envelope.target.allowedOrigin,'E_PERMISSION_DENIED');
+        await permission(state,'pre',{url});
+      }
+    } catch(cause) {
+      // This checkpoint is input validation, not a Chrome cookie callback.
+      // Permission/owner/target loss and every post-dispatch error stay fenced.
+      if(!COOKIE_PREFLIGHT_CODES.includes(cause.code))throw cause;
+      guard(state);const projected={code:cause.code,name:'PageError',message:String(cause.message||cause.code)};
+      const {identity,target}=state.envelope;
+      await saveReceipt(state,'cookies.preflightFailure',{phase:'input-preflight',method,frameId:target.frameId,
+        documentId:target.documentId,runId:identity.runId,ownerEpoch:identity.ownerEpoch,error:projected});
+      const marker={};finalFailures.set(marker,projected);return marker;
+    }
     const stores = await native(state, api.cookies, 'getAllCookieStores', []);
     const matched = stores?.filter(store => store.tabIds?.includes(state.envelope.target.tabId));
     requireValue(matched?.length === 1 && typeof matched[0].id === 'string', 'E_COOKIE_SCOPE');
@@ -457,7 +499,9 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       else if (method === 'screenshot') result = await screenshot(state);
       else if (method === 'uploadFromUrl') result = await uploadFromURL(state);
       else result = await cookieOperation(state);
-      const reply = {requestId: envelope.requestId, value: controlEncodeValue(result), ...(state.handoff ? {handoff: state.handoff} : {})};
+      const failure=finalFailures.get(result);
+      const reply = failure ? {requestId:envelope.requestId,error:failure} :
+        {requestId: envelope.requestId, value: controlEncodeValue(result), ...(state.handoff ? {handoff: state.handoff} : {})};
       await saveReceipt(state, 'result', reply);
       await verifyTarget(state); await permission(state, 'pre');
       await permission(state, 'post'); guard(state); return reply;
@@ -501,7 +545,10 @@ function normalizeCookie(input, defaultURL, deleting, now) {
   requireValue(typeof value.name === 'string' && value.name && !/[;=\s\x00-\x1f\x7f]/.test(value.name), 'E_COOKIE_FORMAT');
   if (!deleting) requireValue(typeof value.value === 'string' && !/[;\r\n\x00]/.test(value.value), 'E_COOKIE_FORMAT');
   value.url = httpURL(value.url ?? defaultURL); const url = new URL(value.url);
-  if (value.domain !== undefined) requireValue(typeof value.domain === 'string' && value.domain.replace(/^\./, '') === url.hostname, 'E_COOKIE_SCOPE');
+  if (value.domain !== undefined) {
+    requireValue(typeof value.domain==='string','E_COOKIE_SCOPE');
+    requireValue(value.domain.replace(/^\./,'')===url.hostname,'E_PERMISSION_DENIED');
+  }
   if (deleting && value.path === undefined) value.path = url.pathname.slice(0, url.pathname.lastIndexOf('/')) || '/';
   if (value.path !== undefined) requireValue(typeof value.path === 'string' && value.path.startsWith('/') && !/[;\r\n]/.test(value.path), 'E_COOKIE_FORMAT');
   if (deleting) { url.pathname = value.path; url.search = ''; url.hash = ''; value.url = url.href; }

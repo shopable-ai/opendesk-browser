@@ -22,6 +22,11 @@ export function createWorkerPageProxy({port, identity, revision, target, deadlin
     });
   }});
   const context = createRunContext({identity: identityPin, revision, target, deadline, transport, signal: lifetime.signal, dom: null});
+  // This is a projection of the existing admitted context, never a second
+  // context or an authority. User code cannot access its port or lifecycle.
+  Object.freeze(context.ChromePage.prototype); Object.freeze(context.ChromePage);
+  const scriptContext = Object.freeze({ChromePage: context.ChromePage, revision: context.revision,
+    get target() { return context.target; }});
   function receive({data}) {
     if (closed || data?.runId !== identityPin.runId || data?.ownerEpoch !== identityPin.ownerEpoch || data.kind !== 'reply' || !Number.isSafeInteger(data.id)) return;
     const waiter = get(data.id); if (!waiter || data.reply?.requestId !== waiter.requestId) return;
@@ -32,5 +37,5 @@ export function createWorkerPageProxy({port, identity, revision, target, deadlin
     if (closed) return; closed = true; lifetime.abort(new PageError(code)); context.dispose(code);
     remove('message', receive); close(); pending.clear();
   }
-  return Object.freeze({page: context.page, services: context.services, context, dispose, snapshot: () => ({pending: pending.size, ...context.snapshot()})});
+  return Object.freeze({page: context.page, services: context.services, context, scriptContext, dispose, snapshot: () => ({pending: pending.size, ...context.snapshot()})});
 }

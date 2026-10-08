@@ -1,6 +1,24 @@
 import {PageError, requireValue, encodeValue, decodeValue, frozenCopy} from '../../framework/control/value.js';
 import {relayContextRequest} from '../../framework/context.js';
 
+function safeErrorCause(error) {
+ const cause = error?.cause;
+ if (!cause || typeof cause !== 'object') return undefined;
+ const name = Object.getOwnPropertyDescriptor(cause, 'name')?.value;
+ const message = Object.getOwnPropertyDescriptor(cause, 'message')?.value;
+ const out = {};
+ if (typeof name === 'string') out.name = name;
+ if (typeof message === 'string') out.message = message;
+ return Object.keys(out).length ? out : undefined;
+}
+
+function replyError(error) {
+ const out = {code: error.code || 'E_PAGE_EXECUTION', name: error.name || 'Error', message: error.message};
+ const cause = safeErrorCause(error);
+ if (cause) out.cause = cause;
+ return out;
+}
+
 // One controller owns exactly one opaque iframe/Worker, attached to one ctx.
 // The sole broker remains the transport; this module has no chrome permissions,
 // tabs, scripting or storage API and cannot select or retire borrowed pages.
@@ -65,7 +83,7 @@ export function createControlController({context, sandboxURL, workerURL, documen
       send({kind: 'reply', runId: identity.runId, ownerEpoch: identity.ownerEpoch, id: data.id, reply});
     } catch (error) {
       if (active) send({kind: 'reply', runId: identity.runId, ownerEpoch: identity.ownerEpoch, id: data.id,
-        reply: {requestId: captured.requestId, error: {code: error.code || 'E_PAGE_EXECUTION', message: error.message}}});
+        reply: {requestId: captured.requestId, error: replyError(error)}});
     } finally { pending.delete(data.id); released(); }
   }
   function bind(event) {

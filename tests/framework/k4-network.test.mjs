@@ -124,3 +124,10 @@ test('service HTTP result preserves business object inside response.data rather 
   const result = await dispatcher.execute('AXIOS_GET', {url: `${base}/false`}, {});
   assert.equal(result.ok, true); assert.equal(result.value.data, false); assert.equal(result.value.status, 200);
 });
+
+test('HTTP failure response is withheld when post-fetch authorization is revoked',async()=>{
+  const phases=[];
+  const driver=createNetworkService({authorize:async request=>{phases.push(request.phase);if(request.phase==='post')throw Object.assign(new Error('revoked'),{code:'E_PERMISSION'});},fetchImpl:async()=>new Response('private failure',{status:403})});
+  await assert.rejects(driver.request({method:'GET',url:'https://fixture.example/error'}),error=>error.code==='E_PERMISSION'&&error.response===undefined);
+  assert.deepEqual(phases,['pre','post']);
+});

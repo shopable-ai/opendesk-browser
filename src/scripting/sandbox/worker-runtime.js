@@ -18,6 +18,9 @@ export function installControlWorker(scope) {
     const port = event.ports[0], send = port.postMessage.bind(port), start = port.start.bind(port);
     const addPort = port.addEventListener.bind(port), pin = freeze(clone(event.data.identity));
     const proxy = createWorkerPageProxy({port, identity: pin, revision: event.data.revision, target: event.data.target});
+    // One immutable capability facade in this owned Worker realm. Keep the
+    // audited dynamic compiler signature and admitted source body unchanged.
+    Object.defineProperty(scope, 'ctx', {value: proxy.scriptContext});
     let started = false;
     add('securitypolicyviolation', event => {
       if (event.isTrusted) send({kind: 'policy', runId: pin.runId, ownerEpoch: pin.ownerEpoch, directive: event.effectiveDirective, blockedURI: event.blockedURI, originalPolicy: event.originalPolicy});
@@ -42,4 +45,3 @@ export function installControlWorker(scope) {
   }
   add('message', bind); ready({kind: 'worker-ready'});
 }
-

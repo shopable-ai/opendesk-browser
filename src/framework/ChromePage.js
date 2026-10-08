@@ -27,17 +27,18 @@ function typeArgs(text, value = {}) {
 function key(value) { requireValue(typeof value === 'string' && value.length > 0, 'E_ARGUMENT_TYPE'); requireValue(value.length === 1 || !value.includes('+'), 'E_KEY_UNSUPPORTED'); return value; }
 function tagOptions(value, script) {
   options(value, script ? ['url', 'content', 'type', 'onload'] : ['url', 'content']);
+  if (!script) requireValue(value.url === undefined || value.content === undefined, 'E_OPTION_UNSUPPORTED');
   requireValue((typeof value.url === 'string' && value.url.length > 0) !== (typeof value.content === 'string' && value.content.length > 0), 'E_ARGUMENT_TYPE');
   if (script) {
     requireValue(value.onload === undefined, 'E_OPTION_UNSUPPORTED');
     requireValue(value.type === undefined || value.type === 'text/javascript', 'E_OPTION_UNSUPPORTED');
   }
   if (value.url !== undefined) {
-    requireValue(typeof value.url === 'string' && value.url.startsWith('chrome-extension://'), 'E_RESOURCE_URL_UNSUPPORTED');
+    requireValue(typeof value.url === 'string' && value.url.startsWith('chrome-extension://'), script ? 'E_REMOTE_CODE_UNSUPPORTED' : 'E_REMOTE_RESOURCE_UNSUPPORTED');
     return {url: value.url, ...(script && value.type ? {type: value.type} : {})};
   }
   requireValue(typeof value.content === 'string' && value.content.length > 0, 'E_ARGUMENT_TYPE');
-  if (!script) requireValue(!/@import\b|url\s*\(/i.test(value.content), 'E_STYLE_URL_UNSUPPORTED');
+  if (!script) requireValue(!/@import\b|url\s*\(/i.test(value.content), 'E_REMOTE_RESOURCE_UNSUPPORTED');
   return {content: value.content};
 }
 function snapshotNode(page, snapshot) {

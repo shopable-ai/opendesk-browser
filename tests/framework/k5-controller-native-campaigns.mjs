@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
+import {nativeFailureOutcome} from './k5-controller-product-native-outcome.mjs';
 
 // Scheduling/evidence only. Every effect is performed by the existing native
 // product runner's trusted UI/Worker/CDP helpers in its one owned browser.
@@ -53,8 +54,7 @@ export async function runControllerCampaigns({sessionId, environmentId, bindings
         assert.deepEqual(after, before, 'Actual pending/timers/subscriptions/ports/workers/blobs must return to baseline');
         keepAlive(); round.status = 'PASS';
       } catch (error) {
-        round.status = error.code === 'E_CAMPAIGN_OBSERVATION_MISSING' ? 'NOT_TESTED' :
-          error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'BLOCKED' : 'FAIL';
+        Object.assign(round, nativeFailureOutcome(error));
         round.error = {code: error.code, name: error.name, message: error.message, stack: error.stack, actual: error.actual};
       }
       round.endMs = performance.now(); round.finishedAt = Date.now();

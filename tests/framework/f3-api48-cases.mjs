@@ -1,3 +1,5 @@
+import {parse} from 'acorn';
+
 // Each body is committed unchanged through the real product script editor.
 // This module never imports product source, starts a server, or launches Chrome.
 const recipes = new Map();
@@ -16,7 +18,8 @@ put(1,'LIMIT',`await page.evaluate(()=>{document.querySelector('#text').value='B
 put(2,'OK',`eq('environment',page.environment,'CHROME');`,{gaps:['The saved-script public surface exposes no approved capability-declaration projection; CHROME alone cannot verify the entire declared capability set.']});
 put(2,'ERR',`await reject('unbound-environment',()=>new page.constructor().environment,['E_PAGE_CONTEXT_REQUIRED']);`);
 put(2,'LIMIT',`try{page.environment='CAPACITOR';}catch{}eq('readonly-environment',page.environment,'CHROME');await reject('webview-denied',()=>page.screenshotInWebview(),['E_CAPABILITY_UNAVAILABLE']);`);
-gap(3,'OK',ctxGap);gap(3,'ERR',ctxGap);
+put(3,'OK',`const a=new ctx.ChromePage(),b=new ctx.ChromePage({debug:true}),c=new ctx.ChromePage({debug:false}),d=new ctx.ChromePage({});eq('constructor-debug',[a.debug,b.debug,c.debug,d.debug],[true,true,false,undefined]);eq('constructor-title-default',await a.title(),'A-title');eq('constructor-title-true',await b.title(),'A-title');eq('constructor-title-false',await c.title(),'A-title');eq('constructor-title-empty',await d.title(),'A-title');`);
+put(3,'ERR',`await reject('constructor-debug-option',()=>new ctx.ChromePage({debug:'yes'}),['E_OPTION_UNSUPPORTED']);`);
 put(3,'LIMIT',`eq('default-debug',page.debug,true);await reject('debug-evaluate-error',()=>page.evaluate(()=>{throw new Error('boom');}),['E_PAGE_EXECUTION']);await reject('debug-eval-error',()=>page.eval('throw new Error("boom")',{mode:'statement',debug:true}),['E_PAGE_EXECUTION']);`,{gaps:[cleanupGap]});
 gap(4,'OK',ctxGap);
 put(4,'ERR',`await reject('raw-construction',()=>new page.constructor(),['E_PAGE_CONTEXT_REQUIRED']);`,{gaps:['The alternative pin-failure branch cannot be driven from the saved-script entry without an actual host ctx admission consumer.']});
@@ -47,7 +50,7 @@ put(15,'OK',`eq('async-multiple-eval',await page.$$eval('.item',async els=>els.m
 put(15,'ERR',`await reject('dom-result',()=>page.$$eval('.item',()=>document.body),['E_VALUE_SERIALIZATION']);await reject('cycle-result',()=>page.$$eval('.item',()=>{const x={};x.self=x;return x;}),['E_VALUE_SERIALIZATION']);await reject('bigint-result',()=>page.$$eval('.item',()=>BigInt(1)),['E_VALUE_SERIALIZATION']);`);
 put(15,'LIMIT',`await reject('bound-function',()=>page.$$eval('.item',(els=>els.length).bind(null)),['E_FUNCTION_SOURCE_UNSUPPORTED']);await reject('native-function',()=>page.$$eval('.item',Math.max),['E_FUNCTION_SOURCE_UNSUPPORTED']);`,{variants:[{label:'disabled',userScripts:false,body:`await reject('disabled-multiple-eval',()=>page.$$eval('.item',els=>els.length),['E_USER_SCRIPTS_DISABLED']);`}]});
 gap(16,'OK','Requires actual workbench allowPageSdk + original SDK Hello/AppLocal Promise receipt and per-document listener count. SDK native lane owns that execution; this sidecar cannot substitute a load-tag acknowledgment.');
-gap(16,'ERR','No registered missing-resource fault exists in the frozen final package. Deleting/rewriting a packaged allowed resource is forbidden.');
+put(16,'ERR',`await reject('resource-load',()=>page.addScriptTag({url:params.sdkURL}),['E_RESOURCE_UNAVAILABLE']);`,{external:['script-load-refused']});
 put(16,'LIMIT',`await reject('remote-script',()=>page.addScriptTag({url:'https://remote/code.js'}),['E_REMOTE_CODE_UNSUPPORTED']);await reject('script-onload',()=>page.addScriptTag({content:'document.title="forbidden"',onload:'code'}),['E_OPTION_UNSUPPORTED']);await reject('script-module',()=>page.addScriptTag({content:'document.title="forbidden"',type:'module'}),['E_OPTION_UNSUPPORTED']);`,{external:['zero-page-dispatch']});
 put(17,'OK',`eq('style-return',await page.addStyleTag({content:'#marker { color: rgb(1, 2, 3); }'}),undefined);eq('style-applied',await page.$eval('#marker',e=>getComputedStyle(e).color),'rgb(1, 2, 3)');`,{external:['style-disposed']});
 put(17,'ERR',`await reject('invalid-style-options',()=>page.addStyleTag({content:'',url:'x'}),['E_OPTION_UNSUPPORTED','E_RESOURCE_UNAVAILABLE']);`);
@@ -64,7 +67,7 @@ put(20,'LIMIT',`await reject('delete-cookie-partition',()=>page.deleteCookie({na
 put(21,'OK',`eq('click-return',await page.click('#submit',{button:'left',clickCount:2,delay:10}),'clicked');`,{external:['click-two']});
 put(21,'ERR',`await reject('click-missing',()=>page.click('#absent'),['E_SELECTOR_NOT_FOUND']);await reject('click-invalid',()=>page.click('['),['E_SELECTOR_INVALID']);await reject('click-delay',()=>page.click('#submit',{delay:-1}),['E_OPTION_UNSUPPORTED']);await reject('click-count',()=>page.click('#submit',{clickCount:0}),['E_OPTION_UNSUPPORTED']);`,{external:['no-input-events']});
 put(21,'LIMIT',`eq('right-click',await page.click('#submit',{button:'right'}),'clicked');eq('middle-click',await page.click('#submit',{button:'middle'}),'clicked');`,{gaps:[nativeGap],external:['click-right-middle']});
-put(22,'OK',`eq('type-A',await page.type('#text','A'),'Typed');eq('value-A',await page.$eval('#text',e=>e.value),'BaseA');eq('type-B',await page.type('#text','B'),'Typed');eq('value-B',await page.$eval('#text',e=>e.value),'BaseAB');eq('type-empty',await page.type('#text',''),'Typed');eq('value-empty',await page.$eval('#text',e=>e.value),'BaseAB');const text='"\\😀你好';eq('type-literal',await page.type('#text',text),'Typed');eq('value-literal',await page.$eval('#text',e=>e.value),'BaseAB'+text);`,{external:['type-values']});
+put(22,'OK',`eq('type-A',await page.type('#text','A'),'Typed');eq('value-A',await page.$eval('#text',e=>e.value),'BaseA');eq('type-B',await page.type('#text','B'),'Typed');eq('value-B',await page.$eval('#text',e=>e.value),'BaseAB');eq('type-empty',await page.type('#text',''),'Typed');eq('value-empty',await page.$eval('#text',e=>e.value),'BaseAB');const text='"\\\\😀你好';eq('type-literal',await page.type('#text',text),'Typed');eq('value-literal',await page.$eval('#text',e=>e.value),'BaseAB'+text);`,{external:['type-values']});
 put(22,'ERR',`await reject('type-missing',()=>page.type('#absent','x'),['E_SELECTOR_NOT_FOUND']);await reject('type-selector',()=>page.type('[','x'),['E_SELECTOR_INVALID']);await reject('type-readonly',()=>page.type('#readonly','x'),['E_INPUT_TARGET_UNSUPPORTED']);await reject('type-delay',()=>page.type('#text','x',{delay:-1}),['E_OPTION_UNSUPPORTED']);await reject('type-object',()=>page.type('#text',{}),['E_VALUE_SERIALIZATION']);`,{external:['no-input-events']});
 put(22,'LIMIT',`await reject('type-contenteditable',()=>page.type('#editable','x'),['E_INPUT_TARGET_UNSUPPORTED']);await reject('type-number',()=>page.type('#number','1'),['E_INPUT_TARGET_UNSUPPORTED']);eq('default-append',await page.type('#text','A'),'Typed');eq('default-value',await page.$eval('#text',e=>e.value),'BaseA');`,{gaps:[nativeGap,'No setValue/replace public operand exists; no invented options are used.']});
 put(23,'OK',`const e=await page.waitFor('#later');eq('wait-selector-page',e.page===page,true);eq('wait-predicate',await page.waitFor(()=>document.title==='ready'),true);eq('wait-number',await page.waitFor(10),undefined);`,{fixtureReadyTitle:true,gaps:['Original cancellation branch for all three overloads needs a per-overload admitted-operation stop barrier.']});
@@ -159,5 +162,52 @@ export function savedSource(definition,recipe){
 }
 export function requiredAssertions(recipe){
  if(!recipe.body)return [];
- return [...new Set([...recipe.body.matchAll(/(?:eq|reject|files)\('([^']+)'/g)].map(m=>m[1]))];
+ const assertions = [];
+ const add = name => assertions.push(name);
+ const stringValue = (node, env, helper) => {
+  if(node?.type === 'Literal' && typeof node.value === 'string')return node.value;
+  if(node?.type === 'Literal' && (typeof node.value === 'number' || typeof node.value === 'boolean'))return String(node.value);
+  if(node?.type === 'Identifier' && env.has(node.name))return String(env.get(node.name));
+  if(node?.type === 'BinaryExpression' && node.operator === '+')return stringValue(node.left, env, helper) + stringValue(node.right, env, helper);
+  throw new Error(`Cannot determine ${helper} assertion label`);
+ };
+ const label = (node, env, helper) => stringValue(node, env, helper);
+ const causeRequired = node => {
+  if(!node)return false;
+  if(node.type === 'Literal')return Boolean(node.value);
+  throw new Error('Cannot determine reject cause assertion label');
+ };
+ const visit = (node, env = new Map()) => {
+  if(!node || typeof node !== 'object')return;
+  if(node.type === 'ForOfStatement' && node.await === false && node.left?.type === 'VariableDeclaration' &&
+   node.left.declarations.length === 1 && node.left.declarations[0].id?.type === 'Identifier' && node.right?.type === 'ArrayExpression'){
+   const name = node.left.declarations[0].id.name;
+   for(const element of node.right.elements){
+    if(element?.type !== 'Literal' || !['string','number','boolean'].includes(typeof element.value))throw new Error('Cannot determine loop assertion labels');
+    const next = new Map(env);next.set(name, element.value);visit(node.body, next);
+   }
+   return;
+  }
+  if(node.type === 'CallExpression' && node.callee?.type === 'Identifier'){
+   const helper = node.callee.name;
+   if(helper === 'eq')add(label(node.arguments[0], env, helper));
+   else if(helper === 'files')add(label(node.arguments[0], env, helper));
+   else if(helper === 'reject'){
+    const name = label(node.arguments[0], env, helper);
+    add(`${name}-rejected`);add(`${name}-code`);
+    if(causeRequired(node.arguments[3]))add(`${name}-cause`);
+   }
+  }
+  for(const key of Object.keys(node)){
+   if(key === 'parent')continue;
+   const value = node[key];
+   if(Array.isArray(value))for(const item of value)visit(item, env);
+   else if(value && typeof value.type === 'string')visit(value, env);
+  }
+ };
+ let ast;
+ try{ast=parse(`async function inventory(){${recipe.body}\n}`,{ecmaVersion:'latest'});}
+ catch(error){throw new Error(`Cannot determine required assertions: ${error.message}`);}
+ visit(ast);
+ return [...new Set(assertions)];
 }

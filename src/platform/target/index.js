@@ -34,9 +34,18 @@ export async function requireGrant(api, origin) {
 
 // Shared native observation for generic controllers. Selection is explicit;
 // neither this helper nor its callers resolve the active tab.
-export async function observeControllerTarget({api, tabId, frameId = 0, documentId, allowExtensionUrl = null}) {
+export async function observeControllerTarget({api, tabId, frameId = 0, documentId, allowExtensionUrl = null, expectedUrl, expectedWindowId}) {
   invariant(Number.isSafeInteger(tabId) && tabId >= 0 && Number.isSafeInteger(frameId) && frameId >= 0, 'E_TARGET');
   const tab = await api.tabs.get(tabId);
+  const verifyCandidate = async () => {
+    if (expectedWindowId === undefined) return;
+    const selected = await api.tabs.query({active:true,windowId:expectedWindowId});
+    invariant(selected.length === 1 && selected[0].id === tabId && selected[0].windowId === expectedWindowId &&
+      selected[0].active && !selected[0].incognito && !selected[0].pendingUrl &&
+      selected[0].status !== 'loading' && selected[0].status !== 'unloaded' &&
+      selected[0].url === expectedUrl, 'E_DOCUMENT_STALE', 'Captured window Current Page changed before admission');
+  };
+  await verifyCandidate();
   invariant(tab && tab.incognito === false, 'E_TARGET', 'A normal selected tab is required');
   const frames = await api.webNavigation.getAllFrames({tabId});
   let frame = frames?.find(value => value.frameId === frameId && (!documentId || value.documentId === documentId));
@@ -50,24 +59,28 @@ export async function observeControllerTarget({api, tabId, frameId = 0, document
     if (exact.length === 1) frame = {frameId: 0, documentId: exact[0].documentId, url: exact[0].documentUrl};
   }
   invariant(frame && !frame.errorOccurred && (!frame.documentLifecycle || frame.documentLifecycle === 'active') &&
-    typeof frame.documentId === 'string' && frame.documentId, 'E_DOCUMENT_REPLACED', 'Selected frame document is no longer current');
+    typeof frame.documentId === 'string' && frame.documentId, expectedWindowId === undefined ? 'E_DOCUMENT_REPLACED' : 'E_DOCUMENT_STALE', 'Selected frame document is no longer current');
   if (allowExtensionUrl !== null) {
     invariant(frameId === 0 && frame.url === allowExtensionUrl && tab.url === allowExtensionUrl, 'E_TARGET', 'Owned bootstrap URL differs');
     return {tabId, frameId: 0, documentId: frame.documentId, url: frame.url};
   }
   const url = httpUrl(frame.url);
+  invariant(expectedUrl === undefined || (!tab.pendingUrl && url.href === httpUrl(expectedUrl).href &&
+    (frameId !== 0 || tab.url === url.href)), 'E_DOCUMENT_STALE', 'Captured page is navigating or its URL changed');
   invariant(frameId === 0 ? httpUrl(tab.url).origin === url.origin && (!tab.pendingUrl || httpUrl(tab.pendingUrl).origin === url.origin) : !tab.pendingUrl,
     'E_DOCUMENT_REPLACED', 'Selected tab is navigating outside its document');
   await requireGrant(api, url.origin);
+  await verifyCandidate();
   const root = frames.find(value => value.frameId === 0);
   invariant(root && typeof root.documentId === 'string' && root.documentId, 'E_DOCUMENT_REPLACED');
   return {tabId, frameId, documentId: frame.documentId, url: frame.url, allowedOrigin: url.origin,
+    ...(expectedWindowId === undefined ? {} : {windowId:expectedWindowId}),
     ...(frameId > 0 ? {rootDocumentId: root.documentId} : {})};
 }
 
-export async function verifyControllerTarget({api, target}) {
+export async function verifyControllerTarget({api, target, expectedUrl, expectedWindowId}) {
   invariant(Number.isSafeInteger(target?.frameId) && target.frameId >= 0, 'E_TARGET');
-  const observed = await observeControllerTarget({api, tabId: target.tabId, frameId: target.frameId, documentId: target.documentId});
+  const observed = await observeControllerTarget({api, tabId: target.tabId, frameId: target.frameId, documentId: target.documentId, expectedUrl, expectedWindowId});
   invariant(observed.allowedOrigin === target.allowedOrigin, 'E_TARGET', 'Controller origin differs');
   if (target.rootDocumentId) invariant(target.rootDocumentId === observed.rootDocumentId, 'E_DOCUMENT_REPLACED');
   return observed;

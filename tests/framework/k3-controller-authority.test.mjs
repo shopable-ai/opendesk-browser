@@ -9,7 +9,7 @@ import {createStorageMethods} from '../../src/platform/storage/repository.js';
 import {createHostClient} from '../../src/platform/host/client.js';
 import {createRunHost} from '../../src/run-host.js';
 import {createRunContext} from '../../src/framework/context.js';
-import {CONTRACT_VERSION, CONTRACT_HASH, canonical, digest} from '../../src/platform/protocol.js';
+import {CONTRACT_VERSION, CONTRACT_HASH, canonical, digest, digestUtf8} from '../../src/platform/protocol.js';
 import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
 import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
 
@@ -80,6 +80,244 @@ async function fixture() {
   return {storage,api,authority,sender,registration,register,rows,commit,start,finish,calls,frames,tabs,clock,
     setAllowed:value=>{allowed=value;},beforeReply:fn=>{beforeReply=fn;}};
 }
+
+test('Sidebar captured URL rejects SPA change and pending navigation before creating a run',async () => {
+  for(const pending of [false,true]) {
+    const f=await fixture(), revision=await f.commit();
+    if(pending) f.tabs.get(2).pendingUrl='https://a.example/next';
+    else {f.frames.get(2)[0].url='https://a.example/next';f.tabs.get(2).url='https://a.example/next';}
+    await assert.rejects(f.start(revision,{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page'}),{code:'E_DOCUMENT_STALE'});
+    assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);
+    assert.equal(f.calls.length,0);
+  }
+});
+
+test('Sidebar URL changing during revision pinning fails durably and releases the slot without executing',async () => {
+  const f=await fixture(), revision=await f.commit(), pin=f.storage.pinScriptRevision;
+  f.storage.pinScriptRevision=async(...args)=>{
+    const pinned=await pin(...args); f.frames.get(2)[0].url='https://a.example/next'; f.tabs.get(2).url='https://a.example/next'; return pinned;
+  };
+  await assert.rejects(f.start(revision,{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page'}),{code:'E_DOCUMENT_STALE'});
+  const run=(await f.rows('runs')).find(row=>row.tag==='controller-run');
+  assert.equal(run.state,'failed'); assert.equal(run.retirementState,'released');
+  const result=(await f.rows('results')).find(row=>row.runId===run.runId);
+  assert.equal(result.outcome.error.code,'E_DOCUMENT_STALE'); assert.equal(result.revision.sourceHash,revision.contentHash);
+  assert.equal(f.calls.length,0);
+});
+
+function packagedFailureReply(f, transform = reply => reply) {
+  const send = f.api.tabs.sendMessage;
+  f.api.tabs.sendMessage = (id, message, options, callback) => {
+    if (message.action !== 'execute' || message.envelope.operation.method !== 'click') return send(id, message, options, callback);
+    f.calls.push({method: 'packaged.failure', id, options});
+    const envelope = message.envelope;
+    const reply = transform({requestId: envelope.requestId, runId: envelope.identity.runId,
+      ownerEpoch: envelope.identity.ownerEpoch, error: {code: 'E_SELECTOR_NOT_FOUND', message: 'Missing #absent'}});
+    queueMicrotask(() => callback(reply));
+  };
+}
+test('cookie input rejection settles zero-dispatch failure once and permits the next admitted call',async()=>{
+  for(const [method,args,expected] of [['setCookie',['invalid-cookie'],'E_COOKIE_FORMAT'],
+    ['setCookie',[{name:'good',value:'x'},'invalid-cookie'],'E_COOKIE_FORMAT'],
+    ['setCookie',[{name:'sid',value:'x',url:'https://b.example/'}],'E_PERMISSION_DENIED'],
+    ['deleteCookie',[{name:'sid',url:'https://b.example/'}],'E_PERMISSION_DENIED'],
+    ['setCookie',[{name:'sid',value:'x',domain:'.example'}],'E_PERMISSION_DENIED'],
+    ['deleteCookie',[{name:'sid',domain:'.example'}],'E_PERMISSION_DENIED']]) {
+    const f=await fixture(),revision=await f.commit(),run=await f.start(revision);
+    const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+      operation:{kind:'browser',method,args:controlEncode(args)}};
+    const reply=await f.authority.controllerOperation({envelope},f.sender);
+    assert.equal(reply.error.code,expected);assert.equal(reply.error.name,'PageError');assert.equal(Object.hasOwn(reply,'value'),false);
+    assert.deepEqual(await f.authority.controllerOperation({envelope},f.sender),reply);
+    const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');
+    assert.equal(operation.state,'durable');assert.equal(operation.effectState,'failure-observed');assert.equal(operation.submissionCount,1);
+    const receipts=operation.nativeReceipts.filter(row=>row.stage==='cookies.preflightFailure');assert.equal(receipts.length,1);
+    assert.deepEqual(receipts[0].receipt,{phase:'input-preflight',method,frameId:run.target.frameId,documentId:run.target.documentId,
+      runId:run.runId,ownerEpoch:run.identity.ownerEpoch,error:reply.error});
+    assert(!operation.nativeReceipts.some(row=>row.stage.startsWith('cookies.')&&row.stage!=='cookies.preflightFailure'));
+    assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).state,run.state);
+    const context=createRunContext({identity:run.identity,revision:run.revision,target:run.target,
+      transport:{request:envelope=>f.authority.controllerOperation({envelope},f.sender)}});
+    try{assert.equal(await context.page.title(),'Top');}finally{context.dispose();}
+  }
+});
+test('corrupted cookie preflight checkpoints stay unknown and never become replayable replies',async()=>{
+  for(const change of [r=>r.requestId='foreign',r=>r.receipt.documentId='foreign',r=>r.receipt.runId='foreign',
+    r=>r.receipt.ownerEpoch++,r=>r.receipt.method='deleteCookie',r=>r.receipt.phase='after-write',
+    r=>r.receipt.error.code='E_COOKIE_OPERATION',(_r,op)=>op.nativeReceipts.find(r=>r.stage==='webNavigation.getAllFrames').requestId='foreign',
+    (_r,op)=>op.nativeReceipts.push(structuredClone(_r)),
+    (_r,op)=>op.nativeReceipts.push({requestId:_r.requestId,stage:'cookies.set',receipt:{name:'sid'}})]) {
+    const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let changed=false;
+    const transaction=f.storage.transaction.bind(f.storage);
+    f.storage.transaction=(names,mode,body)=>transaction(names,mode,tx=>body({...tx,put:async(name,value,key)=>{
+      const receipt=value?.nativeReceipts?.find(r=>r.stage==='cookies.preflightFailure');
+      if(!changed&&receipt){changed=true;change(receipt,value);}return tx.put(name,value,key);
+    }}));
+    const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+      operation:{kind:'browser',method:'setCookie',args:controlEncode(['invalid-cookie'])}};
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_RESULT_FORMAT'));assert.equal(changed,true);
+    const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');assert.equal(operation.state,'effect_unknown');
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));assert.equal(operation.submissionCount,1);
+  }
+});
+
+test('cookie preflight still fences delivery when permission is lost after its checkpoint',async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let revoked=false;
+  const transaction=f.storage.transaction.bind(f.storage);
+  f.storage.transaction=async(...args)=>{const answer=await transaction(...args);
+    if(!revoked&&args[1]==='readwrite'&&f.storage.writes.some(w=>w.value?.nativeReceipts?.some(r=>r.stage==='cookies.preflightFailure'))){revoked=true;f.setAllowed(false);}return answer;};
+  const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'browser',method:'setCookie',args:controlEncode(['invalid-cookie'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_PERMISSION'));assert.equal(revoked,true);
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');assert.equal(operation.state,'effect_unknown');
+  f.setAllowed(true);await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+});
+
+test('cookie input rejection still fences delivery after the selected document changes',async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let changed=false;
+  const transaction=f.storage.transaction.bind(f.storage);
+  f.storage.transaction=async(...args)=>{const answer=await transaction(...args);
+    if(!changed&&args[1]==='readwrite'&&f.storage.writes.some(w=>w.value?.nativeReceipts?.some(r=>r.stage==='cookies.preflightFailure'))){changed=true;f.frames.get(2)[0].documentId='replacement';}return answer;};
+  const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'browser',method:'setCookie',args:controlEncode(['invalid-cookie'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),e=>['E_TARGET','E_DOCUMENT_REPLACED'].includes(e.code));assert.equal(changed,true);
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');assert.equal(operation.state,'effect_unknown');
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+});
+
+test('cookie native callback errors or missing success receipts retain effect-unknown fencing',async()=>{
+  for(const nativeError of [true,false]) {
+    const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let writes=0;
+    f.api.cookies={getAllCookieStores:callback=>callback([{id:'0',tabIds:[2]}]),set(_details,callback){writes++;
+      if(nativeError)f.api.runtime.lastError={message:'Native write rejected'};callback(undefined);delete f.api.runtime.lastError;}};
+    const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+      operation:{kind:'browser',method:'setCookie',args:controlEncode([{name:'sid',value:'x'}])}};
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_COOKIE_OPERATION'));
+    const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');
+    assert.equal(operation.state,'effect_unknown');assert(!operation.nativeReceipts.some(r=>r.stage==='cookies.preflightFailure'));
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));assert.equal(writes,1);
+  }
+});
+
+test('observed packaged failures replay once and allow the next admitted call', async () => {
+  const f = await fixture(), revision = await f.commit(), run = await f.start(revision), exchanges = [];
+  packagedFailureReply(f);
+  const context = createRunContext({identity: run.identity, revision: run.revision, target: run.target,
+    transport: {request: async envelope => {
+      const reply = await f.authority.controllerOperation({envelope}, f.sender);
+      exchanges.push({envelope, reply}); return reply;
+    }}});
+  try {
+    await assert.rejects(context.page.click('#absent'), code('E_SELECTOR_NOT_FOUND'));
+    const {envelope, reply} = exchanges.at(-1);
+    assert.equal(reply.error.name, 'PageError');
+    assert.deepEqual(await f.authority.controllerOperation({envelope}, f.sender), reply);
+    assert.equal(f.calls.filter(row => row.method === 'packaged.failure').length, 1);
+    const operation = (await f.rows('commandJournal')).find(row => row.tag === 'controller-operation' && row.envelope.requestId === envelope.requestId);
+    assert.equal(operation.state, 'durable'); assert.equal(operation.effectState, 'failure-observed'); assert.equal(operation.submissionCount, 1);
+    const receipt = operation.nativeReceipts.find(row => row.stage === 'packaged.finalFailure');
+    assert.deepEqual(receipt.receipt, {frameId: run.target.frameId, documentId: run.target.documentId,
+      runId: run.runId, ownerEpoch: run.identity.ownerEpoch, error: reply.error});
+    assert.equal((await f.rows('runs')).find(row => row.runId === run.runId).state, run.state);
+    assert.equal(await context.page.title(), 'Top'); assert.equal(context.resourceSnapshot().pending, 0);
+  } finally { context.dispose(); }
+});
+for (const [label, transform] of [
+  ['wrong request', reply => ({...reply, requestId: 'another-request'})],
+  ['wrong run', reply => ({...reply, runId: 'another-run'})],
+  ['wrong owner', reply => ({...reply, ownerEpoch: reply.ownerEpoch + 1})],
+  ['malformed error', reply => ({...reply, error: {code: 123, message: 'boom'}})],
+  ['missing final reply', () => undefined],
+  ['replaced document', (reply, f) => { f.frames.get(2)[0].documentId = 'doc-replaced'; return reply; }],
+]) test(`unvalidated packaged ${label} stays unknown and cannot resubmit`, async () => {
+  const f = await fixture(), revision = await f.commit(), run = await f.start(revision);
+  packagedFailureReply(f, reply => transform(reply, f));
+  const envelope = {requestId: crypto.randomUUID(), identity: run.identity, revision: run.revision, target: run.target,
+    operation: {kind: 'packaged', method: 'click', args: controlEncode(['#absent'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope}, f.sender), error => ['E_RESULT_FORMAT', 'E_TARGET', 'E_DOCUMENT_REPLACED'].includes(error.code));
+  const operation = (await f.rows('commandJournal')).find(row => row.tag === 'controller-operation');
+  assert.equal(operation.state, 'effect_unknown'); assert.equal(operation.submissionCount, 1);
+  assert(!operation.nativeReceipts.some(row => row.stage === 'packaged.finalFailure'));
+  await assert.rejects(f.authority.controllerOperation({envelope}, f.sender), code('E_EFFECT_UNKNOWN'));
+  assert.equal(f.calls.filter(row => row.method === 'packaged.failure').length, 1);
+});
+test('packaged final failure still fences delivery after its receipt when permission is lost', async () => {
+  const f = await fixture(), revision = await f.commit(), run = await f.start(revision);
+  packagedFailureReply(f);
+  const transaction = f.storage.transaction.bind(f.storage); let revoked = false;
+  f.storage.transaction = async (...args) => {
+    const answer = await transaction(...args);
+    if (!revoked && args[1] === 'readwrite' && f.storage.writes.some(write => write.value?.nativeReceipts?.some(row => row.stage === 'packaged.finalFailure'))) {
+      revoked = true; f.setAllowed(false);
+    }
+    return answer;
+  };
+  const envelope = {requestId: crypto.randomUUID(), identity: run.identity, revision: run.revision, target: run.target,
+    operation: {kind: 'packaged', method: 'click', args: controlEncode(['#absent'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope}, f.sender), code('E_PERMISSION')); assert.equal(revoked, true);
+  const operation = (await f.rows('commandJournal')).find(row => row.tag === 'controller-operation');
+  assert.equal(operation.state, 'effect_unknown'); assert.equal(operation.submissionCount, 1);
+  assert(operation.nativeReceipts.some(row => row.stage === 'packaged.finalFailure'));
+  f.setAllowed(true);
+  await assert.rejects(f.authority.controllerOperation({envelope}, f.sender), code('E_EFFECT_UNKNOWN'));
+  assert.equal(f.calls.filter(row => row.method === 'packaged.failure').length, 1);
+});
+test('observed final page failures replay once, preserve cause and allow the next admitted call',async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision),exchanges=[];
+  const context=createRunContext({identity:run.identity,revision:run.revision,target:run.target,
+    transport:{request:async envelope=>{const reply=await f.authority.controllerOperation({envelope},f.sender);exchanges.push({envelope,reply});return reply;}}});
+  try{
+    for(const callback of [()=>{throw new TypeError('original-boom');},()=>Promise.reject(new TypeError('original-boom'))]){
+      await assert.rejects(context.page.evaluate(callback),error=>{
+        assert.equal(error.code,'E_PAGE_EXECUTION');assert.equal(error.cause?.name,'TypeError');assert.equal(error.cause?.message,'original-boom');return true;
+      });
+      const last=exchanges.at(-1);assert(last,'Observed failure must return a correlated typed reply');
+      assert.equal(last.reply.requestId,last.envelope.requestId);assert.equal(last.reply.error.code,'E_PAGE_EXECUTION');
+      const count=f.calls.filter(row=>row.method==='userScripts.execute').length;
+      assert.deepEqual(await f.authority.controllerOperation({envelope:last.envelope},f.sender),last.reply);
+      assert.equal(f.calls.filter(row=>row.method==='userScripts.execute').length,count,'Known failure replay must not resubmit the function');
+      const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===last.envelope.requestId);
+      assert.equal(operation.state,'durable');assert.equal(operation.effectState,'failure-observed');assert.equal(operation.submissionCount,1);
+      assert(operation.nativeReceipts.some(receipt=>receipt.stage==='userScripts.finalFailure'&&receipt.receipt.documentId===run.target.documentId));
+      assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).state,run.state,'Known failure must not pause the run');
+      assert.equal(await context.page.title(),'Top');
+    }
+    assert.equal(context.resourceSnapshot().pending,0);
+  }finally{context.dispose();}
+});
+for(const [label,response] of [
+  ['wrong document',{frameId:0,documentId:'other-document',result:{ok:false,error:{code:'E_PAGE_EXECUTION',message:'boom',cause:{name:'Error',message:'boom'}}}}],
+  ['missing final error',{frameId:0,documentId:'doc-top',result:{ok:false}}],
+  ['malformed final code',{frameId:0,documentId:'doc-top',result:{ok:false,error:{code:123,message:'boom',cause:{name:'Error',message:'boom'}}}}]
+])test(`unvalidated ${label} failure stays unknown and cannot resubmit`,async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision);let submissions=0;
+  f.api.userScripts.execute=async()=>{submissions++;return [structuredClone(response)];};
+  const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'user-script',method:'evaluate',args:controlEncode([{mode:'function',source:'()=>{throw new Error("boom");}'},[]])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),error=>['E_TARGET','E_RESULT_FORMAT'].includes(error.code));
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');
+  assert.equal(operation.state,'effect_unknown');assert.equal(operation.submissionCount,1);
+  assert(!operation.nativeReceipts.some(receipt=>receipt.stage==='userScripts.finalFailure'));
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));assert.equal(submissions,1);
+});
+test('observed final failure still fences delivery when permission is lost after its validated receipt',async()=>{
+  const f=await fixture(),revision=await f.commit(),run=await f.start(revision);
+  const transaction=f.storage.transaction.bind(f.storage);let revoked=false;
+  f.storage.transaction=async(...args)=>{const answer=await transaction(...args);
+    if(!revoked&&args[1]==='readwrite'&&f.storage.writes.some(write=>write.value?.nativeReceipts?.some(receipt=>receipt.stage==='userScripts.finalFailure'))){
+      revoked=true;f.setAllowed(false);
+    }
+    return answer;
+  };
+  const envelope={requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'user-script',method:'evaluate',args:controlEncode([{mode:'function',source:'()=>{throw new Error("boom");}'},[]])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_PERMISSION'));assert.equal(revoked,true);
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation');
+  assert.equal(operation.state,'effect_unknown');assert.equal(operation.submissionCount,1);
+  assert(operation.nativeReceipts.some(receipt=>receipt.stage==='userScripts.finalFailure'));
+  f.setAllowed(true);await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+  assert.equal(f.calls.filter(row=>row.method==='userScripts.execute').length,1);
+});
 
 const nestedValue = depth => { let value=false; for(let i=0;i<depth;i++)value={key:value};return value; };
 for(const depth of [4,5,6,7,8,9,10,11,12]) test(`typed depth ${depth}: params, operation args and immutable result survive wider JSON envelopes`,async()=>{
@@ -220,6 +458,18 @@ test('public authority commits exact UTF8/headCAS and pins r1 while head advance
   assert.equal((await f.rows('commandJournal')).filter(r=>r.tag==='script-revision-pin' && !r.released).length,1);
   await f.finish(run); await f.authority.retireControllerTarget({runId:run.runId},f.sender);
   assert.ok((await f.rows('commandJournal')).filter(r=>r.tag==='script-revision-pin').every(r=>r.released));
+});
+test('controller script list is a host-authorized head projection filtered by namespace and tombstone',async () => {
+  const f=await fixture(), visible=await f.commit('return "visible";');
+  await f.storage.transaction(['scriptHeads'],'readwrite',async tx=>{
+    await tx.put('scriptHeads',{tag:'script-head',namespace:'tool:foreign',scriptId:'foreign-script',
+      revision:1,contentHash:'f'.repeat(64)},`script:${canonical(['tool:foreign','foreign-script'])}`);
+  });
+  assert.deepEqual(await f.authority.listControllerScripts({},f.sender),[{scriptId:'script',revision:1,contentHash:visible.contentHash}]);
+  await f.authority.tombstoneControllerScript({scriptId:'script',expectedRevision:1},f.sender);
+  assert.deepEqual(await f.authority.listControllerScripts({},f.sender),[]);
+  const next={...f.sender,documentId:'foreign-doc'};
+  await assert.rejects(f.authority.listControllerScripts({},next),code('E_OWNER'));
 });
 test('borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does',async () => {
   const f=await fixture(), run=await f.start(await f.commit(),{mode:'borrowed',tabId:2,frameId:7,documentId:'doc-child'});
@@ -497,4 +747,104 @@ test('repeating finish after permission revocation cannot bypass result delivery
   const f=await fixture(),run=await f.start(await f.commit());await f.finish(run);
   f.setAllowed(false);await assert.rejects(f.finish(run),code('E_PERMISSION'));
   assert.equal((await f.rows('results')).filter(row=>row.tag==='controller-result').length,1);
+});
+
+function currentPageFixture(f) {
+  let active=2;const listeners=new Set();
+  f.api.tabs.onActivated={addListener:listener=>listeners.add(listener),removeListener:listener=>listeners.delete(listener)};
+  f.api.tabs.query=async ({windowId})=>[{...f.tabs.get(active),windowId,active:true,status:'complete'}];
+  f.tabs.set(3,{id:3,incognito:false,url:'https://a.example/page'});
+  const target={mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page',expectedWindowId:7};
+  return {target,listeners,switch(){active=3;for(const listener of listeners)listener({windowId:7,tabId:3});}};
+}
+test('Current Page active switch before admission rejects same URL B without creating run',async()=>{
+  const f=await fixture(),candidate=currentPageFixture(f),revision=await f.commit();candidate.switch();
+  await assert.rejects(f.start(revision,candidate.target),{code:'E_DOCUMENT_STALE'});
+  assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);assert.equal(candidate.listeners.size,0);
+});
+test('same-URL navigation beginning during admission invalidates the old document before commit',async()=>{
+  const f=await fixture(),candidate=currentPageFixture(f),revision=await f.commit(),pin=f.storage.pinScriptRevision,listeners=new Set();
+  f.api.webNavigation.onBeforeNavigate={addListener:listener=>listeners.add(listener),removeListener:listener=>listeners.delete(listener)};
+  f.storage.pinScriptRevision=async(...args)=>{const value=await pin(...args);for(const listener of listeners)listener({tabId:2,frameId:0,url:candidate.target.expectedUrl});return value;};
+  await assert.rejects(f.start(revision,candidate.target),{code:'E_DOCUMENT_STALE'});
+  const run=(await f.rows('runs')).find(row=>row.tag==='controller-run');
+  assert.equal(run.retirementState,'released');assert.equal(run.workerRetired,true);
+  assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').state,'available');
+  assert.equal((await f.rows('results')).find(row=>row.runId===run.runId).revision.sourceHash,revision.contentHash);
+  assert.equal(listeners.size,0);assert.equal(f.calls.length,0);
+});
+
+test('Current Page activation during pin fails original run durably and releases slot',async()=>{
+  const f=await fixture(),candidate=currentPageFixture(f),revision=await f.commit(),pin=f.storage.pinScriptRevision;
+  f.storage.pinScriptRevision=async(...args)=>{const value=await pin(...args);candidate.switch();return value;};
+  await assert.rejects(f.start(revision,candidate.target),{code:'E_DOCUMENT_STALE'});
+  const run=(await f.rows('runs')).find(row=>row.tag==='controller-run');assert.equal(run.state,'failed');assert.equal(run.retirementState,'released');
+  const result=(await f.rows('results')).find(row=>row.runId===run.runId);assert.equal(result.resultId,run.resultId);assert.equal(result.revision.sourceHash,revision.contentHash);assert.equal(result.outcome.error.code,'E_DOCUMENT_STALE');assert.equal(candidate.listeners.size,0);assert.equal(f.calls.length,0);
+});
+test('Current Page activation after last native observation is fenced; admitted target can later be inactive',async()=>{
+  const f=await fixture(),candidate=currentPageFixture(f),revision=await f.commit(),query=f.api.tabs.query;let count=0;
+  f.api.tabs.query=async request=>{const rows=await query(request);if(++count===4)candidate.switch();return rows;};
+  await assert.rejects(f.start(revision,candidate.target),{code:'E_DOCUMENT_STALE'});assert.equal(candidate.listeners.size,0);
+  const failed=(await f.rows('runs')).find(row=>row.tag==='controller-run');
+  assert.equal(failed.state,'failed');assert.equal(failed.retirementState,'released');
+  assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').state,'available');
+  assert.equal((await f.rows('results')).find(row=>row.runId===failed.runId).outcome.error.code,'E_DOCUMENT_STALE');
+  assert.ok((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').every(row=>row.released));
+  const second=await fixture(),c=currentPageFixture(second),run=await second.start(await second.commit(),c.target);
+  c.switch();assert.equal(c.listeners.size,0);assert.equal(run.target.tabId,2);assert.equal(run.target.windowId,7);
+  await second.finish(run);assert.equal((await second.rows('runs')).find(row=>row.runId===run.runId).state,'completed');
+});
+
+test('native target changes after final candidate query reject admission and release durable slot and pin', async () => {
+  for (const change of [{status:'loading'}, {status:'unloaded'}, {pendingUrl:'https://a.example/next'}, {url:'https://a.example/page?spa=changed'}]) {
+    const f=await fixture(), candidate=currentPageFixture(f), revision=await f.commit(), query=f.api.tabs.query;
+    const listeners=new Set(); f.api.tabs.onUpdated={addListener:l=>listeners.add(l),removeListener:l=>listeners.delete(l)};
+    let count=0;
+    f.api.tabs.query=async request=>{const value=await query(request);if (++count===4) for (const listener of listeners) listener(2,change,{...f.tabs.get(2),...change});return value;};
+    let runId;
+    await assert.rejects(f.start(revision,candidate.target), error=>{runId=error.runId;return error.code==='E_DOCUMENT_STALE';});
+    assert.ok(runId);
+    const run=(await f.rows('runs')).find(row=>row.runId===runId);
+    assert.equal(run.state,'failed');assert.equal(run.retirementState,'released');assert.equal(run.workerRetired,true);
+    assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').state,'available');
+    assert.equal((await f.rows('results')).find(row=>row.runId===runId).revision.sourceHash,revision.contentHash);
+    assert.ok((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').every(row=>row.released));
+    assert.equal(listeners.size,0);assert.equal(candidate.listeners.size,0);assert.equal(f.calls.length,0);
+  }
+});
+
+
+test('draft source is bound to one durable run, not saved as a script head, and erased only after retirement',async()=>{
+  const f=await fixture(), sourceUtf8='return {value:params.value};';
+  const request={requestId:crypto.randomUUID(),source:{kind:'draft',sourceUtf8},
+    paramsWire:encodeValue({value:5}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},
+    deadlineAt:Date.now()+30000};
+  const claim=await f.authority.startControllerRun(request,f.sender);
+  const expectedHash=await digestUtf8(sourceUtf8);
+  assert.equal(claim.sourceKind,'draft');assert.equal(claim.sourceUtf8,sourceUtf8);
+  assert.equal(claim.revision.sourceHash,expectedHash);
+  assert.equal((await f.rows('scriptHeads')).length,0);
+  assert.equal((await f.rows('scriptRevisions')).length,0);
+  const admitted=(await f.rows('runs')).find(row=>row.runId===claim.runId);
+  assert.equal(admitted.draftSourceUtf8,sourceUtf8);
+  const duplicate=await f.authority.startControllerRun(request,f.sender);
+  assert.equal(duplicate.duplicate,true);assert.equal(duplicate.runId,claim.runId);
+  await assert.rejects(f.authority.startControllerRun({...request,source:{kind:'draft',sourceUtf8:'return 999;'}},f.sender),{code:'E_REQUEST_CONFLICT'});
+  const finished=await f.finish(claim);
+  assert.equal(finished.result.sourceKind,'draft');assert.equal(finished.result.revision.sourceHash,expectedHash);
+  await f.authority.retireControllerTarget({runId:claim.runId},f.sender);
+  const retired=(await f.rows('runs')).find(row=>row.runId===claim.runId);
+  assert.equal(retired.retirementState,'released');assert.equal(retired.draftSourceUtf8,undefined);
+  assert.equal(retired.revision.sourceHash,expectedHash);
+  assert.equal((await f.rows('scriptRevisions')).length,0);
+});
+
+test('controller never trusts draft callers to assert their own saved hash or unrecognized source format',async()=>{
+  const f=await fixture();
+  const base={requestId:crypto.randomUUID(),paramsWire:encodeValue({}),
+    target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:Date.now()+30000};
+  await assert.rejects(f.authority.startControllerRun({...base,source:{kind:'draft',sourceUtf8:'return 1;',contentHash:'a'.repeat(64)}},f.sender),{code:'E_SCHEMA'});
+  await assert.rejects(f.authority.startControllerRun({...base,source:{kind:'main-v1',sourceUtf8:'return 1;'}},f.sender),{code:'E_SCHEMA'});
+  assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);
+  assert.equal((await f.rows('scriptHeads')).length,0);
 });

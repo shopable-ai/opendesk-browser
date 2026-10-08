@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict';
 import {inputIdentity} from '../../scripts/wxt-checkpoint.mjs';
 import {api48Source} from './p4-api48-native-source.mjs';
-import {runControllerCampaigns, CONTROLLER_CAMPAIGNS} from './k5-controller-native-campaigns.mjs';
+import {nativeFailureOutcome, durableReadReady} from './k5-controller-product-native-outcome.mjs';
+import {COOKIE_FAULT_IDS,installCookieFaultObserver,validateCookieFaultJournal} from './k5-controller-cookie-fault.mjs';
+import {SCRIPT_CONTENT_ID,scriptContentPlan,validateScriptContentJournal} from './k5-controller-script-content.mjs';
+import {captureStyleNode,readStyleNode} from './k5-controller-style-observer.mjs';
+import {SCRIPT_SDK_ID,runScriptSdkOriginal} from './k5-controller-product-native-script-sdk.mjs';
+import {armScriptResourceFailure} from './k5-controller-resource-fault.mjs';
+import {SCRIPT_FENCE_ID} from './k5-controller-script-fence.mjs';
+import {runScriptFenceOriginal} from './k5-controller-script-fence-native.mjs';
+import {fixedReadFixtureHTML, originalReadFixtureFamily, originalReadPlan, originalReadPermission, loadOriginalApi48Catalog, ORIGINAL_READ_IDS, validateOriginalReadOracle,captureOriginalReadOutcome,captureOriginalCaseFailure,originalAdmittedRun} from './k5-controller-product-native-original-cases.mjs';
+import {runControllerCampaigns, CONTROLLER_CAMPAIGNS, RESOURCE_KEYS, requireResourceCounts} from './k5-controller-native-campaigns.mjs';
 import {createServer} from 'node:http';
 import {spawn, execFileSync} from 'node:child_process';
 import {readFile, writeFile, mkdir, readdir, realpath, stat, open} from 'node:fs/promises';
@@ -23,22 +32,46 @@ const qualifiedLauncherSha256 = 'e9dfee561b6280eef106bd514f0835d0d5f9251919881c1
 const launcherImplementationPath = '/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py';
 const qualifiedLauncherImplementationSha256 = '1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36';
 const previousRunnerSha256 = 'dd33ded5d8dc90efbb17342a0d03f59cb4acf7fb0894419b67e4605679d11d77';
-const chromeVersions = {'138': '138.0.7204.183', '154': '154.0.8037.92'};
+const chromeVersions = {'138': '138.0.7204.183', '155': '155.0.8059.39'};
 const chromeBinary = label => path.join(root, `tests/.cache/m5-browsers/${chromeVersions[label]}/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`);
 const args = process.argv.slice(2);
 assert(!(args.includes('--native') && args.includes('--contract-check')), 'Contract-check and native execution are separate commands');
 const sourceOnly = args.includes('--source-only');
 const single = args.includes('--single');
+const resourceCheck = args.includes('--resource-check');
+assert(!resourceCheck || single, '--resource-check is a bounded single-run product observation, not a shortened campaign');
 const campaignsRequested = args.includes('--campaigns');
+const cookieFaultRequested=args.includes('--cookie-native-faults');
+const scriptContentRequested=args.includes('--script-content-native');
+assert(!scriptContentRequested||!cookieFaultRequested&&!single&&!resourceCheck&&!campaignsRequested&&!args.some(arg=>arg.startsWith('--original-api48')),'Script content observations use their own supplemental native lane');
+assert(!cookieFaultRequested||!single&&!campaignsRequested&&!args.some(arg=>arg.startsWith('--original-api48')),
+  'Cookie fault observations are a separate targeted native lane');
 assert(args.filter(arg => arg.startsWith('--campaigns')).every(arg => arg === '--campaigns'), '--campaigns always runs the original 1000/10/2 counts');
 assert(!campaignsRequested || !single, '--campaigns uses the frozen 27-case runner; --single is a separate diagnostic');
 assert(!sourceOnly || args.includes('--contract-check') && !args.includes('--native'), '--source-only is a non-native contract-check for Main rebuild in progress');
 const option = (name, fallback) => args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3) || fallback;
+const originalCaseOption = option('original-api48', null);
+const originalRequested = originalCaseOption !== null;
+const originalArgs = args.filter(arg => arg.startsWith('--original-api48'));
+assert(originalArgs.length <= 1 && originalArgs.every(arg => arg.startsWith('--original-api48=') && arg.length > '--original-api48='.length), '--original-api48 requires one explicit original case ID list');
+assert(!originalRequested || !single && !resourceCheck && !campaignsRequested && !args.some(arg => arg.startsWith('--cases')), 'Original cases use their own complete input/oracle lane');
+const originalCatalog = originalRequested ? await loadOriginalApi48Catalog(root) : null;
+const originalCaseIds = originalRequested ? originalCaseOption.split(',').map(id => id.trim()) : [];
+assert(!originalRequested || originalCaseIds.length > 0 && new Set(originalCaseIds).size === originalCaseIds.length, 'Original case selection must be nonempty and unique');
+for (const id of originalCaseIds) assert(ORIGINAL_READ_IDS.includes(id)||id===SCRIPT_SDK_ID||id===SCRIPT_FENCE_ID, `Original case lacks a complete native driver: ${id}`);
+if(originalCaseIds.includes(SCRIPT_FENCE_ID))assert.equal(originalCaseIds.length,1,'Script fencing owns its complete before/after native lifecycle matrix');
+const originalNeedsUserScripts = originalRequested && (originalCaseIds.includes(SCRIPT_SDK_ID)||originalCaseIds.includes(SCRIPT_FENCE_ID)||originalReadPermission(originalCaseIds));
+if(originalCaseIds.includes(SCRIPT_SDK_ID)&&originalCaseIds.length>1)assert.equal(originalReadPermission(originalCaseIds.filter(id=>id!==SCRIPT_SDK_ID)),true,'SDK original cannot mix enabled and disabled native profiles');
+const originalDefinitions = originalCaseIds.map(id => {
+  const definition = originalCatalog.cases.find(row => row.id === id); assert(definition, `Missing immutable original contract: ${id}`); return definition;
+});
+const nativeSelection = option('native-selection', 'assist');
+assert(['assist', 'cdp'].includes(nativeSelection), '--native-selection must be assist or cdp');
 const modes = option('mode', 'all') === 'all' ? ['production', 'development'] : [option('mode')];
-const labels = option('chrome', 'all') === 'all' ? ['138', '154'] : [option('chrome')];
+const labels = option('chrome', 'all') === 'all' ? ['138', '155'] : [option('chrome')];
 const caseOption = option('cases', 'all');
 assert(modes.every(x => ['production', 'development'].includes(x)));
-assert(labels.every(x => ['138', '154'].includes(x)));
+assert(labels.every(x => ['138', '155'].includes(x)));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const errorView = error => ({code: error.code, name: error.name, message: error.message, stack: error.stack, actual: error.actual});
@@ -73,7 +106,7 @@ async function sourceFingerprint() {
   files.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
   return {files, sourceHash: digest(JSON.stringify(files))};
 }
-const contracts = (single ? [['WXT-P3-RETURN7-REOPEN', 'USC03/CTRL03/EX08/RESOURCE', 'Real UI committed return 7; revision, params, exact document, permission, actual Worker, durable released run, reopened tool same runId value7']] : [
+let contracts = (single ? [['WXT-P3-RETURN7-REOPEN', 'USC03/CTRL03/EX08/RESOURCE', 'Real UI committed return 7; revision, params, exact document, permission, actual Worker, durable released run, reopened tool same runId value7']] : [
   ['NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES', 'P4/RESOURCE', 'Real disabled native capability yields typed failed result, released owned target, pin and slot before positive user-script tests'],
   ['OWNED-GOTO-TYPE-CLICK-WAIT-READ-RETURN', 'A01/NAV01/CMP09', 'Real owned page navigates; BaseAlice, Typed/clicked; HTTP effect and durable typed return agree'],
   ['P4-API48-WORKER-SEMANTICS', 'API48/P4', 'All 48 members exercise supported calls or typed capability denial in the actual bound Worker; this does not close original host-context or final matrix variants'],
@@ -121,6 +154,12 @@ if (!single) assert.deepEqual(contracts.map(row => row.id), [
   'CLEANUP-NO-SCRAPING-RECORDS'
 ], 'Frozen full native contract ids changed');
 if (!single) contracts.push({id:'INCREMENTAL-WORKER-SERVICES',families:'T4/storage/network',expected:'Actual fixed Worker uses run-authorized HTTP and isolated typed storage; one server effect; no SDK admission',phase:'incremental',layer:'actual product entry native Chrome',status:'NOT_TESTED'});
+if (originalRequested) contracts = originalDefinitions.map(definition => ({id:definition.id, families:definition.capabilityIds.join('/'), expected:definition.expected,
+  contractSha256:digest(JSON.stringify(definition)), definition, phase:'F2/F3 original input', layer:'actual product entry native Chrome', status:'NOT_TESTED'}));
+if(cookieFaultRequested)contracts=COOKIE_FAULT_IDS.map(id=>({id,families:'CMP04-API19/20-ERR;AUTH/unknown-effect',
+  expected:'Real native set/remove lastError, exact product dispatch, conservative effect_unknown fence and released Worker',
+  phase:'targeted native fault',layer:'actual product entry native Chrome',status:'NOT_TESTED'}));
+if(scriptContentRequested)contracts=[{id:SCRIPT_CONTENT_ID,families:'RESOURCE01-API16/target-authority',expected:'Real saved controller modifies only the selected document through addScriptTag content; MAIN, USER_SCRIPT and Worker boundaries remain distinct',phase:'targeted page script semantics',layer:'actual product entry native Chrome',status:'NOT_TESTED'}];
 const allCaseIds = new Set(contracts.map(row => row.id));
 const selectedCaseIds = caseOption === 'all' ? new Set(allCaseIds) : new Set(caseOption.split(',').map(x => x.trim()).filter(Boolean));
 assert(selectedCaseIds.size > 0, '--cases must name at least one case or use all');
@@ -135,7 +174,9 @@ for (const row of contracts) {
   row.selected = selectedCaseIds.has(row.id);
   if (!row.selected) row.reason = 'Not selected by --cases';
 }
-const caseSelection = {option: caseOption, explicit: explicitlySelectedIds, prerequisites: [...selectedCaseIds].filter(id=>!explicitlySelectedIds.includes(id)), selected: [...selectedCaseIds], allSelected: selectedCaseIds.size === allCaseIds.size};
+const caseSelection = {option: originalCaseOption || caseOption, original:originalRequested, originalCatalog:originalCatalog?.binding,
+  ...(originalRequested ? {originalCoverage:{denominator:603,api48Denominator:192,connectedDriverCases:[...ORIGINAL_READ_IDS],selectedCases:[...originalCaseIds],userScripts:originalNeedsUserScripts}} : {}),
+  explicit: explicitlySelectedIds, prerequisites: [...selectedCaseIds].filter(id=>!explicitlySelectedIds.includes(id)), selected: [...selectedCaseIds], allSelected: selectedCaseIds.size === allCaseIds.size};
 const f1Files = [
   ['docs/framework/reviews/migration-execution-v5/round-6/candidate/candidate-manifest.json', 'da4432720e75bbda7112f93d90829f1bfefd8790a1d7cecec09473bd1c6bc7d1'],
   ['docs/framework/reviews/m5-f1/final-candidate-v1/candidate-manifest.json', 'a9ce67f85964f2512212430d56b488b5b0e2c11f6afdff2ea562428c3e77da66'],
@@ -254,7 +295,7 @@ async function until(operation, description, ms = 15000) {
   const error = new Error(`Observation timed out: ${description}`); error.code = 'E_OBSERVATION_TIMEOUT'; throw error;
 }
 async function connect(url, label) {
-  const socket = new WebSocket(url), pending = new Map(), listeners = new Set(); let sequence = 0;
+  const socket = new WebSocket(url), pending = new Map(), listeners = new Set(); let sequence = 0, closed = false;
   await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = reject; });
   function record(direction, message) { appendFileSync(path.join(output, 'raw-cdp.jsonl'), JSON.stringify({at: new Date().toISOString(), monoMs: performance.now(), endpoint: label, direction, message}) + '\n'); }
   socket.onmessage = ({data}) => {
@@ -265,12 +306,17 @@ async function connect(url, label) {
     if (message.error) { const error = new Error(JSON.stringify(message.error)); error.code = 'E_RUNNER_CDP'; waiter.reject(error); }
     else waiter.resolve(message.result);
   };
-  socket.onclose = () => { for (const waiter of pending.values()) { clearTimeout(waiter.timer); waiter.reject(new Error(`${label} socket closed`)); } pending.clear(); };
+  const closedError = () => Object.assign(new Error(`${label} socket closed`), {code: 'E_RUNNER_CDP_CLOSED'});
+  function rejectPending() { closed = true; for (const waiter of pending.values()) { clearTimeout(waiter.timer); waiter.reject(closedError()); } pending.clear(); }
+  socket.onclose = rejectPending;
   return {send(method, params = {}) { return new Promise((resolve, reject) => {
+    if (closed || socket.readyState !== 1) { reject(closedError()); return; }
     const id = ++sequence, message = {id, method, params};
     const timer = setTimeout(() => { pending.delete(id); const error = new Error(`${label} ${method} timeout`); error.code = 'E_RUNNER_CDP'; reject(error); }, 45000);
-    pending.set(id, {resolve, reject, timer}); record('sent', message); socket.send(JSON.stringify(message));
-  }); }, onEvent: listener => listeners.add(listener), close: () => socket.close()};
+    pending.set(id, {resolve, reject, timer});
+    try { record('sent', message); socket.send(JSON.stringify(message)); }
+    catch (error) { pending.delete(id); clearTimeout(timer); reject(error); }
+  }); }, get isOpen() { return !closed && socket.readyState === 1; }, onEvent: listener => listeners.add(listener), close: () => { rejectPending(); socket.close(); }};
 }
 async function evaluate(client, expression) {
   const raw = await client.send('Runtime.evaluate', {expression, returnByValue: true, awaitPromise: true});
@@ -356,7 +402,7 @@ function startGlobalLauncher({binary, extension, absolute}) {
     await captureLog().catch(error => errors.push(errorView(error)));
     // Browser.close intentionally closes only our owned Chrome. Inspection
     // clients use socket.close(); the Python parent stays alive to run finally.
-    if (browserClient) { await browserClient.send('Browser.close').catch(error => errors.push(errorView(error))); browserClient.close(); }
+    if (browserClient) { if (browserClient.isOpen) await browserClient.send('Browser.close').catch(error => errors.push(errorView(error))); browserClient.close(); }
     else if (pidAlive(launcher.pid)) { state('launcher-sigterm'); launcher.kill('SIGTERM'); }
     let result = await Promise.race([exited, sleep(5000).then(() => null)]);
     if (!result && pidAlive(launcher.pid)) { state('launcher-sigterm-after-close-timeout'); launcher.kill('SIGTERM'); result = await Promise.race([exited, sleep(5000).then(() => null)]); }
@@ -392,7 +438,7 @@ async function nativeMain() {
   assert.equal(receipt.executionWindow?.lane, 'controller-product-native'); assert.equal(receipt.executionWindow?.sdkRunnerIdle, true);
   for (const mode of modes) { assert.equal(receipt.packages?.[mode], packageBefore[mode].packageHash); assert(!packageBefore[mode].packageHash.startsWith('4fc301'), 'Forbidden old dist'); }
   await json('main-rebuild-receipt.json', receipt);
-  const serverEvents = [], reports = [];
+  const serverEvents = [], reports = [], originalBarriers = new Map();
   const server = createServer(async (req, res) => {
     const chunks = []; for await (const chunk of req) chunks.push(chunk);
     const body = Buffer.concat(chunks).toString('utf8'), url = new URL(req.url, 'http://127.0.0.1');
@@ -400,6 +446,27 @@ async function nativeMain() {
     serverEvents.push(entry); appendFileSync(path.join(output, 'raw-http.jsonl'), JSON.stringify({event: 'request', ...entry}) + '\n');
     for (const event of ['finish', 'close']) res.on(event, () => appendFileSync(path.join(output, 'raw-http.jsonl'), JSON.stringify({event, at: Date.now(), sequence: entry.sequence, statusCode: res.statusCode}) + '\n'));
     res.setHeader('cache-control', 'no-store');
+    if (url.pathname === '/original-api48-barrier') {
+      const barrier = originalBarriers.get(url.searchParams.get('token'));
+      if (!barrier || req.method !== 'GET' || barrier.request) { res.statusCode = 409; res.end('Unknown or duplicate original read barrier'); return; }
+      barrier.request = entry; barrier.response = res;
+      return; // The real Worker HTTP Promise remains pending until B is observed.
+    }
+    if (url.pathname === '/original-api48' || url.pathname === '/path/original-api48') {
+      const role = url.searchParams.get('role');
+      if (!['A','B'].includes(role)) { res.statusCode = 400; res.end('Invalid original fixture'); return; }
+      const family = url.searchParams.get('family') || 'fixed';
+      if (!['fixed','selector','click-error','input-actions','type-error','cookie','cookie-set','cookie-delete'].includes(family)) { res.statusCode=400; res.end('Invalid original fixture family'); return; }
+      if ((url.pathname === '/path/original-api48') !== (family.startsWith('cookie')&&role==='A')) { res.statusCode=400; res.end('Invalid original fixture path'); return; }
+      if(url.searchParams.get('resourceFault')==='script-network'){
+        if(role!=='A'||family!=='selector'){res.statusCode=400;res.end('Invalid script resource fault');return;}
+        appendFileSync(path.join(output,'raw-http.jsonl'),JSON.stringify({event:'script-resource-network-fault-target',at:Date.now(),url:req.url,resourceBytesUnchanged:true})+'\n');
+      }
+      if (family==='cookie'&&role==='A')res.setHeader('set-cookie',['sid=a=b; Path=/; HttpOnly; SameSite=Lax','sid=path; Path=/path; HttpOnly; SameSite=Lax']);
+      if (['cookie-set','cookie-delete'].includes(family))res.setHeader('set-cookie',role==='B'?['sid=B; Path=/; HttpOnly; SameSite=Lax']:
+        [family==='cookie-set'?'sid=before; Path=/; HttpOnly; SameSite=Strict':'sid=a=b; Path=/; HttpOnly; SameSite=Lax','sid=path; Path=/path; HttpOnly; SameSite=Lax']);
+      res.setHeader('content-type', 'text/html; charset=utf-8'); res.end(fixedReadFixtureHTML(role,family)); return;
+    }
     if (url.pathname === '/observe') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({observed: true})); return; }
     if (url.pathname === '/abc') { res.setHeader('content-type', 'text/plain'); res.end('abc'); return; }
     res.setHeader('content-type', 'text/html; charset=utf-8');
@@ -416,7 +483,7 @@ async function nativeMain() {
   log({state: 'native-server-ready', runnerPid: process.pid, origin, output});
   try {
     nativeEnvironments: for (const mode of modes) for (const label of labels) {
-      const report = await browserRun({mode, label, origin, serverEvents}); reports.push(report);
+      const report = await browserRun({mode, label, origin, serverEvents, originalBarriers}); reports.push(report);
       if (campaignsRequested && (report.error || report.campaigns?.status !== 'PASS')) break nativeEnvironments;
     }
   } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await json('raw-http-final.json', serverEvents); }
@@ -462,7 +529,7 @@ async function nativeMain() {
     x.cleanup?.nativeLogPreservedAfterLauncherExit !== true || x.cleanup?.exit?.code !== 0 || campaignsRequested && x.campaigns?.status !== 'PASS') || selectedOrPrereqNotPassed) process.exitCode = 1;
 }
 
-async function browserRun({mode, label, origin, serverEvents}) {
+async function browserRun({mode, label, origin, serverEvents, originalBarriers}) {
   const directory = `${mode}-${label}`, absolute = path.join(output, directory);
   await mkdir(path.join(absolute, 'downloads'), {recursive: true});
   const version = chromeVersions[label];
@@ -488,13 +555,14 @@ async function browserRun({mode, label, origin, serverEvents}) {
     row.productInputsSha256=report.productInputsSha256; row.verificationInputsSha256=report.verificationInputsSha256; row.packageSha256=report.packageHash; row.browserVersion=version; row.startedAt = Date.now(); row.input = {}; row.evidence = {cdp: '../raw-cdp.jsonl', http: '../raw-http.jsonl'};
     if (prerequisite) row.prerequisite = true;
     try { nativeLauncher.keepAlive(); row.actual = await operation(row); nativeLauncher.keepAlive(); await nativeLauncher.captureLog(); row.status = 'PASS'; }
-    catch (error) { row.status = error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'BLOCKED' : 'FAIL'; row.error = errorView(error);
-      row.attribution = error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'permission-wait' : error.code?.startsWith('E_RUNNER') ? 'runner' : 'product-or-native-contract';
+    catch (error) { Object.assign(row, nativeFailureOutcome(error)); row.error = errorView(error);
       if (tool) row.ui = await ui(tool).catch(() => null);
     }
     row.elapsedMs = performance.now() - begin; await json(`${directory}/case-${id}.json`, row); log({state: 'case', mode, label, id, status: row.status, attribution: row.attribution});
+    if(row.retainedOriginalTargets)throw Object.assign(new Error('Original run retirement unresolved; remaining original cases not executed'),{code:'E_RUNNER_ORIGINAL_RETIREMENT_UNRESOLVED',actual:{caseId:id,originalError:row.error,retainedTargets:row.retainedOriginalTargets}});
     if (row.status === 'BLOCKED') throw Object.assign(new Error('Native permission still pending; remaining cases not executed'), {code: 'E_NATIVE_PERMISSION_WAIT', actual: row.error});
-    if (row.status === 'FAIL' && (single || row.attribution === 'runner' || row.error?.code === 'E_OBSERVATION_TIMEOUT' || row.ui?.text?.includes('E_EFFECT_UNKNOWN'))) throw Object.assign(new Error('Runner prerequisite failed; remaining cases not executed'), {code: row.error.code, actual: row.error});
+    if (row.status === 'NOT_TESTED') throw Object.assign(new Error('Required native observation unavailable; remaining cases not executed'), {code:row.error.code, actual:row.error});
+    if (row.status === 'FAIL' && (single || originalRequested || row.ui?.text?.includes('E_EFFECT_UNKNOWN'))) throw Object.assign(new Error('Selected native case failed; remaining dependent cases not executed'), {code: row.error.code, actual: row.error});
     return row.status === 'PASS' ? row.actual : null;
   }
   async function targets() { return (await browserClient.send('Target.getTargets')).targetInfos; }
@@ -541,15 +609,23 @@ async function browserRun({mode, label, origin, serverEvents}) {
     const before = await inspect(), index = before.options.findIndex(option => option.value === desired);
     assert(index >= 0 && !before.options[index].disabled, 'Actual UI must contain the exact enabled option');
     if (before.value === desired) return before;
-    if (args.includes('--native-ui-assist')) {
+    if (args.includes('--native-ui-assist') && nativeSelection === 'assist') {
       const request = {state:'native-selection-assist',mode,label,pid:report.pid,launcherPid:report.launcherPid,
-        endpoint:report.endpoint,targetId:id,selector,desired,optionIndex:index,before,
-        instruction:'Use the bound live native Chrome window to commit this exact option; no DOM assignment or synthetic events'};
+        endpoint:report.endpoint,targetId:id,selector,desired,optionIndex:index,before,requestId:randomUUID(),
+        instruction:'Commit this exact option in the bound native Chrome window, then acknowledge completion only after the CUA action and readback finish; no DOM assignment or synthetic events'};
+      request.ackPath=path.join(absolute,`native-selection-ui-ack-${request.requestId}.json`);
       await json(`${directory}/pending-native-selection.json`,request); log(request);
-      const after = await until(async()=>{const observed=await inspect();return observed.value===desired && observed;},
+      const after = await until(async()=>{
+        const observed=await inspect(); if(observed.value!==desired)return false;
+        try {const ack=JSON.parse(await readFile(request.ackPath,'utf8'));
+          return ack.requestId===request.requestId && ack.pid===report.pid && ack.targetId===id &&
+            ack.selector===selector && ack.desired===desired && ack.nativeInputComplete===true &&
+            ack.noDomAssignment===true && ack.noSyntheticEvent===true && observed;
+        } catch {return false;}
+      },
         `native UI exact option ${selector}`,Number(option('permission-timeout','120000')));
       appendFileSync(path.join(absolute,'ui-selection.jsonl'),JSON.stringify({at:Date.now(),monoMs:performance.now(),
-        targetId:id,selector,desired,before,after,input:'native UI assist; exact DOM readback; external CUA action transcript required'})+'\n');
+        targetId:id,selector,desired,before,after,ackPath:request.ackPath,input:'native UI assist; exact DOM readback and serial CUA completion acknowledgement'})+'\n');
       await json(`${directory}/pending-native-selection.json`,{...request,state:'selection-observed',after});
       return after;
     }
@@ -580,7 +656,15 @@ async function browserRun({mode, label, origin, serverEvents}) {
     await fill(client, id, '#script-id', scriptId); await fill(client, id, '#script-source', source); await fill(client, id, '#script-params', JSON.stringify(params));
     const expectedHash=digest(Buffer.from(source,'utf8'));
     const previous=await snapshot(client, snapshotFilter), previousRevision=Math.max(0,...previous.rows.scriptRevisions.filter(x=>x.value.scriptId===scriptId).map(x=>x.value.revision));
+    const expectedForm={scriptId,source,params:JSON.stringify(params)};
+    const verifyForm=async stage=>{
+      const observed=await evaluate(client,`({scriptId:document.querySelector('#script-id').value,source:document.querySelector('#script-source').value,params:document.querySelector('#script-params').value})`);
+      appendFileSync(path.join(absolute,'ui-save-input.jsonl'),JSON.stringify({at:Date.now(),targetId:id,stage,expected:expectedForm,observed})+'\n');
+      if(JSON.stringify(observed)!==JSON.stringify(expectedForm))throw Object.assign(new Error(`Native save form changed: ${stage}`),{code:'E_RUNNER_UI_INPUT',actual:{stage,expected:expectedForm,observed}});
+    };
+    await verifyForm('before-trusted-save');
     await click(client, id, '#script-save');
+    await verifyForm('after-trusted-save');
     const committed=await until(async()=>{
       const snap=await snapshot(client, snapshotFilter),revision=Number(await evaluate(client,'document.querySelector("#script-revision").value'));
       const row=snap.rows.scriptRevisions.find(x=>x.value.scriptId===scriptId && x.value.revision===revision && revision>previousRevision && x.value.contentHash===expectedHash)?.value;
@@ -619,14 +703,24 @@ async function browserRun({mode, label, origin, serverEvents}) {
     }
   }
   async function durable(runId, client = tool, filtered = false) {
-    return until(async () => { const snap = await snapshot(client, filtered ? {runId} : null), result = snap.rows.results.find(x => x.value.runId === runId)?.value;
-      const run = snap.rows.runs.find(x => x.value.runId === runId)?.value;
+    return until(async () => { const snap = await snapshot(client, filtered ? {runId} : null), run = snap.rows.runs.find(x => x.value.runId === runId)?.value;
+      const result = snap.rows.results.find(x => x.value.tag === 'controller-result' && x.value.runId === runId && x.value.resultId === run?.resultId)?.value;
       return result && run?.retirementState === 'released' && {run, result, snapshot: snap};
     }, `durable terminal and retirement ${runId}`, 40000);
   }
   async function readUI(runId, client = tool, id = toolId) {
-    await fill(client, id, '#script-run-id', runId); await click(client, id, '#script-read');
-    return until(async () => { const view = await ui(client); if (view.state === 'error') throw new Error(view.text); return view.state === 'results' && view.result.includes(runId) && view; }, 'actual durable read UI');
+    await fill(client, id, '#script-run-id', runId); const before = await ui(client); await click(client, id, '#script-read');
+    return until(async () => {
+      const view = await ui(client);
+      // A trusted Read starts an async request; its preceding Start error is
+      // still visible until that request renders its own projection.
+      if (view.state === 'error' && (before.state !== 'error' || view.text !== before.text || view.result !== before.result)) throw new Error(view.text);
+      // A same-run projection can already be visible before this trusted Read
+      // settles. Observe its real client transport before accepting the view.
+      const lifecycle = await evaluate(client, 'globalThis.OpenDeskResourceDiagnostics?.snapshot() ?? null');
+      appendFileSync(path.join(absolute,'durable-read-observations.jsonl'),JSON.stringify({at:Date.now(),targetId:id,runId,view,lifecycle})+'\n');
+      return durableReadReady(view,runId,lifecycle) && view;
+    }, 'actual durable read UI');
   }
   async function run(source, params = {}, owned = false) {
     const revision = await commit(source, params);
@@ -637,6 +731,321 @@ async function browserRun({mode, label, origin, serverEvents}) {
   }
   const chain = `await page.goto(params.url); const typed=await page.type('#name',params.name); const clicked=await page.click('#submit'); await page.waitForSelector('#result[data-done="true"]'); return {typed,clicked,read:await page.snapshot('#result'),title:await page.title(),url:await page.url(),revision:params.revision,f:false,z:0,u:undefined};`;
   const typedCases = new Map();
+  async function toolResources() {
+    const lifecycle = await evaluate(tool, `(async()=>{const d=globalThis.OpenDeskResourceDiagnostics;
+      return d && typeof d.snapshot==='function' ? await d.snapshot() : null;})()`);
+    const nativeTargets = await targets(), workers = nativeTargets.filter(row => row.type === 'worker');
+    const observation = {scope:lifecycle?.scope, counts:lifecycle?.counts, lifecycle, nativeTargets,
+      hostTargetId:toolId, observedAt:Date.now(), readPath:'actual tool globalThis.OpenDeskResourceDiagnostics.snapshot()',
+      observationMissing:lifecycle?.observationMissing || (lifecycle ? null : 'Product six-count lifecycle read is not connected')};
+    const counts = requireResourceCounts(observation);
+    assert.equal(lifecycle.scope, 'extension-tool-document');
+    assert.equal(counts.workers, workers.length, 'Tool boundary must agree with the actual native Worker inventory');
+    return observation;
+  }
+  async function scriptContentNative() {
+    await caseRun(SCRIPT_CONTENT_ID,async row=>{
+      const plan=scriptContentPlan(randomUUID());let runId=null,revision=null,retired=false;
+      const observe=async page=>evaluate(page.client,`(()=>{const selector=${JSON.stringify(plan.params.selector)};
+        return {nodeHTML:document.querySelector(selector)?.outerHTML??null,nodeCount:document.querySelectorAll(selector).length,
+          marker:globalThis.__opendeskContentProof,documentURL:location.href};})()`);
+      try {
+        const beforeA=await observe(target),beforeB=await observe(decoy),resourcesBefore=await toolResources();
+        revision=await commit(plan.source,plan.params);
+        const selected=await chooseBorrowed(target);
+        row.input={...plan,expectedWire:encodeValue(plan.expected),revision,selected,beforeA,beforeB};await json(`${directory}/${SCRIPT_CONTENT_ID}-input.json`,row.input);
+        runId=await start();const actual=await durable(runId,tool,true);retired=actual.run.retirementState==='released';
+        await json(`${directory}/${SCRIPT_CONTENT_ID}-terminal.json`,actual);
+        assert.equal(actual.result.state,'completed');assert.equal(actual.result.outcome.ok,true);
+        const value=decodeValue(actual.result.outcome.valueWire),afterA=await observe(target),afterB=await observe(decoy),resourcesAfter=await toolResources();
+        const operations=actual.snapshot.rows.commandJournal.filter(r=>r.value.tag==='controller-operation'&&r.value.runId===runId).map(r=>r.value);
+        await json(`${directory}/${SCRIPT_CONTENT_ID}-final-observations.json`,{afterA,afterB,resourcesBefore,resourcesAfter});
+        const oracle=validateScriptContentJournal({...actual,operations,selected,revision,value,expected:plan.expected,
+          resourcesBefore,resourcesAfter,beforeA,afterA,beforeB,afterB});
+        return {...actual,revision,selected,value,operations,oracle,beforeA,afterA,beforeB,afterB,resourcesBefore,resourcesAfter,formalAccepted:false};
+      } finally {
+        if(runId&&!retired)try {
+          const observed=await snapshot(tool,{runId}),known=observed.rows.runs.find(r=>r.value.runId===runId)?.value;
+          await json(`${directory}/${SCRIPT_CONTENT_ID}-failure-before-cleanup.json`,observed);
+          assert.equal(known?.revision.sourceHash,revision.sourceHash);
+          if(!known.workerRetired&&await evaluate(tool,'!document.querySelector("#script-stop").disabled'))await click(tool,toolId,'#script-stop');
+          const actual=await durable(runId,tool,true);await json(`${directory}/${SCRIPT_CONTENT_ID}-failure-after-cleanup.json`,actual);
+        } catch(error){await json(`${directory}/${SCRIPT_CONTENT_ID}-cleanup-unresolved.json`,errorView(error));}
+      }
+    });
+  }
+  async function originalReads() {
+    async function userScriptsObservation() {
+      const worker = (await targets()).find(t => t.type === 'service_worker' && t.url === report.actualSW.url);
+      assert(worker, 'Actual extension worker is missing');
+      const observer = await attach(worker.targetId);
+      try { return await evaluate(observer, '(async()=>{try{if(!chrome.userScripts?.getScripts)return{available:false,reason:"undefined API"};await chrome.userScripts.getScripts();return{available:true};}catch(e){return{available:false,reason:e.message}}})()'); }
+      finally { observer.close(); }
+    }
+    async function pageObservation(page) {
+      const tab = await evaluate(tool, `chrome.tabs.query({}).then(t=>t.find(x=>x.url===${JSON.stringify(page.url)}))`);
+      assert(tab && Number.isInteger(tab.id));
+      const frames = await evaluate(tool, `chrome.webNavigation.getAllFrames({tabId:${tab.id}})`), main = frames.find(frame => frame.frameId === 0);
+      assert(main?.documentId);
+      const view = await evaluate(page.client, `(()=>{const marker=document.querySelector('#screenshot-marker'),style=marker&&getComputedStyle(marker),rect=marker?.getBoundingClientRect();
+        return {url:location.href,title:document.title,bodyHTML:document.body.innerHTML,documentCookie:document.cookie,inputValue:document.querySelector('#text')?.value??null,
+          readonlyValue:document.querySelector('#readonly')?.value??null,
+          styles:{color:document.querySelector('#marker')?getComputedStyle(document.querySelector('#marker')).color:null,head:Array.from(document.head.querySelectorAll('style')).map(node=>node.textContent)},
+          screenshotMarker:marker?{color:style.backgroundColor,visible:style.visibility==='visible'&&style.display!=='none'&&style.opacity!=='0'&&rect.width>0&&rect.height>0}:null,
+          inputEvents:typeof window.OpenDeskInputEventObservations?.read==='function'?window.OpenDeskInputEventObservations.read():null};})()`);
+      return {...view, tabId:tab.id, frameId:main.frameId, documentId:main.documentId, nativeTargetId:page.id};
+    }
+    async function cookieFaults() {
+      for(const id of COOKIE_FAULT_IDS)await caseRun(id,async row=>{
+        const method=id===COOKIE_FAULT_IDS[0]?'set':'remove',family=method==='set'?'cookie-set':'cookie-delete';
+        const aURL=`${origin}/path/original-api48?seed=${seed}&role=A&family=${family}`;
+        const bURL=`${origin.replace('127.0.0.1','localhost')}/original-api48?seed=${seed}&role=B&family=${family}`;
+        const aPage=await newPage(aURL),bPage=await newPage(bURL),token=randomUUID(),barrier={token};
+        originalBarriers.set(token,barrier);
+        const source=`await axiosx.get(params.nativeBarrierURL);const errors=[];try{await ${method==='set'?"page.setCookie({name:'__Secure-opendesk-native-failure',value:'blocked',secure:false,httpOnly:true,path:'/'})":"page.deleteCookie({name:'sid',path:'/'})"};errors.push('NATIVE_FALSE_SUCCESS');}catch(e){errors.push(e.code);}try{await page.setCookie({name:'opendesk-must-not-follow',value:'blocked'});errors.push('FOLLOWING_FALSE_SUCCESS');}catch(e){errors.push(e.code);}return errors;`;
+        const params={nativeBarrierURL:`${origin}/original-api48-barrier?token=${token}`};
+        let observer,observerClient,runId,actual,baseline,revision,selected,retired=false;
+        try {
+          revision=await commit(source,params);selected=await chooseBorrowed(aPage);
+          if(!await evaluate(tool,'document.querySelector("#script-allow-cookies").checked'))await click(tool,toolId,'#script-allow-cookies');
+          const beforeB=await pageObservation(bPage),resourcesBefore=await toolResources();
+          runId=await start();
+          await until(()=>barrier.request&&barrier.response&&!barrier.response.destroyed,'cookie fault held real HTTP admission barrier');
+          baseline=await cookieObservation(selected,beforeB,bPage,true);
+          assert.equal(baseline.permissions.bOriginGranted,false);
+          const worker=(await targets()).find(t=>t.type==='service_worker'&&t.url===report.actualSW.url);assert(worker);
+          observerClient=await attach(worker.targetId);
+          observer=await installCookieFaultObserver({client:observerClient,method,until,source:await readFile(path.join(extension,'sw.js'),'utf8'),
+            record:evidence=>json(`${directory}/${id}-native-observer.json`,evidence),
+            ...(method==='remove'?{onSubmission:async submission=>{
+              assert.equal(submission.details.name,'sid');assert.equal(submission.details.storeId,baseline.a.cookies[0].storeId);
+              const pattern=`${new URL(origin).protocol}//${new URL(origin).hostname}/*`;
+              const before=await evaluate(tool,`chrome.permissions.contains({origins:[${JSON.stringify(pattern)}]})`);assert.equal(before,true);
+              const removed=await evaluate(tool,`chrome.permissions.remove({origins:[${JSON.stringify(pattern)}]})`);assert.equal(removed,true);
+              const after=await evaluate(tool,`chrome.permissions.contains({origins:[${JSON.stringify(pattern)}]})`);assert.equal(after,false);
+              return {kind:'real native host-permission revocation after authorized precheck before cookie.remove',pattern,before,removed,after,at:Date.now()};
+            }}:{})});
+          row.input={source,params,revision,selected,baseline,method,contractCaseId:method==='set'?'CMP04-API19-ERR':'CMP04-API20-ERR'};
+          await json(`${directory}/${id}-input.json`,row.input);
+          barrier.response.setHeader('content-type','application/json');barrier.response.end(JSON.stringify({released:true}));
+          const native=await observer.complete();
+          await observer.close();observer=null;observerClient.close();observerClient=null;
+          const fenced=await until(async()=>{const observed=await snapshot(tool,{runId});
+            const run=observed.rows.runs.find(r=>r.value.runId===runId)?.value;
+            const operation=observed.rows.commandJournal.find(r=>r.value.runId===runId&&r.value.envelope?.operation.method===(method==='set'?'setCookie':'deleteCookie'))?.value;
+            return operation?.state==='effect_unknown'&&operation.deliveryState==='fenced'&&{run,operation,snapshot:observed};
+          },'real Cookie failure conservative effect fence');
+          await json(`${directory}/${id}-fenced-before-stop.json`,fenced);
+          if(!fenced.run.workerRetired) {
+            assert.equal(await evaluate(tool,'document.querySelector("#script-run-id").value'),runId);
+            assert.equal(await evaluate(tool,'document.querySelector("#script-stop").disabled'),false);
+            await click(tool,toolId,'#script-stop');
+          }
+          actual=await durable(runId,tool,true);retired=actual.run.retirementState==='released';
+          const operations=actual.snapshot.rows.commandJournal.filter(r=>r.value.tag==='controller-operation'&&r.value.runId===runId).map(r=>r.value);
+          const oracle=validateCookieFaultJournal({...actual,operations,observer:native,method});
+          if(method==='set')assert.equal(operations.find(o=>o.envelope?.operation.method==='setCookie').failure.code,'E_COOKIE_OPERATION');
+          assert.equal(actual.result.revision.sourceHash,revision.sourceHash);
+          const afterA=(await aPage.client.send('Network.getCookies',{urls:[aURL]})).cookies;
+          const afterB=(await bPage.client.send('Network.getCookies',{urls:[bURL]})).cookies;
+          function cookieValues(rows){return rows.map(c=>({name:c.name,value:c.value,domain:c.domain,path:c.path,httpOnly:c.httpOnly,secure:c.secure})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));}
+          assert.deepEqual(cookieValues(afterA),cookieValues(baseline.a.cookies),'Native failure must not change A cookies');
+          assert.deepEqual(cookieValues(afterB),cookieValues(baseline.b.cookies),'Native failure must not change ungranted B cookies');
+          const resourcesAfter=await toolResources();assert.deepEqual(resourcesAfter.counts,resourcesBefore.counts);
+          return {...actual,revision,selected,oracle,native,afterA,afterB,resourcesBefore,resourcesAfter,formalAccepted:false};
+        } finally {
+          if(observer)await observer.close();if(observerClient)observerClient.close();
+          if(barrier.response&&!barrier.response.writableEnded){barrier.response.statusCode=503;barrier.response.end('Cookie fault observation ended');}
+          originalBarriers.delete(token);
+          if(runId&&!retired) {
+            const beforeCleanup=await snapshot(tool,{runId});
+            await json(`${directory}/${id}-failure-before-cleanup.json`,beforeCleanup);
+            const known=beforeCleanup.rows.runs.find(r=>r.value.runId===runId)?.value;
+            assert.equal(known?.revision.sourceHash,revision.sourceHash,'Cleanup may only stop this exact admitted source');
+            try {
+              if(!known.workerRetired&&await evaluate(tool,'!document.querySelector("#script-stop").disabled'))await click(tool,toolId,'#script-stop');
+              const terminal=await durable(runId,tool,true);retired=terminal.run.retirementState==='released';
+              await json(`${directory}/${id}-failure-after-cleanup.json`,terminal);
+            } catch(error) {await json(`${directory}/${id}-cleanup-unresolved.json`,errorView(error));}
+          }
+          await json(`${directory}/${id}-final-snapshot.json`,await snapshot(tool,runId?{runId}:null)).catch(()=>{});
+          if(!runId||retired) {
+            for(const page of [aPage,bPage])if((await targets()).some(t=>t.targetId===page.id))await browserClient.send('Target.closeTarget',{targetId:page.id});
+          } else row.retainedOriginalTargets=[aPage.id,bPage.id];
+        }
+      });
+    }
+    async function cookieObservation(selected,beforeB,bPage,isolatedB=false) {
+      const bURL=new URL(bPage.url),bOriginPattern=`${bURL.protocol}//${bURL.hostname}/*`;
+      const observation=await evaluate(tool,`(async()=>{const cookies=await chrome.permissions.contains({permissions:['cookies']});
+        const bOriginGranted=${isolatedB}?await chrome.permissions.contains({origins:[${JSON.stringify(bOriginPattern)}]}):null;
+        const permissions={cookies,...(${isolatedB}?{bOriginPattern:${JSON.stringify(bOriginPattern)},bOriginGranted}:{})};
+        if(!cookies)throw Object.assign(new Error('Actual cookie permission is missing after trusted Start'),{code:'E_RUNNER_ORIGINAL_COOKIE_PRECONDITION',actual:permissions});
+        const stores=await chrome.cookies.getAllCookieStores();
+        const matched=stores.filter(store=>store.tabIds.includes(${selected.tabId}));if(matched.length!==1)throw new Error('Actual cookie store is ambiguous');
+        const read=async(tabId)=>{const frames=await chrome.webNavigation.getAllFrames({tabId}),frame=frames.find(frame=>frame.frameId===0);
+          if(!frame)throw new Error('Actual cookie document is missing');return {tabId,frame,cookies:await chrome.cookies.getAll({url:frame.url,storeId:matched[0].id})};};
+        const b=${isolatedB}?{tabId:${beforeB.tabId},frame:(await chrome.webNavigation.getAllFrames({tabId:${beforeB.tabId}})).find(f=>f.frameId===0)}:await read(${beforeB.tabId});
+        return {permissions,stores,a:await read(${selected.tabId}),b};})()`);
+      if(isolatedB) {observation.b.cookieSource='CDP.Network.getCookies';observation.b.cookies=(await bPage.client.send('Network.getCookies',{urls:[bPage.url]})).cookies;}
+      return observation;
+    }
+    if(cookieFaultRequested) {await cookieFaults();return;}
+    for (const definition of originalDefinitions) await caseRun(definition.id, async row => {
+      if(definition.id===SCRIPT_FENCE_ID)return runScriptFenceOriginal(definition,row,{variantSelection:option('script-fence-variants',null),origin,seed,newPage,toolResources,getTool:()=>({client:tool,targetId:toolId}),openTool,browserClient,originalBarriers,chooseBorrowed,click,evaluate,until,snapshot,commit,json,directory,start,durable,readUI,targets,pageObservation,errorView,catalog:originalCatalog.binding});
+      if(definition.id===SCRIPT_SDK_ID)return runScriptSdkOriginal(definition,row,{origin,seed,newPage,tool,toolId,browserClient,originalBarriers,chooseBorrowed,click,evaluate,until,select,option,pageObservation,sdkResources,snapshot,commit,json,directory,start,durable,readUI,targets,errorView,catalog:originalCatalog.binding});
+      const token = randomUUID(), barrier = {token};
+      const fixtureFamily=originalReadFixtureFamily(definition);
+      const family = fixtureFamily==='fixed' ? '' : `&family=${fixtureFamily}`;
+      const cookieFixture=fixtureFamily.startsWith('cookie'),cookieAction=['cookie-set','cookie-delete'].includes(fixtureFamily),resourceError=definition.id==='RESOURCE01-API16-ERR';
+      const bOrigin=cookieAction?origin.replace('127.0.0.1','localhost'):origin;
+      const aURL = `${origin}${cookieFixture?'/path':''}/original-api48?seed=${seed}&role=A${family}${resourceError?'&resourceFault=script-network':''}${cookieFixture?'':'#A-fragment'}`, bURL = `${bOrigin}/original-api48?seed=${seed}&role=B${family}${cookieFixture?'':'#B-fragment'}`;
+      const plan = originalReadPlan(definition, {aURL, bURL, barrierURL:`${origin}/original-api48-barrier?token=${token}`,styleBarrierURL:`${origin}/original-api48-barrier?token=${token}-style`,...(resourceError?{sdkURL:await evaluate(tool,"chrome.runtime.getURL('framework/sdk-main.js')"),sdkRoot:await evaluate(tool,"chrome.runtime.getURL('')")}: {})});
+      const aPage = await newPage(aURL), bPage = await newPage(bURL);
+      const resourceNetwork=[];
+      if(resourceError){aPage.client.onEvent(event=>{if(event.method.startsWith('Network.'))resourceNetwork.push(event);});await aPage.client.send('Network.enable');}
+      const resourceFailure=resourceError?await armScriptResourceFailure(aPage.client,plan.params.sdkURL):null;
+      originalBarriers.set(token, barrier);
+      if(plan.styleAction){barrier.style={token:`${token}-style`};originalBarriers.set(barrier.style.token,barrier.style);}
+      row.input = {source:plan.source, params:plan.params, original:definition.input, expected:definition.expected,
+        contractSha256:plan.contractSha256, sourceHashes:{[definition.source.path]:definition.source.sha256}, catalog:originalCatalog.binding};
+      const needsCookies=plan.cookieRead||!!plan.cookieAction;
+      let runId,revision,selected,aBefore,bBefore,before,originalFailure,startAttempted=false,targetsCloseAllowed=true;
+      try {
+        revision = await commit(plan.source, plan.params);selected = await chooseBorrowed(aPage);
+        if(needsCookies&&!await evaluate(tool,'document.querySelector("#script-allow-cookies").checked'))await click(tool,toolId,'#script-allow-cookies');
+        aBefore = await pageObservation(aPage);bBefore = await pageObservation(bPage);
+        assert.equal(selected.documentId, aBefore.documentId);
+        before = {resources:await toolResources(), userScripts:await userScriptsObservation()};
+        if (before.userScripts.available !== plan.userScripts) throw Object.assign(new Error('Original function execution permission precondition differs'), {code:'E_RUNNER_ORIGINAL_PRECONDITION',actual:before.userScripts,expected:plan.userScripts});
+        await json(`${directory}/original-${definition.id}-input.json`, {plan, revision, selected, aBefore, bBefore, before});
+        startAttempted=true;runId = await start();
+        await until(() => barrier.request && !barrier.response.destroyed, 'actual original Worker HTTP request before fixed read');
+        barrier.pendingOperation = await until(async () => (await snapshot(tool,{runId})).rows.commandJournal.find(row =>
+          row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.state === 'dispatched' &&
+          row.value.envelope?.operation.kind === 'service' && row.value.envelope.operation.method === 'AXIOS_GET' &&
+          decodeControlValue(row.value.envelope.operation.args)[0].url === plan.params.nativeBarrierURL)?.value,
+        'exact admitted Worker HTTP operation held before fixed read');
+        barrier.pendingArgs = decodeControlValue(barrier.pendingOperation.envelope.operation.args);
+        if(needsCookies) {
+          before.cookieObservation=await cookieObservation(selected,bBefore,bPage,!!plan.cookieAction);
+          before.cookieAdmission={runId,pendingRequestId:barrier.pendingOperation.envelope.requestId,observedAt:Date.now()};
+          await json(`${directory}/original-${definition.id}-cookie-baseline.json`,{before,barrier:{request:barrier.request,pendingOperation:barrier.pendingOperation},selected});
+          if(plan.cookieAction)assert.equal(before.cookieObservation.permissions.bOriginGranted,false,'Actual B host must be ungranted before barrier release');
+        }
+        await browserClient.send('Target.activateTarget', {targetId:bPage.id});
+        const active = await until(async () => {
+          const activeTab = await evaluate(tool, 'chrome.tabs.query({active:true,currentWindow:true}).then(t=>t[0])');
+          const focusedB = await evaluate(bPage.client, 'document.hasFocus()');
+          return activeTab?.id === bBefore.tabId && activeTab.url === bURL && focusedB && {activeTab,focusedB};
+        }, 'actual B active and focused before original fixed read');
+        barrier.release = {at:Date.now(),monoMs:performance.now(),...active};
+        await json(`${directory}/original-${definition.id}-barrier.json`, {request:barrier.request,pendingOperation:barrier.pendingOperation,pendingArgs:barrier.pendingArgs,release:barrier.release,runId});
+        appendFileSync(path.join(output,'raw-http.jsonl'),JSON.stringify({event:'original-read-release',caseId:definition.id,request:barrier.request,release:barrier.release,runId})+'\n');
+        barrier.response.setHeader('content-type','application/json'); barrier.response.end(JSON.stringify({released:true}));
+        if(plan.styleAction) {
+          const style=barrier.style;
+          await until(()=>style.request&&!style.response.destroyed,'actual original Worker held after style application');
+          style.pendingOperation=await until(async()=>(await snapshot(tool,{runId})).rows.commandJournal.find(row=>
+            row.value.tag==='controller-operation'&&row.value.runId===runId&&row.value.state==='dispatched'&&
+            row.value.envelope?.operation.kind==='service'&&row.value.envelope.operation.method==='AXIOS_GET'&&
+            decodeControlValue(row.value.envelope.operation.args)[0].url===plan.params.nativeStyleBarrierURL)?.value,'exact admitted Worker style barrier');
+          style.held=await captureStyleNode(aPage.client,selected);style.heldAt=Date.now();
+          await json(`${directory}/original-${definition.id}-style-held.json`,{runId,revision,selected,request:style.request,pendingOperation:style.pendingOperation,held:style.held,heldAt:style.heldAt});
+          style.release={at:Date.now()};style.response.setHeader('content-type','application/json');style.response.end(JSON.stringify({released:true}));
+        }
+        const actual = await durable(runId);
+        await json(`${directory}/original-${definition.id}-durable.json`,actual);
+        const captured=await captureOriginalReadOutcome(actual,{a:()=>pageObservation(aPage),bAfter:()=>pageObservation(bPage),
+          resources:()=>toolResources(),userScripts:()=>userScriptsObservation(),
+          activeTab:()=>evaluate(tool,'chrome.tabs.query({active:true,currentWindow:true}).then(t=>t[0])'),focusedB:()=>evaluate(bPage.client,'document.hasFocus()'),
+          ...(plan.styleAction?{styleAfter:async()=>{const held=barrier.style.held;return {backendNodeId:held.backendNodeId,objectId:held.objectId,view:await readStyleNode(aPage.client,held)};}}:{}),
+          ...(plan.resourceError?{scriptResource:async()=>({...await evaluate(aPage.client,`({ready:typeof OpenDeskSDK!=="undefined",nodes:[...document.scripts].filter(s=>s.src===${JSON.stringify(plan.params.sdkURL)}).length})`),network:resourceNetwork,fault:resourceFailure.snapshot()})}:{}),
+          ...(needsCookies?{cookieObservation:()=>cookieObservation(selected,bBefore,bPage,!!plan.cookieAction)}:{})});
+        const {a,bAfter,resources,userScripts,activeTab,focusedB}=captured.reads,after={resources,userScripts,activeTab,focusedB,
+          ...(needsCookies?{cookieObservation:captured.reads.cookieObservation}:{})};
+        const observation = {value:captured.value,params:captured.params,readErrors:captured.readErrors,decodeErrors:captured.decodeErrors,before,after,selected,run:actual.run,result:actual.result,
+          barrier:{request:barrier.request,pendingOperation:barrier.pendingOperation,pendingArgs:barrier.pendingArgs,release:barrier.release},aBefore,a,bBefore,bAfter,
+          fixedReadOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.method === plan.method).map(row=>row.value),
+          pageOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.kind !== 'service' && row.value.envelope?.operation.method !== 'waitForTimeout').map(row=>row.value),
+          preambleOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.method === 'waitForTimeout').map(row=>row.value),
+          cleanup:{before:before.resources.counts,after:after.resources?.counts??null}};
+        if(plan.styleAction) {
+          const style=barrier.style;
+          observation.style={held:style.held,heldAt:style.heldAt,after:captured.reads.styleAfter,afterAt:Date.now(),
+            barrier:{request:style.request,pendingOperation:style.pendingOperation,release:style.release},objectReleased:false};
+          await aPage.client.send('Runtime.releaseObject',{objectId:style.held.objectId});style.objectReleased=true;observation.style.objectReleased=true;
+        }
+        // Save all actual inputs/results before validation, including failures.
+        if(plan.resourceError)observation.scriptResource=captured.reads.scriptResource;
+        await json(`${directory}/original-${definition.id}-observation.json`,observation);
+        if(captured.readError)throw captured.readError;
+        if(captured.decodeError)throw captured.decodeError;
+        assert.deepEqual(captured.params,plan.params);
+        if(!plan.inputAction)assert.deepEqual(a,aBefore,'Selected A document changed during fixed read');
+        const oracle = validateOriginalReadOracle(plan,observation), view = await readUI(runId);
+        return {...actual,revision,selected,view,observation,oracle,formalAccepted:false};
+      } catch(error) {
+        originalFailure=error;
+        targetsCloseAllowed=!startAttempted;
+        const readers=()=>tool.isOpen&&browserClient.isOpen?({snapshot:()=>snapshot(tool,runId?{runId}:null),ui:()=>ui(tool),a:()=>pageObservation(aPage),b:()=>pageObservation(bPage),resources:()=>toolResources(),
+          ...(needsCookies&&selected&&bBefore?{cookies:()=>cookieObservation(selected,bBefore,bPage,!!plan.cookieAction)}:{})}):({channel:()=>{throw Object.assign(new Error('Failure inspection skipped: controlled CDP disconnected'),{code:'E_RUNNER_CDP_CLOSED'});}});
+        const failure=await captureOriginalCaseFailure(error,{before:readers(),recordBefore:captured=>json(`${directory}/original-${definition.id}-failure-before-cleanup.json`,
+          {plan,revision,selected,runId,before,aBefore,bBefore,barrier:{request:barrier.request,pendingOperation:barrier.pendingOperation,release:barrier.release},...captured}),
+          cleanup:{identify:captured=>{const admitted=originalAdmittedRun(captured.before.reads.snapshot,plan,runId);if(admitted)runId=admitted.runId;return {knownRunId:runId??null,matchedRun:admitted};},
+            release:()=>{const released=[];for(const pending of [barrier,barrier.style])if(pending?.response&&!pending.response.writableEnded){pending.response.statusCode=503;pending.response.end('Original observation failed before barrier release');released.push({token:pending.token??token,statusCode:503});}return {released};},
+            stop:async captured=>{if(!captured.cleanup.results.identify?.matchedRun)return {attempted:false,reason:'No uniquely matched admitted run'};
+              if(!tool.isOpen||!browserClient.isOpen)return {attempted:false,reason:'Controlled CDP disconnected; retirement remains unverified'};
+              const snap=await snapshot(tool,{runId}),run=originalAdmittedRun(snap,plan,runId);
+              if(run?.retirementState==='released')return {attempted:false,reason:'Run already released'};
+              const view=await ui(tool);if(view.runId!==runId||view.stopDisabled)return {attempted:false,reason:'Exact admitted run Stop is unavailable',ui:view};
+              await click(tool,toolId,'#script-stop');return {attempted:true,runId};},
+            retirement:async captured=>{if(!captured.cleanup.results.identify?.matchedRun)return {observed:false,reason:'No uniquely matched admitted run'};
+              if(!tool.isOpen||!browserClient.isOpen)return {observed:false,reason:'Controlled CDP disconnected; retirement remains unverified'};
+              return {observed:true,...await durable(runId,tool,true)};}},after:readers()});
+        targetsCloseAllowed=!startAttempted||failure.cleanup.results.retirement?.observed===true&&failure.cleanup.results.retirement.run.retirementState==='released';
+        row.evidence.originalFailure=`original-${definition.id}-failure.json`;row.evidence.originalFailureBeforeCleanup=`original-${definition.id}-failure-before-cleanup.json`;
+        await json(`${directory}/original-${definition.id}-failure.json`,{caseId:definition.id,runId,formalAccepted:false,targetsCloseAllowed,...failure}).catch(writeError=>{row.failureWriteError=errorView(writeError);});
+        throw error;
+      } finally {
+        if(barrier.style) {
+          const style=barrier.style;
+          if(style.response&&!style.response.writableEnded){style.response.statusCode=503;style.response.end('Original style observation ended before release');}
+          originalBarriers.delete(style.token);
+          if(style.held&&!style.objectReleased)await aPage.client.send('Runtime.releaseObject',{objectId:style.held.objectId}).catch(error=>{row.styleObserverCleanupError=errorView(error);});
+        }
+        if (barrier.response && !barrier.response.writableEnded) { barrier.response.statusCode=503; barrier.response.end('Original case ended before barrier release'); }
+        originalBarriers.delete(token);
+        if(resourceFailure)await resourceFailure.dispose();
+        if(!targetsCloseAllowed){row.retainedOriginalTargets=[aPage.id,bPage.id];log({state:'original-targets-retained-unresolved-retirement',caseId:definition.id,runId,targets:row.retainedOriginalTargets});}
+        else {
+          const closed=await Promise.allSettled([aPage,bPage].map(async page=>{if(browserClient.isOpen&&(await targets()).some(t=>t.targetId===page.id))await browserClient.send('Target.closeTarget',{targetId:page.id});}));
+        const cleanupErrors=closed.flatMap((result,index)=>result.status==='rejected'?[{targetId:[aPage,bPage][index].id,error:errorView(result.reason)}]:[]);
+        if(cleanupErrors.length){row.targetCleanupErrors=cleanupErrors;await json(`${directory}/original-${definition.id}-target-cleanup-errors.json`,cleanupErrors).catch(writeError=>{row.cleanupWriteError=errorView(writeError);});if(!originalFailure)throw closed.find(result=>result.status==='rejected').reason;}
+        }
+      }
+    });
+  }
+  async function sdkResources(page, selected, includeHost = true) {
+    const main = await evaluate(page.client, 'OpenDeskSDK.diagnostics()');
+    // Read the existing relay in its exact admitted document. This inspection
+    // cannot register a relay, install an SDK, change a grant or settle a request.
+    const isolated = await evaluate(tool, `chrome.scripting.executeScript({target:{tabId:${selected.tabId},documentIds:[${JSON.stringify(selected.documentId)}]},
+      world:'ISOLATED',func:()=>({relay:globalThis.__openDeskSdkRelayV1?.diagnostics(),sdk:!!globalThis.OpenDeskSDK,origin:location.origin})})`);
+    assert.equal(isolated.length, 1); assert.equal(isolated[0].documentId, selected.documentId);
+    assert.equal(isolated[0].frameId, selected.frameId); assert.equal(isolated[0].result.sdk, false);
+    const relay = isolated[0].result.relay;
+    assert.equal(main.scope, 'OpenDeskSDK'); assert.equal(relay?.scope, 'relay.window');
+    const mainCounts = requireResourceCounts(main), relayCounts = requireResourceCounts(relay);
+    if(!includeHost) {
+      const counts=Object.fromEntries(RESOURCE_KEYS.map(key=>[key,mainCounts[key]+relayCounts[key]]));
+      return {scope:'selected-sdk-document',counts,owners:{main,isolated},selected,observedAt:Date.now()};
+    }
+    const host = await toolResources(), counts = requireResourceCounts(host);
+    for (const key of RESOURCE_KEYS) counts[key] += mainCounts[key] + relayCounts[key];
+    return {scope:'tool-and-selected-sdk-document', counts, owners:{tool:host, main, isolated}, selected,
+      nativeTargets:host.nativeTargets, observedAt:Date.now()};
+  }
   async function controllerCampaigns() {
     const sessionId = randomUUID(), campaignDirectory = `${directory}/campaigns`;
     await mkdir(path.join(output, campaignDirectory), {recursive: true});
@@ -644,17 +1053,7 @@ async function browserRun({mode, label, origin, serverEvents}) {
     const sdkPage = await newPage(`${origin}/form?seed=${seed}&role=campaign-sdk`);
     const scriptId = `native-campaign-${sessionId}`;
     const executedRuns = new Set(), executedResults = new Set(), physicalWorkers = new Set();
-    async function resources() {
-      const lifecycle = await evaluate(tool, `(async()=>{const d=globalThis.OpenDeskResourceDiagnostics;
-        return d && typeof d.snapshot==='function' ? await d.snapshot() : null;})()`);
-      const nativeTargets = await targets(), workers = nativeTargets.filter(row => row.type === 'worker');
-      const counts = lifecycle?.counts || lifecycle;
-      if (counts && Number.isInteger(counts.workers)) assert.equal(counts.workers, workers.length,
-        'Product Worker count must agree with actual native target inventory');
-      return {counts, lifecycle, nativeTargets, hostTargetId: toolId, observedAt: Date.now(),
-        readPath: 'actual tool globalThis.OpenDeskResourceDiagnostics.snapshot()',
-        observationMissing: lifecycle === null ? 'Product six-count lifecycle read is not connected' : null};
-    }
+    async function resources() { return sdkResources(sdkPage, sdkBootstrap.selected); }
     async function executeRound(kind, roundId, checkpoint) {
       const source = kind === 'success' ? 'return {marker:params.roundId,title:await page.title()};' :
         kind === 'error' ? 'await page.title(); throw new Error(params.roundId);' :
@@ -691,8 +1090,8 @@ async function browserRun({mode, label, origin, serverEvents}) {
       assert(!executedResults.has(terminal.result.resultId), 'Every campaign execution has its own actual resultId');
       executedRuns.add(runId); executedResults.add(terminal.result.resultId);
       assert.equal(terminal.run.runId, runId); assert.equal(terminal.result.runId, runId);
-      assert.equal(terminal.run.revision.sourceHash, revision.sourceHash);
       assert.equal(terminal.result.revision.sourceHash, revision.sourceHash);
+      assert.equal(terminal.run.revision.sourceHash, revision.sourceHash);
       assert.equal(terminal.run.target.tabId, selected.tabId);
       assert.equal(terminal.run.target.frameId, selected.frameId);
       assert.equal(terminal.run.target.documentId, selected.documentId);
@@ -869,9 +1268,9 @@ async function browserRun({mode, label, origin, serverEvents}) {
     assert.deepEqual(identity.manifest, manifest); assert.equal(identity.url, sw.url); report.extensionId = identity.id; report.actualSW = {targetId: sw.targetId, ...identity};
     const scriptAvailability=await evaluate(swClient,'(async()=>{try{if(!chrome.userScripts?.getScripts)return{available:false,reason:"undefined API"};await chrome.userScripts.getScripts();return{available:true};}catch(e){return{available:false,reason:e.message}}})()');
     swClient.close(); // inspection disconnect only; never Browser.close here.
-    if(!single && !scriptAvailability.available) {
+    if(!single && !cookieFaultRequested && (!originalRequested || originalNeedsUserScripts) && !scriptAvailability.available) {
       await openTool();
-      await caseRun('NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES',async row=>{
+      if (!originalRequested&&!scriptContentRequested) await caseRun('NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES',async row=>{
         const actual=await run("return await page.$eval('#marker',el=>el.textContent);",{},true);
         assert.equal(actual.result.state,'failed');assert.equal(actual.result.outcome.error.code,'E_USER_SCRIPTS_UNAVAILABLE');
         assert.equal(actual.run.retirementState,'released');
@@ -885,7 +1284,7 @@ async function browserRun({mode, label, origin, serverEvents}) {
       assert(args.includes('--headed') && args.includes('--native-ui-assist'),'API48 requires the real extension Allow User Scripts setting');
       const settingsId=(await browserClient.send('Target.createTarget',{url:`chrome://extensions/?id=${report.extensionId}`})).targetId;
       await browserClient.send('Target.activateTarget',{targetId:settingsId});
-      const request={state:'native-user-scripts-assist',mode,label,pid:report.pid,launcherPid:report.launcherPid,endpoint:report.endpoint,extensionId:report.extensionId,settingsId,initialWorkerId:sw.targetId,scriptAvailability,
+      const request={state:'native-user-scripts-assist',mode,label,pid:report.pid,launcherPid:report.launcherPid,endpoint:report.endpoint,extensionId:report.extensionId,settingsId,initialWorkerId:sw.targetId,scriptAvailability,originalCaseIds,
         instruction:'Enable Developer mode for the owned test profile and Allow User Scripts for this exact test extension, then use its native Reload control so extension contexts refresh. No flags, manifest edits or private APIs.'};
       request.ackPath=path.join(absolute,'native-user-scripts-ui-ack.json');
       await json(`${directory}/pending-native-user-scripts.json`,request);log(request);
@@ -904,14 +1303,18 @@ async function browserRun({mode, label, origin, serverEvents}) {
       report.userScriptsPrerequisite={...request,...available,observedAt:Date.now()};await json(`${directory}/native-user-scripts-observed.json`,report.userScriptsPrerequisite);
       await browserClient.send('Target.closeTarget',{targetId:settingsId});
       if((await targets()).some(t=>t.targetId===toolId))await browserClient.send('Target.closeTarget',{targetId:toolId});tool=null;
-    } else { report.userScriptsPrerequisite=scriptAvailability; if(!single) report.cases.find(x=>x.id==='NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES').reason='Native capability already enabled; disabled-state branch not observed'; }
+    } else { report.userScriptsPrerequisite=scriptAvailability; if(!single && !originalRequested && !cookieFaultRequested&&!scriptContentRequested) report.cases.find(x=>x.id==='NATIVE-USERSCRIPTS-UNAVAILABLE-RETIRES').reason='Native capability already enabled; disabled-state branch not observed'; }
 
     await openTool(); target = await newPage(`${origin}/form?seed=${seed}&role=borrowed`); decoy = await newPage(`${origin}/form?seed=${seed}&role=decoy`);
     frameTarget = await newPage(`${origin}/frames?seed=${seed}&role=top`);
     await json(`${directory}/environment.json`, report); log({state: 'native-browser-ready', mode, label, pid: report.pid, launcherPid: report.launcherPid, endpoint: report.endpoint, extensionId: report.extensionId});
+    if (originalRequested) { await originalReads(); return report; }
+    if(cookieFaultRequested) {await originalReads();return report;}
+    if(scriptContentRequested) {await scriptContentNative();return report;}
     if (single) {
       await caseRun('WXT-P3-RETURN7-REOPEN', async row => {
         row.input = {source:'return 7;',params:{caseId:'WXT-P3-RETURN7-REOPEN',marker:7},expected:7};
+        const resourceBefore = resourceCheck ? await toolResources() : null;
         const workerEventStart = nativeEvents.length;
         assert(!(await targets()).some(x=>x.type==='worker'),'Single-case browser must have no preexisting Worker');
         const actual = await run(row.input.source,row.input.params);
@@ -927,6 +1330,8 @@ async function browserRun({mode, label, origin, serverEvents}) {
         assert.equal(workerTargets.length,1,'Exactly one native Worker belongs to the single real run');
         const workerDestroyed = nativeEvents.slice(workerEventStart).find(e=>e.method==='Target.targetDestroyed' && e.params.targetId===workerTargets[0].params.targetInfo.targetId);
         assert(workerDestroyed,'Actual native Worker must be destroyed after durable retirement');
+        const resourceAfter = resourceCheck ? await toolResources() : null;
+        if (resourceCheck) assert.deepEqual(resourceAfter.counts, resourceBefore.counts, 'Successful controller must restore the actual tool baseline');
         await browserClient.send('Target.closeTarget',{targetId:toolId}); tool = null;
         await openTool(); const reopened = await readUI(runId), after = await snapshot();
         const persisted = after.rows.results.find(x=>x.value.runId===runId).value;
@@ -950,9 +1355,29 @@ async function browserRun({mode, label, origin, serverEvents}) {
         const main=await evaluate(target.client,'({sdk:!!globalThis.OpenDeskSDK,relay:!!globalThis.__openDeskSdkRelayV1,origin:location.origin})');
         assert.equal(isolated[0].documentId,actual.selected.documentId); assert.equal(isolated[0].result.relay,true); assert.equal(isolated[0].result.sdk,false);
         assert.equal(main.sdk,true); assert.equal(main.relay,false);
+        let resourceObservations;
+        if (resourceCheck) {
+          const sdkBefore = await sdkResources(target, actual.selected), marker = randomUUID();
+          const sdkCall = await evaluate(target.client, `(async()=>{const key=${JSON.stringify(`resource-${randomUUID()}`)},value={marker:${JSON.stringify(marker)}};
+            const request=OpenDeskSDK.AppLocal.setItem(key,value),isPromise=request instanceof Promise;
+            await request;const read=await OpenDeskSDK.AppLocal.getItem(key);await OpenDeskSDK.AppLocal.removeItem(key);
+            return {isPromise,read};})()`);
+          assert.equal(sdkCall.isPromise,true); assert.equal(sdkCall.read.marker,marker);
+          const sdkAfterCall = await sdkResources(target, actual.selected);
+          assert.deepEqual(sdkAfterCall.counts,sdkBefore.counts,'Original SDK Promises must restore the actual MAIN/relay/tool baseline');
+          await until(()=>evaluate(tool,'!document.querySelector("#sdk-install").disabled'),'SDK reinstall ready');
+          await click(tool,toolId,'#sdk-install');
+          await until(()=>evaluate(tool,'document.querySelector("#sdk-status").dataset.state === "installed"'),'second actual SDK installation');
+          const reinstalledHello = await evaluate(target.client,'OpenDeskSDK.ready()'); assert.equal(reinstalledHello.ready,true);
+          const sdkAfterReinstall = await sdkResources(target, actual.selected);
+          assert.deepEqual(sdkAfterReinstall.counts,sdkBefore.counts,'Actual fixed-file reinjection cannot retain old transport listeners or callbacks');
+          resourceObservations = {resourceBefore,resourceAfter,sdkBefore,sdkCall,sdkAfterCall,reinstalledHello,sdkAfterReinstall,
+            scope:'bounded observation prerequisite; original 1000/10/2 campaigns not run'};
+          await json(`${directory}/resource-observations.json`,resourceObservations);
+        }
         await json(`${directory}/fixed-world-mechanisms.json`,{sdkHello,isolated,main,controllerAlreadyRetired:true,packageHash:report.packageHash});
         await json(`${directory}/final-durable-snapshot.json`,after);
-        return {...actual,reopened,after,workerTargets,workerDestroyed,sdkHello,isolated,main,browserRestartTested:false};
+        return {...actual,reopened,after,workerTargets,workerDestroyed,sdkHello,isolated,main,resourceObservations,browserRestartTested:false};
       });
       return report;
     }
@@ -997,7 +1422,9 @@ async function browserRun({mode, label, origin, serverEvents}) {
         assert.equal(head?.tombstoned, true); assert.equal(head.revision, r2.revision); assert.equal(pinned?.sourceUtf8, r1source); assert.equal(pinned.contentHash, r1.sourceHash);
         assert.equal(pin?.released, false); assert.equal(during.rows.runs.find(x => x.value.runId === runId).value.state, 'running');
         assert.equal((await ui(tool)).runDisabled, true);
-        const first = await durable(runId); assert.deepEqual(decodeValue(first.result.outcome.valueWire), {source: 'r1', params: r1.params}); assert.equal(first.run.revision.sourceHash, r1.sourceHash);
+        const first = await durable(runId); assert.deepEqual(decodeValue(first.result.outcome.valueWire), {source: 'r1', params: r1.params});
+        assert.equal(first.result.revision.scriptId, r1.scriptId); assert.equal(first.result.revision.revision, r1.revision);
+        assert.equal(first.result.revision.sourceHash, r1.sourceHash); assert.equal(first.run.revision.sourceHash, r1.sourceHash);
         assert.equal(first.snapshot.rows.commandJournal.find(x => x.value.tag === 'script-revision-pin' && x.value.runId === runId)?.value.released, true);
         let denial; try { await start(rival.client, rival.targetId); } catch (error) { denial = errorView(error); }
         assert.equal(denial?.code, 'E_TOMBSTONE'); const after = await snapshot();
@@ -1070,6 +1497,18 @@ async function browserRun({mode, label, origin, serverEvents}) {
         await json(`${directory}/download-${kind}-native-receipt.json`, raw); return raw;
       });
     }
+    // The later native permission removal permanently fences prior results.
+    // Prove authorized reopen before that separate denial scenario runs.
+    await caseRun('REOPEN-PERSISTENT-RESULT', async () => {
+      const original = typedCases.get('own-undefined'); assert(original); const before = await snapshot();
+      const originalRun = before.rows.runs.find(x => x.value.tag === 'controller-run' && x.value.runId === original.run.runId)?.value;
+      assert(originalRun && !originalRun.resultDeliveryRevoked, 'Positive reopen requires an unfenced original result');
+      await browserClient.send('Target.closeTarget', {targetId: toolId}); tool = null; await openTool();
+      const view = await readUI(original.run.runId), after = await snapshot();
+      assert.deepEqual(after.rows.results.find(x => x.value.tag === 'controller-result' && x.value.runId === original.run.runId && x.value.resultId === original.run.resultId).value.outcome, original.result.outcome);
+      assert.equal(after.rows.runs.filter(x => x.value.tag === 'controller-run').length, before.rows.runs.filter(x => x.value.tag === 'controller-run').length);
+      assert(view.result.includes('undefined')); return {before, after, view};
+    });
     for (const rejected of [false, true]) await caseRun(rejected ? 'REJECTION' : 'THROW', async row => {
       const source = rejected ? "await Promise.reject(new RangeError('native-rejection'));" : "throw new TypeError('native-throw');";
       row.input = {source}; const actual = await run(source); assert.equal(actual.result.state, 'failed'); assert.equal(actual.result.outcome.ok, false);
@@ -1140,7 +1579,19 @@ async function browserRun({mode, label, origin, serverEvents}) {
       assert.equal(actual.result.outcome.error.code, trigger === 'navigation' ? 'E_DOCUMENT_REPLACED' : 'E_PERMISSION');
       assert.equal(actual.snapshot.rows.commandJournal.filter(x => x.value.runId === runId && x.value.tag === 'controller-operation').length, 1);
       assert((await targets()).some(x => x.targetId === page.id), 'Borrowed native target survives retirement');
-      row.input = {source, selected, trigger}; return {before, actual};
+      let revokedResultDelivery;
+      if (trigger === 'revocation') {
+        const original = typedCases.get('own-undefined');
+        const revokedRunId = original?.run.runId || runId;
+        const view = await readUI(revokedRunId);
+        const durableOriginal = await durable(revokedRunId);
+        assert.equal(durableOriginal.run.resultDeliveryRevoked, true, 'Native revocation must durably fence result delivery');
+        assert(view.result.includes('"results": []'), 'Revoked durable values must not be delivered');
+        assert(view.result.split('"resultDeliveryDenied": ')[1]?.includes(JSON.stringify(revokedRunId)), 'Actual UI must identify the denied result');
+        if (original) assert.deepEqual(durableOriginal.result.outcome, original.result.outcome, 'Revocation must preserve the original durable result');
+        revokedResultDelivery = {runId:revokedRunId, view, durableOriginal};
+      }
+      row.input = {source, selected, trigger}; return {before, actual, revokedResultDelivery};
     });
     for (const trigger of ['stop', 'deadline', 'host-close']) await caseRun(`WORKER-INFINITE-${trigger.toUpperCase()}`, async row => {
       // Real page input/HTTP observation exposes the actual Worker identity. This
@@ -1213,14 +1664,6 @@ async function browserRun({mode, label, origin, serverEvents}) {
         assert((await targets()).some(x => x.targetId === loopPage.id), 'Borrowed page survives stop/timeout/host-close'); return {physical, actual};
       } finally { if (tracing) { await browserClient.send('Tracing.end').catch(() => {}); } if (!tool) await openTool(); }
     });
-    await caseRun('REOPEN-PERSISTENT-RESULT', async () => {
-      const original = typedCases.get('own-undefined'); assert(original); const before = await snapshot();
-      await browserClient.send('Target.closeTarget', {targetId: toolId}); tool = null; await openTool();
-      const view = await readUI(original.run.runId), after = await snapshot();
-      assert.deepEqual(after.rows.results.find(x => x.value.runId === original.run.runId).value.outcome, original.result.outcome);
-      assert.equal(after.rows.runs.filter(x => x.value.tag === 'controller-run').length, before.rows.runs.filter(x => x.value.tag === 'controller-run').length);
-      assert(view.result.includes('undefined')); return {before, after, view};
-    });
     await caseRun('CLEANUP-NO-SCRAPING-RECORDS', async () => {
       const actual = await snapshot(), nativeTargets = await targets(), iframeCount = await evaluate(tool, 'document.querySelectorAll("iframe[sandbox]").length');
       assert.equal(iframeCount, 0); assert(!nativeTargets.some(x => x.type === 'worker' && x.url.startsWith('blob:')));
@@ -1236,7 +1679,7 @@ async function browserRun({mode, label, origin, serverEvents}) {
     }
   } catch (error) { report.error = errorView(error); report.attribution = error.code?.startsWith('E_RUNNER') ? 'runner' : error.code === 'E_NATIVE_PERMISSION_WAIT' ? 'permission-wait' : 'product-or-native-contract'; }
   finally {
-    if (tool) await tool.send('Page.captureScreenshot', {format: 'png'}).then(async ({data}) => writeFile(path.join(absolute, 'final-ui.png'), Buffer.from(data, 'base64'))).catch(() => {});
+    if (tool?.isOpen) await tool.send('Page.captureScreenshot', {format: 'png'}).then(async ({data}) => writeFile(path.join(absolute, 'final-ui.png'), Buffer.from(data, 'base64'))).catch(() => {});
     await json(`${directory}/native-events.json`, nativeEvents);
     for (const client of clients) client.close();
     report.cleanup = await nativeLauncher.finish(browserClient);

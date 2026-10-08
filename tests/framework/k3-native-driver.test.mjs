@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {createControllerDriver, PACKAGED_PAGE_FILE} from '../../src/framework/control/native-driver.js';
+import {createRunContext} from '../../src/framework/context.js';
 import {installPackagedPageSession, PAGE_SESSION_MESSAGE} from '../../src/scripting/packaged/page-session.js';
 import {encodeValue, decodeValue, PageError, VALUE_LIMITS} from '../../src/framework/control/value.js';
 
@@ -120,11 +121,69 @@ function fixture({frameId = 0} = {}) {
   const envelope = (method, args = [], kind = 'packaged', extra = {}) => ({requestId: `request-${++number}`, identity, revision, target,
     operation: {kind, method, args: encodeValue(args, {maxBytes: method === 'uploadChunk' ? 131072 : 65536})}, ...extra});
   const driver = createControllerDriver({api, authorize});
-  const result = async (method, args, kind, config) => decodeValue((await driver.execute(envelope(method, args, kind), config)).value);
+  const result = async (method, args, kind, config) => {
+    const reply=await driver.execute(envelope(method,args,kind),config);
+    if(reply.error)throw new PageError(reply.error.code,reply.error.message,reply.error.cause);
+    return decodeValue(reply.value);
+  };
   const dispose = () => state.page?.dispose();
   return {api, state, driver, target, identity, revision, envelope, result, authorize, win, doc, input, nodes, realm, dispose};
 }
 
+test('existing ChromePage evaluate changes only its exact document through USER_SCRIPT after active-tab changes',async t=>{
+  const f=fixture();t.after(f.dispose);f.doc.body.dataset={};const decoy={body:{dataset:{}}};
+  const context=createRunContext({identity:f.identity,revision:f.revision,target:f.target,
+    transport:{request:envelope=>f.driver.execute(envelope)}});t.after(()=>context.dispose());
+  f.state.active=false;
+  assert.equal(await context.page.evaluate(()=>{document.body.dataset.opendesk='enabled';return document.body.dataset.opendesk;}),'enabled');
+  assert.equal(f.doc.body.dataset.opendesk,'enabled');assert.equal(decoy.body.dataset.opendesk,undefined);
+  assert.equal(f.state.userExecutions.at(-1).world,'USER_SCRIPT');
+  assert.deepEqual(f.state.userExecutions.at(-1).target,{tabId:f.target.tabId,documentIds:[f.target.documentId]});
+});
+
+test('real packaged errors have an exact correlated final receipt and permit the next call', async t => {
+  for (const frameId of [0, 7]) {
+    const f = fixture({frameId}); t.after(f.dispose); const receipts = [];
+    const envelope = f.envelope('click', ['#absent']);
+    const reply = await f.driver.execute(envelope, {recordReceipt: row => receipts.push(row)});
+    assert.equal(reply.requestId, envelope.requestId); assert.equal(reply.error.code, 'E_SELECTOR_NOT_FOUND');
+    const raw = receipts.find(row => row.stage === 'tabs.sendMessage' && row.receipt?.requestId === envelope.requestId);
+    assert.equal(raw.receipt.runId, f.identity.runId); assert.equal(raw.receipt.ownerEpoch, f.identity.ownerEpoch);
+    assert.deepEqual(receipts.find(row => row.stage === 'packaged.finalFailure'), {requestId: envelope.requestId,
+      stage: 'packaged.finalFailure', receipt: {frameId, documentId: f.target.documentId,
+        runId: f.identity.runId, ownerEpoch: f.identity.ownerEpoch, error: reply.error}});
+    assert.deepEqual(receipts.find(row => row.stage === 'result').receipt, reply);
+    assert.equal(await f.result('title'), 'Document A');
+    assert.equal(f.state.page.snapshot().waits, 0);
+  }
+});
+test('CMP09-API21-ERR: real missing and invalid selectors retain their distinct final errors', async t => {
+  const f=fixture();t.after(f.dispose);const receipts=[];
+  f.doc.querySelector=css=>{if(css==='[')throw new SyntaxError('invalid selector');return null;};
+  const context=createRunContext({identity:f.identity,revision:f.revision,target:f.target,
+    transport:{request:envelope=>f.driver.execute(envelope,{recordReceipt:row=>receipts.push(row)})}});
+  t.after(()=>context.dispose());
+  for(const [css,code] of [['#absent','E_SELECTOR_NOT_FOUND'],['[','E_SELECTOR_INVALID']]) {
+    await assert.rejects(context.page.click(css),{code});
+    const final=receipts.filter(row=>row.stage==='packaged.finalFailure').at(-1);
+    assert.equal(final.receipt.documentId,f.target.documentId);assert.equal(final.receipt.error.code,code);
+    assert.deepEqual(receipts.find(row=>row.stage==='result'&&row.requestId===final.requestId).receipt.error,final.receipt.error);
+  }
+  const count=f.state.native.length;
+  for(const opts of [{delay:-1},{clickCount:0}])assert.throws(()=>context.page.click('#submit',opts),{code:'E_OPTION_UNSUPPORTED'});
+  assert.equal(f.state.native.length,count,'Invalid options must not dispatch or observe a native API');
+  assert.equal(await context.page.title(),'Document A');assert.equal(context.resourceSnapshot().pending,0);assert.equal(f.state.changes,0);
+});
+test('derived packaged upload failure does not certify the enclosing browser effect', async t => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response('abc'); t.after(() => { globalThis.fetch = original; });
+  const f = fixture(); t.after(f.dispose); const receipts = [];
+  await assert.rejects(f.driver.execute(f.envelope('uploadFromUrl', ['#absent', 'https://a.example/bytes'], 'browser'),
+    {recordReceipt: row => receipts.push(row)}), {code: 'E_SELECTOR_NOT_FOUND'});
+  assert(receipts.some(row => row.stage === 'tabs.sendMessage' && row.receipt?.error?.code === 'E_SELECTOR_NOT_FOUND'));
+  assert(!receipts.some(row => ['packaged.finalFailure', 'result'].includes(row.stage)));
+  assert.equal(f.state.changes, 0); assert.equal(f.state.page.snapshot().uploads, 0);
+});
 test('dispatch allowlists reject malformed kind/method before any authority or native call', async () => {
   const f = fixture();
   for (const [kind, method] of [['template', 'title'], ['__proto__', 'title'], ['packaged', 'goto'], ['browser', 'evaluate'], ['user-script', 'title']]) {
@@ -250,9 +309,9 @@ test('cookie service uses observed store, correct projection/dedup, expires=0 an
   assert.equal(await f.result('deleteCookie', ['absent'], 'browser'), undefined);
 });
 test('cookie batch preflight denies unauthorized URL and malformed/domain/partition input with no cookie write/read', async () => {
-  for (const [method, args, code] of [['cookies', [[fURL(), 'https://b.example/']], 'E_PERMISSION'],
+  for (const [method, args, code] of [['cookies', [[fURL(), 'https://b.example/']], 'E_PERMISSION_DENIED'],
     ['setCookie', [{name: 'good', value: 'x'}, 'invalid'], 'E_COOKIE_FORMAT'],
-    ['setCookie', [{name: 'sid', value: 'x', domain: '.example'}], 'E_COOKIE_SCOPE'],
+    ['setCookie', [{name: 'sid', value: 'x', domain: '.example'}], 'E_PERMISSION_DENIED'],
     ['setCookie', ['sid=x; HttpOnly'], 'E_COOKIE_FORMAT'], ['setCookie', [{name: 'sid', value: 'x', partitionKey: {}}], 'E_COOKIE_PARTITION_UNSUPPORTED']]) {
     const f = fixture(); await assert.rejects(f.result(method, args, 'browser'), {code});
     assert.equal(f.state.native.some(row => row.stage.startsWith('cookies.')), false);

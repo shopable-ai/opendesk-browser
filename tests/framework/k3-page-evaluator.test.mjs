@@ -8,6 +8,25 @@ async function execute(method, args, context = realm()) {
   const descriptor = buildPageEvaluation(method, args, config);
   return readPageEvaluationResult(JSON.parse(JSON.stringify(await vm.runInContext(descriptor.code, context))));
 }
+
+test('CMP03-API14-ERR: absent single-element evaluation uses the original selector error', async () => {
+  const context = realm(); context.document.querySelector = () => null;
+  await assert.rejects(execute('$eval', ['#absent', '()=>{throw new Error("callback must not execute")}', []], context),
+    {code:'E_SELECTOR_NOT_FOUND', message:'E_SELECTOR_NOT_FOUND'});
+});
+
+test('CMP03-API14/15: selector callbacks preserve original failures, ordered values and empty falsy results', async () => {
+  const context = realm();
+  context.document.querySelector = () => ({textContent:'A'});
+  context.document.querySelectorAll = css => css === '.item' ? [{textContent:'one'},{textContent:'two'}] : [];
+  assert.equal(await execute('$eval', ['#marker', 'async(el,s)=>Promise.resolve(el.textContent+s)', ['!']], context), 'A!');
+  assert.deepEqual(await execute('$$eval', ['.item', 'async els=>els.map(e=>e.textContent)', []], context), ['one','two']);
+  assert.equal(await execute('$$eval', ['.absent', 'els=>els.length', []], context), 0);
+  for (const fn of ['()=>{throw new Error("boom");}', '()=>Promise.reject(new Error("boom"))'])
+    await assert.rejects(execute('$eval', ['#marker', fn, []], context), error => {
+      assert.equal(error.code, 'E_PAGE_EXECUTION'); assert.deepEqual(error.cause, {name:'Error',message:'boom'}); return true;
+    });
+});
 test('CMP10-API35: generated function harness awaits and preserves falsy/undefined/business values', async () => {
   for (const [source, expected] of [['()=>false', false], ['()=>0', 0], ['()=>""', ''], ['()=>null', null], ['()=>undefined', undefined], ['async()=>({PageBrigeCode:1,message:"domain"})', {PageBrigeCode: 1, message: 'domain'}]]) {
     const result = await execute('evaluate', [{mode: 'function', source}, []]);

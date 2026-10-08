@@ -13,6 +13,28 @@ function fixture(handler = () => undefined, extra = {}) {
   const transport = {async request(envelope, config) { calls.push(envelope); const response = await handler(envelope, config); return {requestId: envelope.requestId, value: encodeValue(response)}; }};
   return {calls, context: createRunContext({identity, revision, target, transport, dom: null, ...extra})};
 }
+test('RESOURCE01-API16-LIMIT: approved script URL and executable-option refusals never dispatch',async()=>{
+  const {context,calls}=fixture();
+  try {
+    await assert.rejects(context.page.addScriptTag({url:'https://remote/code.js'}),{code:'E_REMOTE_CODE_UNSUPPORTED'});
+    await assert.rejects(context.page.addScriptTag({content:'document.title="forbidden"',onload:'code'}),{code:'E_OPTION_UNSUPPORTED'});
+    await assert.rejects(context.page.addScriptTag({content:'document.title="forbidden"',type:'module'}),{code:'E_OPTION_UNSUPPORTED'});
+    assert.equal(calls.length,0);assert.deepEqual(context.resourceSnapshot(),{pending:0,timers:0,subscriptions:0});
+  } finally {context.dispose();}
+});
+test('RESOURCE01-API17: conflicting style inputs and remote resources are refused before dispatch',async()=>{
+  const {context,calls}=fixture();
+  try {
+    for(const [options,code] of [[{content:'',url:'x'},'E_OPTION_UNSUPPORTED'],
+      [{url:'https://remote/style.css'},'E_REMOTE_RESOURCE_UNSUPPORTED'],
+      [{content:'@import "https://remote/style.css";'},'E_REMOTE_RESOURCE_UNSUPPORTED'],
+      [{content:'#marker{background:url(https://remote/a.png)}'},'E_REMOTE_RESOURCE_UNSUPPORTED']]) {
+      await assert.rejects(context.page.addStyleTag(options),{code});
+      assert.equal(calls.length,0);assert.deepEqual(context.resourceSnapshot(),{pending:0,timers:0,subscriptions:0});
+    }
+  }finally{context.dispose();}
+});
+
 test('CMP11-API01/02/03/04: bound constructors, immutable pins and independent owners', async () => {
   assert.throws(() => new ChromePage(), {code: 'E_PAGE_CONTEXT_REQUIRED'});
   const a = fixture(e => e.target.documentId), b = fixture(e => e.target.documentId, {identity: {...identity, runId: 'run-B'}, target: {...target, tabId: 21, documentId: 'document-B'}});
@@ -24,6 +46,82 @@ test('CMP11-API01/02/03/04: bound constructors, immutable pins and independent o
   assert.throws(() => { a.context.identity.runId = 'forged'; }, TypeError);
   assert.throws(() => new a.context.ChromePage({hidden: true}), {code: 'E_OPTION_UNSUPPORTED'});
   a.context.dispose(); b.context.dispose();
+});
+
+test('CMP11-API03-ERR: invalid debug on the admitted constructor is an option error before transport', () => {
+  const {context,calls}=fixture();
+  try {
+    for (const debug of ['yes',0,{},null]) assert.throws(()=>new context.ChromePage({debug}),{code:'E_OPTION_UNSUPPORTED'});
+    assert.equal(calls.length,0); assert.deepEqual(context.resourceSnapshot(),{pending:0,timers:0,subscriptions:0});
+  } finally {context.dispose();}
+});
+test('CMP09-API21-ERR: invalid click options are option errors before any dispatch', async () => {
+  const {context, calls} = fixture(() => 'clicked');
+  try {
+    for (const page of [context.page, new context.ChromePage({}), new context.ChromePage({debug:false})]) {
+      for (const opts of [{delay:-1},{delay:NaN},{delay:Infinity},{clickCount:0},{clickCount:101},{clickCount:1.5},{button:'invalid'}]) {
+        assert.throws(() => page.click('#submit',opts), {code:'E_OPTION_UNSUPPORTED'});
+      }
+    }
+    assert.equal(calls.length,0); assert.equal(context.resourceSnapshot().pending,0);
+    assert.equal(await context.page.click('#submit',{button:'left',clickCount:2,delay:10}), 'clicked');
+    assert.deepEqual(decodeValue(calls[0].operation.args), ['#submit',{button:'left',clickCount:2,delay:10}]);
+    assert.deepEqual(calls[0].identity, {...identity,target}); assert.deepEqual(calls[0].revision,revision);
+    assert.equal(await new context.ChromePage({}).click('#submit'), 'clicked');
+    assert.deepEqual(decodeValue(calls[1].operation.args), ['#submit',{button:'left',clickCount:1,delay:0}]);
+    const detached=context.page.click;
+    assert.throws(() => detached('#submit'), {code:'E_PAGE_CONTEXT_REQUIRED'});
+    assert.equal(calls.length,2);
+  } finally { context.dispose(); }
+});
+test('click normalization reads getters once and retains receiver, disposal and replacement fences',async()=>{
+  const a=fixture(e=>e.target.documentId),b=fixture(e=>e.target.documentId,{identity:{...identity,runId:'run-B'},target:{...target,tabId:21,documentId:'document-B'}});
+  try {
+    const reads={button:0,clickCount:0,delay:0},opts={get button(){reads.button++;return 'left';},get clickCount(){reads.clickCount++;return 2;},get delay(){reads.delay++;return 10;}};
+    assert.equal(await a.context.page.click.call(b.context.page,'#submit',opts),'document-B');
+    assert.deepEqual(reads,{button:1,clickCount:1,delay:1});assert.equal(a.calls.length,0);assert.equal(b.calls[0].identity.runId,'run-B');
+    b.context.dispose();await assert.rejects(a.context.page.click.call(b.context.page,'#submit'),{code:'E_CANCELLED'});assert.equal(b.calls.length,1);
+  }finally{a.context.dispose();b.context.dispose();}
+  let release;const calls=[];
+  const next={...target,documentId:'document-next',targetVersion:2};
+  const context=createRunContext({identity,revision,target,transport:{request(envelope){
+    calls.push(envelope);
+    if(envelope.operation.method==='click')return new Promise(resolve=>{release=()=>resolve({requestId:envelope.requestId,value:encodeValue('clicked')});});
+    return Promise.resolve({requestId:envelope.requestId,value:encodeValue(undefined),handoff:{from:target,to:next}});
+  }}});
+  try {
+    const pending=context.page.click('#submit'),rejected=assert.rejects(pending,{code:'E_DOCUMENT_REPLACED'});
+    await context.page.goto('https://a.example/next');release();await rejected;
+    assert.equal(calls[0].target.documentId,target.documentId);assert.equal(context.target.documentId,next.documentId);assert.equal(context.resourceSnapshot().pending,0);
+  }finally{context.dispose();}
+});
+
+test('CMP09-API22-ERR: admitted type rejects invalid delay and nonprimitive text before dispatch',async()=>{
+  const {context,calls}=fixture(e=>decodeValue(e.operation.args)[1]);
+  try {
+    for(const page of [context.page,new context.ChromePage(),new context.ChromePage({debug:false})]) {
+      for(const delay of [-1,NaN,Infinity,'10'])assert.throws(()=>page.type('#text','x',{delay}),{code:'E_OPTION_UNSUPPORTED'});
+      for(const text of [{},[],new Date(),()=>{},Symbol('x'),1n])assert.throws(()=>page.type('#text',text),{code:'E_VALUE_SERIALIZATION'});
+    }
+    assert.equal(calls.length,0);assert.deepEqual(context.resourceSnapshot(),{pending:0,timers:0,subscriptions:0});
+    for(const text of ['A','',false,0,null,undefined])assert.equal(await context.page.type('#text',text),String(text));
+    assert.deepEqual(calls.map(e=>decodeValue(e.operation.args)),['A','',false,0,null,undefined].map(text=>['#text',String(text),{delay:0}]));
+    for(const envelope of calls){assert.deepEqual(envelope.identity,{...identity,target});assert.deepEqual(envelope.revision,revision);}
+    const detached=context.page.type;assert.throws(()=>detached('#text','x'),{code:'E_PAGE_CONTEXT_REQUIRED'});
+    assert.equal(calls.length,6);
+  }finally{context.dispose();}
+});
+
+test('type delay normalization reads its getter once and keeps receiver and disposal fences',async()=>{
+  const a=fixture(e=>e.target.documentId),b=fixture(e=>e.target.documentId,{identity:{...identity,runId:'run-B'},target:{...target,tabId:21,documentId:'document-B'}});
+  try {
+    let reads=0;const opts={get delay(){reads++;return reads===1?10:-1;}};
+    assert.equal(await a.context.page.type.call(b.context.page,'#text','literal',opts),'document-B');
+    assert.equal(reads,1);assert.equal(a.calls.length,0);assert.equal(b.calls[0].identity.runId,'run-B');
+    assert.deepEqual(decodeValue(b.calls[0].operation.args),['#text','literal',{delay:10}]);
+    b.context.dispose();await assert.rejects(a.context.page.type.call(b.context.page,'#text','literal'),{code:'E_CANCELLED'});
+    assert.equal(b.calls.length,1);
+  }finally{a.context.dispose();b.context.dispose();}
 });
 test('CMP10-API05/06 and CMP01-API36: raw callbacks and raw execute never dispatch', () => {
   const {context, calls} = fixture();

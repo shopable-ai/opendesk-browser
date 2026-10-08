@@ -1,0 +1,71 @@
+{
+  "workstreamId": "sidebar-p0-freeze-20261008-1543",
+  "branch": "agent/sidebar-p0-freeze-20261008-1543",
+  "parentCandidate": "6dc4e3bf64a4939d67bf4e6f3df6dafad0912aa8",
+  "linkedDraftPr": "https://github.com/shopable-ai/opendesk-browser/pull/4",
+  "scope": "P0 only: correct target snapshot ownership, modernize component fixture for draft vs saved, add Controller immutability/no-head regressions",
+  "observations": {
+    "repoMainAtStart": "7bf72497c14d97a2b5cdedd642c4599c46c1983f",
+    "macLocalWorkspace": "NOT_ACCESSIBLE_FROM_THIS_SESSION",
+    "localMainV1": "NOT_READ",
+    "nativeChromeSidePanel": "NOT_TESTED",
+    "issue": "Actual fetched RunHost behavior: mutation of target tabId 7 -> 99 while awaiting client.ready changed the target sent to Controller",
+    "idbAudit": "Custom src/platform/storage/idb.js keepalive pump explicitly supports digest awaits inside native transaction; not classified as a bug",
+    "existingEditorFixture": "Earlier script-editor fake Controller expects only saved scriptId, misrepresents PR#4 draft admission"
+  },
+  "implementation": {
+    "files": [
+      "src/run-host.js",
+      "tests/environment/sidebar-draft-runhost.test.mjs",
+      "tests/environment/script-editor.test.mjs",
+      "tests/framework/k3-controller-authority.test.mjs",
+      "docs/framework/workstreams/sidebar-p0-freeze-20261008-1543.json",
+      ".github/workflows/sidebar-r1-p0.yml"
+    ],
+    "runnerFix": "structuredClone(target) before first await, use snapshot for controller admission",
+    "regressionCoverage": [
+      "draft source and params and target snapshot",
+      "saved variant target snapshot",
+      "A-B-C UI fixture with frozen B and saved C",
+      "uncommitted no-scriptId run",
+      "controller durable draft SHA/duplicate/no script head/retirement cleanup",
+      "reject caller claimed draft contentHash"
+    ]
+  },
+  "tests": {
+    "preFixRuntimeHarness": "FAIL: target.tabId changed from 7 to 99 after start before client.ready; fetched current PR4 RunHost body",
+    "postFixRuntimeHarness": "PASS: actual fetched modified src/run-host.js body exercised with dependency stubs; draft/saved target and params stay at original captured values while awaiting ready. Isolated JS check, not Node or Chrome.",
+    "nodeTest": "NOT_TESTED (Mac workspace unavailable; no repository checkout in current session)",
+    "nativeChrome": "NOT_TESTED",
+    "DOM": "NOT_TESTED",
+    "HTTP": "NOT_TESTED",
+    "IndexedDB": "NOT_TESTED",
+    "browserRestart": "NOT_TESTED",
+    "F3": "NOT_TESTED",
+    "githubActions": {
+      "status": "PASS_TARGETED_NODE_ONLY",
+      "runId": 37746092159,
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37746092159",
+      "jobId": 113207814385,
+      "testedCommit": "63271308f550e1a08f7c6b34a8dd40ae71ef7169",
+      "command": "node --test tests/environment/sidebar-draft-runhost.test.mjs tests/environment/script-editor.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/run-host-recovery.test.mjs",
+      "tests": 82,
+      "pass": 82,
+      "fail": 0,
+      "conclusion": "success",
+      "evidenceType": "GitHub Actions Linux Node; NOT native Chrome Side Panel"
+    }
+  },
+  "integration": {
+    "mergeMain": "NO",
+    "mergePr4": "NO",
+    "reason": "PR4 native unverified, local main-v1 unknown; preserve peer branches/worktrees; work is only a candidate",
+    "nativeGate": "BLOCKED: actual Mac worktree main-v1 and native Chrome/CFT inaccessible; P0 NOT_NATIVE_TESTED; no main merge"
+  },
+  "nextActions": [
+    "In Mac worktree compare local main-v1 implementation with PR#4 entry contract before integration",
+    "Run node --test tests/environment/sidebar-draft-runhost.test.mjs tests/environment/script-editor.test.mjs tests/framework/k3-controller-authority.test.mjs",
+    "Native Side Panel trusted-click A-B-C/DOM/HTTP/stop/nav/restart tests; do not claim TESTED before evidence",
+    "After P0 native PASS, implement P1/P2 on merged tested contract"
+  ]
+}

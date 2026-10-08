@@ -3,10 +3,31 @@ import {createHostClient} from '../platform/host/client.js';
 import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
 import {createScriptEditor} from './script-editor.js';
 import {createSdkApproval, snapshotSdkApproval} from './sdk-approval.js';
+import {snapshotToolResources} from './resource-diagnostics.js';
+import {createCurrentPageTarget} from './current-page-target.js';
 
 export function initToolShell() {
-const foundationClient = createHostClient();
-const scriptEditor = createScriptEditor({client:foundationClient});
+  const hostUrl = new URL(location.href);
+  const hostInstanceId = hostUrl.searchParams.get('hostInstanceId');
+  if (!hostInstanceId) {
+    hostUrl.search = ''; hostUrl.hash = ''; hostUrl.searchParams.set('hostInstanceId', crypto.randomUUID());
+    // A committed document navigation is required: Chrome 138 MessageSender
+    // retains the original URL after history.replaceState.
+    location.replace(hostUrl.href);
+    return;
+  }
+  const foundationClient = createHostClient(chrome, {hostInstanceId});
+const currentPageTarget = createCurrentPageTarget({api:chrome});
+const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
+const listeners = [];
+let browserListenersAttached = false;
+const listen = (element, event, listener, options) => {
+  element.addEventListener(event, listener, options); listeners.push({element, event, listener, options});
+};
+Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.freeze({
+  snapshot: () => snapshotToolResources(scriptEditor.resourceSnapshot(),
+    {subscriptions: listeners.length + 2 * Number(browserListenersAttached) + currentPageTarget.resourceSnapshot().subscriptions})
+})});
 const scrapingPanel = document.querySelector('#scraping-panel');
 scrapingPanel.dataset.moduleStatus = 'MODULE_NOT_INSTALLED';
 scrapingPanel.textContent = '采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。';
@@ -31,7 +52,7 @@ async function action(operation) {
     display(null, data);
   } catch (error) { display(error); }
 }
-document.querySelector('#create-target').addEventListener('click', () => {
+listen(document.querySelector('#create-target'), 'click', () => {
   // Invoke permissions.request directly in the user gesture, before async broker work.
   let pattern;
   try { pattern = permissionPattern(document.querySelector('#target-url').value); } catch (error) { display(error); return; }
@@ -41,9 +62,8 @@ document.querySelector('#create-target').addEventListener('click', () => {
     return request('CREATE_HEALTH_TARGET', {url: document.querySelector('#target-url').value});
   });
 });
-document.querySelector('#check-source').addEventListener('click', () => action(() => request('CHECK_SOURCE')));
-document.querySelector('#check-target').addEventListener('click', () => action(() => request('CHECK_HEALTH', {target})));
-document.querySelector('#open-tool').addEventListener('click', () => action(() => request('OPEN_TOOL')));
+listen(document.querySelector('#check-source'), 'click', () => action(() => request('CHECK_SOURCE')));
+listen(document.querySelector('#check-target'), 'click', () => action(() => request('CHECK_HEALTH', {target})));
 const sdkTab = document.querySelector('#sdk-tab');
 const sdkDocument = document.querySelector('#sdk-document');
 const sdkInstall = document.querySelector('#sdk-install');
@@ -123,15 +143,14 @@ async function refreshSdkDocuments() {
   sdkDisplay('idle', sdkDocuments.size ? '请选择精确文档，并勾选服务' : '没有可授权的当前 HTTP(S) 文档');
 }
 foundationClient.ready.catch(sdkError);
-document.querySelector('#sdk-refresh').addEventListener('click', () => refreshSdkTabs().catch(sdkError));
-sdkTab.addEventListener('change', () => refreshSdkDocuments().catch(sdkError));
-sdkDocument.addEventListener('change', sdkInputsChanged);
-sdkCapabilities.addEventListener('change', sdkInputsChanged);
-sdkTargets.addEventListener('input', sdkInputsChanged);
-sdkInstall.addEventListener('click', event => {
+listen(document.querySelector('#sdk-refresh'), 'click', () => refreshSdkTabs().catch(sdkError));
+listen(sdkTab, 'change', () => refreshSdkDocuments().catch(sdkError));
+listen(sdkDocument, 'change', sdkInputsChanged);
+listen(sdkCapabilities, 'change', sdkInputsChanged);
+listen(sdkTargets, 'input', sdkInputsChanged);
+listen(sdkInstall, 'click', event => {
   if (!event.isTrusted || sdkBusy || sdkInstall.disabled) return;
-  // Direct call: the controller invokes permissions.request before its first await.
-  // Its own state projection preserves original errors and historical receipts.
+  // Permissions are requested synchronously by the approved snapshot handler.
   sdkApproval.approve(event).catch(error => {
     console.warn('SDK approval was not confirmed', error);
   });
@@ -148,11 +167,15 @@ const sdkTabRemoved = tabId => {
 };
 chrome.webNavigation.onCommitted.addListener(sdkNavigation);
 chrome.tabs.onRemoved.addListener(sdkTabRemoved);
+browserListenersAttached = true;
 refreshSdkTabs().catch(sdkError);
-window.addEventListener('pagehide', () => {
+listen(window, 'pagehide', () => {
   chrome.webNavigation.onCommitted.removeListener(sdkNavigation); chrome.tabs.onRemoved.removeListener(sdkTabRemoved);
   chrome.permissions.onRemoved.removeListener(sdkPermissionsRemoved); sdkApproval.dispose();
-  scriptEditor.dispose(); foundationClient.dispose();
+  browserListenersAttached = false;
+  for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
+  listeners.length = 0;
+  scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }
