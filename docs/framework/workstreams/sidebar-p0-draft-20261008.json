@@ -3,7 +3,7 @@
   "branch": "agent/sidebar-p0-draft-20261008",
   "baseCommit": "7bf72497c14d97a2b5cdedd642c4599c46c1983f",
   "targetBranch": "main",
-  "status": "implementation-candidate-not-native-verified",
+  "status": "draft-pr-awaiting-local-validation",
   "goal": "R1 P0 unsaved editor draft admission to original RunHost/Controller durable run without saved script revisions",
   "actualChangedFiles": [
     "src/run-host.js",
@@ -22,11 +22,13 @@
   },
   "verification": {
     "remoteCodeReadback": "CHECKED",
-    "targetedUnitTests": "NOT_TESTED",
+    "targetedUnitTests": "NOT_TESTED: code is on GitHub branch, not locally executed",
     "nativeChromeSidePanel": "NOT_TESTED",
     "realDOMAndHTTP": "NOT_TESTED",
     "browserRestart": "NOT_TESTED",
-    "finalF3": "NOT_TESTED"
+    "finalF3": "NOT_TESTED",
+    "syntaxOnly": "PASS: five modified JS/MJS files parsed by V8 Function compilation after stripping ESM imports/exports; not execution or browser test",
+    "remotePr": "https://github.com/shopable-ai/opendesk-browser/pull/4"
   },
   "criticalBlockers": [
     "Cloud session cannot read /Users/shopme/Documents/workspace/opendesk-browser or local uncommitted main-v1 changes",
