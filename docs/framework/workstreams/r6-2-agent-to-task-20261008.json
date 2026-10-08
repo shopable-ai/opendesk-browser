@@ -35,18 +35,18 @@
     "localHashAndSyntax": "PASS (Node SHA-256, package-source equality and JS syntax only)",
     "targetNodeTests": "node --test tests/environment/agent-to-task-contract.test.mjs tests/environment/basic-browser-page.test.mjs tests/environment/task-package-flow.test.mjs tests/framework/r5-modern-page-api.test.mjs",
     "targetBuild": "npm run check && npm run build && npm run build:dev && npm run verify",
-    "sameCommitGitHubCI": "PENDING_ON_MAIN_COMMIT",
+    "sameCommitGitHubCI": "PASS at 38f7eaf742befe417a61ba4f0982522696eda995; subsequent main commits require affected-scope recheck",
     "SOURCE_CONFIRMED": "YES",
-    "COMPONENT_TESTED": "PENDING_ON_MAIN_COMMIT",
-    "BUILD_VERIFIED": "PENDING_ON_MAIN_COMMIT",
+    "COMPONENT_TESTED": "PASS at 38f7eaf: added 5/5; combined Sidebar/Task/Controller 142/142; R5.2 Locator 15/15; additional driver regressions PASS",
+    "BUILD_VERIFIED": "PASS at 38f7eaf: npm run check, WXT production/development builds, package verify (main, no Native bridge)",
     "NATIVE_CHROME_VERIFIED": "NOT_TESTED",
     "AI_AGENT_E2E_VERIFIED": "NOT_TESTED",
     "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
     "FINAL_FRAMEWORK_ACCEPTED": "NO"
   },
   "parallelPRs": {
-    "11": "DRAFT Native Agent Bridge; no Mac Chrome/Codex verification; do not merge/delete",
-    "20": "DRAFT R7.1 HTTP demo/README/basic-browser-page tests; no Mac Chrome verification; do not override"
+    "11": "DRAFT existing Native Agent Bridge; parallel development active. Do not merge before real Mac Chrome/Codex validation; reconcile duplicate agent-to-task sample/docs with main.",
+    "20": "DRAFT R7.1 HTTP page workflow; main already carries some overlapping HTML/basic browser tests from parallel direct commits; remaining server/fixture/test files are not yet in main. Do not delete without complete integration."
   },
   "nativeHistory": {
     "testedPRHead": "8ab0ada6f619d8c0f08637bce0f5352cd1059b5f",
@@ -57,5 +57,14 @@
     "realChrome": "NOT_TESTED"
   },
   "followUp": "Use existing local Codex acceptance prompt on PR #11; only merge each completed PR after real native gate, then delete exact verified merged branch",
-  "updatedAt": "2026-10-08"
+  "updatedAt": "2026-10-08",
+  "mainIntegration": {
+    "commit": "38f7eaf742befe417a61ba4f0982522696eda995",
+    "ci": [
+      "https://github.com/shopable-ai/opendesk-browser/actions/runs/37801162421",
+      "https://github.com/shopable-ai/opendesk-browser/actions/runs/37801162351"
+    ],
+    "scope": "R6.2 code/doc+fixture candidate; CI proves packaged main, not PR #11 and not Native Chrome",
+    "result": "COMPONENT_AND_BUILD_PASS"
+  }
 }
