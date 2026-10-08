@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {digestUtf8} from '../../src/platform/protocol.js';
 import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId,
   TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
@@ -94,4 +95,13 @@ test('same task version cannot replace bytes and install CAS rejects stale upgra
   const changed={...pkg,manifest:{...pkg.manifest,title:'换标题'}};
   await assert.rejects(f.send('importTaskPackage',{package:changed}),errorCode('E_HASH'));
   await assert.rejects(f.send('getTaskCandidate',{taskId:'no-such-id',version:'1.0.0'}),errorCode('E_OWNER'));
+});
+
+
+test('the checked-in sample is an authentic v1 package with exact manifest and source hashes',async()=>{
+  const text=await readFile('examples/tasks/form-fill.v1.opendesk-task.json','utf8');
+  const pkg=await verifyTaskPackage(JSON.parse(text));
+  assert.equal(pkg.manifest.taskId,'sample.form-fill');
+  assert.equal(pkg.manifest.siteOrigins[0],'http://127.0.0.1:43111');
+  assert.deepEqual(validateTaskParams(pkg.manifest.paramsSchema,{}),{name:'Alice'});
 });
