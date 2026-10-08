@@ -40,13 +40,24 @@ function connectCDP(url) {
     const ws=new WebSocket(url),pending=new Map();let seq=0;
     const timer=setTimeout(()=>{ws.close();reject(Error('CDP socket timed out'));},7000);
     ws.addEventListener('error',e=>{clearTimeout(timer);reject(Error('CDP socket error: '+e.message));});
+    let received=0;
     ws.addEventListener('message',e=>{
-      let value;try {value=JSON.parse(e.data);}catch{return;}
+      if(received++<5)console.log('REAL_CHROME_CDP_FRAME='+String(e.data).slice(0,280));
+      let value;try {value=JSON.parse(e.data);}catch(error){
+        console.log('REAL_CHROME_CDP_BAD_FRAME='+error.message);
+        return;
+      }
       if(!value.id||!pending.has(value.id))return;
       const entry=pending.get(value.id);pending.delete(value.id);
       if(value.error)entry.reject(Error(value.error.message));else entry.resolve(value.result);
     });
+    ws.addEventListener('close',event=>{
+      console.log('REAL_CHROME_CDP_CLOSED='+JSON.stringify({code:event.code,reason:event.reason,pending:pending.size}));
+      for(const entry of pending.values())entry.reject(Error('CDP socket closed'));
+      pending.clear();
+    });
     ws.addEventListener('open',()=>{
+      console.log('REAL_CHROME_CDP_CONNECTED='+url.split('?')[0].slice(0,200));
       clearTimeout(timer);
       resolve({
         close:()=>ws.close(),
@@ -135,8 +146,10 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
 
   cdp?.close();
   const optionsTab=await newTab('chrome-extension://'+extensionId+'/native-agent/settings.html');
+  console.log('REAL_CHROME_OPTIONS_TARGET='+JSON.stringify({id:optionsTab.id,type:optionsTab.type,url:optionsTab.url,ws:optionsTab.webSocketDebuggerUrl}));
   cdp=await connectCDP(optionsTab.webSocketDebuggerUrl);
   try {
+    console.log('REAL_CHROME_CDP_BROWSER_VERSION='+JSON.stringify(await cdp.call('Browser.getVersion')));
     await cdp.call('Runtime.enable');
     await cdp.call('Page.enable');
   }catch(error){
