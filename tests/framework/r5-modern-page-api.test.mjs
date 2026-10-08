@@ -38,7 +38,9 @@ class Element {
   closest(selector) {
     const tags=selector.split(',').map(x=>x.trim());
     for(let el=this;el;el=el.parentElement) if(tags.some(s=>s===el.tagName.toLowerCase() ||
-      s==='[role="dialog"]' && el.getAttribute('role')==='dialog')) return el;
+      s==='[role="dialog"]' && el.getAttribute('role')==='dialog' ||
+      s==='[aria-disabled="true"]' && el.getAttribute('aria-disabled')==='true' ||
+      s==='[inert]' && el.hasAttribute('inert'))) return el;
     return null;
   }
   querySelectorAll(selector) { return descendants(this).filter(el=>matchSelector(el,selector)); }
@@ -92,7 +94,8 @@ function pageDOM() {
     }) || body;}
   };
   const win=new EventTarget();win.location={href:target.url};win.innerWidth=800;win.innerHeight=600;
-  win.getComputedStyle=()=>({display:'block',visibility:'visible'});
+  win.getComputedStyle=el=>({display:'block',visibility:'visible',
+    pointerEvents:el.getAttribute('data-pointer-events') === 'none' ? 'none' : 'auto'});
   win.requestAnimationFrame=cb=>queueMicrotask(cb);win.Event=Event;
   win.HTMLInputElement=class {};win.HTMLTextAreaElement=class {};
   doc.defaultView=win;
@@ -109,7 +112,7 @@ function eventBus() {
       });
     }};
 }
-function fixture({afterPrepare,dropCommit=false,deadlineMs=2000}={}) {
+function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateCommit=false,deadlineMs=2000}={}) {
   const dom=pageDOM(), bus=eventBus(), calls=[], phases=[];
   let granted=true, changed=false, commits=0, writes=0;
   const receipts=[];
@@ -121,7 +124,10 @@ function fixture({afterPrepare,dropCommit=false,deadlineMs=2000}={}) {
       bus.deliver(message).then(reply=>{
         if(message.action==='execute' && message.envelope.operation.method==='locatorPrepare') {
           if(afterPrepare) { granted=false; }
+          if(stallPrepare) return; // Read-only RPC callback is lost.
         }
+        if(message.action==='execute' && message.envelope.operation.method==='locatorCommit' && duplicateCommit)
+          bus.deliver(message).then(()=>{}); // A duplicate native delivery must reuse the existing commit result.
         if (!dropCommit || message.action!=='execute' || message.envelope.operation.method!=='locatorCommit') callback(reply);
       });
     }},
@@ -269,4 +275,76 @@ test('semantic exact text is case-sensitive; partial text normalizes spaces',()=
   assert.equal(locate(doc,createLocatorDescriptor('text','搜索x',{exact:true})).length,0);
   assert.deepEqual(validateLocatorDescriptor(createLocatorDescriptor('role','button',{name:'搜索',exact:true})),
     createLocatorDescriptor('role','button',{name:'搜索',exact:true}));
+});
+
+
+test('locator timeout covers stalled prepare RPC, leaves run usable and commits nothing',async()=>{
+  const f=fixture({stallPrepare:true,deadlineMs:1500});
+  try {
+    const start=Date.now();
+    await assert.rejects(f.context.page.getByRole('button',{name:'搜索',exact:true}).click({timeout:80}),{code:'E_TIMEOUT'});
+    assert.ok(Date.now()-start<800,'single operation must expire before the long run');
+    assert.equal(f.commits,0); assert.equal(f.dom.submits,0);
+    assert.ok(f.receipts.some(row=>row.stage==='packaged.finalFailure'));
+    assert.equal(await f.context.page.getByRole('button',{name:'搜索'}).count(),1);
+  }finally{f.dispose();}
+});
+
+test('observation verifies a scoped locator with duplicate names and never exposes form values',async()=>{
+  const f=fixture();
+  try {
+    f.dom.body.append(new Element('form',{id:'other-form'})).append(new Element('button',{},'搜索'));
+    f.dom.body.append(new Element('input',{id:'secret',type:'password',value:'PRIVATE_INPUT_VALUE'}));
+    const observed=await f.context.page.observe({maxNodes:80,maxChars:8000});
+    const found=observed.nodes.find(row=>row.role==='button'&&row.name==='搜索'&&row.locator?.parent);
+    assert.equal(found?.locator.parent.value,'[id="search-form"]');
+    assert.equal(locate(f.dom.doc,found.locator)[0],f.dom.button);
+    assert.equal(JSON.stringify(observed).includes('PRIVATE_INPUT_VALUE'),false);
+    assert.ok(observed.budget.locatorChecks<=observed.budget.maxLocatorChecks);
+  }finally{f.dispose();}
+});
+
+test('observation limits traversal even when most elements have no semantic role',async()=>{
+  const f=fixture();
+  try {
+    for(let i=0;i<4000;i++) f.dom.body.append(new Element('div'));
+    const observed=await f.context.page.observe({maxNodes:200,maxDepth:5,maxChars:16000});
+    assert.equal(observed.truncated,true);
+    assert.ok(observed.budget.visited<=observed.budget.maxVisited);
+    assert.ok(observed.budget.locatorChecks<=observed.budget.maxLocatorChecks);
+    assert.ok(observed.nodes.length<=200);
+  }finally{f.dispose();}
+});
+
+test('ARIA readonly, disabled, pointer-events and animation prevent a commit',async()=>{
+  const f=fixture();
+  try {
+    f.dom.input.setAttribute('aria-readonly','true');
+    await assert.rejects(f.context.page.getByLabel('搜索关键词').fill('changed',{timeout:80}),{code:'E_TIMEOUT'});
+    assert.equal(f.dom.input.value,'旧内容');
+    f.dom.input.removeAttribute('aria-readonly');
+    f.dom.button.setAttribute('aria-disabled','true');
+    await assert.rejects(f.context.page.getByRole('button',{name:'搜索'}).click({timeout:80}),{code:'E_TIMEOUT'});
+    f.dom.button.removeAttribute('aria-disabled');
+    f.dom.button.setAttribute('data-pointer-events','none');
+    await assert.rejects(f.context.page.getByRole('button',{name:'搜索'}).click({timeout:80}),{code:'E_TIMEOUT'});
+    f.dom.button.removeAttribute('data-pointer-events');
+    f.dom.win.requestAnimationFrame=callback=>queueMicrotask(()=>{
+      const el=f.dom.button; el.box={...el.box,left:el.box.left+3,right:el.box.right+3}; callback();
+    });
+    await assert.rejects(f.context.page.getByRole('button',{name:'搜索'}).click({timeout:80}),{code:'E_TIMEOUT'});
+    assert.equal(f.commits,0); assert.equal(f.dom.submits,0);
+  }finally{f.dispose();}
+});
+
+test('read-only page requests do not accumulate while commit replay stays fenced',async()=>{
+  const f=fixture({duplicateCommit:true});
+  try {
+    for(let i=0;i<25;i++) assert.equal(await f.context.page.getByRole('button',{name:'搜索'}).count(),1);
+    await pause(0);
+    assert.equal(f.installation.snapshot().requests,0);
+    await f.context.page.getByRole('button',{name:'搜索'}).click({timeout:1000});
+    assert.equal(f.dom.submits,1);
+    assert.ok(f.installation.snapshot().requests>=1,'commit result must remain cached');
+  }finally{f.dispose();}
 });
