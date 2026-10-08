@@ -148,6 +148,15 @@ function assertClassicIIFE(text, file) {
       call.callee.params.length || call.callee.async || call.callee.generator)
     throw new Error(`Non-classic IIFE output in ${file}`);
 }
+// Narrow exception: the classic MV3 worker may import its ONE pinned,
+// same-extension Native transport asset synchronously at boot. The package
+// verifier separately requires the asset and includes its bytes in the hash.
+// All computed, remote, arbitrary and non-worker importScripts remain forbidden.
+function approvedNativeImport(callee,call,file) {
+  return file==='sw.js' && callee?.type==='Identifier' && callee.name==='importScripts' &&
+    call?.type==='CallExpression' && call.callee===callee && call.arguments?.length===1 &&
+    call.arguments[0]?.type==='Literal' && call.arguments[0].value==='native-agent/transport.js';
+}
 export function inspectScript(text, file, options = {}) {
   const ast = parseScript(text, file, options.sourceType || 'script');
   const scopes = new WeakMap(), declarations = [], bindings = new WeakMap();
@@ -191,7 +200,7 @@ export function inspectScript(text, file, options = {}) {
     const parent = ancestors.at(-1);
     if (node.type === 'ImportExpression' || node.type === 'ImportDeclaration' || (/^Export/.test(node.type) && !allowedSourceExport(node, file))) throw new Error(`Non-classic syntax in ${file}`);
     if (node.type === 'Identifier' && !nonReference(node, parent)) {
-      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name}`);
+      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file) && !approvedNativeImport(node,parent,file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name}`);
       if (binding && resolveBinding(node) === binding && node !== approved.id) {
         if (parent?.type !== 'NewExpression' || parent.callee !== node || parent.arguments.length !== 7 ||
           ['page','params','axiosx','AppStorage','AppLocal','storage'].some((name,index)=>parent.arguments[index]?.value!==name) || property(parent.arguments[6]) !== 'body') throw new Error(`Unapproved dynamic constructor use in ${file}`);
@@ -200,7 +209,7 @@ export function inspectScript(text, file, options = {}) {
     }
     if (node.type === 'MemberExpression' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(property(node))) throw new Error(`Dynamic execution in ${file}: ${property(node)}`);
     if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file}`);
-    if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
+    if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
   });
   if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);
   if (/__webpack_require__\.e\s*\(|https?:\/\/[^\s'"]+\.js(?:[?#][^\s'"]*)?(?=['"\s]|$)|\brequire\(['"](?:node:|fs|net|http)/.test(text)) throw new Error(`Remote/lazy/runtime-host execution in ${file}`);
