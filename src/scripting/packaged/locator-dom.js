@@ -31,7 +31,12 @@ function implicitRole(el) {
 }
 export function semanticRole(el) {
   const declared = space(el.getAttribute?.('role')).split(' ').find(role => VALID_ROLES.has(role));
-  return declared || implicitRole(el);
+  if (declared) return declared;
+  const implicit = implicitRole(el);
+  // Landmark form/region is exposed by browsers only when it is named.
+  if (['form','region'].includes(implicit) && !el.hasAttribute('aria-label') &&
+      !el.hasAttribute('aria-labelledby') && !el.hasAttribute('title')) return null;
+  return implicit;
 }
 function labelText(el, doc) {
   const labelledby = space(el.getAttribute('aria-labelledby'));
@@ -86,7 +91,7 @@ export function locate(doc, descriptor) {
   const path = validateLocatorDescriptor(descriptor);
   function search(item) {
     const parents = item.parent ? search(item.parent) : [doc];
-    if (item.parent && parents.length !== 1) throw new PageError('E_STRICT_MODE_VIOLATION', 'Scope must match exactly one element');
+    if (item.parent && parents.length > 1) throw new PageError('E_STRICT_MODE_VIOLATION', 'Scope matched multiple elements');
     const root = parents[0];
     if (!root) return [];
     if (item.kind === 'css') return nativeQuery(root, item.value);
@@ -250,7 +255,9 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
         const row = {role:role || null, name:name.slice(0,120), text,
           state:{visible:visible(el,win),disabled:Boolean(el.disabled),readOnly:Boolean(el.readOnly),
             ...(el.hasAttribute('aria-expanded') ? {expanded:el.getAttribute('aria-expanded')} : {}),
-            ...(el.hasAttribute('aria-checked') ? {checked:el.getAttribute('aria-checked')} : {})},
+            ...(typeof el.checked === 'boolean' ? {checked:String(el.checked)} :
+              el.hasAttribute('aria-checked') ? {checked:el.getAttribute('aria-checked')} : {}),
+            ...(typeof el.selected === 'boolean' ? {selected:el.selected} : {})},
           scope:scope && scope !== el ? {tag:tag(scope),id:scope.id || null} : null,
           locator:suggestion(el,role,name,label,text)};
         const length = JSON.stringify(row).length;
