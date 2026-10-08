@@ -119,12 +119,13 @@ function rectOf(el) {
 }
 function actionability(el, action, doc, win) {
   if (!visible(el, win)) return 'E_ELEMENT_NOT_VISIBLE';
-  if (el.matches?.(':disabled') || el.disabled || el.closest?.('fieldset[disabled]') ||
-      el.closest?.('[aria-disabled="true"]')) return 'E_ELEMENT_DISABLED';
+  if (el.matches?.(':disabled') || el.disabled || el.inert || el.closest?.('[inert]') ||
+      el.closest?.('fieldset[disabled]') || el.closest?.('[aria-disabled="true"]')) return 'E_ELEMENT_DISABLED';
+  if (win.getComputedStyle(el).pointerEvents === 'none') return 'E_ELEMENT_OBSCURED';
   if (action === 'fill') {
     if (!(tag(el) === 'textarea' || tag(el) === 'input' && ['text','search','email','url','tel','password'].includes(el.type)))
       throw new PageError('E_INPUT_TARGET_UNSUPPORTED');
-    if (el.readOnly) return 'E_INPUT_READONLY';
+    if (el.readOnly || el.getAttribute('aria-readonly') === 'true') return 'E_INPUT_READONLY';
   }
   const rect = rectOf(el), x = (Math.max(0, rect.left) + Math.min(rect.right, win.innerWidth)) / 2,
     y = (Math.max(0, rect.top) + Math.min(rect.bottom, win.innerHeight)) / 2;
@@ -171,19 +172,25 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
     if (!nodes.length) return {ready:false, reason:'E_SELECTOR_NOT_FOUND'};
     const el = nodes[0], why = actionability(el, op.action, doc, win);
     if (why) return {ready:false, reason:why};
-    const before = rectOf(el);
-    await new Promise(resolve => {
-      let finished = false;
-      const done = () => { if (finished) return; finished = true; clearTimeout(timer); resolve(); };
-      const timer = setTimeout(done, 65);
-      if (typeof win.requestAnimationFrame === 'function' && doc.visibilityState !== 'hidden') win.requestAnimationFrame(done);
-    });
-    check();
-    if (!el.isConnected || locate(doc, descriptor).length !== 1 || locate(doc, descriptor)[0] !== el)
-      return {ready:false,reason:'E_ELEMENT_DETACHED'};
-    const after = rectOf(el);
-    if (Object.keys(before).some(key => Math.abs(before[key] - after[key]) > 1))
-      return {ready:false,reason:'E_ELEMENT_UNSTABLE'};
+    // Validate geometry and identity at *two* frame boundaries; prepare
+    // remains read-only (no scrolling, focus, setter, or page event).
+    let before = rectOf(el);
+    for (let frame = 0; frame < 2; frame++) {
+      await new Promise(resolve => {
+        let finished = false;
+        const done = () => { if (finished) return; finished = true; clearTimeout(timer); resolve(); };
+        const timer = setTimeout(done, 65);
+        if (typeof win.requestAnimationFrame === 'function' && doc.visibilityState !== 'hidden') win.requestAnimationFrame(done);
+      });
+      check();
+      const found = locate(doc, descriptor);
+      if (!el.isConnected || found.length !== 1 || found[0] !== el)
+        return {ready:false,reason:'E_ELEMENT_DETACHED'};
+      const after = rectOf(el);
+      if (Object.keys(before).some(key => Math.abs(before[key] - after[key]) > 1))
+        return {ready:false,reason:'E_ELEMENT_UNSTABLE'};
+      before = after;
+    }
     const again = actionability(el, op.action, doc, win);
     if (again) return {ready:false,reason:again};
     for (const [key, value] of tokens) if (Date.now() - value.created > 5000) tokens.delete(key);
@@ -220,32 +227,50 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
     check(); const opts = validateObservationOptions(input);
     const roots = nativeQuery(doc, opts.root);
     const root = unique(roots), rows = [];
-    let truncated = false, used = 0;
+    // Bound semantic validation work even if the selected root is a small
+    // subsection of a very large SPA. All emitted descriptors still pass locate().
+    const semanticSafe = doc.querySelectorAll('*').length <= 1200;
+    const maxLocatorChecks = 40, maxVisited = Math.min(3000, Math.max(400, opts.maxNodes * 30));
+    let truncated = false, used = 0, visited = 0, locatorChecks = 0;
     function suggestion(el, role, name, label, text) {
+      const scope = el.closest?.('form,dialog,[role="dialog"]');
+      const parent = scope?.id ? createLocatorDescriptor('css','[id=' + JSON.stringify(scope.id) + ']') : null;
       const test = candidate => {
-        try { return locate(doc,candidate).length === 1 && locate(doc,candidate)[0] === el ? candidate : null; }
-        catch { return null; }
+        if (locatorChecks >= maxLocatorChecks ||
+            !semanticSafe && !candidate.parent && candidate.kind !== 'css' && candidate.kind !== 'testId') return null;
+        locatorChecks++;
+        try {
+          const found = locate(doc, candidate);
+          return found.length === 1 && found[0] === el ? candidate : null;
+        } catch { return null; }
+      };
+      const scoped = (kind, value, options = {}) => {
+        const global = test(createLocatorDescriptor(kind, value, options));
+        return global || (parent ? test(createLocatorDescriptor(kind, value, options, parent)) : null);
       };
       if (role && name) {
-        const found = test(createLocatorDescriptor('role',role,{name,exact:true})); if (found) return found;
+        const found = scoped('role',role,{name,exact:true}); if (found) return found;
       }
       if (label) {
-        const found = test(createLocatorDescriptor('label',label,{exact:true})); if (found) return found;
+        const found = scoped('label',label,{exact:true}); if (found) return found;
       }
       if (el.id) {
         const found = test(createLocatorDescriptor('css','[id=' + JSON.stringify(el.id) + ']')); if (found) return found;
       }
       const id = el.getAttribute('data-testid');
       if (id) {
-        const found = test(createLocatorDescriptor('testId',id)); if (found) return found;
+        const found = scoped('testId',id); if (found) return found;
       }
-      if (text && text.length <= 80) return test(createLocatorDescriptor('text',text,{exact:true}));
+      if (text && text.length <= 80) return scoped('text',text,{exact:true});
       return null;
     }
     function walk(el, depth) {
       if (truncated) return;
+      if (++visited > maxVisited) { truncated = true; return; }
+      if ((visited & 63) === 0) check();
       if (depth > opts.maxDepth) { truncated = true; return; }
       if (rows.length >= opts.maxNodes) { truncated = true; return; }
+      if (ariaHidden(el)) return;
       const role = semanticRole(el), name = role ? accessibleName(el, doc) : '',
         label = ['input','select','textarea'].includes(tag(el)) ? labelText(el,doc) : '',
         text = ['input','textarea','select'].includes(tag(el)) ? '' : space(el.textContent).slice(0,120);
@@ -254,7 +279,8 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
       if (noteworthy) {
         const scope = el.closest?.('form,dialog,[role="dialog"]');
         const row = {role:role || null, name:name.slice(0,120), text,
-          state:{visible:visible(el,win),disabled:Boolean(el.disabled),readOnly:Boolean(el.readOnly),
+          state:{visible:visible(el,win),disabled:Boolean(el.disabled || el.getAttribute('aria-disabled') === 'true' ||
+              el.closest?.('[aria-disabled="true"]')),readOnly:Boolean(el.readOnly || el.getAttribute('aria-readonly') === 'true'),
             ...(el.hasAttribute('aria-expanded') ? {expanded:el.getAttribute('aria-expanded')} : {}),
             ...(typeof el.checked === 'boolean' ? {checked:String(el.checked)} :
               el.hasAttribute('aria-checked') ? {checked:el.getAttribute('aria-checked')} : {}),
@@ -271,7 +297,8 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
     return {kind:'semantic-dom-summary',version:'1.0.0-r5.1',
       document:{documentId:documentPin.documentId || null,targetVersion:documentPin.targetVersion ?? null,
         url:doc.location?.href || null},
-      root:opts.root,nodes:rows,truncated,budget:{maxDepth:opts.maxDepth,maxNodes:opts.maxNodes,maxChars:opts.maxChars}};
+      root:opts.root,nodes:rows,truncated,budget:{maxDepth:opts.maxDepth,maxNodes:opts.maxNodes,maxChars:opts.maxChars,
+        maxVisited,visited:Math.min(visited,maxVisited),locatorChecks,maxLocatorChecks}};
   }
   return Object.freeze({read,probe,prepare,commit,observe,clear});
 }
