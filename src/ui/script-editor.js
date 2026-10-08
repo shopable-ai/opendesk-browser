@@ -47,19 +47,19 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     const node = find('script-version');
     if (!currentRevision || currentRevision.scriptId !== scriptId()) {
       node.dataset.dirty = 'false';
-      node.textContent = currentRevision ? '当前脚本 ID 尚未加载持久版本' : '尚未保存；Run 不会执行编辑区中的未保存源码';
+      node.textContent = currentRevision ? '当前脚本 ID 尚未加载持久版本；仍可直接运行草稿' : '未保存草稿可直接运行；只有点击保存才创建正式版本';
       return;
     }
     if (currentRevision.revision !== Number(find('script-revision').value)) {
       node.dataset.dirty = 'false';
-      node.textContent = `已加载 r${currentRevision.revision}；请先加载要运行的明确版本`;
+      node.textContent = `已加载 r${currentRevision.revision}；本次运行始终使用编辑器当前草稿`;
       return;
     }
     const dirty = find('script-source').value !== currentRevision.sourceUtf8;
     node.dataset.dirty = String(dirty);
     node.textContent = dirty
-      ? `已保存 r${currentRevision.revision} · 存在未保存修改 · 本次 Run：r${currentRevision.revision} · ${currentRevision.contentHash}`
-      : `已保存 r${currentRevision.revision} · 本次 Run：r${currentRevision.revision} · ${currentRevision.contentHash}`;
+      ? `已保存 r${currentRevision.revision} · 存在未保存修改 · 运行草稿不会覆盖已保存版本`
+      : `已保存 r${currentRevision.revision} · 可运行草稿；不自动创建新 revision`;
   }
   function update() {
     if (disposed) return;
@@ -67,9 +67,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-save').disabled = editingBusy; find('script-load').disabled = editingBusy;
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
-    find('script-run').disabled = editingBusy || running || !projection?.slotAvailable || !!host.currentRun || !currentRevision ||
-      currentRevision.scriptId !== scriptId() || currentRevision.revision !== Number(find('script-revision').value) ||
-      mode.value === 'current' && currentPageState?.status !== 'available';
+    find('script-run').disabled = editingBusy || running || !projection?.slotAvailable || !!host.currentRun ||
+      !find('script-source').value.trim() || mode.value === 'current' && currentPageState?.status !== 'available';
     find('script-stop').disabled = stopping || !host.currentRun;
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
@@ -115,7 +114,9 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-task-id').textContent = run ? `runId：${run.runId}` : '尚未运行';
     find('script-task-status').textContent = run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : '';
     find('script-task-version').textContent = run?.revision
-      ? `${run.revision.scriptId} · r${run.revision.revision} · ${run.revision.sourceHash}` : '';
+      ? run.sourceKind === 'draft' || run.revision.kind === 'draft'
+        ? `草稿快照 · SHA-256 ${run.revision.sourceHash}`
+        : `${run.revision.scriptId} · r${run.revision.revision} · ${run.revision.sourceHash}` : '';
     renderRunningTarget(run?.target, run?.runId);
     runningTargetStatus.dataset.state = run?.state || 'idle';
   }
@@ -234,9 +235,9 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     const values = snapshot.results.map(row => {
       if (row.state === 'completed' && row.outcome?.ok === true) {
         downloadable.set(row.resultId,row);
-        resultSelect.append(new Option(`${row.runId} · r${row.revision.revision}`,row.resultId));
+        resultSelect.append(new Option(`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + row.revision.revision}`,row.resultId));
       }
-      return {tag:row.tag,runId:row.runId,resultId:row.resultId,state:row.state,
+      return {tag:row.tag,runId:row.runId,resultId:row.resultId,state:row.state,sourceKind:row.sourceKind || 'saved',
         revision:row.revision && {scriptId:row.revision.scriptId,revision:row.revision.revision,sourceHash:row.revision.sourceHash},
         sourceHash:row.revision?.sourceHash,
         ...(row.outcome?.ok === true ? {value:decodeValue(row.outcome.valueWire)} : {error:row.outcome?.error})};
@@ -249,7 +250,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     if (!snapshot.run) {
       const history = find('script-history-run'), selected = history.value;
       history.replaceChildren(new Option('选择历史任务', ''));
-      for (const row of snapshot.runs) history.append(new Option(`${row.runId} · r${row.revision?.revision ?? '?'} · ${stateLabels[row.state] || row.state}`,row.runId));
+      for (const row of snapshot.runs) history.append(new Option(
+        `${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + (row.revision?.revision ?? '?')} · ${stateLabels[row.state] || row.state}`,row.runId));
       if (snapshot.runs.some(row=>row.runId === selected)) history.value = selected;
       find('script-history').textContent = printable({runs:snapshot.runs,results:values,downloads:snapshot.downloads,resultDeliveryDenied:snapshot.resultDeliveryDenied});
     }
@@ -337,12 +339,13 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   }
   function start(event) {
     if (!event.isTrusted || disposed || running || editingBusy || host.currentRun) return;
-    let chosen, params, permission, revision;
+    let chosen, params, permission, sourceUtf8;
     try {
+      // Freeze exact editor bytes, params and target inside the trusted click
+      // before permissions.request or any await.
       chosen = selection(); params = JSON.parse(find('script-params').value);
-      if (!currentRevision || currentRevision.scriptId !== scriptId() || currentRevision.revision !== Number(find('script-revision').value))
-        throw {code:'E_REVISION',message:'请先保存或加载要运行的持久版本'};
-      revision = currentRevision;
+      sourceUtf8 = find('script-source').value;
+      if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       // The native permission request stays in the trusted click, before awaits.
       permission = api.permissions.request({origins:[permissionPattern(chosen.url)],
         ...(find('script-allow-cookies').checked ? {permissions:['cookies']} : {})});
@@ -356,14 +359,15 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       if (chosen.candidate) await currentPageTarget.revalidate(chosen.candidate);
       else if (chosen.target.mode === 'borrowed' && version !== selectionVersion)
         throw {code:'E_DOCUMENT_STALE',message:'选定文档已变化，请重新选择'};
-      const claim = await host.start({scriptId:revision.scriptId, revision:revision.revision, contentHash:revision.contentHash,
+      const claim = await host.start({source:{kind:'draft',sourceUtf8},
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
       admittedRunId = claim.runId;
       if (disposed) return;
       find('script-run-id').value = claim.runId;
       renderTask(claim);
-      display('running', `已接受 r${revision.revision}；等待脚本结束及持久结果`,
-        {runId:claim.runId,revision:claim.revision.revision,sourceHash:claim.revision.sourceHash,runningTarget:claim.target.url || claim.target.allowedOrigin});
+      display('running', '已接受冻结草稿；等待脚本结束及持久结果',
+        {runId:claim.runId,sourceKind:claim.sourceKind,sourceHash:claim.revision.sourceHash,
+          runningTarget:claim.target.url || claim.target.allowedOrigin});
       update();
       const result = await host.completion;
       if (result.error) throw result.error;
