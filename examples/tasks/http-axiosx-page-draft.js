@@ -5,6 +5,8 @@
 async function main() {
   const url = String(params.url ?? './request-sample.json');
   const expected = params.expected === 'error' ? 'error' : 'success';
+  // Reset establishes the page's default SDK/GET channel after earlier manual tests.
+  await page.click('#reset-all');
   await page.getByLabel('请求 URL', {exact:true}).fill(url);
   await page.getByRole('button', {name:'发送请求', exact:true}).click();
   await page.locator('#api-status[data-state="' + expected + '"]')
@@ -15,6 +17,7 @@ async function main() {
     httpStatus:await page.locator('#api-http-status').textContent(),
     duration:await page.locator('#api-duration').textContent(),
     responseText:await page.locator('#api-response').textContent(),
+    headersText:await page.locator('#api-headers').textContent(),
     errorText:await page.locator('#api-error').textContent()
   };
 }

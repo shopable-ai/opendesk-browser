@@ -283,6 +283,32 @@ test('axiosx Controller Worker and Page API draft files keep their separate boun
   assert.doesNotThrow(()=>new Script(page));
 });
 
+test('editing POST JSON retires the old SDK response before a new send',async()=>{
+  const pending=[];
+  const sdk={ready:async()=>({ready:true,methods:['AXIOS_POST']}),axiosx:{
+    post:(url,body)=>new Promise(resolve=>pending.push({body,resolve}))
+  }};
+  const dom=createApiDomHarness(await load(),()=>{throw Error('unexpected fetch');},sdk);
+  dom.nodes.get('api-method').value='POST';
+  dom.nodes.get('api-url').value='./__test__/echo';
+  const oldRun=dom.dispatch('api-send','click');
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(pending.length,1);
+  dom.nodes.get('api-post-body').value='{"hello":"updated"}';
+  await dom.dispatch('api-post-body','input');
+  assert.equal(dom.nodes.get('api-status').dataset.state,'idle');
+  assert.equal(dom.nodes.get('api-send').disabled,false);
+  const newRun=dom.dispatch('api-send','click');
+  await new Promise(resolve=>setTimeout(resolve,0));
+  pending[1].resolve({status:200,data:{received:pending[1].body},headers:{}});
+  await newRun;
+  pending[0].resolve({status:200,data:'stale body',headers:{}});
+  await oldRun;
+  assert.equal(dom.nodes.get('api-status').dataset.state,'success');
+  assert.match(dom.nodes.get('api-response').textContent,/updated/);
+  assert.doesNotMatch(dom.nodes.get('api-response').textContent,/stale/);
+});
+
 test('inline JavaScript parses without a third-party runtime or external resources',async()=>{
   const html=await load();
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];

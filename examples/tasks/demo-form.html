@@ -187,6 +187,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
         <div><dt>响应类型</dt><dd id="api-content-type">—</dd></div>
       </dl>
       <details id="api-response-details" class="api-response-details"><summary>查看实际响应</summary><pre id="api-response" data-testid="api-response" aria-live="polite"></pre></details>
+      <details class="api-response-details"><summary>响应 Headers</summary><pre id="api-headers"></pre></details>
       <p id="api-error" data-testid="api-error" role="alert" hidden></p>
     </section>
   </div>
@@ -356,6 +357,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
     get('api-duration').textContent = '—';
     get('api-content-type').textContent = '—';
     apiResponse.textContent = '';
+    get('api-headers').textContent = '';
     apiResponseDetails.open = false;
     apiError.textContent = '';
     apiError.hidden = true;
@@ -389,8 +391,9 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
     }
     return text.length > 4096 ? text.slice(0, 4096) + '\n…（预览已截断）' : text;
   }
-  function showApiResponse(value, contentType = '—') {
+  function showApiResponse(value, contentType = '—', headers = {}) {
     apiResponse.textContent = apiDataPreview(value);
+    get('api-headers').textContent = JSON.stringify(headers, null, 2);
     apiResponseDetails.open = true;
     get('api-content-type').textContent = contentType;
   }
@@ -472,7 +475,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
         if (!current()) return;
         get('api-http-status').textContent = String(response.status);
         get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
-        showApiResponse(response.data, response.headers?.['content-type'] ?? '—');
+        showApiResponse(response.data, response.headers?.['content-type'] ?? '—', response.headers);
         showApiStatus('success', 'SDK axiosx 请求成功 · 真实后台响应');
       } else {
         request.timer = setTimeout(() => {
@@ -490,7 +493,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
         get('api-http-status').textContent = String(response.status);
         get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
         showApiResponse(preview.body + (preview.truncated ? '\n…（正文已截断）' : ''),
-          response.headers.get('content-type') || '（未提供）');
+          response.headers.get('content-type') || '（未提供）', Object.fromEntries(response.headers));
         if (response.ok) showApiStatus('success', '网页 Fetch 请求完成');
         else {
           showApiStatus('error', 'Fetch 收到 HTTP ' + response.status);
@@ -512,7 +515,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
         const status = error?.status ?? error?.response?.status;
         if (Number.isInteger(status)) get('api-http-status').textContent = String(status);
         if (error?.response) showApiResponse(error.response.data,
-          error.response.headers?.['content-type'] ?? '—');
+          error.response.headers?.['content-type'] ?? '—', error.response.headers);
         showApiStatus('error', mode === 'axiosx' ? 'SDK axiosx 返回错误' : 'Fetch 网络请求失败');
         apiError.textContent = (mode === 'axiosx' ? code + '：' : '')
           + (error instanceof Error ? error.message : String(error))
@@ -552,6 +555,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
   apiChannel.addEventListener('change', () => { abortApiRequest(); syncApiControls(); clearApiView(); });
   apiMethod.addEventListener('change', () => { abortApiRequest(); syncApiControls(); clearApiView(); });
   apiTimeout.addEventListener('input', () => { abortApiRequest(); clearApiView(); });
+  apiBody.addEventListener('input', () => { abortApiRequest(); clearApiView(); });
   function resetApiView() {
     abortApiRequest();
     apiUrl.value = './request-sample.json';
