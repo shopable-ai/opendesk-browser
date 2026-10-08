@@ -21,16 +21,18 @@
 | Sidebar 三页签、Controller 草稿运行、Page USER_SCRIPT 即时试运行 | 已有 UI/Host 接线，Preview 不等于 Installed | 保留原三页签、原底栏和 UserScript 折叠区 |
 | D1 @require 元数据/不可变锁及 Page descriptor 编译器 | 已有源码；正式 Page persistent register/getScripts 对账仍未证实 | 优先连接正式安装，不重做 downloader 和 DB |
 | Browser Test Lab R8 | 当前 main 已新增七组 Locator/HTTP/表单场景及 docs/framework/browser-test-lab-r8.zh-CN.md | 固定人工入口 examples/tasks/demo-form.html；勿再建重复 /fixture |
-| [PR #22](https://github.com/shopable-ai/opendesk-browser/pull/22) | Draft/Open；**目前 base 为 Native 草稿分支，不是 main**；多文件 authoring 快照/构建产物分离，含部分 CFT 149 证据；未进入 main | E03 专项验收，不在 E33 重新发明同一 Editor 功能 |
+| [PR #22](https://github.com/shopable-ai/opendesk-browser/pull/22) | **Merged=true（2026-10-08T17:11:02Z），base 为 Native 草稿分支，不是 main**；多文件 authoring 快照/构建产物分离，含部分 CFT 149 证据；未进入 main | E03 专项验收，不在 E33 重新发明同一 Editor 功能 |
 | [PR #20](https://github.com/shopable-ai/opendesk-browser/pull/20) | **Merged=true，但 base=agent/native-agent-bridge-r1-20261008，未进入 main**；真实 HTTP/axiosx fixture 仍属候选；缺完整 Chrome 结果 | E04 专项验收，不将网页 Fetch 当 GM_http 实现 |
 | [PR #11](https://github.com/shopable-ai/opendesk-browser/pull/11) | Draft/Open；Native Agent Host/CLI，缺同最终候选真实 Chrome+Codex E2E | E05 独立验收，R8.1 Page 安装不依赖 Native |
 | GM_*/GM.*、@background、@crontab、UserCSS | 在已抽查 main 未发现完整的正式产品闭环 | 进入后续批次，实际开发前重新查代码；不能因有 chrome API 声称已兼容 |
 
 
-> **R8 Engineering Program R1 · 2026-10-09 增量审计快照**：GitHub main@ca3e7655f8054494b024ccca3e2d7aab50ce8638；PR #11（Native）和 #22（多文件源码）仍 Draft/Open；PR #20（HTTP/axiosx）已 **Merged 到 Native 草稿分支而非 main**；三个工作流的候选新增功能均不能据 PR 状态算作正式 main 已发布；受限环境未接入 Mac 工作区或真实 Chrome/Codex，以上 PR 原生端到端项保持 NOT_TESTED。R8 目录初次与 E01～E40 对账时有 35 个功能 ID 未显式归属，下面“追溯补充”只指定责任和处置，不增加新执行引擎或声称功能已完成。新增源代码层自动检查：node --test tests/environment/r8-backlog-contract.test.mjs；其通过也不是 Chrome 原生验收。
+> **R8 Engineering Program R1 · 2026-10-09 增量审计快照**：GitHub main@ca3e7655f8054494b024ccca3e2d7aab50ce8638；PR #11（Native）仍 Draft/Open；PR #20（HTTP/axiosx）和 #22（多文件源码）均已 **Merged 到 Native 草稿分支而非 main**；三个工作流的候选新增功能均不能据 PR 状态算作正式 main 已发布；受限环境未接入 Mac 工作区或真实 Chrome/Codex，以上 PR 原生端到端项保持 NOT_TESTED。R8 目录初次与 E01～E40 对账时有 35 个功能 ID 未显式归属，下面“追溯补充”只指定责任和处置，不增加新执行引擎或声称功能已完成。新增源代码层自动检查：node --test tests/environment/r8-backlog-contract.test.mjs；其通过也不是 Chrome 原生验收。
 
 
 > **GitHub PR base 核实（2026-10-08T17:04:34Z 后）**：PR #20 合并 commit `33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd` 的父提交分别是 Native 草稿 `bdb3bf9b55a56dfbc70e2fb2b30b70a11252cc42` 与 HTTP 候选 `66cfcbd67fb2393d0addaa3d81b15c273ed6710a`；GitHub API 的 PR base.ref 是 `agent/native-agent-bridge-r1-20261008`，并非 `main`。在当前 main 读取 `examples/tasks/http-test-server.mjs`、`native-agent/native-host.mjs`、`src/ui/program-source.js` 均为 404。这说明 #20 的 `merged=true` 不能作为 E04 已合主干证据。PR #22 的 base.ref 同样为 Native 草稿分支。E03/E04/E05 的正式闭环均需要核对最终合入 main 的 commit ancestry、目标文件及冻结 SHA；合并后的真实 Chrome/Codex 验收不能借用旧 PR 回执。
+
+> **二次集成目标纠正（2026-10-08T17:11:02Z）**：PR #22 与 #20 一样，已被 **合并至 Native Agent 草稿分支** 而不是 main；PR #22 merge commit `a2e1bda59bf74fabfb9ae3cd2b882c483cdc1383`。PR #11 仍 Draft/Open 且目标为 main，是真正把 #20/#22 候选传入主干的潜在汇合入口，但未经过安全整合/原生验收时不得强行合并。尤其不能把 #20/#22 的 `Merged` 标签当作 `MAIN_SOURCE_IMPLEMENTED`。
 
 当前 main 已声明 MV3、最低 Chrome 138、<all_urls> 与部分敏感命名权限；这不等于用户脚本有全部权限，也不证明 Chrome Web Store 公开发布已经满足最小权限政策。PR 状态可能随其它工作流变化，请在执行当日更新。
 
@@ -66,7 +68,7 @@
 | --- | --- | --- | --- | --- | --- |
 | **E01 核查 HEAD/PR/Worktree/验收证据** | SEC-013、PORT-005、DEV-012 | — | 2/3 | PARTIAL | AGENTS.md、parallel-development.md、GitHub PR/CI；**验收**：列出真实仓库 HEAD、PR #11/#20/#22、影响的源码和每份回执绑定的候选 |
 | **E02 既有 RunHost/Controller/Locator/Task 回归** | AUTO-001、AUTO-002、AUTO-003、AUTO-004、AUTO-005、AUTO-006、AUTO-012 | E01 | 3/4 | SOURCE_IMPLEMENTED | src/framework/、src/run-host.js、src/platform/tasks/host/；**验收**：同候选验证运行、停止、持久结果、导航与撤权，不能以旧候选 Native PASS 代替 |
-| **E03 验收集成 PR #22 ESM 源码/构建产物** | DEV-003、DEV-004、DEV-008、DEV-011 | E01,E02 | 3/3 | PR_DRAFT_BASE_NATIVE | PR #22：scripts/build-program-project.mjs、src/ui/、测试；**验收**：源文件只读快照与执行字节哈希一致、调试映射、真实运行/保存/重启；满足门槛才集成 |
+| **E03 验收集成 PR #22 ESM 源码/构建产物** | DEV-003、DEV-004、DEV-008、DEV-011 | E01,E02 | 3/3 | MERGED_TO_NATIVE_DRAFT_NOT_MAIN | PR #22：scripts/build-program-project.mjs、src/ui/、测试；**验收**：源文件只读快照与执行字节哈希一致、调试映射、真实运行/保存/重启；满足门槛才集成 |
 | **E04 验收集成 PR #20 axiosx 真实 HTTP** | SEC-012、AUTO-008、DEV-012 | E01,E02 | 3/4 | MERGED_TO_NATIVE_DRAFT_NOT_MAIN | PR #20：demo-form、HTTP loopback、SDK Network；**验收**：真 Chrome MAIN/Controller SDK GET/POST、跨源和拒权/撤权；Fetch 仅作 CORS 对照 |
 | **E05 验收集成 PR #11 Native Agent** | AI-003、AI-004、AI-007、TRG-011 | E01,E02 | 5/5 | PR_DRAFT | PR #11：Native Host/CLI、SW transport、RunHost；**验收**：Mac 真 Chrome+Codex 连接、授权、target、run/get/stop、失联与无 AI 运行回归，达标再合并 |
 | **E06 验证已合入 Browser Test Lab 基线** | DEV-012、UX-011、AUTO-002、AUTO-003、PORT-005 | E01 | 2/2 | SOURCE_IMPLEMENTED;NATIVE_NOT_TESTED | examples/tasks/demo-form.html、browser-test-lab-r8 文档及 Node 测试；**验收**：保留已合入 Locator 七组场景、单一人工入口，组件结果不冒充 Chrome 真实回执 |
