@@ -19,6 +19,7 @@ R1 不改 Sidebar 三页签、不引入第二 Controller、TargetAuthority、Run
 | 旧 \`client.mjs\` / MCP demo | 明确 requestId 与零自动动作重试的 CLI 边界 | \`native-agent/cli.mjs\` | Codex CLI；待 Host 实现和本机验证 |
 | 旧浏览器 DOM Core + \`todo-user/src-bex\` | **只复用目标快照与结果行为语义，不复用旧执行器** | \`src/native-agent/host-adapter.js\` | 仅消费真实 \`RunHost.start()/stop()\`、Controller 查询 |
 | 目标主干 \`src/platform/host/client.js\`、\`src/sw.js\` | 已注册 Host Port、Host Authority、现有连接 | \`src/native-agent/service-worker.js\` + 定向薄改动 | 受控 SW→存活 Host；\`native-agent-bridge.test.mjs\` |
+| SW 固定打包入口 | 13 个严格 WXT 输出；可选 Native 协议和配置监听驻留同扩展的本地静态脚本，不放宽动态执行 | `src/entrypoints/transport.js` / `src/native-agent/transport.js` | `native-agent-package.test.mjs` + CI 生产/开发构建与 verify |
 | 目标主干 \`src/ui/current-page-target.js\`、\`src/run-host.js\` | 当前窗口精确 document / 正式 Worker、RunId 和保存版本 | \`src/native-agent/host-adapter.js\` | \`native-agent-host.test.mjs\` |
 
 **变化说明：** R1 将旧 Demo 中“独立 Broker 进程 + Native Host”合并为一个由 Chrome 启动的**独立本机 Node Host**，此进程同时负责私有 Unix IPC Socket；不需要另行保活第二个 Broker。Chrome Native Port 断开则 Host 退出，CLI 明确未就绪；任何不确定请求不自动重放。这个简化应在真实 Mac 验证之后才可接受。旧 Demo 的 \`org.opendesk.browser_core_demo\`、\`jpjgepfbapojijlabljgdpbhfmiapkin\`、credential 和 socket 完全保留不碰。
@@ -29,6 +30,7 @@ R1 不改 Sidebar 三页签、不引入第二 Controller、TargetAuthority、Run
 Codex CLI --file frozen-request.json (本机 credential)
   → Native Host 私有 Unix Socket
   → Chrome Native Messaging (独立可选端口)
+  → 固定包内 native-agent/transport.js (classic MV3 SW importScripts)
   → src/native-agent/service-worker.js (启用状态、requestDigest 和 Host 选择)
   → 已认证的 foundation Host Port (registrationId/documentId)
   → src/native-agent/host-adapter.js (当前 Sidebar window/document + permissions.contains)
@@ -61,7 +63,7 @@ SW / Native / CLI 断连或者超时，只返回 \`OUTCOME_UNKNOWN\`，不能重
 
 macOS R1 源码安装目录预定 \`~/.opendesk-browser/native-agent-r1\`，使用独立 Native manifest 名称 \`com.shopable.opendesk_browser.agent\`，Chrome \`allowed_origins\` 绑定本次 Extension ID。不要采用旧 Demo ID。\`setup\` 复制本机 Node 组件快照至私有目录，并将证书式随机令牌写在 0600 文件；Native Host stdout 仅允许 UTF-8 长度帧，诊断走 stderr。Host 进程同时作为本地 Broker，不需要二次启动。
 
-**最新实施状态（2026-10-08）：** Native Host 源码已提交到现有 PR #11 分支；新增 Node 模拟 IPC 测试验证长度帧、扩展 ID 约束、凭证认证、私有 Socket、重复请求限制和未知副作用处理。先前“文件尚未落盘”是历史阻断，不再代表最新代码。**真实 macOS 安装、Chrome Native Messaging、Options 授权、Codex E2E、Chrome 重启和最终候选打包验收仍未完成**；任何 NATIVE_PASS 或 CODEX_E2E_PASS 标记当前均不成立。
+**最新实施状态（2026-10-08）：** `native-agent/native-host.mjs` 已在现有 PR #11 分支，Linux/Node 模拟 IPC 与权限/Service Worker/Host 组件测试成功。为严格保留原 **320 KiB** `sw.js` 上限，改为只加载固定的扩展内部 `native-agent/transport.js` 经典脚本：`src/entrypoints/transport.js` 通过 WXT 打包，`src/native-agent/transport.js` 仅注册配置/宿主回包监听并调用原来的 Native Agent Service，复用同一受权 `hostPorts` 和 RunHost，不建第二业务 Controller。`scripts/build-contract.mjs` / `wxt.config.mjs` 固定 **13 个**源码入口；`scripts/verify-package.mjs` 仅为 `sw.js` 中精确字面量 `importScripts('native-agent/transport.js')` 开小范围例外，拒绝远程、动态和其它 importScripts。GitHub Actions 在 `c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a` 的 Native、Sidebar、依赖、站点授权 4 项均通过，其中 Native CI 记录 `npm run check`、生产/开发 build、verify 均成功，未扩大 SW 预算。**这些仍是 Linux CI/Node 级别。真实 macOS setup/doctor、Chrome Native Messaging、Options 可信点击、真实网站授权、Codex draft/saved/Stop/Result 和断连重启行为一律 `NOT_TESTED`；不得标记 `NATIVE_PASS` 或合入 main。**
 
 下一阶段：\`docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt\`。
 
