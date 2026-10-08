@@ -16,10 +16,10 @@
     <label for="script-id">脚本名称 / ID</label><input id="script-id" value="my-script" autocomplete="off">
     <div class="row"><label for="script-revision">revision</label><input id="script-revision" type="number" min="1" placeholder="留空加载最新版本"><button id="script-load">加载版本</button></div>
     <p id="script-version" role="status">尚未保存</p>
-    <label for="script-source">JavaScript 编辑器</label><textarea id="script-source" rows="9" spellcheck="false">return {title: await page.title(), url: await page.url(), value: params.value};</textarea>
-    <p class="hint">程序使用 page 和 params。读取、填写和点击可用 page.title/type/click/snapshot；page.evaluate 页面计算另需在 Chrome 扩展详情中开启“允许运行用户脚本”。</p>
+    <label for="script-source">JavaScript 编辑器 · 草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">return {title: await page.title(), url: await page.url(), value: params.value};</textarea>
+    <p class="hint">点击“运行草稿”执行当前编辑内容，不需要先保存；运行时冻结源码、参数与目标，之后继续修改编辑器不会改变本次任务。page 和 params 使用现有受控执行环境；页面计算另需开启“允许运行用户脚本”。</p>
     <label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea>
-    <div class="row actions"><button id="script-save">保存</button><button id="script-run" disabled>运行已保存版本</button><button id="script-stop" disabled>停止</button></div>
+    <div class="row actions"><button id="script-run" disabled>运行草稿</button><button id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
     <details id="script-advanced"><summary>高级脚本与目标设置</summary>
       <p class="hint">默认使用当前网页；手动目标仅用于高级操作。</p>
