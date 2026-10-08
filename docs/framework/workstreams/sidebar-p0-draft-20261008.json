@@ -1,0 +1,45 @@
+{
+  "workstreamId": "sidebar-p0-draft-20261008",
+  "branch": "agent/sidebar-p0-draft-20261008",
+  "baseCommit": "7bf72497c14d97a2b5cdedd642c4599c46c1983f",
+  "targetBranch": "main",
+  "status": "implementation-candidate-not-native-verified",
+  "goal": "R1 P0 unsaved editor draft admission to original RunHost/Controller durable run without saved script revisions",
+  "actualChangedFiles": [
+    "src/run-host.js",
+    "src/platform/host/controller-methods.js",
+    "src/ui/script-editor.js",
+    "src/ui/tool.html",
+    "tests/environment/sidebar-product-contract.test.mjs",
+    "tests/environment/sidebar-draft-runhost.test.mjs",
+    "docs/framework/workstreams/sidebar-p0-draft-20261008.json"
+  ],
+  "sourceContract": {
+    "draft": "source.kind=draft + sourceUtf8; service-worker hashes exact source and binds it to durable run",
+    "saved": "legacy scriptId/revision/contentHash and new source.kind=saved preserve pinScriptRevision path",
+    "sidePanel": "freeze source/params/target in trusted click, request permission before await",
+    "retirement": "draft source bytes removed from runs on confirmed retirement; result keeps kind and sourceHash"
+  },
+  "verification": {
+    "remoteCodeReadback": "CHECKED",
+    "targetedUnitTests": "NOT_TESTED",
+    "nativeChromeSidePanel": "NOT_TESTED",
+    "realDOMAndHTTP": "NOT_TESTED",
+    "browserRestart": "NOT_TESTED",
+    "finalF3": "NOT_TESTED"
+  },
+  "criticalBlockers": [
+    "Cloud session cannot read /Users/shopme/Documents/workspace/opendesk-browser or local uncommitted main-v1 changes",
+    "Remote main worker-runtime.js still uses AsyncBody; do not overwrite local async function main() entry upgrade",
+    "Legacy k5-controller-product-native.mjs asserts saved-version UI runs and must be adapted; frozen contracts must not be silently weakened",
+    "No real CFT / Side Panel / HTTP run evidence, and no local IndexedDB mutation observation",
+    "No actual package verification, P1 or P2 implementation"
+  ],
+  "nextActions": [
+    "On a local worktree, sync branch while preserving uncommitted main-v1 work; resolve code protocol and entry-format integration",
+    "Run targeted node --test tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-runhost.test.mjs",
+    "Run trusted Side Panel native tests for unsaved B and DOM+HTTP effects, A-B-C editing, target/nav/stop/restart",
+    "Review and adapt saved revision native tests before any merge",
+    "Only merge to main after verified P0 contract; then proceed to P1/P2"
+  ]
+}
