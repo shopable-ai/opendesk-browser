@@ -55,6 +55,13 @@ git worktree add ../opendesk-browser-native-r1 origin/agent/native-agent-bridge-
 - setup/update/doctor/cleanup 实际安装 manifest、Node wrapper、固定 extension ID、私有安装资产，不覆盖 \`org.opendesk.browser_core_demo\` 等旧 Demo。
 - **安全审计后再运行**；不执行仓库中的任意不审查脚本。
 
+## 2.5. 已实现的固定 Native 传输包装及构建证据（务必先复核）
+
+- 原分支现有 `src/entrypoints/transport.js`、`src/native-agent/transport.js`。经典 SW 仅允许同步加载打包好的 `native-agent/transport.js`，不是动态远程脚本，不得引入其它 importScripts 或开放网站可调用的业务 Controller。
+- `scripts/build-contract.mjs` 与 `wxt.config.mjs` 固定 **13 个 WXT 入口**，生产 `sw.js` **320 KiB 上限保持不变**；`scripts/verify-package.mjs` 的 AST 例外只能匹配字面量固定路径且仅限 `sw.js`，否则拒绝。
+- 代码已通过 Linux GitHub Actions 候选 `c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a` 的 Native、Sidebar、用户脚本依赖和授权 CI；该历史 HEAD 生产/开发 `build/verify` PASS，但需要在**最新整合 HEAD**重新执行，不复制历史成功回执。
+- 真实 Chrome 要特别验证：关闭 Native 时固定脚本不造成 Sidebar 或 Service Worker 启动失败；真正启用 Native 时相同受授权 Host 连接被正确分发；重启、断连、错误 extensionId 仍拒绝。**Node CI 的 PASS 不能充当这些原生结论。**
+
 ## 3. 第二优先：修复原有新候选中的真实接口缺口
 
 源码/Node/CI 实测发现问题才修复；严禁重建 RunHost、Controller、Worker、Authority、Task DB。
