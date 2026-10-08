@@ -1,0 +1,36 @@
+{
+  "workstreamId": "r7-1-http-page-20261008-2250",
+  "branch": "agent/r7-1-http-page-20261008-2250",
+  "baseMainSha": "704dd8cac140cf2ff9d7c2959ca041f9102848da",
+  "intent": "单页真实 Fetch/HTTP 调试，保留已签名表单与现代 Locator 搜索",
+  "files": [
+    "examples/tasks/demo-form.html",
+    "examples/tasks/request-sample.json",
+    "examples/tasks/http-test-server.mjs",
+    "examples/tasks/README.zh-CN.md",
+    "tests/environment/basic-browser-page.test.mjs",
+    "tests/environment/basic-browser-http.test.mjs",
+    "docs/framework/workstreams/r7-1-http-page-20261008-2250.json"
+  ],
+  "collisionRisk": "仅演示页面、定向测试和独立证据；与 Native PR #11 的 RunHost、Sidebar 和构建输入无重叠；main 漂移或其他 PR 修改相同文件需先复核。",
+  "validation": {
+    "sourceContract": "NOT_TESTED",
+    "isolatedNodeHttp": "PASS — 独立 Linux 容器复制同版 helper/fixture，真实 HTTP 200 JSON、404 JSON、429、纯文本、延迟和 POST echo；AbortController 40ms 中止均经 Node fetch 断言；尚非正式仓库 test 文件回执",
+    "staticPythonHttp": "NOT_TESTED",
+    "isolatedChromiumDomHttpCors": "NOT_TESTED",
+    "externalPublicApi": "NOT_TESTED",
+    "macNativeChromeExtension": "NOT_TESTED",
+    "signedV1Task": "NOT_TESTED",
+    "modernPageApiDraft": "NOT_TESTED",
+    "packageBuild": "NOT_TESTED",
+    "integrationMain": "NOT_MERGED"
+  },
+  "evidenceNote": "本工作流 GitHub 独立分支提交。网页自身 fetch、模拟延时、扩展 Page API、MV3 可信原生执行必须分层区分；未在本机用户 macOS 运行。",
+  "nativeReceiptPaths": [],
+  "browserScreenshotPaths": [],
+  "blocking": [
+    "尚无受控 macOS Chrome Extension/Side Panel 实际运行回执；不得宣称 FINAL_ACCEPTED",
+    "PR 需依据最新 main、检查与本地 Codex 验收串行集成"
+  ],
+  "prUrl": null
+}
