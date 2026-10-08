@@ -11,7 +11,8 @@
       "docs/framework/workstreams/native-agent-bridge-r1-20261008.json",
       "docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md",
       "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt",
-      ".github/workflows/native-agent-r1.yml"
+      ".github/workflows/native-agent-r1.yml",
+      "src/entrypoints/transport.js"
     ],
     "sharedThinChanges": [
       "src/sw.js",
@@ -21,7 +22,8 @@
       "scripts/build.mjs",
       "scripts/build-contract.mjs",
       "scripts/verify-package.mjs",
-      "wxt.config.mjs"
+      "wxt.config.mjs",
+      "src/entrypoints/transport.js"
     ],
     "untouched": [
       "src/run-host.js",
@@ -40,16 +42,20 @@
       "role": "CLOSED / NOT MERGED; centralized site-access integration already in later main, preserve siteAccess UI"
     },
     {
-      "number": 9,
-      "role": "MERGED into main; R5 compact UI retained"
-    },
-    {
       "number": 11,
       "role": "THIS DRAFT Native Agent bridge candidate; merged latest main into workstream branch, do not merge until Native tests"
+    },
+    {
+      "number": 18,
+      "role": "MERGED: Sidebar R6 focus-safe UI; exact R6 identity preserved"
+    },
+    {
+      "number": 19,
+      "role": "MERGED: Sidebar R6.1 owner-only Stop; development ref auto-pruned after verified merge"
     }
   ],
   "sourceAndComponentEvidence": {
-    "state": "NATIVE_HOST_SOURCE_IMPLEMENTED",
+    "state": "NATIVE_HOST_SOURCE_IMPLEMENTED_NODE_CI_PACKAGE_PASS",
     "testCommands": [
       "npm ci --ignore-scripts --no-audit --no-fund",
       "node --test tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs",
@@ -57,11 +63,14 @@
       "npm run build",
       "npm run build:dev",
       "npm run verify",
-      "node --test tests/environment/native-agent-native-host.test.mjs"
+      "node --test tests/environment/native-agent-native-host.test.mjs",
+      "node --test tests/environment/native-agent-package.test.mjs"
     ],
-    "localRuntime": "ISOLATED_LINUX_NODE_NATIVE_HOST_SIMULATION_PASS_8_OF_8; NOT macOS/Chrome",
-    "githubActions": "Latest branch CI source/tests checked; production WXT sw.js byte ceiling currently under correction, do not claim full PASS until latest HEAD succeeds",
-    "build": "BLOCKED: latest branch CI production package sw.js > 320KiB ceiling, development and verify NOT_RUN on failing jobs"
+    "localRuntime": "ISOLATED_LINUX_NODE_NATIVE_HOST_SIMULATION_PASS_8_OF_8; NOT real macOS/Chrome",
+    "githubActions": "PASS on c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a: Native Agent R1 run 37789132156; Sidebar UI 37789132291; Page userscript 37789132316; site access 37789132550. Newer HEAD requires CI rerun after synchronizing main.",
+    "build": "PASS at c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a: npm run check, build, build:dev, verify, strict 320KiB production SW retained, 13 fixed WXT source entries including optional native-agent/transport.js; no macOS native execution evidence",
+    "productionPackageHash": "05a60404266f749fce5641b9b73867071db2c1d4b1cac546e5724aa39891da68",
+    "developmentPackageHash": "2a7eecee48422ca79a801f2a77c5d569565e8b5c1014559e77e4dc372e67c56d"
   },
   "nativeEvidence": {
     "chromeExtension": "NOT_TESTED",
@@ -73,25 +82,24 @@
     "finalAcceptance": "NO"
   },
   "blocker": {
-    "code": "MACOS_NATIVE_AND_FINAL_PACKAGE_ACCEPTANCE_MISSING",
-    "path": "native-agent/native-host.mjs",
-    "detail": "Host source now exists on this PR branch; Linux-only Node IPC simulation 8/8 passed. Real macOS install, Chrome Native Messaging handshake and Codex E2E are unavailable here. The strict SW build budget must pass at the latest HEAD before Ready/merge.",
+    "code": "MACOS_CHROME_CODEX_NATIVE_ACCEPTANCE_NOT_TESTED",
+    "detail": "Source and CI package on c3e6e038 passed; Mac installer/doctor, actual Chrome Native Messaging ID and options, real user site grant, Codex run.start/get/stop, disconnect ACK and restart original receipts unavailable in this Linux cloud. This is a hard merge gate.",
     "workContinuesVia": "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt"
   },
-  "architecture": "Native is a developer-only opt-in entry; SW handles durable idempotence and a live authenticated Host port, existing RunHost starts the one Controller Worker and durable result",
+  "architecture": "Fixed packaged same-extension native-agent/transport.js imported by classic SW only; 13 strict WXT entries; no arbitrary/remote importScripts. Native is developer opt-in, durable SW ledger and authenticated existing Host Port, existing RunHost owns Controller Worker and result",
   "oldDemoUnmodified": true,
   "nativeHostNotRequiredForAvailableTasks": true,
   "rollback": "Close or revert only dedicated PR, retain historical run receipts and independent modules",
   "pr": "https://github.com/shopable-ai/opendesk-browser/pull/11",
   "updatedAt": "2026-10-08",
-  "currentMainObserved": "MOVING; refresh origin/main immediately before merge; current web session observed 2c7dd821e0bc358af52a99cf7e90025d9cee481f",
+  "currentMainObserved": "a83d859c819409f3a2947c3bfb5b1719afb0711e; revalidate origin/main immediately before merging",
   "integrationNotes": [
     "PR #9 (Sidebar R5) merged; centralized site-access from other workstreams is in main 28389f5 and was kept when merging into this workstream",
     "Latest independent feature merge commit: 28c8385efdd3f86691f41ba0f8ddf7fd251e409c; CI with centralized authorization in progress",
-    "Native Host file remains missing; macOS/Chrome/Codex end-to-end MUST remain NOT_TESTED",
     "2026-10-08: Native Host committed and focused simulated Node IPC test added; original source blocker resolved; no real Chrome assertion.",
-    "2026-10-08: strict 320 KiB production Service Worker budget blocked CI after Native source; optimizer experiments reverted; focused code-size refactor pending CI.",
-    "2026-10-08: another agent branch agent/sidebar-ui-r6-20261008-focus-owner-2113 exists and must not be pruned as completed."
+    "2026-10-08: Native Agent CI all four workflows PASS at c3e6e03; strict SW production limit unchanged; optional native transport now isolated into fixed packaged local script, no external code.",
+    "2026-10-08: Sidebar R6 PR #18 merged SHA 797d402; R6.1 Stop PR #19 merged SHA d697291; both remote feature refs deleted. Current main keeps evolving under other active agents.",
+    "2026-10-08: Real Mac/Chrome/Codex E2E NOT_TESTED, PR #11 must stay DRAFT; no false final acceptance or premature branch/worktree deletion."
   ],
   "previousSourceBlocker": {
     "code": "NATIVE_HOST_FILE_BLOCKED",
