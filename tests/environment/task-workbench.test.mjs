@@ -19,7 +19,7 @@ class Element {
 globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const html=await readFile('src/ui/tool.html','utf8');
-const make=()=>{
+const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
   const doc={getElementById:get,createElement:()=>new Element(),documentElement:{dataset:{}}};
@@ -27,8 +27,17 @@ const make=()=>{
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
       properties:{name:{type:'string',title:'姓名',minLength:1,maxLength:30,default:'Alice'}},required:['name'],additionalProperties:false}};
-  const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:true,enabled:true};
+  const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:installedInitially,enabled:true};
   const installed={taskId:row.taskId,version:row.version,scriptId:programId,manifestHash,enabled:true};
+  const other=secondTask?{...row,taskId:'demo.second',
+    manifest:{...manifest,title:'另一个已安装任务',description:'演示切换时保留各自输入'}}:null;
+  const otherInstalled=secondTask?{...installed,taskId:'demo.second',scriptId:'task:demo.second:1.0.0'}:null;
+  let installedState=installedInitially?[installed,...(secondTask?[otherInstalled]:[])]:[];
+  if(sharedStore && !sharedStore.catalog){
+    sharedStore.catalog=structuredClone(secondTask?[row,other]:[row]);
+    sharedStore.installed=structuredClone(installedState);
+  }
+  const state=sharedStore || {catalog:secondTask?[row,other]:[row],installed:installedState};
   const starts=[],permissions=[],stops=[],catalogOpens=[];
   let target={status:'available',url:'https://a.example/',tabId:9,windowId:7,documentId:'doc-9'};
   const page={
@@ -38,7 +47,12 @@ const make=()=>{
   const client={ready:Promise.resolve(),subscribeConnection:()=>()=>{},
     controller:{snapshotControllerRun:async()=>structuredClone(view)},
     async request(method,payload) {
-      if(method==='listTaskCatalog')return {catalog:[structuredClone(row)],installed:[structuredClone(installed)]};
+      if(method==='listTaskCatalog')return {catalog:structuredClone(state.catalog),installed:structuredClone(state.installed)};
+      if(method==='installTask') {
+        installedState=[installed];state.installed=structuredClone(installedState);
+        state.catalog=state.catalog.map(item=>item.taskId===row.taskId?{...item,installed:true}:item);
+        row.installed=true;return structuredClone(installed);
+      }
       if(method==='resolveInstalledTask')return {taskId:row.taskId,version:row.version,scriptId:programId,
         revision:1,contentHash:hash,manifestHash,manifest};
       if(method==='getTaskCandidate')return {package:{sourceUtf8:'async function main(){return true;}'}};
@@ -97,7 +111,10 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.equal(f.host.currentRun,'run-task-1','switching Sidebar views must never retire RunHost');
   f.host.complete({ok:true});await tick();await tick();
   assert.match(f.get('task-result').textContent,/"ok": true/);
-  assert.match(f.get('task-history').children[0].children[0].textContent,/run-task-1/);
+  const latest=f.get('task-history').children[0].children[0];
+  assert.match(latest.children[0].textContent,/成功/);
+  assert.doesNotMatch(latest.children[0].textContent,/run-task-1/,'ordinary history line hides internal IDs');
+  assert.match(latest.children[2].children[1].textContent,/run-task-1/,'advanced record retains exact identity');
   await f.click('tab-discover');
   assert.equal(f.get('task-dock').hidden,true,'idle Discover should not show a Run dock');
 });
@@ -143,9 +160,13 @@ test('installed task refuses stale target after async installed-version lookup',
 test('task cards retain readable selection and do not surface raw IDs as the main UI',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   const cards=f.get('task-installed-cards');
-  assert.equal(cards.children.length,1,'one installed task should have one visible card');
-  assert.equal(cards.children[0].attributes['aria-pressed'],'true');
-  assert.match(cards.children[0].children[1].children[0].textContent,/表单任务/);
+  assert.equal(cards.children.length,1,'one installed task should have one visible group');
+  const group=cards.children[0], button=group.children[0];
+  assert.equal(button.attributes['aria-pressed'],'true');
+  assert.equal(button.attributes['aria-expanded'],'true');
+  assert.equal(button.attributes['aria-controls'],'task-selected-workspace');
+  assert.equal(group.children[1],f.get('task-selected-workspace'),'parameters and history remain under selected card');
+  assert.match(button.children[1].children[0].textContent,/表单任务/);
   assert.match(f.get('task-installed-detail').textContent,/输入表单/);
   assert.doesNotMatch(f.get('task-installed-detail').textContent,/[a-f0-9]{64}/,'raw hashes belong in diagnostics');
   assert.equal(f.get('workbench-discover').hidden,true);
@@ -205,4 +226,78 @@ test('opening the separate full-size catalog preserves its import and management
   assert.equal(f.get('task-catalog-cards').children.length,1,'empty result is an explicit empty state');
   assert.match(f.get('task-catalog-count').textContent,/0 个/);
   assert.equal(f.catalogOpens.length,0,'already-open full catalog must not create another browser tab');
+});
+
+test('full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state',async t=>{
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();
+  f.ui.showCatalogPage();
+  f.get('task-catalog-list').value='demo.form@1.0.0';
+  f.get('task-catalog-list').fire('change');
+  assert.equal(f.get('task-install').disabled,false);
+  await f.click('task-install');
+  assert.equal(f.get('workbench-discover').hidden,false,'full catalog remains visible');
+  assert.equal(f.get('task-dock').hidden,true,'catalog cannot show an unrelated run dock');
+  assert.match(f.get('task-install-feedback').textContent,/已安装/);
+  assert.equal(f.get('task-installed-cards').children.length,1,'installed list now comes from real service mock');
+  assert.equal(f.get('task-run').disabled,false,'installed task is eligible on its own website');
+});
+
+test('installed Discover keeps its own useful dock without running or requesting permission',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('tab-discover');
+  assert.equal(f.get('discover-dock').hidden,false,'idle Discover has a navigation dock');
+  await f.click('discover-to-tasks');
+  assert.equal(f.get('workbench-tasks').hidden,false);
+  await f.click('tab-discover');
+  await f.click('discover-to-catalog');
+  assert.equal(f.catalogOpens.length,1,'explicit catalog button opens the existing extension surface');
+  assert.equal(f.starts.length,0);
+  assert.equal(f.permissions.length,0);
+});
+
+test('card view retains original action identities, history and parameter form across tab changes',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  for(const id of ['task-result','task-history','task-params-form','task-toggle','task-uninstall','task-refresh'])
+    assert(f.get(id),'existing action node exists: '+id);
+  const form=f.get('task-params-form'),field=form.children.find(node=>node.dataset.taskParam==='name');
+  field.value='unchanged';
+  await f.click('tab-discover');await f.click('tab-develop');await f.click('tab-my-tasks');
+  assert.equal(form.children.find(node=>node.dataset.taskParam==='name').value,'unchanged');
+  assert.equal(f.get('task-installed-cards').children[0].children[1],f.get('task-selected-workspace'));
+});
+
+test('switching between two installed tasks preserves each independent unsaved parameter input',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  const form=f.get('task-params-form');
+  const field=()=>form.children.find(node=>node.dataset.taskParam==='name');
+  field().value='First';
+  f.get('task-installed-cards').children[1].children[0].fire('click');
+  assert.equal(f.get('task-installed-list').value,'demo.second');
+  field().value='Second';
+  f.get('task-installed-cards').children[0].children[0].fire('click');
+  assert.equal(f.get('task-installed-list').value,'demo.form');
+  assert.equal(field().value,'First');
+  f.get('task-installed-cards').children[1].children[0].fire('click');
+  assert.equal(field().value,'Second');
+  assert.equal(f.starts.length,0,'card selection never executes code');
+  assert.equal(f.permissions.length,0,'card selection never requests permission');
+});
+
+test('two extension documents share only a refresh hint and re-read authoritative installed state',async t=>{
+  const store={};
+  const sidebar=make({installedInitially:false,sharedStore:store});
+  const catalog=make({installedInitially:false,sharedStore:store});
+  t.after(()=>{sidebar.ui.dispose();catalog.ui.dispose();});
+  await tick();await tick();
+  assert.equal(sidebar.get('task-installed-cards').children[0].textContent.includes('还没有安装'),true);
+  catalog.ui.showCatalogPage();
+  catalog.get('task-catalog-list').value='demo.form@1.0.0';
+  catalog.get('task-catalog-list').fire('change');
+  await catalog.click('task-install');
+  await tick();await tick();await tick();
+  assert.equal(sidebar.get('task-installed-cards').children[0].children[0].dataset.taskId,'demo.form',
+    'Sidebar discovers the same installed version via a fresh Catalog request');
+  assert.equal(sidebar.get('task-run').disabled,false);
+  assert.equal(sidebar.starts.length,0,'catalog notification never runs a task');
+  assert.equal(sidebar.permissions.length,0,'catalog notification never requests permission');
 });

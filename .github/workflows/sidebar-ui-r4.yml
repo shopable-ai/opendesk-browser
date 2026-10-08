@@ -1,0 +1,29 @@
+name: Sidebar R4 focused UI checks
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/task-workbench.js'
+      - 'tests/environment/task-workbench.test.mjs'
+      - 'tests/environment/sidebar-ui-preview.test.mjs'
+      - 'examples/ui/sidebar-r4-installed-discovery-preview.html'
+      - '.github/workflows/sidebar-ui-r4.yml'
+  push:
+    branches: [agent/sidebar-ui-r2-20261008-review]
+permissions:
+  contents: read
+jobs:
+  sidebar-user-flow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Focused sidebar actions and UI contract
+        run: node --test tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-ui-preview.test.mjs

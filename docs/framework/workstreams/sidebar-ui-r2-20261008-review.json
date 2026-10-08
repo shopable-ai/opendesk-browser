@@ -1,0 +1,53 @@
+{
+  "workstreamId": "sidebar-ui-r4-installed-discovery-20261008",
+  "branch": "agent/sidebar-ui-r2-20261008-review",
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/8",
+  "targetBranch": "main",
+  "mergeStatus": "PR_OPEN_AT_RECORD_TIME",
+  "originalPrototypeStatus": "ORIGINAL_PROTOTYPE_NOT_RECOVERED",
+  "visualLineageVerified": "examples/ui/sidebar-r3-light-preview.html (kept unchanged on this PR); derived examples/ui/sidebar-r4-installed-discovery-preview.html",
+  "decision": "Sidebar keeps 3 tabs: My Tasks, installed-only Discover, Developer. Full separate extension catalog only handles install/import.",
+  "changes": [
+    "src/ui/tool.html",
+    "src/ui/tool-shell.css",
+    "src/ui/task-workbench.js",
+    "docs/product/sidebar-ui-spec.zh-CN.md",
+    "examples/ui/sidebar-r4-installed-discovery-preview.html",
+    "prototypes/sidebar/sidebar-ui-interactive-preview.html (historical candidate)",
+    "tests/environment/task-workbench.test.mjs",
+    "tests/environment/sidebar-product-contract.test.mjs",
+    "tests/environment/sidebar-ui-preview.test.mjs",
+    ".github/workflows/sidebar-ui-r4.yml"
+  ],
+  "preservedContracts": [
+    "Existing Task Catalog service, stored versions and install/uninstall APIs",
+    "One RunHost shared across three views, owner-specific Stop remains accessible",
+    "Native permissions.request and frozen exact document via current-page-target",
+    "Existing HTML control IDs, page-script tools and SDK/health diagnostics",
+    "R3 visual source file, AGENTS.md and public-owner.json"
+  ],
+  "tests": {
+    "focused": {
+      "command": "node --test tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-ui-preview.test.mjs",
+      "status": "PASS",
+      "sourceCommit": "c2e9b6c00b812d4174342eb741b63536f383a86b",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37765740818",
+      "interpretation": "Node/component and preview syntax only, not native Chrome Side Panel"
+    },
+    "packageAndIntegrity": {
+      "command": "npm run check && npm run build && npm run build:dev && npm run verify (r3-package PR workflow)",
+      "status": "PASS_ON_PRIOR_SOURCE_SNAPSHOT; RECONFIRM_AFTER_FINAL_DOC_COMMIT",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37765233046"
+    },
+    "nativeChrome": "NOT_TESTED",
+    "actualSidebarVisualWidths300360420520": "NOT_TESTED",
+    "freshInstallAndRestart": "NOT_TESTED"
+  },
+  "remainingBlockers": [
+    "Real controlled Chrome Side Panel visual and running target acceptance",
+    "Native install/permission and browser close/reopen evidence",
+    "Merge PR after last head checks and main drift review"
+  ],
+  "negativeEvidence": "No tests were faked. Original prototype is not claimed to have been recovered. Node smoke does not prove native Chrome permissions or DOM effects.",
+  "updatedAt": "2026-10-08"
+}
