@@ -32,10 +32,19 @@ test('default Run freezes Current Page then revalidates before existing RunHost'
   assert.match(target,/E_DOCUMENT_STALE/);
 });
 
-test('editor makes saved revision semantics explicit and does not execute source directly', async () => {
-  const editor=await read('src/ui/script-editor.js');
-  assert.match(editor,/存在未保存修改 · 本次 Run/);
-  assert.match(editor,/revision:revision\.revision, contentHash:revision\.contentHash/);
+test('trusted Side Panel run sends the exact unsaved draft to the original Controller authority', async () => {
+  const [html, editor, host, broker]=await Promise.all([
+    read('src/ui/tool.html'), read('src/ui/script-editor.js'),
+    read('src/run-host.js'), read('src/platform/host/controller-methods.js')]);
+  assert.match(html,/id="script-run" disabled>运行草稿/);
+  assert.match(editor,/sourceUtf8 = find\('script-source'\)\.value/);
+  assert.match(editor,/host\.start\(\{source:\{kind:'draft',sourceUtf8\}/);
+  assert.match(editor,/permissions\.request/);
+  assert.doesNotMatch(editor,/请先保存或加载要运行的持久版本/);
+  assert.match(host,/sourceRequest = source === undefined/);
+  assert.match(broker,/sourceKind: isDraft \? 'draft' : 'saved'/);
+  assert.match(broker,/digestUtf8\(run\.draftSourceUtf8\)/);
+  assert.match(broker,/if \(host && run\.revision\?\.pinKey\)/);
   assert.doesNotMatch(editor,/\beval\s*\(|scripting\.executeScript/);
 });
 

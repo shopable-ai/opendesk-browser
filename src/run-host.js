@@ -46,13 +46,21 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
     .map(method => [method, request => client.request(method, request)]));
   async function start(request) {
-    if (request?.scriptId !== undefined) return startController(request);
+    if (request?.source !== undefined || request?.scriptId !== undefined)
+      return startController(request);
     return startScraping(request);
   }
-  async function startController({scriptId, revision, contentHash, params, target, deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()}) {
+  async function startController({scriptId, revision, contentHash, source, params, target, deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()}) {
     if (disposed || active) throw new FoundationError('E_OWNER', 'RunHost already owns a task or is disposed');
     // Reserve locally before the first await; the durable @slot remains the
     // cross-host authority. Serialization failure creates no admission.
+    // Capture the caller's exact source variant before the first await. The
+    // service worker hashes and durably authenticates draft bytes at admission.
+    // Legacy saved runs retain their original r1 pin request unchanged.
+    const sourceRequest = source === undefined ? {scriptId, revision, contentHash} : {source: structuredClone(source)};
+    // Keep the exact target captured by the caller even while client.ready is pending.
+    // The UI's trusted-click snapshot is necessary but must not rely on caller object ownership.
+    const capturedTarget = structuredClone(target);
     const paramsWire = encodeValue(params), local = {controllerRun: true, state: 'preparing', controller: new AbortController()};
     let admitted, admissionDone;
     const admission = new Promise(resolve => { admissionDone = resolve; }); admissions.add(admission);
@@ -60,7 +68,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     try {
       await client.ready;
       if (disposed) throw new FoundationError('E_HOST_CLOSED', 'RunHost disposed during admission');
-      const claim = await controls.startControllerRun({scriptId, revision, contentHash, paramsWire, target, deadlineAt, requestId});
+      const claim = await controls.startControllerRun({...sourceRequest, paramsWire, target: capturedTarget, deadlineAt, requestId});
       local.runId = claim.runId;
       if (claim.duplicate) throw new FoundationError('E_EFFECT_UNKNOWN', 'Existing run is observable; its script is never replayed');
       admitted = claim;
