@@ -27,7 +27,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const revisions = new Map(), documents = new Map();
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
-  let downloading = false, projection, currentTask, editingBusy = false, stopping = false, snapshotSequence = 0;
+  let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
   let scriptListSequence = 0;
   let currentRevision, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
@@ -70,6 +70,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-run').disabled = editingBusy || running || !projection?.slotAvailable || !!host.currentRun ||
       !find('script-source').value.trim() || mode.value === 'current' && currentPageState?.status !== 'available';
     find('script-stop').disabled = stopping || !host.currentRun;
+    find('page-preview-run').disabled = previewBusy || editingBusy || running || !!host.currentRun ||
+      !find('script-source').value.trim() || currentPageState?.status !== 'available';
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
@@ -383,6 +385,36 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       update();
     });
   }
+  function previewPage(event) {
+    if (!event.isTrusted || disposed || previewBusy || editingBusy || running || host.currentRun) return;
+    let captured, permission, sourceUtf8, withJquery;
+    const displayPreview=(state,message,result)=>{
+      if(disposed)return;
+      const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
+      if(result!==undefined)find('page-preview-result').textContent=result;
+    };
+    try {
+      // Freeze source, dependency and document during the trusted click,
+      // before permission request or any asynchronous work.
+      captured=currentPageTarget.capture();
+      sourceUtf8=find('script-source').value;
+      withJquery=find('page-preview-jquery').checked === true;
+      if(!sourceUtf8.trim())throw {code:'E_SOURCE',message:'请输入 async function main()'};
+      permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
+    } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
+    previewBusy=true;update();displayPreview('running','正在核对当前文档并执行一次性页面脚本…');
+    (async()=>{
+      if(!await permission)throw {code:'E_PERMISSION',message:'用户拒绝网站授权'};
+      if(disposed)throw {code:'E_HOST_CLOSED',message:'工作台已关闭'};
+      await currentPageTarget.revalidate(captured);
+      const result=await client.request('previewPageScript',{sourceUtf8,withJquery,
+        target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,
+          expectedUrl:captured.url,expectedWindowId:captured.windowId}});
+      displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果，也不会安装自动执行。',
+        result.resultText+' \n源码 SHA-256：'+result.sourceHash);
+    })().catch(error=>displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)))
+      .finally(()=>{previewBusy=false;update();});
+  }
   const onNavigation = details => {
     if (String(details.tabId) === tab.value) clearDocuments();
   };
@@ -401,6 +433,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
   on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',update);
   listen(find('script-run'), 'click', start);
+  listen(find('page-preview-run'), 'click', previewPage);
   on('script-stop','click',async () => {
     if (!host.currentRun || stopping) return;
     stopping = true; update(); display('stopping','正在提交停止并等待持久收尾…');

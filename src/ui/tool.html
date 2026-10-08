@@ -80,6 +80,13 @@
     <label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
+    <details id="page-preview-tools"><summary>网页 DOM 脚本试运行（USER_SCRIPT / jQuery）</summary>
+      <p class="hint">开发预览直接执行编辑器中的 async function main()；可使用 document、DOM、jQuery，不使用 Controller 的 page/params。仅对当前网页精确文档执行一次，不保存、不安装、不自动匹配网址。</p>
+      <label><input type="checkbox" id="page-preview-jquery"> 加载扩展内固定 jQuery 3.7.1（隔离 USER_SCRIPT，不修改网站 MAIN 全局）</label>
+      <button id="page-preview-run" type="button" disabled>在当前网页试运行 DOM 脚本</button>
+      <p id="page-preview-status" role="status">需先在扩展详情中允许用户脚本，并授权当前网站。</p>
+      <pre id="page-preview-result" aria-label="即时页面脚本结果">尚未运行</pre>
+    </details>
     <details id="script-library-tools"><summary>版本管理与任务制作</summary>
     <label for="script-list">已保存脚本</label>
     <div class="row"><select id="script-list"><option value="">正在读取已保存脚本…</option></select><button id="script-list-refresh">刷新</button><button id="script-list-load">加载最新</button></div>

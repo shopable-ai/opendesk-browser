@@ -3,6 +3,7 @@ import {createSessionTyped} from '../storage/session.js';
 import {createDownloadService} from '../downloads/index.js';
 import {createRunAuthority} from './authority.js';
 import {createSdkBroker} from './sdk-broker.js';
+import {createPageScriptPreview} from '../../scripting/user-scripts/preview.js';
 import {createTabsService} from '../chrome/tabs.js';
 import {SDK_FILES} from '../../framework/sdk/registry.js';
 import {PROTOCOL, FoundationError, invariant, newId, canonical} from '../protocol.js';
@@ -129,6 +130,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock});
   const downloads = createDownloadService({storage,api,clock,assertHost:authority.assertHost});
   const sdk = createSdkBroker({authority,storage,api,clock});
+  const pageScriptPreview = createPageScriptPreview({api,storage,assertHost:authority.assertHost});
   const requestSdk = createSdkRequestHandler({sdk,authority});
   await authority.recover();
   downloads.attach();
@@ -159,6 +161,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     setInstalledTaskEnabled:(p,s)=>authority.setInstalledTaskEnabled(p,s),
     uninstallTask:(p,s)=>authority.uninstallTask(p,s),
     resolveInstalledTask:(p,s)=>authority.resolveInstalledTask(p,s),
+    previewPageScript:(p,s)=>pageScriptPreview.preview(p,s),
     grantSdk:(p,s)=>authority.grantSdk(p,s),
     installSdk:createSdkInstaller({authority,api}),
     registerHost:(p,s)=>authority.registerHost(p,s),
