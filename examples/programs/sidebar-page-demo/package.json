@@ -1,0 +1,24 @@
+{
+  "name": "@opendesk-examples/sidebar-page-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sidebar 多文件 Page USER_SCRIPT 演示，向标准 Browser Test Lab 添加单个 DOM 标记",
+  "author": "OpenDesk examples",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.sidebar-page-demo",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "http://127.0.0.1/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}
