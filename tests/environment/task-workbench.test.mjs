@@ -92,7 +92,10 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.equal(f.host.currentRun,'run-task-1','switching Sidebar views must never retire RunHost');
   f.host.complete({ok:true});await tick();await tick();
   assert.match(f.get('task-result').textContent,/"ok": true/);
-  assert.match(f.get('task-history').children[0].children[0].textContent,/run-task-1/);
+  const latest=f.get('task-history').children[0].children[0];
+  assert.match(latest.children[0].textContent,/成功/);
+  assert.doesNotMatch(latest.children[0].textContent,/run-task-1/,'raw IDs belong in advanced details');
+  assert.match(latest.children[2].children[1].textContent,/run-task-1/);
 });
 
 test('installed task can be explicitly forked into an independent unsaved editor draft',async t=>{
@@ -136,9 +139,12 @@ test('installed task refuses stale target after async installed-version lookup',
 test('task cards retain readable selection and do not surface raw IDs as the main UI',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   const cards=f.get('task-installed-cards');
-  assert.equal(cards.children.length,1,'one installed task should have one visible card');
-  assert.equal(cards.children[0].attributes['aria-pressed'],'true');
-  assert.match(cards.children[0].children[1].children[0].textContent,/表单任务/);
+  assert.equal(cards.children.length,1,'one installed task should have one visible group');
+  const button=cards.children[0].children[0];
+  assert.equal(button.attributes['aria-pressed'],'true');
+  assert.equal(button.attributes['aria-controls'],'task-selected-workspace');
+  assert.match(button.children[1].children[0].textContent,/表单任务/);
+  assert.equal(cards.children[0].children[1],f.get('task-selected-workspace'),'detail is nested directly under its card');
   assert.match(f.get('task-installed-detail').textContent,/输入表单/);
   assert.doesNotMatch(f.get('task-installed-detail').textContent,/[a-f0-9]{64}/,'raw hashes belong in diagnostics');
   assert.equal(f.get('workbench-discover').hidden,true);
@@ -157,4 +163,22 @@ test('opening a full-size catalog reuses the workbench with no Sidebar discovery
   assert.equal(f.get('task-catalog-cards').children.length,1,'empty result is an explicit empty state');
   assert.match(f.get('task-catalog-count').textContent,/0 个/);
   assert.equal(f.catalogOpens.length,0,'already-open full catalog must not create another browser tab');
+});
+
+test('task result, history and controls are projected within the selected card without losing their DOM IDs',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  const group=f.get('task-installed-cards').children[0];
+  assert.equal(group.children[1],f.get('task-selected-workspace'));
+  for(const id of ['task-params-form','task-result','task-history','task-status','task-toggle','task-uninstall'])
+    assert(f.get(id),'original handler ID must survive redesign: '+id);
+});
+
+test('original catalog UI remains in the full-page surface after navigation, not a Side Panel third tab',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.ui.showCatalogPage();
+  f.ui.navigate('tasks');
+  assert.equal(f.get('task-dock').hidden,true,'catalog surface never presents task RunHost dock');
+  assert.equal(f.get('workbench-tasks').hidden,false,'view identity changes only when explicitly navigated');
+  f.ui.showCatalogPage();
+  assert.equal(f.get('workbench-discover').hidden,false);
 });
