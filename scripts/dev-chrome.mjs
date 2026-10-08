@@ -33,7 +33,11 @@ async function main() {
   if (!Object.hasOwn(versions, label))
     throw new Error('OPENDESK_CFT_VERSION must be 138 or 155');
   const version = versions[label];
-  const executable = path.join(root, 'tests/.cache/m5-browsers', version,
+  const sharedCache = process.env.OPENDESK_CFT_CACHE_ROOT;
+  if (sharedCache && !path.isAbsolute(sharedCache))
+    throw new Error('OPENDESK_CFT_CACHE_ROOT must be an absolute directory path');
+  const cacheRoot = sharedCache ? await realpath(sharedCache) : path.join(root, 'tests/.cache/m5-browsers');
+  const executable = path.join(cacheRoot, version,
     'chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
   const extension = path.join(root, 'dist/development');
   const profile = developmentProfilePath({home, workspace:root, name});
