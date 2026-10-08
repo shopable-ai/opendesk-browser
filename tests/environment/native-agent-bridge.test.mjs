@@ -4,17 +4,18 @@ import {createNativeAgentService} from '../../src/native-agent/service-worker.js
 import {AGENT_LEDGER_KEY,AGENT_ENABLED_KEY} from '../../src/native-agent/protocol.js';
 
 const drain=()=>new Promise(resolve=>setTimeout(resolve,0));
-function mock(){
-  const stored={[AGENT_ENABLED_KEY]:true}, requests=[],responses=[];
+function mock({enabled=true,granted=true}={}){
+  const stored={[AGENT_ENABLED_KEY]:enabled}, requests=[],responses=[];
   let native;
   const event=()=>{const listeners=new Set();return {
     addListener:l=>listeners.add(l),removeListener:l=>listeners.delete(l),fire:(...args)=>{for(const l of listeners)l(...args);}
   };};
   const api={
     runtime:{id:'abcdefghijklmnopabcdefghijklmnop',getManifest:()=>({version:'0.1.0'}),
+      getURL:page=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+page,
       connectNative:()=>{native={onMessage:event(),onDisconnect:event(),
         postMessage:msg=>responses.push(msg),disconnect(){this.onDisconnect.fire();}};return native;}},
-    permissions:{contains:async()=>true,onRemoved:event()},
+    permissions:{contains:async()=>granted,onRemoved:event()},
     storage:{local:{get:async key=>({[key]:structuredClone(stored[key])}),
       set:async values=>Object.assign(stored,structuredClone(values))}}
   };
@@ -24,7 +25,7 @@ function mock(){
   return {api,stored,requests,responses,port,hostPorts,service,native:()=>native};
 }
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
-test('bridge remains disabled before explicit settings permission and storage opt-in',async t=>{
+test('enabled Native handshake sends version and correct extension identity',async t=>{
   const f=mock();t.after(()=>f.service.dispose());
   await f.service.ready;
   assert.ok(f.native());
@@ -32,6 +33,15 @@ test('bridge remains disabled before explicit settings permission and storage op
   assert.equal(f.responses[0].kind,'welcome');
   f.native().onMessage.fire(message('s1','bridge.status'));
   await drain();assert.equal(f.responses.at(-1).result.nativeConnected,true);
+});
+test('default-off requires a packaged Settings sender and real granted Native permission',async t=>{
+  const f=mock({enabled:false,granted:false});t.after(()=>f.service.dispose());
+  await f.service.ready;assert.equal(f.native(),undefined,'no background Native connection before opt-in');
+  const sender={id:f.api.runtime.id,url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'settings-document'};
+  await assert.rejects(()=>f.service.handleSettings({type:'enable'},
+    {...sender,url:'chrome-extension://invalid/settings.html'}),{code:'E_OWNER'});
+  await assert.rejects(()=>f.service.handleSettings({type:'enable'},sender),{code:'E_PERMISSION_REQUIRED'});
+  assert.equal(f.native(),undefined,'unapproved page does not launch a Host');
 });
 test('request hash journal deduplicates after real Host admission; conflicting bytes fail',async t=>{
   const f=mock();t.after(()=>f.service.dispose());await f.service.ready;
@@ -62,8 +72,12 @@ test('dispatched but unanswered calls are never retried, even if same id reappea
   f.native().onMessage.fire(message('save-1','script.save',p));
   await drain();await drain();assert.equal(f.requests.length,1);
   f.native().onDisconnect.fire();
+  const sender={id:f.api.runtime.id,url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'s'};
+  await f.service.handleSettings({type:'enable'},sender);
+  f.native().onMessage.fire({v:1,kind:'hello'});
   f.native().onMessage.fire(message('save-1','script.save',p));
-  await drain();assert.equal(f.requests.length,1);
+  await drain();await drain();assert.equal(f.requests.length,1);
+  assert.equal(f.responses.at(-1).error.code,'E_EFFECT_UNKNOWN');
   assert.equal(f.stored[AGENT_LEDGER_KEY]['save-1'].state,'OUTCOME_UNKNOWN');
 });
 test('no live registered Host means no run reservation or Worker execution',async t=>{
