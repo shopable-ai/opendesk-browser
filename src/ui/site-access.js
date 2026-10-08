@@ -35,18 +35,23 @@ export function createSiteAccess({api, onState = () => {}}) {
     if (!disposed) onState(last);
   };
 
+  async function readNativePermissions() {
+    const [websites, cookies, notifications] = await Promise.all([
+      api.permissions.contains({origins: [...ALL_WEB_ORIGINS]}),
+      api.permissions.contains({permissions: ['cookies']}),
+      api.permissions.contains({permissions: ['notifications']})
+    ]);
+    return Object.freeze({websites: websites === true, cookies: cookies === true,
+      notifications: notifications === true});
+  }
+
   async function refresh() {
     if (disposed) throw error('E_HOST_CLOSED', '授权面板已关闭');
     const token = ++sequence;
     try {
-      const [websites, cookies, notifications] = await Promise.all([
-        api.permissions.contains({origins: [...ALL_WEB_ORIGINS]}),
-        api.permissions.contains({permissions: ['cookies']}),
-        api.permissions.contains({permissions: ['notifications']})
-      ]);
+      const actual = await readNativePermissions();
       if (disposed || token !== sequence) return null;
-      snapshot = Object.freeze({websites: websites === true, cookies: cookies === true,
-        notifications: notifications === true});
+      snapshot = actual;
       publish(snapshot.websites ? 'granted' : 'limited', snapshot.websites
         ? '已授权全部 HTTP/HTTPS 网站；Chrome 会在后续运行中复用授权'
         : '尚未集中授权；运行其他网站可能需要单独批准');
@@ -81,9 +86,12 @@ export function createSiteAccess({api, onState = () => {}}) {
       try {
         if (await pending !== true)
           throw error('E_PERMISSION', 'Chrome 未授予所选权限；既有授权仍以浏览器状态为准');
-        const actual = await refresh();
+        // onAdded may race with a UI refresh: verify native state independently
+        // rather than treating a superseded UI refresh as a denied grant.
+        const actual = await readNativePermissions();
         if (!siteAccessSatisfies(actual, options))
           throw error('E_PERMISSION', 'Chrome 权限状态与申请不一致；请检查扩展的网站访问设置');
+        await refresh();
         return actual;
       } catch (cause) {
         try { await refresh(); } catch { /* Preserve the original failure. */ }
