@@ -17,18 +17,20 @@
       <p class="hint">仅展示你明确安装的版本。运行前检查网站、参数与权限。</p>
       <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>
       <div id="task-installed-cards" class="task-card-list" aria-label="已安装任务列表"></div>
+      <div id="task-selected-workspace" class="task-selected-workspace">
       <div id="task-installed-detail" class="task-detail" aria-live="polite">尚未选择任务</div>
       <p id="task-current-site" class="identity"></p>
       <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>
       
-      <p id="task-status" role="status">选择一个已安装任务</p>
+      <p id="task-status" role="status">选择一个已安装任务</p><h3 class="task-result-heading">最近一次结果</h3>
       <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>
-      <h2 class="history-heading">最近运行</h2><div id="task-history" aria-live="polite">正在读取历史…</div>
+      <details class="task-history-panel" open><summary>运行记录 · 当前任务</summary><div id="task-history" aria-live="polite">正在读取历史…</div></details>
       <div class="row"><button type="button" id="task-refresh">更新任务</button><button type="button" id="task-fork-draft" disabled>复制为独立草稿</button></div>
       <details><summary>任务管理</summary>
         <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button></div>
         <p class="hint">停用和卸载立即阻止新的运行；已提交任务继续遵守原有停止和退休机制。卸载不会删除历史结果。</p>
       </details>
+      </div>
     </section>
   </div>
   <div id="workbench-local-discover" data-workbench-page="local-discover" hidden>
@@ -71,7 +73,7 @@
         <aside class="catalog-reader" aria-label="选中任务详情与安装">
           <label for="task-catalog-list" class="visually-hidden">候选版本</label><select id="task-catalog-list" hidden><option value="">尚无任务候选</option></select>
           <div id="task-catalog-detail" class="task-detail" aria-live="polite">选中任务后查看作者、网站、权限、版本及验证状态</div>
-      <div class="catalog-install"><button type="button" id="task-install" disabled>安装选定版本</button></div>
+      <div class="catalog-install"><button type="button" id="task-install" disabled>安装选定版本</button></div><p id="task-install-feedback" class="install-feedback" role="status" aria-live="polite"></p>
       <details id="catalog-verification"><summary>开发者：核对证据与设为本地可用</summary>
         <label for="task-verify-run">已完成的真实运行 ID</label>
         <input id="task-verify-run" placeholder="与相同源码、网站和实际运行结果对应" autocomplete="off">
@@ -100,9 +102,28 @@
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
     <p class="hint">未保存的代码可以直接运行。源码、参数及目标网页会在启动时冻结。</p>
-    <label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea>
+    <details class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
+  <div class="developer-feedback developer-run-state" aria-labelledby="task-title"><h2 id="task-title">当前任务</h2>
+    <p id="script-task-id" class="identity">尚未运行</p><p id="script-task-status" role="status"></p>
+    <p id="script-running-target" class="identity" data-state="idle">运行目标：尚未建立</p>
+    <p id="script-task-version" class="identity"></p>
+  </div>
+  <div class="developer-feedback developer-results" aria-labelledby="result-title"><h2 id="result-title">结果</h2>
+    <pre id="script-result" aria-label="脚本持久结果">尚无结果</pre>
+    <div class="row"><button id="script-read">刷新持久结果</button></div>
+    <label for="script-history-run">持久结果历史</label><select id="script-history-run"><option value="">选择历史任务</option></select>
+    <div class="row"><button id="script-history-open">查看选中任务</button></div>
+    <details><summary>完整历史与版本身份</summary><pre id="script-history" aria-label="持久结果历史">正在读取…</pre></details>
+    <details><summary>结果下载与任务查询</summary>
+      <label for="script-run-id">查询 runId（留空读取全部历史）</label><input id="script-run-id" placeholder="runId">
+      <div class="row"><button id="script-read-run">查询任务</button></div>
+      <div class="row"><label for="script-download-result">已完成的持久结果</label><select id="script-download-result"><option value="">请选择要下载的结果</option></select><button id="script-download" disabled>下载结果 JSON</button></div>
+      <p id="script-download-status" role="status">结果下载保留类型信息，包括 undefined。</p>
+    </details>
+  </div>
+
     <details id="page-preview-tools"><summary>网页 DOM 脚本试运行（USER_SCRIPT / jQuery）</summary>
       <p class="hint">开发预览直接执行编辑器中的 async function main()；可使用 document、DOM、jQuery，不使用 Controller 的 page/params。仅对当前网页精确文档执行一次，不保存、不安装、不自动匹配网址。</p>
       <label><input type="checkbox" id="page-preview-jquery"> 加载扩展内固定 jQuery 3.7.1（隔离 USER_SCRIPT，不修改网站 MAIN 全局）</label>
@@ -140,24 +161,6 @@
       <details><summary>当前网页精确身份</summary><pre id="script-current-page-debug" aria-label="当前网页精确目标"></pre></details>
     </details>
   </section>
-  <section aria-labelledby="task-title"><h2 id="task-title">当前任务</h2>
-    <p id="script-task-id" class="identity">尚未运行</p><p id="script-task-status" role="status"></p>
-    <p id="script-running-target" class="identity" data-state="idle">运行目标：尚未建立</p>
-    <p id="script-task-version" class="identity"></p>
-  </section>
-  <section aria-labelledby="result-title"><h2 id="result-title">结果</h2>
-    <pre id="script-result" aria-label="脚本持久结果">尚无结果</pre>
-    <div class="row"><button id="script-read">刷新持久结果</button></div>
-    <label for="script-history-run">持久结果历史</label><select id="script-history-run"><option value="">选择历史任务</option></select>
-    <div class="row"><button id="script-history-open">查看选中任务</button></div>
-    <details><summary>完整历史与版本身份</summary><pre id="script-history" aria-label="持久结果历史">正在读取…</pre></details>
-    <details><summary>结果下载与任务查询</summary>
-      <label for="script-run-id">查询 runId（留空读取全部历史）</label><input id="script-run-id" placeholder="runId">
-      <div class="row"><button id="script-read-run">查询任务</button></div>
-      <div class="row"><label for="script-download-result">已完成的持久结果</label><select id="script-download-result"><option value="">请选择要下载的结果</option></select><button id="script-download" disabled>下载结果 JSON</button></div>
-      <p id="script-download-status" role="status">结果下载保留类型信息，包括 undefined。</p>
-    </details>
-  </section>
   <details id="tool-diagnostics"><summary>Advanced / Diagnostics</summary>
   <section id="scraping-panel" aria-label="采集模块"></section>
   <section aria-labelledby="sdk-title"><h2 id="sdk-title">独立网页 SDK</h2>
@@ -186,6 +189,10 @@
   <div id="task-dock" class="dock-actions">
     <span class="dock-caption">任务结果与运行记录保存在现有工作台</span>
     <div class="dock-buttons"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
+  </div>
+  <div id="discover-dock" class="dock-actions" hidden>
+    <span class="dock-caption">从本机已安装任务中快速发现和定位</span>
+    <div class="dock-buttons"><button type="button" id="discover-to-tasks">我的任务</button><button type="button" id="discover-to-catalog">完整任务目录 ↗</button></div>
   </div>
   <div id="develop-dock" class="dock-actions" hidden>
     <span class="dock-caption">草稿可直接运行，无需先保存</span>
