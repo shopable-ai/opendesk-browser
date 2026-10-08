@@ -1,0 +1,4508 @@
+{
+  "kind": "verbatim-record-extraction-not-a-new-receipt",
+  "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/demo-observation.json",
+  "originalCaptureSha256": "f0592ce7d4bc2676de4675ba64166644e0217db6127550b8997d2a8a96621663",
+  "observedAt": "2026-10-08T16:24:35.246Z",
+  "run": {
+    "tag": "controller-run",
+    "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+    "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "registrationId": "984eb367-eb0f-497c-b443-eb324bfa0248",
+    "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+    "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+    "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd",
+    "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+    "contentHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328",
+    "sourceKind": "draft",
+    "opId": "24055330-5368-4787-a0ee-04022a7b150d",
+    "resultId": "bf2417fb-7d4f-4c16-b00c-746534302b5d",
+    "requestId": "ccd897b7-1502-44ca-ad03-9f318f7eefdc",
+    "requestDigest": "c6b3acbeb7639f0425f12c64151af7598cbdff27839e35695a6e82c81a6d3b57",
+    "deadlineAt": 1791476694971,
+    "paramsWire": {
+      "type": "object",
+      "value": [
+        [
+          "keyword",
+          {
+            "type": "string",
+            "value": "OpenDesk"
+          }
+        ]
+      ]
+    },
+    "selection": {
+      "mode": "borrowed",
+      "tabId": 1411888887,
+      "frameId": 0,
+      "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+      "expectedUrl": "http://127.0.0.1:43112/demo-form.html",
+      "expectedWindowId": 1411888886
+    },
+    "startUrl": null,
+    "nativeFence": {
+      "tabEpoch": 0,
+      "frameEpoch": 0,
+      "rootFrameEpoch": 0,
+      "permissionEpoch": 0
+    },
+    "nativeTabId": 1411888887,
+    "state": "completed",
+    "ownerEpoch": 2,
+    "runRevision": 4,
+    "eventSeq": 2,
+    "cancelSeq": 1,
+    "workerRetired": true,
+    "retirementState": "released",
+    "target": {
+      "tabId": 1411888887,
+      "frameId": 0,
+      "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+      "url": "http://127.0.0.1:43112/demo-form.html",
+      "allowedOrigin": "http://127.0.0.1:43112",
+      "windowId": 1411888886,
+      "targetSessionId": "136998fb-aa1f-40fc-bc55-e1cc6722575f",
+      "targetVersion": 1,
+      "mode": "borrowed",
+      "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+    },
+    "identity": {
+      "tag": "controller-run",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+      "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+      "ownerEpoch": 1,
+      "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+      "revision": 1,
+      "contentHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328",
+      "target": {
+        "tabId": 1411888887,
+        "frameId": 0,
+        "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+        "url": "http://127.0.0.1:43112/demo-form.html",
+        "allowedOrigin": "http://127.0.0.1:43112",
+        "windowId": 1411888886,
+        "targetSessionId": "136998fb-aa1f-40fc-bc55-e1cc6722575f",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+      }
+    },
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+      "revision": 1,
+      "sourceHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328"
+    },
+    "createdAt": 1791476664974,
+    "retirementId": "5f89b220-4e2e-41cc-b35b-a7d8b7c2b8b1",
+    "terminalReason": null
+  },
+  "result": {
+    "tag": "controller-result",
+    "resultId": "bf2417fb-7d4f-4c16-b00c-746534302b5d",
+    "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+    "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+      "revision": 1,
+      "sourceHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328"
+    },
+    "sourceKind": "draft",
+    "state": "completed",
+    "outcome": {
+      "ok": true,
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "full",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "budget",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "locatorChecks",
+                        {
+                          "type": "number",
+                          "value": 3
+                        }
+                      ],
+                      [
+                        "maxChars",
+                        {
+                          "type": "number",
+                          "value": 8000
+                        }
+                      ],
+                      [
+                        "maxDepth",
+                        {
+                          "type": "number",
+                          "value": 5
+                        }
+                      ],
+                      [
+                        "maxLocatorChecks",
+                        {
+                          "type": "number",
+                          "value": 40
+                        }
+                      ],
+                      [
+                        "maxNodes",
+                        {
+                          "type": "number",
+                          "value": 80
+                        }
+                      ],
+                      [
+                        "maxVisited",
+                        {
+                          "type": "number",
+                          "value": 2400
+                        }
+                      ],
+                      [
+                        "visited",
+                        {
+                          "type": "number",
+                          "value": 5
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "document",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "documentId",
+                        {
+                          "type": "string",
+                          "value": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                        }
+                      ],
+                      [
+                        "targetVersion",
+                        {
+                          "type": "number",
+                          "value": 1
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "type": "string",
+                          "value": "http://127.0.0.1:43112/demo-form.html"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "kind",
+                  {
+                    "type": "string",
+                    "value": "semantic-dom-summary"
+                  }
+                ],
+                [
+                  "nodes",
+                  {
+                    "type": "array",
+                    "value": [
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "locator",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "kind",
+                                  {
+                                    "type": "string",
+                                    "value": "css"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "type": "string",
+                                    "value": "[id=\"search-form\"]"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "type": "string",
+                              "value": ""
+                            }
+                          ],
+                          [
+                            "role",
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "disabled",
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  }
+                                ],
+                                [
+                                  "visible",
+                                  {
+                                    "type": "boolean",
+                                    "value": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "type": "string",
+                              "value": "搜索关键词 搜索"
+                            }
+                          ]
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "locator",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "exact",
+                                  {
+                                    "type": "boolean",
+                                    "value": true
+                                  }
+                                ],
+                                [
+                                  "kind",
+                                  {
+                                    "type": "string",
+                                    "value": "role"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "type": "string",
+                                    "value": "搜索关键词"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "type": "string",
+                                    "value": "searchbox"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "type": "string",
+                              "value": "搜索关键词"
+                            }
+                          ],
+                          [
+                            "role",
+                            {
+                              "type": "string",
+                              "value": "searchbox"
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "id",
+                                  {
+                                    "type": "string",
+                                    "value": "search-form"
+                                  }
+                                ],
+                                [
+                                  "tag",
+                                  {
+                                    "type": "string",
+                                    "value": "form"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "checked",
+                                  {
+                                    "type": "string",
+                                    "value": "false"
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  }
+                                ],
+                                [
+                                  "visible",
+                                  {
+                                    "type": "boolean",
+                                    "value": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "type": "string",
+                              "value": ""
+                            }
+                          ]
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "locator",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "exact",
+                                  {
+                                    "type": "boolean",
+                                    "value": true
+                                  }
+                                ],
+                                [
+                                  "kind",
+                                  {
+                                    "type": "string",
+                                    "value": "role"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "type": "string",
+                                    "value": "搜索"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "type": "string",
+                                    "value": "button"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "type": "string",
+                              "value": "搜索"
+                            }
+                          ],
+                          [
+                            "role",
+                            {
+                              "type": "string",
+                              "value": "button"
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "id",
+                                  {
+                                    "type": "string",
+                                    "value": "search-form"
+                                  }
+                                ],
+                                [
+                                  "tag",
+                                  {
+                                    "type": "string",
+                                    "value": "form"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "disabled",
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  }
+                                ],
+                                [
+                                  "visible",
+                                  {
+                                    "type": "boolean",
+                                    "value": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "type": "string",
+                              "value": "搜索"
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                [
+                  "root",
+                  {
+                    "type": "string",
+                    "value": "#search-form"
+                  }
+                ],
+                [
+                  "truncated",
+                  {
+                    "type": "boolean",
+                    "value": false
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "string",
+                    "value": "1.0.0-r5.1"
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "small",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "budget",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "locatorChecks",
+                        {
+                          "type": "number",
+                          "value": 1
+                        }
+                      ],
+                      [
+                        "maxChars",
+                        {
+                          "type": "number",
+                          "value": 256
+                        }
+                      ],
+                      [
+                        "maxDepth",
+                        {
+                          "type": "number",
+                          "value": 5
+                        }
+                      ],
+                      [
+                        "maxLocatorChecks",
+                        {
+                          "type": "number",
+                          "value": 40
+                        }
+                      ],
+                      [
+                        "maxNodes",
+                        {
+                          "type": "number",
+                          "value": 1
+                        }
+                      ],
+                      [
+                        "maxVisited",
+                        {
+                          "type": "number",
+                          "value": 400
+                        }
+                      ],
+                      [
+                        "visited",
+                        {
+                          "type": "number",
+                          "value": 3
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "document",
+                  {
+                    "type": "object",
+                    "value": [
+                      [
+                        "documentId",
+                        {
+                          "type": "string",
+                          "value": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                        }
+                      ],
+                      [
+                        "targetVersion",
+                        {
+                          "type": "number",
+                          "value": 1
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "type": "string",
+                          "value": "http://127.0.0.1:43112/demo-form.html"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "kind",
+                  {
+                    "type": "string",
+                    "value": "semantic-dom-summary"
+                  }
+                ],
+                [
+                  "nodes",
+                  {
+                    "type": "array",
+                    "value": [
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "locator",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "exact",
+                                  {
+                                    "type": "boolean",
+                                    "value": true
+                                  }
+                                ],
+                                [
+                                  "kind",
+                                  {
+                                    "type": "string",
+                                    "value": "role"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "type": "string",
+                                    "value": "OOpenDesk / 测试网页重置页面"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "type": "string",
+                                    "value": "banner"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "type": "string",
+                              "value": "OOpenDesk / 测试网页重置页面"
+                            }
+                          ],
+                          [
+                            "role",
+                            {
+                              "type": "string",
+                              "value": "banner"
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "type": "object",
+                              "value": [
+                                [
+                                  "disabled",
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "type": "boolean",
+                                    "value": false
+                                  }
+                                ],
+                                [
+                                  "visible",
+                                  {
+                                    "type": "boolean",
+                                    "value": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "type": "string",
+                              "value": "OOpenDesk / 测试网页重置页面"
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                [
+                  "root",
+                  {
+                    "type": "string",
+                    "value": "body"
+                  }
+                ],
+                [
+                  "truncated",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "string",
+                    "value": "1.0.0-r5.1"
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "committedAt": 1791476665091
+  },
+  "commandJournal": [
+    {
+      "tag": "controller-finish",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "requestDigest": "aeaab4f633491f0a42c8eb43ea9993021f5cf4e99de8ba83a1ec64140bc6fc15"
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "requestDigest": "07da8890b6fa13afb1eecf83f34addb22833d7c17c71aa4ded6027701edaf5cd",
+      "envelope": {
+        "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+          "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+          "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+          "ownerEpoch": 1,
+          "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+          "revision": 1,
+          "contentHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328",
+          "target": {
+            "tabId": 1411888887,
+            "frameId": 0,
+            "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+            "url": "http://127.0.0.1:43112/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43112",
+            "windowId": 1411888886,
+            "targetSessionId": "136998fb-aa1f-40fc-bc55-e1cc6722575f",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+          "revision": 1,
+          "sourceHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328"
+        },
+        "target": {
+          "tabId": 1411888887,
+          "frameId": 0,
+          "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+          "url": "http://127.0.0.1:43112/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43112",
+          "windowId": 1411888886,
+          "targetSessionId": "136998fb-aa1f-40fc-bc55-e1cc6722575f",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorObserve",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "root",
+                    {
+                      "t": "string",
+                      "v": "#search-form"
+                    }
+                  ],
+                  [
+                    "maxDepth",
+                    {
+                      "t": "number",
+                      "v": 5
+                    }
+                  ],
+                  [
+                    "maxNodes",
+                    {
+                      "t": "number",
+                      "v": 80
+                    }
+                  ],
+                  [
+                    "maxChars",
+                    {
+                      "t": "number",
+                      "v": 8000
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1791476665035,
+      "nativeReceipts": [
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "type": "OPENDESK_CONTROLLER_PAGE_SESSION_V1",
+            "ready": true
+          }
+        },
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+            "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "kind",
+                  {
+                    "t": "string",
+                    "v": "semantic-dom-summary"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "t": "string",
+                    "v": "1.0.0-r5.1"
+                  }
+                ],
+                [
+                  "document",
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "documentId",
+                        {
+                          "t": "string",
+                          "v": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                        }
+                      ],
+                      [
+                        "targetVersion",
+                        {
+                          "t": "number",
+                          "v": 1
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "t": "string",
+                          "v": "http://127.0.0.1:43112/demo-form.html"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "root",
+                  {
+                    "t": "string",
+                    "v": "#search-form"
+                  }
+                ],
+                [
+                  "nodes",
+                  {
+                    "t": "array",
+                    "v": [
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "role",
+                            {
+                              "t": "null"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "t": "string",
+                              "v": ""
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "t": "string",
+                              "v": "搜索关键词 搜索"
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "visible",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "t": "null"
+                            }
+                          ],
+                          [
+                            "locator",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "kind",
+                                  {
+                                    "t": "string",
+                                    "v": "css"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "t": "string",
+                                    "v": "[id=\"search-form\"]"
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      },
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "role",
+                            {
+                              "t": "string",
+                              "v": "searchbox"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "t": "string",
+                              "v": "搜索关键词"
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "t": "string",
+                              "v": ""
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "visible",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "checked",
+                                  {
+                                    "t": "string",
+                                    "v": "false"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "tag",
+                                  {
+                                    "t": "string",
+                                    "v": "form"
+                                  }
+                                ],
+                                [
+                                  "id",
+                                  {
+                                    "t": "string",
+                                    "v": "search-form"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "locator",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "kind",
+                                  {
+                                    "t": "string",
+                                    "v": "role"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "t": "string",
+                                    "v": "searchbox"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "t": "string",
+                                    "v": "搜索关键词"
+                                  }
+                                ],
+                                [
+                                  "exact",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      },
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "role",
+                            {
+                              "t": "string",
+                              "v": "button"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "t": "string",
+                              "v": "搜索"
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "t": "string",
+                              "v": "搜索"
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "visible",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "tag",
+                                  {
+                                    "t": "string",
+                                    "v": "form"
+                                  }
+                                ],
+                                [
+                                  "id",
+                                  {
+                                    "t": "string",
+                                    "v": "search-form"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "locator",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "kind",
+                                  {
+                                    "t": "string",
+                                    "v": "role"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "t": "string",
+                                    "v": "button"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "t": "string",
+                                    "v": "搜索"
+                                  }
+                                ],
+                                [
+                                  "exact",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                [
+                  "truncated",
+                  {
+                    "t": "boolean",
+                    "v": false
+                  }
+                ],
+                [
+                  "budget",
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "maxDepth",
+                        {
+                          "t": "number",
+                          "v": 5
+                        }
+                      ],
+                      [
+                        "maxNodes",
+                        {
+                          "t": "number",
+                          "v": 80
+                        }
+                      ],
+                      [
+                        "maxChars",
+                        {
+                          "t": "number",
+                          "v": 8000
+                        }
+                      ],
+                      [
+                        "maxVisited",
+                        {
+                          "t": "number",
+                          "v": 2400
+                        }
+                      ],
+                      [
+                        "visited",
+                        {
+                          "t": "number",
+                          "v": 5
+                        }
+                      ],
+                      [
+                        "locatorChecks",
+                        {
+                          "t": "number",
+                          "v": 3
+                        }
+                      ],
+                      [
+                        "maxLocatorChecks",
+                        {
+                          "t": "number",
+                          "v": 40
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "result",
+          "receipt": {
+            "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "kind",
+                  {
+                    "t": "string",
+                    "v": "semantic-dom-summary"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "t": "string",
+                    "v": "1.0.0-r5.1"
+                  }
+                ],
+                [
+                  "document",
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "documentId",
+                        {
+                          "t": "string",
+                          "v": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                        }
+                      ],
+                      [
+                        "targetVersion",
+                        {
+                          "t": "number",
+                          "v": 1
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "t": "string",
+                          "v": "http://127.0.0.1:43112/demo-form.html"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "root",
+                  {
+                    "t": "string",
+                    "v": "#search-form"
+                  }
+                ],
+                [
+                  "nodes",
+                  {
+                    "t": "array",
+                    "v": [
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "role",
+                            {
+                              "t": "null"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "t": "string",
+                              "v": ""
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "t": "string",
+                              "v": "搜索关键词 搜索"
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "visible",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "t": "null"
+                            }
+                          ],
+                          [
+                            "locator",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "kind",
+                                  {
+                                    "t": "string",
+                                    "v": "css"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "t": "string",
+                                    "v": "[id=\"search-form\"]"
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      },
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "role",
+                            {
+                              "t": "string",
+                              "v": "searchbox"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "t": "string",
+                              "v": "搜索关键词"
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "t": "string",
+                              "v": ""
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "visible",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "checked",
+                                  {
+                                    "t": "string",
+                                    "v": "false"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "tag",
+                                  {
+                                    "t": "string",
+                                    "v": "form"
+                                  }
+                                ],
+                                [
+                                  "id",
+                                  {
+                                    "t": "string",
+                                    "v": "search-form"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "locator",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "kind",
+                                  {
+                                    "t": "string",
+                                    "v": "role"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "t": "string",
+                                    "v": "searchbox"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "t": "string",
+                                    "v": "搜索关键词"
+                                  }
+                                ],
+                                [
+                                  "exact",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      },
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "role",
+                            {
+                              "t": "string",
+                              "v": "button"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "t": "string",
+                              "v": "搜索"
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "t": "string",
+                              "v": "搜索"
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "visible",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "tag",
+                                  {
+                                    "t": "string",
+                                    "v": "form"
+                                  }
+                                ],
+                                [
+                                  "id",
+                                  {
+                                    "t": "string",
+                                    "v": "search-form"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "locator",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "kind",
+                                  {
+                                    "t": "string",
+                                    "v": "role"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "t": "string",
+                                    "v": "button"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "t": "string",
+                                    "v": "搜索"
+                                  }
+                                ],
+                                [
+                                  "exact",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                [
+                  "truncated",
+                  {
+                    "t": "boolean",
+                    "v": false
+                  }
+                ],
+                [
+                  "budget",
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "maxDepth",
+                        {
+                          "t": "number",
+                          "v": 5
+                        }
+                      ],
+                      [
+                        "maxNodes",
+                        {
+                          "t": "number",
+                          "v": 80
+                        }
+                      ],
+                      [
+                        "maxChars",
+                        {
+                          "t": "number",
+                          "v": 8000
+                        }
+                      ],
+                      [
+                        "maxVisited",
+                        {
+                          "t": "number",
+                          "v": 2400
+                        }
+                      ],
+                      [
+                        "visited",
+                        {
+                          "t": "number",
+                          "v": 5
+                        }
+                      ],
+                      [
+                        "locatorChecks",
+                        {
+                          "t": "number",
+                          "v": 3
+                        }
+                      ],
+                      [
+                        "maxLocatorChecks",
+                        {
+                          "t": "number",
+                          "v": 40
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "budget",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "locatorChecks",
+                  {
+                    "type": "number",
+                    "value": 3
+                  }
+                ],
+                [
+                  "maxChars",
+                  {
+                    "type": "number",
+                    "value": 8000
+                  }
+                ],
+                [
+                  "maxDepth",
+                  {
+                    "type": "number",
+                    "value": 5
+                  }
+                ],
+                [
+                  "maxLocatorChecks",
+                  {
+                    "type": "number",
+                    "value": 40
+                  }
+                ],
+                [
+                  "maxNodes",
+                  {
+                    "type": "number",
+                    "value": 80
+                  }
+                ],
+                [
+                  "maxVisited",
+                  {
+                    "type": "number",
+                    "value": 2400
+                  }
+                ],
+                [
+                  "visited",
+                  {
+                    "type": "number",
+                    "value": 5
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "document",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "documentId",
+                  {
+                    "type": "string",
+                    "value": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                  }
+                ],
+                [
+                  "targetVersion",
+                  {
+                    "type": "number",
+                    "value": 1
+                  }
+                ],
+                [
+                  "url",
+                  {
+                    "type": "string",
+                    "value": "http://127.0.0.1:43112/demo-form.html"
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "kind",
+            {
+              "type": "string",
+              "value": "semantic-dom-summary"
+            }
+          ],
+          [
+            "nodes",
+            {
+              "type": "array",
+              "value": [
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "locator",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "kind",
+                            {
+                              "type": "string",
+                              "value": "css"
+                            }
+                          ],
+                          [
+                            "value",
+                            {
+                              "type": "string",
+                              "value": "[id=\"search-form\"]"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "name",
+                      {
+                        "type": "string",
+                        "value": ""
+                      }
+                    ],
+                    [
+                      "role",
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    [
+                      "scope",
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    [
+                      "state",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "disabled",
+                            {
+                              "type": "boolean",
+                              "value": false
+                            }
+                          ],
+                          [
+                            "readOnly",
+                            {
+                              "type": "boolean",
+                              "value": false
+                            }
+                          ],
+                          [
+                            "visible",
+                            {
+                              "type": "boolean",
+                              "value": true
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "text",
+                      {
+                        "type": "string",
+                        "value": "搜索关键词 搜索"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "locator",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "exact",
+                            {
+                              "type": "boolean",
+                              "value": true
+                            }
+                          ],
+                          [
+                            "kind",
+                            {
+                              "type": "string",
+                              "value": "role"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "type": "string",
+                              "value": "搜索关键词"
+                            }
+                          ],
+                          [
+                            "value",
+                            {
+                              "type": "string",
+                              "value": "searchbox"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "name",
+                      {
+                        "type": "string",
+                        "value": "搜索关键词"
+                      }
+                    ],
+                    [
+                      "role",
+                      {
+                        "type": "string",
+                        "value": "searchbox"
+                      }
+                    ],
+                    [
+                      "scope",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "id",
+                            {
+                              "type": "string",
+                              "value": "search-form"
+                            }
+                          ],
+                          [
+                            "tag",
+                            {
+                              "type": "string",
+                              "value": "form"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "state",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "checked",
+                            {
+                              "type": "string",
+                              "value": "false"
+                            }
+                          ],
+                          [
+                            "disabled",
+                            {
+                              "type": "boolean",
+                              "value": false
+                            }
+                          ],
+                          [
+                            "readOnly",
+                            {
+                              "type": "boolean",
+                              "value": false
+                            }
+                          ],
+                          [
+                            "visible",
+                            {
+                              "type": "boolean",
+                              "value": true
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "text",
+                      {
+                        "type": "string",
+                        "value": ""
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "locator",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "exact",
+                            {
+                              "type": "boolean",
+                              "value": true
+                            }
+                          ],
+                          [
+                            "kind",
+                            {
+                              "type": "string",
+                              "value": "role"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "type": "string",
+                              "value": "搜索"
+                            }
+                          ],
+                          [
+                            "value",
+                            {
+                              "type": "string",
+                              "value": "button"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "name",
+                      {
+                        "type": "string",
+                        "value": "搜索"
+                      }
+                    ],
+                    [
+                      "role",
+                      {
+                        "type": "string",
+                        "value": "button"
+                      }
+                    ],
+                    [
+                      "scope",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "id",
+                            {
+                              "type": "string",
+                              "value": "search-form"
+                            }
+                          ],
+                          [
+                            "tag",
+                            {
+                              "type": "string",
+                              "value": "form"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "state",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "disabled",
+                            {
+                              "type": "boolean",
+                              "value": false
+                            }
+                          ],
+                          [
+                            "readOnly",
+                            {
+                              "type": "boolean",
+                              "value": false
+                            }
+                          ],
+                          [
+                            "visible",
+                            {
+                              "type": "boolean",
+                              "value": true
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "text",
+                      {
+                        "type": "string",
+                        "value": "搜索"
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "root",
+            {
+              "type": "string",
+              "value": "#search-form"
+            }
+          ],
+          [
+            "truncated",
+            {
+              "type": "boolean",
+              "value": false
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "string",
+              "value": "1.0.0-r5.1"
+            }
+          ]
+        ]
+      },
+      "receiptAt": 1791476665060,
+      "reply": {
+        "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "kind",
+              {
+                "t": "string",
+                "v": "semantic-dom-summary"
+              }
+            ],
+            [
+              "version",
+              {
+                "t": "string",
+                "v": "1.0.0-r5.1"
+              }
+            ],
+            [
+              "document",
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "documentId",
+                    {
+                      "t": "string",
+                      "v": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                    }
+                  ],
+                  [
+                    "targetVersion",
+                    {
+                      "t": "number",
+                      "v": 1
+                    }
+                  ],
+                  [
+                    "url",
+                    {
+                      "t": "string",
+                      "v": "http://127.0.0.1:43112/demo-form.html"
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              "root",
+              {
+                "t": "string",
+                "v": "#search-form"
+              }
+            ],
+            [
+              "nodes",
+              {
+                "t": "array",
+                "v": [
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "role",
+                        {
+                          "t": "null"
+                        }
+                      ],
+                      [
+                        "name",
+                        {
+                          "t": "string",
+                          "v": ""
+                        }
+                      ],
+                      [
+                        "text",
+                        {
+                          "t": "string",
+                          "v": "搜索关键词 搜索"
+                        }
+                      ],
+                      [
+                        "state",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "visible",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ],
+                            [
+                              "disabled",
+                              {
+                                "t": "boolean",
+                                "v": false
+                              }
+                            ],
+                            [
+                              "readOnly",
+                              {
+                                "t": "boolean",
+                                "v": false
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "scope",
+                        {
+                          "t": "null"
+                        }
+                      ],
+                      [
+                        "locator",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "kind",
+                              {
+                                "t": "string",
+                                "v": "css"
+                              }
+                            ],
+                            [
+                              "value",
+                              {
+                                "t": "string",
+                                "v": "[id=\"search-form\"]"
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "role",
+                        {
+                          "t": "string",
+                          "v": "searchbox"
+                        }
+                      ],
+                      [
+                        "name",
+                        {
+                          "t": "string",
+                          "v": "搜索关键词"
+                        }
+                      ],
+                      [
+                        "text",
+                        {
+                          "t": "string",
+                          "v": ""
+                        }
+                      ],
+                      [
+                        "state",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "visible",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ],
+                            [
+                              "disabled",
+                              {
+                                "t": "boolean",
+                                "v": false
+                              }
+                            ],
+                            [
+                              "readOnly",
+                              {
+                                "t": "boolean",
+                                "v": false
+                              }
+                            ],
+                            [
+                              "checked",
+                              {
+                                "t": "string",
+                                "v": "false"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "scope",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "tag",
+                              {
+                                "t": "string",
+                                "v": "form"
+                              }
+                            ],
+                            [
+                              "id",
+                              {
+                                "t": "string",
+                                "v": "search-form"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "locator",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "kind",
+                              {
+                                "t": "string",
+                                "v": "role"
+                              }
+                            ],
+                            [
+                              "value",
+                              {
+                                "t": "string",
+                                "v": "searchbox"
+                              }
+                            ],
+                            [
+                              "name",
+                              {
+                                "t": "string",
+                                "v": "搜索关键词"
+                              }
+                            ],
+                            [
+                              "exact",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "role",
+                        {
+                          "t": "string",
+                          "v": "button"
+                        }
+                      ],
+                      [
+                        "name",
+                        {
+                          "t": "string",
+                          "v": "搜索"
+                        }
+                      ],
+                      [
+                        "text",
+                        {
+                          "t": "string",
+                          "v": "搜索"
+                        }
+                      ],
+                      [
+                        "state",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "visible",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ],
+                            [
+                              "disabled",
+                              {
+                                "t": "boolean",
+                                "v": false
+                              }
+                            ],
+                            [
+                              "readOnly",
+                              {
+                                "t": "boolean",
+                                "v": false
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "scope",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "tag",
+                              {
+                                "t": "string",
+                                "v": "form"
+                              }
+                            ],
+                            [
+                              "id",
+                              {
+                                "t": "string",
+                                "v": "search-form"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "locator",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "kind",
+                              {
+                                "t": "string",
+                                "v": "role"
+                              }
+                            ],
+                            [
+                              "value",
+                              {
+                                "t": "string",
+                                "v": "button"
+                              }
+                            ],
+                            [
+                              "name",
+                              {
+                                "t": "string",
+                                "v": "搜索"
+                              }
+                            ],
+                            [
+                              "exact",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              "truncated",
+              {
+                "t": "boolean",
+                "v": false
+              }
+            ],
+            [
+              "budget",
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "maxDepth",
+                    {
+                      "t": "number",
+                      "v": 5
+                    }
+                  ],
+                  [
+                    "maxNodes",
+                    {
+                      "t": "number",
+                      "v": 80
+                    }
+                  ],
+                  [
+                    "maxChars",
+                    {
+                      "t": "number",
+                      "v": 8000
+                    }
+                  ],
+                  [
+                    "maxVisited",
+                    {
+                      "t": "number",
+                      "v": 2400
+                    }
+                  ],
+                  [
+                    "visited",
+                    {
+                      "t": "number",
+                      "v": 5
+                    }
+                  ],
+                  [
+                    "locatorChecks",
+                    {
+                      "t": "number",
+                      "v": 3
+                    }
+                  ],
+                  [
+                    "maxLocatorChecks",
+                    {
+                      "t": "number",
+                      "v": 40
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "requestDigest": "a3b963c204c24bfc63b2b9f729bc3c95215c40fef64a0659619ad4c9beab6e40",
+      "envelope": {
+        "requestId": "7e1cebddf616159fba2ecf14dd296708",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+          "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+          "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+          "ownerEpoch": 1,
+          "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+          "revision": 1,
+          "contentHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328",
+          "target": {
+            "tabId": 1411888887,
+            "frameId": 0,
+            "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+            "url": "http://127.0.0.1:43112/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43112",
+            "windowId": 1411888886,
+            "targetSessionId": "136998fb-aa1f-40fc-bc55-e1cc6722575f",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+          "revision": 1,
+          "sourceHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328"
+        },
+        "target": {
+          "tabId": 1411888887,
+          "frameId": 0,
+          "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+          "url": "http://127.0.0.1:43112/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43112",
+          "windowId": 1411888886,
+          "targetSessionId": "136998fb-aa1f-40fc-bc55-e1cc6722575f",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorObserve",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "root",
+                    {
+                      "t": "string",
+                      "v": "body"
+                    }
+                  ],
+                  [
+                    "maxDepth",
+                    {
+                      "t": "number",
+                      "v": 5
+                    }
+                  ],
+                  [
+                    "maxNodes",
+                    {
+                      "t": "number",
+                      "v": 1
+                    }
+                  ],
+                  [
+                    "maxChars",
+                    {
+                      "t": "number",
+                      "v": 256
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1791476665065,
+      "nativeReceipts": [
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "type": "OPENDESK_CONTROLLER_PAGE_SESSION_V1",
+            "ready": true
+          }
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "7e1cebddf616159fba2ecf14dd296708",
+            "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "kind",
+                  {
+                    "t": "string",
+                    "v": "semantic-dom-summary"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "t": "string",
+                    "v": "1.0.0-r5.1"
+                  }
+                ],
+                [
+                  "document",
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "documentId",
+                        {
+                          "t": "string",
+                          "v": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                        }
+                      ],
+                      [
+                        "targetVersion",
+                        {
+                          "t": "number",
+                          "v": 1
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "t": "string",
+                          "v": "http://127.0.0.1:43112/demo-form.html"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "root",
+                  {
+                    "t": "string",
+                    "v": "body"
+                  }
+                ],
+                [
+                  "nodes",
+                  {
+                    "t": "array",
+                    "v": [
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "role",
+                            {
+                              "t": "string",
+                              "v": "banner"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "t": "string",
+                              "v": "OOpenDesk / 测试网页重置页面"
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "t": "string",
+                              "v": "OOpenDesk / 测试网页重置页面"
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "visible",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "t": "null"
+                            }
+                          ],
+                          [
+                            "locator",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "kind",
+                                  {
+                                    "t": "string",
+                                    "v": "role"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "t": "string",
+                                    "v": "banner"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "t": "string",
+                                    "v": "OOpenDesk / 测试网页重置页面"
+                                  }
+                                ],
+                                [
+                                  "exact",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                [
+                  "truncated",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ],
+                [
+                  "budget",
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "maxDepth",
+                        {
+                          "t": "number",
+                          "v": 5
+                        }
+                      ],
+                      [
+                        "maxNodes",
+                        {
+                          "t": "number",
+                          "v": 1
+                        }
+                      ],
+                      [
+                        "maxChars",
+                        {
+                          "t": "number",
+                          "v": 256
+                        }
+                      ],
+                      [
+                        "maxVisited",
+                        {
+                          "t": "number",
+                          "v": 400
+                        }
+                      ],
+                      [
+                        "visited",
+                        {
+                          "t": "number",
+                          "v": 3
+                        }
+                      ],
+                      [
+                        "locatorChecks",
+                        {
+                          "t": "number",
+                          "v": 1
+                        }
+                      ],
+                      [
+                        "maxLocatorChecks",
+                        {
+                          "t": "number",
+                          "v": 40
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "result",
+          "receipt": {
+            "requestId": "7e1cebddf616159fba2ecf14dd296708",
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "kind",
+                  {
+                    "t": "string",
+                    "v": "semantic-dom-summary"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "t": "string",
+                    "v": "1.0.0-r5.1"
+                  }
+                ],
+                [
+                  "document",
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "documentId",
+                        {
+                          "t": "string",
+                          "v": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                        }
+                      ],
+                      [
+                        "targetVersion",
+                        {
+                          "t": "number",
+                          "v": 1
+                        }
+                      ],
+                      [
+                        "url",
+                        {
+                          "t": "string",
+                          "v": "http://127.0.0.1:43112/demo-form.html"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "root",
+                  {
+                    "t": "string",
+                    "v": "body"
+                  }
+                ],
+                [
+                  "nodes",
+                  {
+                    "t": "array",
+                    "v": [
+                      {
+                        "t": "object",
+                        "v": [
+                          [
+                            "role",
+                            {
+                              "t": "string",
+                              "v": "banner"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "t": "string",
+                              "v": "OOpenDesk / 测试网页重置页面"
+                            }
+                          ],
+                          [
+                            "text",
+                            {
+                              "t": "string",
+                              "v": "OOpenDesk / 测试网页重置页面"
+                            }
+                          ],
+                          [
+                            "state",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "visible",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ],
+                                [
+                                  "disabled",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ],
+                                [
+                                  "readOnly",
+                                  {
+                                    "t": "boolean",
+                                    "v": false
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          [
+                            "scope",
+                            {
+                              "t": "null"
+                            }
+                          ],
+                          [
+                            "locator",
+                            {
+                              "t": "object",
+                              "v": [
+                                [
+                                  "kind",
+                                  {
+                                    "t": "string",
+                                    "v": "role"
+                                  }
+                                ],
+                                [
+                                  "value",
+                                  {
+                                    "t": "string",
+                                    "v": "banner"
+                                  }
+                                ],
+                                [
+                                  "name",
+                                  {
+                                    "t": "string",
+                                    "v": "OOpenDesk / 测试网页重置页面"
+                                  }
+                                ],
+                                [
+                                  "exact",
+                                  {
+                                    "t": "boolean",
+                                    "v": true
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                [
+                  "truncated",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ],
+                [
+                  "budget",
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "maxDepth",
+                        {
+                          "t": "number",
+                          "v": 5
+                        }
+                      ],
+                      [
+                        "maxNodes",
+                        {
+                          "t": "number",
+                          "v": 1
+                        }
+                      ],
+                      [
+                        "maxChars",
+                        {
+                          "t": "number",
+                          "v": 256
+                        }
+                      ],
+                      [
+                        "maxVisited",
+                        {
+                          "t": "number",
+                          "v": 400
+                        }
+                      ],
+                      [
+                        "visited",
+                        {
+                          "t": "number",
+                          "v": 3
+                        }
+                      ],
+                      [
+                        "locatorChecks",
+                        {
+                          "t": "number",
+                          "v": 1
+                        }
+                      ],
+                      [
+                        "maxLocatorChecks",
+                        {
+                          "t": "number",
+                          "v": 40
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 7,
+              "url": "http://127.0.0.1:43112/demo-form.html"
+            },
+            {
+              "documentId": "5464F16EE92B207C0BE70B4B4BC77926",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 5,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 8,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "budget",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "locatorChecks",
+                  {
+                    "type": "number",
+                    "value": 1
+                  }
+                ],
+                [
+                  "maxChars",
+                  {
+                    "type": "number",
+                    "value": 256
+                  }
+                ],
+                [
+                  "maxDepth",
+                  {
+                    "type": "number",
+                    "value": 5
+                  }
+                ],
+                [
+                  "maxLocatorChecks",
+                  {
+                    "type": "number",
+                    "value": 40
+                  }
+                ],
+                [
+                  "maxNodes",
+                  {
+                    "type": "number",
+                    "value": 1
+                  }
+                ],
+                [
+                  "maxVisited",
+                  {
+                    "type": "number",
+                    "value": 400
+                  }
+                ],
+                [
+                  "visited",
+                  {
+                    "type": "number",
+                    "value": 3
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "document",
+            {
+              "type": "object",
+              "value": [
+                [
+                  "documentId",
+                  {
+                    "type": "string",
+                    "value": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                  }
+                ],
+                [
+                  "targetVersion",
+                  {
+                    "type": "number",
+                    "value": 1
+                  }
+                ],
+                [
+                  "url",
+                  {
+                    "type": "string",
+                    "value": "http://127.0.0.1:43112/demo-form.html"
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "kind",
+            {
+              "type": "string",
+              "value": "semantic-dom-summary"
+            }
+          ],
+          [
+            "nodes",
+            {
+              "type": "array",
+              "value": [
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "locator",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "exact",
+                            {
+                              "type": "boolean",
+                              "value": true
+                            }
+                          ],
+                          [
+                            "kind",
+                            {
+                              "type": "string",
+                              "value": "role"
+                            }
+                          ],
+                          [
+                            "name",
+                            {
+                              "type": "string",
+                              "value": "OOpenDesk / 测试网页重置页面"
+                            }
+                          ],
+                          [
+                            "value",
+                            {
+                              "type": "string",
+                              "value": "banner"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "name",
+                      {
+                        "type": "string",
+                        "value": "OOpenDesk / 测试网页重置页面"
+                      }
+                    ],
+                    [
+                      "role",
+                      {
+                        "type": "string",
+                        "value": "banner"
+                      }
+                    ],
+                    [
+                      "scope",
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    [
+                      "state",
+                      {
+                        "type": "object",
+                        "value": [
+                          [
+                            "disabled",
+                            {
+                              "type": "boolean",
+                              "value": false
+                            }
+                          ],
+                          [
+                            "readOnly",
+                            {
+                              "type": "boolean",
+                              "value": false
+                            }
+                          ],
+                          [
+                            "visible",
+                            {
+                              "type": "boolean",
+                              "value": true
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "text",
+                      {
+                        "type": "string",
+                        "value": "OOpenDesk / 测试网页重置页面"
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "root",
+            {
+              "type": "string",
+              "value": "body"
+            }
+          ],
+          [
+            "truncated",
+            {
+              "type": "boolean",
+              "value": true
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "string",
+              "value": "1.0.0-r5.1"
+            }
+          ]
+        ]
+      },
+      "receiptAt": 1791476665086,
+      "reply": {
+        "requestId": "7e1cebddf616159fba2ecf14dd296708",
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "kind",
+              {
+                "t": "string",
+                "v": "semantic-dom-summary"
+              }
+            ],
+            [
+              "version",
+              {
+                "t": "string",
+                "v": "1.0.0-r5.1"
+              }
+            ],
+            [
+              "document",
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "documentId",
+                    {
+                      "t": "string",
+                      "v": "851BE88C0D1EFF35AB97ACE4F1B4089E"
+                    }
+                  ],
+                  [
+                    "targetVersion",
+                    {
+                      "t": "number",
+                      "v": 1
+                    }
+                  ],
+                  [
+                    "url",
+                    {
+                      "t": "string",
+                      "v": "http://127.0.0.1:43112/demo-form.html"
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              "root",
+              {
+                "t": "string",
+                "v": "body"
+              }
+            ],
+            [
+              "nodes",
+              {
+                "t": "array",
+                "v": [
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "role",
+                        {
+                          "t": "string",
+                          "v": "banner"
+                        }
+                      ],
+                      [
+                        "name",
+                        {
+                          "t": "string",
+                          "v": "OOpenDesk / 测试网页重置页面"
+                        }
+                      ],
+                      [
+                        "text",
+                        {
+                          "t": "string",
+                          "v": "OOpenDesk / 测试网页重置页面"
+                        }
+                      ],
+                      [
+                        "state",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "visible",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ],
+                            [
+                              "disabled",
+                              {
+                                "t": "boolean",
+                                "v": false
+                              }
+                            ],
+                            [
+                              "readOnly",
+                              {
+                                "t": "boolean",
+                                "v": false
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        "scope",
+                        {
+                          "t": "null"
+                        }
+                      ],
+                      [
+                        "locator",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "kind",
+                              {
+                                "t": "string",
+                                "v": "role"
+                              }
+                            ],
+                            [
+                              "value",
+                              {
+                                "t": "string",
+                                "v": "banner"
+                              }
+                            ],
+                            [
+                              "name",
+                              {
+                                "t": "string",
+                                "v": "OOpenDesk / 测试网页重置页面"
+                              }
+                            ],
+                            [
+                              "exact",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              "truncated",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ],
+            [
+              "budget",
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "maxDepth",
+                    {
+                      "t": "number",
+                      "v": 5
+                    }
+                  ],
+                  [
+                    "maxNodes",
+                    {
+                      "t": "number",
+                      "v": 1
+                    }
+                  ],
+                  [
+                    "maxChars",
+                    {
+                      "t": "number",
+                      "v": 256
+                    }
+                  ],
+                  [
+                    "maxVisited",
+                    {
+                      "t": "number",
+                      "v": 400
+                    }
+                  ],
+                  [
+                    "visited",
+                    {
+                      "t": "number",
+                      "v": 3
+                    }
+                  ],
+                  [
+                    "locatorChecks",
+                    {
+                      "t": "number",
+                      "v": 1
+                    }
+                  ],
+                  [
+                    "maxLocatorChecks",
+                    {
+                      "t": "number",
+                      "v": 40
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "tag": "controller-lease",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+      "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+      "grantIncarnation": "984eb367-eb0f-497c-b443-eb324bfa0248",
+      "opId": "24055330-5368-4787-a0ee-04022a7b150d",
+      "requestId": "ccd897b7-1502-44ca-ad03-9f318f7eefdc",
+      "resultId": "bf2417fb-7d4f-4c16-b00c-746534302b5d",
+      "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd",
+      "registrationId": "984eb367-eb0f-497c-b443-eb324bfa0248",
+      "cancelSeq": 1,
+      "state": "completed",
+      "deadlineAt": 1791476694971,
+      "workerRetired": true,
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-retirement",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "retirementId": "5f89b220-4e2e-41cc-b35b-a7d8b7c2b8b1",
+      "releaseCount": 1,
+      "absence": "borrowed-not-closed",
+      "releasedAt": 1791476665098
+    },
+    {
+      "tag": "controller-start",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "requestDigest": "c6b3acbeb7639f0425f12c64151af7598cbdff27839e35695a6e82c81a6d3b57"
+    }
+  ],
+  "pages": [
+    {
+      "target": {
+        "targetId": "0C61F4587EE650464682E6BE2F995F60",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://lghbfbpiijdmndfkllfinobnhkifiemj/ui/tool.html?hostInstanceId=f87b132c-6e31-4538-80ee-d950a4a6017d",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "272F6E2F49D3307382F9095359C26CF2"
+      },
+      "observation": {
+        "url": "chrome-extension://lghbfbpiijdmndfkllfinobnhkifiemj/ui/tool.html?hostInstanceId=f87b132c-6e31-4538-80ee-d950a4a6017d",
+        "title": "OpenDesk Browser",
+        "form": {
+          "script-current-page-status": {
+            "text": "可运行 · 当前窗口的 HTTP(S) 主文档",
+            "state": "available"
+          },
+          "script-current-page-title": {
+            "text": "OpenDesk Browser · 基础网页交互测试"
+          },
+          "script-current-page-url": {
+            "text": "http://127.0.0.1:43112/demo-form.html"
+          },
+          "script-source": {
+            "value": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+            "disabled": false
+          },
+          "script-params": {
+            "value": "{\"keyword\":\"OpenDesk\"}",
+            "text": "{\"value\":0}",
+            "disabled": false
+          },
+          "script-status": {
+            "text": "任务 7853579f-4ec3-4e28-8a18-25e858642695：已完成",
+            "state": "results"
+          },
+          "script-task-status": {
+            "text": "已完成 · 资源已释放"
+          },
+          "script-task-id": {
+            "text": "runId：7853579f-4ec3-4e28-8a18-25e858642695"
+          },
+          "script-running-target": {
+            "text": "运行目标：http://127.0.0.1:43112/demo-form.html",
+            "state": "completed"
+          },
+          "script-task-version": {
+            "text": "草稿快照 · SHA-256 2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328"
+          },
+          "script-result": {
+            "text": "{\n  \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n  \"state\": \"completed\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"resultId\": \"bf2417fb-7d4f-4c16-b00c-746534302b5d\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\"\n      },\n      \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n      \"value\": {\n        \"full\": {\n          \"budget\": {\n            \"locatorChecks\": 3,\n            \"maxChars\": 8000,\n            \"maxDepth\": 5,\n            \"maxLocatorChecks\": 40,\n            \"maxNodes\": 80,\n            \"maxVisited\": 2400,\n            \"visited\": 5\n          },\n          \"document\": {\n            \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n            \"targetVersion\": 1,\n            \"url\": \"http://127.0.0.1:43112/demo-form.html\"\n          },\n          \"kind\": \"semantic-dom-summary\",\n          \"nodes\": [\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"search-form\\\"]\"\n              },\n              \"name\": \"\",\n              \"role\": null,\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"搜索关键词 搜索\"\n            },\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"搜索关键词\",\n                \"value\": \"searchbox\"\n              },\n              \"name\": \"搜索关键词\",\n              \"role\": \"searchbox\",\n              \"scope\": {\n                \"id\": \"search-form\",\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"搜索\",\n                \"value\": \"button\"\n              },\n              \"name\": \"搜索\",\n              \"role\": \"button\",\n              \"scope\": {\n                \"id\": \"search-form\",\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"搜索\"\n            }\n          ],\n          \"root\": \"#search-form\",\n          \"truncated\": false,\n          \"version\": \"1.0.0-r5.1\"\n        },\n        \"small\": {\n          \"budget\": {\n            \"locatorChecks\": 1,\n            \"maxChars\": 256,\n            \"maxDepth\": 5,\n            \"maxLocatorChecks\": 40,\n            \"maxNodes\": 1,\n            \"maxVisited\": 400,\n            \"visited\": 3\n          },\n          \"document\": {\n            \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n            \"targetVersion\": 1,\n            \"url\": \"http://127.0.0.1:43112/demo-form.html\"\n          },\n          \"kind\": \"semantic-dom-summary\",\n          \"nodes\": [\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"OOpenDesk / 测试网页重置页面\",\n                \"value\": \"banner\"\n              },\n              \"name\": \"OOpenDesk / 测试网页重置页面\",\n              \"role\": \"banner\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"OOpenDesk / 测试网页重置页面\"\n            }\n          ],\n          \"root\": \"body\",\n          \"truncated\": true,\n          \"version\": \"1.0.0-r5.1\"\n        }\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}"
+          },
+          "script-read": {
+            "value": "",
+            "text": "刷新持久结果",
+            "disabled": false
+          },
+          "script-history-run": {
+            "value": "",
+            "text": "选择历史任务1d4905f1-1729-4fd4-b975-96931088e09b · 草稿 · 已完成b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce · 草稿 · 已完成7853579f-4ec3-4e28-8a18-25e858642695 · 草稿 · 已完成",
+            "disabled": false
+          },
+          "script-history-open": {
+            "value": "",
+            "text": "查看选中任务",
+            "disabled": false
+          },
+          "script-history": {
+            "text": "{\n  \"runs\": [\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"revision\": 1,\n        \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"a3bc0c81-08a6-4bdf-a47a-44e8cf3c3b73\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"a3bc0c81-08a6-4bdf-a47a-44e8cf3c3b73\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"deadlineAt\": 1791476632624,\n      \"retirementId\": \"900e60d9-c6f9-4110-983a-dc292012ce6c\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"72ed09d5-b807-4c2d-83e4-c09ea82d4068\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n      \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"revision\": 1,\n        \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"8eca579b-0fa7-49cd-bb4d-8b9d86b6b1a7\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"8eca579b-0fa7-49cd-bb4d-8b9d86b6b1a7\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"deadlineAt\": 1791476651946,\n      \"retirementId\": \"9e6ebdc7-980c-4490-9cf5-392feaa6bbff\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"52b039d0-4169-429d-8381-3b47ac0d5bf7\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n      \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"contentHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"136998fb-aa1f-40fc-bc55-e1cc6722575f\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"136998fb-aa1f-40fc-bc55-e1cc6722575f\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\"\n      },\n      \"deadlineAt\": 1791476694971,\n      \"retirementId\": \"5f89b220-4e2e-41cc-b35b-a7d8b7c2b8b1\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"bf2417fb-7d4f-4c16-b00c-746534302b5d\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"contentHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n      \"sourceKind\": \"draft\"\n    }\n  ],\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n      \"resultId\": \"52b039d0-4169-429d-8381-3b47ac0d5bf7\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"value\": {\n        \"result\": \"结果：OpenDesk\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n      \"resultId\": \"72ed09d5-b807-4c2d-83e4-c09ea82d4068\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"value\": {\n        \"result\": \"结果：OpenDesk\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"resultId\": \"bf2417fb-7d4f-4c16-b00c-746534302b5d\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\"\n      },\n      \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n      \"value\": {\n        \"full\": {\n          \"budget\": {\n            \"locatorChecks\": 3,\n            \"maxChars\": 8000,\n            \"maxDepth\": 5,\n            \"maxLocatorChecks\": 40,\n            \"maxNodes\": 80,\n            \"maxVisited\": 2400,\n            \"visited\": 5\n          },\n          \"document\": {\n            \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n            \"targetVersion\": 1,\n            \"url\": \"http://127.0.0.1:43112/demo-form.html\"\n          },\n          \"kind\": \"semantic-dom-summary\",\n          \"nodes\": [\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"search-form\\\"]\"\n              },\n              \"name\": \"\",\n              \"role\": null,\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"搜索关键词 搜索\"\n            },\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"搜索关键词\",\n                \"value\": \"searchbox\"\n              },\n              \"name\": \"搜索关键词\",\n              \"role\": \"searchbox\",\n              \"scope\": {\n                \"id\": \"search-form\",\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"搜索\",\n                \"value\": \"button\"\n              },\n              \"name\": \"搜索\",\n              \"role\": \"button\",\n              \"scope\": {\n                \"id\": \"search-form\",\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"搜索\"\n            }\n          ],\n          \"root\": \"#search-form\",\n          \"truncated\": false,\n          \"version\": \"1.0.0-r5.1\"\n        },\n        \"small\": {\n          \"budget\": {\n            \"locatorChecks\": 1,\n            \"maxChars\": 256,\n            \"maxDepth\": 5,\n            \"maxLocatorChecks\": 40,\n            \"maxNodes\": 1,\n            \"maxVisited\": 400,\n            \"visited\": 3\n          },\n          \"document\": {\n            \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n            \"targetVersion\": 1,\n            \"url\": \"http://127.0.0.1:43112/demo-form.html\"\n          },\n          \"kind\": \"semantic-dom-summary\",\n          \"nodes\": [\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"OOpenDesk / 测试网页重置页面\",\n                \"value\": \"banner\"\n              },\n              \"name\": \"OOpenDesk / 测试网页重置页面\",\n              \"role\": \"banner\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"OOpenDesk / 测试网页重置页面\"\n            }\n          ],\n          \"root\": \"body\",\n          \"truncated\": true,\n          \"version\": \"1.0.0-r5.1\"\n        }\n      }\n    }\n  ],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}"
+          },
+          "script-run-id": {
+            "value": "7853579f-4ec3-4e28-8a18-25e858642695",
+            "text": "",
+            "disabled": false
+          },
+          "script-read-run": {
+            "value": "",
+            "text": "查询任务",
+            "disabled": false
+          },
+          "script-download-result": {
+            "value": "",
+            "text": "请选择要下载的结果b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce · 草稿1d4905f1-1729-4fd4-b975-96931088e09b · 草稿7853579f-4ec3-4e28-8a18-25e858642695 · 草稿",
+            "disabled": false
+          },
+          "script-download": {
+            "value": "",
+            "text": "下载结果 JSON",
+            "disabled": true
+          },
+          "script-download-status": {
+            "text": "结果下载保留类型信息，包括 undefined。"
+          },
+          "script-library-tools": {
+            "text": "版本管理与任务制作\n    已保存脚本\n    没有已保存脚本刷新加载最新\n    脚本名称 / ID\n    revision加载版本\n    未保存草稿可直接运行；只有点击保存才创建正式版本\n    从已保存版本创建任务候选\n      先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。\n      稳定任务标识\n      任务版本\n      名称\n      用途\n      作者\n      参数 Schema（JSON）\n      {\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}\n      保存为待验证任务候选\n      候选需要真实运行验证后才能安装\n    \n    "
+          },
+          "script-list": {
+            "value": "",
+            "text": "没有已保存脚本",
+            "disabled": false
+          },
+          "script-list-refresh": {
+            "value": "",
+            "text": "刷新",
+            "disabled": false
+          },
+          "script-list-load": {
+            "value": "",
+            "text": "加载最新",
+            "disabled": true
+          },
+          "script-id": {
+            "value": "my-script",
+            "text": "",
+            "disabled": false
+          },
+          "script-revision": {
+            "value": "",
+            "text": "",
+            "disabled": false
+          },
+          "script-load": {
+            "value": "",
+            "text": "加载版本",
+            "disabled": false
+          },
+          "script-version": {
+            "text": "未保存草稿可直接运行；只有点击保存才创建正式版本"
+          },
+          "script-advanced": {
+            "text": "高级脚本与目标设置\n      \n        网站权限 · 默认全部网站\n        Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）\n        安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。\n        全部网站已授权刷新授权状态\n        如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。\n      \n      默认使用当前网页；手动目标仅用于高级操作。\n      目标方式当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）\n      隔离网页地址\n      现有网页请选择具体网页[1411888887] OpenDesk Browser · 基础网页交互测试 · http://127.0.0.1:43112/demo-form.html刷新网页列表\n      精确文档请选择当前精确文档\n      允许脚本访问目标网站的 Cookie\n      删除脚本\n      当前网页精确身份{\n  \"windowId\": 1411888886,\n  \"tabId\": 1411888887,\n  \"frameId\": 0,\n  \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n  \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43112\"\n}\n    "
+          },
+          "script-target-mode": {
+            "value": "current",
+            "text": "当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）",
+            "disabled": false
+          },
+          "script-owned-url": {
+            "value": "",
+            "text": "",
+            "disabled": true
+          },
+          "script-tab": {
+            "value": "",
+            "text": "请选择具体网页[1411888887] OpenDesk Browser · 基础网页交互测试 · http://127.0.0.1:43112/demo-form.html",
+            "disabled": true
+          },
+          "script-refresh": {
+            "value": "",
+            "text": "刷新网页列表",
+            "disabled": false
+          },
+          "script-document": {
+            "value": "",
+            "text": "请选择当前精确文档",
+            "disabled": true
+          },
+          "script-allow-cookies": {
+            "value": "on",
+            "text": "",
+            "disabled": false
+          },
+          "script-delete": {
+            "value": "",
+            "text": "删除脚本",
+            "disabled": true
+          },
+          "script-current-page-debug": {
+            "text": "{\n  \"windowId\": 1411888886,\n  \"tabId\": 1411888887,\n  \"frameId\": 0,\n  \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n  \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43112\"\n}"
+          },
+          "script-run": {
+            "value": "",
+            "text": "运行草稿",
+            "disabled": false
+          },
+          "script-save": {
+            "value": "",
+            "text": "保存版本",
+            "disabled": false
+          },
+          "script-stop": {
+            "value": "",
+            "text": "停止",
+            "disabled": true
+          }
+        },
+        "observer": [
+          {
+            "at": 1791476600709,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476600782,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476601377,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476601935,
+            "type": "click",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476602003,
+            "type": "input",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476602570,
+            "type": "change",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476602621,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621211,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621279,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621943,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664251,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664328,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664919,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664968,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          }
+        ]
+      }
+    },
+    {
+      "target": {
+        "targetId": "FD5A8D73C50AD6AAB3EF0D511CA2CC54",
+        "type": "page",
+        "title": "OpenDesk Browser · 基础网页交互测试",
+        "url": "http://127.0.0.1:43112/demo-form.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "272F6E2F49D3307382F9095359C26CF2"
+      },
+      "observation": {
+        "url": "http://127.0.0.1:43112/demo-form.html",
+        "title": "OpenDesk Browser · 基础网页交互测试",
+        "value": "OpenDesk",
+        "count": "提交次数：2",
+        "result": "结果：OpenDesk",
+        "observer": [
+          {
+            "at": 1791476602737,
+            "kind": "input",
+            "isTrusted": false,
+            "id": "keyword",
+            "value": "OpenDesk",
+            "count": "提交次数：0"
+          },
+          {
+            "at": 1791476602737,
+            "kind": "change",
+            "isTrusted": false,
+            "id": "keyword",
+            "value": "OpenDesk",
+            "count": "提交次数：0"
+          },
+          {
+            "at": 1791476602737,
+            "kind": "mutation",
+            "replaced": true,
+            "disabled": true,
+            "value": "OpenDesk",
+            "count": "提交次数：0",
+            "status": "",
+            "result": ""
+          },
+          {
+            "at": 1791476602918,
+            "kind": "mutation",
+            "replaced": false,
+            "disabled": false,
+            "value": "OpenDesk",
+            "count": "提交次数：0",
+            "status": "",
+            "result": ""
+          },
+          {
+            "at": 1791476602947,
+            "kind": "click",
+            "isTrusted": false,
+            "id": "search-submit",
+            "value": "OpenDesk",
+            "count": "提交次数：0"
+          },
+          {
+            "at": 1791476602947,
+            "kind": "submit",
+            "isTrusted": true,
+            "id": "search-form",
+            "value": "OpenDesk",
+            "count": "提交次数：0"
+          },
+          {
+            "at": 1791476602947,
+            "kind": "mutation",
+            "replaced": false,
+            "disabled": false,
+            "value": "OpenDesk",
+            "count": "提交次数：1",
+            "status": "",
+            "result": ""
+          },
+          {
+            "at": 1791476603069,
+            "kind": "mutation",
+            "replaced": false,
+            "disabled": false,
+            "value": "OpenDesk",
+            "count": "提交次数：1",
+            "status": "搜索完成",
+            "result": "结果：OpenDesk"
+          },
+          {
+            "at": 1791476622068,
+            "kind": "click",
+            "isTrusted": false,
+            "id": "search-submit",
+            "value": "OpenDesk",
+            "count": "提交次数：1"
+          },
+          {
+            "at": 1791476622068,
+            "kind": "submit",
+            "isTrusted": true,
+            "id": "search-form",
+            "value": "OpenDesk",
+            "count": "提交次数：1"
+          },
+          {
+            "at": 1791476622068,
+            "kind": "mutation",
+            "replaced": false,
+            "disabled": false,
+            "value": "OpenDesk",
+            "count": "提交次数：2",
+            "status": "搜索完成",
+            "result": "结果：OpenDesk"
+          },
+          {
+            "at": 1791476622190,
+            "kind": "mutation",
+            "replaced": false,
+            "disabled": false,
+            "value": "OpenDesk",
+            "count": "提交次数：2",
+            "status": "搜索完成",
+            "result": "结果：OpenDesk"
+          }
+        ]
+      }
+    }
+  ],
+  "permissions": {
+    "origins": [
+      "<all_urls>"
+    ],
+    "permissions": [
+      "activeTab",
+      "cookies",
+      "downloads",
+      "notifications",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "sidePanel",
+      "userScripts"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+✖ subpixel movement across frame checks prevents a locator commit (6.604084ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 60.055792
+
+✖ failing tests:
+
+test at tests/framework/r5-modern-page-api.test.mjs:340:1
+✖ subpixel movement across frame checks prevents a locator commit (6.604084ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/r5-modern-page-api.test.mjs:348:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_TIMEOUT' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
