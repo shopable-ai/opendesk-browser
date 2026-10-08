@@ -2,7 +2,7 @@
   "workstreamId": "sidebar-r41-sync-20261008-x8ttm7ta",
   "branch": "agent/sidebar-r41-sync-20261008-x8ttm7ta",
   "baseCommit": "66f11874fa27f6de438155124a3f772129386f8b",
-  "status": "COMPONENT_VERIFIED_NATIVE_PENDING",
+  "status": "DRAFT_PR_OPEN_NATIVE_PENDING",
   "authorization": "Current user requested pull, complete the merge, commit and push. Submit on an isolated agent branch under AGENTS.md; main integration remains through reviewed PR.",
   "sourceWorkspace": "/Users/shopme/Documents/workspace/opendesk-browser",
   "isolatedWorkspace": "/Users/shopme/.codex/worktrees/sidebar-r41-integration/opendesk-browser",
@@ -117,11 +117,12 @@
     "base": "main",
     "head": "agent/sidebar-r41-sync-20261008-x8ttm7ta",
     "draft": true,
-    "url": null
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/10"
   },
   "remaining": [
     "Native validation for this merged candidate and its own package identity",
     "Formal acceptance and installation evidence remain open"
   ],
-  "updatedAt": "2026-10-08T12:25:07.783531+00:00"
+  "updatedAt": "2026-10-08T12:27:59.184543+00:00",
+  "submittedCodeCommit": "94d8c1f63999c705eee6be8edb058196aad273ce"
 }
