@@ -203,6 +203,7 @@ tasks.forEach(t=>{t.installed=true;t.verified=true;t.site='当前网页';t.disab
 tasks.push({id:'site.other',title:'发票数据核对',desc:'仅适用于其他网站的本地任务',icon:'▤',tone:'',site:'other.example',source:'预览',version:'1.0.0',installed:true,verified:true,disabled:false,fields:[]});
 tasks.push({id:'task.disabled',title:'旧版表单存档',desc:'保留但已经停用的任务',icon:'✎',tone:'',site:'当前网页',source:'预览',version:'1.0.0',installed:true,verified:true,disabled:true,fields:[]});
 drawTasks=function drawTasksR5(){
+  if(ui.tab!=='tasks')return; // a delayed result must not overwrite Discover
   const selected=task(ui.selected);
   main.innerHTML='<div class="r5-list">'+tasks.filter(t=>t.installed).map(t=>{
     const active=t.id===ui.selected;
@@ -218,6 +219,7 @@ drawLocalDiscovery=function drawLocalDiscoveryR5(){
   main.innerHTML='<div class="r5-search"><input id="local-search" class="search-input" type="search" aria-label="搜索已安装任务" placeholder="搜索已安装任务…" value="'+safe(ui.localQuery)+'"><button type="button" data-action="catalog">导入</button></div><div class="r5-filters">'+[['current','当前网页'],['all','全部'],['disabled','停用']].map(([value,label])=>'<button type="button" data-local-filter="'+value+'" class="'+(ui.localFilter===value?'active':'')+'" aria-pressed="'+(ui.localFilter===value)+'">'+label+'</button>').join('')+'</div><div class="r5-results">'+(rows.length?rows.map(t=>'<button type="button" class="task-item" data-local-pick="'+safe(t.id)+'"><span class="symbol '+t.tone+'">'+t.icon+'</span><span class="item-info"><strong>'+safe(t.title)+'</strong><small>'+safe(t.desc)+'</small></span>'+(t.disabled?'<span class="r5-status off">停用</span>':t.site!=='当前网页'?'<span class="r5-status">其他网站</span>':'')+'</button>').join(''):'<div class="r5-empty">没有匹配的任务，试试其他关键词。</div>')+'</div>';
 };
 drawDevelop=function drawDevelopR5(){
+  if(ui.tab!=='develop')return;
   main.innerHTML='<div class="r5-dev"><p class="target">当前网页 · 可运行（演示）</p><textarea id="code" aria-label="JavaScript 编辑器" class="editor-code" spellcheck="false">'+safe(ui.draft)+'</textarea>'+(ui.runState==='running'&&ui.activeRunTask==='__draft'?'<p class="r5-note">正在模拟运行草稿，未写入保存版本</p>':'')+'<details><summary>参数 JSON（可选）</summary><textarea id="draft-params" aria-label="参数 JSON" rows="3">'+safe(ui.draftParams)+'</textarea></details><details '+(ui.draftResult?'open':'')+'><summary>结果与历史</summary>'+(ui.draftResult?'<pre>'+safe(ui.draftResult)+'</pre>':'<p class="runtime-text">运行后在这里显示结果</p>')+'</details><details><summary>版本管理与任务制作</summary><p class="runtime-text">保存版本、载入版本、创建待验证任务候选</p></details><details><summary>网页 DOM 脚本试运行（高级）</summary><p class="runtime-text">与普通 Controller 草稿运行不同</p></details><details><summary>高级设置与诊断</summary><p class="runtime-text">运行目标身份、SDK 与其他高级工具</p></details></div>';
 };
 renderDock=function renderDockR5(){
