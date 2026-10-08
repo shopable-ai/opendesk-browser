@@ -54,6 +54,7 @@ details>section{margin-top:10px}
 .dock-buttons button{min-height:38px;padding:8px 10px;border-radius:9px;font-size:12px;font-weight:700}
 #task-run,#script-run{background:var(--blue);color:#fff;flex:1;border:1px solid var(--blue)}
 #task-stop,#script-stop,#script-save{flex:none;background:#f7f9fd;color:#435873;border:1px solid #d6dfed}
+#task-stop:disabled,#script-stop:disabled{display:none}
 
 /* Installed tasks: one compact list, detail/params inside the selected row. */
 .task-card-list{display:grid;gap:6px;margin:0}
