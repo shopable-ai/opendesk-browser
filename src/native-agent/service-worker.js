@@ -3,13 +3,18 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LE
 
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map()}={}) {
-  let enabled=false,port=null,ready=false,disposed=false,sequence=Promise.resolve();
+  let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0;
   const pending=new Map(),store=api.storage.local;
-  function exclusive(action) {
-    const next=sequence.then(action);
-    sequence=next.catch(()=>{});
+  const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
+  function exclusive(action,key='ledger') {
+    const next=sequences[key].then(action);
+    sequences[key]=next.catch(()=>{});
     return next;
   }
+  const writeEnabled=(value,intent)=>exclusive(()=>{
+    if(value&&(disposed||intent!==settingsGeneration))throw new AgentBridgeError('E_PERMISSION');
+    return store.set({[AGENT_ENABLED_KEY]:value});
+  },'settings');
   const live=()=>[...hostPorts.values()].filter(p=>typeof p?.registrationId==='string');
   function hostFor(params) {
     const id=params?.registrationId,registered=live();
@@ -62,15 +67,19 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       throw new AgentBridgeError('E_PERMISSION');
   }
   function dispatch(host,req) {
+    // External request IDs may be reused by reads after reconnect. The Host ACK
+    // must identify this exact dispatch, while the CLI still receives its own ID.
+    const dispatchId=crypto.randomUUID();
     return new Promise((resolve,reject)=>{
       const timeout=setTimeout(()=>{
-        pending.delete(req.requestId);
+        pending.delete(dispatchId);
         reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       },135000);
-      pending.set(req.requestId,{host,resolve,reject,timeout});
-      try{host.postMessage({type:'native-agent.request',registrationId:host.registrationId,request:req});}
+      pending.set(dispatchId,{host,resolve,reject,timeout});
+      try{host.postMessage({type:'native-agent.request',registrationId:host.registrationId,
+        request:{...req,dispatchId}});}
       catch{
-        clearTimeout(timeout);pending.delete(req.requestId);
+        clearTimeout(timeout);pending.delete(dispatchId);
         reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       }
     });
@@ -85,9 +94,22 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     else item.resolve(msg);
     return true;
   }
-  async function handle(req) {
+  function assertConnection(source,epoch) {
+    if(disposed||!enabled)throw new AgentBridgeError('E_PERMISSION');
+    if(!ready||port!==source||generation!==epoch)throw new AgentBridgeError('E_NATIVE_NOT_READY');
+  }
+  function invalidateConnection() {
+    generation++;
+    const old=port;port=null;ready=false;
+    for(const [id,item] of pending) {
+      clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
+      pending.delete(id);
+    }
+    return old;
+  }
+  async function handle(req,source,epoch) {
     agentValidateRequest(req);
-    if(!enabled)throw new AgentBridgeError('E_PERMISSION');
+    assertConnection(source,epoch);
     if(req.method==='bridge.status')return {extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,
       nativeConnected:ready,enabled,hostRegistrations:live().map(p=>p.registrationId)};
     const host=hostFor(req.params);
@@ -95,9 +117,20 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(AGENT_MUTATIONS.includes(req.method)) {
       const old=await reserve(req,host);
       if(old) {
+        assertConnection(source,epoch);
         if(old.reply)return normalize(req.requestId,old.reply);
         throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
       }
+    }
+    try {
+      const granted=await api.permissions.contains({permissions:['nativeMessaging']});
+      assertConnection(source,epoch);
+      if(!granted)throw new AgentBridgeError('E_PERMISSION');
+    }catch(e){
+      // Reservation alone has no business effect. Persist its confirmed rejection
+      // so a reconnect cannot turn this old admission into a first dispatch.
+      if(AGENT_MUTATIONS.includes(req.method))try{await finalize(req,{error:error(e)});}catch{}
+      throw e;
     }
     const reply=await dispatch(host,req);
     if(AGENT_MUTATIONS.includes(req.method)) {
@@ -112,7 +145,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     const id=typeof req?.requestId==='string'?req.requestId:'';
     let reply;
     try {
-      const data=await handle(req);
+      const data=await handle(req,source,generation);
       reply=data?.kind==='response'?data:response(id,{result:data});
     }catch(e){reply=response(id,{error:error(e)});}
     if(port===source&&ready)try{source.postMessage(reply);}catch{}
@@ -121,7 +154,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(disposed||!enabled||port)return;
     let connected;
     try{connected=api.runtime.connectNative(AGENT_HOST);}catch{return;}
-    port=connected;
+    port=connected;generation++;
     connected.onMessage.addListener(msg=>{
       if(port!==connected)return;
       if(msg?.v===AGENT_VERSION&&msg.kind==='hello'&&!ready) {
@@ -132,17 +165,16 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       else connected.disconnect();
     });
     connected.onDisconnect.addListener(()=>{
-      if(port===connected){port=null;ready=false;}
-      for(const [id,item] of pending) {
-        clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
-        pending.delete(id);
-      }
+      if(port===connected)invalidateConnection();
     });
   }
   const initial=(async()=>{
+    const intent=settingsGeneration;
     const configuration=await store.get(AGENT_ENABLED_KEY);
-    enabled=configuration[AGENT_ENABLED_KEY]===true&&
+    const granted=configuration[AGENT_ENABLED_KEY]===true&&
       await api.permissions.contains({permissions:['nativeMessaging']});
+    if(disposed||intent!==settingsGeneration)return;
+    enabled=granted;
     if(enabled)connect();
   })();
   initial.catch(()=>{});
@@ -153,26 +185,31 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(msg?.type==='status')return {enabled,nativeConnected:ready,hostCount:live().length,
       extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION};
     if(msg?.type==='enable') {
-      if(!await api.permissions.contains({permissions:['nativeMessaging']}))
+      const intent=++settingsGeneration;
+      const granted=await api.permissions.contains({permissions:['nativeMessaging']});
+      if(disposed||intent!==settingsGeneration)throw new AgentBridgeError('E_PERMISSION');
+      if(!granted)
         throw new AgentBridgeError('E_PERMISSION_REQUIRED');
-      enabled=true;await store.set({[AGENT_ENABLED_KEY]:true});connect();
+      await writeEnabled(true,intent);
+      if(disposed||intent!==settingsGeneration)throw new AgentBridgeError('E_PERMISSION');
+      enabled=true;connect();
       return {enabled,nativeConnected:ready};
     }
     if(msg?.type==='disable') {
-      enabled=false;await store.set({[AGENT_ENABLED_KEY]:false});
-      const old=port;port=null;ready=false;old?.disconnect();
+      settingsGeneration++;enabled=false;invalidateConnection()?.disconnect();
+      await writeEnabled(false);
       return {enabled:false,nativeConnected:false};
     }
     throw new AgentBridgeError('E_CAPABILITY');
   }
   const onRemoved=permissions=>{
     if(!permissions?.permissions?.includes('nativeMessaging'))return;
-    enabled=false;store.set({[AGENT_ENABLED_KEY]:false}).catch(()=>{});
-    const old=port;port=null;ready=false;old?.disconnect();
+    settingsGeneration++;enabled=false;invalidateConnection()?.disconnect();
+    writeEnabled(false).catch(()=>{});
   };
   api.permissions.onRemoved?.addListener(onRemoved);
   return {ready:initial,handleSettings,acceptHostResponse,dispose() {
-    disposed=true;enabled=false;const old=port;port=null;old?.disconnect();
+    settingsGeneration++;disposed=true;enabled=false;invalidateConnection()?.disconnect();
     api.permissions.onRemoved?.removeListener(onRemoved);
   }};
 }

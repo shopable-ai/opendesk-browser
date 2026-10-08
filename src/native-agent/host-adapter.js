@@ -78,7 +78,7 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     try { result = await handle(request); }
     catch (e) { error = {code:e.code || 'E_EFFECT_UNKNOWN',message:e.message || 'Bridge request failed',
       outcome:e.outcome || (e.code === 'E_EFFECT_UNKNOWN' ? 'OUTCOME_UNKNOWN' : 'FAILED_CONFIRMED')}; }
-    try { client.replyNativeAgent({requestId:request.requestId,...(error ? {error} : {result})}); }
+    try { client.replyNativeAgent({requestId:request.dispatchId??request.requestId,...(error ? {error} : {result})}); }
     catch { /* Browser host state is authoritative; never replay. */ }
   });
   return {handle,dispose() {disposed=true;unsubscribe();}};

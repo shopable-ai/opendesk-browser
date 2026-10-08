@@ -1,0 +1,153 @@
+✖ reserved mutation never dispatches across disable (460.085625ms)
+✖ reserved mutation never dispatches across permission-removed (445.000333ms)
+✖ reserved mutation never dispatches across disconnect-reconnect (448.091667ms)
+✖ reserved mutation never dispatches across disable-enable (446.123291ms)
+✖ reserved mutation never dispatches across dispose (447.308833ms)
+✖ Native permission is rechecked immediately before dispatch (447.097959ms)
+✖ a late disconnect from an old Native port cannot cancel a new connection request (12.484959ms)
+✔ enabled Native handshake sends version and correct extension identity (1.807125ms)
+✔ default-off requires a packaged Settings sender and real granted Native permission (1.122ms)
+✔ request hash journal deduplicates after real Host admission; conflicting bytes fail (10.476709ms)
+✔ dispatched but unanswered calls are never retried, even if same id reappears (8.67625ms)
+✔ no live registered Host means no run reservation or Worker execution (1.531291ms)
+✔ run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records (1.583666ms)
+✔ ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays (17.892542ms)
+✔ run.get and run.stop remain pinned to the original authenticated Host registration (23.472125ms)
+
+Interrupted while running:
+
+⚠ tests/environment/native-agent-bridge.test.mjs (tests/environment/native-agent-bridge.test.mjs:1:1)
+✖ tests/environment/native-agent-bridge.test.mjs (92701.254208ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 8
+ℹ fail 7
+ℹ cancelled 1
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92705.701458
+
+✖ failing tests:
+
+test at tests/environment/native-agent-bridge.test.mjs:37:3
+✖ reserved mutation never dispatches across disable (460.085625ms)
+  AssertionError [ERR_ASSERTION]: no Host operation may begin after its admission authority changed
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:65:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:37:3
+✖ reserved mutation never dispatches across permission-removed (445.000333ms)
+  AssertionError [ERR_ASSERTION]: no Host operation may begin after its admission authority changed
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:65:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:37:3
+✖ reserved mutation never dispatches across disconnect-reconnect (448.091667ms)
+  AssertionError [ERR_ASSERTION]: no Host operation may begin after its admission authority changed
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:65:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:37:3
+✖ reserved mutation never dispatches across disable-enable (446.123291ms)
+  AssertionError [ERR_ASSERTION]: no Host operation may begin after its admission authority changed
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:65:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:37:3
+✖ reserved mutation never dispatches across dispose (447.308833ms)
+  AssertionError [ERR_ASSERTION]: no Host operation may begin after its admission authority changed
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:65:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:72:1
+✖ Native permission is rechecked immediately before dispatch (447.097959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:80:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:85:1
+✖ a late disconnect from an old Native port cannot cancel a new connection request (12.484959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  undefined !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/tests/environment/native-agent-bridge.test.mjs:99:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-agent-bridge.test.mjs:1:1
+✖ tests/environment/native-agent-bridge.test.mjs (92701.254208ms)
+  'Promise resolution is still pending but the event loop has already resolved'

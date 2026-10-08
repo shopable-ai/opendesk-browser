@@ -1,0 +1,5 @@
+{
+  "observedExitCode": 130,
+  "newRegressionsFailed": 7,
+  "termination": "Interrupted own baseline process after failures; pre-fix disposed connection left a 135-second pending timer. after.log is a fully completed 15/15 PASS run."
+}
