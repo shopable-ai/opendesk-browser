@@ -16,7 +16,7 @@ export default defineConfig({
   manifestVersion: 3,
   imports: false,
   manifest,
-  vite: () => ({build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
+  vite: () => ({build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:4}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'entrypoints:resolved'(wxt, entries) {
