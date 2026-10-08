@@ -24,8 +24,8 @@
     "macNativeChromeExtension": "NOT_TESTED — no user Mac Chrome / CFT profile or trusted native extension receipt accessible here.",
     "signedV1Task": "SOURCE_CONTRACT_PASS — signed JSON SHA unchanged, legacy selector/entry checks. NATIVE=NOT_TESTED.",
     "modernPageApiDraft": "BROWSER_DOM_PASS for dynamic Locator search scenario; SOURCE_CONTRACT_PASS for new http-fetch-draft.js; actual extension Page API execution = NOT_TESTED.",
-    "packageBuild": "NOT_TESTED — no local npm install/build; task-page tests isolated from full packaging.",
-    "integrationMain": "NOT_MERGED — branch PR awaits real Chrome validation / serial integration"
+    "packageBuild": "PASS (CI) — PR #20 head 8630e55: GitHub Actions r3-package (npm ci/source check, production+development builds, verify) and site-access completed success; no Mac local ZIP/native acceptance.",
+    "integrationMain": "NOT_MERGED — PR #20 DRAFT, main head 704dd8cac140cf2ff9d7c2959ca041f9102848da at verification time."
   },
   "evidenceNote": "All HTTP Node checks made real local TCP requests, not setTimeout-only simulated responses. Chromium DOM screenshots are real rendering from GitHub blob-identical HTML but page navigation / Fetch tests are blocked by current runner's network administrator. Old delay buttons explicitly remain client-side simulation. No native ACK or external API success claimed.",
   "nativeReceiptPaths": [],
@@ -36,7 +36,8 @@
   "blocking": [
     "Browser HTTP Fetch/CORS not verified because navigation is blocked by administrator in available runner; must re-run in user-controlled CFT",
     "Native Chrome Extension, signed task end-to-end, and OpenDesk Page API real run receipts NOT_TESTED",
-    "Merge to main only after main drift/conflict check, PR tests, native evidence, and authorized integration"
+    "Merge to main only after main drift/conflict check, PR tests, native evidence, and authorized integration",
+    "CI success at previous commit is not native Chrome verification; if evidence commit changes PR HEAD, rerun/verify CI on final HEAD."
   ],
   "prUrl": "https://github.com/shopable-ai/opendesk-browser/pull/20"
 }
