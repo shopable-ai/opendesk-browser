@@ -11,7 +11,11 @@
     "tests/environment/site-access.test.mjs",
     "docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md",
     ".github/workflows/site-access-once.yml",
-    "docs/framework/workstreams/site-access-once-20261008-1647.json"
+    "docs/framework/workstreams/site-access-once-20261008-1647.json",
+    "scripts/dev-chrome-config.mjs",
+    "scripts/dev-chrome.mjs",
+    "tests/environment/dev-chrome-config.test.mjs",
+    "package.json"
   ],
   "localNodeTests": "NOT_TESTED (GitHub-only workspace)",
   "nativeSidePanel": "NOT_TESTED (local Chrome profile unavailable)",
@@ -57,5 +61,13 @@
     ],
     "native": "NOT_TESTED",
     "targetedCi": "PENDING on reconciled head"
+  },
+  "followUpDiagnosis": {
+    "at": "2026-10-08",
+    "finding": "Clean native CFT profiles are recreated by k5-sdk-native-launcher and b05; PR7 onboarding not on main until merged",
+    "developerLane": "Dedicated stable per-worktree profile via npm run dev:chrome",
+    "formalAcceptanceLane": "Existing fresh CFT test launchers unchanged",
+    "browserNativePersistence": "NOT_TESTED on user Mac",
+    "devModeUnit": "PENDING GitHub CI"
   }
 }

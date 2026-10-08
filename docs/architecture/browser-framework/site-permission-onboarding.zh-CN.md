@@ -18,3 +18,20 @@
 定向单测：`node --test tests/environment/site-access.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/framework/k2-sdk-ui-approval.test.mjs`。
 
 在真实 Chrome Side Panel 内另行验证：新 Profile 首次点击显示一次全网站访问授权弹窗；之后切换多个普通 HTTPS 和 HTTP 网站并重复运行草稿无新的 host 授权弹窗；重启 Chrome 后状态保持；撤销全网授权后界面更新且需要重新获得原生授权。上述 Native 项目在缺少 Mac/CFT 运行环境时必须记录为 `NOT_TESTED`，不得以单测代替。
+
+## Codex 日常调试：保留授权但不污染原生验收
+
+已核实仓库的 `tests/framework/k5-sdk-native-launcher.mjs` 和 `tests/framework/b05-product-acceptance-20261003.mjs` **强制每轮使用新建 `codex-cft-*` Profile**。在这种模式下重复弹授权是预期现象，不能通过修改应用级 SDK 授权解决。原生验收仍需独立的洁净 Profile 和真实授权动作。
+
+日常交互开发请在**同一个固定 worktree 目录**运行：
+
+```bash
+npm run build:dev
+npm run dev:chrome
+```
+
+`dev:chrome` 使用已缓存的 macOS Chrome for Testing 155（可通过 `OPENDESK_CFT_VERSION=138` 选 138），加载当前工作区固定的 `dist/development` 路径，把浏览器数据保存在用户目录下 `~/.opendesk-browser/dev-profiles/primary-<worktree hash>`，并校验目录所有权和私有权限；不使用个人 Chrome Profile、不删除这个开发 Profile、不自动授予网站权限。不同 worktree 和 `OPENDESK_DEV_PROFILE` 名称隔离。
+
+首次在这个真实 Chrome Profile 里，手动确认全网 HTTP/HTTPS 授权；在 Chrome 138+ 的扩展详情中另行开启“允许运行用户脚本”。之后请关闭测试浏览器，再用**完全相同**的 worktree 路径和命令重启，检查 `chrome.runtime.id` 不变、`chrome.permissions.getAll()` 与 `chrome.permissions.contains({origins:['http://*/*','https://*/*']})` 依然显示浏览器授权。重新编译后直接在 `chrome://extensions` 点击“重新加载扩展”；不要反复删除/新装或切换扩展目录。
+
+正式验收时仍从原来的 native 启动器新建一次性 Profile，完成首次授权 → 多次操作 → 同 Profile 重启 → 撤权验证；不能把持久调试 Profile 的结果当作全新安装验收，也不能使用模拟权限或 CDP 直接授予权限冒充真实点击。Codex 必须标明两种验证等级，不能把 `dev:chrome` 的结果记作 F3 PASS。
