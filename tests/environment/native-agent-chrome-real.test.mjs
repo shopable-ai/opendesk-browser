@@ -145,18 +145,23 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   console.log('MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser='+browser);
 
   cdp?.close();
-  const optionsTab=await newTab('chrome-extension://'+extensionId+'/native-agent/settings.html');
+  // Attach to a stable blank tab FIRST. Directly attaching to a freshly
+  // created chrome-extension:// tab can hang the macOS headless renderer.
+  const optionsTab=await newTab('about:blank');
   console.log('REAL_CHROME_OPTIONS_TARGET='+JSON.stringify({id:optionsTab.id,type:optionsTab.type,url:optionsTab.url,ws:optionsTab.webSocketDebuggerUrl}));
   cdp=await connectCDP(optionsTab.webSocketDebuggerUrl);
   try {
     console.log('REAL_CHROME_CDP_BROWSER_VERSION='+JSON.stringify(await cdp.call('Browser.getVersion')));
-    // CDP Runtime.evaluate does not require Runtime.enable. Some macOS CI
-    // extension renderers hang while the enable event enumerates contexts.
-    const probe=await cdp.call('Runtime.evaluate',{
-      expression:'({url:location.href,readyState:document.readyState,bridge:document.getElementById("bridge-status")?.textContent||null})',
-      returnByValue:true
+    const blank=await cdp.call('Runtime.evaluate',{
+      expression:'({url:location.href,ready:document.readyState})',returnByValue:true
     });
-    console.log('REAL_CHROME_OPTIONS_INITIAL='+JSON.stringify(probe.result?.value));
+    console.log('REAL_CHROME_BLANK_CONTROL='+JSON.stringify(blank.result?.value));
+    await cdp.call('Page.enable');
+    const nav=await cdp.call('Page.navigate',{
+      url:'chrome-extension://'+extensionId+'/native-agent/settings.html'
+    });
+    console.log('REAL_CHROME_OPTIONS_NAVIGATION='+JSON.stringify(nav));
+    if(nav.errorText)throw Error('real Chrome Options navigation failed: '+nav.errorText);
   }catch(error){
     console.log('REAL_CHROME_CDP_OPTIONS_ERROR='+error.message+' stderr='+debug.slice(-1200));
     throw error;
