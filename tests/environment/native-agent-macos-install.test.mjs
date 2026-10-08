@@ -11,10 +11,14 @@ import {NativeDecoder,frame,HOST_NAME} from '../../native-agent/wire.mjs';
 const ID='abcdefghijklmnopabcdefghijklmnop';
 const ORIGIN='chrome-extension://'+ID+'/';
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-const onceExit=(child,ms=8000)=>Promise.race([
-  new Promise(resolve=>child.once('exit',(code,signal)=>resolve({code,signal}))),
-  new Promise((_,reject)=>setTimeout(()=>{child.kill('SIGKILL');reject(Error('native process did not exit'));},ms))
-]);
+const onceExit=(child,ms=8000)=>new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>{child.kill('SIGKILL');reject(Error('native process did not exit'));},ms);
+  child.once('exit',(code,signal)=>{clearTimeout(timer);resolve({code,signal});});
+});
+const deadline=(promise,ms,label)=>new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>reject(Error(label)),ms);
+  promise.then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});
+});
 test('macOS isolated Native Host install, private socket, real wrapper and authenticated CLI IPC', {
   skip:process.platform!=='darwin',
   timeout:30000
@@ -64,7 +68,7 @@ test('macOS isolated Native Host install, private socket, real wrapper and authe
     }
   });
   const read=()=>queue.length?Promise.resolve(queue.shift()):new Promise(resolve=>waiting.push(resolve));
-  const first=await Promise.race([read(),pause(6000).then(()=>{throw Error('missing framed hello')})]);
+  const first=await deadline(read(),6000,'missing framed hello');
   assert.deepEqual(first,{v:1,kind:'hello'});
   assert.equal(fs.statSync(sock).mode&0o777,0o600,'native Socket must be private');
   native.stdin.write(frame({v:1,kind:'welcome',extensionId:ID,extensionVersion:'0.1.0'}));
@@ -76,7 +80,7 @@ test('macOS isolated Native Host install, private socket, real wrapper and authe
   let stdout='',stderr='';
   client.stdout.on('data',chunk=>{stdout+=chunk;});
   client.stderr.on('data',chunk=>{stderr+=chunk;});
-  const request=await Promise.race([read(),pause(6000).then(()=>{throw Error('missing CLI forward')})]);
+  const request=await deadline(read(),6000,'missing CLI forward');
   assert.equal(request.method,'bridge.status');
   assert.equal(request.requestId,'macos-smoke-1');
   assert.equal(request.v,1);
