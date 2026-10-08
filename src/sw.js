@@ -1,7 +1,7 @@
 import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
-import {createNativeAgentService} from './native-agent/service-worker.js';
+
 import {AGENT_CONFIG_PROTOCOL} from './native-agent/protocol.js';
 
 export function initServiceWorker() {
@@ -9,7 +9,16 @@ export function initServiceWorker() {
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
 const health = createHealthProbe(chrome);
 const hostPorts = new Map();
-const nativeAgent=createNativeAgentService({api:chrome,hostPorts});
+// The only extra script is a fixed, packaged, same-extension classic asset.
+// A missing optional Native transport must never prevent normal Sidebar tasks.
+const nativeAgent=(()=>{
+  try {
+    importScripts('native-agent/transport.js');
+    const create=globalThis.__opendeskNativeAgentR1Factory;
+    if(typeof create==='function')return create({api:chrome,hostPorts});
+  }catch(error){console.error('Native transport unavailable',error?.code);}
+  return {acceptHostResponse:()=>false,handleSettings:async()=>{throw {code:'E_NATIVE_NOT_READY',message:'Native transport unavailable'};}};
+})();
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts});
 foundation.catch(error => console.error(`[foundation startup ${error.code || 'E_VERSION'}] ${error.message}`));
 function invalidateSdk(reason, selector) {
