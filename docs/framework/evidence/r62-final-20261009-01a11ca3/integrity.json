@@ -1,6 +1,6 @@
 {
   "scope": "own R6.2 continuation evidence and driver/workstream inputs; self excluded",
-  "at": "2026-10-08T19:05:48.750995+00:00",
+  "at": "2026-10-08T19:10:10.580570+00:00",
   "productInputCommit": "40d3bf5f93cfa0bf587ec6080a03de3302b27e6f",
   "metadataIntegrationCommit": "07db43ec619860674d0fcccfce94bef48e1a05e8",
   "grade": "component/build plus limited setup diagnostics; no formal native PASS",
@@ -447,13 +447,13 @@
     },
     {
       "path": "docs/framework/workstreams/r62-final-20261009-01a11ca3-handoff.md",
-      "bytes": 8415,
-      "sha256": "150a956ace9c796f4d4596b21bb58d96058e27d5e9fc7f7fa5f14cf54bfaf567"
+      "bytes": 8535,
+      "sha256": "d0312a6553bc5167fdb2d3f937f928bbfac909043353ea38b68f21fd5e9eff72"
     },
     {
       "path": "docs/framework/workstreams/r62-final-20261009-01a11ca3.json",
-      "bytes": 4957,
-      "sha256": "12db52770c0da81e0f6c1de79e85d4c64a1cafd29fa018ee05ec4c12a13fd187"
+      "bytes": 5320,
+      "sha256": "7b0833896d534a77c3f634e4dfdbf3f72ed56fa5d835d39159dce7d3274cc4fc"
     },
     {
       "path": "tests/framework/r62-native-acceptance.mjs",

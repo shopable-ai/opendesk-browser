@@ -61,7 +61,7 @@
     "original603+19 independentB05 1000mixed 10reconnect two disable rounds six baselines independent F3 same-dist ZIP",
     "formal ledger closure and authorized serial main integration"
   ],
-  "updatedUtc": "2026-10-08T19:02:37.993803+00:00",
+  "updatedUtc": "2026-10-08T19:10:10.579904+00:00",
   "productInputCommit": "40d3bf5f93cfa0bf587ec6080a03de3302b27e6f",
   "productPackages": {
     "production": "75dd897fee5a906dbe5de00b30c98d8c5b3d0ea8a5a7cca756e17660d478e73f",
@@ -106,8 +106,14 @@
     }
   ],
   "pr": {
-    "status": "DRAFT_PREPARING",
-    "url": null
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/28",
+    "number": 28,
+    "status": "DRAFT",
+    "state": "open",
+    "createdHead": "11b4cb9d179d13ce8697c4ce93d39a5c087d7c70",
+    "createdBase": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+    "mergeability": "initial connector returned false; recheck current head before authorized integration",
+    "checks": "PENDING_NOT_FORMAL_ACCEPTANCE"
   },
   "actualChangedProductFiles": "README conflict resolution preserves R6.2 fixture guidance; other product changes inherited from main",
   "actualAddedFiles": [

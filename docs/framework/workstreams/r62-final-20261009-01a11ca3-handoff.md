@@ -6,7 +6,7 @@
 分支：`agent/r62-final-20261009-01a11ca3`。
 继承证据提交：`dd63f339a8fd4b07729cf8764b961de4150eb29c`。
 当前产品输入提交：`40d3bf5f93cfa0bf587ec6080a03de3302b27e6f`，其构建对应 main `5769730beb9fddc6fc788a2702409ec06076feac`。随后通过 `07db43ec619860674d0fcccfce94bef48e1a05e8` 合入 main `bd7c8d1b41197673ad0d5ab0abe53231393a368d`；148 个绑定产品输入文件 hash 全部未变，因此复用构建和组件证据，见 `metadata-main-reuse.json`。
-Native bridge PR #11 已确认 merged/closed，不再沿用其旧 Draft/冲突状态。
+Native bridge PR #11 已确认 merged/closed，不再沿用其旧 Draft/冲突状态。本轮续接为 [Draft PR #28](https://github.com/shopable-ai/opendesk-browser/pull/28)，正式验收保持未完成。
 
 ```text
 Agent 到可复用 Task
