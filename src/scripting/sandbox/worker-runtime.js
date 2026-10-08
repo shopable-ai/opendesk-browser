@@ -41,7 +41,8 @@ export function installControlWorker(scope) {
           error: {code: error?.code || 'E_CONTROL_EXECUTION', name: error?.name || 'Error', message: String(error?.message || error)}});
       }
       try {
-        const body = new AsyncBody('page', 'params', 'axiosx', 'AppStorage', 'AppLocal', 'storage', controllerProgramBody(data.body));
+        data.body = controllerProgramBody(data.body);
+        const body = new AsyncBody('page', 'params', 'axiosx', 'AppStorage', 'AppLocal', 'storage', data.body);
         const params = clone(data.params);
         then(NativePromise.resolve(apply(body, params, [proxy.page, params, proxy.services.axiosx, proxy.services.AppStorage, proxy.services.AppLocal, proxy.services.storage])), value => {
           try { send({kind: 'result', runId: pin.runId, ownerEpoch: pin.ownerEpoch, value: encodeValue(value)}); }
