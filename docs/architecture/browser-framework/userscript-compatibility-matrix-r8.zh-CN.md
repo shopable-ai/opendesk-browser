@@ -1,6 +1,6 @@
 # OpenDesk Browser R8：元数据与 GM API 逐项兼容矩阵
 
-> 对照：shopable-ai/opendesk-browser 的 GitHub main，**初始审计 commit fa8e3fba80ca6f86a2f8160c08d19c6f925ce670**，2026-10-09。后续仅新增 R8 文档提交，未重测代码。矩阵的“实现”专指可定位源码，不等于真实 Chrome 通过。证据级别使用 SOURCE_IMPLEMENTED / COMPONENT_TESTED（存在并有历史 Node 测试）/ BUILD_VERIFIED（必须当前候选实跑构建）/ CHROME_NATIVE_VERIFIED（必须真实 Chrome）/ PARTIAL / MISSING / NOT_TESTED。R8 未实跑 Node、构建或 Chrome，不应自称本轮通过。
+> 对照：shopable-ai/opendesk-browser；初始研究为 `main@fa8e3fba80ca6f86a2f8160c08d19c6f925ce670`。2026-10-09 工程复核以 `main@945cf927` 起步并同步至 `main@71fa54e`，本轮准入修复源码 `84dc3c7`。本矩阵的“实现”专指可定位源码，不等于真实 Chrome 通过。源码、组件、构建和原生证据分开记录；早期 R8 研究未运行测试，本轮只为明确标出的切片补充实际回执。最终集成与全部命令见 [R8 Engineering 回执](../../framework/workstreams/r8-engineering-r1-b62cc961.json)。
 
 ## 1. 来源与本地真实链
 
@@ -19,6 +19,7 @@
 | --- | --- | --- | --- |
 | @name / @namespace / @version / @description | 是，descriptive/directives | 展示/保留，**不能视为已安装版本选择或自动更新** | P0 安装元数据展示与唯一标识；PARTIAL |
 | @author / @license / @homepageURL / @supportURL / @icon 等 | 是，描述性字段；外部 URL 不能据此成为下载来源 | 部分只保留，不下载，不赋权 | P1 可靠出处、来源身份、许可证风险；PARTIAL |
+| @antifeature / @antifeature:locale | 是，只认真实头部指令 | `84dc3c7` 在现有依赖审核显示 `W_ANTIFEATURE_DECLARED`；通过 textContent 呈现，不执行声明中的标记 | 自述风险不是安全鉴定，无声明不代表无风险；SOURCE_IMPLEMENTED / COMPONENT_TESTED；正式安装审查 PARTIAL，原生 NOT_TESTED |
 | @match | 是 | HTTP(S) Chrome 匹配规范验证；可生成注册描述，但正式安装未接入 | P0 用户批准、运行注册、验收 once/zero；PARTIAL |
 | @exclude-match | 是 | 原生注册候选规则验证，正式匹配未运行 | P0 同 @match；PARTIAL |
 | @include / @exclude | 是 | **明确 E_MATCH_SEMANTICS_UNSUPPORTED**，并非 Tampermonkey glob/正则兼容 | P1 转换/运行规则需独立规格；MISSING |
@@ -27,7 +28,7 @@
 | @grant none | 是 | 允许但仍是 USER_SCRIPT 隔离，**不进入 MAIN，不自动提供 unsafeWindow** | P0 明确警告与手册；SOURCE_IMPLEMENTED（受限语义） |
 | @grant GM_* / GM.* | 是 | 当前明确 E_GRANT_UNSUPPORTED，不透传 Chrome API | P1 分级适配并按运行身份授权；MISSING |
 | @connect | 是 | 当前明确拒绝执行语义；声明本身不授网络目标许可 | P1 GM_xhr broker 适配和 destination allowlist；MISSING |
-| @require | 是，按序、HTTPS、来源 identity 与可选强 hash | D1 锁定已核准的字节、离线验证、按顺序 Page preview；注册描述编译器复用；**正式自动注册未完成** | P0/1 验证 cache、顺序、篡改、离线重启；PARTIAL / COMPONENT_TESTED（历史） |
+| @require | 是，按序、HTTPS、来源 identity 与可选强 hash | D1 锁定已核准的字节、离线验证、按顺序 Page preview；注册描述编译器复用；**正式自动注册未完成** | P0/1 验证 cache、顺序、篡改、离线重启；PARTIAL / COMPONENT_TESTED（本轮 71 项定向组含相关测试；Chrome 重启未测） |
 | @resource | 是，名称与 URL 可识别 | 当前 E_RESOURCE_UNSUPPORTED，没有 GM resource 绑定/注入 | P1 资源字节锁、Text/URL mime 管控；MISSING |
 | @updateURL / @downloadURL | 是 | 只产生 W_UPDATE_NOT_IMPLEMENTED；不是可信来源证明或自动更新开关 | P1 审核后更新、权限 diff、显式确认与回滚；PARTIAL（信息级） |
 | @inject-into content | 是 | 仅 USER_SCRIPT 受限路径；page/auto 不批准 | P3 才审 MAIN/unsafeWindow；PARTIAL |
@@ -35,7 +36,7 @@
 | @background / @crontab（ScriptCat） | 非 OpenDesk 已授权标准 | 不提供对应执行/调度语义，未知 directive 拒绝 | P2 引入新的 runtime kind/显式迁移；MISSING |
 | @require-css、@definition、CAT.*（ScriptCat 扩展） | 不保证 | 不得混同 Tampermonkey 标准 | 仅按明确适配版本兼容；MISSING |
 
-解释：仅解析并保存 metadata != 在新文档导航时自动运行；打印注册描述 != 浏览器原生持久注册；已有 COMPONENT_TESTED 仅意味着历史定向单元测试，非 R8 本轮运行证据。
+解释：仅解析并保存 metadata != 在新文档导航时自动运行；打印注册描述 != 浏览器原生持久注册；历史 COMPONENT_TESTED 不可借用为本次运行；本轮 71 项定向组覆盖 parser/manager/UI/preview/package 接线，原始日志见独立工程回执，未覆盖 Chrome 原生。
 
 ### 解析与安全细节
 
@@ -44,6 +45,7 @@
 - 依赖锁必须关联脚本身份、依赖顺序、world 与固定内容；shared hash cache 不等于 shared approval。
 - 页面立即预览模式是“当前主文档用户触发”，@match/@run-at 只做信息提示，不自动模拟 document-start。
 - @grant none 在 OpenDesk USER_SCRIPT 中不暴露页面 JS 全局，和部分传统管理器行为不同，必须向迁移用户明说。
+- `84dc3c7` 将依赖报告与当前源码准入分开：迟到检查结果只复用相同依赖身份的字节/锁，不覆盖最新 `@grant/@resource/@include` 判定。读取权限、文件和服务返回后及依赖审批点击时都重新检查；依赖审批不等于整脚本授权。
 
 ## 3. GM API 逐方法矩阵：目标语义、现状、实现层、验收
 

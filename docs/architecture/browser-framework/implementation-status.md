@@ -1,5 +1,38 @@
 # R3 当前实施状态（人工交接，不代替机器账本）
 
+## 2026-10-09 R8 Engineering Program R1 执行复核
+
+本轮从真实 `main@945cf92726fcadcd60ecb3dc70729029fb9f28e6` 建立隔离工作区，并先后同步并行主线 `0dcc23b6` 的 40 任务计划、`71fa54e` 的 Browser Test Lab 更新，以及 `c2538e9` 的 188 项归属 CI 门禁、`36cdb63` 的最新 PR 归属和 40 组独立评分。保留既有 E01–E40 稳定 ID，以 [唯一执行计划](../../product/browser-automation-r8-implementation-plan.zh-CN.md) 记录工程任务，原 [188 能力目录](../../product/browser-automation-feature-catalog-r8.zh-CN.md) 继续是唯一功能总账本。源码地图、15 模块分工、R8.0–R8.6 门槛、14 项增量 ADR、依赖和下一批 GOAL 均已按真实源代码建立；规划文件本身不代表实现完成。
+
+### 本轮实际产品与集成修复
+
+1. **E08/E40 的元数据审查子项**，产品提交 `84dc3c7abe08505ae5e24849315dc8dd5587932d`：修复 `src/ui/page-dependencies.js` 的异步检查旧结果覆盖新 `@grant/@resource/@include` 准入，以及没有 input 事件的编辑未在审批时复查。依赖列表/锁可复用，当前代码的权限策略必须重算。`dependency-metadata.js` 同时在已有审核区显示 `@antifeature` 的纯文本风险自述。未新增权限或运行内核，未放开不支持的 GM。
+2. **E06 的主线集成守护子项**，提交 `c84585f`：并行主线的测试指南再次写入旧临时 URL，导致原有 canonical 手工入口测试失败。本轮先用专项文档引用修复并重跑原断言；并行主线随后由 `ca3e765` 完成等价修复，最终合入保留远端指南措辞和全部新 HTTP/Locator 场景，未放宽测试规则。
+3. **PR #22 的既有测试入口修复已由并行工作完成**：保留远端 `tests/fixtures/d1-userscript.html` 的移动方案；本地独立候选未覆盖远端。该修复解除组件/构建阻断，不等于本机保存/重启/安装与最终 ZIP 验收完成。
+
+### 分层实际证据
+
+| 验证层 | 本轮结果 | 精确范围与限制 |
+| --- | --- | --- |
+| 源码接线 | SOURCE_IMPLEMENTED | 元数据 parser → 现有依赖审核 UI → Broker 前的当前源码复查；独立 review 接受两处 catch 修正；无额外 Task/Storage/Auth 模型 |
+| 定向组件 | COMPONENT_TESTED | 71/71 Page/dependency/editor/package 测试；5 个新增行为用例在旧实现复现失败，修复后通过 |
+| 主线集成组件 | COMPONENT_TESTED | 原候选环境组 197/197；同步 `71fa54e` 后 198 项曾 1 fail（指南旧 URL），修复后 198/198，canonical 页面组 12/12；再同步 c2538e9 的计划门禁并适配任务卡后 201/201，最终计划契约 3/3 |
+| 静态检查 | BUILD_VERIFIED 范围内的 source check | `npm run check`：最终 139 个源文件/测试/构建输入（增加一份主线计划契约测试；旧候选 138）；不作为 Chrome 证据 |
+| 构建与包 | BUILD_VERIFIED | 生产/开发构建、`npm run pack` / `pack:dev` 及 `npm run verify` 均通过；后续主线与文档合入经 122 项构建输入 hash 对照无漂移，固定 packageHash 见独立回执 |
+| Chrome 原生 | NOT_TESTED | 本轮未启动 Chrome/CFT 做安装、实际页面、开关/权限和重启验收；不能据此签收 Page/GM/Cron |
+| 用户任务 / 本机 Codex | NOT_TESTED | 用户本机路径不可访问；安装后使用、AI/Native 退出后重跑、停止及同版本 ZIP F3 需本机接管 |
+
+命令、完整 SHA、原始失败/通过日志、build receipt、独立审查及 PR 时间戳快照见 [工作流回执](../../framework/workstreams/r8-engineering-r1-b62cc961.json) 和 [证据目录](../../framework/workstreams/evidence/r8-engineering-r1-b62cc961/)。生产 SW 为 **327366 / 327680 bytes**，仅 314 bytes 余量；后续增加可信服务必须重新通过原预算，不能靠悄悄放宽门槛。
+
+### 尚未关闭的产品门槛
+
+- 正式 Page 类型专属 Candidate/Verification、安装状态、userScripts register/update/unregister/getScripts 对账、启停/更新回滚和重启证明仍 **PARTIAL/MISSING + Native NOT_TESTED**。当前预览和纯注册描述不能替代这条链；沿用既有 Controller、Authority、RunHost、IDB v2 frameworkKV、Task revision。
+- GM API、@connect 网络兼容、Background/Cron、UserCSS、跨浏览器仍按各自任务实施。专用 USER_SCRIPT 消息并不直接证明哪个脚本发送；可信脚本实例认证是特权 GM 的安全门槛。普通浏览器 fetch 与 SDK axiosx 均不等于 GM_xmlhttpRequest。
+- PR #11 仍是 **Draft / 未合 main**；#20 已于 17:04:34 UTC、#22 已于 17:11:02 UTC 合到 Native 候选分支，分别为 `33a551a6` 与 `a2e1bda5`，均不是 main 交付。最新组合 `75e4cde` 的精确 push CI 有 47/47 Native 组件、58/58 共享回归、254 PASS/4 SKIP 环境组、157 项检查及双构建/verify；CFT 155 的 Options 诊断仍 0/1 失败（CDP timeout 被 continue-on-error 吸收）。不能算 Native/Codex E2E PASS，也不能用旧 #22 CFT 149 回执签收新组合。
+- 当前广泛 manifest 权限不自动下发给脚本；公开发布前的最小权限及供应链审查仍未关闭。`FINAL_FRAMEWORK_ACCEPTED=NO`，不以高平均分或本轮组件通过改写。
+
+---
+
 ## 2026-10-08 后续主干复核（覆盖下方早期快照的当前状态判断）
 
 > 以下状态按 GitHub 主干实际源码及 CI 核对；下方原始 R3 分支记录完整保留作为历史快照。主干已发生多次集成，下文早期“Candidate 缺失 / async main 缺失 / PR #4 未合并 / R3 未合并”等描述不再适用于最新主干。不要据此重复实施。
