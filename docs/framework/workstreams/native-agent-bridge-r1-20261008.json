@@ -12,7 +12,11 @@
       "docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md",
       "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt",
       ".github/workflows/native-agent-r1.yml",
-      "src/entrypoints/transport.js"
+      "src/entrypoints/transport.js",
+      "docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md",
+      "tests/environment/agent-to-task-fixtures.test.mjs",
+      "examples/tasks/agent-observe-draft.js",
+      "examples/tasks/modern-search.v1.opendesk-task.json"
     ],
     "sharedThinChanges": [
       "src/sw.js",
@@ -23,7 +27,9 @@
       "scripts/build-contract.mjs",
       "scripts/verify-package.mjs",
       "wxt.config.mjs",
-      "src/entrypoints/transport.js"
+      "src/entrypoints/transport.js",
+      "docs/architecture/browser-framework/ai-browser-agent-ecosystem-r6-20261008.zh-CN.md",
+      "examples/tasks/README.zh-CN.md"
     ],
     "untouched": [
       "src/run-host.js",
@@ -96,7 +102,7 @@
   "rollback": "Close or revert only dedicated PR, retain historical run receipts and independent modules",
   "pr": "https://github.com/shopable-ai/opendesk-browser/pull/11",
   "updatedAt": "2026-10-08",
-  "currentMainObserved": "a83d859c819409f3a2947c3bfb5b1719afb0711e; revalidate origin/main immediately before merging",
+  "currentMainObserved": "c06847d3fb36b6cd9a925d3283d0b91069c7c66a; 2026-10-08T15:21Z; evolving in parallel; refresh immediately before integration",
   "integrationNotes": [
     "PR #9 (Sidebar R5) merged; centralized site-access from other workstreams is in main 28389f5 and was kept when merging into this workstream",
     "Latest independent feature merge commit: 28c8385efdd3f86691f41ba0f8ddf7fd251e409c; CI with centralized authorization in progress",
@@ -105,12 +111,84 @@
     "2026-10-08: Sidebar R6 PR #18 merged SHA 797d402; R6.1 Stop PR #19 merged SHA d697291; both remote feature refs deleted. Current main keeps evolving under other active agents.",
     "2026-10-08: Real Mac/Chrome/Codex E2E NOT_TESTED, PR #11 must stay DRAFT; no false final acceptance or premature branch/worktree deletion.",
     "2026-10-08: added and PASS macOS-15 2/2 isolated Chrome/CFT manifest, real Node Host executable + AF_UNIX + credential CLI smoke using FAKE Chrome byte frames. Runner is not user Mac and does not prove native Chrome.",
-    "2026-10-08: source/package/native-smoke PASS at 9f4635ae3d1bb1a04fec810599305656972005a8, zero assertions about actual Chrome/Codex. PR #11 remains Draft."
+    "2026-10-08: source/package/native-smoke PASS at 9f4635ae3d1bb1a04fec810599305656972005a8, zero assertions about actual Chrome/Codex. PR #11 remains Draft.",
+    "2026-10-08 R6.2: latest candidate 9b74bdd, four GH workflows success including Native 32/32 Node + 55/55 shared, build/check/verify, SW 324759/327680 bytes; added read-only observation and immutable modern Task candidate, fixed Host ownership & ACK-write unknown effect; Chrome/Codex E2E still NOT_TESTED. main moved to c06847d; Draft retained."
   ],
   "previousSourceBlocker": {
     "code": "NATIVE_HOST_FILE_BLOCKED",
     "path": "native-agent/native-host.mjs",
     "detail": "Two GitHub connector write attempts for the outside-browser Native Host were blocked by tool safety review. Do not treat setup or CLI as functional until this component is implemented and audited in local Codex.",
     "workContinuesVia": "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt"
+  },
+  "r62": {
+    "goal": "Converge existing Native Bridge and R5 Modern Page API into one read-only Agent observation + immutable executable Task candidate; no second executor/Task database/MCP",
+    "observedMainSha": "c06847d3fb36b6cd9a925d3283d0b91069c7c66a",
+    "nativePr": 11,
+    "reviewedFeatureHead": "9b74bdd2922223fd5b4eab9549ea8f44bc7a69cb",
+    "featureBranch": "agent/native-agent-bridge-r1-20261008",
+    "changedFunctionalFiles": [
+      "src/native-agent/service-worker.js",
+      "tests/environment/native-agent-bridge.test.mjs",
+      "tests/environment/agent-to-task-fixtures.test.mjs",
+      ".github/workflows/native-agent-r1.yml",
+      "examples/tasks/agent-observe-draft.js",
+      "examples/tasks/modern-search.v1.opendesk-task.json"
+    ],
+    "changedDocumentation": [
+      "docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md",
+      "docs/architecture/browser-framework/ai-browser-agent-ecosystem-r6-20261008.zh-CN.md",
+      "docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md",
+      "examples/tasks/README.zh-CN.md",
+      "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt",
+      "docs/framework/workstreams/native-agent-bridge-r1-20261008.json"
+    ],
+    "fixes": [
+      "Native SW run.get/run.stop now require matching ACKNOWLEDGED runId and original Sidebar host registrationId",
+      "Mutation has reached Host but SW storage ACK finalize fails => OUTCOME_UNKNOWN, never a falsely confirmed failure or replay"
+    ],
+    "alreadyImplementedNotRepeated": [
+      "Modern Locator / getByRole / getByLabel / fill / click / waitFor / observe",
+      "ChromePage and exact document Authority / RunHost / Durable Result",
+      "Sidebar My Tasks / Discover / Develop",
+      "Single-file JS draft and multi-file ESM project",
+      "Native Messaging Host/CLI and six allowed Agent calls",
+      "Candidate / native-verification / Available / Installed Task v1"
+    ],
+    "focusedCi": {
+      "inspectedHead": "9b74bdd2922223fd5b4eab9549ea8f44bc7a69cb",
+      "nativeAgentRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37800008694",
+      "nativeAgentCompleted": true,
+      "component": "32/32 PASS",
+      "sharedSidebarController": "55/55 PASS",
+      "check": "PASS: 150 source/test/build inputs",
+      "buildProduction": "PASS",
+      "buildDevelopment": "PASS",
+      "packageVerification": "PASS production and development",
+      "swProductionBytes": 324759,
+      "swFixedBudgetBytes": 327680,
+      "swBudgetChanged": false,
+      "macosHostProcess": "PASS: true macOS-15 Node Host/AF_UNIX and Chrome/CFT manifests with simulated Chrome frames, NOT native Chrome",
+      "fourHeadRuns": [
+        "https://github.com/shopable-ai/opendesk-browser/actions/runs/37800008694",
+        "https://github.com/shopable-ai/opendesk-browser/actions/runs/37800008942",
+        "https://github.com/shopable-ai/opendesk-browser/actions/runs/37800009054",
+        "https://github.com/shopable-ai/opendesk-browser/actions/runs/37800009468"
+      ],
+      "allFour": "PASS at inspectedHead"
+    },
+    "nativeAcceptance": {
+      "NATIVE_CHROME_VERIFIED": "NOT_TESTED",
+      "AI_AGENT_E2E_VERIFIED": "NOT_TESTED",
+      "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
+      "FINAL_FRAMEWORK_ACCEPTED": "NO"
+    },
+    "integration": {
+      "candidate": "DRAFT_PR_ONLY",
+      "mainModified": false,
+      "reason": "AGENTS.md forbids direct main writing; true Mac Chrome/Codex, website grant, single Slot, durable stop/result/restart and non-AI installed Task repeat needed before main merge",
+      "drift": "Main moved after original R6.2 audit; rebase/merge safely and re-run identity-bound CI and actual Chrome before promoting. Concurrent main and PR both touched examples/tasks/README.zh-CN.md; preserve both sets of edits.",
+      "localArtifacts": "NOT_ACCESSIBLE"
+    },
+    "next": "Local Mac Codex must follow docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt and agent-to-task contract, record real Chrome requestId/runId/resultId/native effect and eventual no-AI re-run; merge PR only if all acceptance gates pass."
   }
 }
