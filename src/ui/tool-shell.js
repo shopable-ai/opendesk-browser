@@ -6,6 +6,7 @@ import {createSdkApproval, snapshotSdkApproval} from './sdk-approval.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
+import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 
 export function initToolShell() {
   const hostUrl = new URL(location.href);
@@ -21,6 +22,8 @@ export function initToolShell() {
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget});
+// Optional external Codex requests share the one real Sidebar RunHost.
+const nativeAgentHost = createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
 /* The same authorized tool.html can be opened in a full Chrome tab.
  * A tab is the complete local catalog; the Side Panel stays lightweight.
  * No new document allowlist, authority, or storage instance is introduced.
@@ -184,7 +187,7 @@ listen(window, 'pagehide', () => {
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }
