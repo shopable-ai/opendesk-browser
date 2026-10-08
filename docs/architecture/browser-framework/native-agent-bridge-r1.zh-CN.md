@@ -63,9 +63,17 @@ SW / Native / CLI 断连或者超时，只返回 \`OUTCOME_UNKNOWN\`，不能重
 
 macOS R1 源码安装目录预定 \`~/.opendesk-browser/native-agent-r1\`，使用独立 Native manifest 名称 \`com.shopable.opendesk_browser.agent\`，Chrome \`allowed_origins\` 绑定本次 Extension ID。不要采用旧 Demo ID。\`setup\` 复制本机 Node 组件快照至私有目录，并将证书式随机令牌写在 0600 文件；Native Host stdout 仅允许 UTF-8 长度帧，诊断走 stderr。Host 进程同时作为本地 Broker，不需要二次启动。
 
-**最新实施状态（2026-10-08）：** `native-agent/native-host.mjs` 已在现有 PR #11 分支，Linux/Node 模拟 IPC 与权限/Service Worker/Host 组件测试成功。为严格保留原 **320 KiB** `sw.js` 上限，改为只加载固定的扩展内部 `native-agent/transport.js` 经典脚本：`src/entrypoints/transport.js` 通过 WXT 打包，`src/native-agent/transport.js` 仅注册配置/宿主回包监听并调用原来的 Native Agent Service，复用同一受权 `hostPorts` 和 RunHost，不建第二业务 Controller。`scripts/build-contract.mjs` / `wxt.config.mjs` 固定 **13 个**源码入口；`scripts/verify-package.mjs` 仅为 `sw.js` 中精确字面量 `importScripts('native-agent/transport.js')` 开小范围例外，拒绝远程、动态和其它 importScripts。GitHub Actions 在 `c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a` 的 Native、Sidebar、依赖、站点授权 4 项均通过，其中 Native CI 记录 `npm run check`、生产/开发 build、verify 均成功，未扩大 SW 预算。**这些仍是 Linux CI/Node 级别。真实 macOS setup/doctor、Chrome Native Messaging、Options 可信点击、真实网站授权、Codex draft/saved/Stop/Result 和断连重启行为一律 `NOT_TESTED`；不得标记 `NATIVE_PASS` 或合入 main。**
+**最新实施状态（2026-10-08）：** `native-agent/native-host.mjs` 已在现有 PR #11 分支，Linux/Node 模拟 IPC 与权限/Service Worker/Host 组件测试成功。为严格保留原 **320 KiB** `sw.js` 上限，改为只加载固定的扩展内部 `native-agent/transport.js` 经典脚本：`src/entrypoints/transport.js` 通过 WXT 打包，`src/native-agent/transport.js` 仅注册配置/宿主回包监听并调用原来的 Native Agent Service，复用同一受权 `hostPorts` 和 RunHost，不建第二业务 Controller。`scripts/build-contract.mjs` / `wxt.config.mjs` 固定 **13 个**源码入口；`scripts/verify-package.mjs` 仅为 `sw.js` 中精确字面量 `importScripts('native-agent/transport.js')` 开小范围例外，拒绝远程、动态和其它 importScripts。GitHub Actions 在 `c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a` 的 Native、Sidebar、依赖、站点授权 4 项均通过，其中 Native CI 记录 `npm run check`、生产/开发 build、verify 均成功，未扩大 SW 预算。**该历史候选只证明 Node 和包；后续独立 macOS-15 Host/CLI 模拟 Chrome 帧测试见下文。真实 Chrome Native Messaging、Options 可信点击、网站 grant、Codex draft/saved/Stop/Result、断连/重启仍未完成，禁止标记最终 NATIVE_PASS 或提前合入 main。**
 
 下一阶段：\`docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt\`。
+
+## 2026-10-08 最新的分层验收
+
+- **SOURCE / NODE / PACKAGE：PASS（历史已校验 HEAD）**。以 `9f4635ae3d1bb1a04fec810599305656972005a8` 对应的 GitHub Actions [Native Agent R1](https://github.com/shopable-ai/opendesk-browser/actions/runs/37792731631) 为准：28 项定向 Node、55 项共享 Node、check、WXT 13 固定入口的生产/开发构建与 verify 均成功；生产 SW 约 324.76 KB，未提升原 320 KiB（327680 字节）上限。Schema 自适应位宽只用于 SW，其他经典 IIFE 保持原输出。
+- **真实 macOS Node Host + AF_UNIX + CLI：CI 受控环境 PASS**。同一次 macOS-15 Actions 在独立临时 HOME 安装，校验 Native Host 可执行入口、0600 凭据和 Socket、32 字符扩展 ID、错误 origin 拒绝、真实 Unix Socket 与 CLI 成功认证/单次请求、停止清理；Google Chrome 与 Chrome for Testing 两种 manifest 均各自做了独立安装测试，不覆盖旧 Demo。**Chrome 侧 hello/welcome/response 帧由测试程序模拟，不是浏览器。**
+- **Chrome Extension / Native Messaging / 可信权限操作 / Codex E2E / 页面真实动作及重启：NOT_TESTED**。没有实际浏览器实例加载相同安装包，未获得真实 Options 权限回执和网页 grant，不能认为 R1 已具备正式合入条件。用户本机 Mac Worktree、profile、stash、未提交数据均未触及。
+
+Chrome 官方文档在版本 **146 起**区分 macOS 上 Google Chrome 和 Chrome for Testing 的 NativeMessagingHosts 用户目录。CLI 默认 `node native-agent/cli.mjs setup --extension-id <real-id>` 使用 Chrome；使用 Chrome for Testing（146 或更高）时明确指定 `node native-agent/cli.mjs setup --browser cft --extension-id <real-id>`。旧版 CFT 的目录行为不同，不用当前 `--browser cft` 推断旧版安装成功。同一安装根只绑定一个浏览器版本及扩展 ID，切换先停止 Native Host、安全清理，再重新 setup 和 doctor。
 
 ## 还需核实的反方问题
 
