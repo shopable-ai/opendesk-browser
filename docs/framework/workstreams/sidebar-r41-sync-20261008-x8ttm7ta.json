@@ -6,7 +6,7 @@
   "authorization": "Current user requested pull, complete the merge, commit and push. Submit on an isolated agent branch under AGENTS.md; main integration remains through reviewed PR.",
   "sourceWorkspace": "/Users/shopme/Documents/workspace/opendesk-browser",
   "isolatedWorkspace": "/Users/shopme/.codex/worktrees/sidebar-r41-integration/opendesk-browser",
-  "scope": "Submit the existing R4.1 local changes after their merge with the latest R4 main; no new product feature, dependency, runtime or storage authority.",
+  "scope": "Submit the existing R4.1 changes and merge the latest R5 main, preserving both the approved compact UI and source-only draft handoff. No new dependency, runtime, storage authority or product redesign.",
   "dependencies": [
     "R4 installed cards, independent catalog, parameter drafts and catalog refresh channel at 66f11874fa27f6de438155124a3f772129386f8b"
   ],
@@ -42,53 +42,36 @@
     "tests/framework/sidebar-r41-observer.mjs",
     "docs/framework/workstreams/sidebar-r41-sync-20261008-x8ttm7ta.json"
   ],
-  "inputFilesSha256": {
-    "docs/architecture/sidebar-product-contract.zh-CN.md": "e0742f38652b1c77563ed6de9d62bf174b90014ed2513171ed16d30bbe79c35c",
-    "examples/tasks/README.zh-CN.md": "79962f36129626af2829a0236d34a4cca9d5332363571021fa7c5ab73b9dd349",
-    "scripts/build.mjs": "3fdcc0f40068c347645c1f222d625d2834d603a427ba22c3e1b878c1bd44c550",
-    "src/ui/script-editor.js": "8fc58513f6845d96fa6ffc5bae476ff0a3d2ef012d6426672003364c87d5e1b1",
-    "src/ui/task-workbench.js": "723b3a0ac17e619d1742aa906e0c2e6fe7b325732039dc12556b9886388ee5ae",
-    "src/ui/tool-shell.js": "8777c5e1b3fcfd07748ca4a558611917aea72dcf92c924ec7395235a15b4eaf7",
-    "tests/environment/script-editor.test.mjs": "1b568ea03c71762a4f45ee47b5a7fe703591fb2d5978d481a34271e8c76648eb",
-    "tests/environment/sidebar-product-contract.test.mjs": "4ccb895d01d86aae7cc34b04d88d27f7f6add7d76526ebf55131dcf521ed28fd",
-    "tests/environment/task-package-flow.test.mjs": "cceec25dc1d128c375fd941ce39b246d640a7f3dcae143793ca8375d5f28daaa",
-    "tests/environment/task-workbench.test.mjs": "2c56e7e6b6976f099eea1d93656e3e2fb900b452f3997df4e4e39abfa89f8552",
-    "docs/framework/prompts/goal-sidebar-r41-handoff-20261008.txt": "9057377d3d01ebde464767a3aad3851c1a734915f93da123bfc3ccb586ad8500",
-    "docs/framework/prompts/goal-sidebar-visible-verification-and-task-loop-20261008.txt": "feb27e1fccfa3f0b892aff01dac5da5e7578d0f08992cb210b0ad976a19e6373",
-    "docs/framework/workstreams/sidebar-r41-20261008-local.json": "3a873c427862f49d44d18fe63f6285bb8e27680eef4335d1046d52c3dafa3def",
-    "tests/environment/sidebar-draft-import.test.mjs": "74112328de28dd3282416e498fc4d28e9c3b53cd0b7574f5bab2741c508e1a8c",
-    "tests/framework/sidebar-r41-observer.mjs": "d9bb99508415d28ceca93082af6827be31442aae03e646763c331f59f262c128"
-  },
   "verification": {
     "status": "passed",
     "components": {
-      "passed": 59,
+      "passed": 61,
       "failed": 0,
       "skipped": 0,
-      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/component-tests.log"
+      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/component-tests.log"
     },
     "source": {
-      "syntaxCheckedFiles": 113,
-      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/source-check.log"
+      "syntaxCheckedFiles": 114,
+      "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/source-check.log"
     },
     "commands": {
       "components": "node --test --test-reporter=spec tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/framework/run-host-recovery.test.mjs",
       "source": "npm run check",
       "observerSyntax": "node --check tests/framework/sidebar-r41-observer.mjs",
-      "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/builds npm run build",
-      "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/builds npm run build:dev",
+      "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds npm run build",
+      "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds npm run build:dev",
       "package": "npm run verify",
-      "diff": "git diff --check"
+      "diff": "git diff --cached --check origin/main"
     },
     "builds": {
       "production": {
-        "packageHash": "e7cae71c8b4b5ecc4536b7ca54697ce6299ad71258e20eb865c67f6510e86555",
-        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/builds/build-production.json",
+        "packageHash": "bd8a4138e0a8a01185dbe2eecc5b6371ff248ae9c123d9b0322787d5ad2d9316",
+        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds/build-production.json",
         "sourceDriftDuringBuild": []
       },
       "development": {
-        "packageHash": "29850fd3c416a1e0cdbc96f528d73efe2fb50f6dbba8b2ee5fd99d73d231e3b5",
-        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/builds/build-development.json",
+        "packageHash": "d44dcc8f0063b3027edbcaacb940fe9a76df1b84d935ced9a0632f6af8217d0f",
+        "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/main-0874755/builds/build-development.json",
         "sourceDriftDuringBuild": []
       }
     }
@@ -123,6 +106,75 @@
     "Native validation for this merged candidate and its own package identity",
     "Formal acceptance and installation evidence remain open"
   ],
-  "updatedAt": "2026-10-08T12:27:59.184543+00:00",
-  "submittedCodeCommit": "94d8c1f63999c705eee6be8edb058196aad273ce"
+  "updatedAt": "2026-10-08T12:35:13.534849+00:00",
+  "initialSubmissionCommit": "94d8c1f63999c705eee6be8edb058196aad273ce",
+  "originalLocalFilesSha256": {
+    "docs/architecture/sidebar-product-contract.zh-CN.md": "e0742f38652b1c77563ed6de9d62bf174b90014ed2513171ed16d30bbe79c35c",
+    "examples/tasks/README.zh-CN.md": "79962f36129626af2829a0236d34a4cca9d5332363571021fa7c5ab73b9dd349",
+    "scripts/build.mjs": "3fdcc0f40068c347645c1f222d625d2834d603a427ba22c3e1b878c1bd44c550",
+    "src/ui/script-editor.js": "8fc58513f6845d96fa6ffc5bae476ff0a3d2ef012d6426672003364c87d5e1b1",
+    "src/ui/task-workbench.js": "723b3a0ac17e619d1742aa906e0c2e6fe7b325732039dc12556b9886388ee5ae",
+    "src/ui/tool-shell.js": "8777c5e1b3fcfd07748ca4a558611917aea72dcf92c924ec7395235a15b4eaf7",
+    "tests/environment/script-editor.test.mjs": "1b568ea03c71762a4f45ee47b5a7fe703591fb2d5978d481a34271e8c76648eb",
+    "tests/environment/sidebar-product-contract.test.mjs": "4ccb895d01d86aae7cc34b04d88d27f7f6add7d76526ebf55131dcf521ed28fd",
+    "tests/environment/task-package-flow.test.mjs": "cceec25dc1d128c375fd941ce39b246d640a7f3dcae143793ca8375d5f28daaa",
+    "tests/environment/task-workbench.test.mjs": "2c56e7e6b6976f099eea1d93656e3e2fb900b452f3997df4e4e39abfa89f8552",
+    "docs/framework/prompts/goal-sidebar-r41-handoff-20261008.txt": "9057377d3d01ebde464767a3aad3851c1a734915f93da123bfc3ccb586ad8500",
+    "docs/framework/prompts/goal-sidebar-visible-verification-and-task-loop-20261008.txt": "feb27e1fccfa3f0b892aff01dac5da5e7578d0f08992cb210b0ad976a19e6373",
+    "docs/framework/workstreams/sidebar-r41-20261008-local.json": "3a873c427862f49d44d18fe63f6285bb8e27680eef4335d1046d52c3dafa3def",
+    "tests/environment/sidebar-draft-import.test.mjs": "74112328de28dd3282416e498fc4d28e9c3b53cd0b7574f5bab2741c508e1a8c",
+    "tests/framework/sidebar-r41-observer.mjs": "d9bb99508415d28ceca93082af6827be31442aae03e646763c331f59f262c128"
+  },
+  "validationRounds": [
+    {
+      "againstMain": "66f11874fa27f6de438155124a3f772129386f8b",
+      "verification": {
+        "status": "passed",
+        "components": {
+          "passed": 59,
+          "failed": 0,
+          "skipped": 0,
+          "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/component-tests.log"
+        },
+        "source": {
+          "syntaxCheckedFiles": 113,
+          "log": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/source-check.log"
+        },
+        "commands": {
+          "components": "node --test --test-reporter=spec tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-draft-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/framework/run-host-recovery.test.mjs",
+          "source": "npm run check",
+          "observerSyntax": "node --check tests/framework/sidebar-r41-observer.mjs",
+          "production": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/builds npm run build",
+          "development": "OPENDESK_BUILD_EVIDENCE_DIR=docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/builds npm run build:dev",
+          "package": "npm run verify",
+          "diff": "git diff --check"
+        },
+        "builds": {
+          "production": {
+            "packageHash": "e7cae71c8b4b5ecc4536b7ca54697ce6299ad71258e20eb865c67f6510e86555",
+            "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/builds/build-production.json",
+            "sourceDriftDuringBuild": []
+          },
+          "development": {
+            "packageHash": "29850fd3c416a1e0cdbc96f528d73efe2fb50f6dbba8b2ee5fd99d73d231e3b5",
+            "receipt": "docs/framework/evidence/sidebar-r41-sync-20261008-x8ttm7ta/builds/build-development.json",
+            "sourceDriftDuringBuild": []
+          }
+        }
+      }
+    }
+  ],
+  "latestIntegratedMain": "0874755e8b2902653abe844f658163dbbecbf8c6",
+  "subsequentMainMerge": {
+    "reason": "Remote main advanced to R5 via PR #9 after the first push; PR #10 became conflicted.",
+    "resolvedFiles": [
+      "src/ui/task-workbench.js",
+      "tests/environment/sidebar-product-contract.test.mjs"
+    ],
+    "decision": "Keep approved R5 compact UI, conditional result/history panels and Discover inline Import. Retain the guarded source-only draft handoff, authoritative refresh and unchanged parameter retention. Adapt current UI assertions and sample entry instructions; preserve historical prompts and receipts.",
+    "adaptedFiles": [
+      "tests/environment/task-workbench.test.mjs",
+      "examples/tasks/README.zh-CN.md"
+    ]
+  }
 }

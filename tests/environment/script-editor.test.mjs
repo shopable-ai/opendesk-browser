@@ -169,6 +169,7 @@ test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C an
   f.find('script-id').value='another-script';f.find('script-params').value='{"value":777}';f.find('script-run-id').value='run-decoy';
   await f.finish(false);assert.equal(f.starts.length,1);assert.equal(f.persisted.results[0].revision.sourceHash,bHash);
   assert.match(f.find('script-result').textContent,/result-run-1/);assert.match(f.find('script-result').textContent,new RegExp(bHash));
+  assert.equal(f.find('developer-results-panel').open,true,'completed own draft opens Results without crowding initial editor');
   assert.doesNotMatch(f.find('script-result').textContent,/run-decoy/);assert.equal(f.find('script-run-id').value,'run-1');
   assert(!f.snapshots.some(row=>row.runId==='run-decoy'));assert.match(f.find('script-history').textContent,/result-run-1/);
 });

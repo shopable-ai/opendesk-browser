@@ -262,6 +262,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     display('results', focused ? `任务 ${focused.runId}：${stateLabels[focused.state] || focused.state}` : '已读取持久结果',
       {runId:focused?.runId,state:focused?.state,results:focused ? values.filter(row=>row.runId === focused.runId) : values,
         resultDeliveryDenied:snapshot.resultDeliveryDenied});
+    // Reveal genuine outcome only for this session's own draft; old history
+    // stays collapsed on ordinary entry, preserving editor working space.
+    if (ownedDraftRunId && values.some(row => row.runId === ownedDraftRunId))
+      find('developer-results-panel').open = true;
   }
   async function read(runId = find('script-run-id').value.trim()) {
     if (disposed) return;

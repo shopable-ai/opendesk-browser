@@ -90,8 +90,8 @@ test('entering Sidebar task views reads external installations without executing
   assert.equal(f.get('task-installed-cards').children.length,2);
   assert.equal(f.get('task-installed-cards').children[1],f.get('task-selected-workspace'));
   assert.equal(f.get('task-selected-workspace').hidden,true);
-  assert.match(f.get('task-installed-cards').children[0].textContent,/任务目录/);
-  assert.match(f.get('task-installed-detail').textContent,/任务目录/);
+  assert.match(f.get('task-installed-cards').children[0].textContent,/发现.*导入/);
+  assert.equal(f.get('task-installed-detail').textContent,'','empty task scope stays compact under R5');
   assert.equal(f.get('task-run').disabled,true);
   f.catalogState.installed.push(installed);
   await f.click('tab-my-tasks');
@@ -107,7 +107,7 @@ test('entering Sidebar task views reads external installations without executing
   f.catalogState.installed=[];
   await f.click('tab-discover');
   assert.equal(f.get('local-discover-cards').children.length,1);
-  assert.match(f.get('local-discover-cards').children[0].textContent,/还没有安装/);
+  assert.match(f.get('local-discover-cards').children[0].textContent,/还没有任务/);
 });
 
 test('installed tasks default page, render schema form and freeze the exact saved version/params/target',async t=>{
@@ -195,7 +195,9 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
   assert.equal(button.attributes['aria-controls'],'task-selected-workspace');
   assert.equal(group.children[1],f.get('task-selected-workspace'),'parameters and history remain under selected card');
   assert.match(button.children[1].children[0].textContent,/表单任务/);
-  assert.match(f.get('task-installed-detail').textContent,/输入表单/);
+  assert.match(button.children[1].children[1].textContent,/输入表单/,'card already communicates its purpose');
+  assert.match(f.get('task-installed-detail').textContent,/适用网站/,'secondary details show scope and permissions');
+  assert.doesNotMatch(f.get('task-installed-detail').textContent,/输入表单/,'R5 avoids repeating the task purpose');
   assert.doesNotMatch(f.get('task-installed-detail').textContent,/[a-f0-9]{64}/,'raw hashes belong in diagnostics');
   assert.equal(f.get('workbench-discover').hidden,true);
 });
@@ -212,7 +214,7 @@ test('Sidebar Discover searches installed tasks only and selects a task without 
   f.get('local-discover-search').fire('input');
   assert.match(f.get('local-discover-count').textContent,/0 个/);
   assert.equal(f.get('local-discover-cards').children.length,1,'empty search renders an explanation');
-  assert.match(f.get('local-discover-cards').children[0].textContent,/没有找到/);
+  assert.match(f.get('local-discover-cards').children[0].textContent,/没有匹配/);
   f.get('local-discover-search').value='表单';
   f.get('local-discover-search').fire('input');
   assert.equal(f.get('local-discover-cards').children.length,1);
@@ -270,17 +272,27 @@ test('full-size catalog keeps its own reader after real install and re-reads the
   assert.equal(f.get('task-run').disabled,false,'installed task is eligible on its own website');
 });
 
-test('installed Discover keeps its own useful dock without running or requesting permission',async t=>{
+test('idle Discover has no fixed footer and inline import still opens the authenticated catalog',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('tab-discover');
-  assert.equal(f.get('discover-dock').hidden,false,'idle Discover has a navigation dock');
-  await f.click('discover-to-tasks');
-  assert.equal(f.get('workbench-tasks').hidden,false);
+  assert.equal(f.get('workspace-dock').hidden,true,'idle local search leaves all height for results');
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('workspace-dock').hidden,false,'task Run is visible in My Tasks');
   await f.click('tab-discover');
-  await f.click('discover-to-catalog');
-  assert.equal(f.catalogOpens.length,1,'explicit catalog button opens the existing extension surface');
+  await f.click('local-discover-open-catalog');
+  assert.equal(f.catalogOpens.length,1,'inline import opens existing full-page catalog');
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
+});
+
+test('R5 result/history stay out of sight until a task has runs',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  assert.equal(f.get('task-result-panel').hidden,true);
+  assert.equal(f.get('task-history-panel').hidden,true);
+  await f.click('tab-discover');
+  assert.equal(f.get('task-result-panel').hidden,true);
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('task-history-panel').hidden,true);
 });
 
 test('card view retains original action identities, history and parameter form across tab changes',async t=>{
@@ -317,7 +329,7 @@ test('two extension documents share only a refresh hint and re-read authoritativ
   const catalog=make({installedInitially:false,sharedStore:store});
   t.after(()=>{sidebar.ui.dispose();catalog.ui.dispose();});
   await tick();await tick();
-  assert.equal(sidebar.get('task-installed-cards').children[0].textContent.includes('还没有安装'),true);
+  assert.match(sidebar.get('task-installed-cards').children[0].textContent,/还没有任务/);
   catalog.ui.showCatalogPage();
   catalog.get('task-catalog-list').value='demo.form@1.0.0';
   catalog.get('task-catalog-list').fire('change');

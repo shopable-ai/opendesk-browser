@@ -52,7 +52,11 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
   const html=await read('src/ui/tool.html'), css=await read('src/ui/tool-shell.css');
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);
   assert.equal(new Set(ids).size,ids.length);
-  for(const id of ['script-current-page-title','installed-heading','local-discover-heading','script-title','task-title','result-title','tool-diagnostics','script-advanced','tab-discover','workbench-local-discover','task-selected-workspace','discover-dock'])assert(ids.includes(id),id);
+  for(const id of ['script-current-page-title','developer-results-panel','script-task-status','tool-diagnostics','script-advanced','tab-discover','workbench-local-discover','task-selected-workspace','task-result-panel','task-history-panel','local-discover-open-catalog','open-catalog','task-stop','script-stop'])assert(ids.includes(id),id);
+  assert.doesNotMatch(html, /id="discover-dock"|id="discover-to-catalog"/,'R5 Discover must not reserve an idle navigation dock');
+  assert.doesNotMatch(html, /发现已安装任务<\/h2>|仅展示你明确安装的版本|找到.*个已安装任务.*本机共/);
+  assert.match(html, /class="local-discovery-search-row"/);
+  assert.match(html, /id="task-history-panel" class="task-history-panel" hidden/);
   const advanced=html.slice(html.indexOf('<details id="tool-diagnostics">'));
   for(const id of ['sdk-install','check-source','check-target','scraping-panel'])assert(advanced.includes(`id="${id}"`));
   assert.match(css,/min-width:0/);assert.match(css,/overflow-wrap:anywhere/);
