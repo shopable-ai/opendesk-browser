@@ -1,6 +1,8 @@
 import {execFileSync} from 'node:child_process';
 import {readFile, stat} from 'node:fs/promises';
 import {filesAt, PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SANDBOX_HTML, SANDBOX_META_CSP, FIXED_ASSETS, verifyManifest, inspectScript, BUILD_CONTRACT_SOURCE} from './verify-package.mjs';
+import {PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
+import {JQUERY_371} from '../src/scripting/user-scripts/page-program-package.js';
 import {SDK_FILES} from '../src/framework/sdk/registry.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_ALIASES, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {createHash} from 'node:crypto';
@@ -29,5 +31,20 @@ inspectScript(await readFile('src/scripting/sandbox/sandbox.js', 'utf8'), 'scrip
 const license = await readFile('docs/contracts/licenses/todo-user-vue-MIT.txt');
 const notice = FIXED_ASSETS['licenses/todo-user-vue-MIT.txt'];
 if (license.length !== notice.bytes || createHash('sha256').update(license).digest('hex') !== notice.sha256) throw new Error('Source MIT notice changed');
+// Detect drift between the trust-side runtime lock, upstream bytes, and package
+// allowlist *before* WXT builds. Do not execute vendor code in Node/SW here.
+const jquery = PINNED_USER_SCRIPT_LIBRARIES.jquery;
+if (!Object.isFrozen(jquery) || jquery.id !== JQUERY_371.id || jquery.version !== JQUERY_371.version ||
+  jquery.sha256 !== JQUERY_371.sha256 || jquery.output !== JQUERY_371.path ||
+  jquery.bytes !== 87533 || jquery.licenseOutput !== 'licenses/jquery-MIT.txt')
+  throw new Error('Pinned page dependency source/package contract drift');
+for (const [src, expected] of [
+  ['src/vendor/jquery-3.7.1.min.js', {bytes:jquery.bytes,sha256:jquery.sha256}],
+  ['src/vendor/jquery-3.7.1.LICENSE.txt', {bytes:1097,sha256:jquery.licenseSha256}]
+]) {
+  const bytes = await readFile(src);
+  if (bytes.length !== expected.bytes || createHash('sha256').update(bytes).digest('hex') !== expected.sha256)
+    throw new Error(`Pinned page dependency source mismatch: ${src}`);
+}
 for (const file of files.filter(path => path.startsWith('src/'))) if (/\/(?:compat|legacy)\/src-bex\//.test(file)) throw new Error(`Forbidden legacy runtime tree: ${file}`);
 console.log(`Syntax checked ${files.length} source/test/build files; ${BUILD_CONTRACT_SOURCE} entries, fixed SDK/control entries, strict CSP and original MIT checked`);
