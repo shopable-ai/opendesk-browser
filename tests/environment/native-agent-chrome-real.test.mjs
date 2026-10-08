@@ -105,9 +105,6 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     assert.equal(response.status,200,'create real Chrome tab');
     return response.json();
   }
-  const extensionsTab=await newTab('chrome://extensions/');
-  cdp=await connectCDP(extensionsTab.webSocketDebuggerUrl);
-  await cdp.call('Runtime.enable');
   const evaluated=async expression=>{
     const result=await cdp.call('Runtime.evaluate',{expression,returnByValue:true});
     if(result.exceptionDetails)throw Error('Chrome Runtime.evaluate failed');
@@ -125,9 +122,6 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
         (typeof value.path==='string'&&path.resolve(value.path)===ext));
       if(own)return own[0];
     }
-    const items=await evaluated("(()=>{const manager=document.querySelector('extensions-manager');const list=manager?.shadowRoot?.querySelector('extensions-item-list');return [...(list?.shadowRoot?.querySelectorAll('extensions-item')||[])].map(x=>({id:x.id,name:x.shadowRoot?.querySelector('#name')?.textContent}));})()");
-    const named=items?.find(item=>/OpenDesk Browser/.test(item.name||''));
-    if(named&&/^[a-p]{32}$/.test(named.id||''))return named.id;
     const targets=await (await fetch(base+'/json/list')).json();
     const worker=targets.find(item=>item.type==='service_worker'&&
       /^chrome-extension:\/\/[a-p]{32}\/sw\.js(?:$|[?#])/.test(item.url||''));
@@ -139,11 +133,16 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   assert.equal(setup.status,0,'real native manifest setup: '+setup.stderr);
   console.log('MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser='+browser);
 
-  cdp.close();
+  cdp?.close();
   const optionsTab=await newTab('chrome-extension://'+extensionId+'/native-agent/settings.html');
   cdp=await connectCDP(optionsTab.webSocketDebuggerUrl);
-  await cdp.call('Runtime.enable');
-  await cdp.call('Page.enable');
+  try {
+    await cdp.call('Runtime.enable');
+    await cdp.call('Page.enable');
+  }catch(error){
+    console.log('REAL_CHROME_CDP_OPTIONS_ERROR='+error.message+' stderr='+debug.slice(-1200));
+    throw error;
+  }
   await cdp.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
   const status=async()=>evaluated("document.getElementById('bridge-status')?.textContent||''");
   try {
