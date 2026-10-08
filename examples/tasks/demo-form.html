@@ -98,12 +98,12 @@ h1{font-size:clamp(30px,3.8vw,42px);font-weight:800;letter-spacing:-.045em;line-
 .hero-counter span{margin-left:8px;font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.07em}
 .lab-grid{display:grid;grid-template-columns:212px minmax(0,1fr);gap:24px;align-items:start}
 .lab-navigation{position:sticky;top:84px;padding:16px 11px;border:1px solid var(--lab-line);background:#fff;border-radius:13px;box-shadow:0 7px 23px #1b38580a}
-.lab-navigation p{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:#96a7ba;letter-spacing:.08em;padding:0 10px}
+.lab-navigation p{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:#536b86;letter-spacing:.08em;padding:0 10px}
 .lab-navigation a{display:flex;align-items:center;gap:11px;padding:10px;color:#526a86;text-decoration:none;border-radius:8px;font-weight:650;font-size:12px}
 .lab-navigation a:hover,.lab-navigation a:focus-visible{background:#edf4fe;color:#2052ad}
-.lab-navigation a span{color:#8fa2b9;font:750 10px ui-monospace,SFMono-Regular,Consolas,monospace}
+.lab-navigation a span{color:#627a96;font:750 10px ui-monospace,SFMono-Regular,Consolas,monospace}
 .lab-navigation a[href="#lab-locator"]{background:#eff4ff;color:#285aba;margin-top:5px}
-.lab-navigation .navigation-tip{margin:14px 9px 2px;padding:13px 1px 0;border-top:1px solid #e5ebf3;font:400 11px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;letter-spacing:0}
+.lab-navigation .navigation-tip{margin:14px 9px 2px;padding:13px 1px 0;border-top:1px solid #e5ebf3;color:#586d85;font:400 11px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;letter-spacing:0}
 .lab-content{min-width:0}
 .section-caption{margin:3px 0 10px 3px}
 .lab-content .sheet+.section-caption{margin-top:25px}
@@ -117,16 +117,16 @@ button{transition:background .12s,border-color .12s}
 button.primary{background:#2559c4;border-color:#2559c4}
 button.primary:hover{background:#1b4aac}
 :focus-visible{outline:3px solid #88b4f7;outline-offset:3px}
-.lab-footer{margin:16px 4px;color:#72879f;font-size:11px;line-height:1.75}
+.lab-footer{margin:16px 4px;color:#536a85;font-size:11px;line-height:1.75}
 .fixture-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
 .fixture-card{min-width:0;background:linear-gradient(#fff,#fbfcff);border:1px solid #e2eaf3;border-radius:10px;padding:17px}
-.fixture-index{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.08em;color:#7c95b1}
+.fixture-index{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.08em;color:#526d8c}
 .fixture-card h3{font-size:13px;letter-spacing:-.01em;margin:5px 0 7px}
 .fixture-card p{font-size:12px;line-height:1.7;color:#6a7e96;margin:0 0 12px}
 .fixture-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .fixture-controls .field{min-width:128px}
 .fixture-card button{min-height:36px;font-size:12px}
-.fixture-card input{font-size:12px}
+.fixture-card input{font-size:12px}.fixture-card code{overflow-wrap:anywhere;word-break:break-word}
 .fixture-result{background:#f0f5fc;border-radius:7px;padding:10px 11px;min-height:36px;color:#355779!important;margin:9px 0 0!important;font-size:11px!important;overflow-wrap:anywhere}
 .fixture-result strong{color:#2655ab}
 .cover-stage{position:relative;max-width:245px;width:100%;margin-bottom:10px;padding:5px 0}
@@ -272,7 +272,7 @@ button.primary:hover{background:#1b4aac}
         <div class="fixture-index">LOCATOR / 04</div><h3 id="locator-late-title">延迟插入与等待</h3>
         <p>点击后约 700ms 才生成目标。可验证 waitFor(visible)；重置取消尚未生效的回调。</p>
         <div class="fixture-controls"><button id="locator-late-launch" type="button">延迟生成目标</button></div>
-        <div id="locator-late-result" class="fixture-controls" aria-live="polite"></div>
+        <div id="locator-late-result" class="fixture-controls"></div>
         <p id="locator-late-status" class="fixture-result" role="status" aria-live="polite" data-state="idle">尚未生成目标</p>
       </article>
     </div>
