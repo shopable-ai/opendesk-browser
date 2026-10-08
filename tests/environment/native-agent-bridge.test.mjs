@@ -97,3 +97,70 @@ test('run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records',a
   await drain();assert.equal(f.responses.at(-1).error.code,'E_PERMISSION');
   assert.equal(f.requests.length,0);
 });
+
+test('ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays',async t=>{
+  const f=mock();t.after(()=>f.service.dispose());await f.service.ready;
+  f.native().onMessage.fire({v:1,kind:'hello'});
+  const payload={registrationId:'registration-1',scriptId:'draft-a',
+    sourceUtf8:'async function main(){return 1}',expectedRevision:0};
+  f.native().onMessage.fire(message('save-ack-failure','script.save',payload));
+  for(let i=0;i<80&&!f.requests.length;i++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.requests.length,1,'request dispatched exactly once');
+  const originalSet=f.api.storage.local.set;
+  let blocked=false;
+  f.api.storage.local.set=async values=>{
+    if(!blocked && values[AGENT_LEDGER_KEY]?.['save-ack-failure']?.state==='ACKNOWLEDGED'){
+      blocked=true;throw new Error('simulated storage failure after actual Host ACK');
+    }
+    return originalSet(values);
+  };
+  f.service.acceptHostResponse(f.port,{type:'native-agent.response',
+    registrationId:'registration-1',requestId:'save-ack-failure',result:{revision:1,contentHash:'a'.repeat(64)}});
+  for(let i=0;i<80&&!f.responses.some(x=>x.requestId==='save-ack-failure');i++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(blocked,true);
+  const first=f.responses.findLast(x=>x.requestId==='save-ack-failure');
+  assert.equal(first?.error?.code,'E_EFFECT_UNKNOWN');
+  assert.equal(first?.error?.outcome,'OUTCOME_UNKNOWN',
+    'cannot claim confirmed failure after Host performed a mutation');
+  assert.equal(f.stored[AGENT_LEDGER_KEY]['save-ack-failure'].state,'OUTCOME_UNKNOWN');
+  f.native().onMessage.fire(message('save-ack-failure','script.save',payload));
+  for(let i=0;i<80&&f.responses.filter(x=>x.requestId==='save-ack-failure').length<2;i++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.requests.length,1,'duplicate request never dispatches after uncertain ACK');
+  assert.equal(f.responses.findLast(x=>x.requestId==='save-ack-failure')?.error?.outcome,'OUTCOME_UNKNOWN');
+});
+
+test('run.get and run.stop remain pinned to the original authenticated Host registration',async t=>{
+  const f=mock();t.after(()=>f.service.dispose());await f.service.ready;
+  f.native().onMessage.fire({v:1,kind:'hello'});
+  const payload={registrationId:'registration-1',
+    source:{kind:'draft',sourceUtf8:'async function main(){return 2}'},
+    target:{windowId:1,tabId:2,frameId:0,documentId:'d',
+      url:'https://example.test',origin:'https://example.test'},params:{}};
+  f.native().onMessage.fire(message('original-start','run.start',payload));
+  for(let i=0;i<80&&!f.requests.length;i++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.requests.length,1);
+  f.service.acceptHostResponse(f.port,{type:'native-agent.response',
+    registrationId:'registration-1',requestId:'original-start',
+    result:{runId:'owned-run',state:'running'}});
+  for(let i=0;i<80&&!f.stored[AGENT_LEDGER_KEY]?.['original-start']?.runId;i++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.stored[AGENT_LEDGER_KEY]['original-start'].state,'ACKNOWLEDGED');
+  const other={registrationId:'registration-2',
+    postMessage:()=>{throw new Error('wrong Host must never receive an Agent-owned run');}};
+  f.hostPorts.set('doc-2',other);
+  f.native().onMessage.fire(message('wrong-get','run.get',
+    {registrationId:'registration-2',runId:'owned-run'}));
+  for(let i=0;i<80&&!f.responses.some(x=>x.requestId==='wrong-get');i++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.responses.findLast(x=>x.requestId==='wrong-get')?.error?.code,'E_PERMISSION');
+  f.native().onMessage.fire(message('wrong-stop','run.stop',
+    {registrationId:'registration-2',runId:'owned-run'}));
+  for(let i=0;i<80&&!f.responses.some(x=>x.requestId==='wrong-stop');i++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.responses.findLast(x=>x.requestId==='wrong-stop')?.error?.code,'E_PERMISSION');
+  assert.equal(f.requests.length,1,'neither wrong-Host read nor stop is forwarded');
+  assert.equal(f.stored[AGENT_LEDGER_KEY]['wrong-stop'],undefined,
+    'unowned stop must not reserve a mutation journal entry');
+});
