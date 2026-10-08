@@ -1,0 +1,20 @@
+{
+  "pid": 31688,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-bgujiawj",
+  "executable": "/private/tmp/opendesk-r62-cft-01a11c24/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": [
+    "/private/tmp/opendesk-r62-cft-01a11c24/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-bgujiawj",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/dist/production",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/dist/production",
+    "http://127.0.0.1:43227/demo-form.html"
+  ],
+  "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-bgujiawj/chrome.log"
+}

@@ -23,12 +23,12 @@
     "SOURCE_CONFIRMED": "YES",
     "COMPONENT_TESTED": "PASS",
     "BUILD_VERIFIED": "PASS",
-    "NATIVE_CHROME_VERIFIED": "BLOCKED",
+    "NATIVE_CHROME_VERIFIED": "INCOMPLETE",
     "AI_AGENT_E2E_VERIFIED": "NOT_TESTED",
     "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
     "FINAL_FRAMEWORK_ACCEPTED": "NO"
   },
-  "updatedUtc": "2026-10-08T16:24:01.207528+00:00",
+  "updatedUtc": "2026-10-08T16:51:45.636494+00:00",
   "candidateHead": "ac9f188203bf65fbf42312f5ef44aef4e1fd1ee4",
   "native": {
     "extensionId": "ommbmilbbgcbffacjphkonfcagdhbigg",
@@ -40,7 +40,18 @@
     "resultId": null,
     "receipt": null,
     "workerRetirement": null,
-    "nativeUiBinding": "CFT154/155 getApp selected other windows on 43220/43112; no actions performed"
+    "nativeUiBinding": "CFT154/155 getApp selected other windows on 43220/43112; no actions performed",
+    "latestAttempt": {
+      "setupOwnExit": 0,
+      "trustedPermissionGranted": true,
+      "hostConnected": false,
+      "doctorExit": 1,
+      "bridgeStatusExit": 1,
+      "extensionId": "ommbmilbbgcbffacjphkonfcagdhbigg",
+      "runId": null,
+      "resultId": null,
+      "profileSeed": "/private/tmp/opendesk-r62-profile-seed-01a11c24"
+    }
   },
   "commands": [
     {
@@ -168,8 +179,8 @@
   "ownedNativeResourcesReleased": true,
   "evidenceCurrent": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/acceptance-summary.json",
   "remaining": [
-    "Coordinate exclusive existing Native Host and exact native window binding",
-    "Resolve meaning of trusted-input constraint without changing product contract",
+    "Diagnose real Native Host disconnect; no RunHost request has been dispatched",
+    "Obtain exclusive 43111 fixture matching this candidate before exact modern Task verification",
     "Real CLI target/Run/Result/Stop/CAS negative tests and Task lifecycle",
     "Independent final F3, original framework contracts and ZIP installation acceptance"
   ],
@@ -200,7 +211,7 @@
   },
   "productionPackageHash": "729c2bfe9b572e1d58d5e1f147e8d99d7f6118bbe6e3fdd7009429b5e05b12b7",
   "developmentPackageHash": "1ab55f14fd63bcc34899dc58ad92ff006aa81cc9a9fa54fa62626876c145bb6b",
-  "latestRemotePrObserved": "d061d1394c3f11bceb5df7127c5c287f1429f4aa",
+  "latestRemotePrObserved": "ecaa8b944ec4c49ca7b2900f674ab8d4c8ea8f7c",
   "remoteDiffAfterIntegratedHead": {
     "runtimeProductDiff": [],
     "diagnosticNativeTest": "Preserved; NOT_TESTED; native resource handoff pending"
@@ -219,7 +230,7 @@
     "developmentSwBytes": 324931,
     "scope": "Component/build evidence only; no native, task lifecycle, F3 or ZIP acceptance claim"
   },
-  "resourceStatus": "docs/framework/evidence/r62-local-01a11c24/resource-status.json",
+  "resourceStatus": "docs/framework/evidence/r62-local-01a11c24/native-ac9/resources.json",
   "delivery": {
     "pr11DraftRequired": true,
     "mainMerge": "NOT_AUTHORIZED_BY_ACCEPTANCE: native gates unmet",
@@ -227,5 +238,7 @@
     "branchCleanup": "NOT_ATTEMPTED: active candidate and parallel work must be retained"
   },
   "fixPr": "https://github.com/shopable-ai/opendesk-browser/pull/21",
-  "buildInputIdentityAfterDocumentationMerge": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/post-doc-merge-inputs.json"
+  "buildInputIdentityAfterDocumentationMerge": "docs/framework/evidence/r62-local-01a11c24/candidate-ac9f1882/post-doc-merge-inputs.json",
+  "fixPrState": "MERGED_INTO_PR11_DEVELOPMENT_BRANCH; main R6.2 integration not performed",
+  "nativeStageEvidence": "docs/framework/evidence/r62-local-01a11c24/native-ac9/native-stage-summary.json"
 }

@@ -1,0 +1,22 @@
+{
+  "checkedUtc": "2026-10-08T16:28:48.812352+00:00",
+  "ownedHead": "91ed579ff1ba58c52905ab4c22ffd5f0442afee5",
+  "doctorExitCode": 1,
+  "doctor": {
+    "local": {
+      "installed": true,
+      "extensionId": "oihfjkbnkhgcdeheabnnacjkjjjmiapf",
+      "browser": "cft",
+      "manifest": "/Users/shopme/Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+      "socketExists": false,
+      "error": null,
+      "note": "Socket existence does not prove an authenticated Chrome connection"
+    },
+    "connected": false
+  },
+  "ownNativeResources": [],
+  "ownerThread": "01a11c20-fe11-7d51-9b1e-5d4919f7c938",
+  "ownerLiveStatus": "inProgress; confirmed by wait_threads",
+  "nativeStatus": "BLOCKED: active owner is still doing Chrome restart acceptance",
+  "nativeEvidenceReused": false
+}
