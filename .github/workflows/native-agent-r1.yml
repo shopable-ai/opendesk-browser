@@ -36,8 +36,6 @@ jobs:
         run: node --test tests/environment/native-agent-wire.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-package.test.mjs tests/environment/compact-schema.test.mjs tests/environment/agent-to-task-fixtures.test.mjs
       - name: Shared Sidebar and Controller regressions
         run: node --test tests/environment/script-editor.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs
-      - name: Complete environment Node regression (does not replace native Chrome E2E)
-        run: npm test
       - name: Source and packaging contracts
         run: npm run check
       - name: Production WXT packaging
@@ -46,6 +44,8 @@ jobs:
         run: npm run build:dev
       - name: Verify actual production/development output
         run: npm run verify
+      - name: Complete environment Node regression (does not replace native Chrome E2E)
+        run: npm test
   macos-native-host-ipc:
     runs-on: macos-15
     timeout-minutes: 12
