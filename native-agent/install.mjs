@@ -53,7 +53,8 @@ export function setup(extensionId) {
     fs.copyFileSync(path.join(SOURCE_DIR,file),path.join(PRIVATE_DIR,file));
     fs.chmodSync(path.join(PRIVATE_DIR,file),0o600);
   }
-  const wrapper='#!/bin/sh\nexec '+JSON.stringify(process.execPath)+' '+JSON.stringify(path.join(PRIVATE_DIR,'native-host.mjs'))+' "$@"\n';
+  const quote = value => "'" + String(value).replaceAll("'", "'\\''") + "'";
+  const wrapper='#!/bin/sh\nexec '+quote(process.execPath)+' '+quote(path.join(PRIVATE_DIR,'native-host.mjs'))+' "$@"\n';
   fs.writeFileSync(path.join(PRIVATE_DIR,'native-host'),wrapper,{mode:0o700});
   fs.chmodSync(path.join(PRIVATE_DIR,'native-host'),0o700);
   writeJson(INSTALL_FILE,{name:HOST_NAME,extensionId,socketPath:SOCKET_FILE,
