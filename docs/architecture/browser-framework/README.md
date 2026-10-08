@@ -180,6 +180,9 @@ CURRENT Page SDK 使用来源文档/origin 授权，不是脚本级授权。TARG
 | [Legacy](legacy-src-bex-framework.md) | 旧 ChromePage、服务桥、脚本启动与页面注入事实 |
 | [CURRENT / TARGET](current-and-target-framework.md) | 现有组件、目标边界、状态 owner、验收切片 |
 | [迁移地图](legacy-to-target-map.md) | 旧能力逐项决定；不能把限定拒绝算作正向迁移成功 |
+| [第三方库迁移双表](third-party-library-map.md) | Legacy 加载环境、旧/新用户功能迁移、证据分层和 UNKNOWN |
+| [页面脚本与依赖决策](script-runtime-and-dependencies.md) | R3 决策 ID、USER_SCRIPT world、安全/依赖/停止边界 |
+| [R3 实施状态](implementation-status.md) | 最新 R3 独立候选的真实实现、未通过事项与交接 |
 
 有效 Contracts/Invariants 仍由已批准合同与源码 schema 负责；[机器账本](../../framework/source-compatibility-ledger.json) 保留迁移 ID；tests/evidence 负责真实验证。首页修订不删除来源事实、不将候选自动批准为产品合同。
 
