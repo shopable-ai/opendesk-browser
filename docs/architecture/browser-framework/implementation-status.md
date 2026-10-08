@@ -25,7 +25,7 @@
 | `src/scripting/user-scripts/page-program-package.js` | Candidate/revision/manifest/pageRules/dependencyLock 校验，USER_SCRIPT worldId，once-per-document 包装器，注册描述 | **IMPLEMENTED COMPONENT；未产品接线** |
 | `src/scripting/user-scripts/packaged-dependencies.js` | 固定扩展内 URL，校验 jQuery hash，代码不在 SW 执行 | **IMPLEMENTED COMPONENT；未 native 装载** |
 | `src/vendor/jquery-3.7.1.min.js` 与 `src/vendor/jquery-3.7.1.LICENSE.txt` | 官方 `jquery/jquery@3.7.1` 完整包和 MIT | **SOURCE_CONFIRMED；package 未本轮 build** |
-| `scripts/build-contract.mjs`、`scripts/build.mjs`、`scripts/verify-package.mjs` | 增加 vendor 静态资源精确 SHA256/byte allowlist，不开放网页 MAIN WAR，不变更原 11 条 WXT entry | **修改候选；BUILD_NOT_TESTED** |
+| `scripts/build-contract.mjs`、`scripts/build.mjs`、`scripts/verify-package.mjs`、`scripts/check-source.mjs` | 源码侧与产物侧分别校验 vendor 精确 SHA256/byte allowlist，校验 Runtime/Build 锁一致，不开放网页 MAIN WAR，不变更原 11 条 WXT entry | **修改候选；BUILD_NOT_TESTED** |
 | `tests/environment/page-program-package.test.mjs` | module 4 项安全/行为 Node 测试 | **4/4 local Node PASS，Chrome NOT_TESTED** |
 | `docs/architecture/browser-framework/third-party-library-map.md` | 完整移入 Legacy 双表审计、旧发现与 UNKNOWN；前言标识 main/Writers 已 superseded | **仓库分支已落盘；合 main 待审** |
 | `docs/architecture/browser-framework/script-runtime-and-dependencies.md` | 决策 ID、否决方案、Task 与 Page 分离、安全与验收 | **人工决策；非机器 PASS** |
