@@ -18,7 +18,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const parameterDrafts=new Map();
   // A late RunHost event must update the launching task, never the newly selected one.
   const taskNotices=new Map();
-  let runOwnerTaskId=null, runOwnerTitle='';
+  let runOwnerKey=null, runOwnerTitle='';
   const listeners=[];
   // This channel is a hint only. The recipient always re-reads the authoritative
   // Task Catalog through the existing Host Client; no task data crosses it.
@@ -79,15 +79,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const installedRow=()=>installed.find(row=>row.taskId===get('task-installed-list').value);
   const candidateFor=row=>row && catalog.find(value=>value.taskId===row.taskId&&value.version===row.version);
   function renderTaskStatus() {
-    const taskId=installedRow()?.taskId;
-    const otherOwner=runOwnerTaskId && runOwnerTaskId!==taskId && (running || (activeRunId && host.currentRun===activeRunId));
+    const row=installedRow(),selectedKey=row?identity(row):null;
+    const otherOwner=runOwnerKey && runOwnerKey!==selectedKey && (running || (activeRunId && host.currentRun===activeRunId));
     get('task-status').textContent=otherOwner
       ? `「${runOwnerTitle}」${activeRunId && host.currentRun===activeRunId?'正在运行，底部可停止':'正在准备，暂不可启动其他任务'}`
-      :taskId?taskNotices.get(taskId)||'':'';
+      :selectedKey?taskNotices.get(selectedKey)||'':'';
   }
-  function setTaskNotice(taskId,message) {
-    if(!taskId)return;
-    taskNotices.set(taskId,message);
+  function setTaskNotice(taskKey,message) {
+    if(disposed||!taskKey)return;
+    taskNotices.set(taskKey,message);
     renderTaskStatus();
   }
   const formatCandidate=row=>{
@@ -471,9 +471,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       ?latest.outcome?.ok?textValue(decodeValue(latest.outcome.valueWire)):
         `${latest.outcome?.error?.code || 'E_TASK'}：${latest.outcome?.error?.message || '执行失败'}`
       :'最近一次运行尚无可显示结果';
-    if(activeRunId&&row.taskId===runOwnerTaskId&&runs.some(value=>value.runId===activeRunId)){
+    if(activeRunId&&identity(row)===runOwnerKey&&runs.some(value=>value.runId===activeRunId)){
       const live=matching.find(value=>value.runId===activeRunId);
-      if(live)setTaskNotice(row.taskId,`本次任务：${runStateNames[live.state]||live.state}`);
+      if(live)setTaskNotice(identity(row),`本次任务：${runStateNames[live.state]||live.state}`);
     }
     update();
   }
@@ -545,9 +545,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       // The native permission request must begin within the trusted click.
       permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
     }catch(error){fail(error);return;}
-    running=true;activeRunId=null;runOwnerTaskId=chosen.taskId;runOwnerTitle=chosen.title||chosen.taskId;
+    running=true;activeRunId=null;runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
     get('task-result-panel').hidden=true;update();
-    setTaskNotice(chosen.taskId,'正在授权并重新验证冻结的目标网页');
+    setTaskNotice(runOwnerKey,'正在授权并重新验证冻结的目标网页');
     (async()=>{
       if(!await permission)throw {code:'E_PERMISSION',message:'用户拒绝了网站授权'};
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
@@ -563,9 +563,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           expectedUrl:captured.url,expectedWindowId:captured.windowId},
         deadlineAt:Date.now()+30000});
       activeRunId=claim.runId;
-      setTaskNotice(chosen.taskId,`运行中：${resolved.manifest.title} · v${resolved.version}`);
+      setTaskNotice(runOwnerKey,`运行中：${resolved.manifest.title} · v${resolved.version}`);
       await host.completion;
-    })().catch(error=>setTaskNotice(chosen.taskId,`${error?.code||'E_TASK'}：${error?.message||error}`)).finally(async()=>{
+    })().catch(error=>setTaskNotice(identity(chosen),`${error?.code||'E_TASK'}：${error?.message||error}`)).finally(async()=>{
       running=false;
       if(disposed)return;
       try{await refreshHistory();}catch(error){fail(error);}
@@ -689,7 +689,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribeRun=host.subscribe(value=>{
     if(disposed)return;
     if(value?.runId&&value.runId===activeRunId) {
-      setTaskNotice(runOwnerTaskId,`任务状态：${runStateNames[value.state]||value.state||'运行中'}`);
+      setTaskNotice(runOwnerKey,`任务状态：${runStateNames[value.state]||value.state||'运行中'}`);
       if(terminal.has(value.state))refreshHistory().catch(fail);
     }
     renderTaskStatus();update();
