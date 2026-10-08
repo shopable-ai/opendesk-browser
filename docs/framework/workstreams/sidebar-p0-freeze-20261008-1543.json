@@ -42,12 +42,25 @@
     "IndexedDB": "NOT_TESTED",
     "browserRestart": "NOT_TESTED",
     "F3": "NOT_TESTED",
-    "githubActions": "REQUESTED: targeted workflow on separate candidate branch; execution result must be checked, not assumed"
+    "githubActions": {
+      "status": "PASS_TARGETED_NODE_ONLY",
+      "runId": 37746092159,
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37746092159",
+      "jobId": 113207814385,
+      "testedCommit": "63271308f550e1a08f7c6b34a8dd40ae71ef7169",
+      "command": "node --test tests/environment/sidebar-draft-runhost.test.mjs tests/environment/script-editor.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/run-host-recovery.test.mjs",
+      "tests": 82,
+      "pass": 82,
+      "fail": 0,
+      "conclusion": "success",
+      "evidenceType": "GitHub Actions Linux Node; NOT native Chrome Side Panel"
+    }
   },
   "integration": {
     "mergeMain": "NO",
     "mergePr4": "NO",
-    "reason": "PR4 native unverified, local main-v1 unknown; preserve peer branches/worktrees; work is only a candidate"
+    "reason": "PR4 native unverified, local main-v1 unknown; preserve peer branches/worktrees; work is only a candidate",
+    "nativeGate": "BLOCKED: actual Mac worktree main-v1 and native Chrome/CFT inaccessible; P0 NOT_NATIVE_TESTED; no main merge"
   },
   "nextActions": [
     "In Mac worktree compare local main-v1 implementation with PR#4 entry contract before integration",
