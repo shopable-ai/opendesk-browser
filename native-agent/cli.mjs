@@ -41,8 +41,10 @@ async function main(args) {
   const [command,...rest]=args;
   if(command==='setup'||command==='update') {
     const idx=rest.indexOf('--extension-id');
-    if(idx<0)throw new WireError('E_EXTENSION_ID','Usage: setup --extension-id <actual Chrome ID>');
-    return setup(rest[idx+1]);
+    if(idx<0)throw new WireError('E_EXTENSION_ID','Usage: setup --extension-id <actual Chrome ID> [--browser chrome|cft]');
+    const browserIndex=rest.indexOf('--browser');
+    const browser=browserIndex<0?'chrome':rest[browserIndex+1];
+    return setup(rest[idx+1],browser);
   }
   if(command==='cleanup'||command==='uninstall')return cleanup();
   if(command==='doctor') {
