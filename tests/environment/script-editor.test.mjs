@@ -27,7 +27,7 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}) {
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view};
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
-  const traces=[], permissions=[], starts=[], executions=[], snapshots=[], commits=[], terminal=deferred();
+  const traces=[], permissions=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate;
   const tabs=new Map([[11,{id:11,windowId:7,url:'https://a.example/',title:'A',incognito:false}],[12,{id:12,windowId:7,url:'https://b.example/',title:'B',incognito:false}]]);
   const api={runtime:{getURL:p=>'chrome-extension://extension/'+p},permissions:{request:request=>{permissions.push(request);traces.push('permission');return permission;}},
@@ -65,14 +65,19 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}) {
     async retireControllerTarget({runId}){persisted.runs.find(row=>row.runId===runId).retirementState='released';return {state:'released',releaseCount:1};},
     controllerOperation:async()=>{throw Error('Unexpected page operation');}
   };
-  const client={ready:Promise.resolve(),controller,runCommands:{},storage:{},pagePort:{},exportBridge:{},entitlement:{},resourceSnapshot:()=>({})};
+  const client={ready:Promise.resolve(),controller,runCommands:{},storage:{},pagePort:{},exportBridge:{},entitlement:{},resourceSnapshot:()=>({}),
+    async request(type,payload){
+      if(type!=='previewPageScript')throw Error('Unexpected preview request: '+type);
+      previews.push(structuredClone(payload));
+      return {state:'preview-evaluated',resultText:'{"ok":true}',sourceHash:'a'.repeat(64)};
+    }};
   const target=createCurrentPageTarget({api});await target.ready;
   const editor=createScriptEditor({client,currentPageTarget:target,api,document:doc,hostFactory:options=>createRunHost({...options,controllerFactory:({context})=>({
     execute:async(source,params)=>{executions.push({source,params});context.signal.addEventListener('abort',()=>terminal.resolve({status:context.signal.reason.code==='E_HOST_CLOSED'?'host-closed':'stopped'}),{once:true});return terminal.promise;},
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
   })})});
   await tick();
-  return {find,editor,target,persisted,api,view,permissions,starts,executions,snapshots,commits,traces,
+  return {find,editor,target,persisted,api,view,permissions,starts,executions,snapshots,commits,previews,traces,
     click:async id=>{find(id).fire('click',{isTrusted:true});await tick();},
     finish:async value=>{terminal.resolve({status:'succeeded',value:controlEncode(value)});await editor.host.completion;await tick();},
     setPermission:value=>{permission=value;},setSaveGate:value=>{saveGate=value;},setLoadGate:value=>{loadGate=value;},
@@ -223,4 +228,59 @@ test('the permission request remains synchronous in the click fixture; denied pe
   f.find('script-run').fire('click',{isTrusted:true});assert.equal(f.permissions.length,1);assert.equal(f.starts.length,0);
   permission.resolve(false);await tick();await tick();assert.match(f.find('script-status').textContent,/E_PERMISSION/);assert.equal(f.starts.length,0);
   f.find('script-params').value='invalid json';await f.click('script-run');assert.equal(f.permissions.length,1);assert.equal(f.executions.length,0);
+});
+
+test('DOM preview binds frozen source, dependency choice and exact current document from trusted click',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const pending=deferred();f.setPermission(pending.promise);
+  const source='async function main(){document.title="frozen";return document.title;}';
+  f.find('script-source').value=source;
+  f.find('page-preview-jquery').checked=true;
+  f.find('page-preview-run').fire('click',{isTrusted:false});
+  assert.equal(f.permissions.length,0,'untrusted event must never open a permission prompt');
+  f.find('page-preview-run').fire('click',{isTrusted:true});
+  assert.equal(f.permissions.length,1,'only explicit native user gesture requests website permission');
+  f.find('script-source').value='async function main(){return "modified";}';
+  f.find('page-preview-jquery').checked=false;
+  assert.equal(f.find('page-preview-run').disabled,true,'no overlapping user-script preview while permission is pending');
+  assert.equal(f.find('script-run').disabled,true,'do not start Controller while page preview is pending');
+  f.find('script-run').fire('click',{isTrusted:true});
+  assert.equal(f.starts.length,0,'trusted click must not start Controller while preview is pending');
+  pending.resolve(true);
+  await tick();await tick();
+  assert.equal(f.previews.length,1);
+  assert.equal(f.previews[0].sourceUtf8,source);
+  assert.equal(f.previews[0].withJquery,true);
+  assert.deepEqual(f.previews[0].target,{tabId:11,frameId:0,documentId:'doc-11',
+    expectedUrl:'https://a.example/',expectedWindowId:7});
+  assert.match(f.find('page-preview-status').textContent,/不是正式 Task/);
+  assert.equal(f.starts.length,0,'preview must not create a Controller Run');
+  assert.equal(f.commits.length,0,'preview must not Save a revision');
+});
+
+test('DOM preview refuses to inject when the active document changes while permission is pending',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const pending=deferred();f.setPermission(pending.promise);
+  f.find('script-source').value='async function main(){return document.title;}';
+  f.find('page-preview-run').fire('click',{isTrusted:true});
+  await f.switchTab();
+  pending.resolve(true);
+  await tick();await tick();
+  assert.equal(f.previews.length,0,'stale document cannot be sent to the Broker');
+  assert.match(f.find('page-preview-status').textContent,/E_DOCUMENT_STALE/);
+});
+
+test('Developer Stop cannot cancel the formal Task or another view using the shared RunHost',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const selected=f.target.capture();
+  const claim=await f.editor.host.start({source:{kind:'draft',sourceUtf8:'return "other view";'},
+    params:{value:1},target:{mode:'borrowed',tabId:selected.tabId,frameId:0,
+      documentId:selected.documentId,expectedUrl:selected.url,expectedWindowId:selected.windowId}});
+  assert.equal(typeof claim.runId,'string');
+  assert.equal(f.find('script-stop').disabled,true,'this editor has not admitted that run');
+  f.find('script-stop').fire('click',{isTrusted:true});
+  await tick();
+  assert.equal(f.traces.some(row=>Array.isArray(row)&&row[0]==='durable-stop'),false);
+  assert.equal(f.editor.host.currentRun,claim.runId,'foreign run must remain active');
+  await f.finish({ok:true});
 });

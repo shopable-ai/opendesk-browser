@@ -28,7 +28,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
   let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
-  let scriptListSequence = 0;
+  let scriptListSequence = 0, ownedDraftRunId = null;
   let currentRevision, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -67,9 +67,9 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-save').disabled = editingBusy; find('script-load').disabled = editingBusy;
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
-    find('script-run').disabled = editingBusy || running || !projection?.slotAvailable || !!host.currentRun ||
+    find('script-run').disabled = editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
       !find('script-source').value.trim() || mode.value === 'current' && currentPageState?.status !== 'available';
-    find('script-stop').disabled = stopping || !host.currentRun;
+    find('script-stop').disabled = stopping || !ownedDraftRunId || host.currentRun !== ownedDraftRunId;
     find('page-preview-run').disabled = previewBusy || editingBusy || running || !!host.currentRun ||
       !find('script-source').value.trim() || currentPageState?.status !== 'available';
     find('script-owned-url').disabled = mode.value !== 'owned';
@@ -340,7 +340,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     finally {downloading = false; update();}
   }
   function start(event) {
-    if (!event.isTrusted || disposed || running || editingBusy || host.currentRun) return;
+    if (!event.isTrusted || disposed || running || previewBusy || editingBusy || host.currentRun) return;
     let chosen, params, permission, sourceUtf8;
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
@@ -354,7 +354,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     } catch (error) { fail(error); return; }
     const version = selectionVersion;
     let startError, admittedRunId;
-    running = true; renderTask(null); update(); display('authorizing',`正在授权并验证已冻结候选：${chosen.url}`);
+    ownedDraftRunId = null; running = true; renderTask(null); update(); display('authorizing',`正在授权并验证已冻结候选：${chosen.url}`);
     (async () => {
       if (!await permission) throw {code:'E_PERMISSION',message:'授权被拒绝，未启动任务'};
       if (disposed) throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，未启动任务'};
@@ -364,6 +364,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
       admittedRunId = claim.runId;
+      ownedDraftRunId = claim.runId;
       if (disposed) return;
       find('script-run-id').value = claim.runId;
       renderTask(claim);
@@ -435,9 +436,9 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   listen(find('script-run'), 'click', start);
   listen(find('page-preview-run'), 'click', previewPage);
   on('script-stop','click',async () => {
-    if (!host.currentRun || stopping) return;
+    if (!ownedDraftRunId || host.currentRun !== ownedDraftRunId || stopping) return;
     stopping = true; update(); display('stopping','正在提交停止并等待持久收尾…');
-    try {await host.stop({runId:host.currentRun,controller:true});}
+    try {await host.stop({runId:ownedDraftRunId,controller:true});}
     finally {stopping = false; update();}
   });
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
