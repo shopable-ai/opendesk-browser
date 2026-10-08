@@ -43,11 +43,11 @@
         <button type="button" class="category-chip" data-catalog-filter="candidate">待验证</button>
       </div>
       <p id="task-catalog-count" class="hint"></p>
-      <div id="task-catalog-cards" class="catalog-card-grid" aria-label="本地任务列表"></div>
-      <label for="task-package-file">导入任务包 JSON 或 JavaScript 草稿</label>
-      <input type="file" id="task-package-file" accept=".json,.js,application/json,text/javascript">
-      <label for="task-catalog-list" class="visually-hidden">候选版本</label><select id="task-catalog-list" hidden><option value="">尚无任务候选</option></select>
-      <div id="task-catalog-detail" class="task-detail" aria-live="polite">选中任务后查看作者、网站、权限、版本及验证状态</div>
+      <div class="catalog-layout">
+        <div id="task-catalog-cards" class="catalog-card-grid" aria-label="本地任务列表"></div>
+        <aside class="catalog-reader" aria-label="选中任务详情与安装">
+          <label for="task-catalog-list" class="visually-hidden">候选版本</label><select id="task-catalog-list" hidden><option value="">尚无任务候选</option></select>
+          <div id="task-catalog-detail" class="task-detail" aria-live="polite">选中任务后查看作者、网站、权限、版本及验证状态</div>
       <div class="catalog-install"><button type="button" id="task-install" disabled>安装选定版本</button></div>
       <details id="catalog-verification"><summary>开发者：核对证据与设为本地可用</summary>
         <label for="task-verify-run">已完成的真实运行 ID</label>
@@ -55,6 +55,10 @@
         <div class="row"><button type="button" id="task-verify" disabled>核对运行证据</button>
           <button type="button" id="task-publish" disabled>设为本地可用</button></div>
       </details>
+        </aside>
+      </div>
+      <label for="task-package-file">导入任务包 JSON 或 JavaScript 草稿</label>
+      <input type="file" id="task-package-file" accept=".json,.js,application/json,text/javascript">
       <p id="task-catalog-status" role="status">仅本机验证，不代表第三方审核或签名认证</p>
       <div class="row"><button type="button" id="task-catalog-refresh">刷新目录</button></div>
     </section>
