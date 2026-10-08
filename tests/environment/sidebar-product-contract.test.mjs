@@ -37,7 +37,7 @@ test('trusted Side Panel run sends the exact unsaved draft to the original Contr
     read('src/ui/tool.html'), read('src/ui/script-editor.js'),
     read('src/run-host.js'), read('src/platform/host/controller-methods.js')]);
   assert.match(html,/id="script-run" disabled>运行草稿/);
-  assert.match(editor,/sourceUtf8 = find\('script-source'\)\.value/);
+  assert.match(editor,/sourceUtf8 = programSource\.source\(\)/);
   assert.match(editor,/host\.start\(\{source:\{kind:'draft',sourceUtf8\}/);
   assert.match(editor,/permissions\.request/);
   assert.doesNotMatch(editor,/请先保存或加载要运行的持久版本/);

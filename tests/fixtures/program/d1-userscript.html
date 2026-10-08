@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>OpenDesk D1 dependency fixture</title>
+<h1>D1 dependency fixture</h1>
+<output id="d1-result">尚未运行</output>
+<button id="navigate" type="button">重新加载文档</button>
+<script>
+  window.$ = function siteDollar() {};
+  window.jQuery = function siteJquery() {};
+  window.__d1MainReferences = {dollar: window.$, jquery: window.jQuery};
+  document.querySelector('#navigate').addEventListener('click', () => location.reload());
+</script>
+</html>

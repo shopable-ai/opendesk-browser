@@ -1,0 +1,35 @@
+✔ startup permission check cannot reconnect after permission-removed (3.444375ms)
+✔ startup permission check cannot reconnect after dispose (1.666042ms)
+✔ reserved mutation never dispatches across disable (10.387459ms)
+✔ reserved mutation never dispatches across permission-removed (6.282125ms)
+✔ reserved mutation never dispatches across disconnect-reconnect (6.190041ms)
+✔ reserved mutation never dispatches across disable-enable (6.277791ms)
+✔ reserved mutation never dispatches across dispose (6.213458ms)
+✔ Native permission is rechecked immediately before dispatch (5.180917ms)
+✔ a late disconnect from an old Native port cannot cancel a new connection request (11.45175ms)
+✔ a pending enable permission check cannot overwrite disable (2.4115ms)
+✔ a pending enable permission check cannot overwrite permission-removed (1.436958ms)
+✔ a pending enable storage write cannot persist over a newer disable (1.428083ms)
+✔ an old Host ACK cannot match a new connection read with the same external requestId (17.246541ms)
+✔ enabled Native handshake sends version and correct extension identity (1.894375ms)
+✔ default-off requires a packaged Settings sender and real granted Native permission (0.345917ms)
+✔ request hash journal deduplicates after real Host admission; conflicting bytes fail (10.436792ms)
+✔ dispatched but unanswered calls are never retried, even if same id reappears (7.165458ms)
+✔ no live registered Host means no run reservation or Worker execution (1.568375ms)
+✔ run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records (1.490958ms)
+✔ ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays (18.122041ms)
+✔ run.get and run.stop remain pinned to the original authenticated Host registration (23.22975ms)
+✔ current target is live Sidebar snapshot, not active tab chosen by CLI (2.018333ms)
+✔ external draft uses exact RunHost with frozen borrowed target and controller requestId (0.379834ms)
+✔ Host ACK correlation preserves the external Controller admission requestId (0.242292ms)
+✔ permissions and document id fail before admission (no Chrome prompt) (0.511333ms)
+✔ saved requires pinned exact revision and source hash (0.339333ms)
+✔ run.get removes unrelated Sidebar run history from Controller snapshot projection (0.196833ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 242.689917

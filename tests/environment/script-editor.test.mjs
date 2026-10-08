@@ -336,3 +336,29 @@ test('Developer Stop cannot cancel the formal Task or another view using the sha
   assert.equal(f.editor.host.currentRun,claim.runId,'foreign run must remain active');
   await f.finish({ok:true});
 });
+
+test('project import displays source while Save and Run freeze compiled bytes and the original hash',async t=>{
+  const {programDraft}=await import('../fixtures/program-draft.mjs');
+  const f=await fixture();t.after(()=>f.dispose());const draft=await programDraft();
+  await f.editor.importDraft(draft);
+  assert.equal(f.find('script-source').readOnly,true);
+  assert.equal(f.find('script-source').value,draft.authoring.files[0].sourceUtf8);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  await f.click('script-save');
+  assert.equal(f.persisted.scripts[0].sourceUtf8,draft.sourceUtf8);
+  assert.equal(f.persisted.scripts[0].contentHash,draft.build.sourceHash);
+  await f.click('script-run');
+  assert.equal(f.starts[0].source.sourceUtf8,draft.sourceUtf8);
+  assert.equal(f.persisted.runs[0].revision.sourceHash,draft.build.sourceHash);
+  await f.finish(42);
+  await f.click('script-load');
+  assert.equal(f.find('script-source').value,draft.authoring.files[0].sourceUtf8);
+});
+
+test('invalid project envelope leaves the previous editor source and no execution or saved revision',async t=>{
+  const {programDraft}=await import('../fixtures/program-draft.mjs');
+  const f=await fixture();t.after(()=>f.dispose());const before=f.find('script-source').value;
+  const draft=await programDraft();draft.build.sourceHash='0'.repeat(64);
+  await assert.rejects(f.editor.importDraft(draft),error=>error.code==='E_PROGRAM_HASH');
+  assert.equal(f.find('script-source').value,before);assert.equal(f.starts.length,0);assert.equal(f.persisted.scripts.length,0);
+});

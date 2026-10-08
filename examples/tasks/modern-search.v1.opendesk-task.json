@@ -1,0 +1,42 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "sample.modern-search",
+    "version": "1.0.0",
+    "title": "示例：现代 Locator 搜索任务",
+    "description": "在本地演示页用 Label/Role Locator 覆盖关键词、单次搜索并等待结果；需真实回执才能发布。",
+    "author": "OpenDesk Browser",
+    "source": "local-demo",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "keyword": {
+          "type": "string",
+          "title": "搜索关键词",
+          "description": "在演示搜索框中填写的文字",
+          "minLength": 1,
+          "maxLength": 60,
+          "default": "OpenDesk"
+        }
+      },
+      "required": [
+        "keyword"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "5bce863a91c5abd26513dc19a50c55eeb068eb030c7e0aa5a664b9f8e902984a",
+  "sourceUtf8": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n"
+}

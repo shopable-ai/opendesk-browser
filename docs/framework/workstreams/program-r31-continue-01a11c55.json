@@ -1,0 +1,282 @@
+{
+  "schemaVersion": 1,
+  "workstreamId": "program-r31-continue-01a11c55",
+  "branch": "agent/program-r31-continue-01a11c55",
+  "status": "DRAFT_REVIEW_READY_COMPONENT_NATIVE_NOT_TESTED",
+  "workspace": "/Users/shopme/.codex/worktrees/program-r31-continue/opendesk-browser",
+  "sourceCandidateHead": "1df0650e8fc61ab781ee8249f9e1a6a73ce4535d",
+  "continuedFrom": "0af5eae9bb43da279fb0536e1401bb66c902ec0d",
+  "synchronizedMainSha": "945cf92726fcadcd60ecb3dc70729029fb9f28e6",
+  "parentPullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/22",
+  "scope": [
+    "Program source/executable separation retained",
+    "Read-only historical evidence checker and cross-chat entry",
+    "Preserve native fixture bytes outside the canonical manual-page directory"
+  ],
+  "historicalEvidence": {
+    "index": "docs/framework/workstreams/program-r31-01a11c05-evidence.json",
+    "indexSha256": "d7de1b99c00bb0321417c8eaac20e9a6b2eb6a743fc00308f6036f2ccfde9099",
+    "archiveRoot": "/Users/shopme/Documents/workspace/opendesk-browser-program-r3",
+    "sourceHead": "30754f86938608163b0e2e6508d3f619dffbe517",
+    "packageSha256": "7f83330d5e45375ba9659de02ec35f9c14f283c8788c0f5cbf8b37fe3fe04118",
+    "filesVerified": 89,
+    "caseLinksVerified": 19,
+    "decision": "REUSE_RECORDED_COMPONENT_PASS",
+    "acceptanceLevel": "historical component only"
+  },
+  "currentCandidateImpact": {
+    "decision": "AFFECTED_INPUTS",
+    "report": "docs/framework/evidence/program-r31-continue-01a11c55/current-candidate-1df0650e-impact.json",
+    "changedInputs": [
+      {
+        "path": "examples/tasks/d1-userscript.html",
+        "kind": "fixture",
+        "testedSha256": "68693f07b071b0f8c4a75173fe4a7dc5769c9ce4e77195e89d509644478b4045",
+        "candidateSha256": null,
+        "testedMode": "100644",
+        "candidateMode": null,
+        "reason": "Product file mode/type changed"
+      },
+      {
+        "path": "examples/tasks/demo-form.html",
+        "kind": "fixture",
+        "testedSha256": "c761bee838a389ca4d2130b9a48919d45504263ec1a8728dcf038340e5fe7b9d",
+        "candidateSha256": "261465f29cbd080e4b682c949d6c4cf9f1bce2ec0866e356186d7c4e43cf4ad6",
+        "testedMode": "100644",
+        "candidateMode": "100644",
+        "reason": "Product input bytes changed"
+      },
+      {
+        "path": "manifest.json",
+        "kind": "product-or-build",
+        "testedSha256": "1e8ca99f83e43e2e17c83ede7d12f882c3b0f710d845ac2c3fcb17d388807fb3",
+        "candidateSha256": "ec86a19c88e975fc692d18789e339b65c6eec94f9d968a52d5d484bb991d7160",
+        "testedMode": "100644",
+        "candidateMode": "100644",
+        "reason": "Product input bytes changed"
+      },
+      {
+        "path": "scripts/verify-package.mjs",
+        "kind": "product-or-build",
+        "testedSha256": "417a7e3f8b102cd48303a703d0140836281f6d97b372da8be65f2621dabd522f",
+        "candidateSha256": "f1ecd0f0de5475fd935b7f0c2a0ffe9d8ba5b0ffa313d534183864dbd649a06e",
+        "testedMode": "100644",
+        "candidateMode": "100644",
+        "reason": "Product input bytes changed"
+      },
+      {
+        "path": "src/platform/chrome/permission-gate.js",
+        "kind": "product-or-build",
+        "testedSha256": null,
+        "candidateSha256": "d1b2984d0926ea7c3724be7f5a23b6446b8b592327d10999c98ced9ab76dcd59",
+        "testedMode": null,
+        "candidateMode": "100644",
+        "reason": "Product file mode/type changed"
+      },
+      {
+        "path": "src/ui/site-access.js",
+        "kind": "product-or-build",
+        "testedSha256": "190a27428f4ec601a119f8fdc0c772c2cb7f1dc7c8de930d55d95f77e99c3770",
+        "candidateSha256": "f15cd0e177ba609725221a2b338986339cd56537c11bf0df8bf0918cab8e199d",
+        "testedMode": "100644",
+        "candidateMode": "100644",
+        "reason": "Product input bytes changed"
+      },
+      {
+        "path": "src/ui/tool-shell.js",
+        "kind": "product-or-build",
+        "testedSha256": "b1de24372a30fa9545862e50047d280a40d0743a8ae832bb2f37ffef7beee0e2",
+        "candidateSha256": "4144b389a983affef8aaf9a99284ee76c5d65b3c7ccfd31af67c1642820fa677",
+        "testedMode": "100644",
+        "candidateMode": "100644",
+        "reason": "Product input bytes changed"
+      },
+      {
+        "path": "src/ui/tool.html",
+        "kind": "product-or-build",
+        "testedSha256": "41c5ba5c6ef0a6ebb7b84ce8b990c3fd9aed186e81361e3aec93948291fcd978",
+        "candidateSha256": "c27502c481bdc9029331aa1dda32bc06985dabe1edbacb3a64ddde1536722ac9",
+        "testedMode": "100644",
+        "candidateMode": "100644",
+        "reason": "Product input bytes changed"
+      },
+      {
+        "path": "tests/fixtures/program/d1-userscript.html",
+        "kind": "product-or-build",
+        "testedSha256": null,
+        "candidateSha256": "68693f07b071b0f8c4a75173fe4a7dc5769c9ce4e77195e89d509644478b4045",
+        "testedMode": null,
+        "candidateMode": "100644",
+        "reason": "Product file mode/type changed"
+      }
+    ],
+    "cases": [
+      "single-http-200",
+      "single-page-read",
+      "controller-development",
+      "helper-view-keeps-artifact",
+      "controller-production",
+      "controller-dom-and-http",
+      "raw-runtime-stack",
+      "http-503",
+      "locator-option-reject",
+      "locator-missing-deadline",
+      "stop-pinned-target",
+      "panel-reopen-run",
+      "helper-stack-map",
+      "saved-bytes-draft-run",
+      "single-page-dom",
+      "page-development",
+      "page-production",
+      "classic-top-level",
+      "save-compiled-bytes"
+    ],
+    "automaticRetest": false,
+    "scope": "Conservative product/build scope, requiring responsible consumer review before narrowing"
+  },
+  "validation": {
+    "checkerTests": "PASS 13/13",
+    "latestMainFixtureTests": "PASS 11/11",
+    "unchangedTargetedTests": "PASS 89; reused from initial run",
+    "initialTargetedTests": "108/109; canonical-page conflict retained as failure",
+    "fixtureAndCheckerFollowup": "PASS 20/20 after fixture move",
+    "sourceCheck": "PASS 142 files",
+    "driverSyntax": "PASS",
+    "developmentBuild": "PASS",
+    "productionBuild": "PASS",
+    "packageVerify": "PASS",
+    "productNative": "NOT_TESTED",
+    "finalF3": "NOT_TESTED",
+    "zipInstall": "NOT_TESTED"
+  },
+  "builds": {
+    "productionPackageSha256": "a13c6143993fd4798957a8e538d5060cb28145000b23d94dc7141d41a3df20c3",
+    "developmentPackageSha256": "51f24549b373ce0d041ef78a1218472eddb26877a4f6068b3004d2ec862794392",
+    "builtBeforeLaterVerificationOnlyChanges": true,
+    "changedBuildCheckpointInput": [
+      "scripts/check-program-evidence.mjs"
+    ],
+    "fullFinalSourceFingerprintClaimed": false,
+    "historicalTrackedCheckpointsPreserved": true
+  },
+  "fixtureMove": {
+    "from": "examples/tasks/d1-userscript.html",
+    "to": "tests/fixtures/program/d1-userscript.html",
+    "sha256": "68693f07b071b0f8c4a75173fe4a7dc5769c9ce4e77195e89d509644478b4045",
+    "legacyCompatibilityExpanded": false
+  },
+  "ownership": {
+    "writer": "01a11c55-06d7-75c2-8847-b1dd4d11d5c7",
+    "oldWorkspace": "READ_ONLY",
+    "main": "NOT_MODIFIED",
+    "oldBranch": "NOT_MODIFIED",
+    "browserProfile": "NONE_CREATED_OR_USED",
+    "ports": "NONE_BOUND",
+    "database": "NONE_OPENED",
+    "macOSInput": "NONE_USED"
+  },
+  "otherChatOwnership": [
+    {
+      "title": "完成 R6.2 本地验收闭环",
+      "threadId": "01a11c20-fe11-7d51-9b1e-5d4919f7c938",
+      "scope": "saved-version / supplemental installed Task / restart on their candidate; not accepted for this candidate"
+    },
+    {
+      "title": "完成 OpenDesk R6.3 原生验收与集成",
+      "threadId": "01a11c43-cf5c-7503-b9c1-59a1548da870",
+      "scope": "Native admission and serialized main integration"
+    }
+  ],
+  "remaining": [
+    "Current merged candidate saved-version reload",
+    "Current merged candidate Installed Task full chain",
+    "Same-profile full browser restart",
+    "Formal six-resource baseline",
+    "Framework full contract / independent final F3 / ZIP installation"
+  ],
+  "deferred": [
+    "Legacy jQuery version/plugin compatibility; docs/framework/backlog/legacy-jquery-compatibility.md"
+  ],
+  "rawFiles": [
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/build-development-checkpoint.json",
+      "bytes": 28228,
+      "sha256": "72e4388fe53a70fd4b27ae1e202e1eadcf11ddecffa23a04f87569e90f03afd5"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/build-development.log",
+      "bytes": 4381,
+      "sha256": "66788b9115cadc0e7e82bb7434e6631fa0d56cbe415499804313d4a23801fd41"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/build-production-checkpoint.json",
+      "bytes": 26333,
+      "sha256": "738b44059763d5fd2ba7869769dcb1939480a54b21c71ee4d8224314e6fe2dac"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/build-production.log",
+      "bytes": 3342,
+      "sha256": "ccbd8f83a9f345eec54824a9927b7c35e36eadc7ebf973c517d9f150b2a6eb07"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/checker-review-tests.log",
+      "bytes": 1281,
+      "sha256": "941f4b9b501be5f0dc0d9a0a951f40f68c2d62f389606487005e6a39acff959a"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/current-candidate-1df0650e-impact.json",
+      "bytes": 32818,
+      "sha256": "db84e03290235ef5bccf86b8a317e798128fef4da7315ff3885aa1dc0e820551"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/current-candidate-impact.json",
+      "bytes": 32818,
+      "sha256": "4e2e5cebbf1db0458b86c7efa705956902f1af72b26a6a3d0b6952945011f23f"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/current-working-tree-impact.json",
+      "bytes": 32790,
+      "sha256": "8ecd081e2848740c6b3218b4213f7707e3afff0ab0e1643a2f71e6c7becad6de"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/final-main-fixture-tests.log",
+      "bytes": 1198,
+      "sha256": "ee1e9c8d850d1136bc54af1a2fe6d91de2e8248a364aec1f276858e57e47da2a"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/historical-reuse.json",
+      "bytes": 29853,
+      "sha256": "b695b52e7379d024b4645b77873a163b5ae2bdcb46dee0ff835bb5cfe3827fd9"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/latest-main-fixture-tests.log",
+      "bytes": 1203,
+      "sha256": "efd4ef1ac8d0d7e3e08d56b02a3651564ddcf8d9c57f0915078d07643a480dd8"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/package-verify.log",
+      "bytes": 10024,
+      "sha256": "4afb56c30cd46039281a8dc8db74f6875c787a327c87091e0d4ef4f09615fc31"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/source-check.log",
+      "bytes": 208,
+      "sha256": "e247a77ba7eada88e9033a690a7e949fadcedda19a9f06edccc6fd42b37897ad"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/targeted-followup.log",
+      "bytes": 1945,
+      "sha256": "27c43a3d977220d8177becf6ea46c0038b241790087973eca6e828a252f7a496"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/targeted-tests.log",
+      "bytes": 11686,
+      "sha256": "7b82ae0c3208e505d33407d0ee21539a1d7fe01e1c5900baec88a125d9c0caa4"
+    }
+  ],
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/23",
+  "previousSourceCandidateHeads": [
+    "364533add5bd647ed7c104479463949b8ee2fead"
+  ],
+  "integration": "Draft only; refresh main and assess affected native cases before authorized integration."
+}

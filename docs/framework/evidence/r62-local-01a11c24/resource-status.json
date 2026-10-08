@@ -1,0 +1,34 @@
+{
+  "workstreamId": "r62-local-acceptance-01a11c24",
+  "updatedUtc": "2026-10-08T16:19:14.674276+00:00",
+  "ownedCftProfiles": [],
+  "ownedNativeHostManifest": null,
+  "ownedPorts": [],
+  "sharedDistInMainTouched": false,
+  "ownedDist": "/Users/shopme/.codex/worktrees/r62-acceptance-01a11c24/opendesk-browser/dist",
+  "ownedProcessesReleased": [
+    {
+      "report": "chrome155-launch.json",
+      "pid": 89719,
+      "pidAlive": false,
+      "profileExists": false,
+      "shutdownMethod": "SIGINT to owned launcher"
+    },
+    {
+      "report": "chrome154-launch.json",
+      "pid": 90607,
+      "pidAlive": false,
+      "profileExists": false,
+      "shutdownMethod": "SIGINT to owned launcher"
+    }
+  ],
+  "nativeHostObserved": {
+    "manifest": "/Users/shopme/Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "extensionId": "oihfjkbnkhgcdeheabnnacjkjjjmiapf",
+    "ownerChat": "完成 R6.2 本地验收闭环",
+    "ownerThreadId": "01a11c20-fe11-7d51-9b1e-5d4919f7c938",
+    "observation": "Historical read-only doctor; no installation ownership claimed"
+  },
+  "releaseCondition": "No owned real Native resource remains; use explicit handoff from actual existing owner before installation/real UI tests",
+  "nativePassAvailableForReuse": false
+}
