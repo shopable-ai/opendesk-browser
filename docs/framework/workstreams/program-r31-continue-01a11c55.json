@@ -4,9 +4,9 @@
   "branch": "agent/program-r31-continue-01a11c55",
   "status": "DRAFT_REVIEW_READY_COMPONENT_NATIVE_NOT_TESTED",
   "workspace": "/Users/shopme/.codex/worktrees/program-r31-continue/opendesk-browser",
-  "sourceCandidateHead": "364533add5bd647ed7c104479463949b8ee2fead",
+  "sourceCandidateHead": "1df0650e8fc61ab781ee8249f9e1a6a73ce4535d",
   "continuedFrom": "0af5eae9bb43da279fb0536e1401bb66c902ec0d",
-  "synchronizedMainSha": "e35ded0c11c7b69991e4e4873cf55067f08c459c",
+  "synchronizedMainSha": "945cf92726fcadcd60ecb3dc70729029fb9f28e6",
   "parentPullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/22",
   "scope": [
     "Program source/executable separation retained",
@@ -26,7 +26,7 @@
   },
   "currentCandidateImpact": {
     "decision": "AFFECTED_INPUTS",
-    "report": "docs/framework/evidence/program-r31-continue-01a11c55/current-candidate-impact.json",
+    "report": "docs/framework/evidence/program-r31-continue-01a11c55/current-candidate-1df0650e-impact.json",
     "changedInputs": [
       {
         "path": "examples/tasks/d1-userscript.html",
@@ -41,7 +41,7 @@
         "path": "examples/tasks/demo-form.html",
         "kind": "fixture",
         "testedSha256": "c761bee838a389ca4d2130b9a48919d45504263ec1a8728dcf038340e5fe7b9d",
-        "candidateSha256": "d421f8ee3c6677b9ab494a921a5065b6070e5de548e2293853482afb4da96676",
+        "candidateSha256": "261465f29cbd080e4b682c949d6c4cf9f1bce2ec0866e356186d7c4e43cf4ad6",
         "testedMode": "100644",
         "candidateMode": "100644",
         "reason": "Product input bytes changed"
@@ -224,6 +224,11 @@
       "sha256": "941f4b9b501be5f0dc0d9a0a951f40f68c2d62f389606487005e6a39acff959a"
     },
     {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/current-candidate-1df0650e-impact.json",
+      "bytes": 32818,
+      "sha256": "db84e03290235ef5bccf86b8a317e798128fef4da7315ff3885aa1dc0e820551"
+    },
+    {
       "path": "docs/framework/evidence/program-r31-continue-01a11c55/current-candidate-impact.json",
       "bytes": 32818,
       "sha256": "4e2e5cebbf1db0458b86c7efa705956902f1af72b26a6a3d0b6952945011f23f"
@@ -232,6 +237,11 @@
       "path": "docs/framework/evidence/program-r31-continue-01a11c55/current-working-tree-impact.json",
       "bytes": 32790,
       "sha256": "8ecd081e2848740c6b3218b4213f7707e3afff0ab0e1643a2f71e6c7becad6de"
+    },
+    {
+      "path": "docs/framework/evidence/program-r31-continue-01a11c55/final-main-fixture-tests.log",
+      "bytes": 1198,
+      "sha256": "ee1e9c8d850d1136bc54af1a2fe6d91de2e8248a364aec1f276858e57e47da2a"
     },
     {
       "path": "docs/framework/evidence/program-r31-continue-01a11c55/historical-reuse.json",
@@ -264,5 +274,9 @@
       "sha256": "7b82ae0c3208e505d33407d0ee21539a1d7fe01e1c5900baec88a125d9c0caa4"
     }
   ],
-  "pullRequest": null
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/23",
+  "previousSourceCandidateHeads": [
+    "364533add5bd647ed7c104479463949b8ee2fead"
+  ],
+  "integration": "Draft only; refresh main and assess affected native cases before authorized integration."
 }

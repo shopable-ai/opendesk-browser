@@ -2,6 +2,8 @@
 
 更新：2026-10-09。工作区 `/Users/shopme/.codex/worktrees/program-r31-continue/opendesk-browser`，分支 `agent/program-r31-continue-01a11c55`。从 PR #22 的 `0af5eae9bb43da279fb0536e1401bb66c902ec0d` 续接；旧工作区及回执保持只读。main 集成仍由现有获授权聊天串行处理。
 
+本轮提交为[草稿 PR #23](https://github.com/shopable-ai/opendesk-browser/pull/23)，不改写 #22。最终源码候选为 `1df0650e8fc61ab781ee8249f9e1a6a73ce4535d`，同步到 main `945cf92726fcadcd60ecb3dc70729029fb9f28e6`；随后的提交只更新证据文档。最终同步仅涉及文档和页面对比度/live-region，重新核对受影响页面合同 11/11。正式集成前仍由集成者刷新 main，不能把本轮检查当成后续主干变化的保证。
+
 ```text
 Program 源码与产物分离
   当前 main 接入：已三方合并；无文本冲突，async main 协议保留
