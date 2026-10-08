@@ -2,6 +2,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   sw: './src/sw.js',
   'ui/tool-shell': './src/ui/tool-shell.js',
   'native-agent/settings': './src/native-agent/settings.js',
+  'native-agent/transport': './src/native-agent/transport.js',
   'agents/health': './src/agents/health.js',
   'agents/selection-entry': './src/agents/selection-entry.js',
   'agents/bootstrap': './src/agents/bootstrap.js',
