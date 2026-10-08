@@ -48,6 +48,15 @@ test('trusted Side Panel run sends the exact unsaved draft to the original Contr
   assert.doesNotMatch(editor,/\beval\s*\(|scripting\.executeScript/);
 });
 
+test('R6 uses valid tab roles with labelled content panels',async()=>{
+  const html=await read('src/ui/tool.html');
+  assert.match(html,/<nav class="workbench-nav" role="tablist"/);
+  for(const [id,panel] of [['tab-my-tasks','workbench-tasks'],['tab-discover','workbench-local-discover'],['tab-develop','workbench-develop']]){
+    assert.match(html,new RegExp('id="'+id+'" role="tab"'));
+    assert.match(html,new RegExp('id="'+panel+'" role="tabpanel" aria-labelledby="'+id+'"'));
+  }
+});
+
 test('R4 Sidebar sections preserve consumer controls and keep engineering tools folded',async()=>{
   const html=await read('src/ui/tool.html'), css=await read('src/ui/tool-shell.css');
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);

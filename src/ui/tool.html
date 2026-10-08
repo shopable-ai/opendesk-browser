@@ -5,13 +5,13 @@
 <header class="workspace-header">
   <div class="workspace-brand"><span class="workspace-logo" aria-hidden="true">O</span><h1>OpenDesk Browser</h1></div>
 </header>
-<nav class="workbench-nav" aria-label="工作台">
-  <button type="button" id="tab-my-tasks" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
-  <button type="button" id="tab-discover" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>
-  <button type="button" id="tab-develop" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
+<nav class="workbench-nav" role="tablist" aria-label="工作台">
+  <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
+  <button type="button" id="tab-discover" role="tab" tabindex="-1" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>
+  <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
 </nav>
 <main id="workspace-content">
-  <div id="workbench-tasks" data-workbench-page="tasks">
+  <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" data-workbench-page="tasks">
     <section class="tasks-surface" aria-label="已安装任务">
       <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>
       <div id="task-installed-cards" class="task-card-list" aria-label="已安装任务列表"></div>
@@ -35,7 +35,7 @@
       </div>
     </section>
   </div>
-  <div id="workbench-local-discover" data-workbench-page="local-discover" hidden>
+  <div id="workbench-local-discover" role="tabpanel" aria-labelledby="tab-discover" data-workbench-page="local-discover" hidden>
     <section class="local-discovery-section" aria-label="发现已安装任务">
       <div class="local-discovery-search-row">
         <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
@@ -85,7 +85,7 @@
       <div class="row"><button type="button" id="task-catalog-refresh">刷新目录</button></div>
     </section>
   </div>
-  <div id="workbench-develop" data-workbench-page="develop" hidden>
+  <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" data-workbench-page="develop" hidden>
   <section aria-label="运行目标状态" class="developer-target">
     <p id="script-current-page-status" role="status" data-state="resolving">正在确认当前网页…</p>
     <details id="developer-target-detail"><summary>查看当前网页详细信息</summary>

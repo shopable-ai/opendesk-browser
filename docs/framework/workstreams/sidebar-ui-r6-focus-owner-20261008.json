@@ -1,0 +1,32 @@
+{
+  "id": "sidebar-ui-r6-focus-owner-20261008",
+  "branch": "agent/sidebar-ui-r6-20261008-focus-owner-2113",
+  "baseMainSha": "9a394996bec5eec5a2f369ab2b68a504f91e6f9a",
+  "scope": "Only formal Sidebar UI focus, per-task run feedback, accessible tab navigation, font and focused CI changes",
+  "changedFiles": [
+    "src/ui/tool.html",
+    "src/ui/tool-shell.css",
+    "src/ui/task-workbench.js",
+    "tests/environment/task-workbench.test.mjs",
+    "tests/environment/sidebar-product-contract.test.mjs",
+    ".github/workflows/sidebar-ui-r4.yml",
+    "docs/product/sidebar-ui-spec.zh-CN.md",
+    "docs/framework/workstreams/sidebar-ui-r6-focus-owner-20261008.json"
+  ],
+  "evidence": {
+    "component": "CI_PENDING",
+    "check": "CI_PENDING",
+    "productionBuild": "CI_PENDING",
+    "developmentBuild": "CI_PENDING",
+    "verify": "CI_PENDING",
+    "nativeSidePanel": "NOT_TESTED",
+    "nativePermissions": "NOT_TESTED",
+    "nativeStop": "NOT_TESTED",
+    "nativeRestart": "NOT_TESTED",
+    "nativeScreenshot": "NOT_TESTED",
+    "finalAccepted": false
+  },
+  "safety": "Unmodified: RunHost, native agent, authorizations, Controller, immutable result storage and legacy snapshots",
+  "acceptanceBlocker": "Local macOS path and isolated controlled Chrome Profile unavailable from connected cloud work environment; no true Chrome Side Panel receipts.",
+  "mergeGate": "Keep PR draft while real Chrome acceptance evidence remains unavailable; CI components are not native proof."
+}

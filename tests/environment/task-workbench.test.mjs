@@ -9,6 +9,16 @@ class Element {
   constructor(){this.value='';this.textContent='';this.dataset={};this.hidden=false;this.checked=false;
     this.disabled=false;this.children=[];this.listeners=new Map();this.attributes={};}
   addEventListener(name,fn){const group=this.listeners.get(name)||new Set();group.add(fn);this.listeners.set(name,group);}
+  contains(node){return this===node || this.children.some(child=>child?.contains?.(node));}
+  focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this;}
+  querySelectorAll(selector){
+    const found=[];
+    const walk=node=>{for(const child of node.children){
+      if(selector==='.task-card' && child.className==='task-card')found.push(child);
+      walk(child);
+    }};
+    walk(this);return found;
+  }
   removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
   fire(name,data={}){for(const fn of this.listeners.get(name)||[])fn(data);}
   setAttribute(name,value){this.attributes[name]=String(value);}
@@ -22,7 +32,8 @@ const html=await readFile('src/ui/tool.html','utf8');
 const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
-  const doc={getElementById:get,createElement:()=>new Element(),documentElement:{dataset:{}}};
+  const doc={getElementById:get,createElement:()=>{const node=new Element();node.ownerDocument=doc;return node;},documentElement:{dataset:{}},activeElement:null};
+  for(const node of nodes.values())node.ownerDocument=doc;
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
@@ -79,7 +90,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
     runtime:{getURL:path=>'chrome-extension://extension/'+path,sendMessage:async message=>{draftMessages.push(message);return {ok:true};}},
     tabs:{create:async request=>{catalogOpens.push(request);return {id:99};}}};
   const ui=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,importDraft:source=>importedDrafts.push(source)});
-  return {ui,get,page,host,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,
+  return {ui,get,doc,page,host,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,
     click:async(id,trusted=true)=>{get(id).fire('click',{isTrusted:trusted});await tick();await tick();}};
 };
 
@@ -321,6 +332,75 @@ test('switching between two installed tasks preserves each independent unsaved p
   assert.equal(field().value,'Second');
   assert.equal(f.starts.length,0,'card selection never executes code');
   assert.equal(f.permissions.length,0,'card selection never requests permission');
+});
+
+test('R6 accessible roving tabs support Arrow and Home/End',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  assert.equal(f.get('tab-my-tasks').tabIndex,0);
+  assert.equal(f.get('tab-discover').tabIndex,-1);
+  let prevented=false;
+  f.get('tab-my-tasks').fire('keydown',{key:'ArrowRight',preventDefault(){prevented=true;}});
+  assert.equal(prevented,true);
+  assert.equal(f.get('workbench-local-discover').hidden,false);
+  assert.equal(f.get('tab-discover').tabIndex,0);
+  assert.equal(f.doc.activeElement,f.get('tab-discover'));
+  f.get('tab-discover').fire('keydown',{key:'End',preventDefault(){}});
+  assert.equal(f.get('workbench-develop').hidden,false);
+  assert.equal(f.get('tab-develop').attributes['aria-selected'],'true');
+  f.get('tab-develop').fire('keydown',{key:'Home',preventDefault(){}});
+  assert.equal(f.get('workbench-tasks').hidden,false);
+  assert.equal(f.get('tab-my-tasks').tabIndex,0);
+});
+
+test('R6 task card refresh, keyboard selection and Discover handoff restore focus',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  const before=f.get('task-installed-cards').children[0].children[0];
+  before.focus();await f.ui.refresh();
+  const next=f.get('task-installed-cards').children[0].children[0];
+  assert.notEqual(before,next);assert.equal(f.doc.activeElement,next);
+  const second=f.get('task-installed-cards').children[1].children[0];
+  second.focus();second.fire('click');
+  assert.equal(f.get('task-installed-list').value,'demo.second');
+  assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[1].children[0]);
+  await f.click('tab-discover');
+  const discovered=f.get('local-discover-cards').children[0];
+  discovered.focus();discovered.fire('click');
+  assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[0].children[0]);
+  assert.equal(f.starts.length,0);
+});
+
+test('R6 late run start/result cannot become the newly selected task status',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  let release;
+  f.api.permissions.request=()=>new Promise(resolve=>{release=resolve;});
+  f.get('task-run').fire('click',{isTrusted:true});
+  f.get('task-installed-cards').children[1].children[0].fire('click');
+  assert.equal(f.get('task-installed-list').value,'demo.second');
+  assert.match(f.get('task-status').textContent,/表单任务.*正在准备/);
+  release(true);await tick();await tick();await tick();
+  assert.equal(f.starts.length,1);
+  assert.match(f.get('task-status').textContent,/表单任务.*正在运行/);
+  assert.equal(f.get('task-stop').disabled,false,'owner Stop survives selection change');
+  f.host.complete({ok:true});await tick();await tick();await tick();
+  assert.equal(f.get('task-result-panel').hidden,true,'B must not show A result');
+  assert.doesNotMatch(f.get('task-status').textContent,/表单任务|本次任务/);
+  f.get('task-installed-cards').children[0].children[0].fire('click');
+  await tick();await tick();
+  assert.match(f.get('task-result').textContent,/"ok": true/);
+  assert.match(f.get('task-status').textContent,/成功/);
+});
+
+test('R6 previous-version notices and results do not leak after installed upgrade',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('task-run');
+  f.host.complete({ok:true});await tick();await tick();await tick();
+  assert.match(f.get('task-status').textContent,/成功/);
+  f.catalogState.catalog[0].version='2.0.0';
+  f.catalogState.installed[0].version='2.0.0';
+  f.catalogState.installed[0].scriptId='task:demo.form:2.0.0';
+  await f.ui.refresh();await tick();
+  assert.equal(f.get('task-status').textContent,'','new installed version has no inherited run notice');
+  assert.equal(f.get('task-history-panel').hidden,true,'new version has no old-version history');
 });
 
 test('two extension documents share only a refresh hint and re-read authoritative installed state',async t=>{
