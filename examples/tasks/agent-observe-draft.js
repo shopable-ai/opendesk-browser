@@ -1,16 +1,9 @@
-// AI / Codex observation-only draft for the existing demo-form.html.
-// Use the same real RunHost / Controller through Sidebar or Native Agent.
-// No click, fill, navigation, external network, task publication, or credential collection.
+// Run as a read-only draft through the existing Sidebar/RunHost or optional Native Agent.
+// This is NOT a Task verification or an Agent E2E receipt.
 async function main() {
-  const observation = await page.observe({
-    root:'#search-form',
-    maxDepth:4,
-    maxNodes:32,
-    maxChars:4000
+  const observed = await page.observe({
+    root:'#search-form',maxDepth:5,maxNodes:32,maxChars:4200
   });
-  return {
-    kind:'opendesk.agent-observation.v1',
-    url:await page.url(),
-    observation
-  };
+  return {kind:observed.kind,document:observed.document,
+    truncated:observed.truncated,budget:observed.budget,nodes:observed.nodes};
 }

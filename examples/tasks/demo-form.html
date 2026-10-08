@@ -61,6 +61,17 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 #results{font-size:13px;color:#344d70;margin-top:5px}
 #search-count{font-size:12px;color:#61728a;margin:6px 0 0}
 .footnote{font-size:12px;color:#5c6e85;margin:12px 0 0}
+.api-url-field{flex-basis:100%}
+#api-url{font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+#api-preset{min-width:218px}
+.api-meta{display:flex;flex-wrap:wrap;gap:7px 16px;margin:10px 0 0;color:#586b82;font-size:12px}
+.api-meta div{display:flex;gap:5px;min-width:0}
+.api-meta dt{font-weight:750;white-space:nowrap}
+.api-meta dd{margin:0;overflow-wrap:anywhere}
+#api-response{margin:10px 0 0;max-height:200px;overflow:auto;background:#f6f8fb;border:1px solid #e1e8f1;border-radius:8px;padding:10px 12px;color:#243951;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+#api-error{margin:8px 0 0;color:#a83f4b;font-size:12px;overflow-wrap:anywhere}
+.status[data-state="cancelled"] .indicator{background:#8998a9}
+
 @media(max-width:540px){.topbar-inner{padding:9px 15px}main{padding:0 13px;margin-top:23px}h1{font-size:22px}.unit{padding:16px}.field{flex-basis:100%}.controls{gap:7px}}
 </style>
 </head>
@@ -68,7 +79,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 <header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark" aria-hidden="true">O</span>OpenDesk <span class="brand-note">/ 测试网页</span></div><button id="reset-all" type="button" class="text-button">重置页面</button></div></header>
 <main>
   <h1>网页交互示例</h1>
-  <p class="intro">读取文字、点击按钮、等待异步响应，再填写简单表单。</p>
+  <p class="intro">读取文本、执行操作、等待异步结果、填写表单，并查看真实 HTTP 响应。</p>
   <div class="sheet">
     <section class="unit" aria-labelledby="text-title">
       <div class="unit-heading"><small>01</small><h2 id="text-title">文本读取</h2></div>
@@ -115,8 +126,37 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       <div id="results" aria-live="polite"></div>
       <p id="search-count" aria-live="polite">提交次数：0</p>
     </section>
+    <section class="unit" aria-labelledby="api-title">
+      <div class="unit-heading"><small>06</small><h2 id="api-title">真实 HTTP GET · 响应检查</h2></div>
+      <div class="fields">
+        <div class="field api-url-field">
+          <label for="api-url">请求 URL</label>
+          <input id="api-url" name="api-url" type="text" inputmode="url" maxlength="600" spellcheck="false" value="./demo-form.html?test-response=1" aria-describedby="api-tip">
+        </div>
+        <div class="field">
+          <label for="api-preset">示例地址（只填入，不发送）</label>
+          <select id="api-preset">
+            <option value="./demo-form.html?test-response=1">本地同源 HTML · 无需外网</option>
+            <option value="https://api.ipify.org?format=json">公网 IP JSON · 第三方</option>
+          </select>
+        </div>
+        <div class="controls">
+          <button id="api-send" class="primary" type="button">发送 GET</button>
+          <button id="api-cancel" type="button" disabled>取消请求</button>
+        </div>
+      </div>
+      <p id="api-tip" class="footnote">仅点击「发送 GET」才访问所填地址；跨域请求须获得服务器 CORS 许可。请求不携带 Cookie；公网 IP 示例会连接第三方服务。</p>
+      <div id="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text">尚未发送请求</span></div>
+      <dl class="api-meta">
+        <div><dt>HTTP</dt><dd id="api-http-status">—</dd></div>
+        <div><dt>耗时</dt><dd id="api-duration">—</dd></div>
+        <div><dt>响应类型</dt><dd id="api-content-type">—</dd></div>
+      </dl>
+      <pre id="api-response" data-testid="api-response" aria-live="polite" hidden></pre>
+      <p id="api-error" role="alert" hidden></p>
+    </section>
   </div>
-  <p class="footnote">网络成功和 HTTP 404 使用真实同源 fetch；显示延迟、超时由页面控制，非服务器响应延迟。请通过本地 HTTP 服务打开。</p>
+  <p class="footnote">第 03 组用真实同源 fetch 配合客户端模拟延迟/超时；第 06 组显示实际 HTTP 状态、耗时和响应正文。请通过本地 HTTP 服务打开，避免使用 file://。</p>
 </main>
 <script>
 (() => {
@@ -261,7 +301,152 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
     }, 120);
   });
 
+
+  // Explicit GET test: actual response metadata, no mock success labels.
+  // Preview is capped at 4096 UTF-8 bytes; never insert response HTML into the DOM.
+  const apiUrl = get('api-url'), apiPreset = get('api-preset');
+  const apiSend = get('api-send'), apiCancel = get('api-cancel');
+  const apiStatus = get('api-status'), apiStatusText = get('api-status-text');
+  const apiResponse = get('api-response'), apiError = get('api-error');
+  let activeApi = null;
+  function showApiStatus(state, message) {
+    apiStatus.dataset.state = state;
+    apiStatusText.textContent = message;
+  }
+  function clearApiView() {
+    showApiStatus('idle', '尚未发送请求');
+    get('api-http-status').textContent = '—';
+    get('api-duration').textContent = '—';
+    get('api-content-type').textContent = '—';
+    apiResponse.textContent = '';
+    apiResponse.hidden = true;
+    apiError.textContent = '';
+    apiError.hidden = true;
+  }
+  function abortApiRequest() {
+    const previous = activeApi;
+    activeApi = null;
+    if (previous) {
+      clearTimeout(previous.timer);
+      previous.controller.abort();
+    }
+    apiSend.disabled = false;
+    apiCancel.disabled = true;
+  }
+  async function readApiPreview(response) {
+    const limit = 4096;
+    const reader = response.body?.getReader();
+    if (!reader) {
+      const body = await response.text();
+      return {body:body.slice(0, limit), truncated:body.length > limit};
+    }
+    const decoder = new TextDecoder();
+    let body = '', bytes = 0;
+    try {
+      while (bytes < limit) {
+        const {done, value} = await reader.read();
+        if (done) return {body:body + decoder.decode(), truncated:false};
+        const part = value.subarray(0, Math.min(limit - bytes, value.byteLength));
+        body += decoder.decode(part, {stream:true});
+        bytes += part.byteLength;
+        if (part.byteLength < value.byteLength)
+          return {body:body + decoder.decode(), truncated:true};
+      }
+      return {body:body + decoder.decode(), truncated:true};
+    } finally {
+      await reader.cancel().catch(() => {});
+      reader.releaseLock();
+    }
+  }
+  async function runApiRequest() {
+    abortApiRequest();
+    clearApiView();
+    let url;
+    try {
+      const input = apiUrl.value.trim();
+      if (!input) throw new TypeError('请输入请求 URL');
+      url = new URL(input, location.href);
+      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
+        throw new TypeError('仅支持不含账号密码的 HTTP(S) URL');
+    } catch (error) {
+      showApiStatus('error', 'URL 无效');
+      apiError.hidden = false;
+      apiError.textContent = error instanceof Error ? error.message : String(error);
+      return;
+    }
+    const request = {controller:new AbortController(), timer:null, timedOut:false, started:performance.now()};
+    activeApi = request;
+    apiSend.disabled = true;
+    apiCancel.disabled = false;
+    showApiStatus('loading', '正在发送 GET…');
+    request.timer = setTimeout(() => {
+      request.timedOut = true;
+      request.controller.abort();
+    }, 8000);
+    try {
+      const response = await fetch(url.href, {
+        method:'GET', credentials:'omit', cache:'no-store', mode:'cors',
+        signal:request.controller.signal
+      });
+      const preview = await readApiPreview(response);
+      if (activeApi !== request || request.controller.signal.aborted) return;
+      get('api-http-status').textContent = String(response.status) + (response.statusText ? ' ' + response.statusText : '');
+      get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
+      get('api-content-type').textContent = response.headers.get('content-type') || '（未提供）';
+      apiResponse.textContent = preview.body + (preview.truncated ? '\n…（正文已截断）' : '');
+      apiResponse.hidden = false;
+      if (response.ok) {
+        showApiStatus('success', 'HTTP 请求完成');
+      } else {
+        showApiStatus('error', 'HTTP 请求返回错误');
+        apiError.textContent = 'HTTP ' + response.status + ' · 请检查返回正文';
+        apiError.hidden = false;
+      }
+    } catch (error) {
+      if (activeApi !== request) return;
+      get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
+      if (request.timedOut) {
+        showApiStatus('timeout', '请求超时');
+        apiError.textContent = '8 秒内未完成：请求已中止';
+      } else if (request.controller.signal.aborted) {
+        showApiStatus('cancelled', '已取消请求');
+        return;
+      } else {
+        showApiStatus('error', '网络请求失败');
+        apiError.textContent = (error instanceof Error ? error.message : String(error)) + '（检查网络、服务地址或 CORS）';
+      }
+      apiError.hidden = false;
+    } finally {
+      clearTimeout(request.timer);
+      if (activeApi === request) {
+        activeApi = null;
+        apiSend.disabled = false;
+        apiCancel.disabled = true;
+      }
+    }
+  }
+  apiSend.addEventListener('click', () => runApiRequest());
+  apiCancel.addEventListener('click', () => {
+    if (!activeApi) return;
+    activeApi.controller.abort();
+    showApiStatus('cancelled', '已取消请求');
+  });
+  apiPreset.addEventListener('change', () => {
+    abortApiRequest();
+    apiUrl.value = apiPreset.value;
+    clearApiView();
+  });
+  apiUrl.addEventListener('input', () => {
+    abortApiRequest();
+    apiPreset.selectedIndex = -1;
+    clearApiView();
+  });
+
   get('reset-all').addEventListener('click', () => {
+    abortApiRequest();
+    apiUrl.value = './demo-form.html?test-response=1';
+    apiPreset.value = apiUrl.value;
+    clearApiView();
     clicks = 0;
     get('click-count').textContent = '0';
     extra.hidden = true;

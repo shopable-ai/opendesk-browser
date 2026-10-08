@@ -36,6 +36,8 @@
 
 **执行环境：** Page USER_SCRIPT 负责 DOM；Controller / RunHost / ChromePage 负责自动化。
 
+Controller 侧现代浏览器自动化默认参考 [Page API 文档](../../framework/modern-page-api.zh-CN.md)：`page/params` 仅由获准的 Controller Worker 注入；`getByRole/getByLabel/fill/waitFor/observe` 不属于 Page USER_SCRIPT 的原生全局环境。源码采用多文件 ESM，不会给页面脚本授予新的能力或权限。
+
 编译适配器要把 ESM 源码依赖图编译为运行环境允许的固定 JS 字节。ESM 写法不代表浏览器运行阶段需要支持远程模块解析，也不应向 Controller Worker 注入页面 UserScript 依赖。
 
     package.json + src/main.js + src/dom.js

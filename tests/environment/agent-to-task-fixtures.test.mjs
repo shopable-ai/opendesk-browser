@@ -5,18 +5,18 @@ import {runInNewContext} from 'node:vm';
 import {verifyTaskPackage,validateTaskParams} from '../../src/platform/tasks/contract.js';
 
 // These are fixture/contract tests, NOT Chrome or AI Agent E2E evidence.
-test('read-only Agent observation draft returns a bounded semantic snapshot without actions',async()=>{
+test('read-only Agent observation draft retains the main R6.2 bounded snapshot contract',async()=>{
   const source=await readFile('examples/tasks/agent-observe-draft.js','utf8');
-  const observed=[],snapshot={nodes:[{role:'textbox',name:'搜索关键词'}],truncated:false};
+  const observed=[],snapshot={
+    kind:'page-observation',document:{documentId:'current-document'},truncated:false,
+    budget:{visited:1,locatorChecks:1},nodes:[{role:'textbox',name:'搜索关键词'}]
+  };
   const page={
-    observe:async options=>{observed.push(JSON.parse(JSON.stringify(options)));return snapshot;},
-    url:async()=> 'http://127.0.0.1:43111/demo-form.html'
+    observe:async options=>{observed.push(JSON.parse(JSON.stringify(options)));return snapshot;}
   };
   const result=await runInNewContext(source+'\nmain();',{page});
-  assert.equal(result.kind,'opendesk.agent-observation.v1');
-  assert.equal(result.url,'http://127.0.0.1:43111/demo-form.html');
-  assert.equal(result.observation,snapshot);
-  assert.deepEqual(observed,[{root:'#search-form',maxDepth:4,maxNodes:32,maxChars:4000}]);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)),snapshot);
+  assert.deepEqual(observed,[{root:'#search-form',maxDepth:5,maxNodes:32,maxChars:4200}]);
 });
 
 test('modern Locator Task candidate is exact and immutable, never pre-verified',async()=>{

@@ -20,7 +20,7 @@
 - 无需 Codex、MCP、Native Messaging 或外部运行服务；以上 `python3` 仅用于启动演示页面。
 - 在没有实际 Chrome 原生运行回执的环境里，请标记 `NATIVE_NOT_VERIFIED`，不要把 Node 组件测试当作真正的网页验收。
 
-## R5.1 现代 Page API 草稿：不用安装任务也能执行
+## R5.1 接口 / R5.2 可靠性：现代 Page API 草稿（不用安装任务）
 
 同一个 `demo-form.html` 现在有第二个简洁搜索表单（不会影响旧的姓名表单）。
 
@@ -31,6 +31,8 @@
 - 等待「搜索完成」，`#results` 返回「结果：OpenDesk」，页面「提交次数」只增加 1。
 - 再次直接运行相同草稿，检查第二次仅增加 1，并确认 Sidebar 最终持久结果。无需先候选/发布/安装，也无需外部 Playwright 或 MCP 做页面动作。
 - 如果使用 AI，可先运行 `await page.observe({root:'#search-form'})` 读取表单角色/名称；其输出是有限预算的语义 DOM 摘要，而非浏览器原生 AX 树。
+
+**R5.2 补充验收**：`page.observe({root:'#search-form'})` 应返回有限节点和 `budget.visited/locatorChecks` 等计算量信息；定位建议仅在 `locator` 不为 null 时表示通过相同查询规则的一次唯一性验证。额外检查遮挡、disabled/aria-disabled、readOnly/aria-readonly、按钮动画、Locator 单次超时，以及动作回执缺失时 **不可再次提交**。组件模拟通过不等于 Chrome 实测；只有 Sidebar 原有 Controller 运行链返回真实 `runId/resultId`、提交回执和 Durable Result，才可对本机标记通过。修复细节和已有 CI 见 [R5.2 验收记录](../../docs/framework/workstreams/r5-2-modern-page-api-acceptance.md)。
 
 旧版 `form-fill.v1.opendesk-task.json` 的已发布源码、sourceHash 和 manifestHash **保持不变**：它仍然使用旧 `page.type` 追加输入；本轮不破坏已经发行任务。现代 API 具体边界见 `docs/framework/modern-page-api.zh-CN.md`。
 
@@ -48,6 +50,7 @@
 | 取消/超时 | `#request-cancel`、`#request-timeout` | `data-state="cancelled"` 或 `"timeout"`，无迟到的成功结果 |
 | 老版任务 | `#name`、`#submit`、`#done` | 填写姓名后出现“已提交：…” |
 | 现代 Locator | `#keyword`、`#search-submit`、`#search-status`、`#results` | 搜索按钮重建且等待后结果正确 |
+| HTTP GET | `#api-url`、`#api-send`、`#api-status`、`#api-http-status`、`#api-response` | 真实返回状态码、耗时、响应类型和正文；错误、取消、超时分状态 |
 
 - **真实网络请求**：成功场景通过 `fetch('./demo-form.html?test-response=1')` 读取当前 HTML；错误场景访问固定不存在的路径，Python 静态服务应返回 HTTP 404。
 - **延迟为客户端可控等待**（300ms、1.2s、3s），不是服务器真实变慢。超时按钮使用 700ms 客户端期限；所有异步结果均由实际 DOM 表达，不依赖伪造测试 PASS。
@@ -56,6 +59,31 @@
 - 通过 `file://` 打开时真实同源 `fetch` 不受支持，必须使用上述本地 HTTP 地址。扩展侧 RunHost、权限和原生回执需要在真实 Chrome 单独验收。
 
 定向静态/兼容契约检查：`node --test tests/environment/basic-browser-page.test.mjs`。
+
+## R7.1 HTTP API 验证与唯一人工测试入口
+
+**人工操作、Sidebar 草稿、Page API 和 HTTP 演示只使用 `http://127.0.0.1:43111/demo-form.html`。** 上方 HTTP 启动命令保持不变，不需要启动其他测试服务。旧的临时测试服务器路由（例如 `/fixture`）是专项原生验收的内部资源，不能作为人工演示网页地址；相关目录 `tests/prototypes/**/fixture/` 不随人工入口统一而删除，它们由独立测试运行器引用。
+
+在页面第 06 组，保持默认 `./demo-form.html?test-response=1`，点击「发送 GET」：应看到 `#api-status[data-state="success"]`、实际 `#api-http-status` 为 200、响应类型含 `text/html`，且 `#api-response` 可读取页面 HTML 前段。改填 `./__opendesk_expected_404__.json` 再发送，应看到 404、`data-state="error"` 及服务器返回正文。切换示例地址只填入，不自动发请求。
+
+需要验证外部真实 JSON 时，在下拉框选择「公网 IP JSON」，明确点击发送：成功时响应正文会显示 `ip` 字段；该示例会访问第三方服务，受网络与 CORS 条件影响，失败不能直接归因于 OpenDesk Page API。也可以手工输入自己的 HTTP(S) URL，页面只发 GET、不携带 Cookie，最多显示前 4096 字节；不支持在这个单页里假装静态 Python 服务能够处理 POST。8 秒超时会中止请求；取消、重新发送、修改 URL、页面重置都不能让旧响应覆盖新状态。
+
+可通过以下 **现代 Page API 草稿**验证真实页面 DOM 回执（不需要新增脚本文件）：
+
+```javascript
+async function main() {
+  await page.getByLabel('请求 URL', {exact:true}).fill('./demo-form.html?test-response=1');
+  await page.getByRole('button', {name:'发送 GET', exact:true}).click();
+  await page.locator('#api-status[data-state="success"]').waitFor({state:'visible',timeout:10000});
+  return {
+    status:await page.locator('#api-http-status').textContent(),
+    contentType:await page.locator('#api-content-type').textContent(),
+    preview:await page.getByTestId('api-response').textContent()
+  };
+}
+```
+
+表单和现代搜索依旧分别使用 `#name/#submit/#done`、`#keyword/#search-submit/#results`，旧版任务包及 SHA 不变。运行 `node --test tests/environment/basic-browser-page.test.mjs` 验证页面契约和轻量 DOM 行为；该检查 **不等于** 完整 Chrome MV3 → RunHost → Controller → Durable Result 原生验收。真正的 Chrome 结果需由 Sidebar 记录运行 ID、结果 ID 和操作回执；没有时记 `NATIVE_NOT_VERIFIED`。
 
 ## R6.2 Agent → Task：两个草稿，一个未验证 Candidate
 
@@ -67,3 +95,5 @@
 - `tests/environment/agent-to-task-fixtures.test.mjs`：验证观察草稿可独立执行但无页面操作，以及现代 Task 包哈希确实对应现有 JS；**仅组件层证据**。
 
 本地端到端的顺序：打开本 HTTP 页面并取得权限 → 运行只读观察 → 编写/试运行现代 JS → 检查真实原生页面与持久结果 → 保存不可变版本 → 在完整目录导入 Candidate 并人工核对 → 用户设为 Available、安装 → 关闭 Codex/Native 再由 Sidebar「我的任务」重复运行。完整协议、安全与失败边界以 [Agent → Task R1 唯一合同](../../docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md) 为准；Native 原生验收前不得声明整个流程 PASS。
+
+**并行候选说明：** 主干的 `agent-modern-search.v1.opendesk-task.json` 与 Native 候选的 `modern-search.v1.opendesk-task.json` 为不同 Task ID 的待验证包；均不得自动设为 Available/Installed。网页 Fetch、网页 SDK `axiosx` 和 Worker `axiosx` 的浏览器网络效果必须分别验收。
