@@ -46,7 +46,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
     .map(method => [method, request => client.request(method, request)]));
   async function start(request) {
-    if (request?.source?.kind === 'draft' || request?.source?.kind === 'saved' || request?.scriptId !== undefined)
+    if (request?.source !== undefined || request?.scriptId !== undefined)
       return startController(request);
     return startScraping(request);
   }
