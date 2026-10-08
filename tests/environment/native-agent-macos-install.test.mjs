@@ -148,3 +148,49 @@ test('macOS Chrome for Testing uses its own manifest and cannot replace Google C
   assert.equal(fs.existsSync(cftManifest),false);
   assert.equal(fs.readFileSync(chromeManifest,'utf8'),'{"other":"chrome host remains untouched"}\n');
 });
+
+test('macOS Chrome for Testing manifest is isolated from regular Chrome and launches the real native host', {
+  skip:process.platform!=='darwin',
+  timeout:30000
+},async t=>{
+  const home=fs.mkdtempSync('/private/tmp/opendesk-cft-r1-test-');
+  const env={...process.env,HOME:home};
+  const chromeManifest=path.join(home,'Library/Application Support/Google/Chrome/NativeMessagingHosts',HOST_NAME+'.json');
+  const cftManifest=path.join(home,'Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts',HOST_NAME+'.json');
+  fs.mkdirSync(path.dirname(chromeManifest),{recursive:true});
+  // CFT setup may never replace the ordinary Chrome host, even if the
+  // old installation registered the same name.
+  const marker='existing Chrome native host (preserve)';
+  fs.writeFileSync(chromeManifest,marker,{mode:0o600});
+  const invoke=args=>spawnSync(process.execPath,['native-agent/cli.mjs',...args],{
+    cwd:process.cwd(),env,encoding:'utf8',timeout:8000
+  });
+  let child;
+  t.after(()=>{child?.kill('SIGKILL');fs.rmSync(home,{recursive:true,force:true});});
+  const setupResult=invoke(['setup','--extension-id',ID,'--browser','cft']);
+  assert.equal(setupResult.status,0,setupResult.stderr);
+  assert.equal(JSON.parse(setupResult.stdout).browser,'cft');
+  assert.equal(JSON.parse(fs.readFileSync(cftManifest,'utf8')).allowed_origins[0],ORIGIN);
+  assert.equal(fs.readFileSync(chromeManifest,'utf8'),marker);
+  const doctor=invoke(['doctor']);
+  assert.equal(doctor.status,1,'without Chrome connection, doctor is intentionally not ready');
+  assert.equal(JSON.parse(doctor.stdout).local.installed,true);
+  assert.equal(JSON.parse(doctor.stdout).local.browser,'cft');
+  const binary=path.join(home,'.opendesk-browser','native-agent-r1','native-host');
+  child=spawn(binary,[ORIGIN],{env,stdio:['pipe','pipe','pipe']});
+  const decoder=new NativeDecoder(),messages=[],listeners=[];
+  child.stdout.on('data',chunk=>{
+    for(const value of decoder.push(chunk)){
+      const cb=listeners.shift();if(cb)cb(value);else messages.push(value);
+    }
+  });
+  const read=()=>messages.length?Promise.resolve(messages.shift()):new Promise(resolve=>listeners.push(resolve));
+  assert.deepEqual(await deadline(read(),6000,'Chrome for Testing native host failed to launch'),{v:1,kind:'hello'});
+  const exit=onceExit(child);
+  child.stdin.end();
+  assert.equal((await exit).code,0);
+  const cleanupResult=invoke(['cleanup']);
+  assert.equal(cleanupResult.status,0,cleanupResult.stderr);
+  assert.equal(fs.existsSync(cftManifest),false);
+  assert.equal(fs.readFileSync(chromeManifest,'utf8'),marker,'Never remove unrelated ordinary Chrome manifest');
+});
