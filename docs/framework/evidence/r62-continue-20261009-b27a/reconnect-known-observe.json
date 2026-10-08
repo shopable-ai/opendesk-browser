@@ -1,0 +1,25 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "r62-b27a-observe-6080aac2-4b1f-49f2-8bfc-7ecd52665141",
+  "result": {
+    "completion": "PENDING",
+    "revision": {
+      "kind": "draft",
+      "revision": 1,
+      "scriptId": "draft:ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+      "sourceHash": "47dc4a4be63bd9f60b21b136449658ac01c579781d06eb496ed21f8436a4d8ae"
+    },
+    "runId": "ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+    "sourceKind": "draft",
+    "state": "running",
+    "target": {
+      "documentId": "63A4B64F8CD3A53031F15D9A1730561E",
+      "frameId": 0,
+      "origin": "http://127.0.0.1:43111",
+      "tabId": 1415011202,
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "windowId": 1415011197
+    }
+  }
+}

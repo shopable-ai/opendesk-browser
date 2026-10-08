@@ -1,0 +1,9 @@
+{
+  "nativeReconnected": true,
+  "sameAcknowledgedRunId": true,
+  "runId": "ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+  "state": "completed",
+  "retirementState": "released",
+  "resultId": "e5cc513b-509b-4568-bc6f-08c7df826e35",
+  "scope": "one connection diagnostic cycle; not original 10 reconnect campaign; shared external demo bytes"
+}

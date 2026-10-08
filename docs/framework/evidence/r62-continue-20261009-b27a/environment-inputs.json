@@ -1,0 +1,39 @@
+{
+  "files": [
+    "tests/environment/agent-to-task-contract.test.mjs",
+    "tests/environment/agent-to-task-fixtures.test.mjs",
+    "tests/environment/basic-browser-page.test.mjs",
+    "tests/environment/boundaries.test.mjs",
+    "tests/environment/compact-schema.test.mjs",
+    "tests/environment/controller-main-entry.test.mjs",
+    "tests/environment/current-page-target.test.mjs",
+    "tests/environment/dependency-manager.test.mjs",
+    "tests/environment/dependency-metadata.test.mjs",
+    "tests/environment/dev-chrome-config.test.mjs",
+    "tests/environment/native-agent-bridge.test.mjs",
+    "tests/environment/native-agent-host.test.mjs",
+    "tests/environment/native-agent-macos-install.test.mjs",
+    "tests/environment/native-agent-native-host.test.mjs",
+    "tests/environment/native-agent-package.test.mjs",
+    "tests/environment/native-agent-wire.test.mjs",
+    "tests/environment/package.test.mjs",
+    "tests/environment/page-dependencies-ui.test.mjs",
+    "tests/environment/page-program-package.test.mjs",
+    "tests/environment/page-script-preview.test.mjs",
+    "tests/environment/permission-gate.test.mjs",
+    "tests/environment/program-build.test.mjs",
+    "tests/environment/program-project.test.mjs",
+    "tests/environment/script-editor.test.mjs",
+    "tests/environment/sidebar-draft-import.test.mjs",
+    "tests/environment/sidebar-draft-runhost.test.mjs",
+    "tests/environment/sidebar-product-contract.test.mjs",
+    "tests/environment/sidebar-ui-preview.test.mjs",
+    "tests/environment/site-access.test.mjs",
+    "tests/environment/task-package-flow.test.mjs",
+    "tests/environment/task-workbench.test.mjs",
+    "tests/environment/user-script-dependency-flow.test.mjs"
+  ],
+  "excluded": {
+    "native-agent-chrome-real.test.mjs": "Own real CFT is being observed separately; do not run global experimental browser diagnostics concurrently"
+  }
+}

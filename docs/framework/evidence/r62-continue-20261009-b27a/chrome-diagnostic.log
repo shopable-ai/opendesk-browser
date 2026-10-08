@@ -1,0 +1,23 @@
+
+DevTools listening on ws://127.0.0.1:49352/devtools/browser/db4d0fa5-a4ef-4ede-9bbb-188e2c6a59a3
+[47163:53961309:1009/005910.980196:ERROR:base/mac/process_requirement.cc:159] Unable to derive validation category for current process. Signature validation of current process failed: Error Domain=NSOSStatusErrorDomain Code=-67030 "(null)" (-67030)
+[47163:53961310:1009/005913.016873:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[47163:53961310:1009/005913.017636:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[47163:53961310:1009/005913.017987:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[47163:53961310:1009/005913.870118:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+[47163:53961310:1009/005913.870158:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+[47163:53961310:1009/005938.948394:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[47163:53961310:1009/010036.290479:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[47163:53961310:1009/010159.322789:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[47163:53961011:1009/010201.670187:INFO:CONSOLE:0] "Autofocus processing was blocked because a document already has a focused element.", source: devtools://devtools/bundled/worker_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@334b65d254ccc35df4fca82706d1753227b01039/&browserConnection=true&isChromeForTesting=true (0)
+OpenDesk Native Agent: E_SOCKET_IN_USE
+[47163:53961011:1009/010230.547197:INFO:CONSOLE:1] "R62_NATIVE_DISCONNECT {"message":"Native host has exited."}", source:  (1)
+[47163:53961310:1009/010258.815720:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:484] ConnectionHandler failed with net error: -2
+[47172:53961352:1009/010331.400172:WARNING:net/spdy/spdy_session.cc:3188] Received HEADERS for invalid stream 11
+[47163:53961310:1009/010454.809096:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[47163:53961011:1009/010524.188893:INFO:CONSOLE:0] "Autofocus processing was blocked because a document already has a focused element.", source: chrome://extensions/?id=ochpinpkioajljgdecdekdfcdepkdaih (0)
+[47163:53961310:1009/010619.355927:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:484] ConnectionHandler failed with net error: -2
+[47163:53961310:1009/010940.300612:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:484] ConnectionHandler failed with net error: -2
+[47163:53961310:1009/011039.591031:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[47163:53961310:1009/011300.884495:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:484] ConnectionHandler failed with net error: -2
+[47163:53961310:1009/011621.450853:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:484] ConnectionHandler failed with net error: -2

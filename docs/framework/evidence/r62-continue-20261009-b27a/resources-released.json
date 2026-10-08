@@ -1,0 +1,13 @@
+{
+  "resourceState": "released",
+  "ownChromePid": 47163,
+  "ownChromeExited": true,
+  "ownLauncherExited": true,
+  "quitMethod": "trusted Chrome application menu terminate action; launcher exit0",
+  "nativeSocketAbsent": true,
+  "ownedProfileRemoved": true,
+  "nativeInstallation": "Own installation retained inactive for continuation; credentials only in private install and private backup",
+  "diagnosticProfileSeed": "/private/tmp/opendesk-r62-profile-diagnostic-b27a",
+  "shared43111": "untouched; still R7-owned",
+  "updatedUtc": "2026-10-08T17:21:14.586580+00:00"
+}

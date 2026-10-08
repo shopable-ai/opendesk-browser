@@ -1,0 +1,32 @@
+[
+  {
+    "case": "save-digest-conflict",
+    "exit": 1,
+    "error": {
+      "code": "E_REQUEST_CONFLICT",
+      "message": "E_REQUEST_CONFLICT",
+      "outcome": "NOT_DISPATCHED"
+    },
+    "hasRunId": false
+  },
+  {
+    "case": "unowned-result",
+    "exit": 1,
+    "error": {
+      "code": "E_PERMISSION",
+      "message": "E_PERMISSION",
+      "outcome": "NOT_DISPATCHED"
+    },
+    "hasRunId": false
+  },
+  {
+    "case": "stale-document",
+    "exit": 1,
+    "error": {
+      "code": "E_DOCUMENT_STALE",
+      "message": "Target snapshot must match the live Sidebar window",
+      "outcome": "NOT_DISPATCHED"
+    },
+    "hasRunId": false
+  }
+]

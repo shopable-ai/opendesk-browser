@@ -1,0 +1,18 @@
+{
+  "registrationId": "64453a4f-7018-4c0d-a6c9-a69b7b58d4ac",
+  "target": {
+    "windowId": 1415011197,
+    "tabId": 1415011202,
+    "frameId": 0,
+    "documentId": "63A4B64F8CD3A53031F15D9A1730561E-stale",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "origin": "http://127.0.0.1:43111"
+  },
+  "source": {
+    "kind": "draft",
+    "sourceUtf8": "// Run as a read-only draft through the existing Sidebar/RunHost or optional Native Agent.\n// This is NOT a Task verification or an Agent E2E receipt.\nasync function main() {\n  const observed = await page.observe({\n    root:'#search-form',maxDepth:5,maxNodes:32,maxChars:4200\n  });\n  return {kind:observed.kind,document:observed.document,\n    truncated:observed.truncated,budget:observed.budget,nodes:observed.nodes};\n}\n"
+  },
+  "params": {},
+  "deadlineMs": 30000,
+  "requestId": "r62-b27a-stale-document-137fb62d-1175-45ff-bee5-ef7919c58d0a"
+}

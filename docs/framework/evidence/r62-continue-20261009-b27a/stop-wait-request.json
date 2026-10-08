@@ -1,0 +1,18 @@
+{
+  "requestId": "r62-b27a-wait-stop-c0f4938d-3e76-4b69-8f38-449fdf77ac67",
+  "registrationId": "64453a4f-7018-4c0d-a6c9-a69b7b58d4ac",
+  "target": {
+    "windowId": 1415011197,
+    "tabId": 1415011202,
+    "frameId": 0,
+    "documentId": "63A4B64F8CD3A53031F15D9A1730561E",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "origin": "http://127.0.0.1:43111"
+  },
+  "source": {
+    "kind": "draft",
+    "sourceUtf8": "async function main() { return await page.locator('#r62-b27a-absent-stop-target').waitFor({state:'visible',timeout:20000}); }\n"
+  },
+  "params": {},
+  "deadlineMs": 30000
+}

@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "r62-b27a-save-71f65a5e-fa18-4d2d-93e2-24e960f59846",
+  "result": {
+    "tag": "script-revision",
+    "namespace": "tool:ochpinpkioajljgdecdekdfcdepkdaih",
+    "scriptId": "r62-b27a-modern-search",
+    "revision": 1,
+    "parentRevision": 0,
+    "contentHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+    "sourceUtf8": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n"
+  }
+}

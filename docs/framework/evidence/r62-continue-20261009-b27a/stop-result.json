@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "r62-b27a-stop-21218dd7-d9d2-42e8-9d1e-d55b6a276377",
+  "result": {
+    "runId": "7226a5c5-b129-461c-8897-d9ea6f16635b",
+    "state": "stopping",
+    "cancelSeq": 1,
+    "runRevision": 3
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "r62-b27a-cas-c5cdd6ee-8903-4fb4-b587-6835ec52ff8d",
+  "error": {
+    "code": "E_REVISION",
+    "message": "Script head CAS conflict",
+    "outcome": "FAILED_CONFIRMED"
+  }
+}

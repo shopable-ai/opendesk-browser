@@ -1,0 +1,26 @@
+{
+  "local": {
+    "installed": true,
+    "extensionId": "ochpinpkioajljgdecdekdfcdepkdaih",
+    "browser": "cft",
+    "manifest": "/Users/shopme/Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "socketExists": true,
+    "error": null,
+    "note": "Socket existence does not prove an authenticated Chrome connection"
+  },
+  "connected": true,
+  "response": {
+    "v": 1,
+    "kind": "response",
+    "requestId": "2b370beb-2052-4c64-b595-8f92d4105baf",
+    "result": {
+      "extensionId": "ochpinpkioajljgdecdekdfcdepkdaih",
+      "bridgeVersion": 1,
+      "nativeConnected": true,
+      "enabled": true,
+      "hostRegistrations": [
+        "64453a4f-7018-4c0d-a6c9-a69b7b58d4ac"
+      ]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "25712d75-f2ea-459d-ba24-b965f06654dc",
+  "result": {
+    "registrationId": "64453a4f-7018-4c0d-a6c9-a69b7b58d4ac",
+    "target": {
+      "windowId": 1415011197,
+      "tabId": 1415011202,
+      "frameId": 0,
+      "documentId": "63A4B64F8CD3A53031F15D9A1730561E",
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "origin": "http://127.0.0.1:43111"
+    }
+  }
+}
