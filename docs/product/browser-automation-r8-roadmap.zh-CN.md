@@ -1,5 +1,8 @@
 # OpenDesk Browser R8：产品能力路线、三页签信息架构、验收与专家独立审计
 
+> **R8 工程执行总计划**：已另行保存 [R8.0～R8.6 实施计划（40 项工程任务，关联 188 项功能 ID）](browser-automation-r8-implementation-plan.zh-CN.md)。本文保持产品 P0～P4 方向、UI 和用户目标；具体工程依赖、优先实施工作包、PR #11/#20/#22 边界与真实 Chrome 验收门槛以执行总计划为入口。该链接不表示功能已经完成。
+
+
 > 2026-10-09；状态：**RESEARCH / PROPOSED / PLAN，非功能落地**。以 2026-10-09 核查的 GitHub main 初始 HEAD fa8e3fba80ca6f86a2f8160c08d19c6f925ce670 为源码基线；R8 仅提交研究文档。与 [R8 竞品调研](../architecture/browser-framework/userscript-competitor-research-r8-20261008.zh-CN.md)、[GM 兼容矩阵](../architecture/browser-framework/userscript-compatibility-matrix-r8.zh-CN.md)、[R8 ADR](../architecture/browser-framework/plugin-capability-architecture-r8-adr.zh-CN.md) 同时阅读。下一轮实施必须先 fetch 最新 main，检查并行 PR 与原生 Chrome 条件。
 
 ## 1. 真实完成度（按证据而非宣传）
