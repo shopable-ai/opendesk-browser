@@ -488,9 +488,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           {post: details.phase === 'post', handoff: details.handoff}));
       };
       const withLocatorWrite = async (identity, effect) => {
-        const writeKey = canonical([identity.runId, identity.ownerEpoch, identity.target.tabId,
-          identity.target.frameId, identity.target.documentId]);
-        invariant(!locatorWriters.has(writeKey), 'E_WRITE_CONFLICT', 'Concurrent Locator mutations are not permitted');
+        const writeKey = identity.runId;
+        invariant(!locatorWriters.has(writeKey), 'E_WRITE_CONFLICT');
         locatorWriters.add(writeKey);
         try { return await effect(); } finally { locatorWriters.delete(writeKey); }
       };
@@ -590,13 +589,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           // A dispatched Locator commit may have changed the page even when its
           // callback was lost or a stop/timeout won the race. Only an explicit
           // same-document no-effect receipt clears the latest commit intent.
-          let locatorEffectUnknown = false;
-          if (envelope.operation.kind === 'packaged' && envelope.operation.method === 'locatorAction')
-            for (const receipt of operation.nativeReceipts || []) {
-              if (receipt.stage === 'locator.commitIntent') locatorEffectUnknown = true;
-              else if (receipt.stage === 'locator.commitNoEffect') locatorEffectUnknown = false;
-            }
-          operation.state = locatorEffectUnknown ? 'effect_unknown' :
+          const lastLocatorCommit = (operation.nativeReceipts || []).filter(receipt =>
+            receipt.stage === 'locator.commitIntent' || receipt.stage === 'locator.commitNoEffect').at(-1);
+          const uncertainAction = envelope.operation.kind === 'packaged' &&
+            envelope.operation.method === 'locatorAction' && lastLocatorCommit?.stage === 'locator.commitIntent';
+          operation.state = uncertainAction ? 'effect_unknown' :
             error.code === 'E_CANCELLED' || error.code === 'E_TIMEOUT' ? 'cancelled' :
             failedWithoutEffect ? 'failed' : 'effect_unknown';
           operation.failure = typed(error); operation.deliveryState = 'fenced';
