@@ -22,7 +22,7 @@ const html=await readFile('src/ui/tool.html','utf8');
 const make=()=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
-  const doc={getElementById:get,createElement:()=>new Element()};
+  const doc={getElementById:get,createElement:()=>new Element(),documentElement:{dataset:{}}};
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
@@ -131,4 +131,30 @@ test('installed task refuses stale target after async installed-version lookup',
   assert.equal(checks,2,'must fence before and after async resolve');
   assert.equal(f.starts.length,0,'no Controller admission for a stale document');
   assert.match(f.get('task-status').textContent,/E_DOCUMENT_STALE/);
+});
+
+test('task cards retain readable selection and do not surface raw IDs as the main UI',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  const cards=f.get('task-installed-cards');
+  assert.equal(cards.children.length,1,'one installed task should have one visible card');
+  assert.equal(cards.children[0].attributes['aria-pressed'],'true');
+  assert.match(cards.children[0].children[1].children[0].textContent,/表单任务/);
+  assert.match(f.get('task-installed-detail').textContent,/输入表单/);
+  assert.doesNotMatch(f.get('task-installed-detail').textContent,/[a-f0-9]{64}/,'raw hashes belong in diagnostics');
+  assert.equal(f.get('workbench-discover').hidden,true);
+});
+
+test('opening a full-size catalog reuses the workbench with no Sidebar discovery tab',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.ui.showCatalogPage();
+  assert.equal(f.get('workbench-discover').hidden,false);
+  assert.equal(f.get('workbench-tasks').hidden,true);
+  assert.equal(f.get('task-dock').hidden,true);
+  assert.equal(f.get('develop-dock').hidden,true);
+  assert.equal(f.get('task-catalog-cards').children.length,1);
+  f.get('task-search').value='no matches';
+  f.get('task-search').fire('input');
+  assert.equal(f.get('task-catalog-cards').children.length,1,'empty result is an explicit empty state');
+  assert.match(f.get('task-catalog-count').textContent,/0 个/);
+  assert.equal(f.catalogOpens.length,0,'already-open full catalog must not create another browser tab');
 });
