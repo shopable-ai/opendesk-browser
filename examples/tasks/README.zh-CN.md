@@ -56,3 +56,14 @@
 - 通过 `file://` 打开时真实同源 `fetch` 不受支持，必须使用上述本地 HTTP 地址。扩展侧 RunHost、权限和原生回执需要在真实 Chrome 单独验收。
 
 定向静态/兼容契约检查：`node --test tests/environment/basic-browser-page.test.mjs`。
+
+## R6.2 Agent → Task：两个草稿，一个未验证 Candidate
+
+新增两个可复用阶段样本，**无需更改**本页面、R6 Sidebar 三页签或已有旧版 Task 包：
+
+- `agent-observe-draft.js`：只读 `page.observe({root:'#search-form'})`；可由 Sidebar「开发」直接运行，也可由现有 Native Agent `run.start` 以 `source.kind='draft'` 执行。返回有限的语义观察结果，**不会**自动点击、申请权限或发布任务。观察文本均按不可信页面内容处理。
+- `modern-search-draft.js`：既有的 Label/Role Locator 表单自动化；真实 Chrome 运行需使用同一 RunHost、正确网站 grant 和当前 `documentId`，并记录唯一提交效果及 Durable Result。
+- `modern-search.v1.opendesk-task.json`：使用上面**完整相同** `modern-search-draft.js` 执行源码字节和 SHA-256 的 Task v1 **Candidate**。在完整任务目录「导入」后必须仍为待验证；只有同源码、同 origin 的真实 `runId/resultId`、原生页面效果回执和 released Worker 才能 Verified → Available → 明确安装。不能把只读观察运行当作这项验证。
+- `tests/environment/agent-to-task-fixtures.test.mjs`：验证观察草稿可独立执行但无页面操作，以及现代 Task 包哈希确实对应现有 JS；**仅组件层证据**。
+
+本地端到端的顺序：打开本 HTTP 页面并取得权限 → 运行只读观察 → 编写/试运行现代 JS → 检查真实原生页面与持久结果 → 保存不可变版本 → 在完整目录导入 Candidate 并人工核对 → 用户设为 Available、安装 → 关闭 Codex/Native 再由 Sidebar「我的任务」重复运行。完整协议、安全与失败边界以 [Agent → Task R1 唯一合同](../../docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md) 为准；Native 原生验收前不得声明整个流程 PASS。
