@@ -564,10 +564,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         deadlineAt:Date.now()+30000});
       activeRunId=claim.runId;
       setTaskNotice(runOwnerKey,`运行中：${resolved.manifest.title} · v${resolved.version}`);
+      update(); // Expose the owning Stop immediately; do not rely on a later host event.
       await host.completion;
     })().catch(error=>setTaskNotice(identity(chosen),`${error?.code||'E_TASK'}：${error?.message||error}`)).finally(async()=>{
       running=false;
       if(disposed)return;
+      renderTaskStatus();update(); // Retire the visible Stop without waiting for history RPC.
       try{await refreshHistory();}catch(error){fail(error);}
       renderTaskStatus();update();
     });
