@@ -280,15 +280,16 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       ensure(parsed.requires.length===0&&JSON.stringify(admission.nativeOptions)===JSON.stringify(project.pageRules),
         'E_PROJECT_RULES','Compiled page rules differ from the source project declaration',
         {project:projectLabel,phase:'build',location:'program.js'});
-      compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
+      await compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
     }
     const after=await validateProgramProject(root);
     ensure(JSON.stringify(before)===JSON.stringify(after),'E_PROJECT_CHANGED',
       'Project source changed during build',{project:projectLabel,phase:'validate'});
 
     const hash=sha(bytes);
+    const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root)})));
     const out=resolve(outputDirectory||join(process.cwd(),
-      'artifacts','programs',project.id,pkg.version,hash.slice(0,16)));
+      'artifacts','programs',project.id,pkg.version,'r31-'+mode,hash.slice(0,16)+'-'+authoringHash.slice(0,12)));
     const draft=draftEnvelope({pkg,project,before,sourceUtf8,sourceHash:hash,mode});
     const artifact={
       format:VERSION,

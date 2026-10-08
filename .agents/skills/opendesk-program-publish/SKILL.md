@@ -29,7 +29,9 @@ description: Create, edit, review, package, validate or publish OpenDesk Browser
     npm run build:program -- examples/programs/page-heading
     npm run build:program -- examples/programs/controller-title
 
-命令会先严格检查源项目，再使用仓库现有 Webpack 将静态依赖图构建为单个 classic JS，计算最终 SHA-256，并在忽略版本控制的 artifacts/programs/ 下写入不可变 program.js 和 artifact.json。Controller 还会生成可导入的 program.opendesk-task.json（Candidate，绝不是 Available）。Page 只能经**原 R6「发现 → 导入」完整目录转交同窗口 Sidebar 草稿**（或粘贴源码），再在「开发」原有「网页用户脚本 · 依赖与试运行」折叠区手动运行；**不得因此新增页签或替换 R6 底栏按钮**。Page 尚无正式自动安装。CSS/JSON/image 当前只验证声明，不注入；构建时明确拒绝未支持的 assets。
+命令会先严格检查源项目，再使用仓库现有 Webpack 将静态依赖图构建为单个 classic JS，计算最终 SHA-256，并在忽略版本控制的 artifacts/programs/ 下写入不可变 program.js、artifact.json 和 program.opendesk-draft.json。Controller 还会生成可导入的 program.opendesk-task.json（Candidate，绝不是 Available）。优先经**原 R6「发现 → 导入」完整目录**导入 program.opendesk-draft.json，向同窗口 Sidebar 转交源文件快照与固定执行字节；源码快照只读，回本地修改再构建。Page 在「开发」原有「网页用户脚本 · 依赖与试运行」折叠区手动运行，Controller 用原底栏运行草稿。旧 program.js 仍兼容，但无源码时只显示「已编译程序」及折叠诊断；**不得因此新增页签或替换 R6 底栏按钮**。Page 尚无正式自动安装。CSS/JSON/image 当前只验证声明，不注入；构建时明确拒绝未支持的 assets。
+
+开发构建用 `--mode development`，附可读 JS 与独立本地 program.js.map；默认生产模式继续压缩，不携带 Source Map。不得在没有真实映射时编造运行错误源码行号。
 
 ## 发布门槛
 - 本地 JS bundling 与产物哈希已可执行，但 artifact.json 的状态仅为 BUILT_UNVERIFIED；它不是已签名或可安装的正式 Page 发行包。项目源码 JSON 不能自称为发行包，源 npm-lock 也不是最终字节哈希。

@@ -91,9 +91,13 @@
     </details>
   </section>
   <section class="developer-editor" aria-label="JavaScript 草稿">
+    <p id="program-source-info" class="identity" role="status" hidden></p>
+    <label for="program-source-files" class="visually-hidden">项目源文件快照</label><select id="program-source-files" hidden></select>
+    <button type="button" id="program-new-script" hidden>新建单文件草稿</button>
     <label for="script-source" class="visually-hidden">JavaScript 编辑器，草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
+    <details id="program-generated" hidden><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
     <details class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
