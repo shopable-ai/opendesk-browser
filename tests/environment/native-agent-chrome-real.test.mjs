@@ -27,7 +27,12 @@ function chromeBinary() {
     ['/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing','cft'],
     ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','chrome']
   ];
-  return paths.find(item=>fs.existsSync(item[0]))||null;
+  // A local app may be renamed. Inspect its actual vendor version before
+  // choosing a Native manifest folder; branded Chrome is unsupported here.
+  return paths.filter(item=>fs.existsSync(item[0])).map(([file])=>{
+    const version=spawnSync(file,['--version'],{encoding:'utf8',timeout:10000});
+    return /Chrome for Testing/.test(version.stdout||'')?[file,'cft']:null;
+  }).find(Boolean)||null;
 }
 function cli(args,env) {
   return spawnSync(process.execPath,['native-agent/cli.mjs',...args],{
@@ -78,7 +83,7 @@ function connectCDP(url) {
 }
 test('real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake', {
   skip:process.platform!=='darwin',
-  timeout:95000
+  timeout:125000
 },async t=>{
   const binary=chromeBinary();
   assert.ok(binary,'No installed real Google Chrome or CFT; cannot claim Chrome E2E');
@@ -95,8 +100,10 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   });
   const version=spawnSync(executable,['--version'],{encoding:'utf8',timeout:10000});
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
+  const uiAssist=process.env.OPENDESK_NATIVE_UI_ASSIST==='1';
   child=spawn(executable,[
-    '--headless=new','--no-first-run','--no-default-browser-check',
+    ...(uiAssist?[]:['--headless=new']),'--no-first-run','--no-default-browser-check',
+    '--use-mock-keychain','--password-store=basic',
     '--disable-background-networking','--disable-sync',
     '--remote-allow-origins=*','--remote-debugging-port=0',
     '--disable-extensions-except='+ext,'--load-extension='+ext,
@@ -142,6 +149,15 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   console.log('REAL_CHROME_EXTENSION_LOADED=PASS id='+extensionId);
   const setup=cli(['setup','--extension-id',extensionId,...(browser==='cft'?['--browser','cft']:[])],env);
   assert.equal(setup.status,0,'real native manifest setup: '+setup.stderr);
+  const installed=JSON.parse(setup.stdout);
+  const manifest=JSON.parse(fs.readFileSync(installed.manifest,'utf8'));
+  assert.equal(manifest.path,installed.nativeHost);
+  assert.deepEqual(manifest.allowed_origins,['chrome-extension://'+extensionId+'/']);
+  // Chromium resolves per-user hosts from --user-data-dir. Copy exact
+  // canonical bytes into this disposable profile, refusing any existing file.
+  const profileHosts=path.join(profile,'NativeMessagingHosts');
+  fs.mkdirSync(profileHosts,{recursive:true});
+  fs.copyFileSync(installed.manifest,path.join(profileHosts,path.basename(installed.manifest)),fs.constants.COPYFILE_EXCL);
   console.log('MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser='+browser);
 
   cdp?.close();
@@ -178,13 +194,14 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   await cdp.call('Input.dispatchMouseEvent',{type:'mousePressed',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseReleased',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
   console.log('REAL_CHROME_CDP_POINTER_DISPATCHED=PASS (extension itself requires event.isTrusted)');
+  if(uiAssist)console.log('REAL_CHROME_PERMISSION_UI=WAITING_FOR_GENUINE_USER_APPROVAL; profile='+profile);
   let snapshot='';
   try {
     await eventually(async()=>{
       snapshot=await status();
       const diagnosis=cli(['doctor'],env);
       return diagnosis.status===0&&snapshot.includes('已启用')&&snapshot.includes('已连接');
-    },{timeout:18000,label:'Native handshake after Chrome Options trusted click'});
+    },{timeout:uiAssist?60000:18000,label:'Native handshake after Chrome Options trusted click'});
   }catch(e){
     console.log('REAL_CHROME_NATIVE_HANDSHAKE=NOT_VERIFIED; Options status='+JSON.stringify(snapshot));
     throw e;
