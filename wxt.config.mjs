@@ -48,7 +48,7 @@ export default defineConfig({
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
       config.plugins.push({
         name: `opendesk-fixed-${entry.name}`,
-        transform(code,id) {if(id===resolve('src/platform/schema.js')) return {code:compactSchemaSource(code),map:null};},
+        transform(code,id) {if(id===resolve('src/platform/schema.js')) return {code:compactSchemaSource(code,{adaptive:entry.type==='background'}),map:null};},
         generateBundle(_options, bundle) {
           const chunks = Object.values(bundle).filter(value => value.type === 'chunk');
           if (chunks.length !== 1 || chunks[0].fileName !== target || chunks[0].imports.length || chunks[0].dynamicImports.length)
