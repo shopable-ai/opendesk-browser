@@ -720,7 +720,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected)refresh().catch(fail);});
   client.ready.then(()=>refresh()).catch(fail);
   navigate('tasks');update();
-  return {navigate,showCatalogPage,refresh,receiveDraft(sourceUtf8) {
+  return {navigate,showCatalogPage,refresh,focusInstalledTask(taskId) {
+    const selectedRow=installed.find(row=>row.taskId===taskId && row.enabled);
+    if(disposed||!selectedRow)return false;
+    get('task-installed-list').value=taskId;
+    renderInstalledSelection();navigate('tasks');
+    return true;
+  },receiveDraft(sourceUtf8) {
     if(disposed || catalogSurface || typeof importDraft !== 'function')throw {code:'E_HOST_NOT_FOUND',message:'Sidebar 编辑器不可用'};
     const applied=importDraft(sourceUtf8);
     if(applied?.then)return applied.then(() => {if(!disposed)navigate('develop');});

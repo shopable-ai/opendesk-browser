@@ -11,6 +11,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'framework/sdk-main': './src/framework/sdk/entry.js',
   'scripting/packaged/page-session': './src/scripting/packaged/page-session.js',
   'scripting/sandbox/sandbox': './src/scripting/sandbox/sandbox.js',
+  'sidebar-tools/bridge': './src/sidebar-tools/bridge.js',
   'scripting/sandbox/worker-runtime': './src/scripting/sandbox/worker-runtime.js'
 });
 

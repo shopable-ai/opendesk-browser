@@ -1,0 +1,12 @@
+<main class="notes-app">
+  <header class="notes-heading"><img src="{{asset:assets/mark.png}}" width="16" height="16" alt="">
+    <div><h1>网页笔记</h1><p id="page-summary">读取当前网页…</p></div></header>
+  <label for="note-text">我的笔记</label>
+  <textarea id="note-text" rows="7" placeholder="记录当前网页的重点…"></textarea>
+  <div class="actions"><button id="save-note" type="button">保存笔记</button><button id="refresh-page" type="button">更新网页信息</button></div>
+  <p id="note-status" role="status" aria-live="polite">仅保存在本机的此工具内。</p>
+  <details><summary>打开已安装的自动化任务</summary>
+    <label for="task-name">任务 ID</label><input id="task-name" placeholder="输入已安装任务 ID">
+    <button id="open-task" type="button">前往任务（不会自动运行）</button>
+  </details>
+</main>
