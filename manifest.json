@@ -12,15 +12,23 @@
     "downloads",
     "tabs",
     "webNavigation",
-    "userScripts"
-  ],
-  "optional_permissions": [
+    "userScripts",
     "cookies",
     "notifications"
   ],
-  "optional_host_permissions": [
-    "http://*/*",
-    "https://*/*"
+  "optional_permissions": [
+    "bookmarks",
+    "history",
+    "contextMenus",
+    "clipboardRead",
+    "clipboardWrite",
+    "tabGroups",
+    "webRequest",
+    "declarativeNetRequestWithHostAccess",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "sw.js"
