@@ -390,6 +390,19 @@ test('R6 late run start/result cannot become the newly selected task status',asy
   assert.match(f.get('task-status').textContent,/成功/);
 });
 
+test('R6 previous-version notices and results do not leak after installed upgrade',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('task-run');
+  f.host.complete({ok:true});await tick();await tick();await tick();
+  assert.match(f.get('task-status').textContent,/成功/);
+  f.catalogState.catalog[0].version='2.0.0';
+  f.catalogState.installed[0].version='2.0.0';
+  f.catalogState.installed[0].scriptId='task:demo.form:2.0.0';
+  await f.ui.refresh();await tick();
+  assert.equal(f.get('task-status').textContent,'','new installed version has no inherited run notice');
+  assert.equal(f.get('task-history-panel').hidden,true,'new version has no old-version history');
+});
+
 test('two extension documents share only a refresh hint and re-read authoritative installed state',async t=>{
   const store={};
   const sidebar=make({installedInitially:false,sharedStore:store});
