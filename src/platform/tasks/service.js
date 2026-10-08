@@ -1,6 +1,6 @@
-import {canonical, invariant} from '../protocol.js';
-import {createTaskPackage, installedKey, taskKey, taskScriptId, scriptStorageKey,
-  validateTaskManifest, validateTaskParams, verifyTaskPackage} from './contract.js';
+import {invariant} from '../protocol.js';
+import {installedKey, taskKey, taskScriptId, scriptStorageKey,
+  validateTaskParams, verifyTaskPackage} from './contract.js';
 
 const candidateStates = new Set(['candidate','verified','available']);
 function fields(value,allowed,required=allowed) {
@@ -36,7 +36,7 @@ export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,ori
     candidate.package.manifest.siteOrigins.includes(origin) &&
     taskScriptId(install.taskId,install.version)===scriptId,'E_PERMISSION',
     'Installed task does not match its Available version or website');
-  validateTaskParams(candidate.package.manifest.paramsSchema,params);
+  if (params !== undefined) validateTaskParams(candidate.package.manifest.paramsSchema,params);
   return candidate;
 }
 
@@ -184,10 +184,10 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
     return scoped(sender,['frameworkKV','scriptRevisions'],'readonly',async(tx,ns)=>{
       const row=await tx.get('frameworkKV',installedKey(ns,request.taskId));
       invariant(row?.tag==='task-installed-v1' && row.enabled,'E_PERMISSION','Task is disabled or not installed');
+      const stored=validCandidate(await tx.get('frameworkKV',taskKey(ns,row.taskId,row.version)),ns);
       const candidate=await assertInstalledTask(tx,ns,{scriptId:row.scriptId,
-        contentHash:(await tx.get('frameworkKV',taskKey(ns,row.taskId,row.version))).package.manifest.program.sourceHash,
-        origin:(await tx.get('frameworkKV',taskKey(ns,row.taskId,row.version))).package.manifest.siteOrigins[0],
-        params:{} /* validate separately at Run admission */});
+        contentHash:stored.package.manifest.program.sourceHash,
+        origin:stored.package.manifest.siteOrigins[0]});
       return {taskId:row.taskId,version:row.version,scriptId:row.scriptId,revision:1,
         contentHash:candidate.package.manifest.program.sourceHash,manifest:structuredClone(candidate.package.manifest),
         manifestHash:candidate.package.manifestHash};
