@@ -72,6 +72,18 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 #api-error{margin:8px 0 0;color:#a83f4b;font-size:12px;overflow-wrap:anywhere}
 .status[data-state="cancelled"] .indicator{background:#8998a9}
 
+.api-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+.api-fields .field{min-width:0}
+.api-fields select,.api-fields input{width:100%}
+.api-fields .api-url-field{grid-column:1 / -1}
+.api-fields .api-buttons{grid-column:1 / -1}
+.api-config-fields{max-width:210px}
+#api-post-body{width:100%;font:12px/1.55 ui-monospace,Menlo,monospace;border:1px solid #cbd5e1;border-radius:8px;padding:9px;resize:vertical;color:#20324b;background:#fff}
+.api-response-details{margin-top:9px;border:1px solid #e0e6ee;border-radius:8px;background:#f7f9fc}
+.api-response-details summary{cursor:pointer;padding:9px 11px;font-size:12px;font-weight:650;color:#405873}
+.api-response-details #api-response{margin:0;border:none;border-radius:0;max-height:230px}
+#api-bridge-hint{color:#516785}
+@media(max-width:540px){.api-fields{grid-template-columns:1fr}.api-fields .api-config-fields{max-width:none}}
 @media(max-width:540px){.topbar-inner{padding:9px 15px}main{padding:0 13px;margin-top:23px}h1{font-size:22px}.unit{padding:16px}.field{flex-basis:100%}.controls{gap:7px}}
 </style>
 </head>
@@ -127,36 +139,57 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
       <p id="search-count" aria-live="polite">提交次数：0</p>
     </section>
     <section class="unit" aria-labelledby="api-title">
-      <div class="unit-heading"><small>06</small><h2 id="api-title">真实 HTTP GET · 响应检查</h2></div>
-      <div class="fields">
-        <div class="field api-url-field">
-          <label for="api-url">请求 URL</label>
-          <input id="api-url" name="api-url" type="text" inputmode="url" maxlength="600" spellcheck="false" value="./demo-form.html?test-response=1" aria-describedby="api-tip">
+      <div class="unit-heading"><small>06</small><h2 id="api-title">HTTP API · OpenDesk axiosx</h2></div>
+      <div class="api-fields">
+        <div class="field">
+          <label for="api-channel">请求通道</label>
+          <select id="api-channel" data-testid="api-channel"><option value="axiosx" selected>OpenDesk SDK axiosx</option><option value="fetch">网页 Fetch（CORS 对照）</option></select>
         </div>
         <div class="field">
-          <label for="api-preset">示例地址（只填入，不发送）</label>
+          <label for="api-preset">示例地址（选择不会发送）</label>
           <select id="api-preset">
-            <option value="./demo-form.html?test-response=1">本地同源 HTML · 无需外网</option>
-            <option value="https://api.ipify.org?format=json">公网 IP JSON · 第三方</option>
+            <option value="./request-sample.json" selected>本地 JSON · 200</option>
+            <option value="./__opendesk_expected_404__.json">本地不存在 · 404</option>
+            <option value="http://127.0.0.1:43112/request-sample.json">跨端口 JSON · CORS 对照</option>
+            <option value="./__test__/delay?ms=2000">真实延迟 · Node 服务</option>
+            <option value="./__test__/echo">POST 回显 · Node 服务</option>
+            <option value="https://api.ipify.org?format=json">公网 IP JSON · 手动访问</option>
           </select>
         </div>
-        <div class="controls">
-          <button id="api-send" class="primary" type="button">发送 GET</button>
-          <button id="api-cancel" type="button" disabled>取消请求</button>
+        <div class="field api-url-field">
+          <label for="api-url">请求 URL</label>
+          <input id="api-url" data-testid="api-url" name="api-url" type="text" inputmode="url" maxlength="600" spellcheck="false" value="./request-sample.json" aria-describedby="api-tip">
+        </div>
+        <div class="field api-config-fields">
+          <label for="api-method">Method</label>
+          <select id="api-method" data-testid="api-method"><option selected>GET</option><option>POST</option></select>
+        </div>
+        <div class="field api-config-fields">
+          <label for="api-timeout">超时 (ms)</label>
+          <input id="api-timeout" type="number" min="100" max="15000" step="100" value="5000">
+        </div>
+        <div id="api-post-wrap" class="field api-url-field" hidden>
+          <label for="api-post-body">POST JSON 内容</label>
+          <textarea id="api-post-body" rows="2" spellcheck="false">{"hello":"OpenDesk"}</textarea>
+        </div>
+        <div class="controls api-buttons">
+          <button id="api-send" data-testid="api-send" class="primary" type="button">发送请求</button>
+          <button id="api-cancel" type="button" disabled>取消显示</button>
         </div>
       </div>
-      <p id="api-tip" class="footnote">仅点击「发送 GET」才访问所填地址；跨域请求须获得服务器 CORS 许可。请求不携带 Cookie；公网 IP 示例会连接第三方服务。</p>
-      <div id="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text">尚未发送请求</span></div>
+      <p id="api-tip" class="footnote">默认测试扩展注入的 axiosx；必须先在「独立网页 SDK」明确批准 network 和目标 Origin。Fetch 仅用于跨域对照；网页不会自动发送公网请求。</p>
+      <p id="api-bridge-hint" class="footnote" role="status">SDK 未授权或未安装时，axiosx 应明确失败，绝不自动回退 Fetch。</p>
+      <div id="api-status" data-testid="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text">尚未发送请求</span></div>
       <dl class="api-meta">
-        <div><dt>HTTP</dt><dd id="api-http-status">—</dd></div>
-        <div><dt>耗时</dt><dd id="api-duration">—</dd></div>
+        <div><dt>HTTP</dt><dd id="api-http-status" data-testid="api-http-status">—</dd></div>
+        <div><dt>耗时</dt><dd id="api-duration" data-testid="api-duration">—</dd></div>
         <div><dt>响应类型</dt><dd id="api-content-type">—</dd></div>
       </dl>
-      <pre id="api-response" data-testid="api-response" aria-live="polite" hidden></pre>
-      <p id="api-error" role="alert" hidden></p>
+      <details id="api-response-details" class="api-response-details"><summary>查看实际响应</summary><pre id="api-response" data-testid="api-response" aria-live="polite"></pre></details>
+      <p id="api-error" data-testid="api-error" role="alert" hidden></p>
     </section>
   </div>
-  <p class="footnote">第 03 组用真实同源 fetch 配合客户端模拟延迟/超时；第 06 组显示实际 HTTP 状态、耗时和响应正文。请通过本地 HTTP 服务打开，避免使用 file://。</p>
+  <p class="footnote">第 03 组保留旧异步场景；第 06 组优先测试授权后的 OpenDesk axiosx，Fetch 仅作跨域对照。请通过本地 HTTP 服务打开。</p>
 </main>
 <script>
 (() => {
@@ -302,12 +335,15 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
   });
 
 
-  // Explicit GET test: actual response metadata, no mock success labels.
-  // Preview is capped at 4096 UTF-8 bytes; never insert response HTML into the DOM.
+  // The native Fetch channel is a CORS control, not the OpenDesk HTTP implementation.
+  // MAIN OpenDeskSDK.axiosx is injected only after an explicit, document-bound grant.
   const apiUrl = get('api-url'), apiPreset = get('api-preset');
+  const apiMethod = get('api-method'), apiChannel = get('api-channel');
+  const apiTimeout = get('api-timeout'), apiBody = get('api-post-body');
   const apiSend = get('api-send'), apiCancel = get('api-cancel');
   const apiStatus = get('api-status'), apiStatusText = get('api-status-text');
   const apiResponse = get('api-response'), apiError = get('api-error');
+  const apiResponseDetails = get('api-response-details'), apiBridgeHint = get('api-bridge-hint');
   let activeApi = null;
   function showApiStatus(state, message) {
     apiStatus.dataset.state = state;
@@ -319,7 +355,7 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
     get('api-duration').textContent = '—';
     get('api-content-type').textContent = '—';
     apiResponse.textContent = '';
-    apiResponse.hidden = true;
+    apiResponseDetails.open = false;
     apiError.textContent = '';
     apiError.hidden = true;
   }
@@ -327,11 +363,35 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
     const previous = activeApi;
     activeApi = null;
     if (previous) {
+      previous.cancelled = true;
       clearTimeout(previous.timer);
-      previous.controller.abort();
+      // axiosx currently has no public request-level AbortSignal. Discard its
+      // late UI result only; do NOT claim the background HTTP was cancelled.
+      if (previous.mode === 'fetch') previous.controller.abort();
     }
     apiSend.disabled = false;
     apiCancel.disabled = true;
+  }
+  function syncApiControls() {
+    get('api-post-wrap').hidden = apiMethod.value !== 'POST';
+    apiCancel.textContent = apiChannel.value === 'axiosx' ? '停止显示结果' : '取消请求';
+    apiBridgeHint.textContent = apiChannel.value === 'axiosx'
+      ? 'axiosx 走扩展后台 HTTP Driver；须先从扩展批准当前 document、network 及目标 Origin。'
+      : '此通道为浏览器原生 Fetch，仅用于观察 CORS；不验证 SDK 网络权限。';
+  }
+  function apiDataPreview(value) {
+    let text;
+    if (typeof value === 'string') text = value;
+    else {
+      try { text = JSON.stringify(value, null, 2) ?? String(value); }
+      catch { text = '[响应数据无法序列化]'; }
+    }
+    return text.length > 4096 ? text.slice(0, 4096) + '\n…（预览已截断）' : text;
+  }
+  function showApiResponse(value, contentType = '—') {
+    apiResponse.textContent = apiDataPreview(value);
+    apiResponseDetails.open = true;
+    get('api-content-type').textContent = contentType;
   }
   async function readApiPreview(response) {
     const limit = 4096;
@@ -361,59 +421,101 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
   async function runApiRequest() {
     abortApiRequest();
     clearApiView();
-    let url;
+    let url, body;
     try {
       const input = apiUrl.value.trim();
       if (!input) throw new TypeError('请输入请求 URL');
       url = new URL(input, location.href);
       if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
         throw new TypeError('仅支持不含账号密码的 HTTP(S) URL');
+      if (apiMethod.value === 'POST') body = JSON.parse(apiBody.value);
     } catch (error) {
-      showApiStatus('error', 'URL 无效');
+      showApiStatus('error', 'URL 或请求内容无效');
       apiError.hidden = false;
       apiError.textContent = error instanceof Error ? error.message : String(error);
       return;
     }
-    const request = {controller:new AbortController(), timer:null, timedOut:false, started:performance.now()};
+    const method = apiMethod.value, mode = apiChannel.value;
+    const timeout = Number(apiTimeout.value);
+    if (!Number.isInteger(timeout) || timeout < 100 || timeout > 15000) {
+      showApiStatus('error', '超时时间无效');
+      apiError.hidden = false;
+      apiError.textContent = '超时必须为 100 至 15000 毫秒';
+      return;
+    }
+    const request = {controller:new AbortController(), timer:null, timedOut:false,
+      cancelled:false, mode, started:performance.now()};
     activeApi = request;
     apiSend.disabled = true;
     apiCancel.disabled = false;
-    showApiStatus('loading', '正在发送 GET…');
-    request.timer = setTimeout(() => {
-      request.timedOut = true;
-      request.controller.abort();
-    }, 8000);
+    showApiStatus('loading', mode === 'axiosx' ? 'SDK axiosx 请求中…' : '网页 Fetch 请求中…');
+    const current = () => activeApi === request && !request.cancelled;
     try {
-      const response = await fetch(url.href, {
-        method:'GET', credentials:'omit', cache:'no-store', mode:'cors',
-        signal:request.controller.signal
-      });
-      const preview = await readApiPreview(response);
-      if (activeApi !== request || request.controller.signal.aborted) return;
-      get('api-http-status').textContent = String(response.status) + (response.statusText ? ' ' + response.statusText : '');
-      get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
-      get('api-content-type').textContent = response.headers.get('content-type') || '（未提供）';
-      apiResponse.textContent = preview.body + (preview.truncated ? '\n…（正文已截断）' : '');
-      apiResponse.hidden = false;
-      if (response.ok) {
-        showApiStatus('success', 'HTTP 请求完成');
+      if (mode === 'axiosx') {
+        const sdk = window.OpenDeskSDK;
+        if (!sdk || typeof sdk.ready !== 'function' || !sdk.axiosx) {
+          const absent = new Error('请先在扩展「独立网页 SDK」批准并安装当前文档的 network 服务');
+          absent.code = 'E_SDK_UNAVAILABLE'; throw absent;
+        }
+        const hello = await sdk.ready();
+        if (!current()) return;
+        const capability = 'AXIOS_' + method;
+        if (hello?.ready !== true || !hello.methods?.includes(capability)) {
+          const denied = new Error('本次授权没有 ' + capability + ' 网络能力');
+          denied.code = 'E_CAPABILITY'; throw denied;
+        }
+        const config = {timeout};
+        const response = method === 'POST'
+          ? await sdk.axiosx.post(url.href, body, config)
+          : await sdk.axiosx.get(url.href, config);
+        if (!current()) return;
+        get('api-http-status').textContent = String(response.status);
+        get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
+        showApiResponse(response.data, response.headers?.['content-type'] ?? '—');
+        showApiStatus('success', 'SDK axiosx 请求成功 · 真实后台响应');
       } else {
-        showApiStatus('error', 'HTTP 请求返回错误');
-        apiError.textContent = 'HTTP ' + response.status + ' · 请检查返回正文';
-        apiError.hidden = false;
+        request.timer = setTimeout(() => {
+          if (!current()) return;
+          request.timedOut = true;
+          request.controller.abort();
+        }, timeout);
+        const response = await fetch(url.href, {
+          method, headers: method === 'POST' ? {'content-type':'application/json'} : undefined,
+          body: method === 'POST' ? JSON.stringify(body) : undefined,
+          credentials:'omit', cache:'no-store', mode:'cors', signal:request.controller.signal
+        });
+        const preview = await readApiPreview(response);
+        if (!current() || request.controller.signal.aborted) return;
+        get('api-http-status').textContent = String(response.status);
+        get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
+        showApiResponse(preview.body + (preview.truncated ? '\n…（正文已截断）' : ''),
+          response.headers.get('content-type') || '（未提供）');
+        if (response.ok) showApiStatus('success', '网页 Fetch 请求完成');
+        else {
+          showApiStatus('error', 'Fetch 收到 HTTP ' + response.status);
+          apiError.textContent = 'HTTP ' + response.status + ' · 请检查实际返回正文';
+          apiError.hidden = false;
+        }
       }
     } catch (error) {
-      if (activeApi !== request) return;
+      if (!current()) return;
       get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
       if (request.timedOut) {
-        showApiStatus('timeout', '请求超时');
-        apiError.textContent = '8 秒内未完成：请求已中止';
+        showApiStatus('timeout', 'Fetch 请求超时');
+        apiError.textContent = '超过 ' + timeout + ' 毫秒，Fetch 已中止';
       } else if (request.controller.signal.aborted) {
-        showApiStatus('cancelled', '已取消请求');
+        showApiStatus('cancelled', 'Fetch 请求已取消');
         return;
       } else {
-        showApiStatus('error', '网络请求失败');
-        apiError.textContent = (error instanceof Error ? error.message : String(error)) + '（检查网络、服务地址或 CORS）';
+        const code = typeof error?.code === 'string' ? error.code : 'E_NETWORK';
+        const status = error?.status ?? error?.response?.status;
+        if (Number.isInteger(status)) get('api-http-status').textContent = String(status);
+        if (error?.response) showApiResponse(error.response.data,
+          error.response.headers?.['content-type'] ?? '—');
+        showApiStatus('error', mode === 'axiosx' ? 'SDK axiosx 返回错误' : 'Fetch 网络请求失败');
+        apiError.textContent = (mode === 'axiosx' ? code + '：' : '')
+          + (error instanceof Error ? error.message : String(error))
+          + (mode === 'fetch' ? '（检查网络、服务地址或 CORS）' : '');
       }
       apiError.hidden = false;
     } finally {
@@ -428,12 +530,17 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
   apiSend.addEventListener('click', () => runApiRequest());
   apiCancel.addEventListener('click', () => {
     if (!activeApi) return;
-    activeApi.controller.abort();
-    showApiStatus('cancelled', '已取消请求');
+    const wasSdk = activeApi.mode === 'axiosx';
+    abortApiRequest();
+    showApiStatus('cancelled', wasSdk
+      ? '已停止显示 SDK 结果，后台请求可能继续执行'
+      : 'Fetch 请求已取消');
   });
   apiPreset.addEventListener('change', () => {
     abortApiRequest();
     apiUrl.value = apiPreset.value;
+    apiMethod.value = apiPreset.value === './__test__/echo' ? 'POST' : 'GET';
+    syncApiControls();
     clearApiView();
   });
   apiUrl.addEventListener('input', () => {
@@ -441,12 +548,24 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
     apiPreset.selectedIndex = -1;
     clearApiView();
   });
+  apiChannel.addEventListener('change', () => { abortApiRequest(); syncApiControls(); clearApiView(); });
+  apiMethod.addEventListener('change', () => { abortApiRequest(); syncApiControls(); clearApiView(); });
+  apiTimeout.addEventListener('input', () => { abortApiRequest(); clearApiView(); });
+  function resetApiView() {
+    abortApiRequest();
+    apiUrl.value = './request-sample.json';
+    apiPreset.value = apiUrl.value;
+    apiChannel.value = 'axiosx';
+    apiMethod.value = 'GET';
+    apiTimeout.value = '5000';
+    apiBody.value = '{"hello":"OpenDesk"}';
+    syncApiControls();
+    clearApiView();
+  }
+  syncApiControls();
 
   get('reset-all').addEventListener('click', () => {
-    abortApiRequest();
-    apiUrl.value = './demo-form.html?test-response=1';
-    apiPreset.value = apiUrl.value;
-    clearApiView();
+    resetApiView();
     clicks = 0;
     get('click-count').textContent = '0';
     extra.hidden = true;
