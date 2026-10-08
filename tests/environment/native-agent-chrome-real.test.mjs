@@ -18,9 +18,14 @@ async function eventually(fn,{timeout=25000,label='condition'}={}) {
   throw new Error(label+' timed out'+(last?': '+last.message:''));
 }
 function chromeBinary() {
+  // Chrome-branded builds 137+ ignore --load-extension; automated unpacked
+  // MV3 tests must use Chromium or Chrome for Testing.
+  const exact=process.env.CHROME_FOR_TESTING_BIN;
+  if(exact)return fs.existsSync(exact)?[exact,'cft']:null;
+  if(process.env.CI)throw Error('Real Chrome for Testing binary missing from CI');
   const paths=[
-    ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','chrome'],
-    ['/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing','cft']
+    ['/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing','cft'],
+    ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','chrome']
   ];
   return paths.find(item=>fs.existsSync(item[0]))||null;
 }
