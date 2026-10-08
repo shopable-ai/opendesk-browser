@@ -55,7 +55,7 @@
     }
   ],
   "sourceAndComponentEvidence": {
-    "state": "NATIVE_HOST_SOURCE_IMPLEMENTED_NODE_CI_PACKAGE_PASS",
+    "state": "NODE_COMPONENT_MACOS_IPC_AND_STRICT_PACKAGE_CI_PASS",
     "testCommands": [
       "npm ci --ignore-scripts --no-audit --no-fund",
       "node --test tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs",
@@ -64,29 +64,33 @@
       "npm run build:dev",
       "npm run verify",
       "node --test tests/environment/native-agent-native-host.test.mjs",
-      "node --test tests/environment/native-agent-package.test.mjs"
+      "node --test tests/environment/native-agent-package.test.mjs",
+      "node --test tests/environment/compact-schema.test.mjs",
+      "node --test tests/environment/native-agent-macos-install.test.mjs (macOS runner only)"
     ],
     "localRuntime": "ISOLATED_LINUX_NODE_NATIVE_HOST_SIMULATION_PASS_8_OF_8; NOT real macOS/Chrome",
-    "githubActions": "PASS on c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a: Native Agent R1 run 37789132156; Sidebar UI 37789132291; Page userscript 37789132316; site access 37789132550. Newer HEAD requires CI rerun after synchronizing main.",
-    "build": "PASS at c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a: npm run check, build, build:dev, verify, strict 320KiB production SW retained, 13 fixed WXT source entries including optional native-agent/transport.js; no macOS native execution evidence",
+    "githubActions": "CI PASS 9f4635ae3d1bb1a04fec810599305656972005a8: Native R1 #37792731631 (ubuntu Node 28 + 55 focused, check, build, build:dev, verify; macOS-15 isolated real Host/CLI IPC with SIMULATED Chrome byte stream 2/2); Sidebar/Userscript/Site Access workflows PASS. Newer HEAD requires separate CI.",
+    "build": "PASS at 9f4635ae3d1bb1a04fec810599305656972005a8: classic 13 WXT fixed entries, production SW 324.76 kB under unchanged 327680 byte ceiling; SW-only Schema adaptive LZW, legacy IIFE unchanged; production+development hashes match CI. NOT real Chrome install.",
     "productionPackageHash": "05a60404266f749fce5641b9b73867071db2c1d4b1cac546e5724aa39891da68",
-    "developmentPackageHash": "2a7eecee48422ca79a801f2a77c5d569565e8b5c1014559e77e4dc372e67c56d"
+    "developmentPackageHash": "2a7eecee48422ca79a801f2a77c5d569565e8b5c1014559e77e4dc372e67c56d",
+    "macosCiRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37792731631",
+    "macosNativeHostChecks": "PASS: hosted macOS-15 isolated HOME, real installation and wrapper, private AF_UNIX and CLI IPC, Chrome/CFT distinct manifests and cleanup; fake Chrome protocol bytes NOT extension"
   },
   "nativeEvidence": {
     "chromeExtension": "NOT_TESTED",
     "chromeNativeMessaging": "NOT_TESTED",
-    "macOSSetup": "NOT_TESTED",
+    "macOSSetup": "CI_PASS_ISOLATED_MACOS_15_GOOGLE_CHROME_AND_CFT_MANIFEST_HOST_PROCESS_REAL_UNIX_IPC_SIMULATED_CHROME",
     "realCodexCLI": "NOT_TESTED",
     "runHostFullFlow": "NOT_TESTED",
     "chromeRestart": "NOT_TESTED",
     "finalAcceptance": "NO"
   },
   "blocker": {
-    "code": "MACOS_CHROME_CODEX_NATIVE_ACCEPTANCE_NOT_TESTED",
-    "detail": "Source and CI package on c3e6e038 passed; Mac installer/doctor, actual Chrome Native Messaging ID and options, real user site grant, Codex run.start/get/stop, disconnect ACK and restart original receipts unavailable in this Linux cloud. This is a hard merge gate.",
+    "code": "REAL_CHROME_AND_CODEX_E2E_NOT_TESTED",
+    "detail": "Mac host and CLI OS-level smoke passed on isolated GitHub Actions runner; Chrome messaging/Options trusted user click/site grant/actual Side Panel RunHost/real Codex/restart/ACK loss NOT_TESTED. User's Mac worktree/profile has not been inspected. Retain Draft, no merge or branch delete.",
     "workContinuesVia": "docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt"
   },
-  "architecture": "Fixed packaged same-extension native-agent/transport.js imported by classic SW only; 13 strict WXT entries; no arbitrary/remote importScripts. Native is developer opt-in, durable SW ledger and authenticated existing Host Port, existing RunHost owns Controller Worker and result",
+  "architecture": "Fixed packaged same-extension native-agent/transport.js imported by classic SW only; 13 strict WXT entries; no arbitrary/remote importScripts. Native is developer opt-in, durable SW ledger and authenticated existing Host Port, existing RunHost owns Controller Worker and result; SW-only adaptive schema LZW saves bytes while preserving non-SW classic IIFE",
   "oldDemoUnmodified": true,
   "nativeHostNotRequiredForAvailableTasks": true,
   "rollback": "Close or revert only dedicated PR, retain historical run receipts and independent modules",
@@ -99,7 +103,9 @@
     "2026-10-08: Native Host committed and focused simulated Node IPC test added; original source blocker resolved; no real Chrome assertion.",
     "2026-10-08: Native Agent CI all four workflows PASS at c3e6e03; strict SW production limit unchanged; optional native transport now isolated into fixed packaged local script, no external code.",
     "2026-10-08: Sidebar R6 PR #18 merged SHA 797d402; R6.1 Stop PR #19 merged SHA d697291; both remote feature refs deleted. Current main keeps evolving under other active agents.",
-    "2026-10-08: Real Mac/Chrome/Codex E2E NOT_TESTED, PR #11 must stay DRAFT; no false final acceptance or premature branch/worktree deletion."
+    "2026-10-08: Real Mac/Chrome/Codex E2E NOT_TESTED, PR #11 must stay DRAFT; no false final acceptance or premature branch/worktree deletion.",
+    "2026-10-08: added and PASS macOS-15 2/2 isolated Chrome/CFT manifest, real Node Host executable + AF_UNIX + credential CLI smoke using FAKE Chrome byte frames. Runner is not user Mac and does not prove native Chrome.",
+    "2026-10-08: source/package/native-smoke PASS at 9f4635ae3d1bb1a04fec810599305656972005a8, zero assertions about actual Chrome/Codex. PR #11 remains Draft."
   ],
   "previousSourceBlocker": {
     "code": "NATIVE_HOST_FILE_BLOCKED",
