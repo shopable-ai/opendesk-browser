@@ -69,3 +69,46 @@ test('inline JavaScript parses without a third-party runtime or external resourc
   assert.doesNotMatch(html,/<script[^>]+src=/);
   assert.doesNotMatch(html,/<link[^>]+href=/);
 });
+
+
+test('R7.1 real HTTP form has stable URL, method, actions, status, timing, error and response targets', async () => {
+  const html = await load();
+  for (const id of [
+    'http-title', 'http-example', 'http-form', 'http-method', 'http-url',
+    'http-timeout', 'http-send', 'http-cancel', 'http-status', 'http-status-text',
+    'http-code', 'http-duration', 'http-content-type', 'http-error',
+    'http-response-details', 'http-response', 'http-post-fields', 'http-body'
+  ]) assert.match(html, new RegExp('id="' + id + '"'), 'missing #' + id);
+  for (const id of [
+    'http-example','http-method','http-url','http-timeout','http-send',
+    'http-cancel','http-status','http-code','http-duration','http-error','http-response'
+  ]) assert.match(html,new RegExp('id="' + id + '"[^>]*data-testid="' + id + '"'));
+  assert.match(html, /id="http-url"[^>]*value="\.\/request-sample\.json"/);
+  assert.match(html, /id="http-method"[^>]*><option>GET<\/option><option>POST<\/option>/);
+  assert.match(html, /httpForm\.addEventListener\('submit', event =>/);
+  assert.match(html, /const response = await fetch\(url\.href, options\)/);
+  assert.match(html, /const raw = await response\.text\(\)/);
+  assert.match(html, /response\.headers\.get\('content-type'\)/);
+  assert.match(html, /JSON\.parse\(raw\)/);
+  assert.match(html, /httpResponse\.textContent =/);
+  assert.doesNotMatch(html, /httpResponse\.innerHTML\s*=/);
+});
+
+test('R7.1 requests only on submit and handles HTTP, network, timeout, cancel, reset and stale completions', async () => {
+  const html = await load();
+  for (const origin of ['geocoding-api.open-meteo.com','api.open-meteo.com','ipwho.is'])
+    assert(html.includes(origin));
+  assert.match(html, /httpExample\.addEventListener\('change', \(\) =>/);
+  assert.match(html, /httpForm\.addEventListener\('submit', event =>/);
+  assert.match(html, /void runHttp\(\)/);
+  assert.match(html, /abortActiveHttp\('superseded'\)/);
+  assert.match(html, /if \(activeHttp !== req\) return/);
+  assert.match(html, /req\.controller\.abort\(\)/);
+  assert.match(html, /req\.reason === 'timeout'/);
+  assert.match(html, /setHttpState\('cancelled'/);
+  assert.match(html, /setHttpState\('error', 'HTTP 请求失败'/);
+  assert.match(html, /setHttpState\('error', '网络请求失败'/);
+  assert.match(html, /resetHttp\(\)/);
+  assert.match(html, /credentials: 'omit'/);
+  assert.match(html, /referrerPolicy: 'no-referrer'/);
+});
