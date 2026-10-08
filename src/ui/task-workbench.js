@@ -38,10 +38,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ])get('workbench-'+element).hidden=view!==name;
     for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']])
       get(id).setAttribute('aria-selected',String(name===view));
-    get('task-dock').hidden=catalogSurface || name!=='tasks';
-    get('develop-dock').hidden=catalogSurface || name!=='develop';
+    syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
     if(name==='discover')renderLocalDiscovery();
+  }
+  // Keep the owning Stop control visible across Sidebar tab changes;
+  // do not move or restart the run when the user enters Discover/Developer.
+  function syncRunDock(view=doc.documentElement?.dataset?.opendeskTab) {
+    const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
+    const draftOwns=Boolean(host.currentRun && !taskOwns);
+    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks');
+    get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || view!=='develop');
   }
   function showCatalogPage() {
     catalogSurface=true;
@@ -132,6 +139,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       selected.installed&&selected.enabled;
     get('task-install').textContent=selected?.installed?'已安装':'安装确定版本';
     get('task-create-candidate').disabled=working;
+    syncRunDock();
   }
   function renderInstalledCards() {
     const parent=get('task-installed-cards'),selected=get('task-installed-list').value;
