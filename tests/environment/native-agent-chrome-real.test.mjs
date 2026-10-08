@@ -150,13 +150,17 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   cdp=await connectCDP(optionsTab.webSocketDebuggerUrl);
   try {
     console.log('REAL_CHROME_CDP_BROWSER_VERSION='+JSON.stringify(await cdp.call('Browser.getVersion')));
-    await cdp.call('Runtime.enable');
-    await cdp.call('Page.enable');
+    // CDP Runtime.evaluate does not require Runtime.enable. Some macOS CI
+    // extension renderers hang while the enable event enumerates contexts.
+    const probe=await cdp.call('Runtime.evaluate',{
+      expression:'({url:location.href,readyState:document.readyState,bridge:document.getElementById("bridge-status")?.textContent||null})',
+      returnByValue:true
+    });
+    console.log('REAL_CHROME_OPTIONS_INITIAL='+JSON.stringify(probe.result?.value));
   }catch(error){
     console.log('REAL_CHROME_CDP_OPTIONS_ERROR='+error.message+' stderr='+debug.slice(-1200));
     throw error;
   }
-  await cdp.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
   const status=async()=>evaluated("document.getElementById('bridge-status')?.textContent||''");
   try {
     await eventually(async()=>((await status()).includes('Extension ID：'+extensionId)),{
