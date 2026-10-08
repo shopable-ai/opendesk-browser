@@ -12,6 +12,11 @@ permissions:
   contents: write
   pull-requests: read
 
+# Pull-request close and main-push events can arrive at the same instant.
+concurrency:
+  group: opendesk-verified-branch-cleanup
+  cancel-in-progress: false
+
 jobs:
   delete-merged-branches:
     runs-on: ubuntu-latest
@@ -56,7 +61,12 @@ jobs:
                 await github.rest.git.deleteRef({owner,repo,ref:`heads/${entry.name}`});
                 core.info(`Deleted completed branch ${entry.name}`);
               } catch (error) {
-                if (error.status === 404) {core.info(`Already removed ${entry.name}`);return;}
+                // A second workflow may have deleted this ref after getRef().
+                if (error.status === 404 ||
+                    (error.status === 422 && /Reference does not exist/i.test(error.message))) {
+                  core.info(`Already removed ${entry.name} (concurrent cleanup)`);
+                  return;
+                }
                 throw error;
               }
             }
