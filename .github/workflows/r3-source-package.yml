@@ -21,7 +21,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Page script package and vendored dependency contract
-        run: node --test tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs
+        run: node --test tests/environment/page-program-package.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/dependency-metadata.test.mjs
       - name: Source and vendor integrity
         run: npm run check
       - name: Production build and verification
