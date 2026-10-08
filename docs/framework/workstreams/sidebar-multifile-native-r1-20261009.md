@@ -7,7 +7,8 @@
 - 原工作区：`/Users/shopme/Documents/workspace/opendesk-browser`，启动时 main 为 `fa8e3fba80ca6f86a2f8160c08d19c6f925ce670`，有 60 项未提交变更。完整备份位于 `/Users/shopme/.codex/backups/sidebar-multifile-native-r1-20261008T175946Z`，含文件副本、SHA 清单和 Git binary patch；未覆盖这些变更。
 - 本任务唯一写入 worktree：`/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser`；唯一分支：`agent/sidebar-multifile-native-r1-20261009`。没有为各次测试创建额外分支。
 - 初始远端 main：`bd47d40c9cf88af6942fe35c7468a92c3042c2d1`；执行中同步到 `5769730beb9fddc6fc788a2702409ec06076feac`，保留新增 Page 资源与 Sidebar Tools 功能。
-- 产品修复候选：`6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b`。后续证据/文档提交仅改变记录，构建身份按原始 receipt 的 sourceInputs 核对。
+- PR 集成前再次同步 main `bd7c8d1b41197673ad0d5ab0abe53231393a368d`；重放后的产品提交为 `5988ced5959003d88327658558c9fc08b86f92d8`。双构建全部 sourceInputs 和 10 个受影响测试文件均无差异，按 `current-main/rebase-reuse.json` 复用证据。
+- 输入冻结时的产品修复候选：`6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b`。后续证据/文档提交仅改变记录，构建身份按原始 receipt 的 sourceInputs 核对。
 - 自有 CFT fresh profile、43111 HTTP 服务均已释放；最后清理为 PID 不存活、profile 已移除、无残留。未停止其他会话的服务、浏览器或修改其 profile。
 - 证据目录：[sidebar-multifile-native-r1-20261009](../evidence/sidebar-multifile-native-r1-20261009/)。历史失败和旧候选输出保留，未重写旧 receipt。
 
@@ -35,7 +36,7 @@
 | 同步 main 后定向测试 | PASS：81/81 | `current-main/targeted-tests.log` |
 | JSON 导入与 roundtrip 回归 | PASS：32/32 | `current-main/import-regression.log`，与其他集合有重叠，不能相加 |
 | 最终受影响测试 | PASS：89/89 | `current-main/final-targeted-tokenized.log`；覆盖构建、源码、Page UI、目录导入、编辑器与资源拒绝 |
-| 源码静态检查 | PASS | `current-main/final-check-tokenized.log`；`git diff --check` PASS |
+| 源码静态检查 | PASS | `current-main/final-check-tokenized.log`；产品/文档 `git diff --check` PASS（排除按原始字节保留的证据日志空白） |
 | Page / Controller / 资源 Demo 校验与构建 | PASS；三份真实 JS SHA 都等于 artifact.sourceHash；draft 校验 PASS | `current-main/final-programs.json`、`final-programs.log` |
 | CSS 远程、导入、转义、字符串图片 URL、未声明/越界图片 | PASS：明确拒绝 | `program-assets.test.mjs` 与最终定向日志 |
 | 非法 JSON / UTF-8、CSS 单项及资源总量超限、PNG 签名伪造 | PASS：明确拒绝 | 同上；单项超限可先由 `E_PROJECT_LIMIT` 拒绝，总量为 `E_PROJECT_ASSET_LIMIT` |

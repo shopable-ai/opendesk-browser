@@ -1,0 +1,18 @@
+{
+  "frozenLocalProductCandidate": "6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b",
+  "rebasedHead": "44f2e11ddd15248ccb5448bf7913467b3c6c3123",
+  "rebasedProductCommit": "5988ced5959003d88327658558c9fc08b86f92d8",
+  "latestMain": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+  "affectedTargetedTestInputs": [],
+  "buildInputComparison": [
+    {
+      "mode": "production",
+      "affectedProductInputs": []
+    },
+    {
+      "mode": "development",
+      "affectedProductInputs": []
+    }
+  ],
+  "nativeAcceptance": "NOT_TESTED; no evidence promotion"
+}

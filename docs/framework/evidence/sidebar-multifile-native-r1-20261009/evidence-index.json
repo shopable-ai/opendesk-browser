@@ -1,5 +1,6 @@
 {
-  "productCandidate": "6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b",
+  "productCandidate": "5988ced5959003d88327658558c9fc08b86f92d8",
+  "frozenLocalCandidate": "6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b",
   "files": [
     {
       "path": "build-development.log",
@@ -365,6 +366,11 @@
       "path": "current-main/programs-at-da2998f.log",
       "bytes": 10653,
       "sha256": "932ebbd61fd9a64fcfdf550c7ea4f58f2d151c35ac2eb2bd548ed6853d0bf7ed"
+    },
+    {
+      "path": "current-main/rebase-reuse.json",
+      "bytes": 549,
+      "sha256": "f75bf106b21fb9e36fd42a33398ee4a97da6e9eb50cc366ed5580155e111845b"
     },
     {
       "path": "current-main/reuse-at-head.json",
