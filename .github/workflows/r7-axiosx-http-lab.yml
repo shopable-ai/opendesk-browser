@@ -1,0 +1,35 @@
+name: R7 axiosx HTTP page + fixture contracts
+
+on:
+  push:
+    branches:
+      - agent/r7-1-http-page-20261008-2250
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'examples/tasks/**'
+      - 'tests/environment/basic-browser-page.test.mjs'
+      - 'tests/environment/basic-browser-http.test.mjs'
+      - 'src/framework/sdk/**'
+      - 'src/platform/chrome/network.js'
+      - '.github/workflows/r7-axiosx-http-lab.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  axiosx-http-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Run HTML/legacy compatibility, real loopback HTTP, SDK broker/network and Worker context
+        run: node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-cross-origin-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k3-context.test.mjs
+      - name: Verify source guards
+        run: npm run check
