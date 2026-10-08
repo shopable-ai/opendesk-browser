@@ -17,7 +17,7 @@ test('one ordinary HTML page exposes unique, stable automation targets',async()=
     'request-timeout','request-cancel','async-status','async-status-text',
     'async-result','demo-form','name','submit','search-form','keyword',
     'search-submit','search-status','search-count','results','reset-all',
-    'api-url','api-preset','api-send','api-cancel','api-status',
+    'api-url','api-preset','api-channel','api-method','api-timeout','api-post-body','api-post-wrap','api-bridge-hint','api-response-details','api-send','api-cancel','api-status',
     'api-status-text','api-http-status','api-duration','api-content-type',
     'api-response','api-error'
   ]) assert(ids.includes(id),`must provide #${id}`);
@@ -65,24 +65,32 @@ test('async scene sends only local fetches and distinguishes loading, 404, abort
 });
 
 
-test('explicit HTTP GET controls expose safe semantics and preserve offline-first operation',async()=>{
+test('HTTP panel defaults to genuine local JSON and OpenDesk SDK without auto-request',async()=>{
   const html=await load();
   assert.match(html,/<label for="api-url">请求 URL<\/label>/);
-  assert.match(html,/id="api-url"[^>]*value="\.\/demo-form\.html\?test-response=1"/);
-  assert.match(html,/https:\/\/api\.ipify\.org\?format=json/);
+  assert.match(html,/id="api-url"[^>]*value="\.\/request-sample\.json"/);
+  assert.match(html,/id="api-channel"[^>]*data-testid="api-channel"/);
+  assert.match(html,/<option value="axiosx" selected>/);
+  assert.match(html,/<option value="fetch">网页 Fetch/);
+  assert.match(html,/id="api-method"[^>]*data-testid="api-method"/);
+  assert.match(html,/id="api-timeout"/);
+  assert.match(html,/id="api-post-body"/);
   assert.match(html,/id="api-response"[^>]*data-testid="api-response"/);
+  assert.match(html,/http:\/\/127\.0\.0\.1:43112\/request-sample\.json/);
+  assert.match(html,/https:\/\/api\.ipify\.org\?format=json/);
   assert.match(html,/credentials:'omit'/);
-  assert.match(html,/method:'GET'/);
   assert.match(html,/mode:'cors'/);
   assert.match(html,/new URL\(input, location\.href\)/);
-  assert.match(html,/response\.headers\.get\('content-type'\)/);
-  assert.match(html,/response\.status/);
-  assert.match(html,/activeApi !== request \|\| request\.controller\.signal\.aborted/);
+  assert.match(html,/sdk\.ready\(\)/);
+  assert.match(html,/sdk\.axiosx\.get\(url\.href, config\)/);
+  assert.match(html,/sdk\.axiosx\.post\(url\.href, body, config\)/);
+  assert.match(html,/previous\.mode === 'fetch'/);
+  assert.match(html,/后台请求可能继续执行/);
   assert.match(html,/readApiPreview\(response\)/);
   assert.doesNotMatch(html,/apiResponse\.innerHTML/);
 });
 
-function createApiDomHarness(html, handleFetch) {
+function createApiDomHarness(html, handleFetch, sdk = null) {
   class FakeNode {
     constructor(id) {
       this.id=id;
@@ -113,6 +121,10 @@ function createApiDomHarness(html, handleFetch) {
   assert.ok(initialApiUrl);
   nodes.get('api-url').value=initialApiUrl;
   nodes.get('api-preset').value=initialApiUrl;
+  nodes.get('api-channel').value='axiosx';
+  nodes.get('api-method').value='GET';
+  nodes.get('api-timeout').value='5000';
+  nodes.get('api-post-body').value='{"hello":"OpenDesk"}';
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.equal(scripts.length,1);
   new Script(scripts[0][1]).runInNewContext({
@@ -122,7 +134,8 @@ function createApiDomHarness(html, handleFetch) {
     },
     fetch:handleFetch, AbortController, DOMException, URL, TextDecoder,
     performance, setTimeout, clearTimeout,
-    location:{href:'http://127.0.0.1:43111/demo-form.html'}
+    location:{href:'http://127.0.0.1:43111/demo-form.html'},
+    window: {OpenDeskSDK:sdk}
   },{timeout:2000});
   return {nodes, dispatch:(id,type)=>nodes.get(id).dispatch(type)};
 }
@@ -136,22 +149,24 @@ test('HTTP panel sends no request until click and shows real status/content with
     }));
   });
   assert.equal(seen.length,0);
-  dom.nodes.get('api-url').value='./demo-form.html?test-response=1';
+  dom.nodes.get('api-channel').value='fetch';
+  dom.nodes.get('api-url').value='./request-sample.json';
   await dom.dispatch('api-send','click');
   assert.equal(seen.length,1);
-  assert.equal(seen[0].url,'http://127.0.0.1:43111/demo-form.html?test-response=1');
+  assert.equal(seen[0].url,'http://127.0.0.1:43111/request-sample.json');
   assert.equal(seen[0].options.method,'GET');
   assert.equal(seen[0].options.credentials,'omit');
   assert.equal(dom.nodes.get('api-status').dataset.state,'success');
   assert.equal(dom.nodes.get('api-http-status').textContent,'200');
   assert.equal(dom.nodes.get('api-response').textContent,'<h1>HTTP 200</h1>');
-  assert.equal(dom.nodes.get('api-response').hidden,false);
+  assert.equal(dom.nodes.get('api-response-details').open,true);
   assert.equal(dom.nodes.get('api-cancel').disabled,true);
 });
 
 test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies',async()=>{
   const html=await load();
   const missing=createApiDomHarness(html,()=>Promise.resolve(new Response('missing',{status:404})));
+  missing.nodes.get('api-channel').value='fetch';
   await missing.dispatch('api-send','click');
   assert.equal(missing.nodes.get('api-status').dataset.state,'error');
   assert.equal(missing.nodes.get('api-http-status').textContent,'404');
@@ -159,6 +174,7 @@ test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late repl
 
   let deliver;
   const cancelled=createApiDomHarness(html,()=>new Promise(resolve=>{deliver=resolve;}));
+  cancelled.nodes.get('api-channel').value='fetch';
   const running=cancelled.dispatch('api-send','click');
   await cancelled.dispatch('api-cancel','click');
   deliver(new Response('late reply',{status:200}));
@@ -168,12 +184,103 @@ test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late repl
 
   let deliverReset;
   const reset=createApiDomHarness(html,()=>new Promise(resolve=>{deliverReset=resolve;}));
+  reset.nodes.get('api-channel').value='fetch';
   const inFlight=reset.dispatch('api-send','click');
   await reset.dispatch('reset-all','click');
   deliverReset(new Response('stale success',{status:200}));
   await inFlight;
   assert.equal(reset.nodes.get('api-status').dataset.state,'idle');
   assert.equal(reset.nodes.get('api-response').textContent,'');
+});
+
+
+test('axiosx MAIN SDK calls existing facade for actual return projection, not fetch fallback',async()=>{
+  let fetchCalls=0;
+  const calls=[];
+  const sdk={
+    ready:async()=>({ready:true,methods:['AXIOS_GET','AXIOS_POST']}),
+    axiosx:{
+      get:async(url,config)=>{calls.push({method:'GET',url,config});return {status:200,headers:{'content-type':'application/json'},data:{ok:true,source:'network-service'}};},
+      post:async(url,body,config)=>{calls.push({method:'POST',url,body,config});return {status:200,headers:{'content-type':'application/json'},data:{received:body}};}
+    }
+  };
+  const dom=createApiDomHarness(await load(),()=>{fetchCalls++;throw Error('fetch must not be called');},sdk);
+  await dom.dispatch('api-send','click');
+  assert.equal(fetchCalls,0);
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].url,'http://127.0.0.1:43111/request-sample.json');
+  assert.deepEqual(calls[0].config,{timeout:5000});
+  assert.equal(dom.nodes.get('api-status').dataset.state,'success');
+  assert.equal(dom.nodes.get('api-http-status').textContent,'200');
+  assert.match(dom.nodes.get('api-response').textContent,/"source": "network-service"/);
+  dom.nodes.get('api-method').value='POST';
+  await dom.dispatch('api-method','change');
+  dom.nodes.get('api-url').value='./__test__/echo';
+  await dom.dispatch('api-send','click');
+  assert.equal(calls.length,2);
+  assert.equal(calls[1].method,'POST');
+  assert.equal(calls[1].url,'http://127.0.0.1:43111/__test__/echo');
+  assert.deepEqual(calls[1].body,{hello:'OpenDesk'});
+  assert.equal(fetchCalls,0);
+});
+
+test('uninstalled or non-network SDK errors are explicit and never fall back to fetch',async()=>{
+  let fetchCalls=0;
+  const noSdk=createApiDomHarness(await load(),()=>{fetchCalls++;throw Error('must not fetch');});
+  await noSdk.dispatch('api-send','click');
+  assert.equal(noSdk.nodes.get('api-status').dataset.state,'error');
+  assert.match(noSdk.nodes.get('api-error').textContent,/E_SDK_UNAVAILABLE/);
+  assert.equal(fetchCalls,0);
+  const noGrant=createApiDomHarness(await load(),()=>{fetchCalls++;throw Error('must not fetch');},{
+    ready:async()=>({ready:true,methods:['APPLOCAL_GETITEM']}),
+    axiosx:{get:()=>{throw Error('not authorized');}}
+  });
+  await noGrant.dispatch('api-send','click');
+  assert.match(noGrant.nodes.get('api-error').textContent,/E_CAPABILITY/);
+  assert.equal(fetchCalls,0);
+});
+
+test('axiosx E_HTTP keeps actual status/response and cancellation discards late UI only',async()=>{
+  const html=await load();
+  const sdk404={
+    ready:async()=>({ready:true,methods:['AXIOS_GET']}),
+    axiosx:{get:async()=>{const error=new Error('HTTP 404');error.code='E_HTTP';error.status=404;
+      error.response={data:{message:'not found'},headers:{'content-type':'application/json'}};throw error;}}
+  };
+  const failure=createApiDomHarness(html,()=>{throw Error('unexpected fetch');},sdk404);
+  await failure.dispatch('api-send','click');
+  assert.equal(failure.nodes.get('api-status').dataset.state,'error');
+  assert.equal(failure.nodes.get('api-http-status').textContent,'404');
+  assert.match(failure.nodes.get('api-response').textContent,/not found/);
+  assert.match(failure.nodes.get('api-error').textContent,/E_HTTP/);
+  let deliver;
+  const sdkLate={
+    ready:async()=>({ready:true,methods:['AXIOS_GET']}),
+    axiosx:{get:()=>new Promise(resolve=>{deliver=resolve;})}
+  };
+  const late=createApiDomHarness(html,()=>{throw Error('unexpected fetch');},sdkLate);
+  const running=late.dispatch('api-send','click');
+  await Promise.resolve();await Promise.resolve();
+  await late.dispatch('api-cancel','click');
+  if (typeof deliver === 'function') deliver({status:200,data:'late',headers:{}});
+  await running;
+  assert.equal(late.nodes.get('api-status').dataset.state,'cancelled');
+  assert.match(late.nodes.get('api-status-text').textContent,/后台请求可能继续执行/);
+  assert.equal(late.nodes.get('api-response').textContent,'');
+});
+
+test('axiosx Controller Worker and Page API draft files keep their separate boundaries',async()=>{
+  const worker=await readFile('examples/tasks/http-worker-axiosx-draft.js','utf8');
+  const page=await readFile('examples/tasks/http-axiosx-page-draft.js','utf8');
+  assert.match(worker,/async function main\(\)/);
+  assert.match(worker,/await axiosx\.get\(url, /);
+  assert.doesNotMatch(worker,/window\.OpenDeskSDK|fetch\(/);
+  assert.match(page,/async function main\(\)/);
+  assert.match(page,/page\.getByLabel\('请求 URL'/);
+  assert.match(page,/getByRole\('button', \{name:'发送请求'/);
+  assert.doesNotMatch(page,/document\.getElementById|page\.evaluate/);
+  assert.doesNotThrow(()=>new Script(worker));
+  assert.doesNotThrow(()=>new Script(page));
 });
 
 test('inline JavaScript parses without a third-party runtime or external resources',async()=>{
