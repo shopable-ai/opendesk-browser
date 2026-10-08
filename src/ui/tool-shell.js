@@ -21,6 +21,13 @@ export function initToolShell() {
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget});
+/* The same authorized tool.html can be opened in a full Chrome tab.
+ * A tab is the complete local catalog; the Side Panel stays lightweight.
+ * No new document allowlist, authority, or storage instance is introduced.
+ */
+Promise.resolve(chrome.tabs.getCurrent?.()).then(tab => {
+  if(tab?.id) taskWorkbench.showCatalogPage();
+}).catch(error => console.warn('Task catalog surface unavailable',error));
 const listeners = [];
 let browserListenersAttached = false;
 const listen = (element, event, listener, options) => {
