@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk Browser · Native Agent</title>
+<style>
+:root{font:14px/1.65 system-ui,-apple-system,"PingFang SC",sans-serif;color-scheme:light;background:#f5f7fb;color:#1b2c49}
+body{max-width:620px;margin:9vh auto;padding:16px}main{padding:28px;border-radius:16px;background:white;border:1px solid #dce3ee}
+h1{font-size:22px;margin:0 0 10px}p{margin:10px 0}button{font:inherit;padding:9px 16px;margin:10px 8px 0 0;border:1px solid #c6d2e5;border-radius:9px;background:#365eda;color:white;cursor:pointer}
+button.secondary{background:#fff;color:#1b2c49}button:disabled{opacity:.5;cursor:default}
+#bridge-status{white-space:pre-wrap;padding:12px;border-radius:8px;background:#edf1f8;min-height:40px}
+small{color:#53647e}
+</style></head><body>
+<main><h1>本机 Agent 接入</h1>
+<p>默认关闭。只有开发者主动安装 Native Host 并授权后，外部 CLI / Codex 才能向<strong>已经打开的工作台</strong>提交脚本保存或执行请求。</p>
+<p>外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置<strong>不会</strong>自动批准任何网站，也不安装本机程序。</p>
+<div><button id="bridge-enable" type="button">授权并启用</button><button id="bridge-disable" type="button" class="secondary">关闭 Agent 接入</button><button id="bridge-refresh" type="button" class="secondary">刷新状态</button></div>
+<p id="bridge-status" role="status" aria-live="polite">正在读取…</p>
+<small>本机安装请参考仓库 docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md。Native Host 离线不影响普通任务运行。</small>
+</main><script src="settings.js"></script></body></html>

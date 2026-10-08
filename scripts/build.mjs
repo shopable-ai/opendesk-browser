@@ -13,9 +13,11 @@ const inputsBefore = await sourceInputs();
 // WXT copies only source-owned static resources; every JavaScript output is built by WXT/Vite.
 const publicRoot = resolve('.wxt/public');
 await rm(publicRoot, {recursive: true, force: true});
-for (const dir of ['ui', 'scripting/sandbox', 'licenses', 'icons', 'vendor']) await mkdir(resolve(publicRoot, dir), {recursive: true});
+for (const dir of ['ui', 'native-agent', 'scripting/sandbox', 'sidebar-tools', 'licenses', 'icons', 'vendor']) await mkdir(resolve(publicRoot, dir), {recursive: true});
 for (const name of ['tool.html', 'tool-shell.css', 'target-bootstrap.html']) await cp(`src/ui/${name}`, resolve(publicRoot, 'ui', name));
+await cp('src/native-agent/settings.html', resolve(publicRoot, 'native-agent/settings.html'));
 await cp('src/scripting/sandbox/sandbox.html', resolve(publicRoot, SANDBOX_HTML));
+await cp('src/sidebar-tools/sandbox.html', resolve(publicRoot, 'sidebar-tools/sandbox.html'));
 await cp('docs/contracts/licenses/todo-user-vue-MIT.txt', resolve(publicRoot, 'licenses/todo-user-vue-MIT.txt'));
 await cp('src/vendor/jquery-3.7.1.min.js', resolve(publicRoot, 'vendor/jquery-3.7.1.min.js'));
 await cp('src/vendor/jquery-3.7.1.LICENSE.txt', resolve(publicRoot, 'licenses/jquery-MIT.txt'));

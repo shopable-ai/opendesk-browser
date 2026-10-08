@@ -1,0 +1,62 @@
+name: Sidebar user tools R1 - package and build
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/sidebar-tools/**'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/task-workbench.js'
+      - 'src/sidebar-tools/**'
+      - 'src/entrypoints/bridge.js'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/build-contract.mjs'
+      - 'scripts/build.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'scripts/check-source.mjs'
+      - 'manifest.json'
+      - 'wxt.config.mjs'
+      - 'package.json'
+      - 'examples/sidebar-tools/**'
+      - 'tests/environment/sidebar-tools.test.mjs'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
+      - '.github/workflows/sidebar-tools-r1.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sidebar-tool-contract-and-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate independent tool, existing Sidebar and project contracts
+        run: |
+          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-product-contract.test.mjs
+          npm run check
+      - name: Build installable offline notes tool JSON
+        run: |
+          npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
+          node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';const p=validateSidebarToolPackage(JSON.parse(readFileSync('artifacts/sidebar-tools/quick-notes/1.0.0/quick-notes.opendesk-tool.json','utf8')));if(!p.html.includes('data:image/png;base64,'))throw Error('Local image was not bundled');console.log('SIDEBAR_TOOL_BUILT_AND_VALIDATED',p.id,p.version)"
+      - name: WXT production and development packages retain security boundaries
+        run: |
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Preserve native installable candidates (not Chrome acceptance)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sidebar-tool-r1-candidate
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            artifacts/sidebar-tools/quick-notes/1.0.0/quick-notes.opendesk-tool.json
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json

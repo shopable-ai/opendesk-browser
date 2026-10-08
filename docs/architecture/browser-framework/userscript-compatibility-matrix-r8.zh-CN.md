@@ -1,6 +1,6 @@
 # OpenDesk Browser R8：元数据与 GM API 逐项兼容矩阵
 
-> 对照：shopable-ai/opendesk-browser 的 GitHub main，**初始审计 commit fa8e3fba80ca6f86a2f8160c08d19c6f925ce670**，2026-10-09。后续仅新增 R8 文档提交，未重测代码。矩阵的“实现”专指可定位源码，不等于真实 Chrome 通过。证据级别使用 SOURCE_IMPLEMENTED / COMPONENT_TESTED（存在并有历史 Node 测试）/ BUILD_VERIFIED（必须当前候选实跑构建）/ CHROME_NATIVE_VERIFIED（必须真实 Chrome）/ PARTIAL / MISSING / NOT_TESTED。R8 未实跑 Node、构建或 Chrome，不应自称本轮通过。
+> 对照：shopable-ai/opendesk-browser；初始研究为 `main@fa8e3fba80ca6f86a2f8160c08d19c6f925ce670`。2026-10-09 工程复核以 `main@945cf927` 起步并同步至 `main@71fa54e`，本轮准入修复源码 `84dc3c7`。本矩阵的“实现”专指可定位源码，不等于真实 Chrome 通过。源码、组件、构建和原生证据分开记录；早期 R8 研究未运行测试，本轮只为明确标出的切片补充实际回执。最终集成与全部命令见 [R8 Engineering 回执](../../framework/workstreams/r8-engineering-r1-b62cc961.json)。
 
 ## 1. 来源与本地真实链
 
@@ -19,6 +19,7 @@
 | --- | --- | --- | --- |
 | @name / @namespace / @version / @description | 是，descriptive/directives | 展示/保留，**不能视为已安装版本选择或自动更新** | P0 安装元数据展示与唯一标识；PARTIAL |
 | @author / @license / @homepageURL / @supportURL / @icon 等 | 是，描述性字段；外部 URL 不能据此成为下载来源 | 部分只保留，不下载，不赋权 | P1 可靠出处、来源身份、许可证风险；PARTIAL |
+| @antifeature / @antifeature:locale | 是，只认真实头部指令 | `84dc3c7` 在现有依赖审核显示 `W_ANTIFEATURE_DECLARED`；通过 textContent 呈现，不执行声明中的标记 | 自述风险不是安全鉴定，无声明不代表无风险；SOURCE_IMPLEMENTED / COMPONENT_TESTED；正式安装审查 PARTIAL，原生 NOT_TESTED |
 | @match | 是 | HTTP(S) Chrome 匹配规范验证；可生成注册描述，但正式安装未接入 | P0 用户批准、运行注册、验收 once/zero；PARTIAL |
 | @exclude-match | 是 | 原生注册候选规则验证，正式匹配未运行 | P0 同 @match；PARTIAL |
 | @include / @exclude | 是 | **明确 E_MATCH_SEMANTICS_UNSUPPORTED**，并非 Tampermonkey glob/正则兼容 | P1 转换/运行规则需独立规格；MISSING |
@@ -27,7 +28,7 @@
 | @grant none | 是 | 允许但仍是 USER_SCRIPT 隔离，**不进入 MAIN，不自动提供 unsafeWindow** | P0 明确警告与手册；SOURCE_IMPLEMENTED（受限语义） |
 | @grant GM_* / GM.* | 是 | 当前明确 E_GRANT_UNSUPPORTED，不透传 Chrome API | P1 分级适配并按运行身份授权；MISSING |
 | @connect | 是 | 当前明确拒绝执行语义；声明本身不授网络目标许可 | P1 GM_xhr broker 适配和 destination allowlist；MISSING |
-| @require | 是，按序、HTTPS、来源 identity 与可选强 hash | D1 锁定已核准的字节、离线验证、按顺序 Page preview；注册描述编译器复用；**正式自动注册未完成** | P0/1 验证 cache、顺序、篡改、离线重启；PARTIAL / COMPONENT_TESTED（历史） |
+| @require | 是，按序、HTTPS、来源 identity 与可选强 hash | D1 锁定已核准的字节、离线验证、按顺序 Page preview；注册描述编译器复用；**正式自动注册未完成** | P0/1 验证 cache、顺序、篡改、离线重启；PARTIAL / COMPONENT_TESTED（本轮 71 项定向组含相关测试；Chrome 重启未测） |
 | @resource | 是，名称与 URL 可识别 | 当前 E_RESOURCE_UNSUPPORTED，没有 GM resource 绑定/注入 | P1 资源字节锁、Text/URL mime 管控；MISSING |
 | @updateURL / @downloadURL | 是 | 只产生 W_UPDATE_NOT_IMPLEMENTED；不是可信来源证明或自动更新开关 | P1 审核后更新、权限 diff、显式确认与回滚；PARTIAL（信息级） |
 | @inject-into content | 是 | 仅 USER_SCRIPT 受限路径；page/auto 不批准 | P3 才审 MAIN/unsafeWindow；PARTIAL |
@@ -35,7 +36,7 @@
 | @background / @crontab（ScriptCat） | 非 OpenDesk 已授权标准 | 不提供对应执行/调度语义，未知 directive 拒绝 | P2 引入新的 runtime kind/显式迁移；MISSING |
 | @require-css、@definition、CAT.*（ScriptCat 扩展） | 不保证 | 不得混同 Tampermonkey 标准 | 仅按明确适配版本兼容；MISSING |
 
-解释：仅解析并保存 metadata != 在新文档导航时自动运行；打印注册描述 != 浏览器原生持久注册；已有 COMPONENT_TESTED 仅意味着历史定向单元测试，非 R8 本轮运行证据。
+解释：仅解析并保存 metadata != 在新文档导航时自动运行；打印注册描述 != 浏览器原生持久注册；历史 COMPONENT_TESTED 不可借用为本次运行；本轮 71 项定向组覆盖 parser/manager/UI/preview/package 接线，原始日志见独立工程回执，未覆盖 Chrome 原生。
 
 ### 解析与安全细节
 
@@ -44,6 +45,7 @@
 - 依赖锁必须关联脚本身份、依赖顺序、world 与固定内容；shared hash cache 不等于 shared approval。
 - 页面立即预览模式是“当前主文档用户触发”，@match/@run-at 只做信息提示，不自动模拟 document-start。
 - @grant none 在 OpenDesk USER_SCRIPT 中不暴露页面 JS 全局，和部分传统管理器行为不同，必须向迁移用户明说。
+- `84dc3c7` 将依赖报告与当前源码准入分开：迟到检查结果只复用相同依赖身份的字节/锁，不覆盖最新 `@grant/@resource/@include` 判定。读取权限、文件和服务返回后及依赖审批点击时都重新检查；依赖审批不等于整脚本授权。
 
 ## 3. GM API 逐方法矩阵：目标语义、现状、实现层、验收
 
@@ -120,3 +122,30 @@
 - [Tampermonkey docs](https://www.tampermonkey.net/documentation.php)、[ScriptCat types](https://github.com/scriptscat/scriptcat/blob/main/src/types/scriptcat.d.ts)、[ScriptCat GM bridge](https://github.com/scriptscat/scriptcat/blob/main/docs/references/architecture-gm-api.md) 提供竞争目标**而非实现已等价的证据**。
 
 **R8.1 先完成 P0，不抢跑 G1/G2。** 对每项结果分别标 SOURCE_IMPLEMENTED / COMPONENT_TESTED / BUILD_VERIFIED / CHROME_NATIVE_VERIFIED，并保留失败信息；源码静态扫描、Node Mock 或 ZIP 打包均不可替代真实 Chrome 用户脚本开关与真实站点效果。
+
+
+## 7. 补充 API 与指令（2026-10-09 查漏）
+
+新增参考 [R8 188 项能力总清单](../../product/browser-automation-feature-catalog-r8.zh-CN.md)。以下 API 在首轮 R8 逐项 GM 表中没有充分展开。**均不属于 R8.1 的 P0 安装闭环；不能因“在 Tampermonkey 文档中存在”而给 OpenDesk 写 SOURCE_IMPLEMENTED。**
+
+| 元数据/API/行为 | 官方证据/语义 | OpenDesk main 当前证据 | 决策等级与前置验证 |
+| --- | --- | --- | --- |
+| GM_addElement | Tampermonkey 支持向某个节点添加指定标签（不同世界/属性需要校验） | MISSING（未有 GM facade）；已有 DOM 能力不等于 GM_addElement | G0+ / P1 可选；仅受限元素和安全属性、执行世界与脚本生命周期测试 |
+| GM_getValues / GM_setValues / GM_deleteValues | TM v5.3+ 批量值 API，旧/新方法返回及失败原子性需比较 | MISSING；已有 SDK storage 不是 GM keyspace | G1 / P1；脚本隔离、批量写、重启恢复、同步缓存一致性 |
+| GM_getTab / GM_saveTab / GM_getTabs | TM 脚本私有标签状态；与 chrome.tabs 读取权限不是同一个能力 | MISSING | G3 / P3，需实测管理器间生命周期差异，暂不承诺 |
+| GM_audio.* | TM 音频静音/状态变更 API，涉及浏览器和应用上下文 | MISSING | LX，缺少足够本产品价值，审计后明确不实现即可 |
+| GM_log | 与管理器日志投影相关，要求序列化、隐私/资源限制 | MISSING，不能将 console.log 等同兼容接口 | G0 / P1，受控日志生命周期 |
+| window.onurlchange | Tampermonkey 兼容事件；ScriptCat 1.4.0 Release 提到 Navigation API 实现 | MISSING | P1；SPA 导航订阅行为单独测试，不能把每次路由变化变成整脚本重新注入 |
+| @run-in / @sandbox / @unwrap | 执行隔离或特殊运行时上下文 | 现有 D1 parser 对部分作识别与拒绝，不具备完整执行语义 | G3 / P3，MAIN/USER_SCRIPT 的 CSP、页面污染、用户承诺须逐项审计 |
+| @run-at context-menu | ScriptCat 特有时机，不是 Chrome document-start/end/idle 原生映射 | MISSING | P2 Trigger Adapter + 用户手势，明确是非标准扩展语义 |
+| @installURL / @updateURL / @downloadURL | Greasy Fork 可能剥离/替换某些更新指令；来源由可信下载入口另行确定 | @updateURL/@downloadURL 信息级识别；@installURL 语义未确认支持 | P1 执行前须有真实 importSourceUrl、更新域名/权限差异和固定 hash，不信声明即授权 |
+| @antifeature | Greasy Fork 对跟踪、广告、联盟、挖矿、收费等要求披露 | 元数据 parser 可识别 descriptive；**安装 UI 呈现与风险确认未证实** | P1 安装审查标签；无法发现的恶意行为不等于安全 |
+| 浏览器触发快捷键 / CustomEvent | Automa 官方 Trigger block 支持这类事件 | OpenDesk 未审全局 commands；CustomEvent 授权无产品实现证据 | P2/P3；来自网页的事件必须作为不可信触发建议，不直接越权启动 |
+| HTTP 请求拦截/改写 | Requestly 通过独立拦截与网络规则产品提供 | OpenDesk axiosx/GM_http 属**宿主发出的单次 HTTP**，不是拦截别的页面流量 | 高风险独立模块；近期拒绝与 GM_xhr 混淆 |
+
+### 新的跨浏览器和政策差异
+
+- [Firefox MV3 userScripts](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts) 规定 userScripts **只能作为 optional permission 申请**；[Chrome 文档](https://developer.chrome.com/docs/extensions/reference/api/userScripts) 则要求 manifest 中 userScripts install-time 声明，并在 Chrome 138+ 扩展详情里打开 Allow User Scripts。跨浏览器不能复制相同 manifest 宣布兼容。
+- Chrome 的扩展更新会清空原生 UserScript 注册。另需注意切换开关撤销后：Service Worker 内 chrome.userScripts 对象可能保持定义，但**调用方法仍抛错**。单纯使用 typeof chrome.userScripts 判断可用性不足，应以真实 API 尝试及失败关闭验证。
+- [Chrome Web Store 政策](https://developer.chrome.com/docs/webstore/program-policies/policies) 要求使用最少权限，不可借 UserScripts 的远程代码例外给特权 SW/Host 运行任意远程代码。当前所有网站与 Cookies 的安装期声明是现状事实，不是自动合规证明。
+- [Tampermonkey 官方 GM 列表](https://www.tampermonkey.net/documentation.php)、[Greasy Fork metadata 规则](https://greasyfork.org/en/help/meta-keys)、[Automa Trigger](https://www.goautoma.com/extension/docs/blocks/trigger.html)、[ScriptCat 1.5 Beta](https://github.com/scriptscat/scriptcat/releases) 用作新增条目来源。尚未真实浏览器复现的语义仍记 NOT_TESTED/UNVERIFIED。

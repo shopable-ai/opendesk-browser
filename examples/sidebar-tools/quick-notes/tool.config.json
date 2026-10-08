@@ -1,0 +1,19 @@
+{
+  "id": "quick-notes",
+  "version": "1.0.0",
+  "title": "网页笔记",
+  "description": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+  "capabilities": [
+    "storage.local",
+    "currentPage.read",
+    "tasks.open"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": [
+    "assets/mark.png"
+  ]
+}

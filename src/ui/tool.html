@@ -9,6 +9,24 @@
 </nav>
 <main id="workspace-content">
   <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" data-workbench-page="tasks">
+    <section id="sidebar-tools" class="sidebar-tools" aria-label="我的自定义工具">
+      <div class="sidebar-tools-head">
+        <strong>我的工具</strong>
+        <details id="sidebar-tool-import">
+          <summary>导入工具包</summary>
+          <p class="hint">选择本机 .opendesk-tool.json，先核对工具能力；安装不会自动运行。</p>
+          <label for="sidebar-tool-file">工具包 JSON</label>
+          <input id="sidebar-tool-file" type="file" accept=".json,application/json">
+          <button type="button" id="sidebar-tool-install" disabled>确认安装</button>
+        </details>
+      </div>
+      <div id="sidebar-tool-tabs" class="sidebar-tool-tabs" role="tablist" aria-label="已安装工具"></div>
+      <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite">点击工具选项卡即可打开；简单任务继续使用下方任务卡片。</p>
+      <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="工具界面" hidden>
+        <div class="sidebar-tool-view-head"><strong id="sidebar-tool-title"></strong><button type="button" id="sidebar-tool-remove" disabled>卸载工具</button></div>
+        <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
+      </section>
+    </section>
     <section class="tasks-surface" aria-label="已安装任务">
       <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>
       <div id="task-installed-cards" class="task-card-list" aria-label="已安装任务列表"></div>
@@ -91,9 +109,13 @@
     </details>
   </section>
   <section class="developer-editor" aria-label="JavaScript 草稿">
+    <p id="program-source-info" class="identity" role="status" hidden></p>
+    <label for="program-source-files" class="visually-hidden">项目源文件快照</label><select id="program-source-files" hidden></select>
+    <button type="button" id="program-new-script" hidden>新建单文件草稿</button>
     <label for="script-source" class="visually-hidden">JavaScript 编辑器，草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
+    <details id="program-generated" hidden><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
     <details class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>

@@ -1,0 +1,6 @@
+{
+  "name": "sidebar-assets-contract",
+  "schemaVersion": 1,
+  "caption": "仅声明与哈希校验的 JSON 源资源（当前不加载）",
+  "enabled": true
+}

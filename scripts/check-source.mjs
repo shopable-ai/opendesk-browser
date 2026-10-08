@@ -1,6 +1,6 @@
 import {execFileSync} from 'node:child_process';
 import {readFile, stat} from 'node:fs/promises';
-import {filesAt, PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SANDBOX_HTML, SANDBOX_META_CSP, FIXED_ASSETS, verifyManifest, inspectScript, BUILD_CONTRACT_SOURCE} from './verify-package.mjs';
+import {filesAt, PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SANDBOX_HTML, SANDBOX_META_CSP, TOOL_SANDBOX_HTML, TOOL_SANDBOX_META_CSP, FIXED_ASSETS, verifyManifest, inspectScript, BUILD_CONTRACT_SOURCE} from './verify-package.mjs';
 import {PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {JQUERY_371} from '../src/scripting/user-scripts/page-program-package.js';
 import {SDK_FILES} from '../src/framework/sdk/registry.js';
@@ -28,6 +28,8 @@ verifyManifest(JSON.parse(await readFile('manifest.json', 'utf8')));
 const sandboxHTML = await readFile(`src/${SANDBOX_HTML}`, 'utf8');
 if (!sandboxHTML.includes(`content="${SANDBOX_META_CSP}"`) || !sandboxHTML.includes('<script src="sandbox.js"></script>')) throw new Error('Source opaque sandbox resource/CSP contract changed');
 inspectScript(await readFile('src/scripting/sandbox/sandbox.js', 'utf8'), 'scripting/sandbox/sandbox.js', {sourceType: 'module'});
+const toolSandboxHTML=await readFile('src/'+TOOL_SANDBOX_HTML,'utf8');
+if (!toolSandboxHTML.includes('content="'+TOOL_SANDBOX_META_CSP+'"') || !toolSandboxHTML.includes('<script src="bridge.js"></script>')) throw new Error('Sidebar tool sandbox HTML/CSP contract changed');
 const license = await readFile('docs/contracts/licenses/todo-user-vue-MIT.txt');
 const notice = FIXED_ASSETS['licenses/todo-user-vue-MIT.txt'];
 if (license.length !== notice.bytes || createHash('sha256').update(license).digest('hex') !== notice.sha256) throw new Error('Source MIT notice changed');

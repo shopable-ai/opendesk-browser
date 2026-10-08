@@ -3,6 +3,7 @@ name: R7 axiosx HTTP page + fixture contracts
 on:
   push:
     branches:
+      - main
       - agent/r7-1-http-page-20261008-2250
   pull_request:
     branches:
@@ -14,6 +15,7 @@ on:
       - 'src/framework/sdk/**'
       - 'src/platform/chrome/network.js'
       - '.github/workflows/r7-axiosx-http-lab.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read

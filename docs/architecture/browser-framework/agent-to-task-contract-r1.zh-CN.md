@@ -67,3 +67,34 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 现代 `fill/click` 是 **ISOLATED DOM 非可信合成操作**，不是完整 Playwright 可信键鼠/CDP 能力；不承诺对所有第三方网站工作。真实本地 macOS Chrome/Codex 验收继续按 PR #11 中 `docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt` 执行，不能因 CI 通过提前合并 Native PR。
 
 关联：`docs/framework/modern-page-api.zh-CN.md`、`docs/architecture/browser-framework/ai-browser-agent-ecosystem-r6-20261008.zh-CN.md` 与 `src/platform/tasks/service.js`。
+
+## 6. Native CLI 文件协议与并行候选补充（PR #11 原生验收前）
+
+独立 Native 分支还包含 `examples/tasks/modern-search.v1.opendesk-task.json`，主干包含 `examples/tasks/agent-modern-search.v1.opendesk-task.json`；两者是不同 Task ID 的候选示例，均不得预设 Verified/Available/Installed。实际使用时明确选择同一源码及精确 Candidate 哈希，不将两份包视作同一个安装版本。Native `run.get/run.stop` 仅对原 `run.start` 已确认的相同 Host `registrationId` 及 `runId` 开放；Native 消息已分发而 ACK 无法落盘时返回 `OUTCOME_UNKNOWN`，绝不可自动重放。
+
+### Native CLI 请求文件生成
+
+`node native-agent/cli.mjs bridge.status`、`node native-agent/cli.mjs target.current` 取得真实返回后，由 Codex **在本地**以 UTF-8 JSON 写入请求文件。下面只是字段形状，**不可拿示意 ID 当真实 target**：
+
+```json
+{
+  "requestId": "fresh-unique-attempt-id",
+  "registrationId": "FROM-target.current",
+  "target": {
+    "windowId": 1,
+    "tabId": 2,
+    "frameId": 0,
+    "documentId": "FROM-current-Chrome-document",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "origin": "http://127.0.0.1:43111"
+  },
+  "source": {
+    "kind": "draft",
+    "sourceUtf8": "FULL-SOURCE-FROM-UTF8-FILE"
+  },
+  "params": {"keyword": "OpenDesk"},
+  "deadlineMs": 30000
+}
+```
+
+`node native-agent/cli.mjs run.start --file /absolute/path/run-start.json`。该文件是本地草稿，请勿提交带真实站点私有数据、凭据或 session 的请求/回执。读取得到的真实 runId 后，用独立请求文件 `{"registrationId":"SAME-HOST","runId":"ACTUAL-RUN-ID"}` 执行 `node native-agent/cli.mjs run.get --file /absolute/path/run-get.json`；停止同理 `run.stop`。不得使用外部 Playwright 去模拟 OpenDesk 的真实操作回执。
