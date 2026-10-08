@@ -1,0 +1,42 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "sample.form-fill",
+    "version": "1.0.0",
+    "title": "示例：网页表单填写",
+    "description": "在本地演示页填写姓名、提交表单并等待完成提示。",
+    "author": "OpenDesk Browser",
+    "source": "local-demo",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "姓名",
+          "description": "将输入到演示表单中",
+          "minLength": 1,
+          "maxLength": 40,
+          "default": "Alice"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+  "sourceUtf8": "async function main() {\n  await page.type('#name', params.name);\n  await page.click('#submit');\n  await page.waitForSelector('#done');\n  return {ok: true, url: await page.url()};\n}"
+}

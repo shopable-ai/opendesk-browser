@@ -1,4 +1,4 @@
-import {invariant} from '../protocol.js';
+import {canonical, digest, invariant} from '../protocol.js';
 import {installedKey, taskKey, taskScriptId, scriptStorageKey,
   validateTaskParams, verifyTaskPackage} from './contract.js';
 
@@ -99,16 +99,39 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
       const result=run?.resultId && await tx.get('results',run.resultId);
       const manifest=row.package.manifest, hash=manifest.program.sourceHash;
       invariant(run?.tag==='controller-run' && run.namespace===ns && run.state==='completed' &&
-        run.retirementState==='released' && run.revision?.sourceHash===hash && !run.resultDeliveryRevoked &&
+        run.retirementState==='released' && run.workerRetired===true &&
+        run.revision?.sourceHash===hash && !run.resultDeliveryRevoked &&
         run.target?.allowedOrigin===manifest.siteOrigins[0] &&
-        result?.tag==='controller-result' && result.namespace===ns && result.runId===run.runId &&
+        result?.tag==='controller-result' && result.resultId===run.resultId &&
+        result.namespace===ns && result.runId===run.runId &&
         result.state==='completed' && result.outcome?.ok===true &&
         result.revision?.sourceHash===hash,'E_VERIFICATION','No matching durable completed Controller run');
-      const effects=(await tx.all('commandJournal')).filter(value=>value?.runId===run.runId &&
-        value.tag==='controller-operation' && value.state==='durable' &&
-        ['browser','user-script'].includes(value.envelope?.operation?.kind) &&
-        value.nativeReceipts?.some(receipt=>receipt.stage==='result'));
-      invariant(effects.length>0,'E_VERIFICATION','A native page operation receipt is required; no mock verification');
+      // A settled run alone is not formal verification. The page effect must
+      // have a success receipt bound to this exact host, source and request.
+      // Controller admission and the native driver persist these authenticated
+      // fields; a caught native error must never qualify a candidate.
+      const effects=[];
+      for (const value of await tx.all('commandJournal')) {
+        const envelope=value?.envelope;
+        if (value?.tag!=='controller-operation' || value.runId!==run.runId ||
+            value.state!=='durable' || value.reply?.error ||
+            value.reply?.requestId!==envelope?.requestId ||
+            !['packaged','browser','user-script'].includes(envelope?.operation?.kind) ||
+            envelope.identity?.tag!=='controller-run' ||
+            envelope.identity.runId!==run.runId || envelope.identity.scriptId!==run.scriptId ||
+            envelope.identity.contentHash!==hash ||
+            envelope.identity.hostInstanceId!==run.hostInstanceId ||
+            envelope.identity.hostDocumentId!==run.hostDocumentId ||
+            envelope.revision?.sourceHash!==hash ||
+            envelope.target?.allowedOrigin!==manifest.siteOrigins[0]) continue;
+        const receipt=value.nativeReceipts?.find(item=>item.stage==='result' &&
+          item.requestId===envelope.requestId && item.receipt?.requestId===envelope.requestId);
+        if (!receipt) continue;
+        if (value.requestDigest!==await digest(envelope,{maxDepth:48}) ||
+            canonical(value.reply,{maxDepth:48})!==canonical(receipt.receipt,{maxDepth:48})) continue;
+        effects.push(value);
+      }
+      invariant(effects.length>0,'E_VERIFICATION','Exact successful native page-effect receipt is required');
       row.stage='verified';
       row.verification={runId:run.runId,resultId:result.resultId,sourceHash:hash,
         manifestHash:row.package.manifestHash,origin:run.target.allowedOrigin,

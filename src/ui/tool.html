@@ -2,24 +2,28 @@
 <html lang="zh-CN">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenDesk Browser</title><link rel="stylesheet" href="tool-shell.css"></head>
 <body>
-<header><h1>OpenDesk Browser</h1><p>JavaScript 浏览器自动化工作台</p></header>
-<main>
-  <nav class="workbench-nav" aria-label="OpenDesk 工作台">
-    <button type="button" id="tab-my-tasks" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
-    <button type="button" id="tab-discover" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-discover">发现</button>
-    <button type="button" id="tab-develop" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
-  </nav>
+<header class="workspace-header">
+  <div class="workspace-brand"><span class="workspace-logo" aria-hidden="true">O</span><div><h1>OpenDesk Browser</h1><p>浏览器自动化工作台</p></div></div>
+  <button type="button" id="open-catalog" class="catalog-open" aria-label="在完整页面打开任务目录">发现任务 ↗</button>
+</header>
+<nav class="workbench-nav" aria-label="工作台">
+  <button type="button" id="tab-my-tasks" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
+  <button type="button" id="tab-develop" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
+  <button type="button" id="tab-discover" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-discover" hidden>发现（完整页面）</button>
+</nav>
+<main id="workspace-content">
   <div id="workbench-tasks" data-workbench-page="tasks">
     <section aria-labelledby="installed-heading"><h2 id="installed-heading">我的任务</h2>
       <p class="hint">仅展示你明确安装的版本。运行前检查网站、参数与权限。</p>
-      <label for="task-installed-list">已安装任务</label><select id="task-installed-list"><option value="">读取已安装任务…</option></select>
+      <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>
+      <div id="task-installed-cards" class="task-card-list" aria-label="已安装任务列表"></div>
       <div id="task-installed-detail" class="task-detail" aria-live="polite">尚未选择任务</div>
       <p id="task-current-site" class="identity"></p>
       <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>
-      <div class="row actions"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
+      
       <p id="task-status" role="status">选择一个已安装任务</p>
       <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>
-      <h2>执行历史</h2><div id="task-history" aria-live="polite">正在读取历史…</div>
+      <h2 class="history-heading">最近运行</h2><div id="task-history" aria-live="polite">正在读取历史…</div>
       <div class="row"><button type="button" id="task-refresh">更新任务</button><button type="button" id="task-fork-draft" disabled>复制为独立草稿</button></div>
       <details><summary>任务管理</summary>
         <div class="row"><button type="button" id="task-toggle" disabled>停用 / 启用</button><button type="button" id="task-uninstall" disabled>卸载当前版本</button></div>
@@ -28,27 +32,45 @@
     </section>
   </div>
   <div id="workbench-discover" data-workbench-page="discover" hidden>
-    <section aria-labelledby="discover-heading"><h2 id="discover-heading">发现本地任务</h2>
-      <p class="hint">本地目录与导入文件，不是云端市场。未验证的任务绝不会自动安装。</p>
+    <section aria-labelledby="discover-heading" class="catalog-section">
+      <div class="catalog-intro"><p class="eyebrow">LOCAL TASK CATALOG</p><h2 id="discover-heading">发现本地任务</h2>
+      <p class="hint">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p></div>
+      <label for="task-search" class="visually-hidden">搜索任务</label><input type="search" id="task-search" placeholder="搜索任务名称、用途、作者或网站…" autocomplete="off">
+      <div class="category-chips" id="task-categories" aria-label="任务分类">
+        <button type="button" class="category-chip selected" data-catalog-filter="all">全部</button>
+        <button type="button" class="category-chip" data-catalog-filter="installed">已安装</button>
+        <button type="button" class="category-chip" data-catalog-filter="available">可安装</button>
+        <button type="button" class="category-chip" data-catalog-filter="candidate">待验证</button>
+      </div>
+      <p id="task-catalog-count" class="hint"></p>
+      <div class="catalog-layout">
+        <div id="task-catalog-cards" class="catalog-card-grid" aria-label="本地任务列表"></div>
+        <aside class="catalog-reader" aria-label="选中任务详情与安装">
+          <label for="task-catalog-list" class="visually-hidden">候选版本</label><select id="task-catalog-list" hidden><option value="">尚无任务候选</option></select>
+          <div id="task-catalog-detail" class="task-detail" aria-live="polite">选中任务后查看作者、网站、权限、版本及验证状态</div>
+      <div class="catalog-install"><button type="button" id="task-install" disabled>安装选定版本</button></div>
+      <details id="catalog-verification"><summary>开发者：核对证据与设为本地可用</summary>
+        <label for="task-verify-run">已完成的真实运行 ID</label>
+        <input id="task-verify-run" placeholder="与相同源码、网站和实际运行结果对应" autocomplete="off">
+        <div class="row"><button type="button" id="task-verify" disabled>核对运行证据</button>
+          <button type="button" id="task-publish" disabled>设为本地可用</button></div>
+      </details>
+        </aside>
+      </div>
       <label for="task-package-file">导入任务包 JSON 或 JavaScript 草稿</label>
       <input type="file" id="task-package-file" accept=".json,.js,application/json,text/javascript">
-      <label for="task-catalog-list">本地任务目录</label><select id="task-catalog-list"><option value="">尚无任务候选</option></select>
-      <div id="task-catalog-detail" class="task-detail" aria-live="polite">选中任务后查看作者、网站、权限、版本及验证状态</div>
-      <label for="task-verify-run">验证所用的真实运行 ID（须为相同源码与网站的已完成运行）</label>
-      <input id="task-verify-run" placeholder="先在开发中运行并确认实际结果" autocomplete="off">
-      <div class="row actions"><button type="button" id="task-verify" disabled>核对运行证据</button>
-        <button type="button" id="task-publish" disabled>设为本地可用</button>
-        <button type="button" id="task-install" disabled>安装确定版本</button></div>
       <p id="task-catalog-status" role="status">仅本机验证，不代表第三方审核或签名认证</p>
       <div class="row"><button type="button" id="task-catalog-refresh">刷新目录</button></div>
     </section>
   </div>
   <div id="workbench-develop" data-workbench-page="develop" hidden>
-  <section aria-labelledby="current-page-title"><h2 id="current-page-title">当前网页</h2>
-    <p id="script-current-page-title" class="page-title">正在识别…</p>
-    <p id="script-current-page-url" class="identity"></p>
-    <p id="script-current-page-status" role="status" data-state="resolving">当前网页：正在识别…</p>
-    <p class="hint">自动跟随此窗口的活动网页。运行开始后切换网页，只影响下一次任务。</p>
+  <section aria-label="运行目标状态" class="developer-target">
+    <p id="script-current-page-status" role="status" data-state="resolving">正在确认当前网页…</p>
+    <details id="developer-target-detail"><summary>查看当前网页详细信息</summary>
+      <p id="script-current-page-title" class="page-title">正在识别…</p>
+      <p id="script-current-page-url" class="identity"></p>
+      <p class="hint">运行前自动确认目标；本次运行启动后切换标签页不会改变执行目标。</p>
+    </details>
   </section>
   <section id="site-access" aria-labelledby="site-access-title">
     <h2 id="site-access-title">网站权限</h2>
@@ -62,6 +84,14 @@
     </details>
   </section>
   <section aria-labelledby="script-title"><h2 id="script-title">脚本</h2>
+    <label for="script-source">JavaScript 编辑器 · 草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
+  return {title: await page.title(), url: await page.url(), value: params.value};
+}</textarea>
+    <p class="hint">未保存的代码可以直接运行。源码、参数及目标网页会在启动时冻结。</p>
+    <label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea>
+
+    <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
+    <details id="script-library-tools"><summary>版本管理与任务制作</summary>
     <label for="script-list">已保存脚本</label>
     <div class="row"><select id="script-list"><option value="">正在读取已保存脚本…</option></select><button id="script-list-refresh">刷新</button><button id="script-list-load">加载最新</button></div>
     <label for="script-id">脚本名称 / ID</label><input id="script-id" value="my-script" autocomplete="off">
@@ -79,13 +109,7 @@
       <button type="button" id="task-create-candidate">保存为待验证任务候选</button>
       <p id="task-dev-status" role="status">候选需要真实运行验证后才能安装</p>
     </details>
-    <label for="script-source">JavaScript 编辑器 · 草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
-  return {title: await page.title(), url: await page.url(), value: params.value};
-}</textarea>
-    <p class="hint">点击“运行草稿”执行当前编辑内容，不需要先保存；运行时冻结源码、参数与目标，之后继续修改编辑器不会改变本次任务。page 和 params 使用现有受控执行环境；页面计算另需开启“允许运行用户脚本”。</p>
-    <label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea>
-    <div class="row actions"><button id="script-run" disabled>运行草稿</button><button id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
-    <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
+    </details>
     <details id="script-advanced"><summary>高级脚本与目标设置</summary>
       <p class="hint">默认使用当前网页；手动目标仅用于高级操作。</p>
       <div class="row"><label for="script-target-mode">目标方式</label><select id="script-target-mode"><option value="current">当前网页（默认）</option><option value="owned">创建隔离网页（高级）</option><option value="borrowed">手动选择精确文档（高级）</option></select></div>
@@ -139,5 +163,15 @@
   </details>
   </div>
 </main>
+<footer id="workspace-dock" class="workspace-dock">
+  <div id="task-dock" class="dock-actions">
+    <span class="dock-caption">任务结果与运行记录保存在现有工作台</span>
+    <div class="dock-buttons"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
+  </div>
+  <div id="develop-dock" class="dock-actions" hidden>
+    <span class="dock-caption">草稿可直接运行，无需先保存</span>
+    <div class="dock-buttons"><button id="script-run" disabled>运行草稿</button><button id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
+  </div>
+</footer>
 <script src="tool-shell.js"></script>
 </body></html>

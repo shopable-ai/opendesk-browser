@@ -1,0 +1,12 @@
+✔ installed tasks default page, render schema form and freeze the exact saved version/params/target (16.357291ms)
+✔ installed task can be explicitly forked into an independent unsaved editor draft (4.75ms)
+✔ task Stop cannot cancel another view's in-flight draft; parameter form never navigates (5.39725ms)
+✔ installed task refuses stale target after async installed-version lookup (7.884125ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130.64675

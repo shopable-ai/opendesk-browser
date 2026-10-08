@@ -1,0 +1,88 @@
+
+> opendesk-browser@0.1.0 test
+> node --test tests/environment/*.test.mjs
+
+✔ product shell configures the Chrome Side Panel action and never creates a popup (1.592417ms)
+✔ tool sender accepts top-level Side Panel documents and rejects foreign or nested senders (0.215125ms)
+✔ URL policy rejects restricted/file/credentials and preserves exact origin including port (0.2195ms)
+✔ health waits for sender readiness and binds Chrome document metadata, not file result (7.306542ms)
+✔ revoked permission blocks even previously installed agent (1.575042ms)
+✔ reload, cross-origin and closed tab reject bound target without automatic reinjection (7.179875ms)
+✔ forged health nonce and fake sender cannot satisfy exact target (1.875375ms)
+✔ missing module has no capabilities or runner and can be mounted/disposed (0.466916ms)
+✔ Side Panel configuration failure is surfaced without a popup fallback (0.29475ms)
+✔ unknown authorization mode is rejected before another injection (1.740917ms)
+✔ permission revoke reports permission failure even when Chrome hides tab URL (1.69ms)
+✔ permission revoked during tabs.get is diagnosed before inspecting its hidden URL (0.525583ms)
+✔ repeated agent ready preserves optional authorization and cannot bypass revoke (1.515125ms)
+✔ same-document concurrent binding resolves all readiness waiters (0.405167ms)
+✔ document invalidation and revoke while awaiting reply reject late health success (0.493667ms)
+✔ missing Side Panel sender documentId resolves only unique native instance context (0.867958ms)
+✔ async main receives page/params lexically without platform arguments (1.509333ms)
+✔ main return preserves falsy values including undefined (0.159792ms)
+✔ prior async-body scripts still execute and return correctly (0.10975ms)
+✔ main faults are errors rather than silent empty results (0.353ms)
+✔ navigation starts invalidate the visible old document before tabs updates and recover after failure or commit (13.380084ms)
+✔ loading and unloaded tabs never expose their still-visible old document as a runnable candidate (0.502708ms)
+✔ a tab becoming loading after frame observation fails the final candidate confirmation (0.1255ms)
+✔ Sidebar binds to its own browser window and exposes only the active HTTP(S) main document (0.374333ms)
+✔ same-URL tab switch cannot replace the captured run candidate (0.171291ms)
+✔ SPA URL change before admission is stale even when documentId is unchanged (0.130875ms)
+✔ reload/full navigation invalidates the old candidate instead of matching by URL (0.187416ms)
+✔ Current Page follows activation events but never falls back to a previous valid page (2.78425ms)
+✔ two Sidebar instances bind independently to their containing browser windows (0.273042ms)
+✔ dispose releases all browser event subscriptions (0.189792ms)
+✔ a late revalidation cannot overwrite a newer Current Page observation (1.880584ms)
+✔ a disposed Sidebar cannot capture or finish an in-flight candidate validation (2.626167ms)
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: eval"}
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: Function"}
+✔ final classic scanner rejects eval alias and function-constructor references (362.349083ms)
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/tool-shell.css"}
+✔ final package cannot omit a referenced local asset (135.682958ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe HTML","actualError":"Unsafe HTML resources in ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"Unexpected JS","actualError":"Unexpected JS/chunks: agents/bootstrap.js,agents/health.js,agents/page-agent.js,agents/page-relay.js,agents/selection-entry.js,chunk.js,framework/sdk-main.js,scripting/packaged/page-session.js,scripting/sandbox/sandbox.js,scripting/sandbox/worker-runtime.js,sw.js,ui/tool-shell.js,vendor/jquery-3.7.1.min.js"}
+✔ remote script and unexpected lazy chunk fail final package verification (414.286625ms)
+{"kind":"historical-package-mutation","expectedPattern":"Missing|required|ENOENT","actualError":"Missing required resource: ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"worker|entry|Missing","actualError":"Unexpected or missing worker entry"}
+✔ final package requires tool HTML/CSS and manifest worker references (258.80775ms)
+✔ verified frozen candidate produces USER_SCRIPT matching descriptor with one-world identity (6.213833ms)
+✔ new pinned revision obtains different world and old revision unchanged (1.394417ms)
+✔ fails closed without existing broker Available+install grant or with altered script hash (2.516333ms)
+✔ dependency version/sha/world lock enforced, library failure blocks injection (1.875041ms)
+✔ Save persists revision/hash without requesting permission, creating a Run, or executing code (10.084291ms)
+✔ reopened editor lists saved scripts without running and loads the selected latest head explicitly (4.428792ms)
+✔ loading a historical revision does not turn it into the latest Save CAS head (4.076917ms)
+✔ Delete tombstones the latest head and refreshes the saved-script selector (5.584583ms)
+✔ saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B (10.477708ms)
+✔ a brand-new unsaved draft runs with an empty script ID and never creates a saved revision (4.702459ms)
+✔ permission preparation rejects a switched page; closing the editor during permission never admits a run (13.239167ms)
+✔ Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin (6.802709ms)
+✔ pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result (5.129708ms)
+✔ late Save/Load replies do not overwrite another script selection or edits made during loading (5.354ms)
+✔ late saved-script selector load cannot overwrite edits made during loading (4.1105ms)
+✔ an older snapshot reply cannot disable Run after a newer durable observation (6.507417ms)
+✔ an older snapshot error cannot overwrite a newer successful durable view (5.319208ms)
+✔ the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing (6.460625ms)
+✔ RunHost freezes a draft source variant and parameters before awaiting the host connection (2.4445ms)
+✔ saved script API retains explicit scriptId/revision/contentHash admission (0.198542ms)
+✔ manifest exposes tool.html as a global Chrome Side Panel (9.120542ms)
+✔ product shell has no popup-window fallback (4.865625ms)
+✔ default Run freezes Current Page then revalidates before existing RunHost (1.398833ms)
+✔ trusted Side Panel run sends the exact unsaved draft to the original Controller authority (1.816208ms)
+✔ ordinary Sidebar sections precede folded engineering tools and preserve every control ID (2.286292ms)
+✔ package hashes and closed schema reject forged status, altered source, extra permissions and invalid params (13.526708ms)
+✔ candidate cannot install without matching trustworthy native run, then exact Available version can install (8.334625ms)
+✔ same task version cannot replace bytes and install CAS rejects stale upgrades (1.197583ms)
+✔ the checked-in sample is an authentic v1 package with exact manifest and source hashes (1.011083ms)
+✔ installed tasks default page, render schema form and freeze the exact saved version/params/target (17.800083ms)
+✔ installed task can be explicitly forked into an independent unsaved editor draft (5.014916ms)
+✔ task Stop cannot cancel another view's in-flight draft; parameter form never navigates (5.559542ms)
+✔ installed task refuses stale target after async installed-version lookup (6.783542ms)
+ℹ tests 69
+ℹ suites 0
+ℹ pass 69
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1316.908584

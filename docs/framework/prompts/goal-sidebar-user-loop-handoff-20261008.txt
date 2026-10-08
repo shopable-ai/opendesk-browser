@@ -1,0 +1,23 @@
+历史材料：本文件记录较早 Sidebar 候选的交接情况。当前实施以网页版已提交并整合到 main 的工作台与任务包方案为准；本文件不作为当前实施指令或最新验收结论。
+
+在 /Users/shopme/Documents/workspace/opendesk-browser 继续迁移和完善 OpenDesk Browser 的浏览器自动化框架，中文沟通，直接实施，不停在计划。
+
+先读取 AGENTS.md、docs/architecture/sidebar-product-contract.zh-CN.md、docs/architecture/browser-framework/README.md、docs/framework/sidebar-current-status.zh-CN.md 和 docs/framework/public-owner.json。背景、已完成任务、证据与遗留问题在 current-status 文档和用户回复中展示；不要把所有历史记录再塞进提示词。
+
+总体产品目标：保留 src-bex 的明确 Page/Element/Keyboard、网页 SDK、公共服务和资源语义，使真实程序能操作明确网页，获得正确结果并完成生命周期收尾。当前主线是 Sidebar Controller 入口：用户能找回已保存程序、选择版本、传 JSON 参数，真实点击 Run 操作指定网页，读取/下载持久结果，Stop 和关闭重开都具有准确状态与资源回收。
+
+首先核实真实 Git、未提交修改、owner 串行释放和在途进程，再以当前实际 threadId 接管。保留用户改动，不 reset/stash，不 commit/push/新建分支/新增依赖，不恢复前任 Goal。具体历史身份和接管证据读取 current-status 及 release.json，不凭旧标签假设仍有 writer。
+
+先用功能语义向用户展示：整体有哪些任务、已实现什么、已有何种真实证据、当前要补什么。实现存在、旧候选通过、当前开发入口通过和全框架正式关闭是不同状态，不用测试数或百分比表示产品进度。
+
+按以下顺序继续：
+1. 以 dist/development 插件目录建立稳定开发现场，保留同一受控 profile；原生从工具栏打开真正 Side Panel。构建和安装是手段，不是产品目标。
+2. 优先补程序找回/Load、持久结果读取/下载、Stop 与关闭恢复的真实用户缺口。检查当前实现，不重做已完成能力。
+3. 核实导航 candidate 与确切准入的未确认问题。仅在证明故障后最小修复现有 owner；短 barrier 不能超出请求 deadline，超时不计作目标栅栏通过。
+4. 收尾页面计算、合法导航、SDK 与共享服务的正向能力和权限说明。保留其他旧 API、资源、网页内用户脚本的真实待办，不把 Sidebar 完成等同全框架完成。
+
+保持 Controller Worker、网页内用户脚本、独立 Page SDK 的不同身份与运行语义。page.evaluate 是受权网页计算，不是第二套 Controller executor。禁止 UI/SW 执行用户源码；禁止新增第二套 Controller、target/permission/result/navigation owner；Run 后不按 active tab 重新选目标；URL 不代替 document identity；r2 不覆盖在途 r1；Current Page 不自动安装 SDK。
+
+验证服务于实现：用户问题 → 精确 owner → 最小修复 → 必要定向回归 → 对应真实网页操作。无变更不重复构建或验收；不默认跑历史全量矩阵，不追求用例数。使用既有受控 CFT 与原生观察工具，所有编辑/Save/Run/权限和侧栏操作均来自可信原生输入。禁止 DOM .click、synthetic events、伪造授权或 native ack。production/ZIP 是后续发布阶段，不作为当前功能完成的前置条件。
+
+不扩展采集/模板/分页、语音、可视化任务树、Native Messaging、云端调度或完整油猴管理器。阶段报告直接呈现产品任务进度，每约 60 秒给真实能力或缺口更新；最后交付当前可用功能、最小改动、用户复验步骤、准确证据和真实未完成项。未达成功能完成条件就报告 PARTIAL，不篡改旧证据/receipt/账本，不宣称全框架 F3 完成。

@@ -31,6 +31,8 @@ function validValue(rule, value) {
 export function checkParamsSchema(schema) {
   object(schema,['type','properties','required','additionalProperties']);
   invariant(schema.type === 'object' && schema.additionalProperties === false,'E_SCHEMA','Parameters must be a closed object');
+  invariant(schema.properties && typeof schema.properties==='object' && !Array.isArray(schema.properties),
+    'E_SCHEMA','Parameter properties must be an object');
   object(schema.properties,Object.keys(schema.properties));
   const keys = Object.keys(schema.properties);
   invariant(keys.length <= 16 && keys.every(key=>/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/.test(key)),
@@ -100,7 +102,8 @@ export function validateTaskManifest(manifest) {
   invariant(Array.isArray(manifest.siteOrigins) && manifest.siteOrigins.length===1,'E_PERMISSION',
     'Task v1 verifies exactly one website origin');
   for (const origin of manifest.siteOrigins) {
-    const url=new URL(origin);
+    let url;
+    try {url=new URL(origin);} catch {invariant(false,'E_PERMISSION','Task site must be a valid HTTP(S) origin');}
     invariant(['http:','https:'].includes(url.protocol) && url.href === origin+'/' &&
       url.origin===origin && !url.username && !url.password && !url.hash && !url.search &&
       !['*','null'].includes(origin),'E_PERMISSION','Only one precise HTTP(S) origin is allowed');

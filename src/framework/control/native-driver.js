@@ -17,7 +17,7 @@ const ownerKey = run => JSON.stringify([run.runId, run.ownerEpoch]);
 const injectionTarget = target => ({tabId: target.tabId, documentIds: [target.documentId]});
 const messageTarget = target => ({documentId: target.documentId, frameId: target.frameId});
 const error = code => new PageError(code);
-function validate(envelope) {
+export function validateControllerEnvelope(envelope) {
   requireValue(envelope?.operation && Object.hasOwn(methods, envelope.operation.kind) &&
     methods[envelope.operation.kind].has(envelope.operation.method), 'E_OPERATION_UNSUPPORTED');
   const {identity, revision, target, requestId} = envelope;
@@ -25,7 +25,12 @@ function validate(envelope) {
     Number.isSafeInteger(identity.ownerEpoch) && identity.ownerEpoch > 0, 'E_OWNER_CHANGED');
   requireValue(typeof requestId === 'string' && requestId && revision && typeof revision.scriptId === 'string' && revision.scriptId &&
     Number.isSafeInteger(revision.revision) && revision.revision > 0 && /^[a-f0-9]{64}$/.test(revision.sourceHash) &&
-    typeof revision.pinKey === 'string' && revision.pinKey, 'E_PAGE_CONTEXT_REQUIRED');
+    // Draft revisions are immutable admission snapshots bound to this run,
+    // not saved script pins. Never invent or demand a permanent draft pin.
+    (revision.kind === 'draft'
+      ? revision.scriptId === `draft:${identity.runId}` && revision.pinKey === undefined
+      : revision.kind === undefined && typeof revision.pinKey === 'string' && revision.pinKey),
+    'E_PAGE_CONTEXT_REQUIRED');
   requireValue(Number.isSafeInteger(target?.tabId) && target.tabId >= 0 && Number.isSafeInteger(target.frameId) && target.frameId >= 0 &&
     typeof target.documentId === 'string' && target.documentId, 'E_TARGET');
   if (identity.target !== undefined) requireValue(JSON.stringify(identity.target) === JSON.stringify(target), 'E_TARGET');
@@ -456,7 +461,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     });
   }
   async function execute(input, {signal, deadlineAt = null, recordReceipt} = {}) {
-    const envelope = frozenCopy(input), args = validate(envelope), {kind, method} = envelope.operation;
+    const envelope = frozenCopy(input), args = validateControllerEnvelope(envelope), {kind, method} = envelope.operation;
     requireValue(deadlineAt === null || Number.isFinite(deadlineAt), 'E_ARGUMENT_TYPE');
     requireValue(recordReceipt === undefined || typeof recordReceipt === 'function', 'E_ARGUMENT_TYPE');
     let descriptor;
