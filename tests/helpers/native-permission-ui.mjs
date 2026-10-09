@@ -17,7 +17,7 @@ export function findOwnedChrome(output,{testPid,binary,extension}) {
   return matches[0]?.pid;
 }
 
-const script=`on run argv
+export const MACOS_PERMISSION_SCRIPT=`on run argv
   set ownedPID to (item 1 of argv) as integer
   tell application "System Events"
     set candidates to application processes whose unix id is ownedPID
@@ -35,19 +35,19 @@ const script=`on run argv
       try
         set labels to name of ownedWindow as text
       end try
-      set children to get entire contents of ownedWindow
-      repeat with node in children
-        set control to contents of node
+      set axDescendants to get entire contents of ownedWindow
+      repeat with axElementRef in axDescendants
+        set axItem to contents of axElementRef
         try
-          set labels to labels & " | " & (name of control as text)
+          set labels to labels & " | " & (name of axItem as text)
         end try
         try
-          set labels to labels & " | " & (value of control as text)
+          set labels to labels & " | " & (value of axItem as text)
         end try
         try
-          if role of control is "AXButton" then
-            set buttonNames to buttonNames & " | " & (name of control as text)
-            if (name of control as text) is "Allow" then set end of allowButtons to control
+          if role of axItem is "AXButton" then
+            set buttonNames to buttonNames & " | " & (name of axItem as text)
+            if (name of axItem as text) is "Allow" then set end of allowButtons to axItem
           end if
         end try
       end repeat
@@ -72,7 +72,7 @@ async function main() {
     if(ps.status!==0)throw Error('E_NATIVE_UI_PS');
     const pid=findOwnedChrome(ps.stdout,{testPid,binary,extension});
     if(pid){
-      const result=spawnSync('/usr/bin/osascript',['-e',script,String(pid)],{encoding:'utf8',timeout:5000});
+      const result=spawnSync('/usr/bin/osascript',['-e',MACOS_PERMISSION_SCRIPT,String(pid)],{encoding:'utf8',timeout:5000});
       if(result.status!==0)throw Error('E_NATIVE_UI_UNAVAILABLE: '+(result.stderr||result.error?.message));
       const output=result.stdout.trim();
       if(output==='CLICKED_NATIVE_PERMISSION'){
