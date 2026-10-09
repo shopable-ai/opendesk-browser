@@ -180,19 +180,19 @@ test('draft import rejects empty/oversized sources and active saves without over
   assert.equal(f.find('script-source').value,before);gate.resolve();await tick();
 });
 
-test('catalog draft import updates dependency review from the new source without saving or running',async t=>{
+test('imported legacy @require only reads previously approved versions and never adds a form or downloads code',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const source='// ==UserScript==\n// @require https://cdn.example/library.js\n// ==/UserScript==\nasync function main(){return document.title;}';
   f.editor.importDraft(source);await tick();
   assert.deepEqual(f.dependencyInspections,[{sourceUtf8:source,entryFormat:'async-main'}]);
-  assert.equal(f.find('page-preview-jquery').disabled,true);
-  assert.equal(f.find('page-dependency-sources').children.length,1);
-  assert.match(f.find('page-dependency-status').textContent,/审核并锁定/);
-  assert.equal(f.find('page-dependency-lock').value,'');
+  assert.equal(f.find('page-dependency-add'),undefined);
+  assert.equal(f.find('page-dependency-lock'),undefined);
+  assert.equal(f.find('page-preview-entry'),undefined);
+  await f.click('page-preview-run');
+  assert.match(f.find('page-preview-status').textContent,/E_DEPENDENCY_UNLOCKED/);
+  assert.equal(f.permissions.length,0,'missing approval never triggers a site or CDN permission prompt');
   f.editor.importDraft('async function main(){return 1;}');await tick();
-  assert.equal(f.find('page-preview-jquery').disabled,false);
-  assert.equal(f.find('page-dependency-sources').children.length,0);
-  assert.equal(f.find('page-dependency-prepare').disabled,true);
+  assert.equal(f.find('page-preview-run').disabled,false);
   assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);
   assert.equal(f.previews.length,0);assert.equal(f.persisted.scripts.length,0);
 });
@@ -360,18 +360,16 @@ test('the permission request remains synchronous in the click fixture; denied pe
   f.find('script-params').value='invalid json';await f.click('script-run');assert.equal(f.permissions.length,1);assert.equal(f.executions.length,0);
 });
 
-test('DOM preview binds frozen source, dependency choice and exact current document from trusted click',async t=>{
+test('DOM preview binds frozen plain JavaScript and exact current document from trusted click',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const pending=deferred();f.setPermission(pending.promise);
   const source='async function main(){document.title="frozen";return document.title;}';
   f.find('script-source').value=source;
-  f.find('page-preview-jquery').checked=true;
   f.find('page-preview-run').fire('click',{isTrusted:false});
   assert.equal(f.permissions.length,0,'untrusted event must never open a permission prompt');
   f.find('page-preview-run').fire('click',{isTrusted:true});
   assert.equal(f.permissions.length,1,'only explicit native user gesture requests website permission');
   f.find('script-source').value='async function main(){return "modified";}';
-  f.find('page-preview-jquery').checked=false;
   assert.equal(f.find('page-preview-run').disabled,true,'no overlapping user-script preview while permission is pending');
   assert.equal(f.find('script-run').disabled,true,'do not start Controller while page preview is pending');
   f.find('script-run').fire('click',{isTrusted:true});
@@ -380,7 +378,8 @@ test('DOM preview binds frozen source, dependency choice and exact current docum
   await tick();await tick();
   assert.equal(f.previews.length,1);
   assert.equal(f.previews[0].sourceUtf8,source);
-  assert.equal(f.previews[0].withJquery,true);
+  assert.equal(f.previews[0].entryFormat,'async-main');
+  assert.equal(f.previews[0].lockId,null);
   assert.deepEqual(f.previews[0].target,{tabId:11,frameId:0,documentId:'doc-11',
     expectedUrl:'https://a.example/',expectedWindowId:7});
   assert.match(f.find('page-preview-status').textContent,/不是正式 Task/);
