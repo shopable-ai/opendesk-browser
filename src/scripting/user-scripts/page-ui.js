@@ -32,30 +32,48 @@ export function createPageUI({id,baseStyles=true,css='',assets={},mount}={}){
   check(assets&&typeof assets==='object'&&!Array.isArray(assets),'E_UI_RESOURCE','Invalid assets');
   const doc=globalThis.document,win=doc?.defaultView;
   check(doc?.createElement&&doc.documentElement?.isConnected&&win,'E_UI_DOCUMENT','Live Page document required');
+  const lifecycle=typeof __opendeskManagedUIRegistryV1==='undefined'?null:__opendeskManagedUIRegistryV1;
+  const managed=lifecycle?.format==='opendesk.managed-ui.v1';
+  if(managed)lifecycle.assertMount(id);
   // Preflight must finish before removing any same-id prior instance.
   const prepared=preparePageUIMount(doc,mount);
   // DOM events work across named USER_SCRIPT worlds. A same-id mount retires
   // previous managed callbacks, not just previous visible HTML.
   for(const node of doc.querySelectorAll('[data-opendesk-ui-owner]')){
     if(node.getAttribute('data-opendesk-ui-owner')!==OWNER||node.getAttribute('data-od-id')!==id)continue;
+    check(!managed&&node.getAttribute('data-od-managed')!=='1','E_UI_REPLACE_REQUIRED','Use the original previewId to retire the prior UI before running its replacement');
     node.dispatchEvent(new Event(CLOSE));node.remove();
   }
   const host=doc.createElement('div');
   host.setAttribute('data-opendesk-ui-owner',OWNER);host.setAttribute('data-od-id',id);
+  if(managed)host.setAttribute('data-od-managed','1');
   Object.assign(host.style,{all:'initial',position:'fixed',top:'16px',right:'16px',zIndex:'2147483646',
     maxWidth:'calc(100vw - 24px)',fontSize:'16px',direction:doc.dir==='rtl'?'rtl':'ltr'});
   const shadowRoot=host.attachShadow({mode:'open'});
   const content=doc.createElement('div'),overlay=doc.createElement('div');
   overlay.className='od-overlay';const cleanups=new Set();let alive=true;
-  const active=()=>alive&&host.isConnected&&doc.documentElement.isConnected&&doc.defaultView===win;
+  const pending=new Set(),cleanupErrors=[];
+  const active=()=>alive&&(!managed||!lifecycle.isRetiring())&&host.isConnected&&doc.documentElement.isConnected&&doc.defaultView===win;
+  function track(value,cleanup=false){
+    if(managed)lifecycle.assertRuntime();
+    if(!managed||!value||typeof value.then!=='function')return;
+    const promise=Promise.resolve(value).then(()=>{},error=>{if(cleanup)cleanupErrors.push(String(error?.message||error));else console.error('OpenDesk UI callback',error);}).finally(()=>pending.delete(promise));
+    pending.add(promise);
+  }
+  function invoke(callback,args){
+    try{const result=callback(...args);if(managed)track(result);else result?.catch?.(error=>console.error('OpenDesk UI event',error));}
+    catch(error){console.error('OpenDesk UI event',error);}
+  }
   function destroy(){
     if(!alive)return;alive=false;
     for(const cleanup of [...cleanups].reverse()){
       cleanups.delete(cleanup);
-      try{cleanup();}catch(error){console.error('OpenDesk UI cleanup',error);}
+      try{track(cleanup(),true);}catch(error){if(managed)cleanupErrors.push(String(error?.message||error));console.error('OpenDesk UI cleanup',error);}
     }
-    host.remove();
+    try{host.remove();}catch(error){if(managed)cleanupErrors.push(String(error?.message||error));else throw error;}
   }
+  if(managed)lifecycle.enroll(id,async()=>{destroy();await Promise.all([...pending]);if(cleanupErrors.length)throw err('E_UI_CLEANUP_FAILED',cleanupErrors.join('; ').slice(0,1024));},
+    ()=>({clean:!alive&&!pending.size&&!cleanupErrors.length}));
   function onDispose(callback){
     check(alive&&typeof callback==='function','E_UI_CLEANUP','Invalid cleanup callback');
     cleanups.add(callback);return ()=>cleanups.delete(callback);
@@ -70,8 +88,7 @@ export function createPageUI({id,baseStyles=true,css='',assets={},mount}={}){
       'E_UI_LISTENER','Invalid event listener');
     const wrapped=event=>{
       if(!active()){destroy();return;}
-      try{const result=callback(event);result?.catch?.(error=>console.error('OpenDesk UI event',error));}
-      catch(error){console.error('OpenDesk UI event',error);}
+      invoke(callback,[event]);
     };
     target.addEventListener(type,wrapped,options);
     const cleanup=()=>target.removeEventListener(type,wrapped,options);
@@ -79,18 +96,18 @@ export function createPageUI({id,baseStyles=true,css='',assets={},mount}={}){
   }
   function setTimeoutManaged(callback,ms){
     check(alive&&typeof callback==='function'&&Number.isFinite(ms)&&ms>=0,'E_UI_TIMER','Invalid timeout');
-    const token=win.setTimeout(()=>{cleanups.delete(cleanup);if(active())callback();else destroy();},ms);
+    const token=win.setTimeout(()=>{cleanups.delete(cleanup);if(active()){if(managed)invoke(callback,[]);else callback();}else destroy();},ms);
     const cleanup=()=>win.clearTimeout(token);onDispose(cleanup);return token;
   }
   function setIntervalManaged(callback,ms){
     check(alive&&typeof callback==='function'&&Number.isFinite(ms)&&ms>=1,'E_UI_TIMER','Invalid interval');
-    const token=win.setInterval(()=>{if(active())callback();else destroy();},ms);
+    const token=win.setInterval(()=>{if(active()){if(managed)invoke(callback,[]);else callback();}else destroy();},ms);
     onDispose(()=>win.clearInterval(token));return token;
   }
   function observe(target,callback,options={childList:true}){
     check(alive&&target&&typeof callback==='function'&&typeof win.MutationObserver==='function',
       'E_UI_OBSERVER','MutationObserver unavailable');
-    const observer=new win.MutationObserver(records=>{if(active())callback(records);else destroy();});
+    const observer=new win.MutationObserver(records=>{if(active()){if(managed)invoke(callback,[records]);else callback(records);}else destroy();});
     observer.observe(target,options);onDispose(()=>observer.disconnect());return observer;
   }
   function objectURL(blob){

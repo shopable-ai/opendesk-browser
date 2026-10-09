@@ -1,6 +1,30 @@
 # OpenDesk Browser Native Agent Bridge R1：正式运行链可选入口
 
-> **当前开发入口 R2.2：** [本地源码与 stdio MCP](../../framework/local-development-r22.zh-CN.md) 已增加七个开发工具，调用现有 Node requestAgent()、Native、RunHost 与 Authority。日常 Controller 开发不再需要 CLI --file / frozen-request.json。安装器支持 macOS/Linux、Chrome/CFT 与显式 --user-data-dir。run.start 对本地 draft 成对验证 sourceHash/sourceBytes；run.get 保留结果撤权状态。真实证据按 [本轮工作记录](../../framework/workstreams/local-dev-r22-c036.json) 逐项核对。下文 R1 候选与失败记录是历史证据，不用它们覆盖当前候选结论。
+
+## 当前 R2.2 增量：目录源码、MCP 和原运行链
+
+P0–P3 在候选 `99a26c38e576ad0653143dd130582d15820054d6` 完成真实 macOS Chrome 验收，PR #37 / #42 已合入 main；main `4adf5dc4966f82a71c2c5116f8d5a35c21eafd06` 与该候选 tree 相同。Local Dev 22 项真实断言、Native macOS ARM / Intel 真实握手均通过。见 [原始摘要](../../framework/evidence/local-dev-r22-c036/p3-ci-summary.json)、[未测边界与交付报告](../../framework/local-development-r22-report.zh-CN.md) 及 [专属工作记录](../../framework/workstreams/local-dev-r22-c036.json)。本节是当前增量，下文 R1 的历史候选和 NOT_TESTED 原始记录保留。
+
+默认开发入口为 [Local Dev / MCP 指南](../../framework/local-development-r22.zh-CN.md)：连接允许项目、修改源码、直接运行、查询结果。`native-agent/local-dev/mcp.mjs` 提供标准本地 stdio MCP，7 个 `opendesk.dev.*` 工具复用同一个 Resolver 与 Native 认证 Socket，不要求创建 frozen-request.json。目录 provider 也复用这个 MCP 进程和 Socket，只有已登记的真实 Host 能请求有界最新执行代码。
+
+| 内部 Native 方法 | 原有消费者与身份 |
+| --- | --- |
+| bridge.status / target.current | 原 Native 连接、真实登记 Host、精确窗口/标签/文档 |
+| run.start / run.get / run.stop | 原 Controller / RunHost / Authority，冻结 revision、持久 Result 与未知效果保护 |
+| page.preview / page.get | 类型专用 USER_SCRIPT 预览，返回 previewId；不伪装成 Controller runId |
+| page.dispose | 原 USER_SCRIPT 世界清理登记的受管 UI；原 Page admission 所有权与变更 ledger，成功 receipt scope 为 managed-ui-only |
+| request.get | 只读查询原 run.start/page.preview 的 admission 摘要；从不再次派发业务运行 |
+
+三个线协议保持分工：Codex 与 MCP 使用 stdio JSON-RPC；MCP/CLI 与原 Native Host 使用带私有凭据的本机 IPC；Chrome Native Messaging 使用原帧协议和可信扩展 origin。MCP 不提供网页 HTTP 源码接口；没有新的本地服务或外部 CDP 执行器。完整 JSON envelope 仍限 60 KiB，大小校验和未知效果处理不放宽。
+
+旧安装的 Host 是复制快照。增加 Page、provider 或 page.dispose 方法后须先停止既有运行、停用 Native，再按同一扩展/浏览器/profile 执行一次 `node native-agent/cli.mjs update --extension-id "实际扩展ID"`，随后重新启用。后续项目源文件修改无需重复安装。
+
+`page.dispose` 会调用项目登记的清理函数，因此属于变更请求，丢失回执不可自动重试。只有原登记 Host、原 previewId、worldId、documentId、nonce 和网站授权均成立才可清理。清理失败不挂载新代码；超时或回执未知保留与 Controller 共用的执行栅栏。普通网页只见自己的 DOM，拿不到 Native、文件读取或生命周期控制权限。
+
+
+## 历史 R1 / R6.2 记录（截至 2026-10-08）
+
+以下保留当时的候选、命令、13 个打包入口与失败状态，仅用于追溯，不作为当前状态或默认开发操作。当前 Local Dev、受管 Page Stop 与真实 Native 状态见上节；当前固定构建入口和预算以仓库构建合同为准。历史 `NOT_TESTED` 不改写成今天的 PASS。
 
 
 日期：2026-10-08。主干起点 66f11874fa27f6de438155124a3f772129386f8b。
@@ -66,11 +90,11 @@ SW / Native / CLI 断连或者超时，只返回 \`OUTCOME_UNKNOWN\`，不能重
 
 macOS R1 源码安装目录预定 \`~/.opendesk-browser/native-agent-r1\`，使用独立 Native manifest 名称 \`com.shopable.opendesk_browser.agent\`，Chrome \`allowed_origins\` 绑定本次 Extension ID。不要采用旧 Demo ID。\`setup\` 复制本机 Node 组件快照至私有目录，并将证书式随机令牌写在 0600 文件；Native Host stdout 仅允许 UTF-8 长度帧，诊断走 stderr。Host 进程同时作为本地 Broker，不需要二次启动。
 
-**最新实施状态（2026-10-08）：** `native-agent/native-host.mjs` 已在现有 PR #11 分支，Linux/Node 模拟 IPC 与权限/Service Worker/Host 组件测试成功。为严格保留原 **320 KiB** `sw.js` 上限，改为只加载固定的扩展内部 `native-agent/transport.js` 经典脚本：`src/entrypoints/transport.js` 通过 WXT 打包，`src/native-agent/transport.js` 仅注册配置/宿主回包监听并调用原来的 Native Agent Service，复用同一受权 `hostPorts` 和 RunHost，不建第二业务 Controller。`scripts/build-contract.mjs` / `wxt.config.mjs` 固定 **13 个**源码入口；`scripts/verify-package.mjs` 仅为 `sw.js` 中精确字面量 `importScripts('native-agent/transport.js')` 开小范围例外，拒绝远程、动态和其它 importScripts。GitHub Actions 在 `c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a` 的 Native、Sidebar、依赖、站点授权 4 项均通过，其中 Native CI 记录 `npm run check`、生产/开发 build、verify 均成功，未扩大 SW 预算。**该历史候选只证明 Node 和包；后续独立 macOS-15 Host/CLI 模拟 Chrome 帧测试见下文。真实 Chrome Native Messaging、Options 可信点击、网站 grant、Codex draft/saved/Stop/Result、断连/重启仍未完成，禁止标记最终 NATIVE_PASS 或提前合入 main。**
+**历史实施状态（2026-10-08）：** `native-agent/native-host.mjs` 已在现有 PR #11 分支，Linux/Node 模拟 IPC 与权限/Service Worker/Host 组件测试成功。为严格保留原 **320 KiB** `sw.js` 上限，改为只加载固定的扩展内部 `native-agent/transport.js` 经典脚本：`src/entrypoints/transport.js` 通过 WXT 打包，`src/native-agent/transport.js` 仅注册配置/宿主回包监听并调用原来的 Native Agent Service，复用同一受权 `hostPorts` 和 RunHost，不建第二业务 Controller。`scripts/build-contract.mjs` / `wxt.config.mjs` 固定 **13 个**源码入口；`scripts/verify-package.mjs` 仅为 `sw.js` 中精确字面量 `importScripts('native-agent/transport.js')` 开小范围例外，拒绝远程、动态和其它 importScripts。GitHub Actions 在 `c3e6e0387fa9c0c468008e36ac9bf86edbf51c0a` 的 Native、Sidebar、依赖、站点授权 4 项均通过，其中 Native CI 记录 `npm run check`、生产/开发 build、verify 均成功，未扩大 SW 预算。**该历史候选只证明 Node 和包；后续独立 macOS-15 Host/CLI 模拟 Chrome 帧测试见下文。真实 Chrome Native Messaging、Options 可信点击、网站 grant、Codex draft/saved/Stop/Result、断连/重启仍未完成，禁止标记最终 NATIVE_PASS 或提前合入 main。**
 
 下一阶段：\`docs/framework/prompts/goal-native-agent-local-acceptance-r1.txt\`。
 
-## 2026-10-08 最新的分层验收
+## 2026-10-08 历史候选的分层验收
 
 - **SOURCE / NODE / PACKAGE：PASS（历史已校验 HEAD）**。以 `9f4635ae3d1bb1a04fec810599305656972005a8` 对应的 GitHub Actions [Native Agent R1](https://github.com/shopable-ai/opendesk-browser/actions/runs/37792731631) 为准：28 项定向 Node、55 项共享 Node、check、WXT 13 固定入口的生产/开发构建与 verify 均成功；生产 SW 约 324.76 KB，未提升原 320 KiB（327680 字节）上限。Schema 自适应位宽只用于 SW，其他经典 IIFE 保持原输出。
 - **真实 macOS Node Host + AF_UNIX + CLI：CI 受控环境 PASS**。同一次 macOS-15 Actions 在独立临时 HOME 安装，校验 Native Host 可执行入口、0600 凭据和 Socket、32 字符扩展 ID、错误 origin 拒绝、真实 Unix Socket 与 CLI 成功认证/单次请求、停止清理；Google Chrome 与 Chrome for Testing 两种 manifest 均各自做了独立安装测试，不覆盖旧 Demo。**Chrome 侧 hello/welcome/response 帧由测试程序模拟，不是浏览器。**
@@ -78,7 +102,7 @@ macOS R1 源码安装目录预定 \`~/.opendesk-browser/native-agent-r1\`，使�
 
 Chrome 官方文档在版本 **146 起**区分 macOS 上 Google Chrome 和 Chrome for Testing 的 NativeMessagingHosts 用户目录。CLI 默认 `node native-agent/cli.mjs setup --extension-id <real-id>` 使用 Chrome；使用 Chrome for Testing（146 或更高）时明确指定 `node native-agent/cli.mjs setup --browser cft --extension-id <real-id>`。旧版 CFT 的目录行为不同，不用当前 `--browser cft` 推断旧版安装成功。同一安装根只绑定一个浏览器版本及扩展 ID，切换先停止 Native Host、安全清理，再重新 setup 和 doctor。
 
-## 还需核实的反方问题
+## 历史候选当时仍需核实的问题
 
 1. 需要实证 \`chrome.runtime.connectNative\` 在可选权限首次批准后无需刷新 SW 即可调用、Native manifest 路径和稳定扩展 ID。
 2. 无 SW 持久监听 Host ACK 的情况下，极小窗口内回包丢失仍可能只有关联日志 \`OUTCOME_UNKNOWN\` 而无 runId；不能因此再执行。可在受控 Controller read-only run journal 内用 requestId 对账，但不能建立新的执行旁路。
@@ -96,4 +120,4 @@ Chrome 官方文档在版本 **146 起**区分 macOS 上 Google Chrome 和 Chrom
 
 既有 [Native CI 37793448204](https://github.com/shopable-ai/opendesk-browser/actions/runs/37793448204) 于 8ab0ada6 HEAD 生产 sw.js=324759 bytes，上限 327680 bytes，Node、源码检查、双构建、verify 均通过。**此为本轮修改前的历史基线，新增提交必须重新验证**。Native Host 的 macOS Actions 使用真实临时 Host/Socket，但 Chrome 帧仍为模拟。
 
-Agent 观察、draft/saved JS、Candidate→Verification→Available→Install 和脱离 AI 的复用仅在 [Agent→Task R1 合同](agent-to-task-contract-r1.zh-CN.md) 中定义；不向 Native 新增直接发布 RPC，也不伪造已验证状态。真实 Mac Chrome/Codex、用户手势、站点 grant、documentId、断线、关闭 Bridge 后普通 Task 仍需现场验收。当前 NATIVE_CHROME_VERIFIED=NOT_TESTED、AI_AGENT_E2E_VERIFIED=NOT_TESTED、FINAL_FRAMEWORK_ACCEPTED=NO。
+Agent 观察、draft/saved JS、Candidate→Verification→Available→Install 和脱离 AI 的复用仅在 [Agent→Task R1 合同](agent-to-task-contract-r1.zh-CN.md) 中定义；不向 Native 新增直接发布 RPC，也不伪造已验证状态。真实 Mac Chrome/Codex、用户手势、站点 grant、documentId、断线、关闭 Bridge 后普通 Task 仍需现场验收。该 R1 / R6.2 历史候选当时为 NATIVE_CHROME_VERIFIED=NOT_TESTED、AI_AGENT_E2E_VERIFIED=NOT_TESTED、FINAL_FRAMEWORK_ACCEPTED=NO；不代表上节 R2.2 的当前定向状态。

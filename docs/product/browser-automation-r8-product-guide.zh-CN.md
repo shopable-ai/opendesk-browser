@@ -38,7 +38,7 @@
 - Codex 修改一个源文件后，在真实 Chrome 运行必须使用新内容；执行结果需关联 sourceHash、目标网页和真实 Run/Result。Node 组件 PASS 不能替代这一闭环。
 - Sidebar 原有三个一级页签、单文件即时运行与 Controller Task 操作保持；无必要不新增按钮、下拉框和上传表单。
 
-**当前协作切片（只表示 2026-10-09 核查快照，执行前须重新读取 PR）**： [PR #37 本地目录 / MCP](https://github.com/shopable-ai/opendesk-browser/pull/37) 为 Draft；[PR #38 npm / 旧新版依赖迁移](https://github.com/shopable-ai/opendesk-browser/pull/38) 尚未合并；另有 R10 HTTPS ESM 工作分支。这些工作共享一条用户目标，先按接口边界消除重复，再依据 CI 和真实 Chrome 证据逐个评审集成。涉及工程任务 E02、E03、E05、E33、E34、E40。
+**2026-10-09 集成状态快照（执行前仍须核对最新 main）**：[PR #37 本地目录 / MCP](https://github.com/shopable-ai/opendesk-browser/pull/37)、[PR #38 npm 依赖迁移](https://github.com/shopable-ai/opendesk-browser/pull/38) 与 [PR #39 HTTPS ESM 安全构建](https://github.com/shopable-ai/opendesk-browser/pull/39) 均已合并。用户可按 [统一 JavaScript 操作指南](program-development-dual-format-and-sidebar.zh-CN.md) 选择普通脚本、MCP 本地相对 ESM、npm/HTTPS 显式锁定构建三条路径。**关键未完成项**：本地开发 Resolver 暂不接受 npm/HTTPS 原始 import；将其接入已有可信构建器、保留原 RunHost/权限边界并做同候选真实 Mac Chrome 验收才是后续工程目标。涉及 E02、E03、E05、E33、E34、E40。
 
 ### 第二优先：网页增强脚本可以安装，以后自动生效
 
@@ -68,7 +68,7 @@
 
 ## 5. 下一批实施顺序（交付优先级，不替换原 E01–E40 编号）
 
-1. **收敛现有并行候选。** 基于最新 main 审查 PR #37/#38 和 HTTPS ESM 分支，确认彼此边界；已实现的不重复做，冲突不强行合并，保留各自测试身份。
+1. **以已合并源码为基线。** PR #37/#38/#39 已进 main，先复用本地 Resolver、受控 npm/HTTPS 构建器和原权限入口；优先修复真实使用缺口，避免重复分支/平行 Runtime。
 2. **完成本地开发闭环。** 只补“本地改文件 → 真 Chrome 执行 → 结果 → 改后重跑”缺口；安全和失败用例不可删减，相关成功证据齐全再合 main。
 3. **完成网页脚本安装闭环。** 复用 Page Candidate 和原有 User Scripts / Host / Storage，按类型建立验证、安装状态、原生注册及恢复；当前网页一次性 Preview 不可冒充自动安装。
 4. **收敛真实验收。** 对受影响输入做定向回归；真实 Chrome、同产物构建/ZIP、原有 F3 合同按原始证据独立关闭；不因功能说明写完就标产品完成。

@@ -8,6 +8,7 @@ import {validatePageProgramRules} from '../scripting/user-scripts/page-program-c
 export function createNativeAgentHostAdapter({client, host, currentPageTarget, api = globalThis.chrome} = {}) {
   let disposed = false;
   const previews=new Map();
+  const failure=e=>{const code=e.code||'E_EFFECT_UNKNOWN';return {code,message:e.message||'Bridge request failed',outcome:e.outcome||(code==='E_EFFECT_UNKNOWN'?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED')};};
   const requireReady = async () => {
     if (disposed) throw new AgentBridgeError('E_HOST_NOT_READY');
     await client.ready;
@@ -34,8 +35,10 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
         expectedRevision:params.expectedRevision,sourceUtf8:params.sourceUtf8});
     }
     if(method==='page.preview') {
-      if(host.currentRun)throw new AgentBridgeError('E_OWNER');
+      if(host.currentRun||[...previews.values()].some(row=>row.state==='preview-pending'))throw new AgentBridgeError('E_OWNER');
       if(typeof params.sourceUtf8!=='string'||!['async-main','classic-userscript'].includes(params.entryFormat)||!agentObject(params.target))throw new AgentBridgeError('E_SCHEMA');
+      if(params.managedUI!==undefined&&(params.managedUI!==true||!/^local-[a-f0-9]{20}$/.test(params.bindingId)))throw new AgentBridgeError('E_SCHEMA');
+      if(params.bindingId!==undefined&&!/^local-[a-f0-9]{20}$/.test(params.bindingId))throw new AgentBridgeError('E_SCHEMA');
       if(previews.size>=64)throw new AgentBridgeError('E_LIMIT');
       const current=await freshTarget();
       if(!agentSameTarget(current,params.target))throw new AgentBridgeError('E_DOCUMENT_STALE');
@@ -49,18 +52,32 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
       if(params.sourceHash!==await sha256Utf8(params.sourceUtf8)||params.sourceBytes!==new TextEncoder().encode(params.sourceUtf8).length)
         throw new AgentBridgeError('E_DEV_HASH');
       await currentPageTarget.revalidate({...current,status:'available'});
-      const previewId=crypto.randomUUID(),row={kind:'page-userscript',previewId,sourceHash:params.sourceHash,target:current,state:'preview-pending',durable:false};
+      const previewId=crypto.randomUUID(),row={kind:'page-userscript',previewId,sourceHash:params.sourceHash,target:current,state:'preview-pending',durable:false,
+        ...(params.managedUI?{managedUI:true,bindingId:params.bindingId}:{})};
       previews.set(previewId,row);
       // One existing USER_SCRIPT preview promise; this adapter neither starts a
       // Controller nor evaluates code. Page identities never masquerade as runId.
       Promise.resolve().then(()=>client.request('previewPageScript',{sourceUtf8:params.sourceUtf8,entryFormat:params.entryFormat,lockId:null,
+        ...(params.bindingId?{managedUI:{previewId,bindingId:params.bindingId,enabled:params.managedUI===true}}:{}),
         target:{tabId:current.tabId,frameId:0,documentId:current.documentId,expectedUrl:current.url,expectedWindowId:current.windowId}}))
         .then(result=>{
-          if(result.sourceHash!==row.sourceHash||result.world!=='USER_SCRIPT'||result.documentId!==current.documentId||result.tabId!==current.tabId)
+          if(!result||result.sourceHash!==row.sourceHash||result.world!=='USER_SCRIPT'||result.documentId!==current.documentId||result.tabId!==current.tabId)
             throw new AgentBridgeError('E_DEV_HASH',undefined,'OUTCOME_UNKNOWN');
+          if(params.managedUI&&(result.managedUI!==true||result.managedPreviewId!==previewId))throw new AgentBridgeError('E_DEV_HASH',undefined,'OUTCOME_UNKNOWN');
+          const previous=previews.get(result.previousCleanup?.previewId);
+          if(previous?.bindingId===params.bindingId&&result.previousCleanup?.ok===true)Object.assign(previous,{state:'preview-retired',cleanup:result.previousCleanup});
           Object.assign(row,{state:result.state,result});
-        }).catch(error=>Object.assign(row,{state:error.code==='E_EFFECT_UNKNOWN'?'preview-unknown':'preview-failed',error:{code:error.code||'E_EFFECT_UNKNOWN',message:error.message,outcome:error.outcome||(error.code==='E_EFFECT_UNKNOWN'?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED')}}));
+        }).catch(e=>{const error=failure(e);Object.assign(row,{state:error.outcome==='OUTCOME_UNKNOWN'?'preview-unknown':'preview-failed',error});});
       return {...row};
+    }
+    if(method==='page.dispose'){
+      const row=previews.get(params.previewId);if(!row)throw new AgentBridgeError('E_DEV_PREVIEW');
+      if(!row.managedUI)throw new AgentBridgeError('E_PAGE_PREVIEW_STOP_UNSUPPORTED','Only createPageUI-managed resources can be retired');
+      const current=await freshTarget();if(!agentSameTarget(current,row.target))throw new AgentBridgeError('E_DOCUMENT_STALE');
+      if(!await api.permissions.contains({origins:[permissionPattern(current.url)]}))throw new AgentBridgeError('E_PERMISSION');
+      const result=await client.request('retirePagePreview',{previewId:row.previewId});
+      if(!result||result.previewId!==row.previewId||result.sourceHash!==row.sourceHash||result.state!=='preview-retired'||result.receipt?.ok!==true||result.receipt.scope!=='managed-ui-only')throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
+      Object.assign(row,{state:'preview-retired',cleanup:result.receipt});return result;
     }
     if(method==='page.get') {
       const row=previews.get(params.previewId);if(!row)throw new AgentBridgeError('E_DEV_PREVIEW','Preview belongs to another or closed Host');
@@ -118,8 +135,7 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
   const unsubscribe = client.subscribeNativeAgent(async request => {
     let result, error;
     try { result = await handle(request); }
-    catch (e) { error = {code:e.code || 'E_EFFECT_UNKNOWN',message:e.message || 'Bridge request failed',
-      outcome:e.outcome || (e.code === 'E_EFFECT_UNKNOWN' ? 'OUTCOME_UNKNOWN' : 'FAILED_CONFIRMED')}; }
+    catch (e) { error = failure(e); }
     try { client.replyNativeAgent({requestId:request.dispatchId??request.requestId,...(error ? {error} : {result})}); }
     catch { /* Browser host state is authoritative; never replay. */ }
   });

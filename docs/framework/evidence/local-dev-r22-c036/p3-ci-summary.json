@@ -1,0 +1,339 @@
+{
+  "format": "opendesk.local-dev-ci-evidence.v1",
+  "provenance": {
+    "repository": "shopable-ai/opendesk-browser",
+    "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/42",
+    "candidate": "99a26c38e576ad0653143dd130582d15820054d6",
+    "baseMain": "75923b3d8cd606d34933a45b1d1e2e51cf3db60d",
+    "ciCheckout": "c98b7a2faa326310942d9222f0721aa2694e5c55",
+    "candidateTree": "88e902ac0f29aea2a77885d4598e0feb1d09728e",
+    "ciCheckoutTree": "88e902ac0f29aea2a77885d4598e0feb1d09728e",
+    "mergedMain": "4adf5dc4966f82a71c2c5116f8d5a35c21eafd06",
+    "mergedMainTree": "88e902ac0f29aea2a77885d4598e0feb1d09728e",
+    "treeVerification": "Root git fetch/rev-parse and independent GitHub commit/compare; identical complete trees, no new main execution claimed",
+    "workflowRunId": 37933535621,
+    "jobId": 113829854169,
+    "jobUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535621/job/113829854169",
+    "platform": "macos-15 ARM64",
+    "chromeVersion": "155.0.8059.39",
+    "retrieval": "Decoded GitHub Actions job log. LOCAL_DEV_ACCEPTANCE object preserved; selected JSON events transcribed separately using log timestamps. Artifact archive not downloaded.",
+    "selectedEvents": "p3-ci-events-from-log.jsonl",
+    "artifact": {
+      "id": 11616254342,
+      "name": "local-dev-r22-native-c98b7a2faa326310942d9222f0721aa2694e5c55",
+      "sizeInBytes": 1075332,
+      "digest": "sha256:0b4dd77016d5251ae25d54181ff1295b54a604741f0740857249bff9d1d3a072",
+      "createdAt": "2026-10-09T12:59:05Z",
+      "expiresAt": "2027-01-07T12:58:01Z",
+      "downloaded": false,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535621"
+    }
+  },
+  "originalAcceptance": {
+    "status": "PASS_P0_P1_P2_P3_REAL_CHROME",
+    "sourceHead": "c98b7a2faa326310942d9222f0721aa2694e5c55",
+    "packageHash": "f17ce6197a66be2b308a5c0c24b3e968a8e2a8ded38b5cd17665bd9b42895120",
+    "tests": [
+      {
+        "name": "real-native-handshake",
+        "status": "PASS"
+      },
+      {
+        "name": "multifile-version-1",
+        "status": "PASS",
+        "runId": "31b513e7-bc74-43a5-9f6c-ce278928e489",
+        "resultId": "ae5f89ce-eda9-452f-ab0b-1658371ec7ba",
+        "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "retirement": "released"
+      },
+      {
+        "name": "multifile-version-2",
+        "status": "PASS",
+        "runId": "c521c696-c415-47c3-8a24-7aa140e1b57d",
+        "resultId": "9525fd54-d27b-4baf-ab6e-747f5fb61a07",
+        "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "retirement": "released"
+      },
+      {
+        "name": "no-build-or-json-handoff-and-old-result-frozen",
+        "status": "PASS"
+      },
+      {
+        "name": "invalid-source-no-stale-fallback",
+        "status": "PASS"
+      },
+      {
+        "name": "real-connected-MCP-missing-file-and-source-read-limit-no-dispatch",
+        "status": "PASS",
+        "scope": "256 KiB individual source read limit; not the Native wire boundary"
+      },
+      {
+        "name": "multifile-version-7",
+        "status": "PASS",
+        "runId": "3fe58875-04ef-47c5-b614-28a0b23002ad",
+        "resultId": "04c71c08-3df7-4bc7-82cf-86bf50980744",
+        "sourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "retirement": "released"
+      },
+      {
+        "name": "edit-while-Controller-is-confirmed-running",
+        "status": "PASS",
+        "runId": "c3e2a2f8-6d53-4935-bb03-16f03869cb69",
+        "resultId": "000a3ecc-3569-43a2-b7d7-14f1bc69292f",
+        "sourceHash": "b60072d55fa61c72d2585ce256277d6de3a0e7b1de11cbcef8c2c4d382305167",
+        "nextRunId": "3fe58875-04ef-47c5-b614-28a0b23002ad",
+        "nextSourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece"
+      },
+      {
+        "name": "page-user-script-version-1",
+        "status": "PASS",
+        "previewId": "437f9695-4aa8-4f79-801e-6687e85a6fc6",
+        "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-17bcc4a20ea442d993a274f88468cde0",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "color": "rgb(31, 102, 178)"
+      },
+      {
+        "name": "page-user-script-version-2",
+        "status": "PASS",
+        "previewId": "07998cd0-da7c-4de6-bf0f-57941e657349",
+        "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-949f58bf503a496daedb01e14465790c",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "typed-MCP-managed-Page-stop",
+        "status": "PASS",
+        "previewId": "07998cd0-da7c-4de6-bf0f-57941e657349",
+        "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+        "receipt": {
+          "format": "opendesk.managed-ui.v1",
+          "instances": 1,
+          "nonce": "5793fc9f-6fc6-4226-aa52-ec629a6b613f",
+          "ok": true,
+          "requestNonce": "ed6e0c3f-a616-4fef-be37-c0121ad5b433",
+          "scope": "managed-ui-only"
+        }
+      },
+      {
+        "name": "page-user-script-version-3",
+        "status": "PASS",
+        "previewId": "d9c35fce-eaac-4d53-967e-594e63e4af91",
+        "sourceHash": "5bbb272aa65de53d5e3bc81249316a14b6dae60b97c8f1411ff8edee3b3c1a38",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-aac4e5388ef84e3999bbb7087bcb3262",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "page-user-script-version-4",
+        "status": "PASS",
+        "previewId": "f7726029-2c27-4950-8fb2-7aeb2dfe13d5",
+        "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-a21d4a8d6ad14c20b725ba06eeffa780",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "managed-hot-reload-awaits-cleanup-and-stops-old-timer",
+        "status": "PASS",
+        "oldPreviewId": "d9c35fce-eaac-4d53-967e-594e63e4af91",
+        "previewId": "f7726029-2c27-4950-8fb2-7aeb2dfe13d5",
+        "oldWorldId": "opendesk-preview-d1-aac4e5388ef84e3999bbb7087bcb3262",
+        "newWorldId": "opendesk-preview-d1-a21d4a8d6ad14c20b725ba06eeffa780",
+        "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+        "receipt": {
+          "previewId": "d9c35fce-eaac-4d53-967e-594e63e4af91",
+          "format": "opendesk.managed-ui.v1",
+          "instances": 1,
+          "nonce": "2116ac1c-6cdc-470c-8f41-57d582abafbf",
+          "ok": true,
+          "requestNonce": "4c423a6b-5c77-4f1f-866e-fd19c810ad6e",
+          "scope": "managed-ui-only"
+        },
+        "oldAfter": {
+          "connected": false,
+          "ticks": "9",
+          "cleaned": "true"
+        }
+      },
+      {
+        "name": "real-managed-cleanup-failure-does-not-mount-new-source",
+        "status": "PASS",
+        "oldPreviewId": "f7726029-2c27-4950-8fb2-7aeb2dfe13d5",
+        "rejectedPreviewId": "4ff690fc-10d6-4b95-bf19-87e49a653270",
+        "sourceHash": "20247b00ff629f0e52e1d0fa0ce527559bf385a2e00d513c91649e289c118ddd",
+        "error": {
+          "code": "E_UI_CLEANUP_FAILED",
+          "message": "EXPECTED_DISPOSE_FAILURE",
+          "outcome": "FAILED_CONFIRMED"
+        }
+      },
+      {
+        "name": "page-shadow-assets-native-interaction-and-managed-close",
+        "status": "PASS"
+      },
+      {
+        "name": "ordinary-webpage-has-no-extension-Native-or-project-connector",
+        "status": "PASS",
+        "scope": "actual page API absence; not a general penetration test"
+      },
+      {
+        "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+        "status": "PASS",
+        "admissionRequestId": "lost-ack-3f7e35d5-be98-4861-b8a8-40b0a51b1e76",
+        "runId": "385f69ac-96db-45fa-b91e-3c47d0a0076b",
+        "resultId": "680cb8b3-46ba-42d7-9eec-49d5972b788c",
+        "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652",
+        "version": 5
+      },
+      {
+        "name": "actual-sidebar-local-version-3",
+        "status": "PASS",
+        "runId": "2fb5c6f1-5af8-4eb0-82fb-ccbca380a177",
+        "resultId": "8449524c-c900-40dd-a795-e5830377cd02",
+        "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "hostDocumentId": "51F5BE61DDA0EB4ED5683944CE36E9B6"
+      },
+      {
+        "name": "actual-sidebar-local-version-4",
+        "status": "PASS",
+        "runId": "41e11c07-503b-4733-b1bb-5afafef107a7",
+        "resultId": "9b6c009c-8b1c-40bc-a3a4-a483202f0274",
+        "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+        "documentId": "57E46B5FEC855E4459C6DDD92788C86A",
+        "hostDocumentId": "31D4CD8B8062566C8B457B23F3845F01"
+      },
+      {
+        "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+        "status": "PASS",
+        "previewId": "9fbc1389-447d-4edf-8ecd-24575d69476c",
+        "documentId": "3F96B7D74503055F35DD4F6E627ADE6C",
+        "previousDocumentId": "57E46B5FEC855E4459C6DDD92788C86A"
+      },
+      {
+        "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+        "status": "PASS",
+        "oldDocumentId": "51F5BE61DDA0EB4ED5683944CE36E9B6",
+        "newDocumentId": "31D4CD8B8062566C8B457B23F3845F01"
+      }
+    ],
+    "resourcesReleased": true
+  },
+  "workflowRuns": [
+    {
+      "id": 37933535697,
+      "name": "Site access targeted checks",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535697"
+    },
+    {
+      "id": 37933535708,
+      "name": "Sidebar UI product regression",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535708"
+    },
+    {
+      "id": 37933535621,
+      "name": "Local directory MCP real Chrome",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535621"
+    },
+    {
+      "id": 37933535692,
+      "name": "Page userscript dependencies and package",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535692"
+    },
+    {
+      "id": 37933535841,
+      "name": "Native Agent R1 components and package",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535841"
+    }
+  ],
+  "nativeJobs": [
+    {
+      "jobId": 113829855269,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535841/job/113829855269",
+      "conclusion": "success",
+      "origin": "decoded-github-actions-job-log",
+      "summaryLines": [
+        "2026-10-09T12:58:16.2270719Z # tests 53",
+        "2026-10-09T12:58:16.2270944Z # pass 53",
+        "2026-10-09T12:58:16.2271052Z # fail 0",
+        "2026-10-09T12:58:16.2271286Z # skipped 0",
+        "2026-10-09T12:58:16.3114330Z # tests 3",
+        "2026-10-09T12:58:16.3115126Z # pass 2",
+        "2026-10-09T12:58:16.3115353Z # fail 0",
+        "2026-10-09T12:58:16.3126895Z # skipped 1",
+        "2026-10-09T12:58:17.0303006Z # tests 72",
+        "2026-10-09T12:58:17.0303219Z # pass 72",
+        "2026-10-09T12:58:17.0303323Z # fail 0",
+        "2026-10-09T12:58:17.0303539Z # skipped 0",
+        "2026-10-09T12:58:30.8569996Z {\"mode\":\"production\",\"builder\":\"wxt\",\"status\":\"passed\",\"packageHash\":\"f17ce6197a66be2b308a5c0c24b3e968a8e2a8ded38b5cd17665bd9b42895120\",\"assets\":26}",
+        "2026-10-09T12:58:41.1326440Z {\"status\":\"passed\",\"manifestVersion\":3,\"classicEntries\":[\"agents/bootstrap.js\",\"agents/health.js\",\"agents/page-agent.js\",\"agents/page-relay.js\",\"agents/selection-entry.js\",\"framework/sdk-main.js\",\"native-agent/settings.js\",\"native-agent/transport.js\",\"scripting/packaged/page-session.js\",\"scripting/sandbox/sandbox.js\",\"scripting/sandbox/worker-runtime.js\",\"sidebar-tools/bridge.js\",\"sw.js\",\"ui/tool-shell.js\",\"vendor/jquery-3.7.1.min.js\"],\"htmlChecked\":[\"ui/tool.html\",\"native-agent/settings.html\",\"ui/target-bootstrap.html\",\"scripting/sandbox/sandbox.html\",\"sidebar-tools/sandbox.html\"],\"assetsChecked\":[\"icons/notification.png\",\"licenses/todo-user-vue-MIT.txt\",\"licenses/jquery-MIT.txt\",\"framework/sdk-resources.json\"],\"sdkResources\":{\"schemaVersion\":1,\"resources\":[{\"path\":\"framework/sdk-main.js\",\"bytes\":49539,\"sha256\":\"432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee\"},{\"path\":\"agents/page-relay.js\",\"bytes\":35276,\"sha256\":\"cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a\"}]},\"sdkEntries\":{\"MAIN\":\"framework/sdk-main.js\",\"ISOLATED\":\"agents/page-relay.js\"},\"privilegedDynamicExecutionFound\":false,\"approvedDynamicExecution\":[{\"file\":\"scripting/sandbox/worker-runtime.js\",\"approvedAsyncBodyConstructors\":1,\"execution\":\"Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox\"}],\"sandbox\":{\"pages\":[\"scripting/sandbox/sandbox.html\",\"sidebar-tools/sandbox.html\"],\"csp\":\"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'\"},\"packageHash\":\"f17ce6197a66be2b308a5c0c24b3e968a8e2a8ded38b5cd17665bd9b42895120\",\"hashRecipe\":\"SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes\",\"files\":[{\"path\":\"agents/bootstrap.js\",\"bytes\":21466,\"sha256\":\"1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c\"},{\"path\":\"agents/health.js\",\"bytes\":828,\"sha256\":\"48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65\"},{\"path\":\"agents/page-agent.js\",\"bytes\":34347,\"sha256\":\"35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c\"},{\"path\":\"agents/page-relay.js\",\"bytes\":35276,\"sha256\":\"cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a\"},{\"path\":\"agents/selection-entry.js\",\"bytes\":383,\"sha256\":\"0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb\"},{\"path\":\"framework/sdk-main.js\",\"bytes\":49539,\"sha256\":\"432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee\"},{\"path\":\"framework/sdk-resources.json\",\"bytes\":359,\"sha256\":\"747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b\"},{\"path\":\"icons/notification.png\",\"bytes\":595,\"sha256\":\"efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6\"},{\"path\":\"licenses/jquery-MIT.txt\",\"bytes\":1097,\"sha256\":\"d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d\"},{\"path\":\"licenses/todo-user-vue-MIT.txt\",\"bytes\":1096,\"sha256\":\"e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29\"},{\"path\":\"manifest.json\",\"bytes\":1264,\"sha256\":\"a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6\"},{\"path\":\"native-agent/settings.html\",\"bytes\":1826,\"sha256\":\"8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf\"},{\"path\":\"native-agent/settings.js\",\"bytes\":22329,\"sha256\":\"24bf0bf2d65fd0a946ebeba399f038f9f93f0a681e05887b9f8ee9cff13455d5\"},{\"path\":\"native-agent/transport.js\",\"bytes\":42814,\"sha256\":\"e9a947bd9f0989c3af3fac38199add2381b8663651db4dd08ddcdac62d848685\"},{\"path\":\"scripting/packaged/page-session.js\",\"bytes\":55072,\"sha256\":\"878a816ec2749a7408a1c32ab985b0cfbce97875f7115b8c99a890c64ee3d8ec\"},{\"path\":\"scripting/sandbox/sandbox.html\",\"bytes\":385,\"sha256\":\"aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536\"},{\"path\":\"scripting/sandbox/sandbox.js\",\"bytes\":4010,\"sha256\":\"4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e\"},{\"path\":\"scripting/sandbox/worker-runtime.js\",\"bytes\":49683,\"sha256\":\"406de1f7b5ebffc7ce4a67696d5e35d24e27e9bae3b93cacec10cae6100c19f1\"},{\"path\":\"sidebar-tools/bridge.js\",\"bytes\":2603,\"sha256\":\"47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050\"},{\"path\":\"sidebar-tools/sandbox.html\",\"bytes\":560,\"sha256\":\"5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b\"},{\"path\":\"sw.js\",\"bytes\":327674,\"sha256\":\"4386114f0c984961b755c9424451551af6df8c8db98421d3c429f5a0ea8891e9\"},{\"path\":\"ui/target-bootstrap.html\",\"bytes\":200,\"sha256\":\"b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c\"},{\"path\":\"ui/tool-shell.css\",\"bytes\":21385,\"sha256\":\"f0ac1d520ee3e08363b742d837693e4401a34d2d572987b51ec9d453a1253852\"},{\"path\":\"ui/tool-shell.js\",\"bytes\":200918,\"sha256\":\"11a995193ce3a1e0c6037d72d83cf35c6ef816b86ac6f8d88fd0f52597c1165b\"},{\"path\":\"ui/tool.html\",\"bytes\":21626,\"sha256\":\"ae5b93517ee1ec6cff389288c435b7b9ab469e9259f5ec058f0d4c1eb1472008\"},{\"path\":\"vendor/jquery-3.7.1.min.js\",\"bytes\":87533,\"sha256\":\"fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a\"}]}",
+        "2026-10-09T12:58:47.9783366Z # tests 427",
+        "2026-10-09T12:58:47.9783612Z # pass 421",
+        "2026-10-09T12:58:47.9783739Z # fail 0",
+        "2026-10-09T12:58:47.9783983Z # skipped 6"
+      ]
+    },
+    {
+      "jobId": 113829855431,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535841/job/113829855431",
+      "conclusion": "success",
+      "origin": "decoded-github-actions-job-log",
+      "summaryLines": [
+        "2026-10-09T12:58:25.8851430Z # tests 3",
+        "2026-10-09T12:58:25.8853780Z # pass 3",
+        "2026-10-09T12:58:25.8854250Z # fail 0",
+        "2026-10-09T12:58:25.8855430Z # skipped 0",
+        "2026-10-09T12:58:58.5061170Z {\"mode\":\"production\",\"builder\":\"wxt\",\"status\":\"passed\",\"packageHash\":\"f17ce6197a66be2b308a5c0c24b3e968a8e2a8ded38b5cd17665bd9b42895120\",\"assets\":26}",
+        "2026-10-09T12:59:10.8296090Z # tests 2",
+        "2026-10-09T12:59:10.8296830Z # pass 2",
+        "2026-10-09T12:59:10.8297090Z # fail 0",
+        "2026-10-09T12:59:10.8297770Z # skipped 0"
+      ]
+    },
+    {
+      "jobId": 113829855509,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37933535841/job/113829855509",
+      "conclusion": "success",
+      "origin": "decoded-github-actions-job-log",
+      "summaryLines": [
+        "2026-10-09T12:58:40.2535440Z # tests 3",
+        "2026-10-09T12:58:40.2536430Z # pass 3",
+        "2026-10-09T12:58:40.2536940Z # fail 0",
+        "2026-10-09T12:58:40.2538380Z # skipped 0",
+        "2026-10-09T12:59:31.2307810Z {\"mode\":\"production\",\"builder\":\"wxt\",\"status\":\"passed\",\"packageHash\":\"f17ce6197a66be2b308a5c0c24b3e968a8e2a8ded38b5cd17665bd9b42895120\",\"assets\":26}",
+        "2026-10-09T12:59:56.4753290Z # tests 2",
+        "2026-10-09T12:59:56.4790820Z # pass 2",
+        "2026-10-09T12:59:56.4800560Z # fail 0",
+        "2026-10-09T12:59:56.4828320Z # skipped 0"
+      ]
+    }
+  ],
+  "limits": [
+    "Actual user's Mac and Codex client setup NOT_TESTED",
+    "Full Chrome process restart/recovery NOT_TESTED",
+    "Installed Task with both MCP and Native disabled NOT_TESTED",
+    "Native wire 60 KiB physical boundary NOT_TESTED; real rejection covers 256 KiB single-source limit only",
+    "During-read write, admission navigation/revoke races, MCP EOF during resolution, cleanup timeout/lost receipt have component coverage; exact real Chrome race injection NOT_TESTED",
+    "Ordinary webpage API absence is not a general penetration test",
+    "No file watcher, independent CSS refresh, generic HMR, runtime source-map original-line mapping, or Local Dev npm/HTTPS modules"
+  ]
+}

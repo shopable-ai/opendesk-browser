@@ -50,7 +50,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     draftWrites=draftWrites.then(()=>api.storage.session.set({[draftKey]:value}))
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
-  let scriptListSequence = 0, ownedDraftRunId = null;
+  let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null;
   let currentRevision, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -87,6 +87,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       ? `已保存 r${currentRevision.revision} · 存在未保存修改 · 运行草稿不会覆盖已保存版本`
       : `已保存 r${currentRevision.revision} · 可运行草稿；不自动创建新 revision`;
   }
+  function canStopManaged(){
+    if(!ownedManagedPreview||!localProject?.active()||running||previewBusy||host.currentRun||!projection?.slotAvailable)return false;
+    return localProject.selectedBindingId()===ownedManagedPreview.bindingId&&currentPageState?.status==='available'&&currentPageState.documentId===ownedManagedPreview.target.documentId&&currentPageState.tabId===ownedManagedPreview.target.tabId;
+  }
   function update() {
     if (disposed) return;
     persistDraft();
@@ -94,9 +98,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-save').disabled = editingBusy; find('script-load').disabled = editingBusy;
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
-    find('script-run').disabled = editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
+    find('script-run').disabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
       !programSource.source().trim() || programSource.kind() === 'page-userscript' || mode.value === 'current' && currentPageState?.status !== 'available';
-    find('script-stop').disabled = stopping || !ownedDraftRunId || host.currentRun !== ownedDraftRunId;
+    find('script-stop').disabled = stopping || !canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
+    find('script-stop').textContent=canStopManaged()?'停止受管 UI':'停止';
     find('page-preview-run').disabled = previewBusy || dependencyResolver?.busy || editingBusy || running || !!host.currentRun ||
       !programSource.source().trim() || programSource.kind() === 'controller' || currentPageState?.status !== 'available';
     find('script-owned-url').disabled = mode.value !== 'owned';
@@ -105,7 +110,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     if(localProject?.active()){
       for(const id of ['script-save','script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))find(id).disabled=true;
       find('script-run').textContent='运行本地项目';
-      find('script-run').disabled=editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.connected()||currentPageState?.status!=='available';
+      find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.connected()||currentPageState?.status!=='available';
       find('script-version').textContent='本地项目模式 · 手工草稿已保留；正式任务请使用打包安装流程';
     }else find('script-run').textContent='运行草稿';
     find('script-library-tools').hidden=!!localProject?.active();
@@ -381,7 +386,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     finally {downloading = false; update();}
   }
   function start(event) {
-    if (!event.isTrusted || disposed || running || previewBusy || editingBusy || host.currentRun) return;
+    if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
     if(localProject?.active()){startLocal(event);return;}
     let chosen, params, permission, sourceUtf8;
     try {
@@ -451,7 +456,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       const {status:ignored,...target}=captured;
       const claim=await localAdapter.handle({method:page?'page.preview':'run.start',requestId:crypto.randomUUID(),params:{
         sourceHash:source.sourceHash,sourceBytes:source.sourceBytes,target,
-        ...(page?{sourceUtf8:source.sourceUtf8,entryFormat:source.entryFormat,...(source.pageRules?{pageRules:source.pageRules}:{})}:
+          ...(page?{sourceUtf8:source.sourceUtf8,entryFormat:source.entryFormat,bindingId:source.bindingId,...(source.managedUI?{managedUI:true}:{}),...(source.pageRules?{pageRules:source.pageRules}:{})}:
           {source:{kind:'draft',sourceUtf8:source.sourceUtf8},params,deadlineMs:30000})}});
       if(page){
         find('script-task-id').textContent='previewId：'+claim.previewId;
@@ -461,8 +466,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
           await new Promise(resolve=>{finishLocalPoll=resolve;localPollTimer=setTimeout(resolve,200);});localPollTimer=null;finishLocalPoll=null;
           if(disposed)return;result=await localAdapter.handle({method:'page.get',params:{previewId:claim.previewId}});
         }
+        if(source.managedUI&&(!result.error||result.error.code==='E_PAGE_SCRIPT_EXECUTION'&&result.error.outcome==='FAILED_CONFIRMED'))ownedManagedPreview={previewId:claim.previewId,bindingId:source.bindingId,target,sourceHash:source.sourceHash};
+        else if(!source.managedUI||result.error?.outcome==='OUTCOME_UNKNOWN')ownedManagedPreview=null;
         if(result.error)throw result.error;
-        display('completed','本地 Page 预览已完成；网页 UI 由项目管理。',result);find('developer-results-panel').open=true;
+        display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。',result);find('developer-results-panel').open=true;
         find('page-preview-result').textContent=result.result?.resultText+'\nSHA-256 '+source.sourceHash;
       }else{
         admittedRunId=ownedDraftRunId=claim.runId;
@@ -535,6 +542,15 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   listen(find('script-run'), 'click', start);
   listen(find('page-preview-run'), 'click', previewPage);
   on('script-stop','click',async () => {
+    if(canStopManaged()&&!stopping){
+      const owned=ownedManagedPreview;stopping=true;update();display('stopping','正在清理原网页中的受管资源…');
+      try{
+        const result=await localAdapter.handle({method:'page.dispose',requestId:crypto.randomUUID(),params:{previewId:owned.previewId}});
+        if(result.sourceHash!==owned.sourceHash)throw {code:'E_EFFECT_UNKNOWN',message:'受管清理身份不一致'};
+        if(ownedManagedPreview===owned)ownedManagedPreview=null;display('completed','受管 UI 已清理；网页业务效果不会回滚。',result);
+      }finally{stopping=false;update();}
+      return;
+    }
     if (!ownedDraftRunId || host.currentRun !== ownedDraftRunId || stopping) return;
     stopping = true; update(); display('stopping','正在提交停止并等待持久收尾…');
     try {await host.stop({runId:ownedDraftRunId,controller:true});}

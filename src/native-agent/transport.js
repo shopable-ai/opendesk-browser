@@ -1,6 +1,7 @@
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../platform/protocol.js';
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
 import {createNativeAgentService} from './service-worker.js';
+import {createManagedUIPreview} from './managed-preview.js';
 
 // Fixed, extension-internal classic script. Side Panel RunHost registrations are
 // still validated by the original foundation broker and held in the SAME map.
@@ -10,6 +11,7 @@ export function installNativeTransport(scope=globalThis) {
   if(Object.hasOwn(scope,NATIVE_TRANSPORT_KEY))throw Error('E_NATIVE_TRANSPORT_CONFLICT');
   const api=scope.chrome,hostPorts=scope.__opendeskNativeHostPorts;
   if(!api?.runtime || !(hostPorts instanceof Map))throw Error('E_HOST_NOT_READY');
+  Object.defineProperty(scope,'__opendeskNativeManagedUI',{value:createManagedUIPreview,writable:false,configurable:false});
   const agent=createNativeAgentService({api,hostPorts});
   api.runtime.onMessage.addListener((message,sender,sendResponse)=>{
     if(message?.protocol!==AGENT_CONFIG_PROTOCOL)return false;
