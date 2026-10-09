@@ -183,7 +183,8 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       typeof sender.documentId!=='string')throw new AgentBridgeError('E_OWNER');
     await initial;
     if(msg?.type==='status')return {enabled,nativeConnected:ready,hostCount:live().length,
-      extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION};
+      extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,
+      requiresReload:enabled&&!ready&&typeof api.runtime.connectNative!=='function'};
     if(msg?.type==='enable') {
       const intent=++settingsGeneration;
       const granted=await api.permissions.contains({permissions:['nativeMessaging']});

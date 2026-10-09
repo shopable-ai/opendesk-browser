@@ -13,6 +13,7 @@ export const BUILD_CONTRACT_SOURCE = 'scripts/build-contract.mjs';
 export const SANDBOX_HTML = 'scripting/sandbox/sandbox.html';
 export const TOOL_SANDBOX_HTML = 'sidebar-tools/sandbox.html';
 export const TOOL_SANDBOX_META_CSP = "default-src 'none'; script-src 'self' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; child-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
+export const TOOL_HOST_META_CSP = "frame-src 'self'";
 export const CONTROL_WORKER = 'scripting/sandbox/worker-runtime.js';
 export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
 export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";
@@ -246,7 +247,7 @@ async function inspectHTML(root, file) {
   }
   for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
-  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : file === 'ui/tool.html' ? [TOOL_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
 }
 export async function verifyPackage(directory) {
   const root = resolve(directory);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,writeFile,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {validateSidebarToolPackage,sidebarToolStorageKey,SIDEBAR_TOOL_FORMAT} from '../../src/ui/sidebar-tools/package.js';
@@ -17,6 +17,22 @@ test('tool contract is independent of Task v1 and is closed by default',()=>{
   assert.throws(()=>validateSidebarToolPackage({...example,css:'@import url(https://evil.example/x.css)'}),/样式/);
   assert.throws(()=>validateSidebarToolPackage({...example,id:'../other'}),/格式/);
   assert.throws(()=>validateSidebarToolPackage({...example,js:'x'.repeat(220001)}),/过大/);
+});
+test('tool packer rejects traversal, symlink escape, oversized assets and duplicate assets',async()=>{
+  const temp=await mkdtemp(join(tmpdir(),'opendesk-tool-boundary-'));
+  const outside=await mkdtemp(join(tmpdir(),'opendesk-tool-outside-'));
+  try{
+    const meta={id:'safe-tool',version:'1.0.0',title:'测试',description:'边界',capabilities:[],files:{html:'view.html',css:'view.css',js:'view.js'},assets:[]};
+    const config=async value=>writeFile(join(temp,'tool.config.json'),JSON.stringify(value));
+    await writeFile(join(temp,'view.html'),'<p>{{asset:huge.png}}</p>');await writeFile(join(temp,'view.css'),'');await writeFile(join(temp,'view.js'),'void 0;');
+    await config({...meta,files:{...meta.files,js:'../outside.js'}});
+    await assert.rejects(buildSidebarTool(temp),/relative path/);
+    await writeFile(join(outside,'external.js'),'void 0;');await symlink(join(outside,'external.js'),join(temp,'escape.js'));
+    await config({...meta,files:{...meta.files,js:'escape.js'}});await assert.rejects(buildSidebarTool(temp),/symlink escaped/);
+    await writeFile(join(temp,'huge.png'),Buffer.alloc(96*1024+1));
+    await config({...meta,assets:['huge.png']});await assert.rejects(buildSidebarTool(temp),/exceeds budget/);
+    await config({...meta,assets:['huge.png','huge.png']});await assert.rejects(buildSidebarTool(temp),/invalid asset list/);
+  }finally{await rm(temp,{recursive:true,force:true});await rm(outside,{recursive:true,force:true});}
 });
 test('native tool directory packs JS/CSS/HTML and a local image into a portable JSON',async()=>{
   const temp=await mkdtemp(join(tmpdir(),'opendesk-tool-test-'));
