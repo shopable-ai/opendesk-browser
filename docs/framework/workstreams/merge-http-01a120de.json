@@ -17,7 +17,7 @@
     {
       "branch": "agent/r72-tests-01a11c27",
       "head": "090070348474b43fdb8f05ffd13941de4ea4f683",
-      "decision": "merged after r72-axiosx; its unique test-locking commit is already contained in r72-axiosx history"
+      "decision": "merged after r72-axiosx; resolved the duplicate add/add test file toward the already integrated top-level error.response contract"
     }
   ],
   "reuseReview": {
@@ -57,6 +57,11 @@
       "path": "docs/framework/prompts/goal-r7-axiosx-local-http-acceptance.txt",
       "decision": "accepted the R72 acceptance wording in conflict regions",
       "reason": "the prompt now describes the actual Fetch/SDK split, authorization boundaries, and no-fallback SDK behavior"
+    },
+    {
+      "path": "tests/environment/basic-browser-axiosx.test.mjs",
+      "decision": "kept the r72-axiosx version when merging r72-tests",
+      "reason": "r72-tests carried an earlier duplicate assertion for error.details.response; the merged demo, README, and current R72 axiosx branch use top-level error.response"
     }
   ],
   "resourceUsage": {
