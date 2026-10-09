@@ -49,6 +49,18 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 
 然后打开 **http://127.0.0.1:43111/demo-form.html**。完整操作说明见 [示例 README](examples/tasks/README.zh-CN.md)，契约测试是 `node --test tests/environment/basic-browser-page.test.mjs`。临时原生验证服务的 `/fixture` 路由不是此页面的替代入口；不要复制旧会话中的临时端口用于人工验收。已有 `tests/prototypes/**/fixture/` 是测试运行器直接依赖的专用资源，除非连同相关运行器、断言、证据审查并确认无引用，否则不要清理。
 
+## 扩展源码的日常开发
+
+```sh
+cd /Users/shopme/Documents/workspace/opendesk-browser
+npm ci --ignore-scripts   # 第一次安装依赖
+npm run dev              # 持续运行，Ctrl+C 停止
+```
+
+等待 `RUNNING`，自行打开 Chrome，在 `chrome://extensions` 加载 **`/Users/shopme/Documents/workspace/opendesk-browser/dist/development`**，打开 Sidebar 后保存源码即可自动更新。首次从 `build:dev` 静态包切换时，重新加载扩展一次。CSS 热加载；Sidebar HTML/JS 保存草稿后刷新；Background 在任务释放后重载扩展（Chrome 会关闭 Sidebar，需重新打开）；注入脚本在新文档或下一次明确执行时使用更新文件，不重放任务。`dev:chrome` 保留为独立浏览器启动命令。
+
+完整首次安装、验证品红描边、更新边界与排错说明见[扩展开发 R13.1](docs/framework/extension-development-r131.zh-CN.md)。持续开发期间不要另行构建到相同输出目录。
+
 ## 本地构建
 
 ```sh

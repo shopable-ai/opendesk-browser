@@ -174,9 +174,16 @@ export function createCleanupController({launcher, binary, directory, label, met
       if (value?.event === 'owned-child') track(value);
     }
     try {
-      if (sameProfileRestart && !launcher.stdin.destroyed) launcher.stdin.end();
-      if (launcher.exitCode === null && launcher.signalCode === null) launcher.kill('SIGTERM');
-      exit = await waitForExit(8000);
+      if (sameProfileRestart && !launcher.stdin.destroyed) {
+        launcher.stdin.end();
+        // EOF lets the controlled adapter stop and reap its own Chrome child.
+        // A simultaneous signal can interrupt its ownership inspection.
+        exit = await waitForExit(1000);
+      }
+      if (!exit) {
+        if (launcher.exitCode === null && launcher.signalCode === null) launcher.kill('SIGTERM');
+        exit = await waitForExit(8000);
+      }
       if (!exit) {
         for (const [pid] of candidates) {
           const observed = deps.probe(pid);
@@ -285,8 +292,23 @@ async function cleanupSelftest() {
     const {cleanup} = fixture(); const first = await cleanup.stop();
     assert.equal(first.cleanupStatus, 'PASS'); assert(cleanup.stopped); assert.equal(await cleanup.stop(), first);
   });
+  check('controlled EOF shutdown completes before a fallback signal', async () => {
+    const {cleanup, launcher} = fixture(); const actions = [];
+    launcher.stdin.end = () => actions.push('eof');
+    launcher.kill = signal => actions.push(signal);
+    assert.equal((await cleanup.stop()).cleanupStatus, 'PASS');
+    assert.deepEqual(actions, ['eof']);
+  });
+  check('EOF timeout still signals the owned adapter', async () => {
+    const {cleanup, launcher, state} = fixture(); const actions = [];
+    state.waits = [null, {code: 0}];
+    launcher.stdin.end = () => actions.push('eof');
+    launcher.kill = signal => actions.push(signal);
+    assert.equal((await cleanup.stop()).cleanupStatus, 'PASS');
+    assert.deepEqual(actions, ['eof', 'SIGTERM']);
+  });
   check('timeout retains error and permits bounded retry', async () => {
-    const {cleanup, state} = fixture(); state.waits = [null, null, {code: 0}];
+    const {cleanup, state} = fixture(); state.waits = [null, null, null, {code: 0}];
     cleanup.original(new Error('original-operation'));
     const first = await cleanup.stop(); assert.equal(first.cleanupStatus, 'FAIL'); assert(!cleanup.stopped);
     const next = await cleanup.stop(); assert.equal(next.cleanupStatus, 'PASS'); assert.equal(next.attempts.length, 2);
@@ -294,37 +316,37 @@ async function cleanupSelftest() {
   });
   check('profile replacement does not block owned process cleanup or permit deletion', async () => {
     const {cleanup, state} = fixture({lstat: async () => ({dev: 9, ino: 9, isDirectory: () => true})});
-    state.pidStates.set(101, 'alive'); state.waits = [null, {code: 0}];
+    state.pidStates.set(101, 'alive'); state.waits = [null, null, {code: 0}];
     const result = await cleanup.stop(); assert.deepEqual(state.signals, [101]);
     assert.equal(result.profileState, 'replaced-path-retained'); assert.equal(result.cleanupStatus, 'FAIL');
   });
   check('profile absence does not block independently owned child cleanup', async () => {
-    const {cleanup, state} = fixture(); state.pidStates.set(101, 'alive'); state.waits = [null, {code: 0}];
+    const {cleanup, state} = fixture(); state.pidStates.set(101, 'alive'); state.waits = [null, null, {code: 0}];
     assert.equal((await cleanup.stop()).cleanupStatus, 'PASS'); assert.deepEqual(state.signals, [101]);
   });
   check('ps failure is not child exit and prevents signals', async () => {
     const {cleanup, state} = fixture({inspect: () => { throw new Error('ps unavailable'); }});
-    state.pidStates.set(101, 'alive'); state.waits = [null, {code: 0}];
+    state.pidStates.set(101, 'alive'); state.waits = [null, null, {code: 0}];
     const result = await cleanup.stop(); assert.deepEqual(state.signals, []); assert.equal(result.pidAliveAfterExit, true);
     assert(result.residual.some(row => row.pid === 101)); assert.equal(result.cleanupStatus, 'FAIL');
   });
   check('EPERM probe is unknown, not exited', async () => {
     const {cleanup, state} = fixture({probe: () => ({state: 'unknown', error: {code: 'EPERM'}})});
-    state.waits = [null, {code: 0}]; const result = await cleanup.stop();
+    state.waits = [null, null, {code: 0}]; const result = await cleanup.stop();
     assert.equal(result.pidAliveAfterExit, null); assert.equal(result.residual[0].state, 'unknown'); assert.deepEqual(state.signals, []);
   });
   check('invalid next metadata retains new PID and original pinned cleanup identity', async () => {
     let inspected;
     const {cleanup, state} = fixture({inspect: (pid, parent, binary, profile) => { inspected = {pid, parent, binary, profile}; }});
     const next = {pid: 102, generation: 2, profile: '/foreign', args: []}; cleanup.track(next);
-    cleanup.original(new Error('next-metadata-validation')); state.pidStates.set(102, 'alive'); state.waits = [null, {code: 0}];
+    cleanup.original(new Error('next-metadata-validation')); state.pidStates.set(102, 'alive'); state.waits = [null, null, {code: 0}];
     const result = await cleanup.stop(); assert.deepEqual(state.signals, [102]);
     assert.equal(inspected.profile, '/tmp/codex-cft-owned'); assert.equal(inspected.binary, '/pinned/CFT');
     assert(result.candidates.some(row => row.pid === 102)); assert.equal(result.originalErrors[0].message, 'next-metadata-validation');
   });
   check('failed metadata publication recovers new PID from owned-child stdout', async () => {
     const {cleanup, state} = fixture(); state.stdout = '{"event":"owned-child","pid":102,"profile":"/tmp/codex-cft-owned"}\n';
-    state.pidStates.set(102, 'alive'); state.waits = [null, {code: 0}];
+    state.pidStates.set(102, 'alive'); state.waits = [null, null, {code: 0}];
     const result = await cleanup.stop(); assert.deepEqual(state.signals, [102]); assert(result.candidates.some(row => row.pid === 102));
   });
   for (const malformed of [null, '{damaged']) check(`lifecycle ${malformed === null ? 'missing' : 'corrupt'} preserves raw and errors`, async () => {

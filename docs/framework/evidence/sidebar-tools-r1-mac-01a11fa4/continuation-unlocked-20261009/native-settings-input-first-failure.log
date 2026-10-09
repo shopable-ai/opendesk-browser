@@ -1,0 +1,18 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+'200%' !== '100%'
+
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-settings-input.mjs:14:271 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '200%',
+  expected: '100%',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

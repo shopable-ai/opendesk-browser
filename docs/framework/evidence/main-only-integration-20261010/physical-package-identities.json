@@ -1,0 +1,19 @@
+{
+  "builds": [
+    {
+      "mode": "production",
+      "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+      "swBytes": 288895,
+      "swSha256": "a6a6934e9f558b59dbd29c7ec1c74c9ef82e0cbc63be308eb6d6270a14989c60",
+      "sourceDriftDuringBuild": []
+    },
+    {
+      "mode": "development",
+      "packageHash": "a19b857dd6443c7df01ab5177480b23fffbf392ff532d299670aa8738765f2f8",
+      "swBytes": 289061,
+      "swSha256": "927105445b53824cc7d5a754b5ed7318cbf08fb3c78b6212829b1b697d2be4a3",
+      "sourceDriftDuringBuild": []
+    }
+  ],
+  "integrityMethod": "Independent SHA-256 of physical sw.js compared to verifyPackage receipt; size reporter alone does not establish physical hash"
+}

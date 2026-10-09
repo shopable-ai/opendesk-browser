@@ -1,0 +1,126 @@
+{
+  "workstream": "r101-usage-docs-01a12159",
+  "status": "COMPLETE_DOCUMENTATION_DRAFT_PR",
+  "branch": "agent/r101-usage-docs-01a12159",
+  "worktree": "/Users/shopme/.codex/worktrees/r101-usage-docs-01a12159/opendesk-browser",
+  "baseline": "3d1697ff9087427e0ab290e6c2b6cd0f94f65444",
+  "date": "2026-10-10",
+  "implementationPR": {
+    "number": 50,
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/50",
+    "stateAtCheck": "open/draft, not merged",
+    "headAtCheck": "3d1697ff9087427e0ab290e6c2b6cd0f94f65444"
+  },
+  "remoteMainAtCheck": "d68c41d827dc3e89a312f6bc06c933b3f65130e4",
+  "documentationSeedFiles": [
+    "docs/api/README.md",
+    "docs/framework/prompts/continue-r101-usage-api-docs-01a12159.md"
+  ],
+  "purpose": "Document the available R10.1 development paths in Chinese with actual parameters, minimal examples, results and recovery boundaries",
+  "next": "Authorized integrator review and main integration via PR #54; documentation task complete, no release or framework acceptance requested",
+  "validation": {
+    "current": "PASS: documentation/static examples only; no product runtime change relative to integrated main; git diff --check and title.js syntax passed",
+    "receipt": "docs/framework/evidence/r101-usage-docs-01a12159/documentation-check-passed.json",
+    "seedChecks": {
+      "markdownLinks": "All existing relative links in the README resolve",
+      "MCPReference": "Seven tools and type-specific identities checked against mcp.mjs and the example READMEs",
+      "newTestsOrBuilds": "None; documentation seed only"
+    },
+    "deliveryReceipt": "docs/framework/evidence/r101-usage-docs-01a12159/documentation-check-delivery-passed.json",
+    "counts": {
+      "files": 21,
+      "links": 207,
+      "anchors": 25,
+      "jsonBlocks": 21,
+      "jsBlocks": 18,
+      "mcpCalls": 18,
+      "projectBlocks": 2
+    },
+    "checker": {
+      "path": "/tmp/opendesk-r101-doc-checks.cjs",
+      "sha256": "08c5376d521deb4a683f2d36d036ef5a1a9092a9716a80d3835a66b758c7a911",
+      "dependencies": "Existing Acorn/Ajv v6; common/type project schema normalized; no dependency installation",
+      "scope": "Documentation links/anchors, fenced JS/JSON, actual seven-tool schemas, example syntax and normalized existing project schema only"
+    },
+    "additionalReceipt": "docs/framework/evidence/r101-usage-docs-01a12159/documentation-check-final-passed.json",
+    "deliveryReceiptSHA256": "1a52345e4d9d8c6e28a4fc52b0959567cd83f08de7cf1f008076130133a71e57",
+    "independentReview": {
+      "mode": "Read-only native explore reviewer; no shared writing",
+      "fixed": [
+        "diagnostics observes cached lastError rather than proactively reparsing newly saved source",
+        "MCP result lookup requires a run identity registered in that MCP Session; Sidebar-owned runs cannot be assumed queryable there"
+      ]
+    }
+  },
+  "resources": {
+    "browser": "not used",
+    "native": "not used",
+    "port": "not used",
+    "dist": "not built",
+    "historicalRawEvidence": "Read-only in original implementation/audit worktrees; not copied or overwritten",
+    "state": "no shared runtime resources claimed"
+  },
+  "boundaries": [
+    "Do not write main or the shared primary checkout",
+    "No production installation, ZIP or release",
+    "No formal F3 closure or promotion of targeted evidence",
+    "Do not duplicate already merged product functionality"
+  ],
+  "updatedAt": "2026-10-10T02:11:54.285872+08:00",
+  "implementationPRLatest": {
+    "number": 50,
+    "state": "merged",
+    "head": "3d1697ff9087427e0ab290e6c2b6cd0f94f65444",
+    "mergeCommit": "7d863a67602c49b818ca971bfb756484de09bb7a",
+    "mergedAt": "2026-10-09T17:34:22Z",
+    "checkedDate": "2026-10-10"
+  },
+  "remoteMainLatest": "f14b97f060268d246bee9f79f19099fefae203cb",
+  "writeScope": [
+    "docs/api/*",
+    "current quickstart and operating guides",
+    "project Skill",
+    "example READMEs",
+    "examples/programs/single-file/title.js",
+    "own workstream and documentation check evidence"
+  ],
+  "reusedEvidence": {
+    "originalCI": {
+      "path": "/Users/shopme/.codex/worktrees/r101-development-01a12159/opendesk-browser/evidence/r101-development-01a12159/ci-final-3d1697ff.json",
+      "sha256": "a0504d45c1a819b63f7ff90964606ecc32fd96fd015f13de73df61db5191707e",
+      "level": "Original CI identity metadata only; no new CI/native/F3 PASS"
+    },
+    "actualCodex": "Original development-sidebar-03 101→102 and dependency evidence reused according to implementation workstream; not executed this turn",
+    "implementationInputs": "Our contribution has no native-agent/src/scripts/schema/package diff relative to integrated main f14b97f0; inherited runtime/evidence retains original workstream ownership and evidence level. New title.js is outside the existing directory entry graph. Original R10.1 evidence is not acceptance of the newer main snapshot."
+  },
+  "integration": {
+    "mainSnapshot": "f14b97f060268d246bee9f79f19099fefae203cb",
+    "branchMergeCommit": "39f2e6047f59d1966004d0613026da0ec440d84a",
+    "scope": "Branch-only integration; explicit documentation conflict resolution; inherited runtime changes preserved without edits",
+    "resolvedDocumentationConflicts": [
+      ".agents/skills/opendesk-program-publish/SKILL.md",
+      "docs/framework/local-development-r22.zh-CN.md",
+      "docs/product/program-development-dual-format-and-sidebar.zh-CN.md"
+    ]
+  },
+  "deliveryFiles": [
+    "docs/api/README.md",
+    "docs/api/quickstart.zh-CN.md",
+    "docs/api/local-projects.zh-CN.md",
+    "docs/api/mcp-local-development.zh-CN.md",
+    "docs/api/controller.zh-CN.md",
+    "docs/api/page-userscript.zh-CN.md",
+    "docs/api/sidebar-local-projects.zh-CN.md",
+    "docs/api/dependencies-and-errors.zh-CN.md"
+  ],
+  "deliveryPR": {
+    "number": 54,
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/54",
+    "state": "open",
+    "draft": true,
+    "mergeableAtCheck": true,
+    "checkedBase": "2b2dca89c5b8c4f09299a581a0a220f820819d88",
+    "documentationCommit": "8c58824ef21ce2cdd2bf604e734b0d42a63b1603",
+    "laterMainChanges": "Read-only diff inspected; unrelated SW/platform work is outside this documentation scope and does not require replaying original evidence"
+  }
+}

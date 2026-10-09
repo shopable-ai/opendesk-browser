@@ -1,0 +1,43 @@
+{
+  "scope": "Documentation links/anchors, fenced JS/JSON, actual seven-tool schemas, example syntax and normalized existing project schema only",
+  "at": "2026-10-09T18:04:29.868Z",
+  "sourceBaseline": "f14b97f060268d246bee9f79f19099fefae203cb",
+  "counts": {
+    "files": 20,
+    "links": 200,
+    "anchors": 25,
+    "jsonBlocks": 21,
+    "jsBlocks": 18,
+    "mcpCalls": 18,
+    "projectBlocks": 2
+  },
+  "errors": [],
+  "productChanges": [],
+  "status": "PASS",
+  "runtime": "No browser/Native/provider/server/build/framework test executed",
+  "inputs": {
+    ".agents/skills/opendesk-program-publish/SKILL.md": "14a659bf10ffbb6af3219cd31dac7f9e29c2fc93ebf54a952c08cb5358c69553",
+    "docs/api/README.md": "1d37f8eed3bf031cdd29966fe392707ed1ef8fe0827326728cfdf3cb4e786f67",
+    "docs/api/controller.zh-CN.md": "262347ea09d600880620432d6eb0370d5333af2ae07ad5df31c657d0e6704e8e",
+    "docs/api/dependencies-and-errors.zh-CN.md": "a6c333e228f4c31f964240b832cb7ceec2f2b62cdbb920ec443332c4ef518b07",
+    "docs/api/local-projects.zh-CN.md": "c4e8a15fdba11b01f549ab719d7a873a833425d0cb89edb980492a1abfb925c0",
+    "docs/api/mcp-local-development.zh-CN.md": "aad9097534da648cf35d70ebbb1c9250148923bc1c7e193bee10b8a5d1aa0434",
+    "docs/api/page-userscript.zh-CN.md": "26fc5addf6863e2ed961b116bd2c774cc6285ac06851ecd35928f853c26b8f81",
+    "docs/api/quickstart.zh-CN.md": "094df6da5ae30210cde68d546b7ab9e91fd511dde3507141b49cdeaf9343dad8",
+    "docs/api/sidebar-local-projects.zh-CN.md": "927006e405e63fd082e12a7526ba3dcd6bd830000edd6cbbb7ce2c402bb6be9f",
+    "docs/framework/local-development-quickstart.zh-CN.md": "77aa4802eb06b08431b8f5d9c1b0973e3d2caa2ba134bc6b043f82c8fec30655",
+    "docs/framework/local-development-r22-report.zh-CN.md": "beb4364dc9493d7f3881550d94be5e9c75f9ccef359f6456c989978645f1adc0",
+    "docs/framework/local-development-r22.zh-CN.md": "aa520b9ee788257624ac529763e9657f98201f9fc57db72cbfbee5f043b5dd14",
+    "docs/framework/prompts/continue-r101-usage-api-docs-01a12159.md": "8fd7c034e4dec45ba7752f8a117bf7e037caa88bd1cffd34fc438483cb58edc8",
+    "docs/product/program-development-dual-format-and-sidebar.zh-CN.md": "ad27b495bcbc95a4168149cd972fe28c3b6a2c2fa585531303416f860144990f",
+    "examples/programs/README.md": "ba48168fa5e3ba2980b106d2dce832c96f9b4977d80978c3b9e8ba10aa26dbed",
+    "examples/programs/local-controller/README.md": "37219f9b8443a9fb6b20040f3864925b13572e494c157d51352ff32a53fd5118",
+    "examples/programs/local-page-ui/README.md": "b56dab74dfdaa8df705559f766c1efcaa8b3ff5bd7c0c7db49c0cff5f8b2afa8",
+    "examples/programs/page-npm-lodash/README.md": "e0e5b5d89748b7071fcc289e96b7e8f292deb14b2571d778264ef3165e0e68d2",
+    "examples/programs/remote-esm-page/README.md": "95c9035bc7715f19f970b27863f559caec7ba34f90a6651e16eed9ec2bd295de",
+    "examples/tasks/README.zh-CN.md": "903c5d29d990bc657ced9422830422cb9a4595bb7fe7d3cf06884bf92d70e9f5",
+    "examples/programs/local-controller/title.js": "0cfb4dbb908e5c831031b8b643b91a5276cdfd6897706fc554cb276f368d8f49",
+    "native-agent/local-dev/mcp.mjs": "ef1893e843f541a7cb304a230db274ef7ab5a4c83dff657753d0f002303cbb95",
+    "schemas/opendesk-program-project.v1.schema.json": "2ebf2472ab996a87ba851573ceffc0ad7fae3be3aa526b650906923167dc120d"
+  }
+}

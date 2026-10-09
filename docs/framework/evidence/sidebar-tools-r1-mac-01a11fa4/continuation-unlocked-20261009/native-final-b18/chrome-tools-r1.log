@@ -1,0 +1,24 @@
+
+DevTools listening on ws://127.0.0.1:54075/devtools/browser/3d61f1e4-dc6b-4a47-906e-699f20fe2ad4
+[13105:56316994:1009/211343.910268:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[13105:56316994:1009/211343.951584:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[13105:56316994:1009/211343.953758:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[13105:56316994:1009/211344.735233:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+[13105:56316994:1009/211344.735302:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+[13105:56316994:1009/211413.398173:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[13105:56316994:1009/211509.267746:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[13105:56316994:1009/211643.359477:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+2026-10-09 21:16:56.312 Google Chrome for Testing[13105:56316963] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[13105:56316994:1009/211733.517358:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[13105:56316994:1009/211947.560022:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[13105:56316994:1009/212054.091159:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+
+DevTools listening on ws://127.0.0.1:57025/devtools/browser/b584d56f-8953-430f-ba62-95e867f5745c
+[19493:56362620:1009/212251.638189:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[19493:56362620:1009/212313.115503:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+2026-10-09 21:23:51.922 Google Chrome for Testing[19493:56362542] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[19493:56362620:1009/212411.165952:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[19493:56362542:1009/212513.997386:ERROR:mojo/public/cpp/bindings/lib/interface_endpoint_client.cc:652] Message 1 rejected by interface blink.mojom.WidgetHost
+[19493:56362620:1009/212541.410789:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[19493:56362620:1009/212611.297173:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[19493:56362620:1009/212855.329515:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT

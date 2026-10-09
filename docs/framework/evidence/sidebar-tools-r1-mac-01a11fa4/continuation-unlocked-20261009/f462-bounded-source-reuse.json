@@ -1,0 +1,60 @@
+{
+  "sourceSha": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+  "equalDirectSources": [
+    {
+      "path": "src/ui/sidebar-tools.js",
+      "equal": true,
+      "oldHash": "218144d554e520140f2aa0289a6ad33eb0054a66f7e79fefde4ecb66e74e6c49",
+      "newHash": "218144d554e520140f2aa0289a6ad33eb0054a66f7e79fefde4ecb66e74e6c49"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "equal": true,
+      "oldHash": "8ba5738dae4ab81497c2af29bb50ad0374e2151d6518e26aaf883c8b88d5d447",
+      "newHash": "8ba5738dae4ab81497c2af29bb50ad0374e2151d6518e26aaf883c8b88d5d447"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "equal": true,
+      "oldHash": "ae5b93517ee1ec6cff389288c435b7b9ab469e9259f5ec058f0d4c1eb1472008",
+      "newHash": "ae5b93517ee1ec6cff389288c435b7b9ab469e9259f5ec058f0d4c1eb1472008"
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "equal": true,
+      "oldHash": "6318acde2cb89d9bbaad9c14a6fccfd5ded7c739ea3180b207d556e1610c8687",
+      "newHash": "6318acde2cb89d9bbaad9c14a6fccfd5ded7c739ea3180b207d556e1610c8687"
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "equal": true,
+      "oldHash": "0c7dad8b88ccb23ed051ce834b76184f411ce1526d6264ea302010138a6a1a69",
+      "newHash": "0c7dad8b88ccb23ed051ce834b76184f411ce1526d6264ea302010138a6a1a69"
+    },
+    {
+      "path": "src/sidebar-tools/bridge.js",
+      "equal": true,
+      "oldHash": "bac92b4ba593c803200b53bf5af1cbffb6451bf36ed42dd9bec80ffa7da0e7a5",
+      "newHash": "bac92b4ba593c803200b53bf5af1cbffb6451bf36ed42dd9bec80ffa7da0e7a5"
+    },
+    {
+      "path": "src/sidebar-tools/sandbox.html",
+      "equal": true,
+      "oldHash": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b",
+      "newHash": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+    },
+    {
+      "path": "src/ui/sidebar-tools/package.js",
+      "equal": true,
+      "oldHash": "9c7fabe0c76883aad6b720ba8349808bf880b8f0d6d3a73f423818a980f89e04",
+      "newHash": "9c7fabe0c76883aad6b720ba8349808bf880b8f0d6d3a73f423818a980f89e04"
+    },
+    {
+      "path": "scripts/build-sidebar-tool.mjs",
+      "equal": true,
+      "oldHash": "4b7f2e934ff2dd18357c2c9277a493584848f244f61b54f3bf8099860661e368",
+      "newHash": "4b7f2e934ff2dd18357c2c9277a493584848f244f61b54f3bf8099860661e368"
+    }
+  ],
+  "rule": "Earlier b18 width/200%/React/Vue/update receipts retain their original package identity. Equal files support bounded input reuse, not new whole-package PASS."
+}

@@ -1,0 +1,75 @@
+{
+  "at": "2026-10-09T15:20:32.185578+00:00",
+  "sourceSha": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+  "packageHash": "f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342",
+  "status": "NATIVE_PASS",
+  "scope": "Enumerated actual browser cases only; overall R1 remains NATIVE_NOT_VERIFIED",
+  "selectedNoInstallation": true,
+  "explicitInstallationNoExecution": true,
+  "renderTitleUrlPngChineseSave": true,
+  "opaqueApiAndEnumeratedMessageAttacks": true,
+  "destroyReopen20": true,
+  "cyclesBaseline": {
+    "documents": 1,
+    "nodes": 1163,
+    "jsEventListeners": 80
+  },
+  "cyclesAfterGc": {
+    "documents": 1,
+    "nodes": 1161,
+    "jsEventListeners": 79
+  },
+  "windowsNavigationBusinessTabOffline": true,
+  "computationCspDuringActualRun": true,
+  "saveInputRaw": "native-final-f462/input-1791558525154.json",
+  "saveClickRaw": "native-final-f462/click-1791558525474.json",
+  "savedRevision": {
+    "tag": "script-revision",
+    "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+    "scriptId": "my-script",
+    "revision": 1,
+    "parentRevision": 0,
+    "contentHash": "233721de04046374785d0b3c4cdc135ff071df1082bb12a63ebc07fc540d09f4",
+    "sourceUtf8": "async function main() { await new Promise(resolve=>setTimeout(resolve,10000)); return {title:await page.title(),url:await page.url()}; }"
+  },
+  "runs": [
+    {
+      "runId": "515f7b3d-9462-44c0-88f8-5671d68ae7cd",
+      "resultId": "04000792-c2ab-4c2a-bac6-6de87c15c9a1",
+      "state": "stopped",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:515f7b3d-9462-44c0-88f8-5671d68ae7cd",
+        "revision": 1,
+        "sourceHash": "233721de04046374785d0b3c4cdc135ff071df1082bb12a63ebc07fc540d09f4"
+      },
+      "retirementState": "released"
+    },
+    {
+      "runId": "f4fad5d4-6685-4764-ad87-1405fbc8fbb1",
+      "resultId": "b7d59fba-59ed-4d61-bfdc-41637725e50f",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:f4fad5d4-6685-4764-ad87-1405fbc8fbb1",
+        "revision": 1,
+        "sourceHash": "233721de04046374785d0b3c4cdc135ff071df1082bb12a63ebc07fc540d09f4"
+      },
+      "retirementState": "released"
+    }
+  ],
+  "sameProfileRestartRestoresChinese": true,
+  "restartReceipt": "native-persistence-f462/launcher-tools-r1-restart-verified.json",
+  "uninstallCatalogAndNamespaceRemoved": true,
+  "uninstallLimitation": "Native confirmation and storage removal are observed. The click-count probe exited1 after the modal; its unique-click assertion is not claimed PASS. Other tools and retained runs use earlier exact-package evidence.",
+  "sourcePackageJsonBytes": 3963,
+  "sourcePackageJsonHash": "b9f272be0c4524b4680838e4992194e1b3b448dbcd94c3a50528751f1079e3df",
+  "cleanup": "Both owned profiles removed; own server stopped; resource receipt retained",
+  "remaining": [
+    "Actual320 host (Chrome155 minimum360)",
+    "Delayed onChanged and already-entered Chrome I/O races have component evidence only",
+    "Installed Task v1 navigation not independently retested on f462",
+    "JSX/TSX/Vue/Tailwind source importer NOT_SUPPORTED",
+    "Independent finalF3 and ZIP are not closed by this workstream"
+  ]
+}

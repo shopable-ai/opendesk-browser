@@ -1,0 +1,48 @@
+{
+  "event": "adapter-cleanup",
+  "launcherPid": 70289,
+  "status": "PASS",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-q_vbh6kz",
+  "profileIdentity": [
+    16777234,
+    19264977
+  ],
+  "profileStatus": "removed",
+  "children": [
+    {
+      "pid": 70291,
+      "state": "exited",
+      "returncode": -2
+    }
+  ],
+  "residual": [],
+  "errors": [],
+  "events": [
+    {
+      "event": "started",
+      "at": 1791569809.242081,
+      "generation": 1,
+      "pid": 70291,
+      "launcherPid": 70289,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-q_vbh6kz",
+      "profileDevice": 16777234,
+      "profileInode": 19264977,
+      "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+    },
+    {
+      "event": "browser-exited",
+      "at": 1791570798.962393,
+      "generation": 1,
+      "pid": 70291,
+      "launcherPid": 70289,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-q_vbh6kz",
+      "profileDevice": 16777234,
+      "profileInode": 19264977,
+      "returncode": -2,
+      "reason": "launcher stop"
+    }
+  ],
+  "attempts": 3,
+  "inspectionExitObservations": []
+}

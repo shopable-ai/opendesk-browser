@@ -1,0 +1,7 @@
+{
+  "status": "FAILED_OBSERVER",
+  "scope": "Readonly screenshot observation only",
+  "observedCDPError": {"code": -32000, "message": "Command can only be executed on top-level targets"},
+  "source": "Actual tool response retained in chat; this is a diagnostic summary, not a reconstructed raw Chrome acceptance log",
+  "correction": "Capture composite host/settings screenshots on top-level page targets; retain actual iframe measurements. No product or browser setting changed to evade the result. Retry uses a fresh label."
+}

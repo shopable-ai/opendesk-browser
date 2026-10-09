@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "ownServerPid": 98893,
+  "serverExited": true,
+  "port43111Listener": "",
+  "nativeCleanupReceipts": [
+    "native-final-f462/cleanup.json",
+    "native-persistence-f462/cleanup.json"
+  ],
+  "scope": "Only this workstream profiles/server; shared native installation and other dist/development unchanged"
+}

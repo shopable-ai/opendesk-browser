@@ -1,0 +1,416 @@
+{
+  "sourceIdentity": "current-build-receipt-and-physical-sw",
+  "sw": {
+    "bytes": 288895,
+    "sha256": "a6a6934e9f558b59dbd29c7ec1c74c9ef82e0cbc63be308eb6d6270a14989c60",
+    "modules": 48
+  },
+  "builtJs": [
+    {
+      "target": "agents/bootstrap.js",
+      "bytes": 21466
+    },
+    {
+      "target": "agents/health.js",
+      "bytes": 828
+    },
+    {
+      "target": "agents/page-agent.js",
+      "bytes": 34347
+    },
+    {
+      "target": "agents/page-relay.js",
+      "bytes": 35276
+    },
+    {
+      "target": "agents/selection-entry.js",
+      "bytes": 383
+    },
+    {
+      "target": "framework/sdk-main.js",
+      "bytes": 49539
+    },
+    {
+      "target": "native-agent/settings.js",
+      "bytes": 22329
+    },
+    {
+      "target": "native-agent/transport.js",
+      "bytes": 42814
+    },
+    {
+      "target": "scripting/packaged/page-session.js",
+      "bytes": 59622
+    },
+    {
+      "target": "scripting/sandbox/sandbox.js",
+      "bytes": 4010
+    },
+    {
+      "target": "scripting/sandbox/worker-runtime.js",
+      "bytes": 52664
+    },
+    {
+      "target": "sidebar-tools/bridge.js",
+      "bytes": 2603
+    },
+    {
+      "target": "sw.js",
+      "bytes": 288895
+    },
+    {
+      "target": "ui/tool-shell.js",
+      "bytes": 221911
+    }
+  ],
+  "totalFixedJsBytes": 836687,
+  "renderedLengthNote": "Pre-minification Rollup renderedLength; NOT an allocation of final SW bytes. Do not sum as compressed module sizes.",
+  "groups": [
+    {
+      "group": "platform/other",
+      "modules": 14,
+      "renderedLength": 138463,
+      "originalLength": 199668
+    },
+    {
+      "group": "platform/host",
+      "modules": 6,
+      "renderedLength": 128059,
+      "originalLength": 142810
+    },
+    {
+      "group": "scripting",
+      "modules": 8,
+      "renderedLength": 79837,
+      "originalLength": 90615
+    },
+    {
+      "group": "framework",
+      "modules": 9,
+      "renderedLength": 66724,
+      "originalLength": 75484
+    },
+    {
+      "group": "platform/storage",
+      "modules": 4,
+      "renderedLength": 41239,
+      "originalLength": 85242
+    },
+    {
+      "group": "src/other",
+      "modules": 3,
+      "renderedLength": 17871,
+      "originalLength": 18554
+    },
+    {
+      "group": "virtual/other",
+      "modules": 2,
+      "renderedLength": 619,
+      "originalLength": 5980
+    },
+    {
+      "group": "npm",
+      "modules": 2,
+      "renderedLength": 275,
+      "originalLength": 342
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "group": "platform/host",
+      "renderedLength": 61782,
+      "originalLength": 62366
+    },
+    {
+      "path": "src/platform/downloads/index.js",
+      "group": "platform/other",
+      "renderedLength": 49943,
+      "originalLength": 58516
+    },
+    {
+      "path": "src/framework/control/native-driver.js",
+      "group": "framework",
+      "renderedLength": 44626,
+      "originalLength": 45283
+    },
+    {
+      "path": "src/platform/host/sdk-methods.js",
+      "group": "platform/host",
+      "renderedLength": 35680,
+      "originalLength": 36109
+    },
+    {
+      "path": "src/scripting/user-scripts/dependency-manager.js",
+      "group": "scripting",
+      "renderedLength": 29876,
+      "originalLength": 30335
+    },
+    {
+      "path": "src/scripting/user-scripts/dependency-metadata.js",
+      "group": "scripting",
+      "renderedLength": 20947,
+      "originalLength": 21443
+    },
+    {
+      "path": "src/platform/storage/repository.js",
+      "group": "platform/storage",
+      "renderedLength": 19598,
+      "originalLength": 62935
+    },
+    {
+      "path": "src/platform/schema.js",
+      "group": "platform/other",
+      "renderedLength": 18724,
+      "originalLength": 43891
+    },
+    {
+      "path": "src/platform/storage/idb.js",
+      "group": "platform/storage",
+      "renderedLength": 16849,
+      "originalLength": 17016
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "group": "platform/host",
+      "renderedLength": 14250,
+      "originalLength": 15209
+    },
+    {
+      "path": "src/platform/tasks/service.js",
+      "group": "platform/other",
+      "renderedLength": 13823,
+      "originalLength": 14002
+    },
+    {
+      "path": "src/scripting/user-scripts/preview.js",
+      "group": "scripting",
+      "renderedLength": 12042,
+      "originalLength": 12692
+    },
+    {
+      "path": "src/environment.js",
+      "group": "src/other",
+      "renderedLength": 11555,
+      "originalLength": 11803
+    },
+    {
+      "path": "src/platform/page-port/codec.js",
+      "group": "platform/other",
+      "renderedLength": 11420,
+      "originalLength": 11956
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "group": "platform/host",
+      "renderedLength": 10697,
+      "originalLength": 22898
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "group": "platform/other",
+      "renderedLength": 10472,
+      "originalLength": 10946
+    },
+    {
+      "path": "src/framework/sdk/registry.js",
+      "group": "framework",
+      "renderedLength": 8925,
+      "originalLength": 9255
+    },
+    {
+      "path": "src/platform/tasks/contract.js",
+      "group": "platform/other",
+      "renderedLength": 7847,
+      "originalLength": 8316
+    },
+    {
+      "path": "src/platform/chrome/network.js",
+      "group": "platform/other",
+      "renderedLength": 6885,
+      "originalLength": 7034
+    },
+    {
+      "path": "src/sw.js",
+      "group": "src/other",
+      "renderedLength": 6253,
+      "originalLength": 6585
+    },
+    {
+      "path": "src/scripting/user-scripts/page-evaluator.js",
+      "group": "scripting",
+      "renderedLength": 5886,
+      "originalLength": 6106
+    },
+    {
+      "path": "src/platform/chrome/background-services.js",
+      "group": "platform/other",
+      "renderedLength": 5631,
+      "originalLength": 5794
+    },
+    {
+      "path": "src/scripting/user-scripts/preview-worlds.js",
+      "group": "scripting",
+      "renderedLength": 5586,
+      "originalLength": 5727
+    },
+    {
+      "path": "src/framework/control/locator-contract.js",
+      "group": "framework",
+      "renderedLength": 5160,
+      "originalLength": 6122
+    },
+    {
+      "path": "src/platform/target/index.js",
+      "group": "platform/other",
+      "renderedLength": 4673,
+      "originalLength": 27441
+    },
+    {
+      "path": "src/platform/host/sdk-broker.js",
+      "group": "platform/host",
+      "renderedLength": 4614,
+      "originalLength": 5141
+    },
+    {
+      "path": "src/platform/chrome/cookies.js",
+      "group": "platform/other",
+      "renderedLength": 3512,
+      "originalLength": 3609
+    },
+    {
+      "path": "src/scripting/user-scripts/execution-source.js",
+      "group": "scripting",
+      "renderedLength": 3373,
+      "originalLength": 3594
+    },
+    {
+      "path": "src/platform/chrome/notifications.js",
+      "group": "platform/other",
+      "renderedLength": 2887,
+      "originalLength": 2935
+    },
+    {
+      "path": "src/platform/storage/index.js",
+      "group": "platform/storage",
+      "renderedLength": 2835,
+      "originalLength": 3168
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "group": "framework",
+      "renderedLength": 2737,
+      "originalLength": 3317
+    },
+    {
+      "path": "src/framework/sdk/target-origins.js",
+      "group": "framework",
+      "renderedLength": 2591,
+      "originalLength": 2620
+    },
+    {
+      "path": "src/platform/storage/session.js",
+      "group": "platform/storage",
+      "renderedLength": 1957,
+      "originalLength": 2123
+    },
+    {
+      "path": "src/framework/sdk/service.js",
+      "group": "framework",
+      "renderedLength": 1898,
+      "originalLength": 1974
+    },
+    {
+      "path": "src/platform/chrome/tabs.js",
+      "group": "platform/other",
+      "renderedLength": 1663,
+      "originalLength": 1747
+    },
+    {
+      "path": "src/scripting/user-scripts/packaged-dependencies.js",
+      "group": "scripting",
+      "renderedLength": 1389,
+      "originalLength": 1474
+    },
+    {
+      "path": "src/platform/host/preview-admission.js",
+      "group": "platform/host",
+      "renderedLength": 1036,
+      "originalLength": 1087
+    },
+    {
+      "path": "src/scripting/user-scripts/page-program-package.js",
+      "group": "scripting",
+      "renderedLength": 738,
+      "originalLength": 9244
+    },
+    {
+      "path": "src/framework/sdk/resource-contract.js",
+      "group": "framework",
+      "renderedLength": 628,
+      "originalLength": 650
+    },
+    {
+      "path": "src/platform/downloads/blob-lifecycle.js",
+      "group": "platform/other",
+      "renderedLength": 604,
+      "originalLength": 2815
+    },
+    {
+      "path": "virtual:virtual:wxt-background-entrypoint?<root>/src/entrypoints/background.js",
+      "group": "virtual/other",
+      "renderedLength": 592,
+      "originalLength": 5944
+    },
+    {
+      "path": "src/platform/journal.js",
+      "group": "platform/other",
+      "renderedLength": 379,
+      "originalLength": 666
+    },
+    {
+      "path": "node_modules/wxt/dist/utils/define-background.mjs",
+      "group": "npm",
+      "renderedLength": 157,
+      "originalLength": 200,
+      "npm": {
+        "name": "wxt",
+        "version": "0.21.4"
+      }
+    },
+    {
+      "path": "node_modules/@wxt-dev/browser/src/index.mjs",
+      "group": "npm",
+      "renderedLength": 118,
+      "originalLength": 142,
+      "npm": {
+        "name": "@wxt-dev/browser",
+        "version": "0.3.4"
+      }
+    },
+    {
+      "path": "src/framework/sdk/bridge.js",
+      "group": "framework",
+      "renderedLength": 87,
+      "originalLength": 6040
+    },
+    {
+      "path": "src/framework/utils/network-info.js",
+      "group": "framework",
+      "renderedLength": 72,
+      "originalLength": 223
+    },
+    {
+      "path": "src/entrypoints/background.js",
+      "group": "src/other",
+      "renderedLength": 63,
+      "originalLength": 166
+    },
+    {
+      "path": "virtual:virtual:wxt-plugins",
+      "group": "virtual/other",
+      "renderedLength": 27,
+      "originalLength": 36
+    }
+  ]
+}

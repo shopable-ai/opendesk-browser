@@ -1,66 +1,61 @@
 {
   "workstreamId": "sidebar-tools-r1-mac-01a11fa4",
   "threadId": "01a11fa4-793a-7513-bada-1e1eec4343da",
-  "status": "AWAITING_NATIVE_INSTALLATION_OWNERSHIP",
-  "candidate": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+  "status": "R1_NATIVE_EVIDENCE_INCOMPLETE",
+  "candidate": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
   "startedAt": "2026-10-09T07:54:41.485310+00:00",
   "scope": "Sidebar custom tools R1工程检查、真实Mac CFT验收、必要缺陷修复",
   "resources": {
-    "main": "Own fixes committed; safe documentation merge90bb; other dirty source/evidence preserved. No push/release.",
-    "dist/production": "DELIVERED exact pure9ad ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef; prior9e19 backup retained",
+    "main": "User-authorized main commits only; other owner files/index preserved; no new branch/worktree/reset/clean or own push/release",
+    "dist/production": "DELIVERED verified f462 package f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342; previous9ad package backed up",
     "dist/development": "OWNED_ELSEWHERE: page-ui-r131-mac-01a11ff7; unchanged",
-    "Chrome profile": "RELEASED: all own session cleanup receipts PASS for this continuation; historical failure receipts preserved",
-    "port43111": "RELEASED: own canonical server13221 stopped after verifying cwd/command; former owner10400 had already exited",
-    "Native installation": "EXISTING: ~/.opendesk-browser/native-agent-r1; not modified; ownership clarification pending",
-    "publish": "No release or push"
+    "Chrome profile": "RELEASED: both latest owned profiles cleanup PASS; prior failures retained",
+    "port43111": "RELEASED: owned canonical server98893 exited and no listener",
+    "Native installation": "RESOLVED via supported unique Native instance; shared default installation untouched; own instances cleanup passed",
+    "publish": "No own push/release; current remote44b was published by another integrator"
   },
   "reuseDecision": "用户明确要求本轮全部工程命令；已有Sidebar多文件验收不等于自定义工具原生验收。原候选证据保留不提升。",
   "preexistingChanges": " M src/platform/host/controller-methods.js\n M src/scripting/sandbox/controller.js\n M tests/framework/k3-controller-authority.test.mjs\n M tests/framework/k3-sandbox-error-forwarding.test.mjs\n?? .native-packages/\n?? docs/framework/agent-execution-contract-draft.md\n?? docs/framework/prompts/continue-agent-execution-framework-20261009.txt\n?? docs/framework/prompts/continue-axiosx-main-20261009.txt\n?? docs/framework/workstreams/axiosx-main-01a11f8a.json\n?? docs/framework/workstreams/axiosx-main-01a11f8a.md\n?? docs/framework/workstreams/axiosx-native-01a11f42.json\n?? docs/framework/workstreams/axiosx-native-01a11f42.md\n",
   "nativeStatus": "NATIVE_NOT_VERIFIED",
-  "updatedAt": "2026-10-09T14:29:02.981231+00:00",
-  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "updatedAt": "2026-10-09T15:24:55.508001+00:00",
+  "sourceCommit": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
   "ciFixCommit": "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
   "ciStatus": "CI_PASS",
-  "integrationCommit": "90bb129fa790fb7351e7f33d896e411c2fa76c82",
-  "remoteMainObserved": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+  "integrationCommit": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+  "remoteMainObserved": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
   "latestFullSuite": {
-    "sourceCommit": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
-    "tests": 428,
-    "pass": 427,
-    "fail": 1,
-    "skip": 0,
-    "status": "FAILED",
-    "failure": "existing Native installation guard at native-agent-chrome-real.test.mjs:171"
-  },
-  "integrationTargetedTests": {
-    "tests": 17,
-    "pass": 17,
+    "tests": 467,
+    "pass": 467,
     "fail": 0,
-    "status": "CI_PASS"
+    "skip": 0,
+    "status": "CI_PASS",
+    "raw": "native-instance-test-final.log"
   },
-  "localEngineeringStatus": "FAILED",
+  "localEngineeringStatus": "CI_PASS",
   "remoteCiStatus": "CI_PASS",
-  "remoteCiWorkflows": 6,
-  "remoteCiScope": "ef016762; does not cover three unpushed own code files or full Side Panel E2E",
+  "remoteCiWorkflows": 9,
+  "remoteCiScope": "44b7c4b6 remote only; localf462 test-driver changes not pushed; diagnostic is not full Side Panel E2E",
   "additionalFixCommits": [
     "3467d46235190f76178627d63f9b3c361aa56b30",
-    "b18f4f3275cc5307a553548d938a531bdc93421c"
+    "b18f4f3275cc5307a553548d938a531bdc93421c",
+    "f462df264afd5b1b8d32101fb36af1d63c98c8cd"
   ],
-  "currentProductionHash": "ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef",
+  "currentProductionHash": "f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342",
   "currentNative": {
-    "sourceSha": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
-    "packageHash": "ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef",
-    "status": "NATIVE_PASS for listed cases only",
+    "sourceSha": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+    "packageHash": "f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342",
+    "status": "NATIVE_PASS for enumerated f462 cases only; overall NATIVE_NOT_VERIFIED",
     "cases": [
-      "selection and explicit installation do not auto-open",
-      "HTML/CSS/local PNG/title/URL",
-      "trusted Chinese save",
-      "20 destroy/reopen cycles",
-      "opaque API and enumerated message rejection",
-      "full draft Save, completed and stopped runs, own result revisions, released resources",
-      "window binding, page navigation and business-tab offline save",
-      "uninstall removes namespace and preserves prior draft records",
-      "owned browser/profile cleanup"
+      "ActualSIDE_PANEL, no installation/execution on select; explicit install remains unopened",
+      "HTML/CSS/localPNG/title/URL/Chinese native Save",
+      "Sandbox privileged APIs unavailable; eval CSP; enumerated wrongID/crossFrame/oldInstance/unknownCapability/key attacks rejected",
+      "20 destroys/reopens; stable iframe/message listeners and bounded GC counters",
+      "Another actual window, webpage navigation, businessTab network offline and localSave",
+      "Full original draft source input and unique native Save; completed and stopped runs, precise persistent results, revisions/sourceHash, retirement released",
+      "Actual computation sandbox CSP enforce during running task",
+      "Different controlled profile: entire Chrome exited and sameProfile restart restored Chinese note",
+      "Native uninstall confirmation and catalog/data deletion observed; unique-click probe exit1 remains FAILED",
+      "Independent realChrome Native instance permission/reload/HostCLI handshake/revocation:5/5, default shared installation untouched"
     ],
     "domCounters": {
       "baseline": {
@@ -74,7 +69,7 @@
         "jsEventListeners": 79
       }
     },
-    "scope": "No claim of zero heap leakage or full Task v1 installation/Native host acceptance."
+    "raw": "continuation-unlocked-20261009/f462-native-derived-verdict.json"
   },
   "boundedEarlierNative": {
     "sourceSha": "b18f4f3275cc5307a553548d938a531bdc93421c",
@@ -86,15 +81,14 @@
       "React+Tailwind/Vue precompiled classic JS and static CSS",
       "update v1.0.1 preserves note; uninstall preserves React/Vue installed packages"
     ],
-    "reuseScope": "Matching direct R1 inputs only; prior package evidence not upgraded to 9ad whole-package PASS."
+    "reuseScope": "Matching direct R1 inputs only; earlier package retains its identity and is not upgraded to f462 whole-package PASS."
   },
   "remaining": [
-    "existing Native installation guard prevents latest local full test (427/428)",
-    "physical 320 CSS px Side Panel not verified: Chrome155 minimum360",
-    "late onChanged revocation and already-entered Chrome I/O uninstall race have component-only evidence",
-    "fresh 9ad same-profile restart and Task v1 installed-task jump not independently native revalidated",
-    "official JSX/TSX/Vue/Tailwind source compilation NOT_SUPPORTED",
-    "independent final F3 and matching ZIP acceptance not closed by this R1 workstream"
+    "Actual320 host (Chrome155 minimum360)",
+    "Delayed onChanged and already-entered Chrome I/O races have component evidence only",
+    "Installed Task v1 navigation not independently retested on f462",
+    "JSX/TSX/Vue/Tailwind source importer NOT_SUPPORTED",
+    "Independent finalF3 and ZIP are not closed by this workstream"
   ],
   "scores": {
     "function": 94,
@@ -142,8 +136,169 @@
         "fail": 0,
         "status": "CI_PASS"
       }
+    },
+    {
+      "workstreamId": "sidebar-tools-r1-mac-01a11fa4",
+      "threadId": "01a11fa4-793a-7513-bada-1e1eec4343da",
+      "status": "AWAITING_NATIVE_INSTALLATION_OWNERSHIP",
+      "candidate": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+      "startedAt": "2026-10-09T07:54:41.485310+00:00",
+      "scope": "Sidebar custom tools R1工程检查、真实Mac CFT验收、必要缺陷修复",
+      "resources": {
+        "main": "User-authorized main commits only; other owner files/index preserved; no new branch/worktree/reset/clean or own push/release",
+        "dist/production": "DELIVERED verified f462 package f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342; previous9ad package backed up",
+        "dist/development": "OWNED_ELSEWHERE: page-ui-r131-mac-01a11ff7; unchanged",
+        "Chrome profile": "RELEASED: both latest owned profiles cleanup PASS; prior failures retained",
+        "port43111": "RELEASED: owned canonical server98893 exited and no listener",
+        "Native installation": "RESOLVED via supported unique Native instance; shared default installation untouched; own instances cleanup passed",
+        "publish": "No own push/release; current remote44b was published by another integrator"
+      },
+      "reuseDecision": "用户明确要求本轮全部工程命令；已有Sidebar多文件验收不等于自定义工具原生验收。原候选证据保留不提升。",
+      "preexistingChanges": " M src/platform/host/controller-methods.js\n M src/scripting/sandbox/controller.js\n M tests/framework/k3-controller-authority.test.mjs\n M tests/framework/k3-sandbox-error-forwarding.test.mjs\n?? .native-packages/\n?? docs/framework/agent-execution-contract-draft.md\n?? docs/framework/prompts/continue-agent-execution-framework-20261009.txt\n?? docs/framework/prompts/continue-axiosx-main-20261009.txt\n?? docs/framework/workstreams/axiosx-main-01a11f8a.json\n?? docs/framework/workstreams/axiosx-main-01a11f8a.md\n?? docs/framework/workstreams/axiosx-native-01a11f42.json\n?? docs/framework/workstreams/axiosx-native-01a11f42.md\n",
+      "nativeStatus": "NATIVE_NOT_VERIFIED",
+      "updatedAt": "2026-10-09T14:29:02.981231+00:00",
+      "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+      "ciFixCommit": "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+      "ciStatus": "CI_PASS",
+      "integrationCommit": "90bb129fa790fb7351e7f33d896e411c2fa76c82",
+      "remoteMainObserved": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+      "latestFullSuite": {
+        "sourceCommit": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+        "tests": 428,
+        "pass": 427,
+        "fail": 1,
+        "skip": 0,
+        "status": "FAILED",
+        "failure": "existing Native installation guard at native-agent-chrome-real.test.mjs:171"
+      },
+      "integrationTargetedTests": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "status": "CI_PASS"
+      },
+      "localEngineeringStatus": "FAILED",
+      "remoteCiStatus": "CI_PASS",
+      "remoteCiWorkflows": 6,
+      "remoteCiScope": "ef016762; does not cover three unpushed own code files or full Side Panel E2E",
+      "additionalFixCommits": [
+        "3467d46235190f76178627d63f9b3c361aa56b30",
+        "b18f4f3275cc5307a553548d938a531bdc93421c"
+      ],
+      "currentProductionHash": "ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef",
+      "currentNative": {
+        "sourceSha": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+        "packageHash": "ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef",
+        "status": "NATIVE_PASS for listed cases only",
+        "cases": [
+          "selection and explicit installation do not auto-open",
+          "HTML/CSS/local PNG/title/URL",
+          "trusted Chinese save",
+          "20 destroy/reopen cycles",
+          "opaque API and enumerated message rejection",
+          "full draft Save, completed and stopped runs, own result revisions, released resources",
+          "window binding, page navigation and business-tab offline save",
+          "uninstall removes namespace and preserves prior draft records",
+          "owned browser/profile cleanup"
+        ],
+        "domCounters": {
+          "baseline": {
+            "documents": 1,
+            "nodes": 1163,
+            "jsEventListeners": 80
+          },
+          "afterGc": {
+            "documents": 1,
+            "nodes": 1161,
+            "jsEventListeners": 79
+          }
+        },
+        "scope": "No claim of zero heap leakage or full Task v1 installation/Native host acceptance."
+      },
+      "boundedEarlierNative": {
+        "sourceSha": "b18f4f3275cc5307a553548d938a531bdc93421c",
+        "packageHash": "444d43da287b649b12f05e778e0e2db38c837220d7fd55dab5a698ea40d4a565",
+        "cases": [
+          "400/600 CSS px",
+          "actual Chrome default 200% (host180/tool142/DPR4)",
+          "same-profile restart restores Chinese note",
+          "React+Tailwind/Vue precompiled classic JS and static CSS",
+          "update v1.0.1 preserves note; uninstall preserves React/Vue installed packages"
+        ],
+        "reuseScope": "Matching direct R1 inputs only; prior package evidence not upgraded to 9ad whole-package PASS."
+      },
+      "remaining": [
+        "existing Native installation guard prevents latest local full test (427/428)",
+        "physical 320 CSS px Side Panel not verified: Chrome155 minimum360",
+        "late onChanged revocation and already-entered Chrome I/O uninstall race have component-only evidence",
+        "fresh 9ad same-profile restart and Task v1 installed-task jump not independently native revalidated",
+        "official JSX/TSX/Vue/Tailwind source compilation NOT_SUPPORTED",
+        "independent final F3 and matching ZIP acceptance not closed by this R1 workstream"
+      ],
+      "scores": {
+        "function": 94,
+        "security": 94,
+        "visual": 94,
+        "lifecycle": 94,
+        "developmentExperience": 92
+      },
+      "ciScope": "Remote ef016762 six workflow results; local unpushed source modifications are not covered",
+      "localCIStatus": "FAILED"
     }
   ],
-  "ciScope": "Remote ef016762 six workflow results; local unpushed source modifications are not covered",
-  "localCIStatus": "FAILED"
+  "ciScope": {
+    "sourceSha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+    "scope": "All9 triggered remote workflows completed success. Localf462 test-driver changes are not pushed. Native diagnostic is not full Side Panel E2E.",
+    "workflows": 9
+  },
+  "localCIStatus": "CI_PASS",
+  "integrationMain": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+  "remoteHead": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+  "nativePassedOnCurrent": [
+    "ActualSIDE_PANEL, no installation/execution on select; explicit install remains unopened",
+    "HTML/CSS/localPNG/title/URL/Chinese native Save",
+    "Sandbox privileged APIs unavailable; eval CSP; enumerated wrongID/crossFrame/oldInstance/unknownCapability/key attacks rejected",
+    "20 destroys/reopens; stable iframe/message listeners and bounded GC counters",
+    "Another actual window, webpage navigation, businessTab network offline and localSave",
+    "Full original draft source input and unique native Save; completed and stopped runs, precise persistent results, revisions/sourceHash, retirement released",
+    "Actual computation sandbox CSP enforce during running task",
+    "Different controlled profile: entire Chrome exited and sameProfile restart restored Chinese note",
+    "Native uninstall confirmation and catalog/data deletion observed; unique-click probe exit1 remains FAILED",
+    "Independent realChrome Native instance permission/reload/HostCLI handshake/revocation:5/5, default shared installation untouched"
+  ],
+  "failure": "No current engineering failure. Retained Native observers failed; overall acceptance gaps remain.",
+  "productionPackageHash": "f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342",
+  "sourceChanges": "continuation-unlocked-20261009/f462-source-changes.json",
+  "latestNativeVerdict": "continuation-unlocked-20261009/f462-native-derived-verdict.json",
+  "initialSourceFixCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "sourceFixCommits": [
+    "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+    "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+    "3467d46235190f76178627d63f9b3c361aa56b30",
+    "b18f4f3275cc5307a553548d938a531bdc93421c",
+    "f462df264afd5b1b8d32101fb36af1d63c98c8cd"
+  ],
+  "nativeInstanceTargetedTests": {
+    "tests": 5,
+    "pass": 5,
+    "fail": 0,
+    "skip": 0,
+    "raw": "native-instance-targeted-result-after.json"
+  },
+  "continuations": [
+    {
+      "at": "2026-10-09T17:43:04.847935+00:00",
+      "head": "f57bb495e2f37aed63013d97a20cc71d37ac3a66",
+      "tree": "d5c9e958f340175654f271200eb0c5c87943f936",
+      "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-01a11fa4-e2lh_s2c",
+      "scope": "Current committed source; excludes two independent Native Chrome tests pending resource release; not full npm test PASS",
+      "resources": {
+        "snapshot-dist": "owned isolated",
+        "main/dist": "read only preserved",
+        "Chrome": "not acquired, another workflow active",
+        "43111": "not started"
+      },
+      "status": "IN_PROGRESS"
+    }
+  ]
 }

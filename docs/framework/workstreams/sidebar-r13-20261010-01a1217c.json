@@ -1,0 +1,85 @@
+{
+  "id": "sidebar-r13-20261010-01a1217c",
+  "status": "BLOCKED",
+  "branch": "main",
+  "sourceSha": "a3126ee9a3165607365d9ad9f30d09de83db78ab",
+  "originMain": "838a10833147036522956d3e2772c31e82f35461",
+  "scope": [
+    "Sidebar tool import/update/keyboard",
+    "task cards and catalog label",
+    "targeted tests and design docs",
+    "owned Chrome evidence; no ZIP"
+  ],
+  "ownedFiles": [
+    "src/ui/sidebar-tools.js",
+    "src/ui/tool.html",
+    "src/ui/tool-shell.css",
+    "tests/environment/sidebar-tools-host.test.mjs",
+    "tests/environment/sidebar-tools.test.mjs",
+    "DESIGN.md",
+    "docs/product/sidebar-ui-spec.zh-CN.md",
+    "src/ui/task-workbench.js"
+  ],
+  "resources": {
+    "Chrome": "Owned Chrome155 PID83378 then91222 exited; fresh profile codex-cft-lgmdx5dz removed; native/launcher-r13.cleanup.json PASS, no residual",
+    "dist": "Own temporary snapshot only; shared dist preserved; no ZIP",
+    "port43111": "Own server exec57973 stopped after testing"
+  },
+  "gitBlocker": "origin/main diverged after concurrent remote commit; no rebase/merge/reset/force authorized by fast-forward-only request",
+  "externalChanges": {
+    "tests/framework/sidebar-native-session.mjs": "bc82d52fc40d7204d6929aa746e867a8b502a413b8cfad3cfa98953703578df5",
+    "tests/framework/sidebar-tools-native-probes.mjs": "8a516d10a20aacb506032e0b1006dd5e263025ce54efaa0db6689ebaeea5cae5",
+    "tests/environment/native-cdp-transport.test.mjs": "00a469412300e7a9b236070ccd16af9ac5398f2dbd94a4172d59478b4fc4ecfc",
+    "docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.json": "51fbb8b022036a5e70bb51a802311fbd380e97e21db725d22fbd6ef531c4f415"
+  },
+  "evidence": "docs/framework/evidence/sidebar-r13-20261010-01a1217c",
+  "nativeAcceptance": "PARTIAL: exact SIDE_PANEL contexts and real screenshots for360/480 at100%; NOT_TESTED320/125%/installed-task UI; current main differs from candidate",
+  "scores": {
+    "kind": "manual provisional review of observed local UI; full acceptance NOT_TESTED",
+    "visual": 88,
+    "usability": 92,
+    "importUpdateSafety": 97,
+    "errorsRecovery": 97,
+    "accessibility": 92,
+    "chromeStability": 94,
+    "composite": null,
+    "goalMet": false
+  },
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-r13-01a1217c-81x79pp5",
+  "updatedAt": "2026-10-09T17:38:02.713257+00:00",
+  "observedCurrentMainSha": "88c8496912ec5eed586ac921870d1ecd61e3f7fd",
+  "sourceWriteBlocked": "Shared main moved repeatedly and collected this task into stash; permission requested for exclusive integration",
+  "preservedStash": "cff9f06f30d3d0e981ac06914ae512a2d06e285e",
+  "preservedPatch": "docs/framework/evidence/sidebar-r13-20261010-01a1217c/r13-preserved.patch",
+  "tests": {
+    "targeted": {
+      "passed": 69,
+      "failed": 0,
+      "evidence": "targeted-tests-after-visual.log"
+    },
+    "sourceCheck": "PASS203files; source-check-final.log",
+    "productionBuild": "PASS; build-final-production.log",
+    "developmentBuild": "PASS; build-final-development.log"
+  },
+  "packages": {
+    "production": "ba0d813eb851e439caf7d1d08d40d4835d19e6b93a33523f7e8ba19e170606bb",
+    "development": "ec323364ef2d60a473ff7c80592ac315b8775a1ca3665162f4604f2a74d8c99c"
+  },
+  "gaps": [
+    "long tool label exposes part of third line in360 screenshot",
+    "physical320 width and SidePanel125% remain NOT_TESTED",
+    "installed Task cards/params/recent-results lack trusted installation evidence",
+    "latest remote four-tab UI and this preserved patch need deliberate integration",
+    "main commit/push unperformed due concurrent stash/main movement and FF-only constraint",
+    "latest remote has main and one active agent branch; not deleted"
+  ],
+  "observedCurrentOriginMain": "9ef8c39765716d8cb6ef5607d071d4f0f2740ec3",
+  "blockedAudit": "docs/framework/evidence/sidebar-r13-20261010-01a1217c/blocked-audit.json",
+  "upstreamTargetedTests": {
+    "sourceSha": "6801674e884e85d1ca07406b8b2eae0357f98b9d",
+    "passed": 71,
+    "failed": 0,
+    "evidence": "upstream-check-6801674e/targeted-tests.log",
+    "grade": "component tests; not latest observed 9ef8c397 native acceptance"
+  }
+}

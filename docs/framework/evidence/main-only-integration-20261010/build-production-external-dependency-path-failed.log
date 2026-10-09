@@ -1,0 +1,70 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+
+WXT 0.21.4
+ℹ Generating types...
+✔ Finished in 156 ms
+
+WXT 0.21.4
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K✗ Build failed in 2.89s
+[K[?25h[K[?25h
+ ERROR  [opendesk-fixed-sw] Build module outside repository: /Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/utils/define-background.mjs
+
+    at modulePath (scripts/bundle-provenance.mjs:10:48)
+    at scripts/bundle-provenance.mjs:15:16
+    at Array.map (<anonymous>)
+    at describeBundle (scripts/bundle-provenance.mjs:14:47)
+    at recordBundle (scripts/bundle-provenance.mjs:36:16)
+    at async Object.generateBundle (wxt.config.mjs:80:11)
+    at async Bundle.generate (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/rollup/dist/es/shared/node-entry.js:21504:9)
+    at async /Users/shopme/Documents/workspace/opendesk-browser/node_modules/rollup/dist/es/shared/node-entry.js:24445:27
+    at async catchUnfinishedHookActions (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/rollup/dist/es/shared/node-entry.js:23810:16)
+    at async buildEnvironment (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/vite/dist/node/chunks/config.js:33623:64)
+
+✖ Command failed after 3.067 s
+
+ ERROR  Failed to build sw
+
+    at buildEntrypoints (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21:10)
+    at async rebuild (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/core/utils/building/rebuild.mjs:34:20)
+    at async internalBuild (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/core/utils/building/internal-build.mjs:47:31)
+    at async build (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/core/build.mjs:21:9)
+    at async /Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/cli/commands.mjs:31:2
+    at async CAC.<anonymous> (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/cli/cli-utils.mjs:22:10)
+    at async /Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/cli/index.mjs:11:1
+
+  [cause]: [opendesk-fixed-sw] Build module outside repository: /Users/shopme/Documents/workspace/opendesk-browser/node_modules/wxt/dist/utils/define-background.mjs
+
+      at modulePath (scripts/bundle-provenance.mjs:10:48)
+      at scripts/bundle-provenance.mjs:15:16
+      at Array.map (<anonymous>)
+      at describeBundle (scripts/bundle-provenance.mjs:14:47)
+      at recordBundle (scripts/bundle-provenance.mjs:36:16)
+      at async Object.generateBundle (wxt.config.mjs:80:11)
+      at async Bundle.generate (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/rollup/dist/es/shared/node-entry.js:21504:9)
+      at async /Users/shopme/Documents/workspace/opendesk-browser/node_modules/rollup/dist/es/shared/node-entry.js:24445:27
+      at async catchUnfinishedHookActions (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/rollup/dist/es/shared/node-entry.js:23810:16)
+      at async buildEnvironment (/Users/shopme/Documents/workspace/opendesk-browser/node_modules/vite/dist/node/chunks/config.js:33623:64)
+
+node:internal/errors:998
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/shopme/.codex/worktrees/merge-completion-20261010/opendesk-browser/node_modules/.bin/wxt build --browser chrome --mv3 --mode production
+    at genericNodeError (node:internal/errors:998:15)
+    at wrappedFn (node:internal/errors:543:14)
+    at checkExecSyncError (node:child_process:926:11)
+    at execFileSync (node:child_process:962:15)
+    at file:///Users/shopme/.codex/worktrees/merge-completion-20261010/opendesk-browser/scripts/build.mjs:33:1 {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 52392,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v26.3.1

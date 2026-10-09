@@ -25,7 +25,7 @@ function printable(value, depth = 0) {
   return JSON.stringify(value);
 }
 
-export function createScriptEditor({client, currentPageTarget, api = globalThis.chrome, document: doc = globalThis.document,
+export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: doc = globalThis.document,
   hostFactory = createRunHost}) {
   const host = hostFactory({api, client, document: doc, templateModuleFactory: null});
   const find = id => doc.getElementById(id);
@@ -724,12 +724,14 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const unsubscribeConnection = client.subscribeConnection?.(event=>{if(event.connected) recoverView();});
   client.ready.then(recoverView).catch(fail);
   if(api.storage?.session)Promise.resolve(currentPageTarget?.ready).then(async()=>{
-    // A catalog tab shares the window but must not overwrite its Sidebar draft.
-    if((await api.tabs.getCurrent?.())?.id)return;
+    // A catalog tab retains a separate draft; never overwrite its Sidebar.
+    const catalogTab=(await api.tabs.getCurrent?.())?.id;
+    if(catalogTab&&!development)return;
     const windowId=currentPageTarget?.snapshot?.windowId;
     if(!Number.isSafeInteger(windowId))return;
-    const key=`opendesk.sidebar.editor-draft.v1:${windowId}`;
-    const saved=(await api.storage.session.get(key))[key];
+    const key=catalogTab?`opendesk.development.catalog-draft.v1:${catalogTab}`:`opendesk.sidebar.editor-draft.v1:${windowId}`;
+    const backupKey='opendesk.development.backup:'+key;
+    const saved=(await api.storage.session.get(key))[key] || development&&(await api.storage.local.get(backupKey))[backupKey];
     if(disposed)return;
     if(JSON.stringify(captureDraft())===initialDraft && saved &&
         Object.keys(draftFields).every(name=>typeof saved[name]==='string') &&
@@ -753,7 +755,19 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     dependencyResolver.refresh(); update();
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
-  return {host,connectLocalProjects(adapter){
+  return {host,async prepareDevelopmentReload(){
+    const idle=()=>!disposed&&!editingBusy&&!stopping&&!running&&!previewBusy&&!ownedManagedPreview&&
+      !host.executionPending&&!host.currentRun&&!downloading&&!preparations.size&&!client.resourceSnapshot?.().pending;
+    if(!idle()||!draftKey)return false;
+    await draftWrites;
+    if(!idle())return false;
+    const value=captureDraft(),serial=JSON.stringify(value);
+    await api.storage.session.set({[draftKey]:value});
+    // Chrome clears storage.session on extension reload. This development-only
+    // backup is restored only into an unchanged editor, never over fresh edits.
+    await api.storage.local.set({['opendesk.development.backup:'+draftKey]:value});
+    return idle()&&JSON.stringify(captureDraft())===serial;
+  },connectLocalProjects(adapter){
     if(localProject||!find('local-project-mode'))return;
     localAdapter=adapter;localProject=createLocalProjectView({client,api,document:doc,onChange:update});update();
   },executionSource:()=>{

@@ -1,0 +1,10 @@
+{
+  "status": "FAILED",
+  "source": "Actual tool transcript; failure occurred before any cycle",
+  "command": "node tests/framework/sidebar-tools-native-probes.mjs cycle",
+  "cause": "Driver requires its fixed acceptance note; I had saved a different Chinese sentence.",
+  "actual": "中文最新主线验收：工具独立存储与真实按钮保存。",
+  "expected": "中文最终验收：关闭重开与浏览器重启后保留。",
+  "location": "tests/framework/sidebar-tools-native-probes.mjs:54",
+  "correction": "Enter and save the required fixture through trusted Chrome Input before retrying. No product code or assertion change."
+}

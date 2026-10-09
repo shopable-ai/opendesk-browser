@@ -4,6 +4,7 @@ import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
 import {FIXED_OUTPUTS, BUILD_POLICY} from './scripts/build-contract.mjs';
+import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
 
 const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));
 delete manifest.manifest_version;
@@ -16,10 +17,25 @@ export default defineConfig({
   outDirTemplate: '{{mode}}',
   manifestVersion: 3,
   imports: false,
+  webExt: {disabled: true},
+  dev: {reloadCommand: false, server: {host:'127.0.0.1',port:43119}},
   manifest,
   vite: () => ({build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
+    'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
+    'vite:devServer:extendConfig'(config){config.optimizeDeps={...config.optimizeDeps,noDiscovery:true,include:[],entries:[]};},
+    'build:manifestGenerated'(wxt,output){
+      if(wxt.config.command==='serve'){
+        // All fixed classic files run from the extension; no remote script
+        // execution or extra host permission is needed by this development path.
+        output.content_security_policy=structuredClone(manifest.content_security_policy);
+        output.host_permissions=[...manifest.host_permissions];
+      }
+    },
+    'server:started': configureDevelopment,
+    'server:closed': closeDevelopment,
+    'build:done'(wxt,output) {if(wxt.config.command==='serve')return publishDevelopment(wxt,output);},
     'entrypoints:resolved'(wxt, entries) {
       const names = new Set();
       for (const entry of entries) {
@@ -43,6 +59,17 @@ export default defineConfig({
     'vite:build:extendConfig'(entries, config) {
       if (entries.length !== 1) throw new Error('Fixed classic scripts require individual WXT builds');
       const entry = entries[0], target = entry.type === 'background' ? 'sw.js' : FIXED_OUTPUTS[entry.name];
+      if(entry.type==='background'&&config.mode==='development')config.plugins.push({
+        name:'opendesk-disable-wxt-reload-command',
+        transform(code,id){
+          if(!id.startsWith('\0virtual:wxt-background-entrypoint?'))return;
+          // WXT 0.21.4 registers this listener even with reloadCommand:false;
+          // Chrome omits commands entirely when no command is declared.
+          const listener=/\s*browser\.commands\.onCommand\.addListener\(\(command\) => \{[\s\S]*?\n\s*\}\);/;
+          if(!listener.test(code))throw Error('WXT background reload-command wrapper changed; review development safety');
+          return {code:code.replace(listener,''),map:null};
+        }
+      });
       // Background's single classic bundle sits at the fixed 320 KiB cap.
       // Perform isolated SW-only whole-program compression and native built-in
       // optimizations. This self-contained privileged worker owns its realm;

@@ -1,5 +1,15 @@
 # 本地 AI 开发与浏览器执行闭环 R1
 
+最新 main 补验：VERIFIED_R1_LATEST_MAIN_REAL_MAC，2026-10-10。PR #51 已合入605920ac，PR #52 合入2b2dca89，PR #53 已于2026-10-09T18:12:22Z 合入 **9ebd95360d7d3e334b5db684e3951664901cbf16**。本次直接使用该 main 的源码构建，无额外产品、测试驱动或 WXT 改动；旧 native-11 原身份保留。补充证据在独立分支 `agent/local-ai-r1-main-proof-01a12158`，CI/merge 仍以对应 PR 为权威。
+
+**native-12：25项真实 Mac Chrome PASS**，含实际 Codex CLI0.144.5四轮101→102→真实异常→修复103、Controller Stop/deadline、原生 Allow/项目菜单、Sidebar 重开/断线与 Page 受管清理。错误实际定位 src/extract.js:2:9，原始 error/持久 Result 保留；runId/resultId/结果自身 sourceHash/documentId/retirement released 见 `native-12/codex-receipts.json`，真实工具调用见 `codex-events.jsonl`。原生输入见 `cua-input.json`，观察到「我的/发现/开发/工具」。结束于2026-10-09T18:23:59.977Z；Chrome/launcher退出、profile删除、命名 Native 清理，资源 released。
+
+178项定向测试、215文件 source check、双构建及 verify PASS。production26 assets，`feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456`；development40 assets，`a19b857dd6443c7df01ab5177480b23fffbf392ff532d299670aa8738765f2f8`。该生产包哈希与 R12 既有包一致，本次独立验证实际 Mac Codex/Sidebar，不提升 R12 CI 为用户 Mac PASS。`native-12-inputs.json` 保存203项输入，SHA `de27b03db3b74dc32d6de51e2813aa426da6ba0ff970ccc6a4aef76a4fb2591b`，文档提交后输入无变化。源码/构建/输入及原始收据见工作流 JSON 的 currentNative/currentChecks/receipts。
+
+R1 实现、驱动与使用说明已随 #51/#53 集成；此次只补最新 main 证据。未关闭：新的完整 npm+HTTPS 混合原生矩阵、Page 正式保存/安装/自动运行/停用/重启、整体框架603＋19/B05/F3/ZIP；历史依赖证据保持原候选/锁，无 release/publish。Page 生命周期是 R1 正式结束后的下一轮。
+
+## native-11 及更早记录（原身份保留）
+
 当前结果：VERIFIED_R1，2026-10-10；跟进 [PR #53](https://github.com/shopable-ai/opendesk-browser/pull/53) 的当前 SHA CI/merge 为集成权威，本文记录本地验收，不预先宣称 CI 或合入。PR #51 已于 2026-10-09T17:44:44Z 合入 main（merge `605920ac`）。当前分支 `agent/local-ai-r1-final-01a12158` 的真实验收候选为 `ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675`；产品源码与 WXT 完整复用 main605920ac，仅补回原验收驱动的受控 launcher、R1 Codex 入口和顺序 Provider。保留 main 的分段、网络观察与包校验。后续 main `f14b97f0` 只新增另一工作流文档；201项执行输入离线核对无变化，不重复浏览器测试。
 
 `native-11` 新包25项真实 Mac Chrome 场景全部 PASS，含实际 Codex CLI 0.144.5 的 101→102→真实异常→修复103四次 MCP 运行、Controller Stop/deadline、Sidebar 项目菜单、重新打开、断线与 Page 受管清理。真实异常定位 `src/extract.js:2:9`；各次 runId/resultId/sourceHash 与原 document 身份在原始回执，旧结果保持冻结。原生 Allow 与 project/page-project 选择见 `native-11/cua-input.json`，观察到四页签。2026-10-09T17:59:13.904Z 结束，Chrome/launcher 已退出、profile 删除、命名 Native 清理；不再占用测试资源。
