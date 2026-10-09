@@ -537,6 +537,32 @@ test('selector failure oracles reject missing, duplicate, wrong-document and unk
   ]) {const o=selectorObservation(plan);change(o.pageOperations[0]);assert.throws(()=>validateOriginalReadOracle(plan,o));}
 });
 
+test('host selector original OK/ERR gaps remain unroutable and cannot be replaced by Worker snapshot bodies', () => {
+  const blocked = ['CMP02-API12-OK','CMP02-API12-ERR','CMP02-API13-OK','CMP02-API13-ERR'];
+  assert.deepEqual(blocked.filter(id=>ORIGINAL_SELECTOR_READ_IDS.includes(id)), []);
+  assert.deepEqual(blocked.filter(id=>ORIGINAL_READ_IDS.includes(id)), []);
+  for (const id of blocked) {
+    const definition = catalog.cases.find(row=>row.id===id);
+    assert(definition, `Missing frozen contract ${id}`);
+    assert.throws(()=>originalReadPlan(definition, selectorUrls), /no complete native input\/oracle driver/);
+    const recipe = recipeFor(definition);
+    if (id.endsWith('-OK')) {
+      assert.equal(recipe.body, null);
+      assert(recipe.gaps.join(' ').includes('no shipped host ctx consumer'));
+    } else {
+      assert(recipe.body?.includes("page.$"));
+      assert(recipe.gaps.join(' ').includes('unavailable in Worker'));
+      if (id === 'CMP02-API12-ERR') assert(recipe.gaps.join(' ').includes('DOM context preflight'));
+    }
+  }
+  const limit12 = originalReadPlan(catalog.cases.find(row=>row.id==='CMP02-API12-LIMIT'), selectorUrls);
+  const limit13 = originalReadPlan(catalog.cases.find(row=>row.id==='CMP02-API13-LIMIT'), selectorUrls);
+  assert(limit12.source.includes('page.snapshot('));
+  assert(limit13.source.includes('page.snapshots('));
+  assert(limit12.source.includes("reject('worker-dollar'"));
+  assert(limit13.source.includes("reject('worker-dollars'"));
+});
+
 test('original errors preserve exact original name/message and one dispatch per operand', () => {
   const plan=selectorPlans.find(p=>p.caseId==='CMP03-API14-ERR');
   for (const change of [o=>o.value.artifacts['throw-eval'].cause.name='OtherError',o=>o.value.artifacts['reject-eval'].cause.message='other',
