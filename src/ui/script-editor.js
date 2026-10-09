@@ -513,6 +513,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       if(!pageSource.sourceUtf8.trim())throw {code:'E_SOURCE',message:'请输入 JavaScript 源码'};
       permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
+    lastPagePreview=null;
     previewBusy=true;update();displayPreview('running','正在核对当前文档并执行一次性页面脚本…');
     (async()=>{
       if(!await permission)throw {code:'E_PERMISSION',message:'用户拒绝网站授权'};
