@@ -1,6 +1,6 @@
 # 本地 AI 开发与浏览器执行闭环 R1
 
-当前结果：VERIFIED_R1，2026-10-10；跟进 PR 尚待 CI/集成。PR #51 已于 2026-10-09T17:44:44Z 合入 main（merge `605920ac`）。当前分支 `agent/local-ai-r1-final-01a12158` 的真实验收候选为 `ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675`；产品源码与 WXT 完整复用 main605920ac，仅补回原验收驱动的受控 launcher、R1 Codex 入口和顺序 Provider。保留 main 的分段、网络观察与包校验。后续 main `f14b97f0` 只新增另一工作流文档；201项执行输入离线核对无变化，不重复浏览器测试。
+当前结果：VERIFIED_R1，2026-10-10；跟进 [PR #53](https://github.com/shopable-ai/opendesk-browser/pull/53) 的当前 SHA CI/merge 为集成权威，本文记录本地验收，不预先宣称 CI 或合入。PR #51 已于 2026-10-09T17:44:44Z 合入 main（merge `605920ac`）。当前分支 `agent/local-ai-r1-final-01a12158` 的真实验收候选为 `ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675`；产品源码与 WXT 完整复用 main605920ac，仅补回原验收驱动的受控 launcher、R1 Codex 入口和顺序 Provider。保留 main 的分段、网络观察与包校验。后续 main `f14b97f0` 只新增另一工作流文档；201项执行输入离线核对无变化，不重复浏览器测试。
 
 `native-11` 新包25项真实 Mac Chrome 场景全部 PASS，含实际 Codex CLI 0.144.5 的 101→102→真实异常→修复103四次 MCP 运行、Controller Stop/deadline、Sidebar 项目菜单、重新打开、断线与 Page 受管清理。真实异常定位 `src/extract.js:2:9`；各次 runId/resultId/sourceHash 与原 document 身份在原始回执，旧结果保持冻结。原生 Allow 与 project/page-project 选择见 `native-11/cua-input.json`，观察到四页签。2026-10-09T17:59:13.904Z 结束，Chrome/launcher 已退出、profile 删除、命名 Native 清理；不再占用测试资源。
 
@@ -19,7 +19,7 @@ native-10 的25项真实场景与实际 CLI 四轮 PASS，只绑定候选562abac
   Controller 原错误定位：已实施；冻结 source map；真实 src/extract.js:2:9；Page 保留原错误
   实际 Codex：101→102→真实异常→修复 103，四次 MCP 运行通过；旧结果冻结
   Sidebar 与生命周期：native-11 新包25项真实场景通过；清理 released
-  main 集成：PR #51 已合入；跟进驱动只读审查 APPROVE，等待新 PR 当前 SHA 的 CI
+  main 集成：PR #51 已合入；跟进驱动只读审查 APPROVE；PR #53 当前 SHA 的 CI/merge 为集成权威
   Page 保存、安装、自动运行、停用、重启恢复：下一轮，未由本轮关闭
 ```
 

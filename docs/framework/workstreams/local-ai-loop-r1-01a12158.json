@@ -1,5 +1,5 @@
 {
-  "status": "VERIFIED_R1_FOLLOWUP_INTEGRATION_PENDING",
+  "status": "VERIFIED_R1_REAL_MAC",
   "date": "2026-10-10",
   "initialMain": "b49dcc96",
   "integratedMain": "838a10833147036522956d3e2772c31e82f35461",
@@ -1160,9 +1160,11 @@
     "merge": "605920ac9b8419cfb90722be7a595a490ec2a117",
     "mergedAt": "2026-10-09T17:44:44Z",
     "followup": {
-      "status": "LOCAL_VERIFIED_PR_PENDING",
+      "status": "VERIFIED_LOCAL_GITHUB_AUTHORITY",
       "branch": "agent/local-ai-r1-final-01a12158",
-      "scope": "Controlled launcher and R1 CLI flag/provider sequencing in the existing acceptance driver; current proof. Product source and WXT exactly match main605920ac; parallel mainf14 adds documentation only."
+      "scope": "Controlled launcher and R1 CLI flag/provider sequencing in the existing acceptance driver; current proof. Product source and WXT exactly match main605920ac; parallel mainf14 adds documentation only.",
+      "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/53",
+      "authority": "PR #53 current SHA checks and merge are authoritative; this committed record captures local proof and does not predeclare CI or merge."
     }
   },
   "currentMainBase": "f14b97f060268d246bee9f79f19099fefae203cb",
