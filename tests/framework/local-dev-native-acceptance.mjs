@@ -15,6 +15,7 @@ import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../src/platform/protocol.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
 import {prepareR101Projects,runR101Projects} from './r101-local-programs.mjs';
+import {runCodexClient} from './r101-codex-cli.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 let r101Projects=[],networkObservation;
 
@@ -53,11 +54,11 @@ async function selectIndex(session,selector,index){
     record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
     await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'external native selection '+selector,120000);
   }else if(process.platform==='darwin'){
-  // Chrome's macOS select popup is an AppKit NSMenu. Renderer CDP keyboard
-  // events do not reach its native tracking loop; send actual OS keys to the
-  // uniquely owned foreground browser. The DOM is observation only.
-  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset optionIndex to item 2 of argv as integer\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then error "Owned Chrome popup is not foreground"\nkey code 115\nrepeat optionIndex times\nkey code 125\nend repeat\nkey code 36\nend tell\nend tell\nreturn "NATIVE_SELECT_KEYS"\nend run';
-  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),String(index)],{timeout:10000});assert.equal(result.stdout.trim(),'NATIVE_SELECT_KEYS');
+  // Home chooses the first enabled option in Chrome's native AppKit menu.
+  // Disabled placeholders therefore must not count as Down key presses.
+  const nativeSteps=await session.read('Array.from(document.querySelector('+JSON.stringify(selector)+').options).slice(0,'+index+').filter(o=>!o.disabled).length');
+  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset optionSteps to item 2 of argv as integer\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then error "Owned Chrome popup is not foreground"\nkey code 115\nrepeat optionSteps times\nkey code 125\nend repeat\nkey code 36\nend tell\nend tell\nreturn "NATIVE_SELECT_KEYS"\nend run';
+  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),String(nativeSteps)],{timeout:10000});assert.equal(result.stdout.trim(),'NATIVE_SELECT_KEYS');
  }else{await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);}
  await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'native option selected '+selector);
  record('sidebar.native-select',{selector,index,...expected});
@@ -268,7 +269,7 @@ try{
  async function openPanel(){
   await action();const context=await until(async()=>{const rows=(await contexts()).filter(x=>x.documentUrl.includes('/ui/tool.html?'));return rows.length===1?rows[0]:null;},'actual Side Panel context');
   const panelTarget=await until(async()=>{const rows=await(await fetch(base+'/json/list')).json();return rows.find(x=>x.url===context.documentUrl);},'actual Side Panel CDP target');
-  tool=await cdp(panelTarget.webSocketDebuggerUrl);
+  tool=await cdp(panelTarget.webSocketDebuggerUrl);if(networkObservation)await observePage(tool,panelTarget);
   const status=await until(async()=>{const r=(await requestAgent('bridge.status',{},crypto.randomUUID(),3000)).result;return r.hostRegistrations.length===1?r:null;},'actual Side Panel Host');
   record('sidebar.open',{context,targetId:panelTarget.id,registrationId:status.hostRegistrations[0]});return {context,registrationId:status.hostRegistrations[0]};
  }
@@ -340,7 +341,8 @@ try{
  await selectIndex(tool,'#local-project-mode',0);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  report.tests.push({name:'actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect',status:'PASS',oldDocumentId:panel.context.documentId,newDocumentId:reopened.context.documentId});
  if(r101Enabled){
-   const remoteJS=networkObservation.requests.filter(row=>{
+   if(r101Enabled&&process.env.OPENDESK_R101_CODEX==='1')await runCodexClient({root,project,origin,documentId:newDocument.documentId,title:await target.read('document.title'),out,report,record});
+ const remoteJS=networkObservation.requests.filter(row=>{
      const url=row.request?.url||row.response?.url||'';
      return /^https?:/.test(url)&&!['127.0.0.1','localhost','[::1]'].includes(new URL(url).hostname)&&
        (row.type==='Script'||/javascript|ecmascript/.test(row.response?.mimeType||''));
