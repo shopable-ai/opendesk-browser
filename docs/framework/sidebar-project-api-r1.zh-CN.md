@@ -1,6 +1,6 @@
 # OpenDesk Browser · 多文件 Program API 与 Demo 操作 R1
 
-> 2026-10-09：本文只描述**已在 main 实现的 API**与随仓库提交的示例；源码目录直接读取与 Page 自动安装仍有实施缺口；Page 资源已支持有界本地打包。Native Bridge 与多文件源码快照代码已合入 main，但真实 Mac Chrome/Codex 端到端仍须单独验收。
+> 当前本地 Controller 的默认开发 API 为 [R2.2 Local Dev / MCP](local-development-r22.zh-CN.md)。下文项目合同与正式产物 API 保留；Page 直接运行、Sidebar 绑定和 Chrome 验收状态独立记录，不能从构建成功推断。
 
 ## 1. 源文件和执行环境是两回事
 
@@ -13,7 +13,7 @@
 | Sidebar 单次运行 | 开发 → 网页用户脚本 → 在当前网页试运行 DOM 脚本 | 开发 → 底栏运行草稿 |
 | 正式安装 | Page Program 安装/重启/撤权链尚未完成 | Task v1 Candidate → Verification → Available → 显式安装 |
 
-多个 ESM 文件会被编译为一个固定 classic `program.js`，**不会创建第三个 JavaScript Runtime**。不能在 Page USER_SCRIPT 中直接调用 Controller 的 `page.getByRole`；也不能在 Controller 里假定网页的 `document` 是 Worker 全局变量。
+多个 ESM 文件会按需转换为本次执行的 classic JS；正式打包时才持久输出 `program.js`，**不会创建第三个 JavaScript Runtime**。不能在 Page USER_SCRIPT 中直接调用 Controller 的 `page.getByRole`；也不能在 Controller 里假定网页的 `document` 是 Worker 全局变量。
 
 ## 2. `package.json` 与 Program 源合同
 
@@ -59,7 +59,9 @@ Controller 采用 `opendesk.siteOrigins`（一个精确 origin）、`permissions
 
 当前静态限制：最多 64 个源码模块，总源码不超过 128 KiB；单个源码文件最多 256 KiB；Page 输出不超过 100000 字节；Controller 输出不超过 65536 字节。这些是现行门槛，不是无条件的未来兼容承诺。
 
-## 4. 可复制的实际使用步骤
+## 4. 正式产物的打包与导入步骤
+
+本地 Controller 日常开发请使用 [MCP 直接运行](local-development-r22.zh-CN.md#日常多文件实例)，无需执行本节的构建和导入。
 
 ```sh
 npm ci --ignore-scripts
@@ -74,7 +76,7 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 打开 `http://127.0.0.1:43111/demo-form.html`；Chrome 138+ 加载本仓库最新 `dist/development`，确保网站权限与 Chrome「允许用户脚本」生效。
 
 在构建输出的 `outputDirectory` 中找到 `program.opendesk-draft.json` 与 `program.js`。目前有三条真实路径：
-1. **推荐**：在同窗口打开 Sidebar →「发现 → 导入」的独立完整任务目录，选择 `program.opendesk-draft.json`。它校验编译字节和各源码哈希，并向同窗口「开发」交付**只读源文件列表 + 固定执行字节**。默认显示 `program.js · 实际执行代码`，并标明 Page 的 DOM 试运行或 Controller 的运行草稿入口；可在同一列表切换只读源码快照，执行字节保持不变。
+1. **冻结产物导入**：在同窗口打开 Sidebar →「发现 → 导入」的独立完整任务目录，选择 `program.opendesk-draft.json`。它校验编译字节和各源码哈希，并向同窗口「开发」交付**只读源文件列表 + 固定执行字节**。默认显示 `program.js · 实际执行代码`，并标明 Page 的 DOM 试运行或 Controller 的运行草稿入口；可在同一列表切换只读源码快照，执行字节保持不变。
 2. **兼容**：完整任务目录选择 `program.js`，进入「开发」未保存草稿，界面只知道它是已编译程序，没有源码快照。
 3. **手动**：复制完整 `program.js` 到 Sidebar 编辑器后运行。
 这三条路径都不是直接选择一个原始源码文件夹进行浏览器内 npm/ESM 编译，也不会自动安装或执行。

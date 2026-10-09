@@ -38,6 +38,7 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
       end repeat
       set labels to ""
       set allowButtons to {}
+      set allowFrames to {}
       repeat with node in nodes
         try
           set nodeRole to role of node
@@ -47,13 +48,23 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
             set labelText to name of node as text
           end if
           set labels to labels & labelText & linefeed
-          if nodeRole is "AXButton" and (labelText is "Allow" or labelText is "允许") and enabled of node then set end of allowButtons to contents of node
+          if nodeRole is "AXButton" and (labelText is "Allow" or labelText is "允许") and enabled of node then
+            set coordinates to position of node
+            set dimensions to size of node
+            set frameKey to (item 1 of coordinates as text) & "," & (item 2 of coordinates as text) & "," & (item 1 of dimensions as text) & "," & (item 2 of dimensions as text)
+            -- A macOS modal is reachable both as a window and its parent's
+            -- sheet. Deduplicate the same actual control, never distinct buttons.
+            if allowFrames does not contain frameKey then
+              set end of allowFrames to frameKey
+              set end of allowButtons to contents of node
+            end if
+          end if
         end try
       end repeat
       if labels does not contain "OpenDesk Browser" then return "WAIT: " & labels
       if labels does not contain "Communicate with cooperating native applications" then return "WAIT: " & labels
       if (count allowButtons) is 0 then return "WAIT: Allow is not enabled yet; " & labels
-      if (count allowButtons) is not 1 then error "Native permission Allow button is not unique"
+      if (count allowButtons) is not 1 then error "Native permission Allow button is not unique: " & (allowFrames as text)
       ${accept?'click item 1 of allowButtons':'-- Inspection only; the second call revalidates the exact same permission.'}
       return "${accept?'CLICKED':'MATCH'}: " & labels
     end tell

@@ -439,3 +439,14 @@ C 级必须保留，尤其是原始失败和历史未测试项；它们不能升
 8. 验证 B05 并发和四崩溃点，保存每轮独立身份、资源 baseline、真实 PID/thread、结果和失败原件。
 9. 执行 1000 轮、10 重连、2 禁模板，并确认每轮没有 FAIL、BLOCKED、NOT_TESTED 或资源泄漏。
 10. 对同一最终候选包执行 603、19 和独立 F3；最后由 acceptance checker 和独立 reviewer 复核，全部通过后才可以宣布迁移完成。
+
+## 本地源码与 MCP R2.2 定向验收
+
+工作记录：docs/framework/workstreams/local-dev-r22-c036.json；接口：docs/framework/local-development-r22.zh-CN.md。
+
+- 组件入口：node --test tests/environment/local-dev.test.mjs。
+- 真实 Chrome：CHROME_FOR_TESTING_BIN 指向受控 CFT 后，运行 node tests/framework/local-dev-native-acceptance.mjs。使用独立 profile 与专用测试账号；不得覆盖已存在的 Native 安装。
+- 项目必须经 stdio MCP → 真实 Native Host → 原 RunHost 执行。CDP 仅观察/可信输入，不能代跑项目业务。
+- 运行 examples/programs/local-controller，直接修改依赖 extract.js 后再次运行；保存两次 runId/resultId、sourceHash、inputHash、documentId、结果、retirement 和实际包身份，不生成开发交接文件。
+- 原生权限对话框通过本次 Chrome PID 的系统原生输入批准，并保存 AX/截图及权限读回；不能写 storage、授予权限 API 或模拟 native ACK 冒充批准。
+- 记录每个失败；Node/mock、真实包内工作台 tab、真正 Sidebar、Page UI、Codex 客户端和最终 F3 分别标记，缺证据不提高等级。
