@@ -52,6 +52,7 @@ export function activatePageUIMount({doc,win,host,shadowRoot,content,prepared,on
       bottom:'auto',margin:'0',verticalAlign:'baseline',visibility:'visible'});
     (doc.body||doc.documentElement).appendChild(host);
     note('floating',why);
+    watch();
   }
   function retarget(){
     if(target?.isConnected)return true;
@@ -79,11 +80,29 @@ export function activatePageUIMount({doc,win,host,shadowRoot,content,prepared,on
     host.style.left=Math.round(Math.max(gap,Math.min(x,remaining)))+'px';
     host.style.top=Math.round(Math.max(gap,Math.min(rect.top,Math.max(gap,height-gap-hostHeight))))+'px';
   }
+  function placementChain(){
+    const nodes=new Set();
+    for(const start of [strategy==='inline'&&position==='append'?target:null,
+      strategy==='floating'?null:target?.parentNode,host.parentNode,doc]){
+      for(let node=start;node&&!nodes.has(node);node=node.parentNode)nodes.add(node);
+    }
+    return nodes;
+  }
   function watch(){
     stop();
     if(typeof win.MutationObserver!=='function')return false;
+    const seen=placementChain();
+    const refreshChain=()=>{
+      const current=placementChain();
+      if(current.size!==seen.size||[...current].some(node=>!seen.has(node)))watch();
+    };
     const observer=new win.MutationObserver(()=>{
-      if(!live()){destroy();return;}
+      if(!live()){note('stopped','document_invalid');destroy();return;}
+      if(strategy==='floating'){
+        if(!host.isConnected){note('stopped','host_removed');destroy();}
+        else refreshChain();
+        return;
+      }
       if(strategy==='inline'){
         const stillPlaced=host.isConnected&&target?.isConnected&&
           (position==='append'?host.parentNode===target:host.parentNode===target.parentNode);
@@ -95,14 +114,11 @@ export function activatePageUIMount({doc,win,host,shadowRoot,content,prepared,on
         if(!host.isConnected){note('stopped','host_removed');destroy();return;}
         align();
       }
+      refreshChain();
     });
-    const seen=new Set();
-    let node=target?.parentNode;
-    // Watch only the target's closest parent boundaries, not the whole document subtree.
-    for(let i=0;i<3&&node;i++,node=node.parentNode){
-      if(!seen.has(node)){observer.observe(node,{childList:true});seen.add(node);}
-    }
-    if(strategy==='inline'&&position==='append'&&!seen.has(target))observer.observe(target,{childList:true});
+    // Observe direct children along the owned placement chains, including the
+    // document boundary. No subtree scanning or repeated target lookup is used.
+    for(const node of seen)observer.observe(node,{childList:true});
     let frame=0;
     const schedule=()=>{
       if(frame||strategy!=='anchored')return;
@@ -165,7 +181,7 @@ export function activatePageUIMount({doc,win,host,shadowRoot,content,prepared,on
     }
     const styles=shadowRoot.querySelectorAll?.('style');
     if(styles?.length){
-      try{checks.cssReady=[...styles].every(style=>style.sheet!==null&&style.sheet!==undefined);}
+      try{checks.cssReady=[...styles].every(style=>style.sheet!==null&&style.sheet!==undefined&&!style.sheet.disabled);}
       catch{checks.cssReady=null;}
     }
     const images=shadowRoot.querySelectorAll?.('img');

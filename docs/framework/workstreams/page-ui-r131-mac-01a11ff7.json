@@ -1,0 +1,365 @@
+{
+  "workstreamId": "page-ui-r131-mac-01a11ff7",
+  "threadId": "01a11ff7-1911-7c20-b1f3-26be2dd35b34",
+  "status": "SCOPED_PAGE_UI_NATIVE_PASS",
+  "branch": "main",
+  "base": "b8a55f3cbeb5fe66091ac3fc2ecb60645b2f696e",
+  "integratedUpstream": "996df38fd63f49630f2c8cad4c552b5f82462124",
+  "deliveryReceipt": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/git-delivery.json",
+  "writeScope": [
+    "src/scripting/user-scripts/page-ui.js",
+    "src/scripting/user-scripts/page-ui-mount.js",
+    "examples/programs/page-ui-basic/src/main.js",
+    "tests/environment/page-ui.test.mjs",
+    "tests/environment/page-ui-mount.test.mjs",
+    "docs/framework/workstreams/page-ui-r131-mac-01a11ff7.json",
+    "docs/framework/workstreams/page-ui-r131-mac-01a11ff7.md"
+  ],
+  "sourceInputs": [
+    {
+      "path": "src/scripting/user-scripts/page-ui.js",
+      "bytes": 8449,
+      "sha256": "2e96aaf16a6071c407be553511338cc45a547e359431ecf86799a1551c8df48d"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-ui-mount.js",
+      "bytes": 10735,
+      "sha256": "f29fd77df1fa432cd185ff19125f1b658a23214b00205fb9a6fbcca680968f7e"
+    },
+    {
+      "path": "examples/programs/page-ui-basic/src/main.js",
+      "bytes": 2398,
+      "sha256": "45d944cbdfbb71a1ac9dfa71db99dc0885408864a7c01ad06391a9204f6871ba"
+    },
+    {
+      "path": "tests/environment/page-ui.test.mjs",
+      "bytes": 4208,
+      "sha256": "a34af75f16d1534049ae4b8c3e8638f30ebc5b8bf44ec661a94ec8fa9e1c3db3"
+    },
+    {
+      "path": "tests/environment/page-ui-mount.test.mjs",
+      "bytes": 14679,
+      "sha256": "8aa7251a2af3cbd70fbc90955ac89ccac9748a9d6a62b51e5c997260e4df52be"
+    },
+    {
+      "path": "examples/tasks/demo-form.html",
+      "bytes": 38765,
+      "sha256": "287f14ad90cadbe31df1df050ed184648824f2f9e287a5363b6c6783a3b715b5"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1086,
+      "sha256": "afeaf28f6d439efc3a2e50960a2b6d68f118f5da99c680452f6c00cd1b15d7e1"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 139411,
+      "sha256": "5d5e1329365b35e458cec2cc0ef4b36b84dbcffe8a67a2611d2c060f30db7977"
+    }
+  ],
+  "native": {
+    "browser": "Chrome/155.0.8059.39",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionDirectory": "dist/development",
+    "packageHash": "07a6aaecec54d7f58e6677d2222d94cccbb4be0a8d01bf066470c079893fce6d",
+    "programSourceHash": "8a0590c46bd2ced15fc8116f9ea3535d89401daddcc210248c021ef0c93beb14",
+    "fixtureSha256": "287f14ad90cadbe31df1df050ed184648824f2f9e287a5363b6c6783a3b715b5",
+    "formalEntry": "Sidebar: 开发 → 网页 JavaScript 试运行 → 在当前网页试运行; page-userscript; unchanged frozen source",
+    "world": "USER_SCRIPT",
+    "worldMessaging": false,
+    "rounds": 20,
+    "matrixAllRequestedControlledCases": "PASS",
+    "managedExitCounts": {
+      "MutationObserver": 0,
+      "ResizeObserver": 0,
+      "listener": 0,
+      "timeout": 0,
+      "interval": 0,
+      "raf": 0,
+      "url": 0
+    },
+    "cleanup": {
+      "cleanupStatus": "PASS",
+      "profileRemoved": true,
+      "pidAliveAfterExit": false,
+      "residual": []
+    },
+    "scope": "Real Mac fresh CFT MV3 profile; no MAIN/Console SDK/Controller substitution; native trusted browser clicks and text input; passive native API recorder via conditional breakpoints before unchanged formal program execution"
+  },
+  "tests": {
+    "targeted": {
+      "pass": 58,
+      "fail": 0,
+      "log": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/targeted-main-final.log"
+    },
+    "environmentComponents": {
+      "pass": 340,
+      "fail": 0,
+      "excluded": [
+        "tests/environment/native-agent-chrome-real.test.mjs"
+      ],
+      "log": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/environment-components-main-final.log"
+    },
+    "check": {
+      "pass": true,
+      "sourceFiles": 177
+    },
+    "historicalFullEnvironmentAttempt": {
+      "pass": 341,
+      "fail": 1,
+      "log": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/environment-final.log",
+      "failure": "native-agent-chrome-real.test.mjs asynchronous stale-binding activity: status is not defined; outside this workstream"
+    }
+  },
+  "scores": {
+    "reviewer": "Hume (read-only independent source/evidence reviewer; not independent final F3)",
+    "scores": {
+      "inlineButton": 95,
+      "shadowDOM": 96,
+      "websiteCompatibility": 85,
+      "fallback": 94,
+      "lifecycle": 96,
+      "positionInteraction": 86,
+      "performanceMaintenance": "NOT_TESTED",
+      "permissionSecurity": 88
+    },
+    "limits": [
+      "Standard controlled local CFT fixture only; framework-specific and third-party websites NOT_TESTED",
+      "Actual 200% native browser zoom PASS; panel can cover underlying controls in a small viewport until closed",
+      "No CPU/heap quantitative benchmark; performance not assigned an acceptance score",
+      "Independent reviewer did not separately confirm launcher profile cleanup; primary verifier confirmed cleanup.json PASS",
+      "Not every dimension reached 95; full framework/F3/ZIP installation and Native Agent handshake are outside this Page UI acceptance"
+    ]
+  },
+  "resources": {
+    "profileReleased": true,
+    "port43217Released": true,
+    "ports43111And43121Untouched": true,
+    "developmentPackageNoLongerLoadedByThisWorkstream": true,
+    "productionPackageOwnedElsewhereUntouched": true
+  },
+  "parallelChanges": "Native Agent/Controller/Sidebar Tools/build receipts remain unstaged and untouched; this workstream creates no branch or worktree. Existing other branches/worktrees are retained. Tool HTML owner CSP meta preserved during non-overlapping main fast-forward integration.",
+  "evidenceStorage": "Raw JSON/logs/screenshots under ignored local evidence directory; this tracked manifest binds their file hashes. Historical failures and earlier candidates preserved, never promoted to current PASS.",
+  "evidence": [
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/chrome-page-ui-r131.log",
+      "bytes": 1713,
+      "sha256": "486768e242767a56276a13a20dd574091b6f3dc39d95ea6e582c2c6c27fcb1e0"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/cleanup.json",
+      "bytes": 2569,
+      "sha256": "fae0d883d3c47c88c78e7f42f03942a53a54238f2d90ce7ddc05cd01b20b3a62"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/commands.json",
+      "bytes": 390,
+      "sha256": "1abdf2a0532f1464e0f2b305291ce9e2a0f14e45bcf29b9110107f6b5e9c1f66"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/compatibility-v2.json",
+      "bytes": 19844,
+      "sha256": "f01e591fad58526cd7e1fc3dcdbdd64fc29196c69ba4396a3a6fe0eb26d3d391"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/compatibility.json",
+      "bytes": 19792,
+      "sha256": "2f55f2df89e7a9218a43373095d055cc91137147213c434381d836b500151980"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/compatibility.log",
+      "bytes": 545,
+      "sha256": "11c25f7fdef8c7bef5abf12746c78cec0ca593449c10763009b25650b55d4bef"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/css-disabled-observation.json",
+      "bytes": 3620,
+      "sha256": "a31ffacd05315ef776eeceba7355c19ede04d0e8f1ddd99d33a1fee80da50247"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/css-isolation.png",
+      "bytes": 284143,
+      "sha256": "295ced8c775e4d839d2b0e4588ef150bd5c041e0f7be56af22e1f27d8d194241"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/deep-spa-observation.json",
+      "bytes": 5388,
+      "sha256": "6fa368f71393cf2a687e166f8893c57af5ce36e3c0a7047ed1ae0fad0570640e"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/document-invalid-observation.json",
+      "bytes": 3641,
+      "sha256": "007c66b3311eb1aff9356920734116e52a31a22454f04d22ba53bde3d45fe5b7"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/explicit-mount-failure.json",
+      "bytes": 3076,
+      "sha256": "c3a69ca766c892af8aa8286593e75c2f4963145574579fc34a1a6c8626d2e983"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/explicit-mount-failure.log",
+      "bytes": 1001,
+      "sha256": "76480e81ae3e32cd38b59235c9f8001b39ab0001aa3a47b6f4d60569c7d70f2d"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/extra.json",
+      "bytes": 39877,
+      "sha256": "4a71438bafb601e5ac181070bd7548290d4d9b6d8b7ae19e049e92a9f4bb96b7"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/extra.log",
+      "bytes": 362,
+      "sha256": "88bf1e5484f11f756267e04df94732b3a1590f883d6799f5d3e28633d560f252"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/final-A.png",
+      "bytes": 295461,
+      "sha256": "6b042deadac9e1f22139de3bbfd3835559517a82536dd8f225cc84bd5ebaf52f"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/final-B.png",
+      "bytes": 289370,
+      "sha256": "5cd3402d39985d5b0e5b65a435f96484ba0de23ec3a8c7ea7122ff18a19adcdd"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/final-C.png",
+      "bytes": 288128,
+      "sha256": "f118e27e6a9c011a7bc7dc9b5f7199e1bc1fc990ee8d0f36a10a846dcab2fcdb"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/final-core.json",
+      "bytes": 31584,
+      "sha256": "755a43f028be47eb855a23eb306f0d2a4d853c82342e9cb9ff05d1c2f1160384"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/final-core.log",
+      "bytes": 126,
+      "sha256": "69934241ff70f352afba51336249c14073423e5d088b740ad39fdc6788f4922b"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/floating-host-removal-observation.json",
+      "bytes": 4608,
+      "sha256": "81e71d3f33d598a67c16b88a031b1ac71c0ee7505cf3473ebc6b26565bf03878"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/launcher-page-ui-r131-exit.json",
+      "bytes": 2569,
+      "sha256": "fae0d883d3c47c88c78e7f42f03942a53a54238f2d90ce7ddc05cd01b20b3a62"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/launcher-page-ui-r131-raw-failure.json",
+      "bytes": 1142,
+      "sha256": "3b6810613b6dd436f51b68976f7d2158e255b17af7ad940b59b3b41c6b8d0068"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/launcher-page-ui-r131-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/launcher-page-ui-r131-stdout.txt",
+      "bytes": 936,
+      "sha256": "04546ca2412cc56e15a35bbd6ee1503bc52421a0a7af1e48e8d23e0ba8d3afa4"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/launcher-page-ui-r131-summary.json",
+      "bytes": 169,
+      "sha256": "4f6f3016578bc445ef60de400cf81ae8e627f440fd700eb392e92c4ef6cfef9e"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/launcher-page-ui-r131-verified.json",
+      "bytes": 2760,
+      "sha256": "c0d8ac61dff227b5c84142684737027f822d993df626ab3e1cf49689d75109c2"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/launcher-page-ui-r131.json",
+      "bytes": 1000,
+      "sha256": "daa076f9a3c7b7f1480a9a8685d76b6f601a5b1655af10758f3d1b77d5d1be89"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/lifecycle-20.json",
+      "bytes": 1215800,
+      "sha256": "060c8fdc49171772a12447a4785143700cc8c1a7a4eef5f3879b939b8fb6809b"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/lifecycle-20.log",
+      "bytes": 1431,
+      "sha256": "843bf5a5138541dfe2504de69021b98b9a8762693a3c73ffecf0f6123f69f5ec"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/lifecycle-edge.json",
+      "bytes": 27157,
+      "sha256": "9ab97759efa055ef409b45f2fc60db524abbfe3ca5330e88f99fbc5004cfb46f"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/lifecycle-edge.log",
+      "bytes": 391,
+      "sha256": "f9de31e7e88fb88e413cff27fb3d2e1cb5a326ef1212059c8b05f22c458503cf"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/navigation-bfcache.json",
+      "bytes": 17326,
+      "sha256": "c5d48a3c4693af75a9f2e9bf7f0aa3d66003a0c2b148576b18481017832a62ac"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/navigation-pagehide.json",
+      "bytes": 11067,
+      "sha256": "4e8fec98c72e326945772f55e0ad2b6f81797a7b5d5afacfcc4f3e50f3b2c86f"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/navigation.log",
+      "bytes": 93,
+      "sha256": "411a0b15132d18d93acd10f8af963bb9a1c128b6d78a7a466d917c4c129f2d6e"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/package-after-tests.json",
+      "bytes": 6507,
+      "sha256": "bba480411cd1d6d159c43d82e89901161e5747c3830be51b55108873ddd2ecbb"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/permissions-worlds.json",
+      "bytes": 2229,
+      "sha256": "cc9000d13ef96dbe96b6923c45430880def6fc29b0b0071e40d4374adc05bcdc"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/session.json",
+      "bytes": 10298,
+      "sha256": "31170f25bdbfa3a819d2ab3f7ec797cbbec39de949fb8afc6e7405424d4b2e13"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/viewport-1280.png",
+      "bytes": 150611,
+      "sha256": "ba3f18d4304fc1974b8f2c8ee2e0171b6fda78c24411771093988ea8da04f70d"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/viewport-320.png",
+      "bytes": 83793,
+      "sha256": "13287ea4e7507e1903ccde6ab64c24fcee720faecbb5122f52953b8776513ed5"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/viewport-400.png",
+      "bytes": 99369,
+      "sha256": "8abdf2c3116a2d06e62373bbd2fdd59bccee9b64ed5c629eef12b3af5ed377a9"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/viewport-600.png",
+      "bytes": 109111,
+      "sha256": "052e390bdd5cab6ebcfe09fcb70b9294a48d03077ec2e78652d3866b0cc8b3d1"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/zoom-200.json",
+      "bytes": 19319,
+      "sha256": "a5e2a4100001d4195f8b284f1e16a4a0d8ce12a025e04243f82ad56d9e7adb70"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/zoom-200.log",
+      "bytes": 92,
+      "sha256": "9404ded31803b354fca51c256c40b4bfb7322f9c0e903a6c666adbd7ffaba8f5"
+    },
+    {
+      "path": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-main-final/zoom-200.png",
+      "bytes": 191309,
+      "sha256": "c72d7f46ee0564ecca8ff05d598ca0d60d7cbfa7f0b4ccf0eaf0bbc3a3bf02f6"
+    }
+  ]
+}

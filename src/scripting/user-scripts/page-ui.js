@@ -118,14 +118,14 @@ export function createPageUI({id,baseStyles=true,css='',assets={},mount}={}){
     placement=activatePageUIMount({doc,win,host,shadowRoot,content,prepared,onDispose,
       isAlive:()=>alive,destroy});
   }catch(error){destroy();throw error;}
-  // One bounded post-render check for opt-in targeting, not a page-wide scan.
-  if(mount!==undefined){
+  // One post-render CSS check for every instance; placement fallback is opt-in.
+  {
     const timer=win.setTimeout(()=>{
       if(!alive||doc.defaultView!==win||!doc.documentElement.isConnected){destroy();return;}
       const report=placement.verifyMount();
       if(report.checks?.cssReady===false){placement.stopMount('css_blocked');return;}
-      if(!report.checks?.hostConnected ||
-        (report.checks?.visible===false&&content.children.length>0))
+      if(mount!==undefined&&(!report.checks?.hostConnected ||
+        (report.checks?.visible===false&&content.children.length>0)))
         placement.fallbackMount('host_not_visible');
     },180);
     onDispose(()=>win.clearTimeout(timer));
