@@ -379,7 +379,7 @@ test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C an
   assert.match(f.find('script-task-version').textContent,/草稿快照/);
   f.find('script-id').value='another-script';f.find('script-params').value='{"value":777}';f.find('script-run-id').value='run-decoy';
   await f.finish(false);assert.equal(f.starts.length,1);assert.equal(f.persisted.results[0].revision.sourceHash,bHash);
-  assert.match(f.find('script-result').textContent,/result-run-1/);assert.match(f.find('script-result').textContent,new RegExp(bHash));
+  assert.equal(f.find('script-result').textContent,'false','only the actual decoded value is the default result');
   assert.equal(f.find('developer-results-panel').open,true,'completed own draft opens Results without crowding initial editor');
   assert.doesNotMatch(f.find('script-result').textContent,/run-decoy/);assert.equal(f.find('script-run-id').value,'run-1');
   assert(!f.snapshots.some(row=>row.runId==='run-decoy'));assert.match(f.find('script-history').textContent,/result-run-1/);
@@ -439,7 +439,7 @@ test('pagehide invokes RunHost host-close; reopened editor only reads the durabl
   assert(f.traces.includes('local-close'));assert(f.traces.some(row=>Array.isArray(row)&&row[1]==='E_HOST_CLOSED'));
   assert.equal(f.persisted.results[0].state,'interrupted');assert.equal(f.persisted.runs[0].retirementState,'released');
   const reopened=await fixture(f.persisted);t.after(()=>reopened.dispose());assert.equal(reopened.starts.length,0);assert.equal(reopened.executions.length,0);
-  assert.match(reopened.find('script-history').textContent,/interrupted/);assert.match(reopened.find('script-result').textContent,/result-run-1/);
+  assert.match(reopened.find('script-history').textContent,/interrupted/);assert.doesNotMatch(reopened.find('script-result').textContent,/result-run-1/);
 });
 
 test('late Save/Load replies do not overwrite another script selection or edits made during loading',async t=>{

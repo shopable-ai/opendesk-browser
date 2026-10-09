@@ -46,7 +46,13 @@ export function formatTaskError(error) {
   const code = /^E_[A-Z0-9_]{1,60}$/.test(rawCode) ? rawCode : 'E_TASK';
   const message = clip(redact(error?.message || '未收到可读的错误详情'), MAX_ERROR_CHARS);
   let advice = '请检查当前网页和任务配置；需要进一步排查时，展开“运行记录 → 技术信息”。';
-  if (/^E_(?:PERMISSION|PERMISSION_DENIED|GRANT|ORIGIN)/.test(code))
+  if (code === 'E_PAGE_CONTENT_TOO_LARGE')
+    advice = '网页 HTML 超出安全传输额度。可使用 page.content({maxChars:4000}) 读取片段，或使用 page.contentChunks() 分块处理完整 HTML；仍不能将超大字符串直接作为任务结果返回。';
+  else if (code === 'E_PAGE_CONTENT_BUSY' || code === 'E_PAGE_CONTENT_EXPIRED' || code === 'E_PAGE_CONTENT_SEQUENCE')
+    advice = 'HTML 快照已过期、占用或读取顺序不符；请重新开始分块读取，勿复用旧快照。';
+  else if (code === 'E_VALUE_SERIALIZATION' && /Wire byte budget exceeded/i.test(message))
+    advice = '任务返回数据超出单次 64 KiB 序列化预算。请仅返回所需字段或摘要；完整 HTML 可用 page.contentChunks() 分块处理，避免直接返回整页内容。';
+  else if (/^E_(?:PERMISSION|PERMISSION_DENIED|GRANT|ORIGIN)/.test(code))
     advice = '检查浏览器网站权限、当前网页地址和任务允许的网站，再重新授权。';
   else if (/^E_(?:DOCUMENT|TARGET|TAB_|OWNER|HOST_CLOSED)/.test(code))
     advice = '页面或执行环境可能已经变化；确认网页仍然打开，并在当前页面重新选择任务。已发出的操作先核实结果。';

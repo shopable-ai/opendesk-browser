@@ -9,6 +9,8 @@ import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-
 import {createProgramSourceView} from './program-source.js';
 import {createLocalProjectView} from './local-project.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
+import {formatControllerRunResult} from './run-result-presentation.js';
+import {formatTaskError} from './task-run-diagnostics.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -68,7 +70,12 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     status.dataset.state = state; status.textContent = message;
     if (value !== undefined) output.textContent = printable(value);
   }
-  const fail = error => display('error', `${error.code || 'E_CONTROL_EXECUTION'}：${error.message || error}`);
+  const fail = error => {
+    const help = formatTaskError(error);
+    display('error', help);
+    if (error?.code === 'E_PAGE_CONTENT_TOO_LARGE' ||
+        error?.code === 'E_VALUE_SERIALIZATION') output.textContent = help;
+  };
   const scriptId = () => find('script-id').value.trim();
   function renderRevisionState() {
     const node = find('script-version');
@@ -315,9 +322,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     }
     update();
     const focused = snapshot.run || currentTask;
-    display('results', focused ? `任务 ${focused.runId}：${stateLabels[focused.state] || focused.state}` : '已读取持久结果',
-      {runId:focused?.runId,state:focused?.state,results:focused ? values.filter(row=>row.runId === focused.runId) : values,
-        resultDeliveryDenied:snapshot.resultDeliveryDenied});
+    display('results', focused ? `任务状态：${stateLabels[focused.state] || focused.state}` : '已读取持久结果');
+    // The result is the decoded value, not runId/revision/sourceHash/transport metadata.
+    // Authorized technical history stays available in the existing collapsed panel.
+    output.textContent = formatControllerRunResult(values, focused?.runId, snapshot.resultDeliveryDenied);
     // Reveal genuine outcome only for this session's own draft; old history
     // stays collapsed on ordinary entry, preserving editor working space.
     if (ownedDraftRunId && values.some(row => row.runId === ownedDraftRunId))

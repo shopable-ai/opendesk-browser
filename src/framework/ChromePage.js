@@ -65,7 +65,36 @@ export class ChromePage {
   handleMessage() { throw new PageError('E_CALLBACK_UNAUTHORIZED'); }
   operationCompleted() { throw new PageError('E_CALLBACK_UNAUTHORIZED'); }
   title() { return dispatch(this, 'title', []); }
-  content() { return dispatch(this, 'content', []); }
+  // Legacy full-body read remains unchanged; large values cannot cross the 64 KiB Control wire.
+  content(opts) {
+    if (opts === undefined) return dispatch(this, 'content', []);
+    options(opts, ['maxChars']);
+    requireValue(Number.isSafeInteger(opts.maxChars) && opts.maxChars >= 2 && opts.maxChars <= 8192,
+      'E_ARGUMENT_TYPE', 'maxChars must be an integer between 2 and 8192');
+    return dispatch(this, 'content', [{maxChars: opts.maxChars}]);
+  }
+  // Snapshot-backed streaming: each piece travels through the original authorized
+  // Controller operation and remains subject to the ordinary per-message budget.
+  async *contentChunks(opts = {}) {
+    options(opts, ['chunkChars']);
+    const chunkChars = opts.chunkChars === undefined ? 8192 : opts.chunkChars;
+    requireValue(Number.isSafeInteger(chunkChars) && chunkChars >= 2 && chunkChars <= 8192,
+      'E_ARGUMENT_TYPE', 'chunkChars must be an integer between 2 and 8192');
+    const opened = await dispatch(this, 'contentOpen', [chunkChars]);
+    try {
+      let part = opened;
+      for (;;) {
+        yield part.html;
+        if (part.done) break;
+        part = await dispatch(this, 'contentRead', [opened.snapshotId, part.nextOffset, chunkChars]);
+      }
+    } finally {
+      // Close on success, early break, exception and cancellation. The document
+      // session additionally clears snapshots on abort/navigation/expiry.
+      try { await dispatch(this, 'contentClose', [opened.snapshotId]); }
+      catch { /* A fenced or destroyed session has already revoked the snapshot. */ }
+    }
+  }
   url() { return dispatch(this, 'url', []); }
   locator(css) { return createLocator(state(this), 'css', css); }
   getByRole(role, opts = {}) { return createLocator(state(this), 'role', role, opts); }
