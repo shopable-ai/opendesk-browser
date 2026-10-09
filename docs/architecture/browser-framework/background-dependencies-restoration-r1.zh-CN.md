@@ -1,4 +1,4 @@
-# R9.1：Background 框架第三方库恢复与真实消费者迁移方案
+# R9.1：旧版重复依赖分析与 Background / Content / Page 多世界使用方案
 
 > 状态：**架构修正与实施验收合同；不是已完成代码或 95 分验收结果**。2026-10-09，针对 R9 曾将 Page USER_SCRIPT 的 lodash-es 示例当作 Background 依赖完成证据的错误进行纠正。以主分支实际源码为准。
 
