@@ -15,7 +15,7 @@
 
 ## 修改和 Stop
 
-本机修改 local-controller 的 extract.js，保存后明确再点运行。新结果显示 version 2，旧结果保持原身份和值。Sidebar 不把本地文件复制成手工草稿；旧 Controller 结果使用原结果记录，或原归属 MCP 会话的 result。
+本机修改 local-controller 的 extract.js，保存后明确再点运行。新结果显示 version 2，旧结果保持原身份和值。Sidebar 不把本地文件复制成手工草稿；Sidebar 发起的 Controller 运行从原结果入口读取；只有同一 MCP Session 经 dev.run 发起并登记的运行，才可由该会话 dev.result 查询。共享源码 provider 不等于共享运行归属。
 
 Page 修改 model/CSS 后明确再预览，旧受管实例清理确认后才挂新 UI。**「停止受管 UI」** 清理原 previewId 登记资源。MCP provider 断开时，新本地 Run 禁用；原 Sidebar Host 已拥有的受管 UI 仍可 Stop，但仍要求原项目、Host、文档及网站权限有效。清理期间和清理未知时禁止新 Run。
 

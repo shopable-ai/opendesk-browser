@@ -145,7 +145,9 @@ Codex 增加依赖时审查许可证和实际消费者，维护精确版本与�
 
 ## 当前验证等级
 
-PR #37（本地开发）、#38（npm 依赖迁移）、#39（HTTPS ESM 安全修复）已合入 main。R9 有真实 npm 包构建与定向 CI，R10 有公开 CDN 14 模块首次固定/离线重建及远程 ESM Node 测试证据；Local Dev 的部分真 Chrome for Testing CI 记录不代表**用户自己的 Mac/Codex**已经验收。R10.1 已有实际开发 Codex 两次源码运行、npm/HTTPS 直连及定向断连/撤权/导航证据；当前开发包的 Codex 链路按相关后端输入一致复用，未在每个包重跑。见[R10.1 记录](../framework/workstreams/r101-development-01a12159.md)。2026-10-10 核对 PR #50 已合入 main；整体 Page 自动安装、同包完整验收与正式 F3/ZIP 仍不能据此宣称完成。证据以 [R9 工作记录](../framework/workstreams/r9-dependency-closure-20261009.md)、[R10 工作记录](../framework/workstreams/r10-https-esm-security-20261009.md) 和同候选原始回执为准。
+PR #37（本地开发）、#38（npm 依赖迁移）、#39（HTTPS ESM 安全修复）已合入 main。R9 有真实 npm 包构建与定向 CI，R10 有公开 CDN 14 模块首次固定/离线重建及远程 ESM Node 测试证据；目录 Resolver 已支持锁定 npm/HTTPS 经 MCP 直连运行。功能实现与**用户自己的 Mac/Codex**、完整 npm+HTTPS 混合原生矩阵分别核对，不互相提升证据等级。整体网页脚本自动安装、完整撤权/重启及最终 F3/ZIP 尚未关闭。证据以 [R9 工作记录](../framework/workstreams/r9-dependency-closure-20261009.md)、[R10 工作记录](../framework/workstreams/r10-https-esm-security-20261009.md) 和同候选原始回执为准。
+
+R10.1 已有实际开发 Codex 两次源码运行、npm/HTTPS 直连及定向断连/撤权/导航证据，当前开发包的 Codex 链路按相关后端输入一致复用，未在每个包重跑。见[R10.1 原记录](../framework/workstreams/r101-development-01a12159.md)。2026-10-10 核对 PR #50 已合入 main；原候选和同包完整验收/F3/ZIP 的等级分别保留。
 
 **日常使用：**按[快速入门](../api/quickstart.zh-CN.md)操作，核对已有证据与相关输入；旧 R10.1 GOAL 的“不支持锁定 npm/HTTPS”前提已过时，不重复开发。
 

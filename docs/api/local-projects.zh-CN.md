@@ -97,7 +97,7 @@ Page 使用 pageRules 替代 Controller 网站/参数字段。下列是 [local-p
 
 ## 修改与绑定变化
 
-1. 保存文件后检查 status/当前网页；只读 diagnostics 可检查源码错误。
+1. 保存文件后检查 status/当前网页；只读 diagnostics 仅查看此前读取/解析错误，不校验刚保存的磁盘源码；lastError:null 不证明新代码有效。
 2. 使用新的有意执行 requestId 或点 Run，重读依赖闭包、校验锁和资产、在内存中构建；错误不回退成旧代码。
 3. 比较 source.inputHash（输入图、配置、工具身份）和 source.sourceHash（最终字节）。注释变化可能只改变输入哈希。
 4. Controller 查新 runId，再查旧 runId 验证旧结果冻结。受管 Page 同文档再预览先确认旧清理；清理不返还预览世界预算。
