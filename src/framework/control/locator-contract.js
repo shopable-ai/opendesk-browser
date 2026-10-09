@@ -10,14 +10,14 @@ const own = (value, keys) => value && typeof value === 'object' && !Array.isArra
   Object.keys(value).every(key => keys.includes(key));
 function literal(value) {
   requireValue(typeof value === 'string' && value.length > 0 && value.length <= 1024, 'E_ARGUMENT_TYPE',
-    'Expected nonempty string');
+    'Text required');
   return value;
 }
 function nativeCSS(value) {
   selector(value);
   requireValue(!/^\s*(?:xpath\s*=|text\s*=|role\s*=|\/\/|\/html\b)/i.test(value) &&
     !/(?:>>>|>>|\/deep\/|:has-text\s*\(|:text(?:-is|-matches)?\s*\(|:nth-match\s*\(|:visible\b|::-p-)/i.test(value),
-  'E_SELECTOR_UNSUPPORTED', 'Native CSS only');
+  'E_SELECTOR_UNSUPPORTED', 'CSS only');
   return value;
 }
 function textOptions(value = {}) {
