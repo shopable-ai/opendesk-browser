@@ -37,7 +37,7 @@ test('R5 official sidebar preserves three views, privileged controls, compact di
   assert.match(work,/new BroadcastChannel|new globalThis\.BroadcastChannel/);
   assert.match(work,/listTaskCatalog/,'broadcast does not replace authoritative data');
   assert.match(css,/task-history-entry/);
-  assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
 });
 
 test('R5 keeps one derived interactive prototype with installed-only compact discovery',async()=>{

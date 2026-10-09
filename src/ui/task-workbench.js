@@ -16,7 +16,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const get=id=>doc.getElementById(id);
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
-  let toolActive=false;
+  let toolActive=false, toolsViewListener=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
   let localQuery='', localFilter='current';
@@ -81,7 +81,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   };
   const option=(name,value)=>new Option(name,value);
   function navigate(name) {
-    if(!['tasks','discover','develop','catalog'].includes(name))return;
+    if(!['tasks','discover','develop','tools','catalog'].includes(name))return;
     if(name==='catalog'&&!catalogSurface) {
       // Package import and installation live only in a separate full-size
       // extension tab. Sidebar Discover is a view of installed local tasks.
@@ -89,15 +89,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return;
     }
     for(const [element,view] of [
-      ['tasks','tasks'],['local-discover','discover'],['develop','develop'],['discover','catalog']
+      ['tasks','tasks'],['local-discover','discover'],['develop','develop'],['tools','tools'],['discover','catalog']
     ])get('workbench-'+element).hidden=view!==name;
-    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']]) {
+    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop'],['tools','tab-tools']]) {
       const tab=get(id);
       tab.setAttribute('aria-selected',String(name===view));
       tab.tabIndex=name===view?0:-1;
     }
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
+    toolsViewListener?.(name==='tools' && !catalogSurface);
     if(name==='discover')renderLocalDiscovery();
   }
   // Keep the owning Stop control visible across Sidebar tab changes;
@@ -688,7 +689,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     working=true;update();
     try{await fn();}catch(error){fail(error);}finally{working=false;update();}
   };
-  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']];
+  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop'],['tools','tab-tools']];
   for(const [index,[tab,id]] of tabOrder.entries()){
     listen(get(id),'click',()=>{
       navigate(tab);
@@ -766,7 +767,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks');update();
-  return {navigate,showCatalogPage,refresh,setToolActive(value) {
+  return {navigate,showCatalogPage,refresh,connectToolsView(listener) {
+    toolsViewListener=listener;
+    listener?.(doc.documentElement?.dataset?.opendeskTab==='tools' && !catalogSurface);
+  },setToolActive(value) {
     toolActive=Boolean(value);
     if(!disposed)syncRunDock();
   },focusInstalledTask(taskId) {

@@ -46,3 +46,11 @@ test('multi-value credentials in free-text diagnostics are fully redacted', () =
   assert.doesNotMatch(value, /first-secret|second-secret/);
   assert.doesNotMatch(formatTaskError({code:'E_TIMEOUT',message:'Basic basic-secret'}),/basic-secret/);
 });
+
+test('User Scripts unavailable has focused, actionable Chinese guidance and no effect-unknown claim', () => {
+  const formatted = formatTaskError({code:'E_USER_SCRIPTS_UNAVAILABLE',message:'E_USER_SCRIPTS_UNAVAILABLE'});
+  assert.match(formatted,/允许用户脚本/);
+  assert.match(formatted,/Chrome 138\+/);
+  assert.match(formatted,/page\.locator/);
+  assert.doesNotMatch(formatted,/网页操作是否生效尚未确认|请先检查当前网页和任务配置/);
+});

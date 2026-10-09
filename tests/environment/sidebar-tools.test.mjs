@@ -58,7 +58,8 @@ test('new sandbox uses isolated Chrome MV3 resource and a narrow host message pr
   ]);
   assert.deepEqual(manifest.sandbox.pages,['scripting/sandbox/sandbox.html','sidebar-tools/sandbox.html']);
   assert.equal(manifest.side_panel.default_path,'ui/tool.html');
-  assert.match(toolHtml,/id="sidebar-tool-tabs"/);
+  assert.match(toolHtml,/id="sidebar-tool-list"/);
+  assert.match(toolHtml,/id="tab-tools"/);
   assert.match(toolHtml,/id="sidebar-tool-frame"/);
   assert.match(toolHtml,/id="tab-my-tasks"/);
   assert.match(host,/event.origin!=='null'/);
@@ -73,7 +74,7 @@ test('new sandbox uses isolated Chrome MV3 resource and a narrow host message pr
 });
 
 
-test('Sidebar tool intake stays compact until selection and keeps installation separate from execution',async()=>{
+test('Sidebar tool intake requires explicit install-and-open, then displays one sandbox app',async()=>{
   const [html,css,host,work]=await Promise.all([
     readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/task-workbench.js','utf8')
@@ -81,11 +82,15 @@ test('Sidebar tool intake stays compact until selection and keeps installation s
   assert.match(html,/id="sidebar-tool-import" class="sidebar-tool-import" hidden/);
   assert.match(html,/id="sidebar-tool-preview" class="sidebar-tool-preview" hidden/);
   assert.match(html,/id="sidebar-tool-import-trigger" aria-expanded="false"/);
-  assert.match(html,/id="sidebar-tool-tabs"[^>]* hidden/);
+  assert.match(html,/id="sidebar-tool-list"/);
+  assert.match(html,/id="sidebar-tool-back"/);
+  assert.match(html,/id="workbench-tools" role="tabpanel"/);
+  assert.doesNotMatch(html,/id="sidebar-tool-tabs"/);
   assert.match(html,/id="task-open-catalog"/);
   assert.match(css,/\.sidebar-tool-import\{min-width:0;margin:8px 0 3px;/);
   assert.match(css,/\.task-section-head\{margin:0 0 8px/);
-  assert.match(host,/list\.hidden=installed\.length===0/);
+  assert.match(host,/empty\.hidden=installed\.length!==0/);
+  assert.match(host,/setVisible\(next\)/);
   assert.match(host,/preview\.hidden=false;installButton\.disabled=false/);
   assert.match(work,/listen\(get\('task-open-catalog'\),'click'/);
 });

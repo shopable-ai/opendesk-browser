@@ -1,0 +1,50 @@
+name: Controller HTML real Chrome smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/framework/ChromePage.js'
+      - 'src/framework/control/**'
+      - 'src/scripting/packaged/**'
+      - 'src/scripting/sandbox/**'
+      - 'src/platform/host/controller-methods.js'
+      - 'tests/framework/page-content-native*.js'
+      - 'tests/framework/page-content-native*.mjs'
+      - '.github/workflows/page-content-native.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos-real-chrome:
+    runs-on: macos-15
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install Chrome for Testing
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Preserve complete Chrome for Testing app bundle
+        id: bundle
+        env:
+          CFT_SETUP_BINARY: ${{ steps.cft.outputs.chrome-path }}
+        run: |
+          case "$CFT_SETUP_BINARY" in
+            */Contents/MacOS/"Google Chrome for Testing") original="${CFT_SETUP_BINARY%/Contents/MacOS/*}" ;;
+            *) echo "Unexpected Chrome path" >&2; exit 1 ;;
+          esac
+          test -d "$original/Contents/Frameworks"
+          app="$RUNNER_TEMP/opendesk-html-cft/Google Chrome for Testing.app"
+          /usr/bin/ditto "$original" "$app"
+          test -f "$app/Contents/Info.plist"
+          printf 'chrome-bin=%s\n' "$app/Contents/MacOS/Google Chrome for Testing" >> "$GITHUB_OUTPUT"
+      - name: Real MV3 Controller HTML protocol and Worker
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.bundle.outputs.chrome-bin }}
+        run: node tests/framework/page-content-native.mjs
