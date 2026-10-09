@@ -27,12 +27,13 @@
     "priorProgram": "historical program-r31 receipts preserved; current Demo files and extension inputs differ => AFFECTED_INPUTS",
     "R52": "preserved records; do not repeat unrelated campaign",
     "overallF3ZIP": "NOT_TESTED",
-    "finalRebase": "current-main/rebase-reuse.json: no affected build or targeted test inputs"
+    "finalRebase": "current-main/rebase-reuse.json: no affected build or targeted test inputs",
+    "finalIntegration": "REUSE_RECORDED_PASS for unchanged scoped component/build inputs only; final-integration.json and documentation-followup.json preserve SHA mapping; no native promotion"
   },
   "evidenceDirectory": "docs/framework/evidence/sidebar-multifile-native-r1-20261009",
-  "updatedAt": "2026-10-08T19:10:44.013907+00:00",
-  "currentBaseline": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
-  "currentHead": "5988ced5959003d88327658558c9fc08b86f92d8",
+  "updatedAt": "2026-10-09T05:40:12.152449+00:00",
+  "currentBaseline": "c11acf1658b45b6d75f1b2e14c27011b9544dcae",
+  "currentHead": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
   "fixes": [
     "source BOM byte identity",
     "draft SemVer matches schema",
@@ -78,6 +79,21 @@
       "r3-package": "FAIL 2 importer observation races",
       "bridge-components": "FAIL same 2 tests",
       "macos-native": "FAIL bare CFT/CDP baseline, same on main"
+    },
+    "remoteCIFinal": {
+      "headSha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+      "component": {
+        "r3-package": "PASS",
+        "sidebar-user-flow": "PASS",
+        "site-access": "PASS",
+        "bridge-components": "PASS (303 tests: 298 pass, 5 skipped)"
+      },
+      "native": {
+        "macos-15": "FAIL 2/2 bare renderer/CDP and extension/CLI",
+        "macos-15-intel": "FAIL 2/2 same baseline failure",
+        "presentOnBaseMain": "bd7c8d1b41197673ad0d5ab0abe53231393a368d"
+      },
+      "statusEvidence": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/ci/final-check-runs.json"
     }
   },
   "contractDifferences": [
@@ -102,7 +118,8 @@
     "legacyJS": "NOT_TESTED",
     "directoryImport": "NOT_IMPLEMENTED",
     "CODEX_E2E": "NOT_TESTED; R6.2 workflow owned elsewhere",
-    "blockedObserver": "NOT_EXECUTED: borrowed observer requires launcher-program-r3.json, own driver wrote launcher-multifile.json; preserve error and align driver label before resume"
+    "blockedObserver": "NOT_EXECUTED: historical launcher-multifile.json mismatched expected launcher-program-r3.json; driver label now aligned, restart ordering adjusted, neither change retested; use fresh output directory and verify first",
+    "resourceEffects": "NOT_TESTED: real CSS/JSON/PNG effects, network, permissions and lifecycle"
   },
   "nativeBlocker": {
     "tool": "mcp__cua_repl",
@@ -112,11 +129,15 @@
     "unlockReplyReceived": false
   },
   "mainIntegration": {
-    "status": "LOCAL_FIX_PR_AWAITING_CORRECTED_COMPONENT_CI",
+    "status": "MERGED_LOCAL_FIXES_NATIVE_OPEN",
     "nativeAcceptance": "OPEN",
     "noNativePassClaim": true,
     "PR": "https://github.com/shopable-ai/opendesk-browser/pull/29",
-    "nativeCIMainBaseline": "FAIL on bd7c8d1b bare unextended renderer/CDP; ci logs retained"
+    "nativeCIMainBaseline": "FAIL on bd7c8d1b bare unextended renderer/CDP; ci logs retained",
+    "mergedMain": "c11acf1658b45b6d75f1b2e14c27011b9544dcae",
+    "verifiedPRHead": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+    "mergedTreeEqualsVerifiedPRHead": true,
+    "proof": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/final-integration.json"
   },
   "finalFixes": [
     "module BOM byte identity",
@@ -132,5 +153,24 @@
     "P1P2": "none confirmed in final scan",
     "nativeF3": false
   },
-  "frozenLocalProductCandidate": "6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b"
+  "frozenLocalProductCandidate": "6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b",
+  "integrationBaseMain": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+  "continuation": {
+    "entry": "docs/framework/workstreams/sidebar-multifile-native-r1-20261009.md#resume",
+    "priority": [
+      "native-unlock-and-driver-preflight",
+      "draft-json-import",
+      "readonly-js-source-snapshots",
+      "page-execution-receipt",
+      "controller-durable-runId-resultId",
+      "page-resource-effects-and-boundaries",
+      "legacy-js-and-lifecycle"
+    ],
+    "reusePolicy": "compare related product/transitive/test/fixture/contract/environment and actual package inputs; docs/chat/time changes alone do not trigger repeat",
+    "failureRetryPolicy": "record a concrete code/environment/observer change before retrying identical failure",
+    "evidencePolicy": "new unique directory and immutable receipts; never run historical hardcoded driver as-is",
+    "nativeAgentOwnerRecord": "docs/framework/workstreams/r62-local-acceptance-01a11c24.json",
+    "directoryImport": "NOT_IMPLEMENTED; separate product decision",
+    "finalF3ZIP": "NOT_TESTED; preserve existing full acceptance contract"
+  }
 }

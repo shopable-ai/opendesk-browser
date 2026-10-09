@@ -1,0 +1,86 @@
+{
+  "recordedAt": "2026-10-09T05:41:32.775949+00:00",
+  "scope": "documentation and evidence archival only",
+  "verifiedProductHead": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+  "mergedProductMain": "c11acf1658b45b6d75f1b2e14c27011b9544dcae",
+  "gitTrees": {
+    "6fa0ed859661ade021a11486f5ab9e80c921cf16": "72bea5db50139e2d1165964b5374f96e09b5c47b",
+    "c11acf1658b45b6d75f1b2e14c27011b9544dcae": "72bea5db50139e2d1165964b5374f96e09b5c47b"
+  },
+  "mergedTreeEqualsVerifiedPRHead": true,
+  "buildInputs": [
+    {
+      "mode": "production",
+      "receipt": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/local-candidate-builds/build-production.json",
+      "receiptSha256": "c99b8206b80b6f226467853ee58f5a3d8eb3812a9d5a9c22eb059e7a4ce919e3",
+      "inputCount": 140,
+      "affectedInputs": []
+    },
+    {
+      "mode": "development",
+      "receipt": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/local-candidate-builds/build-development.json",
+      "receiptSha256": "eb15e765744d83b2e08e9ff2362c94b857339b33b3a05c3a2182ac76eae89d48",
+      "inputCount": 140,
+      "affectedInputs": []
+    }
+  ],
+  "targetedTestFilesEqualVerifiedHead": [
+    {
+      "path": "tests/environment/program-draft-roundtrip.test.mjs",
+      "sha256": "9e5adff6b852d2cd3ebeb76d5293e0738335bee99a79de605fa7730af552ac9f"
+    },
+    {
+      "path": "tests/environment/program-source.test.mjs",
+      "sha256": "fbb27f8f779f9a804a880ada36c738d006065d5dbd05b0bf65b76b5b0ea7805e"
+    },
+    {
+      "path": "tests/environment/program-build.test.mjs",
+      "sha256": "efa549abd680d925c46dcc84cfbae368bd111b20df3f4a970798fd0327eb028a"
+    },
+    {
+      "path": "tests/environment/program-project.test.mjs",
+      "sha256": "a14a1a2339f281651123c7aac108e14016387cc342b738b2d0be2ac275d08415"
+    },
+    {
+      "path": "tests/environment/sidebar-project-demo.test.mjs",
+      "sha256": "3969390f843751227fd6378211ce51cebe98f720c4595063b027b829cdc2f24e"
+    },
+    {
+      "path": "tests/environment/program-assets.test.mjs",
+      "sha256": "040f27b8060eb4faa723903a2d0c6a532f1ce7c1e666c337c843139966e371ff"
+    },
+    {
+      "path": "tests/environment/page-ui.test.mjs",
+      "sha256": "bd433cc2b32cdd2efb10cb776960f528ec8b15b4de4619f5dcfb4e13059596bb"
+    },
+    {
+      "path": "tests/environment/task-workbench.test.mjs",
+      "sha256": "ff946f5b23323305410632976ff9cfb168b19a98c19be7bc60c33f1b3f5fae9c"
+    },
+    {
+      "path": "tests/environment/sidebar-draft-import.test.mjs",
+      "sha256": "74112328de28dd3282416e498fc4d28e9c3b53cd0b7574f5bab2741c508e1a8c"
+    },
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "sha256": "572bd70c1e6d254ca20337c47b3f95d6b0b4a618bc23c1c2eba35e9eab4aff8e"
+    }
+  ],
+  "relativeDocumentationReferencesChecked": 33,
+  "brokenReferences": [],
+  "priorEvidenceRecordsChecked": 163,
+  "priorEvidenceChanged": [],
+  "priorIndexArchive": {
+    "path": "evidence-index-before-documentation-followup.json",
+    "sha256": "df6252ac295b6cfd67fca4902c6005a33573650ce80ae6c972ba1de8a02c2d4b"
+  },
+  "finalCIStatusEvidence": {
+    "path": "ci/final-check-runs.json",
+    "sha256": "83211528fba9aa900bc5c1393fcc3bc7abb917b6f2bfca82e075a95ed78e3198"
+  },
+  "productTestsExecuted": false,
+  "buildExecuted": false,
+  "nativeExecuted": false,
+  "nativeAcceptance": "OPEN",
+  "F3_ZIP": "NOT_TESTED"
+}

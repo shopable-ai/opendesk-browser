@@ -1,0 +1,32 @@
+{
+  "PR": "https://github.com/shopable-ai/opendesk-browser/pull/29",
+  "merged": true,
+  "mergedMain": "c11acf1658b45b6d75f1b2e14c27011b9544dcae",
+  "currentOriginMain": "c11acf1658b45b6d75f1b2e14c27011b9544dcae",
+  "verifiedPRHead": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+  "mergedTreeEqualsVerifiedPRHead": true,
+  "componentCI": {
+    "r3-package": "PASS",
+    "sidebar-user-flow": "PASS",
+    "site-access": "PASS",
+    "bridge-components": "PASS (303 tests: 298 pass, 5 skipped)"
+  },
+  "nativeCI": {
+    "macos-15": "FAIL 2/2 bare renderer/CDP and extension/CLI",
+    "macos-15-intel": "FAIL 2/2 same baseline failure",
+    "presentOnBaseMain": "bd7c8d1b41197673ad0d5ab0abe53231393a368d"
+  },
+  "nativeSidebar": "NOT_COMPLETED: Mac locked; automatic unlock failed",
+  "CODEX_E2E": "NOT_TESTED",
+  "F3_ZIP": "NOT_TESTED",
+  "buildInputComparison": [
+    {
+      "mode": "production",
+      "affectedProductInputs": []
+    },
+    {
+      "mode": "development",
+      "affectedProductInputs": []
+    }
+  ]
+}
