@@ -64,11 +64,20 @@ export function activatePageUIMount({doc,win,host,shadowRoot,content,prepared,on
     if(!retarget()){putFloating('target_disconnected');return;}
     let rect;
     try{rect=target.getBoundingClientRect?.();}catch{rect=null;}
-    if(!rect||![rect.top,rect.right].every(Number.isFinite)){putFloating('anchor_geometry_unavailable');return;}
+    if(!rect||![rect.top,rect.right,rect.width,rect.height].every(Number.isFinite)||
+      rect.width<=0||rect.height<=0){putFloating('anchor_geometry_unavailable');return;}
     const width=win.innerWidth||doc.documentElement.clientWidth||1024;
     const height=win.innerHeight||doc.documentElement.clientHeight||768;
-    host.style.left=Math.round(Math.max(8,Math.min(rect.right+8,width-48)))+'px';
-    host.style.top=Math.round(Math.max(8,Math.min(rect.top,height-48)))+'px';
+    // Fit the real managed host in the viewport, not an assumed 48px button.
+    const hostRect=host.getBoundingClientRect?.();
+    const hostWidth=Number.isFinite(hostRect?.width)?Math.max(0,hostRect.width):0;
+    const hostHeight=Number.isFinite(hostRect?.height)?Math.max(0,hostRect.height):0;
+    const gap=8,remaining=Math.max(gap,width-gap-hostWidth);
+    const right=rect.right+gap,left=rect.right-rect.width-gap-hostWidth;
+    const x=right+hostWidth<=width-gap?right:left>=gap?left:
+      Math.max(gap,Math.min(rect.right-rect.width,remaining));
+    host.style.left=Math.round(Math.max(gap,Math.min(x,remaining)))+'px';
+    host.style.top=Math.round(Math.max(gap,Math.min(rect.top,Math.max(gap,height-gap-hostHeight))))+'px';
   }
   function watch(){
     stop();
@@ -107,6 +116,7 @@ export function activatePageUIMount({doc,win,host,shadowRoot,content,prepared,on
     const resize= strategy==='anchored'&&typeof win.ResizeObserver==='function'
       ?new win.ResizeObserver(schedule):null;
     resize?.observe(target);
+    resize?.observe(host);
     stopWatching=()=>{
       observer.disconnect();resize?.disconnect();
       win.removeEventListener('scroll',schedule,true);win.removeEventListener('resize',schedule);

@@ -142,3 +142,45 @@ test('interactive append refused; target missing uses floating; pagehide clears 
   assert.equal(ui.active(),false);assert.equal(fallback.active(),false);
   assert.equal(doc.observers.size,0);
 });
+
+test('anchored mode measures the actual host and stays in a 320px viewport',async t=>{
+  const {doc,anchor}=fixture(t);
+  doc.defaultView.innerWidth=320;
+  anchor.getBoundingClientRect=()=>({top:120,right:310,width:50,height:22});
+  const ui=createPageUI({id:'u.narrow',mount:{selector:'#page-ui-anchor',mode:'anchored'}});
+  ui.host.getBoundingClientRect=()=>({width:260,height:48});
+  doc.defaultView.dispatchEvent(new Event('resize'));
+  await new Promise(r=>setTimeout(r,5));
+  const left=Number.parseFloat(ui.host.style.left);
+  assert.equal(ui.getMountDiagnostics().strategy,'anchored');
+  assert.ok(left>=8 && left+260<=312,`host overflows viewport: left=${left}`);
+  ui.destroy();assert.equal(doc.observers.size,0);
+});
+
+test('zero-size re-rendered target degrades anchored placement to floating',async t=>{
+  const {doc,toolbar,anchor}=fixture(t);
+  const ui=createPageUI({id:'u.hidden',mount:{selector:'#page-ui-anchor'}});
+  const fresh=doc.createElement('h2');fresh.setAttribute('id','page-ui-anchor');
+  anchor.remove();toolbar.append(fresh);await Promise.resolve();
+  assert.equal(ui.getMountDiagnostics().strategy,'anchored');
+  fresh.getBoundingClientRect=()=>({top:0,right:0,width:0,height:0});
+  doc.defaultView.dispatchEvent(new Event('scroll'));
+  await new Promise(r=>setTimeout(r,5));
+  assert.equal(ui.getMountDiagnostics().strategy,'floating');
+  assert.equal(ui.getMountDiagnostics().reason,'anchor_geometry_unavailable');
+  ui.destroy();assert.equal(doc.observers.size,0);
+});
+
+test('twenty repeated inline preview replacements do not leak DOM or observers',t=>{
+  const {doc}=fixture(t);
+  let previous=null;
+  for(let i=0;i<20;i++){
+    const next=createPageUI({id:'u.repeat',mount:{selector:'#page-ui-anchor'}});
+    assert.equal(doc.querySelectorAll('[data-opendesk-ui-owner]').length,1);
+    if(previous)assert.equal(previous.active(),false);
+    previous=next;
+  }
+  previous.destroy();
+  assert.equal(doc.querySelectorAll('[data-opendesk-ui-owner]').length,0);
+  assert.equal(doc.observers.size,0);
+});
