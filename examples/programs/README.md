@@ -9,11 +9,20 @@
 | --- | --- | --- |
 | [page-heading](page-heading/) | 旧有 Page ESM 标题读取 | 本地构建 |
 | [controller-title](controller-title/) | 旧有 Controller ESM 标题读取 | 本地构建与 Candidate |
+| [local-controller](local-controller/README.md) | Codex/MCP 修改本地多文件，直接使用最新已保存源码 | Native/MCP/Chrome 测试按 [本地开发工作记录](../../docs/framework/workstreams/local-dev-r22-c036.json) 核对；用户 Mac 另验收 |
+| [page-npm-lodash](page-npm-lodash/README.md) | 项目级 npm 锁定 `lodash-es@4.17.21` → 单一 Page JS | npm 构建与 Node 回归；真实 Mac Chrome 另验收 |
+| [remote-esm-page](remote-esm-page/README.md) | HTTPS 静态 `import` → 明确锁定 → 离线重复构建 | R10 公开 CDN / 离线 CI 通过；浏览器内真实运行另验收 |
 | [sidebar-page-demo](sidebar-page-demo/) | 3 个源模块 → Page USER_SCRIPT → 测试页可见标记 | 可构建；真实 Chrome 待验收 |
 | [sidebar-controller-demo](sidebar-controller-demo/) | 3 个源模块 → Controller Locator → 真实表单/结果 | 可构建；真实 Chrome 待验收 |
 | [sidebar-assets-contract](sidebar-assets-contract/) | Page CSS/JSON/PNG 的有界打包与安全拒绝 | 本地构建与负向回归；真实 Chrome 待验收 |
 
-全部示例共用 `examples/tasks/demo-form.html`，没有新增重复的人工测试页。
+需要先选哪一种开发流程？阅读 [统一 JavaScript 使用指南](../../docs/product/program-development-dual-format-and-sidebar.zh-CN.md)：
+
+- 普通 Page/Controller 直接在 Sidebar 编写与试运行，不需要 `package.json`；
+- 本地相对 ESM 项目通过授权目录和 MCP/Sidebar 连接运行，修改文件后无需导入 JSON；
+- npm 或 HTTPS ESM 项目走构建器，锁定字节后导入不可变 `program.js` / `program.opendesk-draft.json`。目前本地连接仍会拒绝 npm/HTTPS 原始 import，不能把两条路径混为一谈。
+
+原有多文件 UI 演示仍以 `examples/tasks/demo-form.html` 为统一受控测试页；**remote-esm-page 的匹配范围目前为 `https://example.com/*`，并非此 localhost 测试页**。如需测试 localhost，须先在受信项目 `pageRules` 按授权目标调整并重新构建，不自动放宽匹配权限。
 
 参考 [Program API 文档](../../docs/framework/sidebar-project-api-r1.zh-CN.md)、[文件夹与资源架构](../../docs/architecture/browser-framework/sidebar-project-intake-r1.zh-CN.md) 与 [Codex 本地验收目标](../../docs/framework/prompts/goal-sidebar-multifile-native-acceptance-r1.md)。
 

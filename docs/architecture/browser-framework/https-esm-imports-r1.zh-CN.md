@@ -2,6 +2,8 @@
 
 更新：2026-10-09。此功能是**本地 JavaScript 项目构建能力**，不是 Sidebar 远程脚本加载器，也不是新的 UserScript / `@require` 表单。
 
+第一次使用优先参照 [统一 JavaScript 操作指南](../../product/program-development-dual-format-and-sidebar.zh-CN.md#标准-https-esm只在本地构建阶段锁定)；本文专门记录网络安全、锁文件、离线构建及失败关闭的技术规则。
+
 ## 一句话
 
 JavaScript 源码允许写标准静态 HTTPS URL 导入；首次由本地开发者明确固定依赖，之后整个构建离线复用相同 SHA-256 字节：
@@ -48,7 +50,7 @@ URL import 不代表浏览器会发起远程执行，最终 `program.js` 包含�
 - 缓存与锁文件采取 `O_NOFOLLOW` 读取，并拒绝缓存目录符号链接；缓存按 SHA-256 不可变写入；并行显式锁定采用独占锁目录，一次只能有一个更新操作。异常中断后如有残留 `.opendesk/remote-lock-write`，需开发者确认没有仍在执行的构建进程，再手动清理；不会自动忽略冲突。
 - 默认构建仍然完全离线。特殊的 `fetchImpl` 仅用于可信 Node 测试注入，**不得把普通 `fetch` 作为生产下载器传入**。网络获取允许的是明确触发的开发构建，并不代表批准下载代码的供应链安全性。
 
-在 Sidebar 内直接输入 `import ... from 'https://...'` 时，目前会得到明确的 `E_ESM_BUILD_REQUIRED` 说明，**不会**暗中抓取 CDN 或将未编译的 ESM 当普通代码执行。PR #37 的本地 MCP 候选目前尚未集成 HTTPS/npm 构建；其自动连接运行属于后续独立真实验收缺口，不得宣称 R10 已完成该闭环。
+在 Sidebar 的**手工草稿编辑区**直接输入 `import ... from 'https://...'`，目前会得到 `E_ESM_BUILD_REQUIRED`，**不会**暗中抓取 CDN 或将未编译的 ESM 当普通代码执行。PR #37 的 Native/MCP 本地目录、PR #38 的 npm 打包审计和 PR #39 的 HTTPS 安全构建现已分别合入 `main`；但本地开发 Resolver 明确以 `E_DEV_DEPENDENCY` 拒绝 npm/HTTPS。**代码分支已经合并，不等于这些能力已在“Sidebar 编辑 → 本地自动构建 → 当前网页运行”中连成同一个闭环**；这一缺口需后续在现有 Resolver/RunHost 上完成并进行真实 Chrome 验收。
 
 ## 关键技术边界与故障策略
 
