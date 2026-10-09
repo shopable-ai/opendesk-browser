@@ -71,6 +71,7 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
   if (!fs.existsSync(launcher)) throw new Error('macOS CFT launcher is missing: ' + launcher);
 
   const reportFile = path.join(out, 'chrome-launcher-report.json');
+  if (fs.existsSync(reportFile)) throw new Error('Use a fresh evidence directory; an earlier launcher report must be preserved');
   const launcherArgs = [
     launcher,
     '--executable', binary,
@@ -81,6 +82,7 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
   launcherProcess.stdout.on('data', bytes => fs.appendFileSync(path.join(out, 'chrome-launcher-stdout.log'), bytes));
   launcherProcess.stderr.on('data', bytes => fs.appendFileSync(path.join(out, 'chrome-launcher-stderr.log'), bytes));
 
+  try {
   const metadata = await waitFor(() => {
     if (launcherProcess.exitCode !== null) throw new Error('launcher exited before report');
     if (!fs.existsSync(reportFile)) return null;
@@ -159,4 +161,13 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
     cleanup
   };
   return {chrome, profile: metadata.profile, lines, launch};
+  } catch (error) {
+    // A failed startup has not returned a browser owner to the caller. Stop
+    // only this newly spawned launcher; it forwards the signal to its child
+    // and removes its own private profile in finally.
+    if (pidAlive(launcherProcess.pid)) launcherProcess.kill('SIGTERM');
+    const exit = await waitForExit(launcherProcess, 15000);
+    fs.writeFileSync(path.join(out, 'chrome-launcher-start-failure.json'), JSON.stringify({message:error.message,launcherPid:launcherProcess.pid,exit,launcherPidAlive:pidAlive(launcherProcess.pid)},null,2)+'\n');
+    throw error;
+  }
 }
