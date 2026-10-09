@@ -17,6 +17,8 @@
 - **仅 Candidate**：产品态固定 `Candidate` 与 `verification:null`，无 `makePageAvailable`、安装、启用、自动执行或注册路由。E09 的原生 Page 证明、E07.2 安装事务、E12 实例身份及 E10 的注册对账均保持 `MISSING/PARTIAL`，不能依据本地记录升级权限或宣称支持正式用户脚本安装。
 - **验证**：新增 `tests/environment/page-candidate-service.test.mjs` 包括幂等并发、版本冲突、跨命名空间隔离、伪造 Available/源码篡改、依赖未审与 Host 过期等负例。PR #31 的 CI 源码头 `77e533c3` 已实跑 Candidate 8/8、Page 125/125、canonical 14/14、Backlog 3/3，check 174、生产/开发构建、verify、pack 与 ZIP 原样比对 PASS；所有结果只属于该候选代码和对应包 SHA。Chrome/Codex、真实安装、扩展/浏览器重启和 F3 全部 `NOT_TESTED`。工作流见 `docs/framework/workstreams/r8-e07-page-candidate-20261009-6c2a.json`。
 
+**E07.1 main 合入更新（2026-10-09）**：PR #31 已合入 `main@c0303f6b1c25504ddc9fdd88e44d9016407abb90`。最终源码候选 `fee4ef12` 与合入主干复跑结果一致：Page 131/131、Candidate 8/8、Canonical 14/14、188→40 校验 3/3，check 174，Production/Development build+verify+ZIP/dist 原样比较通过。仅关闭 E07.1 Candidate 导入/按身份读取的源码、组件、构建层；E07.2 安装、E09 类型专属验证、E10 自动注册和 E12 脚本身份仍为未来阶段，真实 Chrome/Codex/F3 均未关闭。生产 SW 已接近 327680-byte 硬上限，后续开发不得提高预算逃避工程减重。
+
 ## 1. 本轮结论与适用规则
 
 正式定位为 **用户脚本管理器 + 现代 JavaScript 开发框架 + 浏览器自动化任务平台 + 可选 AI Agent**。现有 Controller、RunHost、Locator、Task 发布、单文件草稿、页面预览、ESM 构建和 SDK 是复用基座；正式 Page 安装、GM Facade、调度和跨浏览器适配存在独立缺口。现有 `background-services.js` 是 SDK 的时间、日志、固定资源服务，不能因文件名而被标为 Background Script 引擎。

@@ -70,5 +70,39 @@
     "zipDevelopment": "408bfa214b1f33b81542ec8bd99b9beb9a21753034c859e80821f5a6a9e6f08b",
     "siteAccess": "PASS",
     "nativeChrome": "NOT_TESTED"
+  },
+  "mergedToMain": {
+    "pr": 31,
+    "mergeSha": "c0303f6b1c25504ddc9fdd88e44d9016407abb90",
+    "sourceHead": "fee4ef12ac4992be07c0088f06d60ea402e75086",
+    "mergedAt": "2026-10-09T06:10:29Z",
+    "branchesAfterMerge": [
+      "main"
+    ],
+    "nativeChrome": "NOT_TESTED"
+  },
+  "finalCombinedCI": {
+    "mainSha": "c0303f6b1c25504ddc9fdd88e44d9016407abb90",
+    "page": {
+      "pass": 131,
+      "fail": 0
+    },
+    "candidate": {
+      "pass": 8,
+      "fail": 0
+    },
+    "canonical": {
+      "pass": 14,
+      "fail": 0
+    },
+    "backlog": {
+      "pass": 3,
+      "fail": 0
+    },
+    "sourceChecked": 174,
+    "buildProductionHash": "9622cb829b8987c755963c5f59399317b4a7605dd9747e45b013dd3b86ac474d",
+    "buildDevelopmentHash": "f0a85682d8ec454558d8434257b8637d8315f850040e5121636117dfb3d24818",
+    "zipExactDist": "PASS",
+    "nativeChrome": "NOT_TESTED"
   }
 }
