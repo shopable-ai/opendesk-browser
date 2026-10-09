@@ -47,7 +47,7 @@ export default async function main({assets}) {
    {"name":"opendesk.dev.result","arguments":{"previewId":"刚返回的 previewId"}}
    ```
 
-   核对 previewId/sourceHash/documentId/world 与状态。preview-evaluated 只表示求值完成，UI 可以继续存在；返回的 result.resultText 是最多 2048 字符的结果展示，`durable:false`，不能当 Controller 持久 valueWire/resultId。
+   核对顶层 previewId/sourceHash/target，以及回执 `result.documentId` / `result.world` 与状态。preview-pending 时 result 尚未产生，间隔只读再查原 previewId，不重发 run。preview-evaluated 只表示求值完成，UI 可以继续存在；result.resultText 是最多 2048 字符的结果展示，`durable:false`，不能当 Controller 持久 valueWire/resultId。
 5. 修改 [model.js](../../examples/programs/local-page-ui/src/model.js) 的 label/step 和 [ui.css](../../examples/programs/local-page-ui/assets/ui.css)，保存后用新 requestId 明确再运行。新 UI 应显示新文字/颜色，旧受管实例清理确认后才挂载。不需要 build、上传 JSON 或重新安装扩展。
 
 ## 受管 UI API
