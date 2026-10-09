@@ -16,6 +16,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const get=id=>doc.getElementById(id);
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
+  let toolActive=false;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
   let localQuery='', localFilter='current';
@@ -104,12 +105,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function syncRunDock(view=doc.documentElement?.dataset?.opendeskTab) {
     const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
     const draftOwns=Boolean(host.currentRun && !taskOwns);
-    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks');
+    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks' || toolActive);
     get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || view!=='develop');
     // The dock follows the real RunHost owner, not the selected task or visible tab.
     // On another view (or another task), expose only that owner's Stop control.
     const selected=installedRow();
-    const stopOnly=taskOwns && (view!=='tasks' || runOwnerKey!== (selected && identity(selected))) ||
+    const stopOnly=taskOwns && (view!=='tasks' || toolActive || runOwnerKey!== (selected && identity(selected))) ||
       draftOwns && view!=='develop';
     get('workspace-dock').dataset.stopOnly=String(Boolean(stopOnly));
     get('task-stop').setAttribute('aria-label',taskOwns
@@ -765,7 +766,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks');update();
-  return {navigate,showCatalogPage,refresh,focusInstalledTask(taskId) {
+  return {navigate,showCatalogPage,refresh,setToolActive(value) {
+    toolActive=Boolean(value);
+    if(!disposed)syncRunDock();
+  },focusInstalledTask(taskId) {
     const selectedRow=installed.find(row=>row.taskId===taskId && row.enabled);
     if(disposed||!selectedRow)return false;
     get('task-installed-list').value=taskId;

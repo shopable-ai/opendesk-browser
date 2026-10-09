@@ -41,7 +41,9 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     }}};
   const target={snapshot:{status:'available',url:'https://example.com/a',title:'Example'}};
   let taskOpened='';
-  const workbench={focusInstalledTask(id){taskOpened=id;return true;}};
+  let toolVisible=false;
+  const workbench={focusInstalledTask(id){taskOpened=id;return true;},
+    setToolActive(value){toolVisible=value;}};
   let host;
   try{
     host=createSidebarTools({api,doc,currentPageTarget:target,taskWorkbench:workbench,
@@ -67,9 +69,19 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     assert.equal(elements['sidebar-tool-import'].hidden,true,'successful install closes the import form');
     assert.equal(elements['sidebar-tool-tabs'].hidden,false,'installed tools expose their switcher');
     assert.equal(elements['sidebar-tool-frame'].children.length,0,'install does not execute JS');
+    elements['sidebar-tool-import-trigger'].emit('click');
+    elements['sidebar-tool-file'].files=[{name:'invalid.json',size:10,text:async()=>'{invalid'}];
+    elements['sidebar-tool-file'].emit('change');
+    await pause();await pause();
+    assert.equal(elements['sidebar-tool-preview'].hidden,true,'invalid input never presents an approval button');
+    assert.equal(elements['sidebar-tool-install'].disabled,true,'invalid input cannot install');
+    assert.equal(elements['sidebar-tool-status'].dataset.state,'error','malformed JSON gives feedback');
+    elements['sidebar-tool-import-close'].emit('click');
+    assert.equal(elements['sidebar-tool-import'].hidden,true,'Cancel collapses the import form');
     host.openTool(sample.id);
     const frame=elements['sidebar-tool-frame'].children[0];
     assert.equal(frame.tag,'iframe');
+    assert.equal(toolVisible,true,'opening custom tools hides unrelated task Run action');
     assert.equal(frame.src,'chrome-extension://test/sidebar-tools/sandbox.html');
     frame.onload();
     const loaded=frame.contentWindow.sent[0];

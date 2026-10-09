@@ -78,6 +78,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       list.append(button);
     }
     display.hidden=!active;taskSurface.hidden=!!active;
+    taskWorkbench.setToolActive?.(Boolean(active));
     title.textContent=active ? active.title+' · v'+active.version : '';
     removeButton.disabled=!active || busy;
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=active?'active':'tasks';
