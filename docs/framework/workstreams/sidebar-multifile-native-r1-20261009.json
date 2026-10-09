@@ -31,7 +31,7 @@
     "finalIntegration": "REUSE_RECORDED_PASS for unchanged scoped component/build inputs only; final-integration.json and documentation-followup.json preserve SHA mapping; no native promotion"
   },
   "evidenceDirectory": "docs/framework/evidence/sidebar-multifile-native-r1-20261009",
-  "updatedAt": "2026-10-09T05:40:12.152449+00:00",
+  "updatedAt": "2026-10-09T05:55:17.509839+00:00",
   "currentBaseline": "c11acf1658b45b6d75f1b2e14c27011b9544dcae",
   "currentHead": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
   "fixes": [
@@ -171,6 +171,11 @@
     "evidencePolicy": "new unique directory and immutable receipts; never run historical hardcoded driver as-is",
     "nativeAgentOwnerRecord": "docs/framework/workstreams/r62-local-acceptance-01a11c24.json",
     "directoryImport": "NOT_IMPLEMENTED; separate product decision",
-    "finalF3ZIP": "NOT_TESTED; preserve existing full acceptance contract"
+    "finalF3ZIP": "NOT_TESTED; preserve existing full acceptance contract",
+    "demoGuide": "docs/framework/sidebar-demo-guide-r2.zh-CN.md",
+    "visibleRuntimePrompt": "docs/framework/prompts/goal-sidebar-multifile-auto-import-demo-r2.md",
+    "defaultAutoImportScope": "one built JSON imports all JS snapshots and immutable executable bytes; source-directory compilation remains NOT_IMPLEMENTED",
+    "visibleDemo": "examples/programs/page-ui-basic; no final build/native identity archived in this workstream",
+    "assetsContractProbe": "resource records only; not CSS/PNG rendering evidence"
   }
 }

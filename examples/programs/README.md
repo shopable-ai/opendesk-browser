@@ -12,6 +12,8 @@
 
 参考 [Program API 文档](../../docs/framework/sidebar-project-api-r1.zh-CN.md)、[文件夹与资源架构](../../docs/architecture/browser-framework/sidebar-project-intake-r1.zh-CN.md) 与 [Codex 本地验收目标](../../docs/framework/prompts/goal-sidebar-multifile-native-acceptance-r1.md)。
 
+Demo 选择、目录和运行原理见 [Sidebar Demo 指南 R2](../../docs/framework/sidebar-demo-guide-r2.zh-CN.md)，新对话执行 [自动导入与可见运行提示词 R2](../../docs/framework/prompts/goal-sidebar-multifile-auto-import-demo-r2.md)。主展示使用 `page-ui-basic`；先用 `sidebar-page-demo` / `sidebar-controller-demo` 证明导入执行链路。`sidebar-assets-contract` 只返回资源记录，不渲染 CSS/PNG。
+
 继续真实验收前先读[续测与复用入口](../../docs/framework/workstreams/sidebar-multifile-native-r1-20261009.md#resume)：已合入修复的构建/组件证据按相关输入复用；优先补 JSON 文件导入、只读 JS 源码展示、Page/Controller 实际执行及资源效果，逐项保存真实回执。锁屏、观察器和 Native CLI/CI 失败分别处理，不因换聊天或文档变更重跑已通过的集合。
 
 ```sh

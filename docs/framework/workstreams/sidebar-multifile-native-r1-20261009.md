@@ -124,6 +124,8 @@ macOS arm/intel Native CI 另有真实失败：无插件的裸 Chrome/CDP 基线
 
 ## 后续续测与复用入口
 
+需要查看多文件自动导入和可见运行时，执行[新对话 R2 提示词](../prompts/goal-sidebar-multifile-auto-import-demo-r2.md)，目录、示例选择与原理见 [Demo 指南](../sidebar-demo-guide-r2.zh-CN.md)。R2 补充主展示 `page-ui-basic`：现有 `sidebar-assets-contract` 入口仅返回资源记录，不能单独证明 CSS/PNG 渲染；实际资源效果用 Page UI 核验。已有三份 Demo 的不变构建继续复用。
+
 本节是本工作流的后续入口；[机器记录](sidebar-multifile-native-r1-20261009.json)、[最终结果](../evidence/sidebar-multifile-native-r1-20261009/final-results.md)和原始证据共同使用。原 R1 提示词保留作需求追溯，资源的当前通过条件按本文 `resources-negative-R1` 差异执行。主工作区的未提交工作继续保留，沿用本任务 worktree/分支；先核对最新 main 和其他会话占用，再串行集成，不新建重复分支。
 
 ### 哪些结果可以复用
