@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {spawn,spawnSync} from 'node:child_process';
 import {approveNativePermission} from '../framework/native-chrome-consent.mjs';
+import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
 
 // Experimental REAL Chrome Native Messaging smoke, not Codex/Side Panel E2E.
 // This always reports exactly what was exercised. It never synthesizes DOM
@@ -26,6 +27,7 @@ function chromeBinary() {
   if(exact)return fs.existsSync(exact)?[exact,'cft']:null;
   if(process.env.CI)throw Error('Real Chrome for Testing binary missing from CI');
   const paths=[
+    [path.resolve('tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'),'cft'],
     ['/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing','cft'],
     ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','chrome']
   ];
@@ -39,7 +41,7 @@ function cli(args,env) {
 function connectCDP(url) {
   return new Promise((resolve,reject)=>{
     if(typeof WebSocket!=='function')return reject(Error('Node WebSocket unavailable'));
-    const ws=new WebSocket(url),pending=new Map();let seq=0;
+    const ws=new WebSocket(url),pending=new Map(),listeners=new Map();let seq=0;
     const timer=setTimeout(()=>{ws.close();reject(Error('CDP socket timed out'));},7000);
     ws.addEventListener('error',e=>{clearTimeout(timer);reject(Error('CDP socket error: '+e.message));});
     let received=0,detachedReason=null;
@@ -55,6 +57,7 @@ function connectCDP(url) {
         pending.clear();
         return;
       }
+      for(const callback of listeners.get(value.method)||[])callback(value.params);
       if(!value.id||!pending.has(value.id))return;
       const entry=pending.get(value.id);pending.delete(value.id);
       if(value.error)entry.reject(Error(value.error.message));else entry.resolve(value.result);
@@ -70,6 +73,11 @@ function connectCDP(url) {
       clearTimeout(timer);
       resolve({
         close:()=>ws.close(),
+        on(method,callback) {
+          if(!listeners.has(method))listeners.set(method,new Set());
+          listeners.get(method).add(callback);
+          return ()=>listeners.get(method).delete(callback);
+        },
         call(method,params={}) {
           if(detachedReason)return Promise.reject(Error(detachedReason));
           const id=++seq;
@@ -108,6 +116,7 @@ test('real macOS Chrome: bare renderer/CDP control without extensions', {
   });
   try {
     child=spawn(executable,[
+      '--use-mock-keychain','--password-store=basic',
       '--headless=new','--no-first-run','--no-default-browser-check',
       '--disable-gpu','--disable-dev-shm-usage',
       '--disable-background-networking','--disable-sync',
@@ -147,7 +156,7 @@ test('real macOS Chrome: bare renderer/CDP control without extensions', {
 
 test('real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake', {
   skip:process.platform!=='darwin',
-  timeout:95000
+  timeout:150000
 },async t=>{
   const binary=chromeBinary();
   assert.ok(binary,'Chrome for Testing is required for automated unpacked MV3 smoke');
@@ -176,16 +185,19 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   const version=spawnSync(executable,['--version'],{encoding:'utf8',timeout:10000});
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
   child=spawn(executable,[
-    '--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate',
+    '--use-mock-keychain','--password-store=basic',
+    ...(process.env.OPENDESK_NATIVE_AGENT_HEADLESS==='1'?['--headless=new']:[]),
+    '--no-first-run','--no-default-browser-check','--disable-features=Translate',
     // Keep the normal macOS sandbox for realistic renderer behavior.
     // GPU/shared-memory flags affect only this isolated diagnostic profile.
     '--disable-gpu','--disable-dev-shm-usage',
     '--disable-background-networking','--disable-sync',
+    '--enable-logging=stderr','--vmodule=*native_messaging*=1',
     '--remote-allow-origins=*','--remote-debugging-port=0',
     '--disable-extensions-except='+ext,'--load-extension='+ext,
     '--user-data-dir='+profile,'about:blank'
   ],{env,stdio:['ignore','ignore','pipe']});
-  child.stderr.on('data',bytes=>{debug=(debug+bytes.toString()).slice(-4000);});
+  child.stderr.on('data',bytes=>{debug=(debug+bytes.toString()).slice(-12000);});
   child.on('error',error=>{debug=String(error);});
   child.on('exit',(code,signal)=>{
     console.log('REAL_CHROME_PROCESS_EXIT='+JSON.stringify({code,signal,stderr:debug.slice(-1200)}));
@@ -203,7 +215,7 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     return response.json();
   }
   const evaluated=async expression=>{
-    const result=await cdp.call('Runtime.evaluate',{expression,returnByValue:true});
+    const result=await cdp.call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});
     if(result.exceptionDetails)throw Error('Chrome Runtime.evaluate failed');
     return result.result?.value;
   };
@@ -239,6 +251,8 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   const setup=cli(['setup','--extension-id',extensionId,'--user-data-dir',profile,...(browser==='cft'?['--browser','cft']:[])],env);
   assert.equal(setup.status,0,'real native manifest setup: '+setup.stderr);
   installedByThisTest=true;
+  const installation=JSON.parse(setup.stdout);
+  assert.equal(path.dirname(installation.manifest),path.join(profile,'NativeMessagingHosts'));
   console.log('MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser='+browser);
 
   cdp?.close();
@@ -274,6 +288,13 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     throw e;
   }
   console.log('REAL_CHROME_OPTIONS_LOADED=PASS');
+  const workerTarget=(await (await fetch(base+'/json/list')).json()).find(item=>
+    item.type==='service_worker'&&item.url==='chrome-extension://'+extensionId+'/sw.js');
+  assert.ok(workerTarget?.webSocketDebuggerUrl,'Actual extension worker diagnostics target');
+  let workerControl=await connectCDP(workerTarget.webSocketDebuggerUrl);
+  t.after(()=>workerControl?.close());
+  await cdp.call('Page.bringToFront');
+  await evaluated("(()=>{globalThis.__nativeEnableClicks=[];document.addEventListener('click',event=>{if(event.target.id==='bridge-enable')globalThis.__nativeEnableClicks.push({isTrusted:event.isTrusted});},true);})()");
   const rectangle=await evaluated("(()=>{const r=document.getElementById('bridge-enable').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
   assert.ok(rectangle&&rectangle.x>0&&rectangle.y>0,'Native Enable button must be visible');
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseMoved',x:rectangle.x,y:rectangle.y});
@@ -281,15 +302,72 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseReleased',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
   console.log('REAL_CHROME_CDP_POINTER_DISPATCHED=PASS (extension itself requires event.isTrusted)');
   console.log('REAL_CHROME_NATIVE_PERMISSION_INPUT='+JSON.stringify(await approveNativePermission({pid:child.pid,evidenceDirectory:path.resolve('docs/framework/evidence/native-agent-consent')})));
+  const clicks=await evaluated('globalThis.__nativeEnableClicks');
+  console.log('REAL_CHROME_NATIVE_ENABLE_CLICK='+JSON.stringify(clicks));
+  assert.equal(clicks.length,1,'Exactly one actual Options enable click must be observed');
+  assert.equal(clicks[0].isTrusted,true,'Options enable click must be native');
+  await eventually(()=>evaluated("chrome.permissions.contains({permissions:['nativeMessaging']})"),{
+    timeout:60000,label:'Actual native permission dialog approval'});
+  // The persistent enable choice must commit before stopping its worker.
+  await eventually(()=>evaluated(`chrome.runtime.sendMessage({protocol:${JSON.stringify(AGENT_CONFIG_PROTOCOL)},type:'status'}).then(r=>r.ok===true&&r.data?.enabled===true)`),{
+    label:'Actual persisted Native Agent enable state'});
+  const binding=await workerControl.call('Runtime.evaluate',{
+    expression:'typeof chrome.runtime.connectNative',returnByValue:true});
+  console.log('REAL_CHROME_NATIVE_API_BINDING='+JSON.stringify(binding.result?.value));
+  workerControl.close();
+  if(binding.result?.value==='undefined'){
+    await eventually(async()=>((await status()).includes('尚未刷新 Native API')),{label:'Actual Chinese stale-binding recovery hint'});
+    console.log('REAL_CHROME_NATIVE_RELOAD_HINT=PASS '+JSON.stringify(await status()));
+    // A lifecycle check in this owned profile, without granting permissions or
+    // inventing an ack. Fresh Chrome workers must expose the approved API.
+    const versions=new Map();
+    const off=cdp.on('ServiceWorker.workerVersionUpdated',event=>{
+      for(const version of event.versions)versions.set(version.versionId,version);
+    });
+    await cdp.call('ServiceWorker.enable');
+    const original=await eventually(()=>[...versions.values()].find(v=>
+      v.scriptURL===workerTarget.url&&v.targetId===workerTarget.id&&v.runningStatus==='running'),{
+      label:'Exact original worker version identity'});
+    await cdp.call('ServiceWorker.stopWorker',{versionId:original.versionId});
+    const retired=await eventually(()=>versions.get(original.versionId)?.runningStatus==='stopped'&&versions.get(original.versionId),{
+      label:'Exact original worker version stopped'});
+    await eventually(async()=>{
+      const targets=await (await fetch(base+'/json/list')).json();
+      return !targets.some(target=>target.id===workerTarget.id);
+    },{label:'Original worker target retired'});
+    await evaluated(`chrome.runtime.sendMessage({protocol:${JSON.stringify(AGENT_CONFIG_PROTOCOL)},type:'status'})`);
+    const fresh=await eventually(async()=>{
+      const targets=await (await fetch(base+'/json/list')).json();
+      return targets.find(target=>target.type==='service_worker'&&target.url===workerTarget.url&&target.id!==workerTarget.id);
+    },{label:'New worker target identity'});
+    workerControl=await connectCDP(fresh.webSocketDebuggerUrl);
+    const actual=await workerControl.call('Runtime.evaluate',{
+      expression:"(async()=>({api:typeof chrome.runtime.connectNative,granted:await chrome.permissions.contains({permissions:['nativeMessaging']})}))()",
+      awaitPromise:true,returnByValue:true});
+    assert.equal(actual.result?.value.api,'function');assert.equal(actual.result?.value.granted,true);
+    off();
+    console.log('REAL_CHROME_PERMISSION_WORKER_RESTART=PASS '+JSON.stringify({oldTarget:workerTarget.id,oldVersion:original.versionId,retired,newTarget:fresh.id,actual:actual.result.value}));
+  }else{
+    workerControl=await connectCDP(workerTarget.webSocketDebuggerUrl);
+  }
   let snapshot='';
   try {
     await eventually(async()=>{
-      snapshot=await status();
       const diagnosis=cli(['doctor'],env);
-      return diagnosis.status===0&&snapshot.includes('已启用')&&snapshot.includes('已连接');
-    },{timeout:18000,label:'Native handshake after Chrome Options trusted click'});
+      return diagnosis.status===0;
+    },{timeout:60000,label:'Native handshake after Chrome Options trusted click and permission UI'});
+    const refresh=await evaluated("(()=>{const r=document.getElementById('bridge-refresh').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
+    await cdp.call('Input.dispatchMouseEvent',{type:'mousePressed',...refresh,button:'left',clickCount:1});
+    await cdp.call('Input.dispatchMouseEvent',{type:'mouseReleased',...refresh,button:'left',clickCount:1});
+    await eventually(async()=>{snapshot=await status();return snapshot.includes('已启用')&&snapshot.includes('已连接');},{label:'Refreshed actual Options connection'});
   }catch(e){
     console.log('REAL_CHROME_NATIVE_HANDSHAKE=NOT_VERIFIED; Options status='+JSON.stringify(snapshot));
+    const errors=await workerControl.call('Runtime.evaluate',{
+      expression:"(async()=>({api:typeof chrome.runtime.connectNative,permissions:await chrome.permissions.getAll()}))()",awaitPromise:true,returnByValue:true}).catch(error=>({error:String(error)}));
+    console.log('REAL_CHROME_NATIVE_CONNECTION_ERRORS='+JSON.stringify(errors));
+    const diagnosis=cli(['doctor'],env);
+    console.log('REAL_CHROME_NATIVE_DOCTOR='+JSON.stringify({status:diagnosis.status,stdout:diagnosis.stdout,stderr:diagnosis.stderr}));
+    console.log('REAL_CHROME_NATIVE_STDERR='+JSON.stringify(debug));
     throw e;
   }
   const check=cli(['bridge.status','--request-id','chrome-real-smoke-readonly'],env);
@@ -300,4 +378,11 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   assert.equal(reply.result?.enabled,true);
   console.log('REAL_CHROME_NATIVE_HANDSHAKE=PASS');
   console.log('REAL_CHROME_CLI_BRIDGE_STATUS=PASS (no live Side Panel; Codex E2E NOT_TESTED)');
+  assert.equal(await evaluated("chrome.permissions.remove({permissions:['nativeMessaging']})"),true);
+  const revoked=await eventually(async()=>{
+    const state=await evaluated(`chrome.runtime.sendMessage({protocol:${JSON.stringify(AGENT_CONFIG_PROTOCOL)},type:'status'})`);
+    return state.ok&&state.data.enabled===false&&state.data.nativeConnected===false?state.data:null;
+  },{label:'Real permission removal disconnects and disables Native Agent'});
+  assert.equal(await evaluated("chrome.permissions.contains({permissions:['nativeMessaging']})"),false);
+  console.log('REAL_CHROME_NATIVE_PERMISSION_REVOCATION=PASS '+JSON.stringify(revoked));
 });

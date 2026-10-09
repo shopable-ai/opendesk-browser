@@ -41,7 +41,8 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const workbench={focusInstalledTask(id){taskOpened=id;return true;}};
   let host;
   try{
-    host=createSidebarTools({api,doc,currentPageTarget:target,taskWorkbench:workbench});
+    host=createSidebarTools({api,doc,currentPageTarget:target,taskWorkbench:workbench,
+      lockManager:{request:(_name,work)=>Promise.resolve().then(work)}});
     await pause();
     assert.equal(store.has(SIDEBAR_TOOL_STORE),false,'loading a tool list must not install anything');
     const file={size:JSON.stringify(sample).length,text:async()=>JSON.stringify(sample)};
@@ -93,4 +94,94 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     assert.equal(store.has(sidebarToolStorageKey(sample.id)),false);
     assert.equal(store.get(SIDEBAR_TOOL_STORE).length,0);
   }finally{host?.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;}
+});
+
+const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+function sharedLocks(){
+  const queues=new Map();
+  return {request(name,work){const previous=queues.get(name)||Promise.resolve();
+    const next=previous.catch(()=>{}).then(work);queues.set(name,next);
+    next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
+    return next;}};
+}
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook}={}){
+  const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
+  const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
+  const ids=['sidebar-tool-tabs','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
+    'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title'];
+  const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
+  const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),createElement:tag=>new Node(tag)};
+  let focused=0;
+  const changed=new Node();
+  const api={runtime:{getURL:p=>'chrome-extension://test/'+p},storage:{onChanged:{
+    addListener:fn=>changed.addEventListener('change',fn),removeListener:fn=>changed.removeEventListener('change',fn)
+  },local:{
+    async get(key){await getHook?.(key);return {[key]:structuredClone(store.get(key))};},
+    async set(value){await setHook?.(value);for(const [key,row] of Object.entries(value))store.set(key,structuredClone(row));},
+    async remove(key){store.delete(key);}
+  }}};
+  const host=createSidebarTools({api,doc,lockManager:locks,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  t.after(()=>{host.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
+  await pause();host.openTool(sample.id);
+  const frame=elements['sidebar-tool-frame'].children[0];frame.onload();
+  const loaded=frame.contentWindow.sent[0];
+  const ask=(operation,payload={},id='1')=>win.emit('message',{origin:'null',source:frame.contentWindow,
+    data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'request',requestId:id,operation,payload}});
+  return {host,ask,frame,elements,store,change(rows){
+    for(const fn of changed.listeners.get('change')||[])fn({[SIDEBAR_TOOL_STORE]:{newValue:rows}},'local');
+  },get focused(){return focused;}};
+}
+test('queued task navigation loses authority when its tool is closed',async t=>{
+  const gate=deferred(),entered=deferred();
+  const f=await hostFixture(t,{getHook:async key=>{if(key===sidebarToolStorageKey(sample.id)){entered.resolve();await gate.promise;}}});
+  f.ask('storage.set',{key:'note',value:'late'});await entered.promise;
+  f.ask('tasks.open',{taskId:'installed-task'},'2');f.host.closeTool();gate.resolve();
+  await pause();await pause();assert.equal(f.focused,0);assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+});
+test('uninstall waits for a committed write before deleting the namespace',async t=>{
+  const gate=deferred(),entered=deferred(),key=sidebarToolStorageKey(sample.id);
+  const f=await hostFixture(t,{setHook:async value=>{if(Object.hasOwn(value,key)){entered.resolve();await gate.promise;}}});
+  f.ask('storage.set',{key:'note',value:'late'});await entered.promise;
+  f.elements['sidebar-tool-remove'].emit('click');await pause();
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  gate.resolve();await pause();await pause();
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[]);assert.equal(f.store.has(key),false);
+});
+test('two Side Panels preserve distinct fields through the same storage lock',async t=>{
+  const originalWindow=globalThis.window,originalConfirm=globalThis.confirm;
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks();
+  const a=await hostFixture(t,{store,locks}),b=await hostFixture(t,{store,locks});
+  a.ask('storage.set',{key:'alpha',value:1});b.ask('storage.set',{key:'beta',value:2});
+  await pause();await pause();assert.deepEqual(store.get(sidebarToolStorageKey(sample.id)),{alpha:1,beta:2});
+  t.after(()=>{globalThis.window=originalWindow;globalThis.confirm=originalConfirm;});
+});
+test('a second iframe load revokes the old document instead of resending its token',async t=>{
+  const f=await hostFixture(t);const loaded=f.frame.onload;loaded();
+  assert.equal(f.frame.contentWindow.sent.length,1);assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  f.ask('tasks.open',{taskId:'installed-task'});await pause();assert.equal(f.focused,0);
+});
+test('cross-window uninstall rejects storage from a still open stale document',async t=>{
+  const f=await hostFixture(t);f.store.set(SIDEBAR_TOOL_STORE,[]);
+  f.ask('storage.set',{key:'note',value:'stale'});await pause();await pause();
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+  assert.equal(f.frame.contentWindow.sent.at(-1).ok,false);
+});
+test('cross-window revocation also blocks stale page reads and task navigation',async t=>{
+  const f=await hostFixture(t);f.store.set(SIDEBAR_TOOL_STORE,[]);
+  f.ask('currentPage.info',{},'1');f.ask('tasks.open',{taskId:'installed-task'},'2');
+  await pause();await pause();assert.equal(f.focused,0);
+  const replies=f.frame.contentWindow.sent.filter(m=>m.kind==='response');
+  assert.equal(replies.length,2);assert.ok(replies.every(m=>m.ok===false));
+});
+test('Chrome storage property ordering does not revoke the same installed package',async t=>{
+  const f=await hostFixture(t);
+  const sorted=Object.fromEntries(Object.entries(sample).sort(([a],[b])=>a.localeCompare(b)));
+  f.store.set(SIDEBAR_TOOL_STORE,[sorted]);
+  f.change([sorted]);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
+  f.ask('storage.set',{key:'note',value:'中文'});
+  await pause();await pause();
+  assert.deepEqual(f.store.get(sidebarToolStorageKey(sample.id)),{note:'中文'});
+  f.change([{...sorted,js:'void 1;'}]);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });

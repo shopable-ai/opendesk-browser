@@ -12,7 +12,9 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
   async function update() {
     const state=await request('status');
     show('Native Agent：'+(state.enabled ? '已启用' : '关闭')+
-      '\nNative Host：'+(state.nativeConnected ? '已连接' : '未连接（检查 setup 与 CLI doctor）')+
+      '\nNative Host：'+(state.nativeConnected ? '已连接' : state.requiresReload
+        ? '权限已授予，当前浏览器尚未刷新 Native API。结束运行中的任务后，在 chrome://extensions 重新加载扩展，再刷新状态。'
+        : '未连接（检查 setup 与 CLI doctor）')+
       '\n已注册工作台：'+state.hostCount+'\nExtension ID：'+state.extensionId);
   }
   enable.addEventListener('click',event=>{

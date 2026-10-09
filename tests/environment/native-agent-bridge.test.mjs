@@ -27,6 +27,15 @@ function mock({enabled=true,granted=true}={}){
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
 const settingsSender=f=>({id:f.api.runtime.id,
   url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'settings-document'});
+test('approved permission with stale Chrome API binding reports reload without interrupting hosts',async t=>{
+  const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
+  f.api.runtime.connectNative=undefined;
+  await f.service.handleSettings({type:'enable'},settingsSender(f));
+  const status=await f.service.handleSettings({type:'status'},settingsSender(f));
+  assert.equal(status.enabled,true);assert.equal(status.requiresReload,true);
+  assert.equal(status.nativeConnected,false);assert.equal(f.hostPorts.size,1);
+  assert.equal(f.stored[AGENT_ENABLED_KEY],true);
+});
 const deferred=()=>{
   let resolve;
   const promise=new Promise(done=>{resolve=done;});

@@ -52,8 +52,8 @@ test('same-id replacement disposes old listener, keeps a different instance',()=
 test('assets, timer/observer/ObjectURL and pagehide cleanup remain scoped',()=>{
   const before=globalThis.document;const doc=new Doc();globalThis.document=doc;
   try{
-    let disconnected=0,revoked=0;
-    doc.defaultView.MutationObserver=class{observe(){}disconnect(){disconnected++;}};
+    let disconnected=0,created=0,revoked=0;
+    doc.defaultView.MutationObserver=class{constructor(){created++;}observe(){}disconnect(){disconnected++;}};
     doc.defaultView.URL={createObjectURL:()=> 'blob:mock',revokeObjectURL:()=>revoked++};
     const ui=createPageUI({id:'sample.resources',assets:{
       'one.css':{kind:'css',text:'.a{color:red}'},
@@ -67,7 +67,7 @@ test('assets, timer/observer/ObjectURL and pagehide cleanup remain scoped',()=>{
     ui.addStyle(ui.getAsset('one.css'));ui.observe(ui.content,()=>{});ui.objectURL({});
     ui.setTimeout(()=>{},20000);ui.setInterval(()=>{},20000);
     doc.defaultView.dispatchEvent(new Event('pagehide'));
-    assert.equal(ui.active(),false);assert.equal(disconnected,1);assert.equal(revoked,1);
+    assert.equal(ui.active(),false);assert.equal(disconnected,created);assert.equal(revoked,1);
     for(let i=0;i<20;i++){const item=createPageUI({id:'cycle',baseStyles:false});
       assert.equal(item.shadowRoot.children.filter(x=>x.tag==='style').length,0);
       item.destroy();}

@@ -10,6 +10,7 @@ import {spawn,spawnSync,execFileSync} from 'node:child_process';
 import {setup,cleanup,doctor} from '../../native-agent/install.mjs';
 import {requestAgent} from '../../native-agent/cli.mjs';
 import {approveNativePermission} from './native-chrome-consent.mjs';
+import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
 
 const root=process.cwd(),out=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||'docs/framework/evidence/local-dev-r22-native');
 fs.mkdirSync(out,{recursive:true});
@@ -18,12 +19,12 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(fn,label,ms=20000){const end=Date.now()+ms;let last;while(Date.now()<end){try{const v=await fn();if(v)return v;}catch(error){last=error;}await pause(150);}throw new Error(label+' timed out'+(last?': '+last.message:''));}
 const events=[];const record=(type,value)=>{const row={time:new Date().toISOString(),type,value};events.push(row);fs.appendFileSync(out+'/events.jsonl',JSON.stringify(row)+'\n');console.log(type+' '+JSON.stringify(value));};
 async function cdp(url){
- const ws=new WebSocket(url),requests=new Map();let seq=0;
+ const ws=new WebSocket(url),requests=new Map(),listeners=new Map();let seq=0;
  await new Promise((resolve,reject)=>{ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true});});
- ws.addEventListener('message',event=>{const msg=JSON.parse(event.data);if(!msg.id||!requests.has(msg.id))return;const p=requests.get(msg.id);requests.delete(msg.id);clearTimeout(p.timer);msg.error?p.reject(new Error(msg.error.message)):p.resolve(msg.result);});
+ ws.addEventListener('message',event=>{const msg=JSON.parse(event.data);for(const fn of listeners.get(msg.method)||[])fn(msg.params);if(!msg.id||!requests.has(msg.id))return;const p=requests.get(msg.id);requests.delete(msg.id);clearTimeout(p.timer);msg.error?p.reject(new Error(msg.error.message)):p.resolve(msg.result);});
  ws.addEventListener('close',()=>{for(const p of requests.values()){clearTimeout(p.timer);p.reject(new Error('CDP disconnected'));}requests.clear();});
  const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{requests.delete(id);reject(new Error('CDP timeout '+method));},15000);requests.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params}));});
- return {call,close:()=>ws.close(),read:async expression=>{const result=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw new Error(result.exceptionDetails.text);return result.result?.value;},
+ return {call,on(method,fn){const rows=listeners.get(method)||new Set();rows.add(fn);listeners.set(method,rows);return ()=>rows.delete(fn);},close:()=>ws.close(),read:async expression=>{const result=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw new Error(result.exceptionDetails.text);return result.result?.value;},
   async click(selector){const r=await this.read('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');if(!n)return null;const r=n.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()');assert.ok(r&&r.x>0&&r.y>0,'visible trusted click '+selector);await call('Input.dispatchMouseEvent',{type:'mousePressed',...r,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...r,button:'left',clickCount:1});},
   async screenshot(file){const image=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(out,file),Buffer.from(image.data,'base64'));}};
 }
@@ -59,6 +60,23 @@ try{
  await options.click('#bridge-enable');
  record('native.permission.input',await approveNativePermission({pid:chrome.pid,evidenceDirectory:out}));
  const nativeGranted=await options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})');assert.equal(nativeGranted,true);record('native.permission.granted',nativeGranted);
+ const nativeStatus=()=>options.read('chrome.runtime.sendMessage('+JSON.stringify({protocol:AGENT_CONFIG_PROTOCOL,type:'status'})+')');
+ const enabled=await until(async()=>{const state=await nativeStatus();return state.ok&&state.data?.enabled?state.data:null;},'persisted Native enable state');
+ if(enabled.requiresReload){
+  // First-time optional API bindings can remain stale in the original worker.
+  // Reuse the main Native smoke's observed worker lifecycle recovery, after
+  // actual user approval and before any program admission. No grants are edited.
+  const versions=new Map(),off=options.on('ServiceWorker.workerVersionUpdated',e=>{for(const v of e.versions)versions.set(v.versionId,v);});
+  await options.call('ServiceWorker.enable');
+  const original=await until(()=>[...versions.values()].find(v=>v.scriptURL==='chrome-extension://'+extensionId+'/sw.js'&&v.runningStatus==='running'),'original Native worker');
+  await options.call('ServiceWorker.stopWorker',{versionId:original.versionId});
+  await until(()=>versions.get(original.versionId)?.runningStatus==='stopped','Native worker retirement');
+  await nativeStatus();
+  const fresh=await until(async()=>{const list=await(await fetch(base+'/json/list')).json();return list.find(x=>x.type==='service_worker'&&x.url===original.scriptURL&&x.id!==original.targetId);},'fresh Native worker');
+  const worker=await cdp(fresh.webSocketDebuggerUrl);
+  const actual=await worker.read('(async()=>({api:typeof chrome.runtime.connectNative,granted:await chrome.permissions.contains({permissions:["nativeMessaging"]})}))()');worker.close();off();
+  assert.equal(actual.api,'function');assert.equal(actual.granted,true);record('native.permission.worker-restart',{oldTarget:original.targetId,newTarget:fresh.id,actual});
+ }
  const bridge=await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.nativeConnected?r.result:null;},'real Native handshake');record('native.handshake',bridge);report.tests.push({name:'real-native-handshake',status:'PASS'});
  await options.click('#bridge-refresh');await options.screenshot('native-options.png');
  ({session:tool}=await newTab('about:blank'));await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
@@ -100,5 +118,5 @@ finally{
  if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await pause(600);if(chrome.exitCode===null)chrome.kill('SIGKILL');}
  await new Promise(resolve=>server?server.close(resolve):resolve());
  if(installed){for(let i=0;i<40&&doctor().socketExists;i++)await pause(100);try{report.cleanup=cleanup();}catch(error){report.cleanup={error:error.code||error.message};report.status='FAIL_CLEANUP';process.exitCode=1;}}
- report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
+ report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.report.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
 }

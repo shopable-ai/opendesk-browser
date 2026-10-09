@@ -184,3 +184,77 @@ test('twenty repeated inline preview replacements do not leak DOM or observers',
   assert.equal(doc.querySelectorAll('[data-opendesk-ui-owner]').length,0);
   assert.equal(doc.observers.size,0);
 });
+
+test('deep ancestor removal after initial checks migrates the same UI to floating',async t=>{
+  const {doc,toolbar}=fixture(t);
+  let outer=toolbar;
+  for(let i=0;i<5;i++){
+    const parent=doc.createElement('div');doc.body.append(parent);parent.append(outer);outer=parent;
+  }
+  const ui=createPageUI({id:'u.deep',mount:{selector:'#page-ui-anchor'}});
+  const host=ui.host;await new Promise(resolve=>setTimeout(resolve,210));
+  outer.remove();await Promise.resolve();
+  assert.equal(ui.getMountDiagnostics().strategy,'floating');
+  assert.equal(ui.host,host);assert.equal(ui.host.parentNode,doc.body);
+  assert.equal(ui.active(),true);ui.destroy();assert.equal(doc.observers.size,0);
+});
+
+test('removed floating host releases resources after the initial check has finished',async t=>{
+  const {doc}=fixture(t);const ui=createPageUI({id:'u.removed'});
+  await new Promise(resolve=>setTimeout(resolve,210));
+  ui.host.remove();await Promise.resolve();
+  assert.equal(ui.active(),false);assert.equal(ui.getMountDiagnostics().cleaned,true);
+  assert.equal(ui.getMountDiagnostics().strategy,'stopped');assert.equal(doc.observers.size,0);
+});
+
+test('document root detachment stops all instances without waiting for pagehide',async t=>{
+  const {doc}=fixture(t);
+  const floating=createPageUI({id:'u.root.float'}),inline=createPageUI({id:'u.root.inline',mount:{selector:'#page-ui-anchor'}});
+  await new Promise(resolve=>setTimeout(resolve,210));
+  Object.defineProperty(doc.documentElement,'isConnected',{value:false,configurable:true});
+  doc.changed(doc);await Promise.resolve();
+  for(const ui of [floating,inline]){
+    assert.equal(ui.getMountDiagnostics().cleaned,true);
+    assert.equal(ui.getMountDiagnostics().strategy,'stopped');
+  }
+  assert.equal(doc.observers.size,0);
+});
+
+test('disabled CSS is diagnosed as unavailable and stops the instance',async t=>{
+  const {doc}=fixture(t);const ui=createPageUI({id:'u.css.disabled'});
+  ui.shadowRoot.querySelectorAll('style')[0].sheet.disabled=true;
+  assert.equal(ui.verifyMount().checks.cssReady,false);
+  await new Promise(resolve=>setTimeout(resolve,210));
+  assert.equal(ui.active(),false);assert.equal(ui.getMountDiagnostics().reason,'css_blocked');
+  assert.equal(ui.getMountDiagnostics().cleaned,true);assert.equal(doc.observers.size,0);
+});
+
+test('connected inline ancestor migration refreshes the watched placement chain',async t=>{
+  const {doc,toolbar}=fixture(t);
+  const top=doc.createElement('div'),middle=doc.createElement('div'),destination=doc.createElement('div');
+  doc.body.append(top);top.append(middle);middle.append(destination);
+  const ui=createPageUI({id:'u.moved',mount:{selector:'#page-ui-anchor'}});
+  await new Promise(resolve=>setTimeout(resolve,210));
+  destination.append(toolbar);await Promise.resolve();
+  assert.equal(ui.getMountDiagnostics().strategy,'inline');
+  destination.remove();await Promise.resolve();
+  assert.equal(ui.getMountDiagnostics().strategy,'floating');
+  assert.equal(ui.active(),true);ui.destroy();assert.equal(doc.observers.size,0);
+});
+
+test('standard demo releases earlier UI when its inline mount fails',async t=>{
+  const {doc,anchor}=fixture(t);
+  doc.querySelector=selector=>doc.querySelectorAll(selector)[0]||null;
+  anchor.setAttribute('id','page-ui-demo-target');
+  const duplicate=doc.createElement('span');duplicate.setAttribute('id','page-ui-demo-target');doc.body.append(duplicate);
+  const {readFile}=await import('node:fs/promises');
+  const demoRoot=new URL('../../examples/programs/page-ui-basic/src/',import.meta.url);
+  const source=(await readFile(new URL('main.js',demoRoot),'utf8'))
+    .replace("'@opendesk/ui'",JSON.stringify(new URL('../../src/scripting/user-scripts/page-ui.js',import.meta.url).href))
+    .replace("'./title.js'",JSON.stringify(new URL('title.js',demoRoot).href))
+    .replace("'./view.js'",JSON.stringify(new URL('view.js',demoRoot).href));
+  const {default:main}=await import('data:text/javascript,'+encodeURIComponent(source));
+  await assert.rejects(main({assets:{'assets/config.json':{kind:'json',text:'{}'}}}),{code:'E_UI_TARGET_AMBIGUOUS'});
+  assert.equal(doc.querySelectorAll('[data-opendesk-ui-owner]').length,0);
+  assert.equal(doc.observers.size,0);
+});
