@@ -71,3 +71,21 @@ test('new sandbox uses isolated Chrome MV3 resource and a narrow host message pr
   assert.match(verify,/TOOL_SANDBOX_META_CSP/);
   assert.match(taskHost,/focusInstalledTask\(taskId\)/);
 });
+
+
+test('Sidebar tool intake stays compact until selection and keeps installation separate from execution',async()=>{
+  const [html,css,host,work]=await Promise.all([
+    readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
+    readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/task-workbench.js','utf8')
+  ]);
+  assert.match(html,/id="sidebar-tool-import" class="sidebar-tool-import" hidden/);
+  assert.match(html,/id="sidebar-tool-preview" class="sidebar-tool-preview" hidden/);
+  assert.match(html,/id="sidebar-tool-import-trigger" aria-expanded="false"/);
+  assert.match(html,/id="sidebar-tool-tabs"[^>]* hidden/);
+  assert.match(html,/id="task-open-catalog"/);
+  assert.match(css,/\.sidebar-tool-import\{min-width:0;margin:8px 0 3px;/);
+  assert.match(css,/\.task-section-head\{margin:0 0 8px/);
+  assert.match(host,/list\.hidden=installed\.length===0/);
+  assert.match(host,/preview\.hidden=false;installButton\.disabled=false/);
+  assert.match(work,/listen\(get\('task-open-catalog'\),'click'/);
+});
