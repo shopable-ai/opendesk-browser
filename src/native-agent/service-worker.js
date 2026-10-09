@@ -3,7 +3,7 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LE
 import {createLocalProjectService} from './local-project-service.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
-export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map()}={}) {
+export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),development}={}) {
   let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0;
   const pending=new Map(),store=api.storage.local;
   const projects=createLocalProjectService({api,hostPorts,connection:()=>({enabled,ready,port,generation})});
@@ -168,10 +168,12 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   async function receive(req,source) {
     const id=typeof req?.requestId==='string'?req.requestId:'';
     let reply;
+    const finish=development?.nativeStarted();
     try {
+      if(development?.held)throw new AgentBridgeError('E_DEV_RELOADING','开发更新正在核对空闲宿主；原生请求未执行');
       const data=await handle(req,source,generation);
       reply=data?.kind==='response'?data:response(id,{result:data});
-    }catch(e){reply=response(id,{error:error(e)});}
+    }catch(e){reply=response(id,{error:error(e)});}finally{finish?.();}
     if(new TextEncoder().encode(JSON.stringify(reply)).length>AGENT_MAX_BYTES)
       reply=response(id,{error:{code:'E_RESULT_LIMIT',message:'Native result exceeds 60 KiB; inspect the original run in OpenDesk. The program was not repeated.',outcome:'FAILED_CONFIRMED',...(req.params?.runId?{runId:req.params.runId}:{})}});
     if(port===source&&ready)try{source.postMessage(reply);}catch{}

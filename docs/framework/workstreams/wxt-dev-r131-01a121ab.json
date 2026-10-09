@@ -1,0 +1,532 @@
+{
+  "scope": "R13.1 WXT continuous development only",
+  "observedExtensionDirectory": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "browser": {
+    "binary": "Chrome for Testing 155.0.8059.39",
+    "pid": 36314,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "bundleId": "ai.opendesk.wxtdev.r131.01a121ab",
+    "stopped": true
+  },
+  "css": [
+    {
+      "file": "final-css-before.json",
+      "at": "2026-10-09T18:52:31.322Z",
+      "outputRevision": "2a77b921a2b41b25026ce0eaeffa3a80c416f2ecf01e878c1f887421d511f724",
+      "cssSha256": "7e2874a727570b6526d98b15d96f9c5be52d624dd38361ff7ec2c4e20690f33b",
+      "toolUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=bc9fc62e-a995-496f-95ad-9dff43032b56",
+      "outline": "rgb(27, 44, 73) none 3px",
+      "draft": "async function main() {\n  return {marker: \"R131_NEW_DOCUMENT_ONCE\", title: await page.title()};\n}",
+      "resourceCounts": {
+        "pending": 0,
+        "timers": 0,
+        "subscriptions": 69,
+        "ports": 1,
+        "workers": 0,
+        "blobs": 0
+      }
+    },
+    {
+      "file": "final-css-added.json",
+      "at": "2026-10-09T18:53:02.983Z",
+      "outputRevision": "ef7da055ee8ef6a8a9da72e5ffe358056bacf54505a5c9ba968ce714dde10d27",
+      "cssSha256": "6d4909592a77d36daf6b9a121eeeb3d58fc029f815ec114a261c9b39b3599c6c",
+      "toolUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=bc9fc62e-a995-496f-95ad-9dff43032b56",
+      "outline": "rgb(255, 0, 170) solid 3px",
+      "draft": "async function main() {\n  return {marker: \"R131_NEW_DOCUMENT_ONCE\", title: await page.title()};\n}",
+      "resourceCounts": {
+        "pending": 0,
+        "timers": 0,
+        "subscriptions": 69,
+        "ports": 1,
+        "workers": 0,
+        "blobs": 0
+      }
+    },
+    {
+      "file": "final-css-removed.json",
+      "at": "2026-10-09T18:53:48.261Z",
+      "outputRevision": "2a77b921a2b41b25026ce0eaeffa3a80c416f2ecf01e878c1f887421d511f724",
+      "cssSha256": "7e2874a727570b6526d98b15d96f9c5be52d624dd38361ff7ec2c4e20690f33b",
+      "toolUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=bc9fc62e-a995-496f-95ad-9dff43032b56",
+      "outline": "rgb(27, 44, 73) none 3px",
+      "draft": "async function main() {\n  return {marker: \"R131_NEW_DOCUMENT_ONCE\", title: await page.title()};\n}",
+      "resourceCounts": {
+        "pending": 0,
+        "timers": 0,
+        "subscriptions": 69,
+        "ports": 1,
+        "workers": 0,
+        "blobs": 0
+      }
+    }
+  ],
+  "results": [
+    {
+      "tag": "controller-result",
+      "runId": "b5bcdd3b-32ad-4998-86f0-39c3c330c96e",
+      "resultId": "6781c440-ae25-419a-9409-ac0ab6e826a4",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:b5bcdd3b-32ad-4998-86f0-39c3c330c96e",
+        "revision": 1,
+        "sourceHash": "91cc04193bac6bfc66e5fdd76afb83957a6b3ac4fbcfd32cf3b537781a55304e"
+      },
+      "state": "completed",
+      "outcome": {
+        "ok": true,
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "marker",
+              {
+                "type": "string",
+                "value": "R131_SUCCESS_ONCE"
+              }
+            ],
+            [
+              "title",
+              {
+                "type": "string",
+                "value": "OpenDesk Browser · Browser Test Lab"
+              }
+            ]
+          ]
+        }
+      },
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-result",
+      "runId": "dee5cd48-b07d-41db-9f86-34e4217a8fad",
+      "resultId": "aea0e18e-e0cb-4c32-a06c-c8809b3f5a31",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:dee5cd48-b07d-41db-9f86-34e4217a8fad",
+        "revision": 1,
+        "sourceHash": "bb2e5d00a2778bc5dc5431ccfd9b95f075581d6872dc2aa02a748f68e7f53664"
+      },
+      "state": "completed",
+      "outcome": {
+        "ok": true,
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "marker",
+              {
+                "type": "string",
+                "value": "R131_NEW_DOCUMENT_ONCE"
+              }
+            ],
+            [
+              "title",
+              {
+                "type": "string",
+                "value": "OpenDesk Browser · Browser Test Lab"
+              }
+            ]
+          ]
+        }
+      },
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-result",
+      "runId": "e7445503-6292-40f3-bbf5-a0963fc815ff",
+      "resultId": "dcbeb0d3-2a3f-451e-85f4-ba6a0c16a03a",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:e7445503-6292-40f3-bbf5-a0963fc815ff",
+        "revision": 1,
+        "sourceHash": "28c759d4bf5e0a4739c78dbbd2a3e5ad06c2f578b55f61b8b1be888f7bed52b1"
+      },
+      "state": "stopped",
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_TIMEOUT",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        }
+      },
+      "retirementState": "released"
+    }
+  ],
+  "outputExclusion": [
+    {
+      "script": "dev",
+      "exitCode": 1,
+      "markerUnchanged": true
+    },
+    {
+      "script": "build:dev",
+      "exitCode": 1,
+      "markerUnchanged": true
+    }
+  ],
+  "builds": {
+    "development": {
+      "packageHash": "4925f94fe831e22064f3acc1f364d93bb21352c7a47192fa3986673d1963666f",
+      "sourceInputsSha256": "cb04a436037a3f3eb12478a447240ce55ddac7dda24f59fe81d975e228536fcd",
+      "sourceInputCount": 164,
+      "sourceDrift": [],
+      "bundles": [
+        {
+          "target": "agents/bootstrap.js",
+          "bytes": 21703,
+          "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+        },
+        {
+          "target": "agents/health.js",
+          "bytes": 1056,
+          "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+        },
+        {
+          "target": "agents/page-agent.js",
+          "bytes": 34587,
+          "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+        },
+        {
+          "target": "agents/page-relay.js",
+          "bytes": 35516,
+          "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+        },
+        {
+          "target": "agents/selection-entry.js",
+          "bytes": 638,
+          "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+        },
+        {
+          "target": "framework/sdk-main.js",
+          "bytes": 49773,
+          "sha256": "903bb9d0bbd1a48a92db218934aa730fd817dc8c211017d61b65b8a27ac25bb8"
+        },
+        {
+          "target": "native-agent/settings.js",
+          "bytes": 22563,
+          "sha256": "8d86e0847f908aff70e07bc23e2851b5c88593b1a619b1974628d117e91bac1a"
+        },
+        {
+          "target": "native-agent/transport.js",
+          "bytes": 43247,
+          "sha256": "d9960c76b88dd14015b0d69e7149ff19da9e2a7950ae263804df886c390805f0"
+        },
+        {
+          "target": "scripting/packaged/page-session.js",
+          "bytes": 59868,
+          "sha256": "6643376c91dd7d9f0259a9feb84ca45258fcccb219faffedcd6c39600d04067b"
+        },
+        {
+          "target": "scripting/sandbox/sandbox.js",
+          "bytes": 4241,
+          "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+        },
+        {
+          "target": "scripting/sandbox/worker-runtime.js",
+          "bytes": 52916,
+          "sha256": "796fa85ff323755499ca241fd2ea93a945834f511c0be9058cc8deb4fda6682d"
+        },
+        {
+          "target": "sidebar-tools/bridge.js",
+          "bytes": 2831,
+          "sha256": "cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"
+        },
+        {
+          "target": "sw.js",
+          "bytes": 289859,
+          "sha256": "d3d74e5d05d2a57923edf6ba05239963809eb7f3999209aaf8e701e3f1abd9af"
+        },
+        {
+          "target": "ui/tool-shell.js",
+          "bytes": 223087,
+          "sha256": "d4ef83246666f1f60dfd6e556599b852b2475f14cdd90d21d18e927e1b986f76"
+        }
+      ]
+    },
+    "production": {
+      "packageHash": "93117206bfd14bfbf4344ad0e34e303114f1f81f03818860efc914f95ede1586",
+      "sourceInputsSha256": "cb04a436037a3f3eb12478a447240ce55ddac7dda24f59fe81d975e228536fcd",
+      "sourceInputCount": 164,
+      "sourceDrift": [],
+      "bundles": [
+        {
+          "target": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "target": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "target": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "target": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "target": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "target": "framework/sdk-main.js",
+          "bytes": 49539,
+          "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+        },
+        {
+          "target": "native-agent/settings.js",
+          "bytes": 22329,
+          "sha256": "24bf0bf2d65fd0a946ebeba399f038f9f93f0a681e05887b9f8ee9cff13455d5"
+        },
+        {
+          "target": "native-agent/transport.js",
+          "bytes": 43010,
+          "sha256": "73d939042180afea4c9e16de4ce3d7ae9eaf401e0ca9cb72d0372b6a404a13c6"
+        },
+        {
+          "target": "scripting/packaged/page-session.js",
+          "bytes": 59622,
+          "sha256": "4adbb9669c4827574516ad92521d3b2cd9bd731b1eac41045b672cbfab17f441"
+        },
+        {
+          "target": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "target": "scripting/sandbox/worker-runtime.js",
+          "bytes": 52664,
+          "sha256": "d18e41c4c6fa631ce267c1320c032f18de76058745bf1d71e1d4055b8631eb28"
+        },
+        {
+          "target": "sidebar-tools/bridge.js",
+          "bytes": 2603,
+          "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+        },
+        {
+          "target": "sw.js",
+          "bytes": 289693,
+          "sha256": "2acdeb7298709d8fbb1741949889490da5bfb82bcbb533f86526ce354105cd7e"
+        },
+        {
+          "target": "ui/tool-shell.js",
+          "bytes": 222847,
+          "sha256": "df83318e75242fdb93cd46eb576dde77ffd2a2753b9e44ddf303e5f82e5cd396"
+        }
+      ]
+    }
+  },
+  "tests": {
+    "sourceCheck": "PASS, 225 files",
+    "developmentRegression": "8 PASS",
+    "scopedEnvironment": "545 PASS; native-agent-chrome-real.test.mjs explicitly excluded",
+    "fullEnvironment": "first run 543 PASS, 3 FAIL, 1 SKIP; after formal build provenance PASS, 545 PASS, 1 native FAIL, 1 SKIP",
+    "nativeFailure": "Chrome AX process identity changed (-2700); not claimed PASS",
+    "packageVerification": "PASS both modes"
+  },
+  "rawEvidence": [
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/dev-restart-final.log",
+      "bytes": 6607,
+      "sha256": "22d2a694a55868b0d365e9d9b10877b0e8b52718db3637dffda6901e4d7f3d7f"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/exclusive-output.json",
+      "bytes": 162,
+      "sha256": "6ce12f12ab15b1e640eee55907ea0fe16d90a1aa9b5c88a9b07e92afef4ff550"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/final-css-before.json",
+      "bytes": 200968,
+      "sha256": "9d43aa2514dc820bacb3b3f7ae619d60a1af3cc6035f648613eb0613f54dbdbd"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/final-css-added.json",
+      "bytes": 200911,
+      "sha256": "81b3a162952e5ad55a3f4c3f024d4a787bfbde61bbdfec8d7b22d0af6dc2aaed"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/final-css-removed.json",
+      "bytes": 200908,
+      "sha256": "a1e6592d69b8353cdf494d3aecd76b4148d62baa3a53b19453870cd49c6ddaf9"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/html-added.json",
+      "bytes": 12897,
+      "sha256": "e72fbc55852d434b4db3e61fa5f48d07f7dcccc4b2b7a098a1566af5047c0086"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/sidebar-js-added.json",
+      "bytes": 15679,
+      "sha256": "db17cec552a076b838def4589212651b943fa530911949e1787931e599201584"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/shared-browser-both.json",
+      "bytes": 24089,
+      "sha256": "7f301b899b0a24aaa248d36ddcbb6af7b98d3d625c2136a77e37bebd8054740d"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/task-running-before.json",
+      "bytes": 17202,
+      "sha256": "5f85413d69caf771dfe643e6605a58aed8e47a06bcef4116b7ffddee99baba89"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/task-running-after-change.json",
+      "bytes": 17280,
+      "sha256": "c530da4872a834699d6b23ddc78eff434f30aa50eee0ba796ffe8aa2317fffa7"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/success-running-before.json",
+      "bytes": 17206,
+      "sha256": "82958c4ac10082ad058dfc55b62437073fc6386afe65b31794b0822c6e5443e4"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/success-running-after-change.json",
+      "bytes": 16214,
+      "sha256": "a49c3a95747c4c4a62f7209e17d007acc2346463ed61eef3d83dfe266dba433c"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/successful-task-ledger.json",
+      "bytes": 28349,
+      "sha256": "30f79ce7ef479639f17bc7721fe04bea9f8d3d0cb0f21d7cb63e0d27d7a494f8"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/injection-before-only.json",
+      "bytes": 21769,
+      "sha256": "90b4f001e249ee595e00ca3be9bd5e31c797b3f76f8a5745bda549b7e20afce2"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/injection-after-only.json",
+      "bytes": 22921,
+      "sha256": "ec910942a4f9bf4ad751d55d4b5feb68c44e12fae124d5d50fb3783808314ebf"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/injection-old-document.json",
+      "bytes": 1995,
+      "sha256": "41280528e187d799af46ed041e22b298d7f88c804ff6ead3801b60c3cb240805"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/injection-new-document.json",
+      "bytes": 33661,
+      "sha256": "34a997387e8f2e77c8065c9365f5777eb5ded8df4c28b630059e114282f5030a"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/injection-new-scripts.json",
+      "bytes": 1996,
+      "sha256": "067517b7126ac0d8a273f81eb7094aa1f11becdca7f21a0bae599ffdada98e62"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/injection-new-ledger.json",
+      "bytes": 44173,
+      "sha256": "e43f941b0a6645b43493ae62000c7db576f5feb69742891a74387611d4fa659d"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/final-ledger.json",
+      "bytes": 44885,
+      "sha256": "9c8b196f3f68338e481c3e2f25e0eb9d18f13a1d944505439623153101b2a077"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/final-serving-output.json",
+      "bytes": 2534,
+      "sha256": "98bdf0cfe689f70a2a4429be5a0db2c571bcbf3b9fff647d5360e79a6842e08b"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/check-source.log",
+      "bytes": 208,
+      "sha256": "c722165e814e1598b4d34d82e57bd9b587cbce2cd347b502a187f2baff057597"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/development-tests-final.log",
+      "bytes": 1549,
+      "sha256": "ef525027544c4fde6ca00e29dbe7a42b9ee227d3a00ad4cc173e2a62999c454a"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/environment-tests.log",
+      "bytes": 69916,
+      "sha256": "beb4200925096e9f8b7bf08832fd4c80e0c37a4c034b85e40a4e6aabbbc34e9d"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/component-tests-final.log",
+      "bytes": 68806,
+      "sha256": "8085baf496b6a1cc6ec48ce1d36a298908034d9805bf0f68482639eb6e9d75de"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/component-tests-scoped.log",
+      "bytes": 55952,
+      "sha256": "f07283ef8e27649a5903448eccc8882e8b0b79b9e4f7643ba7fc43bc6d49d824"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/build-development.log",
+      "bytes": 5793,
+      "sha256": "db8e8d6e28ef57a21b596a1a17ef36de8744b7f7c6bf6260c5ffcaf3f631b1c6"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/build-production.log",
+      "bytes": 4169,
+      "sha256": "4891dd633662cb338e1d31c13c5a24ef5ed703bfab4ce481a46244b6e712e549"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/verify-package-final.log",
+      "bytes": 12079,
+      "sha256": "314173d51084a8dc32ebbf480a2778574b557a7f1268dcf90ac02150eb4a9665"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/builds/build-development.json",
+      "bytes": 77022,
+      "sha256": "2c43742bc58d6f9d1aae0292fd0258c0dcdfac85a823741dfcf199370af84ee7"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/builds/build-production.json",
+      "bytes": 74603,
+      "sha256": "3678f4dab802b2433dfef61ca534fd6ef1ce19540abd7ca53f8072c462f8865b"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/final-css-added-F23EF53BAEE02EDE0EBA49323B770F3B.png",
+      "bytes": 35144,
+      "sha256": "41bbb4c1ec5dcace23c77b99db2fe12f7f54a35113bd3daa712fe0d51c8521e5"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/final-css-before-F23EF53BAEE02EDE0EBA49323B770F3B.png",
+      "bytes": 40008,
+      "sha256": "04426b875ce3081e7b604275ddbc38129013d085e8d03c5d22d09888d865ae52"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/final-css-removed-F23EF53BAEE02EDE0EBA49323B770F3B.png",
+      "bytes": 35417,
+      "sha256": "62afa51266573796e29d0b23ca3d14a56f8d5bfa36fcc8cd941cfb36e103d240"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/html-added-B94CBD515A8845B659A6234C180CCD25.png",
+      "bytes": 41146,
+      "sha256": "5211f6a69bdd0202ad5069e82882925e3ba0b4de82a9d165189527bc8adc143c"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/injection-new-document-4B578615181DDC84D611CB6FD88E7C1D.png",
+      "bytes": 258465,
+      "sha256": "33225f9eca6cba13230c3c32e54887a23f415f2a0d0defe211a254a6c18b1156"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/sidebar-js-added-B94CBD515A8845B659A6234C180CCD25.png",
+      "bytes": 40271,
+      "sha256": "da5a2642ca64b56ffdb56cd84f70e3517fbd2772fde86c9b315a1f34af9fd132"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/success-running-after-change-0867D3A965374368D95E5974B6718A51.png",
+      "bytes": 118502,
+      "sha256": "a85e6764ff90637110518155b69b30a088b3a8435d8ca4cdcd1c74fb8dbda308"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/task-running-after-change-DC7A63D8563720BD93EAA576CAAF0874.png",
+      "bytes": 119067,
+      "sha256": "652de9ea3a7c05a42dac80f9351ad61fda36cc7e69b1751692c488901bb33d03"
+    }
+  ]
+}

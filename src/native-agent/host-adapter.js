@@ -139,5 +139,7 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     try { client.replyNativeAgent({requestId:request.dispatchId??request.requestId,...(error ? {error} : {result})}); }
     catch { /* Browser host state is authoritative; never replay. */ }
   });
-  return {handle,dispose() {disposed=true;unsubscribe();}};
+  return {handle,developmentIdle:()=>!disposed&&!host.executionPending&&!host.currentRun&&
+    ![...previews.values()].some(row=>row.state==='preview-pending'||row.state==='preview-unknown'||row.managedUI&&row.state!=='preview-retired'),
+    dispose() {disposed=true;unsubscribe();}};
 }

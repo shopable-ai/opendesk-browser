@@ -25,7 +25,7 @@ export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,
   }catch(error){return {ok:false,error:{code:error.code || 'E_DRAFT_IMPORT',message:error.message || String(error)}};}
 }
 
-export function initToolShell() {
+export function initToolShell(installDevelopment=null) {
   const hostUrl = new URL(location.href);
   const hostInstanceId = hostUrl.searchParams.get('hostInstanceId');
   if (!hostInstanceId) {
@@ -37,13 +37,15 @@ export function initToolShell() {
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
-const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget});
+const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
  taskWorkbench.connectToolsView(visible=>sidebarTools.setVisible(visible));
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
 scriptEditor.connectLocalProjects(nativeAgentHost);
+const disposeDevelopment=installDevelopment?.({api:chrome,prepareReload:async()=>
+  nativeAgentHost.developmentIdle()&&await scriptEditor.prepareDevelopmentReload()&&nativeAgentHost.developmentIdle()});
 let sidebarSurface=false, draftImportAttached=false;
 const draftImportListener=(message,sender,sendResponse)=>{
   const response=receiveSidebarDraft({message,sender,windowId:currentPageTarget.snapshot.windowId,sidebarSurface,
@@ -234,6 +236,7 @@ chrome.tabs.onRemoved.addListener(sdkTabRemoved);
 browserListenersAttached = true;
 refreshSdkTabs().catch(sdkError);
 listen(window, 'pagehide', () => {
+  disposeDevelopment?.();
   chrome.runtime.onMessage.removeListener(draftImportListener);draftImportAttached=false;sidebarSurface=false;
   chrome.webNavigation.onCommitted.removeListener(sdkNavigation); chrome.tabs.onRemoved.removeListener(sdkTabRemoved);
   chrome.permissions.onRemoved.removeListener(sdkPermissionsRemoved); sdkApproval.dispose();

@@ -4,6 +4,8 @@
 
 OpenDesk 是 Chrome 扩展；Native Host 连接本机目录和扩展；Codex 通过同一个 stdio MCP 编辑文件、调用七个工具；Sidebar 也可以从该 MCP 的源码 provider 选择项目。Controller 用 page/Locator 自动化网页，Page USER_SCRIPT 用 document 添加网页 UI。示例项目不是新的插件，Python 只提供演示 HTML，真实网站不用它。
 
+> **修改扩展自身源码**：使用 `npm run dev` 持续编译并在 Chrome 加载固定的 `dist/development`；首次安装与自动刷新说明见[扩展源码开发 R13.1](extension-development-r131.zh-CN.md)。下面的 Native/MCP 本地项目开发仍是独立用途。
+
 ## 当前已能使用什么
 
 - 单文件和静态相对 ESM 多文件，Controller 真实运行、Page 预览、Sidebar 本地项目开关与明确再次运行。

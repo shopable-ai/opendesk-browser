@@ -1,0 +1,67 @@
+import {cp,readFile,writeFile,rename,mkdir} from 'node:fs/promises';
+import {resolve,dirname,relative} from 'node:path';
+import {createHash} from 'node:crypto';
+import {STATIC_RESOURCES} from './prepare-public.mjs';
+import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST} from './verify-package.mjs';
+
+const marker='development-update.json';
+const sessions=new WeakMap();
+const sessionKey=Symbol.for('opendesk.development.session');
+export async function publishDevelopment(wxt,output) {
+  const paths=[...new Set(['manifest.json',...output.publicAssets.map(asset=>asset.fileName),
+    ...output.steps.flatMap(step=>step.chunks.map(chunk=>chunk.fileName))])].sort();
+  await writeFile(resolve(wxt.config.outDir,SDK_RESOURCE_MANIFEST),JSON.stringify(await createSdkResourceManifest(wxt.config.outDir),null,2)+'\n');
+  paths.push(SDK_RESOURCE_MANIFEST);
+  const files=Object.fromEntries(await Promise.all(paths.filter(path=>!path.endsWith('.map')).map(async path=>[
+    path,createHash('sha256').update(await readFile(resolve(wxt.config.outDir,path))).digest('hex')])));
+  const revision=createHash('sha256').update(JSON.stringify(files)).digest('hex');
+  const record={protocol:'opendesk.development.v1',revision,files};
+  const target=resolve(wxt.config.outDir,marker);
+  await writeFile(target+'.tmp',JSON.stringify(record));await rename(target+'.tmp',target);
+  wxt.logger.info(`[OpenDesk dev] Output ready ${revision.slice(0,12)}; browser applies updates only after its safety checks.`);
+}
+export function configureDevelopment(wxt,server) {
+  if(sessions.has(server))return;
+  // Native WXT watches Rollup moduleIds and serializes incremental entry builds.
+  // Replace only reload requests: the default client cannot inspect RunHost.
+  let publishing=Promise.resolve();
+  const publish=()=>{const output=server.currentOutput;publishing=publishing.then(()=>publishDevelopment(wxt,output)).catch(error=>wxt.logger.error(error));return publishing;};
+  server.reloadExtension=publish;server.reloadPage=publish;server.reloadContentScript=publish;
+  const builder=wxt.builder,build=builder.build;
+  const guardedBuild=async(...args)=>{await publishing;return build.apply(builder,args);};
+  builder.build=guardedBuild;
+  const sources=new Map(Object.entries(STATIC_RESOURCES).map(([src,dest])=>[resolve(wxt.config.root,src),dest]));
+  let copying=Promise.resolve(),accepting=true;
+  const sync=(event,file)=>{
+    if(!accepting)return;
+    const dest=sources.get(resolve(file));if(!dest)return;
+    if(event==='unlink'){wxt.logger.error(`[OpenDesk dev] Required resource removed: ${relative(wxt.config.root,file)}; restore it before updating.`);return;}
+    copying=copying.then(async()=>{
+      const target=resolve(wxt.config.publicDir,dest);await mkdir(dirname(target),{recursive:true});
+      await cp(file,target);
+      wxt.logger.info(`[OpenDesk dev] Static source changed: ${relative(wxt.config.root,file)}`);
+      // Vite excludes .wxt/** from its filesystem watcher. Feed this mapped
+      // public-file change to WXT's existing serialized incremental queue.
+      server.watcher.emit('all','change',target);
+    }).catch(error=>wxt.logger.error(error));
+  };
+  const watcher=server.watcher;watcher.add([...sources.keys()]);watcher.on('all',sync);
+  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);},drain:async()=>{await copying;await publishing;},restore:()=>{if(builder.build===guardedBuild)builder.build=build;}};
+  sessions.set(server,session);server[sessionKey]=session;
+}
+export async function closeDevelopment(_wxt,server) {
+  const session=server[sessionKey];session?.stopCopies();
+  await session?.drain();
+  session?.restore();delete server[sessionKey];
+  sessions.delete(server);
+}
+export function waitDevelopmentPublication(wxt){return wxt.server?.[sessionKey]?.publication();}
+export async function drainDevelopment(server) {
+  // WXT's all-event listener returns its serialized queue promise. Stop new
+  // filesystem events, then await that queue using an irrelevant sentinel.
+  const watcher=server.watcher,session=server[sessionKey];
+  session?.stopCopies();await session?.drain();
+  const listeners=watcher.listeners('all');await watcher.close();
+  for(const listener of listeners)await listener('change',resolve('.wxt/opendesk-development-drain'));
+  await session?.drain();
+}

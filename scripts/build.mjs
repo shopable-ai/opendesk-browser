@@ -1,36 +1,29 @@
-import {execFileSync} from 'node:child_process';
-import {cp, mkdir, readFile, writeFile, rm, mkdtemp} from 'node:fs/promises';
+import {preparePublic} from './prepare-public.mjs';
+import {acquireDevelopmentLock} from './development-lock.mjs';
+import {prepare,build} from 'wxt';
+import {mkdir, readFile, writeFile, rm, mkdtemp} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {collectBundleEvidence} from './bundle-provenance.mjs';
 import {PACKAGE_ENTRIES} from './build-contract.mjs';
-import {verifyPackage, SANDBOX_HTML, filesAt, createSdkResourceManifest, SDK_RESOURCE_MANIFEST} from './verify-package.mjs';
+import {verifyPackage, filesAt, createSdkResourceManifest, SDK_RESOURCE_MANIFEST} from './verify-package.mjs';
 const mode = process.argv[2] || 'production';
 if (!['production', 'development'].includes(mode)) throw new Error('Invalid build mode');
 async function sourceInputs() {
   const paths = [...(await filesAt('src')).map(path => `src/${path}`), ...(await filesAt('scripts')).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
   return Promise.all(paths.map(async path => { const bytes = await readFile(path); return {path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')}; }));
 }
-const inputsBefore = await sourceInputs();
-// WXT copies only source-owned static resources; every JavaScript output is built by WXT/Vite.
-const publicRoot = resolve('.wxt/public');
-await rm(publicRoot, {recursive: true, force: true});
-for (const dir of ['ui', 'native-agent', 'scripting/sandbox', 'sidebar-tools', 'licenses', 'icons', 'vendor']) await mkdir(resolve(publicRoot, dir), {recursive: true});
-for (const name of ['tool.html', 'tool-shell.css', 'target-bootstrap.html']) await cp(`src/ui/${name}`, resolve(publicRoot, 'ui', name));
-await cp('src/native-agent/settings.html', resolve(publicRoot, 'native-agent/settings.html'));
-await cp('src/scripting/sandbox/sandbox.html', resolve(publicRoot, SANDBOX_HTML));
-await cp('src/sidebar-tools/sandbox.html', resolve(publicRoot, 'sidebar-tools/sandbox.html'));
-await cp('docs/contracts/licenses/todo-user-vue-MIT.txt', resolve(publicRoot, 'licenses/todo-user-vue-MIT.txt'));
-await cp('src/vendor/jquery-3.7.1.min.js', resolve(publicRoot, 'vendor/jquery-3.7.1.min.js'));
-await cp('src/vendor/jquery-3.7.1.LICENSE.txt', resolve(publicRoot, 'licenses/jquery-MIT.txt'));
-const notificationIcon = 'iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAACGklEQVR42u3d223DMBAEQNaSutJm6lNqCJKIe7ezgP8l7kgGbD7OERERERERWZWPz6/nNx8jWFQ2FAoHQukwKB4EpcOgeBAUD4LyIVA8CMqHQPEgKB8C5UOgfAiUD4HiQVA+BAAAoHwIlA9Bfvk/DQTDy//rQDCg/LcCQRCA26kH0Fp8CgTlQ/DUAJiSCgDKL0ag+EwI6wBsySoAyi9HoPxsBMqH4BkLoCUAADAPwIbyJ15LDIKp5W++ttcATHz6G6/x3xCYuDHzeuMBTP2xZcp11zz90/+Wjn4LKH/2fawGsGkuIgAA5AFQfjmC1MHasvgEAAD6AGwtP/n+AABgx+t/ygreFV8DAADg9d/8NeDp33WvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOCnYD8F+zPIn0EAAOBrwOsfAABMCjUpFAAALAyxMAQCawMBAMDycMvDbRDRvEGELWLKt4ixSZRNomwT175NnI0in3EAbBX7iwFPuhb7BS+M3cIBAMCBEU4NcWSMM4McGuXkMMfGOTdwM4I3x8rRsaXFv14+BMq/AiAdwq3xODcDQXH5txEkQLh57yclm+bmTZqLeJKycZp28jT0k5hNS7aS7+UkZ9pGDtM+Z0IUVVw+BMoHAAAI6ssHQfEQKB8C5UOgfAiUD4LiIVA+CIqHQPm1EDRbCkGThRg0VgpBQ4UYNFEGwkgXoTCCIiIiIiKyK98xnCdLBZ58zAAAAABJRU5ErkJggg==';
-await writeFile(resolve(publicRoot, 'icons/notification.png'), Buffer.from(notificationIcon, 'base64'));
-const wxt = resolve('node_modules/.bin/wxt');
-const moduleEvidence = await mkdtemp(resolve('.wxt/module-evidence-'));
+const releaseOutput=await acquireDevelopmentLock('build');
+let moduleEvidence;
 try {
-const env = {...process.env, OPENDESK_BUILD_MODE: mode, OPENDESK_MODULE_EVIDENCE_DIR: moduleEvidence};
-execFileSync(wxt, ['prepare'], {env, stdio: 'inherit'});
-execFileSync(wxt, ['build', '--browser', 'chrome', '--mv3', '--mode', mode], {env, stdio: 'inherit'});
+const inputsBefore = await sourceInputs();
+await preparePublic();
+moduleEvidence = await mkdtemp(resolve('.wxt/module-evidence-'));
+process.env.OPENDESK_BUILD_MODE=mode;process.env.OPENDESK_MODULE_EVIDENCE_DIR=moduleEvidence;
+// Keep the actual writer in the process owning the output guard, including
+// abrupt parent termination: no orphaned WXT subprocess can keep writing.
+await prepare({mode,browser:'chrome',manifestVersion:3});
+await build({mode,browser:'chrome',manifestVersion:3});
 const inputsAfter = await sourceInputs();
 const sourceDriftDuringBuild = inputsBefore.filter((input, index) => JSON.stringify(input) !== JSON.stringify(inputsAfter[index]));
 if (inputsBefore.length !== inputsAfter.length || sourceDriftDuringBuild.length) throw new Error('Build inputs changed during WXT build; rebuild current candidate');
@@ -44,5 +37,6 @@ await mkdir(evidence, {recursive: true});
 await writeFile(`${evidence}/build-${mode}.json`, JSON.stringify({mode, builder: 'WXT0.21.4/Vite7.3.6/Rollup', status: 'passed', cwd: process.cwd(), sourceInputs: inputsBefore, sourceDriftDuringBuild, bundleModules, report}, null, 2) + '\n');
 console.log(JSON.stringify({mode, builder: 'wxt', status: 'passed', packageHash: report.packageHash, assets: report.files.length}));
 } finally {
-  await rm(moduleEvidence, {recursive: true, force: true});
+  try {if(moduleEvidence)await rm(moduleEvidence, {recursive: true, force: true});}
+  finally {await releaseOutput();}
 }

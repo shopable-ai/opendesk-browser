@@ -12,7 +12,7 @@ export function installNativeTransport(scope=globalThis) {
   const api=scope.chrome,hostPorts=scope.__opendeskNativeHostPorts;
   if(!api?.runtime || !(hostPorts instanceof Map))throw Error('E_HOST_NOT_READY');
   Object.defineProperty(scope,'__opendeskNativeManagedUI',{value:createManagedUIPreview,writable:false,configurable:false});
-  const agent=createNativeAgentService({api,hostPorts});
+  const agent=createNativeAgentService({api,hostPorts,development:scope.__opendeskDevelopment});
   api.runtime.onMessage.addListener((message,sender,sendResponse)=>{
     if(message?.protocol!==AGENT_CONFIG_PROTOCOL)return false;
     agent.handleSettings(message,sender).then(
