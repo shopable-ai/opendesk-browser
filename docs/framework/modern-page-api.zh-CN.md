@@ -82,7 +82,7 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 
 现有 `page.click(css)`、`page.type(css,text)`、`page.keyboard`、`page.snapshot/snapshots`、`page.$/$eval/evaluate`、`page.goto/reload`、screenshot/cookies/upload **保持已有返回值与许可边界**，不映射成现代 Locator 的假兼容行为。新任务默认采用本文件 API，旧任务按需要逐个迁移。
 
-类型声明补齐了已存在的常用旧接口：`title()/url()` 返回 `Promise<string>`，`content()` 返回 body.innerHTML 的 `Promise<string>`；`goto(url,options?)/reload(options?)` 返回 `Promise<void>`，options 包含 `timeout` 和 `waitUntil:'complete'|'load'|'domcontentloaded'`。`click(css,{button?,clickCount?,delay?})` 返回 `Promise<'clicked'>`；`type(css,text,{delay?})` 将 text 转为字符串并追加，返回 `Promise<'Typed'>`。`keyboard.type(text)/press(key)/down(key)/up(key)` 返回 `Promise<void>`，按键仍为合成 DOM 输入；`press/down/up` 的 key 必须为非空字符串（如 `Enter`、`Backspace`），含 `+` 的多字符组合键报 `E_KEY_UNSUPPORTED`，单独 `+` 允许。此次补声明没有新增运行时 API；声明文件覆盖现代 API 与这些常用旧接口，不声称已完整描述所有历史 ChromePage 方法。
+类型声明补齐了已存在的常用旧接口：`title()/url()` 返回 `Promise<string>`，`content()` 返回包含 DOCTYPE 的完整文档 HTML 的 `Promise<string>`；`goto(url,options?)/reload(options?)` 返回 `Promise<void>`，options 包含 `timeout` 和 `waitUntil:'complete'|'load'|'domcontentloaded'`。`click(css,{button?,clickCount?,delay?})` 返回 `Promise<'clicked'>`；`type(css,text,{delay?})` 将 text 转为字符串并追加，返回 `Promise<'Typed'>`。`keyboard.type(text)/press(key)/down(key)/up(key)` 返回 `Promise<void>`，按键仍为合成 DOM 输入；`press/down/up` 的 key 必须为非空字符串（如 `Enter`、`Backspace`），含 `+` 的多字符组合键报 `E_KEY_UNSUPPORTED`，单独 `+` 允许。此次补声明没有新增运行时 API；声明文件覆盖现代 API 与这些常用旧接口，不声称已完整描述所有历史 ChromePage 方法。
 
 ## R13 新能力与边界
 
@@ -123,8 +123,8 @@ async function main() {
 
 上述行为同时有组件回归与本机受控 Chrome 证据；原始回执、实际限制和未覆盖项在同一验收记录中分开列出。不能把它们推广为任意构建的 PASS、外部 AI Agent E2E 或完整 Playwright 兼容。
 
-## 大型网页 HTML 读取（2026-10-10）
+## Playwright page.content() 兼容（2026-10-10）
 
-`page.content()` 沿用 `body.innerHTML` 的返回语义，完整结果可能超过 64 KiB Codec 预算，此时给出 `E_PAGE_CONTENT_TOO_LARGE` 而非模糊的语法异常。
+按官方签名使用 `const html = await page.content()`，返回当前精确文档包含 DOCTYPE 的完整 HTML（不是 `body.innerHTML`）。**不新增公共 `content({maxChars})` 或 `contentChunks()` 参数/API**。运行时通过已授权 Controller 的内部快照/分段消息自动取回，网页对脚本仍只表现为一个 `Promise<string>`。最大 HTML 快照 8 MiB，60 秒失效，权限/停止/导航会阻断数据继续传输。脚本可以处理 HTML 后返回紧凑结果。
 
-需要预览时使用 `await page.content({maxChars:4000})`，会在网页代理端截取后才传输；要顺序读取同一份 HTML 快照，使用 `for await (const chunk of page.contentChunks())`，每块最多 8192 UTF-16 字符。快照最多 8 MiB/60 秒，退出和停止时回收，最终任务结果仍受 64 KiB 限制。使用 `page.url()` 获取网址，不要把 HTML 放入 URL 字段。参见 [安全读取与分块合同](page-content-read-r1.zh-CN.md)。
+注意：脚本的 `return` 是另一条结果传输，不能无限制传输大型业务对象；超过可持久化额度时返回明确的结果大小错误，而非截断用户值。这属于 OpenDesk 运行宿主的资源限制，不是 Playwright 方法的额外参数。详见 [HTML 内容读取合同](page-content-read-r1.zh-CN.md)。

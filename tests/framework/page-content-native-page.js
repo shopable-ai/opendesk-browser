@@ -33,26 +33,28 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
   const tab=await chrome.tabs.create({url:base+'/large',active:false});
   try{
     const target=await targetFor(tab.id);
-    await check('oversized-legacy-content',async()=>{
-      const result=await run('async function main(){return await page.content();}',target);
-      assert(result.state==='failed'&&result.outcome?.error?.code==='E_PAGE_CONTENT_TOO_LARGE',
-        'Unexpected legacy result '+JSON.stringify(result.outcome));
-      return {errorCode:result.outcome.error.code};
-    });
-    await check('bounded-preview',async()=>{
-      const result=await run('async function main(){const html=await page.content({maxChars:4000});return {size:html.length,first:html.slice(0,5)};}',target);
-      assert(result.outcome?.ok===true,'Preview failed '+JSON.stringify(result.outcome?.error));
+    await check('playwright-standard-content',async()=>{
+      const source='async function main(){const html=await page.content();return {title:await page.title(),url:await page.url(),length:html.length,hasDoctype:html.startsWith("<!DOCTYPE html>"),hasHtml:html.includes("<html"),containsBody:html.includes("<div>中😀</div>")};}';
+      const result=await run(source,target);
+      assert(result.outcome?.ok===true,'HTML read failed '+JSON.stringify(result.outcome?.error));
       const value=decodeValue(result.outcome.valueWire);
-      assert(value.size>=3999&&value.size<=4000&&value.first==='<div>','Bounded HTML changed');
+      assert(value.hasDoctype&&value.hasHtml&&value.containsBody&&value.length>expectedChars,
+        'Full Playwright HTML document missing');
       return value;
     });
-    await check('complete-snapshot-chunks',async()=>{
-      const source='async function main(){let chunks=0,chars=0,first="",last="";for await(const html of page.contentChunks()){chunks++;chars+=html.length;if(chunks===1)first=html.slice(0,5);last=html.slice(-6);}return {chunks,chars,first,last};}';
+    await check('playwright-user-code-can-process-large-content',async()=>{
+      const source='async function main(){const html=await page.content();return {first:html.slice(0,15),last:html.slice(-13),size:html.length,divs:html.split("<div>").length-1};}';
       const result=await run(source,target);
-      assert(result.outcome?.ok===true,'Streaming failed '+JSON.stringify(result.outcome?.error));
+      assert(result.outcome?.ok===true,'Processing large HTML failed '+JSON.stringify(result.outcome?.error));
       const value=decodeValue(result.outcome.valueWire);
-      assert(value.chunks>1&&value.chars===expectedChars&&value.first==='<div>'&&value.last==='</div>',
-        'Snapshot integrity changed: '+JSON.stringify(value));
+      assert(value.size>expectedChars&&value.divs===9000,'DOM markup changed');
+      return value;
+    });
+    await check('reject-nonstandard-page-content-options',async()=>{
+      const result=await run('async function main(){try{await page.content({maxChars:100});return "unexpected";}catch(e){return e.code;}}',target);
+      assert(result.outcome?.ok===true,'Invalid options verification failed');
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value==='E_OPTION_UNSUPPORTED','Invalid options not rejected: '+value);
       return value;
     });
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
