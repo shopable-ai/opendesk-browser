@@ -4,6 +4,7 @@ import {base64ToBytes, decodeValue} from '../platform/page-port/codec.js';
 import {hashArtifactBytes} from '../platform/downloads/blob-lifecycle.js';
 import {BUDGETS, invariant} from '../platform/protocol.js';
 import {createPageDependencyResolver, dependencyMessage} from './page-dependencies.js';
+import {preparePageCandidateDraft} from './page-candidate-source.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 import {createProgramSourceView} from './program-source.js';
 import {createLocalProjectView} from './local-project.js';
@@ -27,8 +28,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const find = id => doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
   const tab = find('script-tab'), frame = find('script-document'), mode = find('script-target-mode');
-  const currentPageStatus = find('script-current-page-status'), currentPageDebug = find('script-current-page-debug'),
-    runningTargetStatus = find('script-running-target');
+  const currentPageStatus = find('script-current-page-status'), currentPageHost = find('script-current-page-host'),
+    currentPageDebug = find('script-current-page-debug'), runningTargetStatus = find('script-running-target');
   const revisions = new Map(), documents = new Map();
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
@@ -50,7 +51,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     draftWrites=draftWrites.then(()=>api.storage.session.set({[draftKey]:value}))
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
-  let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null;
+  let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
   let currentRevision, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -104,6 +105,11 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-stop').textContent=canStopManaged()?'停止受管 UI':'停止';
     find('page-preview-run').disabled = previewBusy || dependencyResolver?.busy || editingBusy || running || !!host.currentRun ||
       !programSource.source().trim() || programSource.kind() === 'controller' || currentPageState?.status !== 'available';
+    const pageCandidateButton=find('page-candidate-save');
+    if(pageCandidateButton)pageCandidateButton.disabled=editingBusy||previewBusy||!!localProject?.active()||
+      !lastPagePreview||lastPagePreview.sourceUtf8!==programSource.source()||
+      currentPageState?.status!=='available'||currentPageState.documentId!==lastPagePreview.documentId||
+      currentPageState.tabId!==lastPagePreview.tabId||currentPageState.url!==lastPagePreview.previewUrl;
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
@@ -123,18 +129,22 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       next?.status === 'resolving' ? '正在识别…' : next?.message || '尚未识别可运行网页';
     find('script-current-page-url').textContent = next?.status === 'available' ? next.url : '';
     if (next?.status === 'available') {
+      currentPageHost.textContent = new URL(next.url).host;
+      currentPageHost.title = next.url;
       currentPageStatus.dataset.state = 'available';
-      currentPageStatus.textContent = `当前网页 · ${new URL(next.url).host} · 可运行`;
-      currentPageStatus.title = next.title || next.url;
+      currentPageStatus.textContent = '可运行';
+      currentPageStatus.title = '已识别可运行网页；执行时仍需检查网站授权及文档身份';
       currentPageDebug.textContent = JSON.stringify({windowId:next.windowId,tabId:next.tabId,frameId:next.frameId,
         documentId:next.documentId,url:next.url,origin:next.origin}, null, 2);
     } else if (next?.status === 'resolving') {
-      currentPageStatus.dataset.state = 'resolving'; currentPageStatus.textContent = '当前网页 · 正在识别…';
+      currentPageHost.textContent = '正在识别…'; currentPageHost.title = '';
+      currentPageStatus.dataset.state = 'resolving'; currentPageStatus.textContent = '检查中';
       currentPageStatus.title = '';
       currentPageDebug.textContent = next.windowId == null ? '' : JSON.stringify({windowId:next.windowId}, null, 2);
     } else {
+      currentPageHost.textContent = '未识别'; currentPageHost.title = '';
       currentPageStatus.dataset.state = 'unavailable';
-      currentPageStatus.textContent = '当前网页 · 不可运行';
+      currentPageStatus.textContent = '不可运行';
       currentPageStatus.title = next?.message || '未找到活动 HTTP(S) 主文档';
       currentPageDebug.textContent = JSON.stringify({windowId:next?.windowId ?? null,reason:next?.reason || 'E_TARGET'}, null, 2);
     }
@@ -507,6 +517,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       if(!pageSource.sourceUtf8.trim())throw {code:'E_SOURCE',message:'请输入 JavaScript 源码'};
       permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
+    lastPagePreview=null;
     previewBusy=true;update();displayPreview('running','正在核对当前文档并执行一次性页面脚本…');
     (async()=>{
       if(!await permission)throw {code:'E_PERMISSION',message:'用户拒绝网站授权'};
@@ -516,12 +527,38 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
         ...pageSource,
         target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId}});
-      displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果，也不会安装自动执行。',
+      lastPagePreview={sourceUtf8:pageSource.sourceUtf8,entryFormat:pageSource.entryFormat,
+        lockId:pageSource.lockId,previewUrl:captured.url,documentId:captured.documentId,
+        tabId:captured.tabId,target:captured,sourceHash:result.sourceHash};
+      displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
         result.resultText+' \n源码 SHA-256：'+result.sourceHash+
         (result.lockId ? '\n固定依赖：'+result.lockId : '')+
         (result.warnings?.length ? '\n'+result.warnings.map(dependencyMessage).join('\n') : ''));
     })().catch(error=>displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)))
       .finally(()=>{previewBusy=false;update();});
+  }
+  async function savePageCandidate() {
+    if(editingBusy||disposed||previewBusy||!lastPagePreview||localProject?.active())return;
+    const previous=lastPagePreview,revisionText=find('script-revision').value.trim();
+    const programId=scriptId(),revision=revisionText?Number(revisionText):1;
+    if(programSource.source()!==previous.sourceUtf8)
+      throw {code:'E_REVISION',message:'源码已经修改，请重新试运行后保存'};
+    const prepared=preparePageCandidateDraft({...previous,programId,revision});
+    editingBusy=true;update();
+    try {
+      await currentPageTarget.revalidate(previous.target);
+      const saved=await client.request('importPageCandidate',prepared.request);
+      if(saved?.stage!=='Candidate'||typeof saved.candidateId!=='string'||typeof saved.manifestHash!=='string')
+        throw {code:'E_PAGE_CANDIDATE',message:'未收到可信的固定候选身份'};
+      const changed=programSource.source()!==previous.sourceUtf8||scriptId()!==programId||
+        find('script-revision').value.trim()!==revisionText;
+      const status=find('page-candidate-status');
+      status.dataset.state='saved';
+      status.textContent=`已保存 Page Candidate：${programId} · r${revision} · ${saved.manifestHash.slice(0,12)}…。`+
+        (prepared.generatedMatch?` 仅匹配 ${prepared.match}；为源码增加匹配注释，因此候选 SHA 不同于试运行 SHA。`:' 使用源码内的 @match 规则。')+
+        (changed?' 保存期间编辑器已变化，请重新核对当前版本。':'')+
+        ' 仍未完成 Page 类型验证、正式安装和自动生效。';
+    }finally{editingBusy=false;update();}
   }
   dependencyResolver=createPageDependencyResolver({client,getSource:()=>programSource.source(),onState:update});
   const onNavigation = details => {
@@ -545,6 +582,14 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   on('script-params','input',update);
   listen(find('script-run'), 'click', start);
   listen(find('page-preview-run'), 'click', previewPage);
+  const candidateSaveButton=find('page-candidate-save');
+  if(candidateSaveButton)listen(candidateSaveButton,'click',event=>{
+    if(!event.isTrusted)return;
+    savePageCandidate().catch(error=>{
+      const node=find('page-candidate-status');node.dataset.state='error';
+      node.textContent=(error.code||'E_PAGE_CANDIDATE')+'：'+(error.message||error);
+    });
+  });
   on('script-stop','click',async () => {
     if(canStopManaged()&&!stopping){
       const owned=ownedManagedPreview;stopping=true;update();display('stopping','正在清理原网页中的受管资源…');

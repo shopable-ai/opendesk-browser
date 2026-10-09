@@ -29,6 +29,8 @@
 **侧栏三个页签：我的任务 / 发现 / 开发。** 这是一个产品视图划分，不是三个 Host 或三套运行引擎。
 
 - **我的任务**：展示已安装任务卡片、所选任务的参数与运行控制；“最近运行”固定在任务卡片及详情的下方，不是独立页签。运行与停止继续绑定同一个 RunHost、Controller 和 durable Result。
+  - **自定义工具**：顶部仅保留一行标题及“导入”操作；没有安装工具时不显示二级“任务”选项卡、不长期展示说明和诊断。点击“导入”才在标题行下方展示全宽文件区域，文件校验完成后显示工具名称、版本、说明及能力，只有明确点击“安装工具”才写入本地存储，安装后不自动运行。工具包与 Task v1 包不可混同。
+  - **自动化任务**：独立、紧凑的列表标题及“添加”入口（打开独立任务目录）；任务卡片宽度、内边距和行距与导入区域使用同一 4/8/12/16 间距体系。打开自定义工具时隐藏无关的“运行任务”按钮；如真实任务仍在运行，仅保留原 RunHost 所有者的“停止”，不改变结果归属。
 - **发现（Sidebar）**：只查阅、搜索、筛选本机**已安装**任务。默认依据 Sidebar 所属窗口当前 HTTP(S) 网页的准确 origin 找出可能适用且已启用的任务，允许切换“全部已安装 / 已停用”。**origin 匹配只是 UI 初筛，不等于正式网站、权限或页面结构验收。** 点击某项仅将选择带回“我的任务”；不得自动运行、自动授权、自动安装或重放操作。
 - **开发**：编辑并直接运行未保存 JavaScript 草稿，按需保存程序版本；切换页签不得销毁草稿或正在运行的 Host。
 - **完整任务目录（独立扩展标签页）**：导入任务包、查看候选、核对可信验证、Available、安装/升级等在此办理；由 Sidebar 顶部“任务目录 ↗”打开。完整目录不得冒充 Sidebar“发现”，也不应把目录搜索、审批等大型页面挤进窄 Side Panel。
@@ -104,8 +106,8 @@ Program Revision、Run、Result 是三个独立对象：
 
 - 编辑源码不会运行。
 - Save 只生成新 revision，不运行。
-- Run 只运行一个明确保存过的 revision。
-- 编辑区存在未保存修改时，UI 必须明确显示“本次 Run”使用哪个已保存 revision。
+- 开发页的 Run 执行点击时冻结的当前草稿源码（无须事先 Save）；已安装任务运行选定的已保存版本。
+- 编辑区存在未保存修改时，Run 不自动 Save、不覆盖已保存版本；以源代码快照及 sourceHash 绑定结果。
 - `Run r1 → Save r2` 时，正在运行的任务继续使用 r1。
 - durable result 继续由既有 Controller/storage 体系负责。
 
@@ -144,7 +146,7 @@ Controller 默认 Current Page 不代表自动安装 OpenDeskSDK。SDK 仍要求
 2. 打开 Sidebar 不运行用户代码。
 3. 编辑代码不操作网页。
 4. 保存代码不操作网页。
-5. Run 只执行明确保存的 revision。
+5. 开发草稿可直接明确点击 Run，无须先保存；运行目标、源码与参数必须冻结。
 6. Run 后切 tab 不改变已经运行任务的 target。
 7. Run 准备期间目标变化必须失败，不得自动换页运行。
 8. Sidebar 不新增第二套 JavaScript executor。
@@ -177,8 +179,20 @@ Controller 默认 Current Page 不代表自动安装 OpenDeskSDK。SDK 仍要求
 
 Run 的 revision、参数和目标在 click 内冻结，权限请求在第一个 await 前发起。保存/加载/删除串行执行；迟到的保存不会切换另一脚本，加载期间新增编辑不会被回包覆盖。准备期间关闭 Host 不再启动 Run。
 
-当前任务与历史查询分开投影；运行完成和停止始终以获准的 runId 收尾，不使用可编辑查询框、当前脚本 ID 或新 revision 关联结果。Result 展示其自身 revision/sourceHash，保留 falsy/undefined 与错误类型。过期的 snapshot 回包或错误不得覆盖更新的持久观察。重开仅读取历史；未保存或加载版本不能运行。
+当前任务与历史查询分开投影；运行完成和停止始终以获准的 runId 收尾，不使用可编辑查询框、当前脚本 ID 或新 revision 关联结果。Result 展示其自身 revision/sourceHash，保留 falsy/undefined 与错误类型。过期的 snapshot 回包或错误不得覆盖更新的持久观察。重开恢复草稿及历史，但不会自动运行；当前草稿仍需用户明确点击 Run，且无须预先保存版本。
 
 执行环境保持现状：Controller async-body 在隔离 Worker 中执行，支持 deadline/Stop/retirement；`page.evaluate(fn)` 由已授权的 userScripts adapter 在 USER_SCRIPT world 中操作准确文档的 DOM；已有 MAIN 路径用于页面全局环境交互。Sidebar 没有 raw executeScript 旁路，也不构成用户脚本匹配/管理产品。
 
 Web/component PASS 与 Native PASS 分开。组件 pagehide/abort/retirement 测试不能替代真实关面板，静态渲染不能替代真实权限点击、DOM 效果或安装。下一阶段入口：`docs/framework/prompts/goal-sidebar-native-acceptance.txt`。
+
+## 开发页源码切换与当前网页信息最小化（2026-10-09）
+
+这一界面只解决两个问题：**代码从哪里来**、**即将在哪个网页运行**。不增加第二个代码编辑器、单独连接向导或运行引擎。
+
+- 默认是「手工草稿」，编辑器立即可见。**只有一个 Switch** 切换到「本地项目」；不开启本地模式时，项目选择、连接诊断、刷新按钮不占用界面空间。
+- 本地模式仅显示一个已授权项目选择器、必要时的「刷新」按钮和简短连接反馈。有且只有一个已授权项目且没有历史选择时可自动选中，**但绝不自动读取运行源码、申请权限或执行**。存在历史项目而该项目消失时不得悄悄切到其他项目。
+- 手工源码和参数切换前后都保留；本地运行逐次解析当前已授权项目源码，并验证来源、哈希和连接身份。连接断开、刷新进行中、项目切换或授权身份变化时不得准入旧源码。未知或失败的执行效果继续走 RunHost 原有的保守停止/恢复语义。
+- 连接错误优先显示中文可行动说明（启动本地服务、刷新、检查授权），技术错误码保留在诊断 title，不作为普通界面的默认文案。无已授权项目时明确提示，不宣称已可运行。
+- 当前网页只占一行：**当前网页 / 来源主机名 / 可运行状态**。主机名可截断，状态不可截断；点击该行再查看页面标题、精确 URL。这里的「可运行」只表示识别了 HTTP(S) 运行候选，**不等于已经通过后续的网站权限、文档重验或执行验收**。
+- 开关必须可键盘操作且焦点可见；较窄 Sidebar 上仍保持 40px 以上的开关标签点击区域。不可运行页面的原因在展开内容中展示。
+- 真实产品实现：`src/ui/tool.html`、`src/ui/tool-shell.css`、`src/ui/local-project.js`、`src/ui/script-editor.js`；定向合同与回归：`tests/environment/sidebar-product-contract.test.mjs`、`tests/environment/script-editor.test.mjs`。Node / CI 通过不自动等于真实 Mac Chrome Side Panel 视觉及 Native 验收。

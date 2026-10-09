@@ -16,6 +16,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const get=id=>doc.getElementById(id);
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
+  let toolActive=false;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
   let localQuery='', localFilter='current';
@@ -104,12 +105,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function syncRunDock(view=doc.documentElement?.dataset?.opendeskTab) {
     const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
     const draftOwns=Boolean(host.currentRun && !taskOwns);
-    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks');
+    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks' || toolActive);
     get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || view!=='develop');
     // The dock follows the real RunHost owner, not the selected task or visible tab.
     // On another view (or another task), expose only that owner's Stop control.
     const selected=installedRow();
-    const stopOnly=taskOwns && (view!=='tasks' || runOwnerKey!== (selected && identity(selected))) ||
+    const stopOnly=taskOwns && (view!=='tasks' || toolActive || runOwnerKey!== (selected && identity(selected))) ||
       draftOwns && view!=='develop';
     get('workspace-dock').dataset.stopOnly=String(Boolean(stopOnly));
     get('task-stop').setAttribute('aria-label',taskOwns
@@ -250,7 +251,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       workspace.hidden=true;
       const empty=doc.createElement('p');
       empty.className='hint';
-      empty.textContent='还没有任务。前往「发现」→「导入」添加本地任务。';
+      empty.textContent='暂无任务。点击上方「添加」导入本地任务。';
       parent.append(empty,workspace);
       if(focusedInWorkspace)get('tab-my-tasks').focus?.({preventScroll:true});
       return;
@@ -292,6 +293,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     else replacementFocus?.focus?.({preventScroll:true});
   }
   function renderInstalled() {
+    const count=get('task-installed-count');
+    if(count)count.textContent=installed.length+' 个';
     const sel=get('task-installed-list'),prior=sel.value;
     sel.replaceChildren(option(installed.length?'请选择已安装任务':'暂无已安装任务',''));
     for(const row of installed) {
@@ -706,6 +709,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     });
   }
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
+  listen(get('task-open-catalog'),'click',()=>navigate('catalog'));
   listen(get('local-discover-open-catalog'),'click',()=>navigate('catalog'));
   listen(get('local-discover-search'),'input',()=>{
     localQuery=get('local-discover-search').value.trim().toLocaleLowerCase();
@@ -762,7 +766,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks');update();
-  return {navigate,showCatalogPage,refresh,focusInstalledTask(taskId) {
+  return {navigate,showCatalogPage,refresh,setToolActive(value) {
+    toolActive=Boolean(value);
+    if(!disposed)syncRunDock();
+  },focusInstalledTask(taskId) {
     const selectedRow=installed.find(row=>row.taskId===taskId && row.enabled);
     if(disposed||!selectedRow)return false;
     get('task-installed-list').value=taskId;

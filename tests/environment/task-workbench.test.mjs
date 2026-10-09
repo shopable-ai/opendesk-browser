@@ -102,7 +102,7 @@ test('entering Sidebar task views reads external installations without executing
   assert.equal(f.get('task-installed-cards').children.length,2);
   assert.equal(f.get('task-installed-cards').children[1],f.get('task-selected-workspace'));
   assert.equal(f.get('task-selected-workspace').hidden,true);
-  assert.match(f.get('task-installed-cards').children[0].textContent,/发现.*导入/);
+  assert.match(f.get('task-installed-cards').children[0].textContent,/暂无任务.*导入/);
   assert.equal(f.get('task-installed-detail').textContent,'','empty task scope stays compact under R5');
   assert.equal(f.get('task-run').disabled,true);
   f.catalogState.installed.push(installed);
@@ -423,7 +423,7 @@ test('two extension documents share only a refresh hint and re-read authoritativ
   const catalog=make({installedInitially:false,sharedStore:store});
   t.after(()=>{sidebar.ui.dispose();catalog.ui.dispose();});
   await tick();await tick();
-  assert.match(sidebar.get('task-installed-cards').children[0].textContent,/还没有任务/);
+  assert.match(sidebar.get('task-installed-cards').children[0].textContent,/暂无任务/);
   catalog.ui.showCatalogPage();
   catalog.get('task-catalog-list').value='demo.form@1.0.0';
   catalog.get('task-catalog-list').fire('change');
