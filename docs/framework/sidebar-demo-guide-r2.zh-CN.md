@@ -81,3 +81,22 @@ flowchart TD
 - **原生环境与产品缺陷分开定位。** 上次 Mac 锁定阻断文件选择器；历史观察器 label/重启时序修正尚未实测。本地 Native CLI 握手与 macOS CI 裸 Chrome/CDP 失败是另外两条路径，Native Host 不可用不应阻断手动 Sidebar。先做发生变化的窄核验，不重跑同一失败。
 
 实现追溯：[项目校验器](../../scripts/validate-program-project.mjs)、[构建器](../../scripts/build-program-project.mjs)、[任务目录导入](../../src/ui/task-workbench.js)、[同窗口消息接收](../../src/ui/tool-shell.js)、[源码快照与固定执行源](../../src/ui/program-source.js)、[Page 试运行](../../src/scripting/user-scripts/preview.js)、[Controller 草稿入口](../../src/ui/script-editor.js)、[UI owner 与清理](../../src/scripting/user-scripts/page-ui.js)。
+
+
+## R8 R2：Controller 小工具的运行、结果与失败诊断
+
+这是现有 **Controller Demo** 的标准操作路径，不是新的执行系统：
+
+1. 启动仓库原有测试页面：`python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，打开 `http://127.0.0.1:43111/demo-form.html`。
+2. 运行 `npm run build:program -- examples/programs/sidebar-controller-demo`。查看构建回执中的真实 `outputDirectory`，不要假设固定输出路径。
+3. 进入 Sidebar「发现 → 导入」打开完整扩展目录，导入 `program.opendesk-draft.json`；在「开发」看到编译运行代码和 `main.js / params.js / search.js` 的**只读源码快照**。这里只是草稿，不是安装。
+4. 在开发区域用 `{"keyword":"OpenDesk"}` 执行一次 Controller 草稿；检查网页 `#results` 和 `#search-count`，记录真实 `runId`。Locator 是 OpenDesk Page API 子集，不能套用完整 Playwright。
+5. 如需给普通用户使用，另行导入同批构建输出的 `program.opendesk-task.json`，依序完成 Candidate → Verification（相同源码、真实运行和当前网站）→ Available → 用户确认安装。不能将草稿自动升级为 Installed。
+6. 在「我的任务」选择已安装版本，在自动生成的文本/数字/下拉/布尔参数表单中填写，明确点击「运行」。停止需点击当前任务的「停止」，不能凭停止按钮点击就推定网页副作用不存在。
+7. 观察「最近结果」和折叠的「运行记录」：普通用户看结果及中文建议；开发者从「技术信息」核对已持久化的 `runId`、`resultId`、版本，以及**实际存在**的 `sourceHash` 和文档身份。没有 Source Map 时不显示假定源码行号。
+
+文件用途：`program.js` 是固定、可执行的已构建 JavaScript；`program.opendesk-draft.json` 额外附带只读源码快照，供开发者导入草稿；`program.opendesk-task.json` 是正式任务的**待验证包**，不能直接当成已安装任务。
+
+诊断分级：网站权限或目标文档变化应检查授权与当前网页；定位器找不到元素先检查页面结构；超时、回执丢失或 `paused_unknown` 时**先核对网页实际变化，不应盲目重试**。运行界面只展示有界的脱敏摘要，原始持久结果仍归现有服务管理。关闭 Sidebar 后应检查已安装版本与允许保存的参数；跨浏览器重启的运行/结果必须以真实 Chrome 证据确认。
+
+这里的说明以补丁安装后可见的 UI 为目标；`NOT_TESTED` 的原生项目仍按既有工作流验收，不因阅读此文升级为 PASS。

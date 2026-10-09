@@ -558,3 +558,46 @@ test('catalog rejects a changed project snapshot before handoff and permits rese
   assert.match(f.get('task-catalog-status').textContent,/E_PROGRAM_HASH/);
   assert.equal(f.get('task-package-file').value,'');
 });
+
+
+test('R8 R2 task history masks sensitive values and exposes only durable technical identifiers',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('task-run');
+  f.host.complete({ok:true,apiKey:'must-not-display',description:'Bearer another-secret'});
+  await tick();await tick();await tick();
+  const history=f.get('task-history').children[0].children[0];
+  assert.match(f.get('task-result').textContent,/"ok": true/);
+  assert.doesNotMatch(f.get('task-result').textContent,/must-not-display|another-secret/);
+  assert.match(history.children[2].children[1].textContent,/runId：run-task-1/);
+  assert.match(history.children[2].children[1].textContent,/resultId：result-task-1/);
+  assert.doesNotMatch(history.children[2].children[1].textContent,/sourceHash：/,
+    'do not invent a sourceHash missing from the durable test fixture');
+});
+
+test('R8 R2 a persisted timeout gives an actionable warning without leaking request credentials',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.view.runs.push({runId:'run-timeout',state:'failed',
+    revision:{scriptId:'task:demo.form:1.0.0',revision:2,sourceHash:'f'.repeat(64)},
+    target:{documentId:'doc-real',url:'https://a.example/search?token=should-hide'}});
+  f.view.results.push({runId:'run-timeout',resultId:'result-timeout',state:'failed',
+    revision:{scriptId:'task:demo.form:1.0.0',revision:2,sourceHash:'f'.repeat(64)},
+    outcome:{ok:false,error:{code:'E_TIMEOUT',message:'https://a.example/search?token=should-hide failed'}}});
+  await f.ui.refresh();await tick();
+  const history=f.get('task-history').children[0].children[0];
+  assert.match(f.get('task-result').textContent,/E_TIMEOUT/);
+  assert.match(f.get('task-result').textContent,/不要直接重复执行/);
+  assert.doesNotMatch(f.get('task-result').textContent,/should-hide/);
+  assert.match(history.children[2].children[1].textContent,/sourceHash：f{64}/);
+  assert.match(history.children[2].children[1].textContent,/documentId：doc-real/);
+});
+
+test('R8 R2 an unresolved persisted run warns before an unsafe repeat',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.view.runs.push({runId:'run-unknown',state:'paused_unknown',
+    revision:{scriptId:'task:demo.form:1.0.0'}});
+  await f.ui.refresh();await tick();
+  assert.match(f.get('task-result').textContent,/状态待确认/);
+  assert.match(f.get('task-result').textContent,/不要直接重复执行/);
+  const history=f.get('task-history').children[0].children[0];
+  assert.match(history.children[1].textContent,/不要直接重复执行/);
+});
