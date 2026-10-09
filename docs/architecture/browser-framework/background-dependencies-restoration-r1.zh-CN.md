@@ -103,3 +103,51 @@
 ## 六、执行纪律
 
 默认直接在 main 开发，但先 fetch 最新 HEAD 和目标文件 SHA，保护协作者修改；不创建平行构建工具或 UI；涉及依赖锁必须用真正 npm ci 复验，不手写伪造锁。没有 Mac 本地环境时，真实 Chrome 阶段明确标 BLOCKED 并提供精准 Codex 本地复验入口。本文件是修正规范，不是完成声明。
+
+---
+
+## R12-SW-R1（2026-10-10）：在经典 SW 内排除不可达的旧 Template 消费者
+
+**决定：继续经典 MV3 SW + 静态 ESM import + WXT IIFE 单文件。** 不迁移 Module Worker，不扩展 `importScripts` 白名单，不新增 vendor/background 全局文件、不修改 320 KiB 硬预算与 CSP。这个决定依据同一隔离分支中可重放的 WXT 实际生产构建，不依据源码文件大小猜测。
+
+### 测量依据与归因边界
+
+基线 `main` SHA `605920ac9b8419cfb90722be7a595a490ec2a117`。本轮首次在隔离分支重建（仅增加构建期测量器）得到：
+
+| 证据 | 基线 | R12 核心裁剪后 |
+| --- | ---: | ---: |
+| 真实 `dist/production/sw.js` 原始字节 | 327,634 | 288,895 |
+| 生产预算（不变） | 327,680 | 327,680 |
+| 剩余空间 | 46 | 38,785 |
+| 全部 14 个固定 JS 的字节之和 | 875,426 | 836,687 |
+| Rollup SW 模块记录数量 | 48 | 48 |
+| 新增独立运行时 JS 资产 | 0 | 0 |
+
+原始首次测量：GitHub Actions [37968880104](https://github.com/shopable-ai/opendesk-browser/actions/runs/37968880104)；优化后构建与 Node 回归：[37969830516](https://github.com/shopable-ai/opendesk-browser/actions/runs/37969830516)。本节数据只代表对应 SHA 的真实构建，不擅自冒充后续提交的最新 main 或 Chrome/F3 验收。
+
+`scripts/report-sw-size.mjs` 读取刚刚生成的 `build-production.json.bundleModules`，同时核对已生成 SW 实体长度、报告文件字节及 SHA-256；输出模块清单、固定 JS 总量和源码分组。Rollup `renderedLength` 是**压缩前**渲染字符数，不能当作模块在最终 minified `sw.js` 中所占字节数。基线最高贡献为 `storage/repository.js`（62,451）、`host/controller-methods.js`（61,782）、`downloads/index.js`（57,879）、`framework/control/native-driver.js`（44,626）、`host/sdk-methods.js`（35,680）；npm helper 不是这里的体积瓶颈。
+
+### 为什么有意义的减重不是把文件挪走
+
+已经确认 `src/sw.js` 以 `createFoundationBroker({api:chrome,ports:hostPorts})` 启动唯一 Broker，**没有安装 `templateConsumer`**。仓库历史 Template/采集消费者按 `AGENTS.md` 已排除本期扩展产品范围，却仍通过通用仓库/Authority/Download 对象暴露数十个仅供该历史消费者使用的方法。由于对象被整体组装，Rollup 无法证明这些闭包绝不被访问。
+
+本轮维持源码与 Node/显式消费者的**完整旧 API**，只在固定 Background WXT 入口把 `src/platform/template-runtime-contract.js` 的静态布尔值从 true 转换为 false，通过正常的 Rollup/Terser 死代码消除：
+
+- `src/platform/storage/repository.js`：将旧 Template 特有方法按静态开关放入同一 `methods` 对象；SDK、Controller 的 `executeSdk`、结果保存、脚本版本、CAS、pin、GC、事务保留。
+- `src/platform/downloads/index.js`：仅裁掉旧消费者专用的 `prepareExport`、`retryExport`、`abandonExport`、`abandonRun` *公开返回属性*；正常 Controller artifact、download 回执、浏览器事件、资源恢复与撤销保留。
+- `src/platform/host/authority.js`：仅将旧 Template 的 claim/prepare/dispatch/stop/finish/snapshot 等*旧消费者公开路由*置于同一开关下；`registerHost`、`assertHost`、`admitIdentity`、SDK/Controller/Task 方法、`loseHost`、`recover`、真实 dispatched 效果的 unknown 恢复及 Page 预览准入保持。
+- `src/platform/host/broker.js`：若已裁剪的 Worker 将来被传入一个 `templateConsumer`，在任何存储初始化前保守拒绝 `E_MODULE_NOT_INSTALLED`，不允许无声地运行只有半套的历史服务。
+
+源码开关不可由普通用户、网络数据或用户脚本修改。仅 `wxt.config.mjs` 审批的 **background** 编译入口进行常量替换；其余执行世界及直接 Node 导入保持 `true`。这是移除**真实不可达运行代码**，不是省掉权限/错误/日志或把它偷偷放在另一个特权 `*.js` 文件。原 Template 历史数据、升级与撤销事实不迁移、不删除；SW 恢复路径继续检查持久状态。
+
+### 何时必须撤销这项静态裁剪
+
+未来若产品要正式安装受信任 Template 消费者，**不得直接传一个 `templateConsumer` 给现有瘦身 SW**。先经单独需求及权限审计，调整并完整复测 Background 功能边界、构建开关、历史持久数据恢复、包预算和真实 Chrome 安装；不得对普通用户开放任意消费者注册，也不得靠运行时改全局标记切换。
+
+### 开发者、普通用户和本地 Codex 使用
+
+框架开发者继续在 `src/platform/**` 或实际执行世界的真实消费者中写普通静态 `import {x} from './x.js'`。无需人工维护 `importScripts` 顺序和全局变量，也无需新建“一个源码文件对应一个输出 JS”的表。确有新 Background npm 消费者时，从根 `package.json` 安装精确版本并锁定 `package-lock.json`，由 WXT 树摇及构建回执证明导入边界。需要新增经过审计的真正生产固定入口时，单独更新已有 `build-contract.mjs` 和验证器，而不是悄悄绕开包合同。
+
+普通用户继续通过 Page/Controller/Sidebar 和现有本地项目或锁定 HTTPS ESM 工作流编写 JavaScript，**无需理解 SW 的内部优化**，不需要自行维护 `importScripts`、压缩策略或特殊输出。Codex 仍用已授权的本地项目和 MCP `dev.run` 重新读取源码，内存构建后按原有权限执行；不需要反复传 JSON 或 ZIP。
+
+验证级别必须分开：源码/定向 Node、WXT 实际构建、包校验、真实 Chrome 生命周期及正式 F3/ZIP 是不同的证据。R12 这轮不做正式 ZIP/发行；Chrome 结果必须引用同一提交的原始 CI 或本地 Mac 原始证据。
