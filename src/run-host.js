@@ -7,6 +7,7 @@ import {createRunContext} from './framework/context.js';
 import {createControlController} from './scripting/sandbox/controller.js';
 import {encodeValue, decodeValue} from './platform/page-port/codec.js';
 import {decodeValue as decodeControlValue} from './framework/control/value.js';
+import {RESULT_TRANSFER_LIMITS} from './framework/control/result-transfer.js';
 
 // Engineering entry only.02B supplies controller/services;03 supplies the domain module.
 export function createEnvironmentHost() {
@@ -114,10 +115,24 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       }
       const cleanup = await controller.retired;
       const finishRequestId = `${claim.runId}:finish`;
-      const finishRequest = {runId: claim.runId, requestId: finishRequestId, status: terminal.status,
-        ...(terminal.status === 'succeeded' ? {valueWire: encodeValue(decodeControlValue(terminal.value))} : {error: terminal.error ||
-          {code: terminal.status === 'timeout' ? 'E_TIMEOUT' : terminal.status === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED', message: terminal.status}}),
-        workerRetired: cleanup?.acknowledged === true || cleanup?.workerNeverCreated === true};
+      let resultStatus = terminal.status, resultValueWire, resultError = terminal.error;
+      if(resultStatus === 'succeeded') {
+        try {
+          // All final values must still fit the durable Foundation codec.
+          // Conversion failure is a definitive failed result, never an
+          // ambiguous paused_unknown outcome or an implicitly truncated value.
+          resultValueWire = encodeValue(decodeControlValue(terminal.value,
+            {maxBytes:RESULT_TRANSFER_LIMITS.maxBytes}));
+        } catch(error) {
+          resultStatus = 'error';
+          resultError = {code:error.code === 'E_VALUE_SERIALIZATION' ? 'E_RESULT_TOO_LARGE' :
+            error.code || 'E_RESULT_FORMAT',message:'Final returned value cannot fit the durable typed-result budget'};
+        }
+      }
+      const finishRequest = {runId:claim.runId,requestId:finishRequestId,status:resultStatus,
+        ...(resultStatus === 'succeeded' ? {valueWire:resultValueWire} : {error:resultError ||
+          {code: resultStatus === 'timeout' ? 'E_TIMEOUT' : resultStatus === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED',message:resultStatus}}),
+        workerRetired:cleanup?.acknowledged === true || cleanup?.workerNeverCreated === true};
       local.settlementRequest = finishRequest;
       local.workerRetired = finishRequest.workerRetired;
       local.state = 'settling';

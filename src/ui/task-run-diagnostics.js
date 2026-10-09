@@ -50,7 +50,9 @@ export function formatTaskError(error) {
     return `浏览器未开放用户脚本执行能力（${code}）。\n建议：${USER_SCRIPTS_RECOVERY_GUIDE}\n只读取元素文本时也可以使用 page.locator('选择器').textContent()，无需此能力。`;
   const message = clip(redact(error?.message || '未收到可读的错误详情'), MAX_ERROR_CHARS);
   let advice = '请检查当前网页和任务配置；需要进一步排查时，展开“运行记录 → 技术信息”。';
-  if (code === 'E_PAGE_CONTENT_TOO_LARGE')
+  if (code === 'E_RESULT_TOO_LARGE')
+    advice = '脚本可以使用标准 page.content() 获取完整 HTML，但最终返回的结果超过 192 KiB 有界持久化预算。请在脚本内提取需要的字段并返回摘要；内容不会被静默截断。';
+  else if (code === 'E_PAGE_CONTENT_TOO_LARGE')
     advice = '当前文档超过 8 MiB HTML 快照限制。建议用 page.locator() 或 page.evaluate() 在页面端提取必要信息，不要直接传输超大整页 HTML。';
   else if (code === 'E_PAGE_CONTENT_BUSY' || code === 'E_PAGE_CONTENT_EXPIRED' || code === 'E_PAGE_CONTENT_SEQUENCE')
     advice = 'HTML 快照已过期、占用或读取顺序不符；请重新开始分块读取，勿复用旧快照。';

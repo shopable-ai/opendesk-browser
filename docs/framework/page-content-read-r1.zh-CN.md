@@ -33,3 +33,7 @@ async function main() {
 ## 验收与不夸大的承诺
 
 验证 DOCTYPE、动态 DOM、中文/Emoji、UTF-8 边界、修改页面后的同一快照、提前撤权/停止/导航、未知结果/老版浏览器、Worker 清理、非标准参数拒绝。Node Mock 测试只验证组件；真实 Chrome MV3 必须单独提供运行证据。兼容 Playwright 方法签名不等于声称当前扩展支持所有 Playwright 浏览器能力。
+
+## 大返回值的受控交付（Controller 结果通道）
+
+一次普通 Controller 操作仍维持 64 KiB Codec 限制。脚本最终 `return`（包含直接返回 HTML 的对象）在独立的私有 Worker 结果通道中采用自动分段，单帧最多 16 KiB、整体 typed-wire 最多 **192 KiB**。只有完整接收、正确顺序和类型校验通过后，才通过原 Controller `finishControllerRun` 持久化；`return` 的对象结构、字符串和特殊值不会自动截断或更改。超过限制返回明确的 `E_RESULT_TOO_LARGE`，显示建议提取字段，绝不伪装成业务执行成功。该限制不属于 Playwright `page.content()` 的签名。未来超大文件导出另行设计，不通过提升所有业务 RPC 的安全额度代替。

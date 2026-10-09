@@ -50,6 +50,21 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       assert(value.size>expectedChars&&value.divs===9000,'DOM markup changed');
       return value;
     });
+    await check('complete-HTML-is-ordinary-return-value-when-under-result-budget',async()=>{
+      const source='async function main(){return {html:await page.content(),value:0};}';
+      const result=await run(source,target);
+      assert(result.outcome?.ok===true,'Large returned HTML failed: '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.html.startsWith('<!DOCTYPE html>')&&value.html.includes('<div>中😀</div>')&&value.value===0,
+        'Returned HTML was clipped or had a different type');
+      return {htmlLength:value.html.length,preserved:true};
+    });
+    await check('oversized-business-result-fails-clearly-not-as-unknown',async()=>{
+      const result=await run('async function main(){return "X".repeat(400000);}',target);
+      assert(result.state==='failed'&&result.outcome?.error?.code==='E_RESULT_TOO_LARGE',
+        'Expected durable size error: '+JSON.stringify(result.outcome));
+      return {code:result.outcome.error.code};
+    });
     await check('reject-nonstandard-page-content-options',async()=>{
       const result=await run('async function main(){try{await page.content({maxChars:100});return "unexpected";}catch(e){return e.code;}}',target);
       assert(result.outcome?.ok===true,'Invalid options verification failed');
@@ -58,6 +73,6 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       return value;
     });
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===3&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===5&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});
