@@ -49,7 +49,7 @@
 | INS-004 | 发现网页脚本链接的安装入口 | L1 | P1 | 3 | M | 已查 task-workbench / tool-shell；当前仅本地 JS/Task 包入口，没有网页 .user.js 链接接管消费者 |
 | INS-005 | 安装确认页显示源码、版本、目标网站 | L0 | P0 | 5 | P | 保留独立管理页，批准真实来源及权限 |
 | INS-006 | 安装来源 URL 与 @namespace 唯一性 | L0 | P0 | 5 | P | 以真实下载/导入出处为准，不信 @downloadURL |
-| INS-007 | 候选版源码哈希/依赖锁冻结 | L0 | P0 | 5 | S | 已有依赖与 Page manifest 编译，发布状态仍缺 |
+| INS-007 | 候选版源码哈希/依赖锁冻结 | L0 | P0 | 5 | S | E07.1 已有可信固定 Page Candidate；R12 增加试运行后从 Sidebar 保存普通 JS 的消费者（补注释后源码 SHA 不等于预览 SHA）；正式 Page 验证和安装仍缺 |
 | INS-008 | Page Candidate→Verified→Available→Installed | L0 | P0 | 5 | P | 必须类型专属证明，不能借 Controller 结果 |
 | INS-009 | 已装脚本启用/停用与卸载 | L0 | P0 | 5 | P | Controller 已有，Page 需要 Native 注册管理 |
 | INS-010 | 名称与来源冲突检测/导入覆盖提示 | L1 | P1 | 4 | P | tasks/service.js 已拒绝同 taskId/version 不同字节（E_REQUEST_CONFLICT）；Page 名称/来源去重、覆盖审查未接入 |
