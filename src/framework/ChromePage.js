@@ -101,6 +101,9 @@ export class ChromePage {
   getByLabel(text, opts = {}) { return createLocator(state(this), 'label', text, opts); }
   getByText(text, opts = {}) { return createLocator(state(this), 'text', text, opts); }
   getByTestId(id) { return createLocator(state(this), 'testId', id); }
+  getByPlaceholder(text, opts = {}) { return createLocator(state(this), 'placeholder', text, opts); }
+  getByTitle(text, opts = {}) { return createLocator(state(this), 'title', text, opts); }
+  getByAltText(text, opts = {}) { return createLocator(state(this), 'alt', text, opts); }
   observe(opts = {}) { return dispatch(this, 'locatorObserve', [validateObservationOptions(opts)]); }
   get modernCapabilities() { return MODERN_PAGE_CAPABILITIES; }
   async reload(opts = {}) { await dispatch(this, 'reload', [navigationOptions(opts)], {kind: 'browser', navigation: true}); }
