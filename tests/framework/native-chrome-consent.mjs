@@ -30,6 +30,7 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
     set candidates to application processes whose unix id is ${pid}
     if (count candidates) is not 1 then error "Owned Chrome process is unavailable"
     tell item 1 of candidates
+      if unix id is not ${pid} then error "Chrome AX process identity changed"
       set frontmost to true
       if (count windows) is 0 then return "WAIT: no visible Chrome window"
       set nodes to {}
