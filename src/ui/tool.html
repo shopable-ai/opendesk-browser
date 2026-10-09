@@ -110,8 +110,11 @@
   </section>
   <section class="developer-editor" aria-label="JavaScript 草稿">
     <p id="program-source-info" class="identity" role="status" hidden></p>
-    <label for="program-source-files" class="visually-hidden">实际执行代码或项目源码快照</label><select id="program-source-files" hidden></select>
-    <button type="button" id="program-new-script" hidden>新建单文件草稿</button>
+    <div id="program-source-toolbar" class="program-source-toolbar" role="group" aria-label="源码视图操作" hidden>
+      <label for="program-source-files" class="visually-hidden">实际执行代码或项目源码快照</label>
+      <select id="program-source-files" hidden></select>
+      <button type="button" id="program-new-script" hidden>新建单文件草稿</button>
+    </div>
     <label for="script-source" class="visually-hidden">JavaScript 编辑器，草稿可直接运行</label><textarea id="script-source" rows="9" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>

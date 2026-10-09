@@ -53,3 +53,17 @@ test('R5 keeps one derived interactive prototype with installed-only compact dis
   assert(inline,'one self-contained clickable HTML demo');
   assert.doesNotThrow(()=>new Script(inline),'R5 prototype script must parse');
 });
+
+test('Developer source selector and new-script action use one narrow Sidebar toolbar',async()=>{
+  const [html,css,source]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/program-source.js')
+  ]);
+  const toolbar=html.match(/<div id="program-source-toolbar"[\s\S]*?<\/div>/)?.[0];
+  assert.ok(toolbar,'one shared toolbar exists');
+  assert.match(toolbar,/role="group" aria-label="源码视图操作"/);
+  assert.match(toolbar,/id="program-source-files"[\s\S]*id="program-new-script"/);
+  assert.match(css,/\.program-source-toolbar\{display:flex;flex-wrap:nowrap;/);
+  assert.match(css,/\.program-source-toolbar #program-source-files\{[^}]*flex:1 1 0;min-width:0;/);
+  assert.match(css,/\.program-source-toolbar #program-new-script\{[^}]*flex:0 0 auto;[^}]*white-space:nowrap;/);
+  assert.match(source,/get\('program-source-toolbar'\)\.hidden = !value/);
+});

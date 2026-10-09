@@ -56,6 +56,7 @@ export function createProgramSourceView({document:doc,listen,onChange}) {
     artifact = value;
     const project = value?.project;
     get('program-source-info').hidden = !value;
+    get('program-source-toolbar').hidden = !value;
     editor.readOnly = Boolean(value);
     editor.hidden = Boolean(value && !project);
     get('program-source-files').hidden = !project;
