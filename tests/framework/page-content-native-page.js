@@ -65,6 +65,48 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         'Expected durable size error: '+JSON.stringify(result.outcome));
       return {code:result.outcome.error.code};
     });
+    await check('r13-real-chrome-staged-locator-form',async()=>{
+      const source=`async function main(){
+        const scope=page.locator('#r13-form');
+        const observation=await page.observe({root:'#r13-form',maxDepth:4,maxNodes:25,maxChars:3500});
+        const keyword=scope.getByPlaceholder('输入关键词',{exact:true});
+        await keyword.fill('OpenDesk',{timeout:3000});
+        const typed=await keyword.inputValue();
+        const checkbox=scope.locator('#r13-consent');
+        await checkbox.check({timeout:3000});
+        const checked=await checkbox.isChecked();
+        await checkbox.uncheck({timeout:3000});
+        const unchecked=await checkbox.isChecked();
+        await scope.locator('#r13-region').selectOption('b',{timeout:3000});
+        const region=await scope.locator('#r13-region').inputValue();
+        const buttons=scope.getByRole('button',{name:'搜索',exact:true});
+        const count=await buttons.count();
+        await buttons.first().click({timeout:3000});
+        return {typed,checked,unchecked,region,count,answer:await scope.locator('#r13-out').innerText(),
+          clicks:await scope.locator('#r13-out').getAttribute('data-clicks'),
+          icon:await page.getByAltText('R13图标',{exact:true}).count(),
+          observed:observation.nodes.length,version:page.modernCapabilities.version};
+      }`;
+      const result=await run(source,target);
+      assert(result.outcome?.ok===true,'R13 form failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.typed==='OpenDesk'&&value.checked===true&&value.unchecked===false&&
+        value.region==='b'&&value.count===2&&value.answer==='RESULT:OpenDesk'&&
+        value.clicks==='1'&&value.icon===1&&value.observed>0&&value.version==='1.1.0-r13',
+        'R13 real DOM data mismatch '+JSON.stringify(value));
+      return {...value,runId:result.runId};
+    });
+    await check('r13-real-chrome-duplicate-refusal',async()=>{
+      const source=`async function main(){
+        try {await page.locator('#r13-form').getByRole('button',{name:'搜索',exact:true}).click({timeout:300});return 'INCORRECT_CLICK';}
+        catch(e){return e.code;}
+      }`;
+      const result=await run(source,target);
+      assert(result.outcome?.ok===true,'R13 strict rejection did not settle '+JSON.stringify(result.outcome?.error));
+      const code=decodeValue(result.outcome.valueWire);
+      assert(code==='E_STRICT_MODE_VIOLATION','R13 duplicate target not rejected: '+code);
+      return {code,runId:result.runId};
+    });
     await check('reject-nonstandard-page-content-options',async()=>{
       const result=await run('async function main(){try{await page.content({maxChars:100});return "unexpected";}catch(e){return e.code;}}',target);
       assert(result.outcome?.ok===true,'Invalid options verification failed');
@@ -73,6 +115,6 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       return value;
     });
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===5&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===7&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});
