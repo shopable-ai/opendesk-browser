@@ -1,0 +1,29 @@
+{
+  "workstream": "r101-audit-01a120eb",
+  "status": "IN_PROGRESS",
+  "branch": "agent/r101-audit-01a120eb",
+  "baseline": "17fea175",
+  "scope": [
+    "R10.1 independent security/regression audit",
+    "PR37/38 current CI",
+    "mixed ESM semantics/source maps",
+    "integration and native evidence reuse review"
+  ],
+  "resources": {
+    "worktree": "/Users/shopme/.codex/worktrees/r101-audit-01a120eb/opendesk-browser",
+    "dist": "own worktree only",
+    "CFT": "NONE; existing r101-closure owner being checked",
+    "native": "NONE",
+    "port": "NONE"
+  },
+  "relatedOwner": "r101-closure-01a120c0 already implementing resolver/security/Native; no duplicate implementation or resource use",
+  "startedAt": "2026-10-09T13:53:25.593705+00:00",
+  "evidenceLevels": {
+    "Node": "IN_PROGRESS",
+    "CI": "CHECKING",
+    "MacNative": "NOT_TESTED",
+    "Chrome": "NOT_TESTED",
+    "F3": "NOT_TESTED",
+    "ZIP": "NOT_TESTED"
+  }
+}
