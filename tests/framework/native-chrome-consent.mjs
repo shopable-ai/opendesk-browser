@@ -82,7 +82,7 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
         end try
       end repeat
       if labels does not contain "OpenDesk Browser" then return "WAIT: " & labels
-      if labels does not contain "Communicate with cooperating native applications" then return "WAIT: " & labels
+      if labels does not contain "Communicate with cooperating native applications" and labels does not contain "与协作的本机应用通信" then return "WAIT: " & labels
       if (count allowButtons) is 0 then return "WAIT: Allow is not enabled yet; " & labels
       if (count allowButtons) is not 1 then error "Native permission Allow button is not unique: " & (allowFrames as text)
       ${accept?'click item 1 of allowButtons':'-- Inspection only; the second call revalidates the exact same permission.'}
