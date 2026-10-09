@@ -1,0 +1,49 @@
+{
+  "id": "original-selector-oracles-01a12028",
+  "status": "component_oracle_complete_native_not_run",
+  "branch": "agent/original-selector-oracles-01a12028",
+  "worktree": "/Users/shopme/.codex/worktrees/native-api-oracles-1009/opendesk-browser",
+  "scope": {
+    "modifiedFiles": [
+      "tests/framework/k5-controller-product-native-original-cases.mjs",
+      "tests/framework/k5-controller-product-native-original-cases.test.mjs"
+    ],
+    "addedCases": [
+      "CMP02-API12-OK",
+      "CMP02-API12-ERR",
+      "CMP02-API13-OK",
+      "CMP02-API13-ERR"
+    ],
+    "unchanged": [
+      "product code",
+      "f3-api48-cases.mjs source recipes",
+      "expected spec",
+      "denominator",
+      "acceptance ledger"
+    ]
+  },
+  "verification": [
+    {
+      "command": "node --test tests/framework/k5-controller-product-native-original-cases.test.mjs",
+      "result": "PASS 35/35 before implementation after npm ci --ignore-scripts",
+      "log": "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-before.log",
+      "sha256": "e11159eb3ff4a8e354aa38014a1f039692dbe480ac97b22cc5975b914cda3b0d"
+    },
+    {
+      "command": "node --test tests/framework/k5-controller-product-native-original-cases.test.mjs",
+      "result": "PASS 36/36 after implementation",
+      "log": "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-after.log",
+      "sha256": "e5f4c0b535612c9c98f231d80f1eb5d316a782c23465489a8a862683a549435a"
+    },
+    {
+      "command": "node --test tests/framework/f3-api48-cases.test.mjs tests/framework/k5-controller-product-native-original-cases.test.mjs tests/framework/k5-controller-script-fence.test.mjs",
+      "result": "PASS 78/78",
+      "log": "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/targeted-neighbor.log",
+      "sha256": "3affc13598030836faa43c5312ee1b74be278693f96cde417b39b0efa96684ee"
+    }
+  ],
+  "nativeNotRun": {
+    "reason": "User assigned real CFT/native execution to the main thread; this worktree must not launch browser/native or occupy ports.",
+    "suggestedCommand": "node tests/framework/k5-controller-product-native.mjs --native --headed --native-ui-assist --mode=production --chrome=138 --original-api48=CMP02-API12-OK,CMP02-API12-ERR,CMP02-API13-OK,CMP02-API13-ERR --permission-timeout=120000"
+  }
+}

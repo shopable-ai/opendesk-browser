@@ -10,7 +10,8 @@ import {ORIGINAL_STYLE_CSS,validateStyleDisposal} from './k5-controller-style-ob
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const fixedReads = new Map([[7, 'title'], [8, 'content'], [9, 'url']]);
 export const ORIGINAL_FIXED_READ_IDS = Object.freeze(['CMP01-API07-OK', 'CMP01-API08-OK', 'CMP01-API09-OK']);
-export const ORIGINAL_SELECTOR_READ_IDS = Object.freeze(['CMP02-API12-LIMIT', 'CMP02-API13-LIMIT',
+export const ORIGINAL_SELECTOR_READ_IDS = Object.freeze(['CMP02-API12-OK', 'CMP02-API12-ERR', 'CMP02-API12-LIMIT',
+  'CMP02-API13-OK', 'CMP02-API13-ERR', 'CMP02-API13-LIMIT',
   'CMP03-API14-OK', 'CMP03-API14-ERR', 'CMP03-API15-OK', 'CMP03-API15-ERR']);
 export const ORIGINAL_CONTEXT_READ_IDS = Object.freeze(['CMP11-API03-OK','CMP11-API03-ERR']);
 export const ORIGINAL_CLICK_ERROR_IDS = Object.freeze(['CMP09-API21-ERR']);
@@ -69,8 +70,27 @@ const selectorCases = new Map([
     'constructor-title-default':'A-title','constructor-title-true':'A-title','constructor-title-false':'A-title','constructor-title-empty':'A-title'},
     errors:{},calls:Array.from({length:4},()=>({args:[],value:'A-title'}))}],
   ['CMP11-API03-ERR',{method:'title',values:{},errors:{'constructor-debug-option':'E_OPTION_UNSUPPORTED'},calls:[]}],
+  ['CMP02-API12-OK',{method:'$',fixtureFamily:'selector',hostDetached:true,operationKind:'packaged',external:['host-detached-selector'],
+    body:`const marker=await page.$('#marker');eq('marker-snapshot',marker,{outerHTML:'<div id="marker">A</div>'});marker.outerHTML='<div id="marker">mutated</div>';eq('marker-local-mutation',marker.outerHTML,'<div id="marker">mutated</div>');eq('marker-page-unchanged',await page.$eval('#marker',e=>e.textContent),'A');eq('absent',await page.$('#absent'),null);`,
+    values:{'marker-snapshot':{outerHTML:'<div id="marker">A</div>'},'marker-local-mutation':'<div id="marker">mutated</div>','marker-page-unchanged':'A','absent':null},errors:{},
+    calls:[{method:'$',kind:'packaged',args:['#marker'],value:{outerHTML:'<div id="marker">A</div>'}},
+      {method:'$eval',kind:'user-script',args:['#marker','e=>e.textContent',[]],value:'A'},
+      {method:'$',kind:'packaged',args:['#absent'],value:null}]}],
+  ['CMP02-API12-ERR',{method:'$',fixtureFamily:'selector',hostDetached:true,operationKind:'packaged',external:['host-detached-selector-error'],
+    body:`await reject('invalid-dollar-selector',()=>page.$('['),['E_SELECTOR_INVALID']);`,
+    values:{},errors:{'invalid-dollar-selector':'E_SELECTOR_INVALID'},calls:[{method:'$',kind:'packaged',args:['['],error:'E_SELECTOR_INVALID'}]}],
   ['CMP02-API12-LIMIT', {method:'snapshot', values:{snapshot:{outerHTML:'<div id="marker">A</div>'}},
     errors:{'worker-dollar':'E_DOM_SNAPSHOT_CONTEXT'}, calls:[{args:['#marker'], value:{outerHTML:'<div id="marker">A</div>'}}]}],
+  ['CMP02-API13-OK',{method:'$$',fixtureFamily:'selector',hostDetached:true,operationKind:'packaged',external:['host-detached-selector'],
+    body:`const items=await page.$$('.item');eq('items-snapshot',items,[{outerHTML:'<span class="item">one</span>'},{outerHTML:'<span class="item">two</span>'}]);items[0].outerHTML='<span class="item">mutated</span>';eq('items-local-mutation',items[0].outerHTML,'<span class="item">mutated</span>');eq('items-page-unchanged',await page.$$eval('.item',els=>els.map(e=>e.textContent)),['one','two']);eq('absent-list',await page.$$('.absent'),[]);`,
+    values:{'items-snapshot':[{outerHTML:'<span class="item">one</span>'},{outerHTML:'<span class="item">two</span>'}],
+      'items-local-mutation':'<span class="item">mutated</span>','items-page-unchanged':['one','two'],'absent-list':[]},errors:{},
+    calls:[{method:'$$',kind:'packaged',args:['.item'],value:[{outerHTML:'<span class="item">one</span>'},{outerHTML:'<span class="item">two</span>'}]},
+      {method:'$$eval',kind:'user-script',args:['.item','els=>els.map(e=>e.textContent)',[]],value:['one','two']},
+      {method:'$$',kind:'packaged',args:['.absent'],value:[]}]}],
+  ['CMP02-API13-ERR',{method:'$$',fixtureFamily:'selector',hostDetached:true,operationKind:'packaged',external:['host-detached-selector-error'],
+    body:`await reject('invalid-dollars-selector',()=>page.$$('['),['E_SELECTOR_INVALID']);`,
+    values:{},errors:{'invalid-dollars-selector':'E_SELECTOR_INVALID'},calls:[{method:'$$',kind:'packaged',args:['['],error:'E_SELECTOR_INVALID'}]}],
   ['CMP02-API13-LIMIT', {method:'snapshots', values:{snapshots:[{outerHTML:'<span class="item">one</span>'},{outerHTML:'<span class="item">two</span>'}]},
     errors:{'worker-dollars':'E_DOM_SNAPSHOT_CONTEXT'}, calls:[{args:['.item'], value:[{outerHTML:'<span class="item">one</span>'},{outerHTML:'<span class="item">two</span>'}]}]}],
   ['CMP03-API14-OK', {method:'$eval', values:{'async-eval':'A!'}, errors:{},
@@ -151,7 +171,7 @@ export function originalReadPlan(definition, urls) {
   assert.equal(definition.required, true);
   const api = Number(definition.id.match(/-API(\d+)-/)[1]);
   assert.equal(definition.source.symbol, `ChromePage.${({3:'debug',12:'$',13:'$$',14:'$eval',15:'$$eval',16:'addScriptTag',17:'addStyleTag',18:'cookies',19:'setCookie',20:'deleteCookie',21:'click',22:'type'})[api]}`);
-  const recipe = recipeFor(definition);
+  const recipe = spec.hostDetached ? {body:spec.body,userScripts:true,gaps:[],external:spec.external ?? []} : recipeFor(definition);
   assert.equal(recipe.userScripts, true); assert.deepEqual(recipe.gaps, []); assert.deepEqual(recipe.external, spec.external ?? []);
   const {aURL,bURL,barrierURL} = urls;
   for (const url of [aURL,barrierURL]) assert.equal(new URL(url).origin, new URL(aURL).origin);
@@ -175,7 +195,7 @@ export function originalReadPlan(definition, urls) {
     source,sourceSha256:sha(source),params:{nativeBarrierURL:barrierURL,...(spec.cookieRead?{url:aURL}:{}),...(spec.resourceError?{sdkURL:urls.sdkURL}:{}),...(spec.styleAction?{nativeStyleBarrierURL:urls.styleBarrierURL}:{})},aURL,bURL,fixtureFamily:family,inputAction:spec.inputAction,styleAction:spec.styleAction,resourceError:spec.resourceError,cookieRead:spec.cookieRead,cookieAction:spec.cookieAction,
     bodyHTML:family==='type-error'?typeErrorBody:family==='input-actions'?inputActionBody:family==='click-error'?clickErrorBody:selectorBody,
     requiredAssertions:assertions,assertionExpected,errors:spec.errors,calls:spec.resourceError?[{args:[{url:urls.sdkURL}],error:'E_RESOURCE_UNAVAILABLE'}]:spec.cookieRead?[{args:[[aURL,aURL]]},{args:[[]]}]:spec.calls,
-    operationKind:spec.operationKind ?? (api <= 13 ? 'packaged' : 'user-script'),userScripts:true};
+    operationKind:spec.operationKind ?? (api <= 13 ? 'packaged' : 'user-script'),hostDetached:spec.hostDetached,userScripts:true};
 }
 
 export function fixedReadPlan(definition, {aURL, bURL, barrierURL}) {
@@ -352,7 +372,7 @@ function validateCookieActionEvidence(plan,observation,operations) {
 export function validateOriginalReadOracle(plan, observation) {
   const {value, before, after, selected, run, result, barrier, a, bBefore, bAfter, cleanup, fixedReadOperations} = observation;
   const unsorted=plan.calls?observation.pageOperations:fixedReadOperations;
-  const operations=plan.inputAction||plan.styleAction||plan.cookieRead||plan.cookieAction?[...(unsorted??[])].sort((a,b)=>a.dispatchAt-b.dispatchAt||a.receiptAt-b.receiptAt):unsorted;
+  const operations=plan.inputAction||plan.styleAction||plan.cookieRead||plan.cookieAction||plan.hostDetached?[...(unsorted??[])].sort((a,b)=>a.dispatchAt-b.dispatchAt||a.receiptAt-b.receiptAt):unsorted;
   const cookieValue=plan.cookieRead?validateCookieReadEvidence(plan,observation,operations):undefined;
   if(plan.cookieAction)validateCookieActionEvidence(plan,observation,operations);
   if(plan.styleAction)validateStyleDisposal(plan,observation);
@@ -411,7 +431,7 @@ export function validateOriginalReadOracle(plan, observation) {
   assert.equal(operations?.length, plan.calls?.length ?? 1, 'Original read dispatch count differs');
   assert.equal(new Set(operations.map(row => row.envelope.requestId)).size, operations.length, 'Duplicate original read completion');
   for (const [index,read] of operations.entries()) {
-    const call=plan.inputAction||plan.styleAction||plan.cookieRead||plan.cookieAction?plan.calls[index]:null;
+    const call=plan.inputAction||plan.styleAction||plan.cookieRead||plan.cookieAction||plan.hostDetached?plan.calls[index]:null;
   assert.equal(read.tag, 'controller-operation');
   assert.equal(read.runId, run.runId);
   assert.equal(read.state, 'durable');
@@ -419,7 +439,7 @@ export function validateOriginalReadOracle(plan, observation) {
   assert.equal(read.envelope.operation.kind, call?.kind ?? plan.operationKind ?? 'packaged');
   assert.equal(read.envelope.operation.method, call?.method ?? plan.method);
   if(call)assert.deepEqual(decodeControlValue(read.envelope.operation.args),call.args,'Original input operation order differs');
-    if (['click-error','type-error'].includes(plan.fixtureFamily) || plan.inputAction || plan.styleAction) {
+  if (['click-error','type-error'].includes(plan.fixtureFamily) || plan.inputAction || plan.styleAction || plan.hostDetached) {
     assert.equal(read.envelope.identity.runId, run.runId); assert.equal(read.envelope.identity.ownerEpoch, run.identity.ownerEpoch);
   }
   assert.equal(read.envelope.target.tabId, selected.tabId);
@@ -450,7 +470,7 @@ export function validateOriginalReadOracle(plan, observation) {
         if (call.cause) assert.deepEqual(read.reply.error.cause, call.cause, 'Original failure name/message changed');
       } else {
         assert.equal(read.reply?.error, undefined); if(!plan.cookieRead&&!call.cookieValues)assert.deepEqual(decodeControlValue(read.reply.value),call.value);
-          if(plan.inputAction||plan.styleAction) {
+          if(plan.inputAction||plan.styleAction||plan.hostDetached) {
           const kind=call.kind??plan.operationKind;
           const receipts=read.nativeReceipts?.filter(receipt=>receipt.stage===(kind==='packaged'?'tabs.sendMessage':'userScripts.execute'));
           const sessionReady=kind==='packaged'?receipts?.filter(receipt=>receipt.receipt?.type==='OPENDESK_CONTROLLER_PAGE_SESSION_V1'):[];
