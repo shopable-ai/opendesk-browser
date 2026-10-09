@@ -45,6 +45,14 @@ try{
   const base='http://127.0.0.1:'+server.address().port;
   await mkdir(path.join(extension,'ui'),{recursive:true});
   await mkdir(path.join(extension,'scripting/sandbox'),{recursive:true});
+  await mkdir(path.join(extension,'native-agent'),{recursive:true});
+  await mkdir(path.join(extension,'sidebar-tools'),{recursive:true});
+  // Chrome validates options_ui.page before loading an unpacked extension.
+  // A missing unrelated Options page made the entire CFT fixture un-installable.
+  await writeFile(path.join(extension,'native-agent/settings.html'),
+    '<!doctype html><meta charset="utf-8"><title>Options (not under test)</title>');
+  await copyFile(path.join(root,'src/sidebar-tools/sandbox.html'),
+    path.join(extension,'sidebar-tools/sandbox.html'));
   const publicKey=generateKeyPairSync('rsa',{modulusLength:2048}).publicKey.export({format:'der',type:'spki'});
   const manifest=JSON.parse(await readFile(path.join(root,'manifest.json'),'utf8'));
   manifest.key=publicKey.toString('base64');manifest.name='OpenDesk page HTML real Chrome smoke';
