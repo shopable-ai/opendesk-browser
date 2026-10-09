@@ -1,0 +1,7 @@
+{
+  "profileSeed": "/private/tmp/opendesk-r62-profile-diagnostic-b27a",
+  "capturedWhileBrowserRunning": true,
+  "scope": "diagnostic snapshot only; not same-profile real Chrome restart acceptance",
+  "containsOnlyOwnedTestProfile": true,
+  "updatedUtc": "2026-10-08T17:18:12.505228+00:00"
+}

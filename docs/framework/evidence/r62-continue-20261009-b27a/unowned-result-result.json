@@ -1,0 +1,10 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "r62-b27a-unowned-result-638fb0d4-adb7-450f-9a7a-85c8e003d6d2",
+  "error": {
+    "code": "E_PERMISSION",
+    "message": "E_PERMISSION",
+    "outcome": "NOT_DISPATCHED"
+  }
+}

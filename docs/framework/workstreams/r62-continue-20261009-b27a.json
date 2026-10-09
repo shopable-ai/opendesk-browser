@@ -1,0 +1,46 @@
+{
+  "workstreamId": "r62-continue-20261009-b27a",
+  "branch": "agent/r62-continue-20261009-b27a",
+  "startHead": "28a67a85a92bcf16368360a563958855f4e7a9ce",
+  "upstreamPr11": "ecaa8b944ec4c49ca7b2900f674ab8d4c8ea8f7c",
+  "integratedMain": "0dcc23b6e1a3409a0dc06f2afd2884ed1e74a448",
+  "scope": "R6.2 complete acceptance; diagnose Native connection, exact candidate Task lifecycle, original framework gates",
+  "changedFiles": [
+    "examples/tasks/README.zh-CN.md (merge conflict: preserve both sections)"
+  ],
+  "statuses": {
+    "SOURCE_CONFIRMED": "YES",
+    "COMPONENT_TESTED": "PASS_242_COMPONENT_ONLY",
+    "BUILD_VERIFIED": "PASS",
+    "NATIVE_CHROME_VERIFIED": "INCOMPLETE",
+    "AI_AGENT_E2E_VERIFIED": "PARTIAL_DIAGNOSTIC_ONLY",
+    "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
+    "FINAL_FRAMEWORK_ACCEPTED": "NO"
+  },
+  "nativeResource": "inactive inherited installation; socket absent; own isolated CFT pending",
+  "blockedResources": {
+    "43111": "R7 workflow node PID30600; bytes differ; no handoff"
+  },
+  "evidenceDirectory": "docs/framework/evidence/r62-continue-20261009-b27a",
+  "updatedUtc": "2026-10-08T17:21:14.586580+00:00",
+  "candidateHead": "6ad3c48",
+  "nativeHandshake": "PASS_CHROME_OPTIONS_AND_AUTHENTICATED_CLI",
+  "nativeResources": {
+    "state": "released",
+    "chromePid": null,
+    "profile": null,
+    "extensionId": "ochpinpkioajljgdecdekdfcdepkdaih",
+    "socket": "/Users/shopme/.opendesk-browser/native-agent-r1/agent.sock",
+    "diagnosticOnly": true
+  },
+  "acceptanceProgress": "docs/framework/evidence/r62-continue-20261009-b27a/acceptance-progress.json",
+  "remaining": [
+    "43111 resource handoff and serve exact candidate examples/tasks",
+    "Fresh exact target; modern-search draft and saved revision execution; unique real page-effect receipt",
+    "Original Candidate Verification → Available → explicit UI install → My Tasks execution",
+    "Installed Task execution without Native/Codex and same-profile real full Chrome restart",
+    "ACK loss / unknown effects / real revocation and document lifecycle cases",
+    "Original 603+19, independent B05, 1000 mixed / 10 reconnect / two disabled-extension rounds, six resource baselines, independent final F3 and same-dist ZIP install"
+  ],
+  "resourceReleaseEvidence": "docs/framework/evidence/r62-continue-20261009-b27a/resources-released.json"
+}

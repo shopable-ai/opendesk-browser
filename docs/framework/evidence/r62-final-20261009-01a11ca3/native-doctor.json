@@ -1,0 +1,12 @@
+{
+  "local": {
+    "installed": true,
+    "extensionId": "dhfjllkgepdhpglbmdlodjjncmknkebl",
+    "browser": "cft",
+    "manifest": "/Users/shopme/Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "socketExists": false,
+    "error": null,
+    "note": "Socket existence does not prove an authenticated Chrome connection"
+  },
+  "connected": false
+}

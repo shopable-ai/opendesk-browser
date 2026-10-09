@@ -1,0 +1,12 @@
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (7.578584ms)
+✔ tool contract is independent of Task v1 and is closed by default (1.72225ms)
+✔ native tool directory packs JS/CSS/HTML and a local image into a portable JSON (6.629042ms)
+✔ new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol (0.978125ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92.556167

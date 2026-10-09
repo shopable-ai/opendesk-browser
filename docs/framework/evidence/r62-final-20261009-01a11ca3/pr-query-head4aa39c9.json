@@ -1,0 +1,14 @@
+{
+  "url": "https://github.com/shopable-ai/opendesk-browser/pull/28",
+  "state": "open",
+  "draft": true,
+  "merged": false,
+  "mergeable": true,
+  "headSha": "4aa39c929c23ff9f668e9f9a9c24f7debfc6e0e9",
+  "baseSha": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+  "source": "GitHub connector fetch_pr and get_commit_combined_status",
+  "commitStatusEntries": [],
+  "githubActionsChecks": "NOT_CONFIRMED",
+  "formalNativeAcceptance": "NO",
+  "level": "repository state observation at the named head; never native/F3/ZIP evidence"
+}

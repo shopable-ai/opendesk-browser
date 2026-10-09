@@ -1,0 +1,10 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "r62-b27a-stale-document-137fb62d-1175-45ff-bee5-ef7919c58d0a",
+  "error": {
+    "code": "E_DOCUMENT_STALE",
+    "message": "Target snapshot must match the live Sidebar window",
+    "outcome": "NOT_DISPATCHED"
+  }
+}

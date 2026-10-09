@@ -1,0 +1,96 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "9ae283b1-7678-4cfa-9390-921b032841c0",
+  "result": {
+    "run": {
+      "tag": "controller-run",
+      "runId": "7226a5c5-b129-461c-8897-d9ea6f16635b",
+      "state": "stopped",
+      "runRevision": 5,
+      "ownerEpoch": 3,
+      "cancelSeq": 2,
+      "identity": {
+        "tag": "controller-run",
+        "runId": "7226a5c5-b129-461c-8897-d9ea6f16635b",
+        "hostInstanceId": "38c5d560-7e77-4f17-9304-f5cf7ab96d24",
+        "hostDocumentId": "9D3221BDDB40D846888D85B7855FA233",
+        "ownerEpoch": 1,
+        "scriptId": "draft:7226a5c5-b129-461c-8897-d9ea6f16635b",
+        "revision": 1,
+        "contentHash": "4955c2fc0a30a3b461353bf5ba82efa02730d7b52035ec5693f728f04ec26556",
+        "target": {
+          "tabId": 1415011202,
+          "frameId": 0,
+          "documentId": "63A4B64F8CD3A53031F15D9A1730561E",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 1415011197,
+          "targetSessionId": "19790412-0c43-4ab2-934a-a8c9a64818dd",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "8c8538f7-0375-4e90-9b54-9950835ae0e7"
+        }
+      },
+      "target": {
+        "tabId": 1415011202,
+        "frameId": 0,
+        "documentId": "63A4B64F8CD3A53031F15D9A1730561E",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "windowId": 1415011197,
+        "targetSessionId": "19790412-0c43-4ab2-934a-a8c9a64818dd",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "8c8538f7-0375-4e90-9b54-9950835ae0e7"
+      },
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:7226a5c5-b129-461c-8897-d9ea6f16635b",
+        "revision": 1,
+        "sourceHash": "4955c2fc0a30a3b461353bf5ba82efa02730d7b52035ec5693f728f04ec26556"
+      },
+      "deadlineAt": 1791479404804,
+      "retirementId": "86e8e5bd-0c12-46ae-9a3f-51c4696b4be8",
+      "retirementState": "released",
+      "resultId": "a4074d07-f773-470c-849a-dc44f00f7f98",
+      "terminalReason": {
+        "code": "E_CANCELLED",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "workerRetired": true,
+      "scriptId": "draft:7226a5c5-b129-461c-8897-d9ea6f16635b",
+      "contentHash": "4955c2fc0a30a3b461353bf5ba82efa02730d7b52035ec5693f728f04ec26556",
+      "sourceKind": "draft"
+    },
+    "results": [
+      {
+        "tag": "controller-result",
+        "resultId": "a4074d07-f773-470c-849a-dc44f00f7f98",
+        "runId": "7226a5c5-b129-461c-8897-d9ea6f16635b",
+        "namespace": "tool:ochpinpkioajljgdecdekdfcdepkdaih",
+        "principal": "extension-tool:ochpinpkioajljgdecdekdfcdepkdaih",
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:7226a5c5-b129-461c-8897-d9ea6f16635b",
+          "revision": 1,
+          "sourceHash": "4955c2fc0a30a3b461353bf5ba82efa02730d7b52035ec5693f728f04ec26556"
+        },
+        "sourceKind": "draft",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        },
+        "committedAt": 1791479390790
+      }
+    ],
+    "downloads": [],
+    "slotAvailable": true
+  }
+}

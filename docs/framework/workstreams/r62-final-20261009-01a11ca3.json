@@ -1,0 +1,136 @@
+{
+  "workstreamId": "r62-final-20261009-01a11ca3",
+  "threadId": "01a11ca3-efe6-72b0-bb0a-d6c0691c004c",
+  "branch": "agent/r62-final-20261009-01a11ca3",
+  "workspace": "/Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser",
+  "startHead": "dd63f339a8fd4b07729cf8764b961de4150eb29c",
+  "latestMain": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+  "scope": "R6.2 real Agent to reusable Task and original formal acceptance",
+  "writeScope": [
+    "own workstream and evidence",
+    "bounded acceptance drivers",
+    "product files only for reproduced defects"
+  ],
+  "statuses": {
+    "SOURCE_CONFIRMED": "YES",
+    "COMPONENT_TESTED": "PASS_CURRENT_TARGETED_COMPONENT_ONLY",
+    "BUILD_VERIFIED": "PASS",
+    "NATIVE_CHROME_VERIFIED": "INCOMPLETE",
+    "AI_AGENT_E2E_VERIFIED": "PARTIAL_DIAGNOSTIC_ONLY",
+    "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
+    "FINAL_FRAMEWORK_ACCEPTED": "NO"
+  },
+  "pr11": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/11",
+    "state": "merged"
+  },
+  "resources": {
+    "43111": {
+      "pid": 89894,
+      "exited": true,
+      "portAfter": "",
+      "pageIdentityReceipt": "owned-http-resource.json",
+      "releaseReceipt": "owned-http-release.json"
+    },
+    "chrome": {
+      "pid": 73343,
+      "launcherPid": 73342,
+      "exited": true,
+      "profileRemoved": true,
+      "cleanupReceipt": "native-session-3/launcher-r62.cleanup.json",
+      "status": "PASS_CLEANUP_ONLY",
+      "fullUserQuitOrRestart": "NOT_TESTED"
+    },
+    "native": {
+      "socketAbsent": true,
+      "privateInstallationRestoredByteForByte": true,
+      "originalManifestContractReconstructed": true,
+      "exactOriginalManifestBytesArchived": false,
+      "privateCredentialBackup": "retained outside Git; not printed or committed",
+      "oldExtensionId": "historical only; discover fresh identities next run"
+    },
+    "dist": "independent worktree only; exact latest packages retained",
+    "allOwnedAttemptProfiles": "all three removed and exact owned PIDs absent; initial cleanup FAIL preserved"
+  },
+  "evidenceDirectory": "docs/framework/evidence/r62-final-20261009-01a11ca3",
+  "remaining": [
+    "modern draft and saved execution plus unique authentic ACK/journal",
+    "Candidate Verified Available explicit UI install for sample.modern-search@1.0.0",
+    "two independent My Tasks runs without Native and complete same-profile Chrome restart",
+    "current-candidate abnormal lifecycle cases",
+    "original603+19 independentB05 1000mixed 10reconnect two disable rounds six baselines independent F3 same-dist ZIP",
+    "formal ledger closure and authorized serial main integration"
+  ],
+  "updatedUtc": "2026-10-08T19:16:07.030745+00:00",
+  "productInputCommit": "40d3bf5f93cfa0bf587ec6080a03de3302b27e6f",
+  "productPackages": {
+    "production": "75dd897fee5a906dbe5de00b30c98d8c5b3d0ea8a5a7cca756e17660d478e73f",
+    "development": "e61be2a4604d567e754258f3224058bb84e554a115116d786c0e565076c383f7",
+    "productionServiceWorkerBytes": 324976,
+    "limit": 327680
+  },
+  "componentEvidence": [
+    {
+      "scope": "latest main affected components including five driver tests",
+      "pass": 76,
+      "fail": 0,
+      "skip": 0,
+      "log": "latest-main-affected-components.log",
+      "note": "command also listed nonexistent sidebar-tools-package.test.mjs; no coverage attributed to it"
+    },
+    {
+      "scope": "actual sidebar-tools.test.mjs and sidebar-tools-host.test.mjs",
+      "pass": 4,
+      "fail": 0,
+      "skip": 0,
+      "log": "latest-main-sidebar-host-components.log"
+    },
+    {
+      "scope": "final driver including localized counter parser",
+      "pass": 7,
+      "fail": 0,
+      "skip": 0,
+      "log": "driver-components-counter-parser.log",
+      "overlap": "five cases overlap76; do not sum counts"
+    }
+  ],
+  "nativeEvidenceLevel": "setup diagnostic on earlier package only",
+  "pagePreflight": "PASS exact current page; own service released",
+  "blockers": [
+    {
+      "source": "mcp__cua_repl",
+      "message": "Mac locked; manual unlock required for trusted native input",
+      "lastRecheck": "getState timed out30seconds; kernel reset",
+      "requiredUserAction": "unlock Mac; no reply yet",
+      "coordinationAuthorization": "not granted; no message to R7 sent; port became free then own bind succeeded"
+    }
+  ],
+  "pr": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/28",
+    "number": 28,
+    "status": "DRAFT",
+    "state": "open",
+    "createdHead": "11b4cb9d179d13ce8697c4ce93d39a5c087d7c70",
+    "createdBase": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+    "mergeability": "initial connector returned false; recheck current head before authorized integration",
+    "checks": "NO_COMMIT_STATUSES_RETURNED; GITHUB_ACTIONS_NOT_CONFIRMED; NOT_FORMAL_ACCEPTANCE",
+    "lastObserved": {
+      "head": "4aa39c929c23ff9f668e9f9a9c24f7debfc6e0e9",
+      "base": "bd7c8d1b41197673ad0d5ab0abe53231393a368d",
+      "draft": true,
+      "mergeable": true,
+      "merged": false,
+      "receipt": "docs/framework/evidence/r62-final-20261009-01a11ca3/pr-query-head4aa39c9.json"
+    }
+  },
+  "actualChangedProductFiles": "README conflict resolution preserves R6.2 fixture guidance; other product changes inherited from main",
+  "actualAddedFiles": [
+    "tests/framework/r62-native-acceptance.mjs",
+    "tests/framework/r62-native-acceptance.test.mjs",
+    "own workstream, handoff and evidence"
+  ],
+  "releasePublishPerformed": false,
+  "metadataIntegrationCommit": "07db43ec619860674d0fcccfce94bef48e1a05e8",
+  "productInputsUnchangedAcrossMetadataMerge": true,
+  "handoff": "docs/framework/workstreams/r62-final-20261009-01a11ca3-handoff.md"
+}

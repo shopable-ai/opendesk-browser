@@ -1,0 +1,107 @@
+{
+  "candidateHead": "6ad3c4826ca1508277fa695fa4f2817db37e7053",
+  "extensionId": "ochpinpkioajljgdecdekdfcdepkdaih",
+  "productionPackageHash": "729c2bfe9b572e1d58d5e1f147e8d99d7f6118bbe6e3fdd7009429b5e05b12b7",
+  "developmentPackageHash": "1ab55f14fd63bcc34899dc58ad92ff006aa81cc9a9fa54fa62626876c145bb6b",
+  "productionSwBytes": 324759,
+  "statuses": {
+    "SOURCE_CONFIRMED": "YES",
+    "COMPONENT_TESTED": "PASS_242_COMPONENT_ONLY",
+    "BUILD_VERIFIED": "PASS",
+    "NATIVE_CHROME_VERIFIED": "INCOMPLETE",
+    "AI_AGENT_E2E_VERIFIED": "PARTIAL_DIAGNOSTIC_ONLY",
+    "REUSABLE_TASK_VERIFIED": "NOT_TESTED",
+    "FINAL_FRAMEWORK_ACCEPTED": "NO"
+  },
+  "trustedUiObservations": [
+    "Native Options enable clicked; real nativeMessaging permission Allow clicked",
+    "Extension pinned through Chrome details; real toolbar action opened Sidebar",
+    "Options Refresh displayed Native Host connected and one registered workbench",
+    "Options Disable displayed closed and socket disappeared; CLI returned E_NATIVE_NOT_READY",
+    "Options Enable restored real CLI readiness; known acknowledged observe request retained exact original runId"
+  ],
+  "observe": {
+    "runId": "ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+    "resultId": "e5cc513b-509b-4568-bc6f-08c7df826e35",
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+      "revision": 1,
+      "sourceHash": "47dc4a4be63bd9f60b21b136449658ac01c579781d06eb496ed21f8436a4d8ae"
+    },
+    "state": "completed",
+    "retirementState": "released",
+    "scope": "read-only connection diagnostic on externally served demo; not formal candidate page"
+  },
+  "save": {
+    "scriptId": "r62-b27a-modern-search",
+    "revision": 1,
+    "parentRevision": 0,
+    "contentHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+  },
+  "stop": {
+    "runId": "7226a5c5-b129-461c-8897-d9ea6f16635b",
+    "resultId": "a4074d07-f773-470c-849a-dc44f00f7f98",
+    "state": "stopped",
+    "retirementState": "released",
+    "workerRetired": true
+  },
+  "safeRejections": [
+    {
+      "case": "save-digest-conflict",
+      "exit": 1,
+      "error": {
+        "code": "E_REQUEST_CONFLICT",
+        "message": "E_REQUEST_CONFLICT",
+        "outcome": "NOT_DISPATCHED"
+      },
+      "hasRunId": false
+    },
+    {
+      "case": "unowned-result",
+      "exit": 1,
+      "error": {
+        "code": "E_PERMISSION",
+        "message": "E_PERMISSION",
+        "outcome": "NOT_DISPATCHED"
+      },
+      "hasRunId": false
+    },
+    {
+      "case": "stale-document",
+      "exit": 1,
+      "error": {
+        "code": "E_DOCUMENT_STALE",
+        "message": "Target snapshot must match the live Sidebar window",
+        "outcome": "NOT_DISPATCHED"
+      },
+      "hasRunId": false
+    }
+  ],
+  "reconnect": {
+    "nativeReconnected": true,
+    "sameAcknowledgedRunId": true,
+    "runId": "ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+    "state": "completed",
+    "retirementState": "released",
+    "resultId": "e5cc513b-509b-4568-bc6f-08c7df826e35",
+    "scope": "one connection diagnostic cycle; not original 10 reconnect campaign; shared external demo bytes"
+  },
+  "demoIdentity": {
+    "candidateSha256": "261465f29cbd080e4b682c949d6c4cf9f1bce2ec0866e356186d7c4e43cf4ad6",
+    "served43111Sha256": "e88da478b847045ae8c2100abe3c7287f515873c02d97d5f96435440f06f6237",
+    "same": false,
+    "ownerThreadId": "01a11c51-4f2b-7791-8463-320ba64c367b",
+    "ownerTitle": "R7.2 axiosx：续接原生验收与 PR #20 收敛",
+    "userMessagingAuthorization": "PENDING"
+  },
+  "remaining": [
+    "43111 resource handoff and serve exact candidate examples/tasks",
+    "Fresh exact target; modern-search draft and saved revision execution; unique real page-effect receipt",
+    "Original Candidate Verification → Available → explicit UI install → My Tasks execution",
+    "Installed Task execution without Native/Codex and same-profile real full Chrome restart",
+    "ACK loss / unknown effects / real revocation and document lifecycle cases",
+    "Original 603+19, independent B05, 1000 mixed / 10 reconnect / two disabled-extension rounds, six resource baselines, independent final F3 and same-dist ZIP install"
+  ],
+  "updatedUtc": "2026-10-08T17:17:09.487473+00:00"
+}

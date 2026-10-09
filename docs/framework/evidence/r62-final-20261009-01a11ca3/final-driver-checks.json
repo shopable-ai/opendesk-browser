@@ -1,0 +1,44 @@
+[
+  {
+    "command": [
+      "node",
+      "--test",
+      "tests/framework/r62-native-acceptance.test.mjs"
+    ],
+    "exitCode": 0,
+    "pass": 7,
+    "fail": 0,
+    "skip": 0,
+    "log": "driver-components-counter-parser.log",
+    "grade": "COMPONENT_ONLY"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0,
+    "log": "check-driver-counter-parser.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0,
+    "log": "check-metadata-integration.log"
+  },
+  {
+    "command": [
+      "node",
+      "tests/framework/r62-native-acceptance.mjs",
+      "preflight",
+      "--evidence=docs/framework/evidence/r62-final-20261009-01a11ca3/preflight-owned-page"
+    ],
+    "exitCode": 0,
+    "grade": "HTTP_BYTES_ONLY",
+    "inputs": "preflight-owned-page/inputs.json"
+  }
+]

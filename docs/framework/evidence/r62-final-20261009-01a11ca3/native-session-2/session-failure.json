@@ -1,0 +1,5 @@
+{
+  "name": "AssertionError",
+  "message": "Expected values to be strictly equal:\n\n3 !== 1\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 1\n\n    at identity (file:///Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser/tests/framework/r62-native-acceptance.mjs:142:14)\n    at async session (file:///Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser/tests/framework/r62-native-acceptance.mjs:151:40)\n    at async main (file:///Users/shopme/.codex/worktrees/r62-final-20261009-01a11ca3/opendesk-browser/tests/framework/r62-native-acceptance.mjs:177:30)"
+}

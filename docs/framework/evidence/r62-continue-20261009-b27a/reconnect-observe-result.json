@@ -1,0 +1,515 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "168e24e5-8a69-451a-9750-ba26611003f9",
+  "result": {
+    "run": {
+      "tag": "controller-run",
+      "runId": "ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+      "state": "completed",
+      "runRevision": 4,
+      "ownerEpoch": 2,
+      "cancelSeq": 1,
+      "identity": {
+        "tag": "controller-run",
+        "runId": "ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+        "hostInstanceId": "38c5d560-7e77-4f17-9304-f5cf7ab96d24",
+        "hostDocumentId": "9D3221BDDB40D846888D85B7855FA233",
+        "ownerEpoch": 1,
+        "scriptId": "draft:ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+        "revision": 1,
+        "contentHash": "47dc4a4be63bd9f60b21b136449658ac01c579781d06eb496ed21f8436a4d8ae",
+        "target": {
+          "tabId": 1415011202,
+          "frameId": 0,
+          "documentId": "63A4B64F8CD3A53031F15D9A1730561E",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 1415011197,
+          "targetSessionId": "159f03d4-e372-4815-a874-c88529c7bef8",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "8c8538f7-0375-4e90-9b54-9950835ae0e7"
+        }
+      },
+      "target": {
+        "tabId": 1415011202,
+        "frameId": 0,
+        "documentId": "63A4B64F8CD3A53031F15D9A1730561E",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "windowId": 1415011197,
+        "targetSessionId": "159f03d4-e372-4815-a874-c88529c7bef8",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "8c8538f7-0375-4e90-9b54-9950835ae0e7"
+      },
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+        "revision": 1,
+        "sourceHash": "47dc4a4be63bd9f60b21b136449658ac01c579781d06eb496ed21f8436a4d8ae"
+      },
+      "deadlineAt": 1791479239900,
+      "retirementId": "5759f9fb-4a57-4e07-9f60-c59346fdb76d",
+      "retirementState": "released",
+      "resultId": "e5cc513b-509b-4568-bc6f-08c7df826e35",
+      "terminalReason": null,
+      "workerRetired": true,
+      "scriptId": "draft:ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+      "contentHash": "47dc4a4be63bd9f60b21b136449658ac01c579781d06eb496ed21f8436a4d8ae",
+      "sourceKind": "draft"
+    },
+    "results": [
+      {
+        "tag": "controller-result",
+        "resultId": "e5cc513b-509b-4568-bc6f-08c7df826e35",
+        "runId": "ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+        "namespace": "tool:ochpinpkioajljgdecdekdfcdepkdaih",
+        "principal": "extension-tool:ochpinpkioajljgdecdekdfcdepkdaih",
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:ab89cf8e-1075-4f9c-8aab-9f38346c6b54",
+          "revision": 1,
+          "sourceHash": "47dc4a4be63bd9f60b21b136449658ac01c579781d06eb496ed21f8436a4d8ae"
+        },
+        "sourceKind": "draft",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "budget",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "locatorChecks",
+                      {
+                        "type": "number",
+                        "value": 3
+                      }
+                    ],
+                    [
+                      "maxChars",
+                      {
+                        "type": "number",
+                        "value": 4200
+                      }
+                    ],
+                    [
+                      "maxDepth",
+                      {
+                        "type": "number",
+                        "value": 5
+                      }
+                    ],
+                    [
+                      "maxLocatorChecks",
+                      {
+                        "type": "number",
+                        "value": 40
+                      }
+                    ],
+                    [
+                      "maxNodes",
+                      {
+                        "type": "number",
+                        "value": 32
+                      }
+                    ],
+                    [
+                      "maxVisited",
+                      {
+                        "type": "number",
+                        "value": 960
+                      }
+                    ],
+                    [
+                      "visited",
+                      {
+                        "type": "number",
+                        "value": 5
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "document",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "documentId",
+                      {
+                        "type": "string",
+                        "value": "63A4B64F8CD3A53031F15D9A1730561E"
+                      }
+                    ],
+                    [
+                      "targetVersion",
+                      {
+                        "type": "number",
+                        "value": 1
+                      }
+                    ],
+                    [
+                      "url",
+                      {
+                        "type": "string",
+                        "value": "http://127.0.0.1:43111/demo-form.html"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "kind",
+                {
+                  "type": "string",
+                  "value": "semantic-dom-summary"
+                }
+              ],
+              [
+                "nodes",
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "object",
+                      "value": [
+                        [
+                          "locator",
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "kind",
+                                {
+                                  "type": "string",
+                                  "value": "css"
+                                }
+                              ],
+                              [
+                                "value",
+                                {
+                                  "type": "string",
+                                  "value": "[id=\"search-form\"]"
+                                }
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "name",
+                          {
+                            "type": "string",
+                            "value": ""
+                          }
+                        ],
+                        [
+                          "role",
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        [
+                          "scope",
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        [
+                          "state",
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "disabled",
+                                {
+                                  "type": "boolean",
+                                  "value": false
+                                }
+                              ],
+                              [
+                                "readOnly",
+                                {
+                                  "type": "boolean",
+                                  "value": false
+                                }
+                              ],
+                              [
+                                "visible",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "text",
+                          {
+                            "type": "string",
+                            "value": "搜索关键词 搜索"
+                          }
+                        ]
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "value": [
+                        [
+                          "locator",
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "exact",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ],
+                              [
+                                "kind",
+                                {
+                                  "type": "string",
+                                  "value": "role"
+                                }
+                              ],
+                              [
+                                "name",
+                                {
+                                  "type": "string",
+                                  "value": "搜索关键词"
+                                }
+                              ],
+                              [
+                                "value",
+                                {
+                                  "type": "string",
+                                  "value": "searchbox"
+                                }
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "name",
+                          {
+                            "type": "string",
+                            "value": "搜索关键词"
+                          }
+                        ],
+                        [
+                          "role",
+                          {
+                            "type": "string",
+                            "value": "searchbox"
+                          }
+                        ],
+                        [
+                          "scope",
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "string",
+                                  "value": "search-form"
+                                }
+                              ],
+                              [
+                                "tag",
+                                {
+                                  "type": "string",
+                                  "value": "form"
+                                }
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "state",
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "checked",
+                                {
+                                  "type": "string",
+                                  "value": "false"
+                                }
+                              ],
+                              [
+                                "disabled",
+                                {
+                                  "type": "boolean",
+                                  "value": false
+                                }
+                              ],
+                              [
+                                "readOnly",
+                                {
+                                  "type": "boolean",
+                                  "value": false
+                                }
+                              ],
+                              [
+                                "visible",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "text",
+                          {
+                            "type": "string",
+                            "value": ""
+                          }
+                        ]
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "value": [
+                        [
+                          "locator",
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "exact",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ],
+                              [
+                                "kind",
+                                {
+                                  "type": "string",
+                                  "value": "role"
+                                }
+                              ],
+                              [
+                                "name",
+                                {
+                                  "type": "string",
+                                  "value": "搜索"
+                                }
+                              ],
+                              [
+                                "value",
+                                {
+                                  "type": "string",
+                                  "value": "button"
+                                }
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "name",
+                          {
+                            "type": "string",
+                            "value": "搜索"
+                          }
+                        ],
+                        [
+                          "role",
+                          {
+                            "type": "string",
+                            "value": "button"
+                          }
+                        ],
+                        [
+                          "scope",
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "string",
+                                  "value": "search-form"
+                                }
+                              ],
+                              [
+                                "tag",
+                                {
+                                  "type": "string",
+                                  "value": "form"
+                                }
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "state",
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "disabled",
+                                {
+                                  "type": "boolean",
+                                  "value": false
+                                }
+                              ],
+                              [
+                                "readOnly",
+                                {
+                                  "type": "boolean",
+                                  "value": false
+                                }
+                              ],
+                              [
+                                "visible",
+                                {
+                                  "type": "boolean",
+                                  "value": true
+                                }
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "text",
+                          {
+                            "type": "string",
+                            "value": "搜索"
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ],
+              [
+                "truncated",
+                {
+                  "type": "boolean",
+                  "value": false
+                }
+              ]
+            ]
+          }
+        },
+        "committedAt": 1791479210023
+      }
+    ],
+    "downloads": [],
+    "slotAvailable": true
+  }
+}

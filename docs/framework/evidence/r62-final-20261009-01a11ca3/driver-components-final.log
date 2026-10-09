@@ -1,0 +1,13 @@
+✔ acceptance validator correlates result identity and its own exact revision (2.909708ms)
+✔ acceptance validator refuses duplicate results and unreleased workers (0.324166ms)
+✔ acceptance validator refuses changed document, owner namespace and saved revision (0.220833ms)
+✔ an ambiguous side-effect response is retained and never retried (4.294875ms)
+✔ readonly discovery records a woken worker while rejecting other extensions and ambiguous workers (0.245583ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 134.51825
