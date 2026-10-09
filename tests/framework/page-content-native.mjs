@@ -61,9 +61,14 @@ try{
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
-  processChrome=spawn(binary,['--headless=new','--enable-extensions','--use-mock-keychain','--no-first-run',
-    '--no-default-browser-check','--disable-background-networking','--remote-debugging-port=0',
-    '--user-data-dir='+profile,'--load-extension='+extension,'--disable-extensions-except='+extension,
+  // On macOS Chrome for Testing 155 the headed MV3 startup path is required:
+  // headless extension URLs can return net::ERR_BLOCKED_BY_CLIENT even though
+  // the build and Chrome startup both succeed. Mirror the proven native-agent
+  // macOS launch flags instead of mistaking that for a Controller failure.
+  processChrome=spawn(binary,['--use-mock-keychain','--password-store=basic','--no-first-run',
+    '--no-default-browser-check','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage',
+    '--disable-background-networking','--disable-sync','--remote-allow-origins=*','--remote-debugging-port=0',
+    '--user-data-dir='+profile,'--disable-extensions-except='+extension,'--load-extension='+extension,
     'about:blank'],{stdio:['ignore','pipe','pipe']});
   exitPromise=new Promise(resolve=>processChrome.once('exit',(code,signal)=>resolve({code,signal})));
   let stderr='';processChrome.stderr.on('data',bytes=>{stderr+=bytes.toString();});
@@ -71,6 +76,10 @@ try{
   for(let i=0;i<300;i++){endpoint=stderr.match(/DevTools listening on (ws:\/\/\S+)/)?.[1];if(endpoint)break;await sleep(50);}
   if(!endpoint)throw new Error('Chrome CDP unavailable: '+stderr.slice(-2000));
   client=await connect(endpoint);
+  await client.send('Target.setDiscoverTargets',{discover:true});
+  const discovered=await client.send('Target.getTargets');
+  console.log(JSON.stringify({stage:'installed-extension-targets',
+    targets:discovered.targetInfos.filter(x=>/chrome-extension:|service_worker/.test(x.url||'')).map(({type,url})=>({type,url}))}));
   const {targetId}=await client.send('Target.createTarget',{url:'about:blank'});
   const {sessionId}=await client.send('Target.attachToTarget',{targetId,flatten:true});
   await client.send('Runtime.enable',{},sessionId);
