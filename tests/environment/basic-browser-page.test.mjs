@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {readFile, readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {Script} from 'node:vm';
-import {createDemoHttpServer} from '../../examples/tasks/http-test-server.mjs';
 
 const path='examples/tasks/demo-form.html';
 const load=()=>readFile(path,'utf8');
@@ -18,9 +17,10 @@ test('one ordinary HTML page exposes unique, stable automation targets',async()=
     'request-timeout','request-cancel','async-status','async-status-text',
     'async-result','demo-form','name','submit','search-form','keyword',
     'search-submit','search-status','search-count','results','reset-all',
-    'api-url','api-send','api-status',
-    'api-status-text','api-http-status','api-duration','api-content-type',
-    'api-response','api-error'
+    'api-url','api-preset','api-channel','api-method','api-timeout',
+    'api-body','api-post-fields','api-headers','api-send','api-cancel',
+    'api-status','api-status-text','api-http-status','api-duration',
+    'api-content-type','api-response','api-error'
   ]) assert(ids.includes(id),`must provide #${id}`);
   for(const selector of ['sample-title','sample-text'])
     assert.match(html,new RegExp(`id="${selector}"[^>]*data-testid="${selector}"`));
@@ -53,9 +53,9 @@ test('modern search retains an initially filled field and deliberately replaces 
   assert.match(html,/results\.textContent = '结果：' \+ term/);
 });
 
-test('async scene uses deterministic same-origin JSON and distinguishes loading, 404, abort and timeout',async()=>{
+test('async scene sends only local fetches and distinguishes loading, 404, abort and timeout',async()=>{
   const html=await load();
-  assert.match(html,/\.\/request-sample\.json/);
+  assert.match(html,/\.\/demo-form\.html\?test-response=1/);
   assert.match(html,/\.\/__opendesk_expected_404__\.json/);
   assert.match(html,/fetch\(url, \{cache:'no-store', signal:request\.controller\.signal\}\)/);
   assert.match(html,/new AbortController\(\)/);
@@ -66,30 +66,38 @@ test('async scene uses deterministic same-origin JSON and distinguishes loading,
 });
 
 
-test('scenario 06 is authorized page SDK axiosx, with no native fetch fallback',async()=>{
+test('explicit HTTP GET controls expose safe semantics and preserve offline-first operation',async()=>{
   const html=await load();
-  assert.match(html,/<label class="visually-hidden" for="api-url">请求 URL<\/label>/);
-  assert.match(html,/id="api-url"[^>]*value="https:\/\/httpbingo\.org\/get\?source=opendesk"/);
+  assert.match(html,/<label for="api-url">请求 URL<\/label>/);
+  assert.match(html,/id="api-url"[^>]*value="\.\/demo-form\.html\?test-response=1"/);
+  assert.match(html,/<label for="api-channel">/);
+  assert.match(html,/<select id="api-channel"[^>]*>/);
+  assert.match(html,/<option value="fetch"/);
+  assert.match(html,/<option value="sdk"/);
+  assert.match(html,/<label for="api-method">/);
+  assert.match(html,/<select id="api-method"[^>]*>/);
+  assert.match(html,/<option(?: value="GET")?>GET<\/option>/);
+  assert.match(html,/<option(?: value="POST")?>POST<\/option>/);
+  assert.match(html,/<label for="api-timeout">/);
+  assert.match(html,/id="api-timeout"[^>]*value="8000"/);
+  assert.match(html,/<label for="api-body">/);
+  assert.match(html,/<textarea id="api-body"/);
+  assert.match(html,/<[^>]+id="api-headers"/);
+  assert.match(html,/<[^>]+id="api-post-fields"/);
+  assert.match(html,/<button id="api-send"[^>]*>发送 GET<\/button>/);
+  assert.match(html,/https:\/\/api\.ipify\.org\?format=json/);
   assert.match(html,/id="api-response"[^>]*data-testid="api-response"/);
-  const section=html.match(/<section class="unit" id="lab-api"[\s\S]*?<\/section>/)?.[0];
-  assert.ok(section);
-  assert.match(section,/OpenDeskSDK\.axiosx\.get/);
-  assert.match(section,/id="api-debug-data" hidden aria-hidden="true"/);
-  assert.doesNotMatch(section,/此处使用网页 fetch/);
-  assert.doesNotMatch(section,/id="api-preset"|id="api-cancel"|<select\b|<textarea\b|<dl\b/);
-  assert.equal([...section.matchAll(/<button\b/g)].length,1);
-  const code=html.split('async function runApiRequest()')[1]?.split("apiSend.addEventListener('click'")[0];
-  assert.ok(code);
-  assert.doesNotMatch(code,/\bfetch\s*\(/);
-  assert.match(code,/window\.OpenDeskSDK/);
-  assert.match(code,/await sdk\.ready\(\)/);
-  assert.match(code,/sdk\.axiosx\.get\(url\.href, \{timeout:8000, responseType:'json'\}\)/);
-  assert.match(code,/new URL\(input, location\.href\)/);
-  assert.match(code,/request\.version !== apiVersion/);
+  assert.match(html,/credentials:'omit'/);
+  assert.match(html,/method/);
+  assert.match(html,/new URL\(input, location\.href\)/);
+  assert.match(html,/response\.headers/);
+  assert.match(html,/response\.status/);
+  assert.match(html,/activeApi !== request \|\| request\.controller\.signal\.aborted/);
+  assert.match(html,/readApiPreview\(response\)/);
   assert.doesNotMatch(html,/apiResponse\.innerHTML/);
 });
 
-function createApiDomHarness(html, handleFetch, sdk) {
+function createApiDomHarness(html, handleFetch) {
   class FakeNode {
     constructor(id) {
       this.id=id;
@@ -120,8 +128,20 @@ function createApiDomHarness(html, handleFetch, sdk) {
   // Model the input's actual initial value, not a blank JavaScript stub.
   const initialApiUrl=html.match(/<input id="api-url"[^>]*value="([^"]+)"/)?.[1];
   assert.ok(initialApiUrl);
-  nodes.get('api-url').value=initialApiUrl;
-  nodes.get('api-debug-data').hidden=true;
+  for (const input of html.matchAll(/<input\b([^>]*)>/g)) {
+    const id=input[1].match(/\bid="([^"]+)"/)?.[1];
+    if (!id || !nodes.has(id)) continue;
+    nodes.get(id).value=input[1].match(/\bvalue="([^"]*)"/)?.[1] ?? '';
+  }
+  nodes.get('api-preset').value=initialApiUrl;
+  for (const select of html.matchAll(/<select\b([^>]*)>([\s\S]*?)<\/select>/g)) {
+    const id=select[1].match(/\bid="([^"]+)"/)?.[1];
+    if (!id || !nodes.has(id)) continue;
+    const options=[...select[2].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/g)];
+    const selected=Math.max(0,options.findIndex(option=>/\sselected(?:\s|>|=)/.test(option[1])));
+    const option=options[selected] ?? options[0];
+    nodes.get(id).value=option?.[1].match(/\bvalue="([^"]*)"/)?.[1] ?? option?.[2]?.replace(/<[^>]+>/g,'').trim() ?? '';
+  }
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.equal(scripts.length,1);
   new Script(scripts[0][1]).runInNewContext({
@@ -129,14 +149,12 @@ function createApiDomHarness(html, handleFetch, sdk) {
       getElementById(id){return nodes.get(id);},
       createElement(tag){return new FakeNode(tag);}
     },
-    window:{OpenDeskSDK:sdk},
     fetch:handleFetch, AbortController, DOMException, URL, TextDecoder, TextEncoder,
     performance, setTimeout, clearTimeout,
     location:{href:'http://127.0.0.1:43111/demo-form.html'}
   },{timeout:2000});
   return {nodes, dispatch:(id,type)=>nodes.get(id).dispatch(type)};
 }
-
 
 test('the single canonical page exposes seven navigable groups and honest Locator fixtures',async()=>{
   const html=await load();
@@ -199,201 +217,53 @@ test('Locator fixture actions, late insertion, and reset mutate only observable 
     'cancelled delayed insertion must not resurrect after reset');
 });
 
-test('the button calls injected axiosx only after click and safely displays data',async()=>{
-  const called=[];
-  const sdk={ready:async()=>true,axiosx:{get:async(url,config)=>{
-    called.push({url,config});
-    return {status:200,statusText:'OK',data:'<h1>HTTP 200</h1>',
-      headers:{'content-type':'text/html;charset=utf-8'}};
-  }}};
-  const dom=createApiDomHarness(await load(),()=>{throw new Error('page fetch must not run');},sdk);
-  assert.equal(called.length,0);
+test('HTTP panel sends no request until click and shows real status/content without HTML injection',async()=>{
+  const seen=[];
+  const dom=createApiDomHarness(await load(),(url,options)=>{
+    seen.push({url,options});
+    return Promise.resolve(new Response('<h1>HTTP 200</h1>',{
+      status:200,headers:{'content-type':'text/html;charset=utf-8'}
+    }));
+  });
+  assert.equal(seen.length,0);
+  dom.nodes.get('api-url').value='./demo-form.html?test-response=1';
   await dom.dispatch('api-send','click');
-  assert.equal(called.length,1);
-  assert.equal(called[0].url,'https://httpbingo.org/get?source=opendesk');
-  assert.deepEqual(JSON.parse(JSON.stringify(called[0].config)),{timeout:8000,responseType:'json'});
+  assert.equal(seen.length,1);
+  assert.equal(seen[0].url,'http://127.0.0.1:43111/demo-form.html?test-response=1');
+  assert.equal(seen[0].options.method,'GET');
+  assert.equal(seen[0].options.credentials,'omit');
   assert.equal(dom.nodes.get('api-status').dataset.state,'success');
-  assert.equal(dom.nodes.get('api-http-status').textContent,'200 OK');
-  assert.equal(dom.nodes.get('api-content-type').textContent,'text/html;charset=utf-8');
+  assert.equal(dom.nodes.get('api-http-status').textContent,'200');
   assert.equal(dom.nodes.get('api-response').textContent,'<h1>HTTP 200</h1>');
-  assert.equal(dom.nodes.get('api-debug-data').hidden,true);
-  assert.equal(dom.nodes.get('api-send').disabled,false);
+  assert.equal(dom.nodes.get('api-response').hidden,false);
+  assert.equal(dom.nodes.get('api-cancel').disabled,true);
 });
 
-test('missing SDK / permission denied never issue a fallback page fetch',async()=>{
+test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies',async()=>{
   const html=await load();
-  let pageFetch=0, sdkCalls=0;
-  const unexpected=()=>{pageFetch++;throw new Error('native fetch forbidden');};
-  const absent=createApiDomHarness(html,unexpected);
-  await absent.dispatch('api-send','click');
-  assert.equal(absent.nodes.get('api-status').dataset.state,'error');
-  assert.match(absent.nodes.get('api-error').textContent,/E_SDK_UNAVAILABLE/);
-  const denied=createApiDomHarness(html,unexpected,{ready:async()=>true,axiosx:{get:async()=>{
-    sdkCalls++;throw Object.assign(new Error('not authorized'),{code:'E_PERMISSION'});
-  }}});
-  await denied.dispatch('api-send','click');
-  assert.equal(denied.nodes.get('api-status').dataset.state,'error');
-  assert.match(denied.nodes.get('api-error').textContent,/E_PERMISSION/);
-  assert.equal(sdkCalls,1);assert.equal(pageFetch,0);
-});
+  const missing=createApiDomHarness(html,()=>Promise.resolve(new Response('missing',{status:404})));
+  await missing.dispatch('api-send','click');
+  assert.equal(missing.nodes.get('api-status').dataset.state,'error');
+  assert.equal(missing.nodes.get('api-http-status').textContent,'404');
+  assert.match(missing.nodes.get('api-error').textContent,/HTTP 404/);
 
-for (const scenario of [
-  {name:'200',path:'/request-sample.json?requestId=r8-page-200',status:200,state:'success'},
-  {name:'503',path:'/__test__/status?code=503&requestId=r8-page-503',status:503,state:'error'}
-]) test('the HTTP Page draft drives the simulated SDK adapter and reports '+scenario.name,async(t)=>{
-  const server=createDemoHttpServer(), requests=[];
-  server.on('request',request=>requests.push({method:request.method,url:request.url}));
-  await new Promise((resolve,reject)=>{
-    server.once('error',reject);
-    server.listen(0,'127.0.0.1',resolve);
-  });
-  t.after(()=>new Promise(resolve=>server.close(resolve)));
-  const url='http://127.0.0.1:'+server.address().port+scenario.path;
-  const html=await load(), sent=[];
-  // This is a component mock for page → SDK integration, not native browser proof.
-  const sdk={ready:async()=>true,axiosx:{get:async(address,config)=>{
-    sent.push({address,config});
-    const response=await fetch(address,{method:'GET',credentials:'omit'});
-    const projection={status:response.status,statusText:response.statusText,
-      headers:Object.fromEntries(response.headers.entries()),data:await response.json()};
-    if(!response.ok)throw Object.assign(new Error('HTTP '+response.status),
-      {code:'E_HTTP',status:response.status,response:projection});
-    return projection;
-  }}};
-  const dom=createApiDomHarness(html,()=>{throw new Error('page fetch forbidden');},sdk);
-  const page={
-    getByLabel(name,options){
-      assert.equal(options.exact,true);
-      const labels=[...html.matchAll(/<label[^>]*for="([^"]+)"[^>]*>([^<]+)<\/label>/g)]
-        .filter(match=>match[2]===name);
-      assert.equal(labels.length,1,'draft must use a real unique label: '+name);
-      const node=dom.nodes.get(labels[0][1]);
-      return {async fill(value){node.value=value;await dom.dispatch(node.id,'input');}};
-    },
-    getByRole(role,options){
-      assert.equal(role,'button');assert.equal(options.exact,true);
-      const buttons=[...html.matchAll(/<button\b[^>]*id="([^"]+)"[^>]*>([^<]+)<\/button>/g)]
-        .filter(match=>match[2]===options.name);
-      assert.equal(buttons.length,1,'draft must use the real accessible button name: '+options.name);
-      return {async click(){await dom.dispatch(buttons[0][1],'click');}};
-    },
-    locator(selector){
-      const match=/^#([a-z-]+)(?:\[data-state="([^"]+)"\])?$/.exec(selector);
-      assert.ok(match,'supported real fixture selector: '+selector);
-      const node=dom.nodes.get(match[1]);assert.ok(node);
-      return {
-        async waitFor(options){
-          assert.equal(options.state,'visible');assert.equal(node.hidden,false);
-          assert.equal(node.dataset.state,match[2],'wait observes the actual HTTP handler state');
-        },
-        async textContent(){return node.textContent;}
-      };
-    }
-  };
-  const source=await readFile('examples/tasks/http-axiosx-page-draft.js','utf8');
-  // Draft+DOM are exercised with an SDK adapter mock: no Chrome/permission acceptance.
-  const result=await new Script(source+'\nmain();').runInNewContext({page,params:{url,expected:scenario.state}});
-  assert.deepEqual(requests,[{method:'GET',url:scenario.path}]);
-  assert.equal(sent.length,1);assert.equal(sent[0].address,url);
-  assert.equal(sent[0].config.timeout,8000);
-  assert.equal(sent[0].config.responseType,'json');
-  assert.equal(result.channel,'page-sdk-axiosx-through-page-api');
-  assert.equal(result.url,url);
-  assert.match(result.httpStatus,new RegExp('^'+scenario.status+'(?: |$)'));
-  const response=JSON.parse(result.responseText);
-  if(scenario.status===200)assert.equal(response.source,'opendesk-browser-local-fixture');
-  else {assert.equal(response.status,503);assert.match(result.errorText,/E_HTTP.*HTTP 503/);}
-});
-
-test('SDK E_HTTP preserves status and input/reset never cause stale success or duplicate calls',async()=>{
-  const html=await load(), noFetch=()=>{throw new Error('page fetch forbidden');};
-  const rejected=createApiDomHarness(html,noFetch,{
-    ready:async()=>true,axiosx:{get:async()=>{throw Object.assign(new Error('HTTP 404'),
-      {code:'E_HTTP',status:404,response:{status:404,statusText:'Not Found',
-        data:{message:'missing'},headers:{'content-type':'application/json'}}});}}
-  });
-  await rejected.dispatch('api-send','click');
-  assert.equal(rejected.nodes.get('api-status').dataset.state,'error');
-  assert.equal(rejected.nodes.get('api-http-status').textContent,'404 Not Found');
-  assert.equal(JSON.parse(rejected.nodes.get('api-response').textContent).message,'missing');
-
-  let release, count=0;
-  const sdk={ready:async()=>true,axiosx:{get:()=>{count++;return new Promise(resolve=>{release=resolve;});}}};
-  const dom=createApiDomHarness(html,noFetch,sdk);
-  const running=dom.dispatch('api-send','click');
-  await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(count,1);
-  dom.nodes.get('api-url').value='https://httpbingo.org/anything';
-  await dom.dispatch('api-url','input');
-  assert.equal(dom.nodes.get('api-send').disabled,true);
-  await dom.dispatch('api-send','click');
-  assert.equal(count,1);
-  release({status:200,data:'late success',headers:{}});
+  let deliver;
+  const cancelled=createApiDomHarness(html,()=>new Promise(resolve=>{deliver=resolve;}));
+  const running=cancelled.dispatch('api-send','click');
+  await cancelled.dispatch('api-cancel','click');
+  deliver(new Response('late reply',{status:200}));
   await running;
-  assert.equal(dom.nodes.get('api-status').dataset.state,'idle');
-  assert.equal(dom.nodes.get('api-response').textContent,'');
-  assert.equal(dom.nodes.get('api-send').disabled,false);
+  assert.equal(cancelled.nodes.get('api-status').dataset.state,'cancelled');
+  assert.equal(cancelled.nodes.get('api-response').textContent,'');
 
-  let releaseReset, resetCalls=0;
-  const reset=createApiDomHarness(html,noFetch,{
-    ready:async()=>true,axiosx:{get:()=>{resetCalls++;return new Promise(resolve=>{releaseReset=resolve;});}}
-  });
-  const pending=reset.dispatch('api-send','click');
-  await new Promise(resolve=>setImmediate(resolve));
+  let deliverReset;
+  const reset=createApiDomHarness(html,()=>new Promise(resolve=>{deliverReset=resolve;}));
+  const inFlight=reset.dispatch('api-send','click');
   await reset.dispatch('reset-all','click');
-  releaseReset({status:200,data:'stale response',headers:{}});
-  await pending;
-  assert.equal(resetCalls,1);
+  deliverReset(new Response('stale success',{status:200}));
+  await inFlight;
   assert.equal(reset.nodes.get('api-status').dataset.state,'idle');
   assert.equal(reset.nodes.get('api-response').textContent,'');
-  assert.equal(reset.nodes.get('api-url').value,'https://httpbingo.org/get?source=opendesk');
-});
-
-test('editing URL before SDK ready prevents a network call',async()=>{
-  let ready, count=0;
-  const dom=createApiDomHarness(await load(),()=>{throw new Error('page fetch forbidden');},{
-    ready:()=>new Promise(resolve=>{ready=resolve;}),
-    axiosx:{get:async()=>{count++;return {status:200,data:{ok:true}};}}
-  });
-  const pending=dom.dispatch('api-send','click');
-  dom.nodes.get('api-url').value='https://httpbingo.org/status/404';
-  await dom.dispatch('api-url','input');
-  ready();await pending;
-  assert.equal(count,0);
-  assert.equal(dom.nodes.get('api-status').dataset.state,'idle');
-});
-
-test('minimal axiosx GET UI rejects invalid URLs without sending requests',async()=>{
-  let requests=0;
-  const dom=createApiDomHarness(await load(),()=>{throw new Error('page fetch forbidden');},{
-    ready:async()=>true,axiosx:{get:async()=>{requests++;}}
-  });
-  dom.nodes.get('api-url').value='javascript:alert(1)';
-  await dom.dispatch('api-send','click');
-  assert.equal(requests,0);
-  assert.equal(dom.nodes.get('api-status').dataset.state,'error');
-  assert.match(dom.nodes.get('api-error').textContent,/HTTP\(S\)/);
-  dom.nodes.get('api-url').value='https://user:secret@example.com/data';
-  await dom.dispatch('api-send','click');
-  assert.equal(requests,0,'credential-bearing URL must be rejected');
-  assert.equal(dom.nodes.get('api-status').dataset.state,'error');
-  assert.equal(dom.nodes.get('api-debug-data').hidden,true);
-});
-
-
-test('Worker axiosx and Page SDK axiosx draft have public HTTPS defaults',async()=>{
-  const [worker,pageDraft,html]=await Promise.all([
-    readFile('examples/tasks/http-worker-axiosx-draft.js','utf8'),
-    readFile('examples/tasks/http-axiosx-page-draft.js','utf8'),
-    load()
-  ]);
-  const endpoint='https://httpbingo.org/get?source=opendesk';
-  assert.match(worker,/axiosx\.get\(url, \{timeout:5000, responseType:'json'\}\)/);
-  assert.ok(worker.includes("params.url ?? '"+endpoint+"'"));
-  assert.ok(pageDraft.includes("params.url ?? '"+endpoint+"'"));
-  assert.ok(html.includes('value="'+endpoint+'"'));
-  assert.ok(!worker.includes('127.0.0.1:'),'standalone Worker must not require local servers');
-  assert.ok(!html.includes('test-response=1'),'self-fetch of the test HTML is no longer used');
 });
 
 test('inline JavaScript parses without a third-party runtime or external resources',async()=>{

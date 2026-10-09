@@ -1,0 +1,9 @@
+{
+  "classification": "FAILED observer assertion; not a product native failure",
+  "observed": "Real controller-result encodes successful payload as outcome.valueWire, not outcome.value. Older click raw file contains cumulative click history.",
+  "correction": "Strictly compare actual valueWire schema and exact payload; keep original cumulative history, refer explicitly to the final Save event and the executed helper slice(before) one-click assertion. Future receipts persist returned invocation events and timestamp files.",
+  "inputs": [
+    "native-main-final5/draft-stopped.json",
+    "native-main-final5/click-1791542746527.json"
+  ]
+}

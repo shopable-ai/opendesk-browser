@@ -1,0 +1,9 @@
+// Inspect/click Chrome's real extensions UI; never call chrome.developerPrivate.
+import {readFile,writeFile} from 'node:fs/promises';import {connect,evaluate} from '../../../../tests/framework/sidebar-native-session.mjs';
+const [sessionPath,action,out]=process.argv.slice(2),s=JSON.parse(await readFile(sessionPath)),c=await connect(s.endpoint);
+try{const t=(await c.send('Target.getTargets')).targetInfos.find(t=>t.url===`chrome://extensions/?id=${s.extensionId}`);if(!t)throw Error('Owned visible extensions detail target missing');await c.send('Target.activateTarget',{targetId:t.targetId});const {sessionId}=await c.send('Target.attachToTarget',{targetId:t.targetId,flatten:true});
+ const traverse="function all(root){const rows=[];for(const e of root.querySelectorAll('*')){rows.push(e);if(e.shadowRoot)rows.push(...all(e.shadowRoot));}return rows;}";
+ const observed=await evaluate(c,`(() => {${traverse} return all(document).filter(e=>['CR-ICON-BUTTON','CR-BUTTON','BUTTON'].includes(e.tagName)).map(e=>{const r=e.getBoundingClientRect();return {tag:e.tagName,id:e.id,title:e.title,label:e.getAttribute('aria-label'),text:e.textContent?.trim(),disabled:e.disabled,rect:{x:r.x,y:r.y,width:r.width,height:r.height}};});})()`,sessionId);
+ await writeFile(out,JSON.stringify({at:new Date().toISOString(),target:t,action,observed},null,2)+'\n',{flag:'wx'});
+ if(action==='reload'){const row=observed.find(r=>r.id==='dev-reload-button'&&r.rect.width>0);if(!row||row.disabled)throw Error('Actual visible reload control missing');for(const type of ['mousePressed','mouseReleased'])await c.send('Input.dispatchMouseEvent',{type,x:row.rect.x+row.rect.width/2,y:row.rect.y+row.rect.height/2,button:'left',clickCount:1},sessionId);console.log(JSON.stringify({nativeReloadClicked:true,row}));}else console.log(JSON.stringify(observed.filter(r=>r.id==='reload'||r.label?.includes('重新')||r.title?.includes('重新'))));
+}finally{c.close();}

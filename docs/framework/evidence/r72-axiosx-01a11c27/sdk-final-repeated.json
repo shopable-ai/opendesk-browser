@@ -1,0 +1,155 @@
+{
+  "at": "2026-10-08T16:06:39.593Z",
+  "targetId": "E7FEBAD8C823E6EF14895C1B50B61A01",
+  "launchPid": 91159,
+  "method": "repeat",
+  "result": {
+    "out": [
+      {
+        "i": 1,
+        "status": 200,
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        }
+      },
+      {
+        "i": 2,
+        "status": 200,
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        }
+      },
+      {
+        "i": 3,
+        "status": 200,
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        }
+      }
+    ],
+    "diagnostics": {
+      "scope": "OpenDeskSDK",
+      "pending": 0,
+      "disposed": false,
+      "counts": {
+        "pending": 0,
+        "timers": 0,
+        "subscriptions": 4,
+        "ports": 0,
+        "workers": 0,
+        "blobs": 0
+      },
+      "observationMissing": null,
+      "resources": [
+        {
+          "scope": "bridge",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "transport.window",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 3,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.sleep",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.callbacks",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.pagehide",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 1,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        }
+      ]
+    }
+  }
+}

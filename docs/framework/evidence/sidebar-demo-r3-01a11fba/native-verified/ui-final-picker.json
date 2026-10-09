@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-09T11:10:59.211Z",
+  "sessionPath": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native-verified/session.json",
+  "catalog": "512F05DB20AA52BCDF6E345538BC75CC",
+  "file": "/private/tmp/opendesk-sidebar-r3-01a11fba/ui-final.opendesk-draft.json",
+  "observed": {
+    "nativeFilePicker": true,
+    "nativeOpen": true,
+    "path": "/private/tmp/opendesk-sidebar-r3-01a11fba/ui-final.opendesk-draft.json",
+    "pid": 2652,
+    "typedNativePath": "/private/tmp/opendesk-sidebar-r3-01a11fba/ui-final.opendesk-draft.json"
+  },
+  "realFilePicker": true
+}

@@ -1,0 +1,16 @@
+{
+  "root": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0",
+  "sourceApp": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app",
+  "application": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app",
+  "executable": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "before": {
+    "CFBundleIdentifier": "com.google.chrome.for.testing",
+    "CFBundleName": "Google Chrome for Testing",
+    "CFBundleDisplayName": "Google Chrome for Testing"
+  },
+  "bundleId": "org.chromium.opendesk.sidebar.r1.a01a11fa4",
+  "originalBinarySha256": "316795971c05d253320fcc574168aa8ae7782eae9beb540e0595ebbd654ab965",
+  "copyBinarySha256": "316795971c05d253320fcc574168aa8ae7782eae9beb540e0595ebbd654ab965",
+  "scope": "Owned app copy with unique UI identity; original vendor executable bytes unchanged, sandbox not disabled, original app untouched.",
+  "renameReason": "Managed launcher accepts only vendor CFT app basename; unique CFBundleIdentifier/DisplayName retained"
+}

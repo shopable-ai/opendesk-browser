@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-09T12:13:10.073362+00:00",
+  "commit": "62590ced93e0b42fe8776b8f980ce6457309ba7b",
+  "parents": [
+    "d27ba52a356b035101968f4f2f744121cb33408d",
+    "ea9670df73561dc3460730de167ffc3baaa5306b"
+  ],
+  "productInputDiffFromAcceptedSource": [],
+  "uncommittedDiffUnchanged": true,
+  "targetedTests": {
+    "tests": 17,
+    "pass": 17,
+    "fail": 0,
+    "skip": 0
+  },
+  "stdout": "[main 62590ce] Preserve parallel main history while integrating the authorized HTTP fixture\n",
+  "stderr": ""
+}

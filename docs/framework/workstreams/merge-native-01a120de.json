@@ -1,0 +1,89 @@
+{
+  "workstreamId": "merge-native-01a120de",
+  "threadId": "01a120de",
+  "branch": "agent/merge-native-01a120de",
+  "worktree": "/Users/shopme/Documents/workspace/opendesk-browser-merge-native-01a120de",
+  "baseBranch": "agent/branch-consolidation-01a120de",
+  "baseHead": "a5f1575429d42b74436944bf4b3c58e1b3e42ba4",
+  "mergedBranch": "agent/r62-local-acceptance-01a11c20",
+  "mergedHead": "c14907d87ed63c51a7116b33879c6c194e3204fa",
+  "createdAtUtc": "2026-10-09T13:54:46Z",
+  "scope": {
+    "mode": "bounded-native-integration",
+    "mainModified": false,
+    "pushed": false,
+    "newDependencies": false,
+    "browserOrNativeStarted": false,
+    "sharedServicesStarted": false,
+    "sourceBranchDeleted": false,
+    "excluded": [
+      "HTTP file conflict handling owned by another agent",
+      "real Chrome/CFT runs",
+      "Native Host launch, cleanup, setup, doctor, or shared socket use",
+      "evidence promotion to final Native PASS"
+    ]
+  },
+  "preRead": [
+    "docs/framework/testing-guide.md",
+    "docs/framework/workstreams/r62-local-acceptance-01a11c24.json",
+    "docs/framework/workstreams/native-agent-bridge-r1-20261008.json",
+    "docs/framework/workstreams/r62-local-acceptance-01a11c20-resources.json"
+  ],
+  "conflicts": [
+    {
+      "path": "docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md",
+      "decision": "Kept the current R2.2/R10 MCP Native protocol and current evidence wording. Added the R62 independent CFT profile NativeMessagingHosts finding as a bounded acceptance-driver note, explicitly without changing Host/CLI credentials, protocol, RunHost, MCP, or evidence grade."
+    },
+    {
+      "path": "tests/environment/native-agent-chrome-real.test.mjs",
+      "decision": "Kept the newer integrated real Chrome test, including CLI setup with --user-data-dir, manifest path assertion, service worker restart checks, permission helper, and current Native protocol. Added R62's OPENDESK_NATIVE_UI_ASSIST=1 manual genuine-approval branch without reverting to the older runtime or manual manifest copy."
+    }
+  ],
+  "autoMergedFilesReviewed": [
+    {
+      "path": "tests/environment/permission-gate.test.mjs",
+      "decision": "Accepted source-branch compatibility coverage from commit 51acdd0c; no extra edits in this integration."
+    },
+    {
+      "path": "docs/framework/workstreams/r62-local-acceptance-01a11c20-resources.json",
+      "decision": "Accepted source-branch resource release record; it confirms the R62 resources are released and not reusable as this merge candidate's Native PASS."
+    }
+  ],
+  "evidencePolicy": {
+    "reusedEvidence": "R62 records are retained as raw evidence and acceptance-driver context only.",
+    "notPromoted": [
+      "NATIVE_CHROME_VERIFIED",
+      "AI_AGENT_E2E_VERIFIED",
+      "REUSABLE_TASK_VERIFIED",
+      "FINAL_FRAMEWORK_ACCEPTED"
+    ],
+    "reason": "The merge did not run browser/native/shared services, and testing-guide requires same-candidate identity before PASS promotion."
+  },
+  "verification": {
+    "planned": [
+      "git diff --check",
+      "rg conflict marker scan",
+      "node --check tests/environment/native-agent-chrome-real.test.mjs",
+      "node --test tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-package.test.mjs tests/environment/permission-gate.test.mjs"
+    ],
+    "results": [
+      {
+        "command": "git diff --cached --check && ! rg -n '^(<{7}|={7}|>{7})' docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md tests/environment/native-agent-chrome-real.test.mjs docs/framework/workstreams/merge-native-01a120de.json && node --check tests/environment/native-agent-chrome-real.test.mjs",
+        "exitCode": 0,
+        "result": "PASS: no staged whitespace errors, no line-start conflict markers in merge-resolved files, native-agent-chrome-real syntax check passed."
+      },
+      {
+        "command": "node --test tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-package.test.mjs tests/environment/permission-gate.test.mjs",
+        "exitCode": 0,
+        "result": "PASS: 43 tests, 43 pass, 0 fail, duration 278.443084 ms."
+      }
+    ],
+    "setup": [
+      {
+        "command": "npm ci --ignore-scripts --no-audit --no-fund",
+        "result": "Installed lockfile dependencies in the isolated worktree after the first test attempt reported missing module acorn; package files were not changed."
+      }
+    ]
+  },
+  "status": "COMPLETE"
+}

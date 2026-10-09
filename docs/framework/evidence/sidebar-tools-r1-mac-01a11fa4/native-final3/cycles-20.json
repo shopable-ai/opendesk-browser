@@ -1,0 +1,766 @@
+{
+  "at": "2026-10-09T09:04:51.951Z",
+  "session": {
+    "pid": 20187,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-w8r3rugs",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-w8r3rugs",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-w8r3rugs/chrome.log",
+    "launcherPid": 20186,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native-final3/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "actualMainProcess": "20187 20186 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-w8r3rugs --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-w8r3rugs",
+      "birthtimeMs": 1791535657556.3967,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:56808/devtools/browser/ce015d1d-acc9-4933-93d4-34150acdf860",
+    "restartHelper": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+    "actualLauncherArgs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native-final3/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "driverPid": 20185,
+    "page": "2B02D92AE65127E9BDEE273027633AA8",
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "package": {
+      "packageHash": "ce3b971e92917b7e479ba8baa692af494c7ac2ba88f83fbc7de8bf3b02c24a69",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49539,
+          "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1264,
+          "sha256": "a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22157,
+          "sha256": "7018e9e3e7a0dcf7392e270f8512b4d4b815d8db5940da26587ad938d13b971d"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 29297,
+          "sha256": "112dff86a490ece497668e4420053ce0d48121e2de12360da177add825b30421"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 55072,
+          "sha256": "878a816ec2749a7408a1c32ab985b0cfbce97875f7115b8c99a890c64ee3d8ec"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 49683,
+          "sha256": "406de1f7b5ebffc7ce4a67696d5e35d24e27e9bae3b93cacec10cae6100c19f1"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2603,
+          "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327667,
+          "sha256": "b514aeff5017e7c399ad17e68395d00413e64ca51f8d191f1285c7278ad56f9a"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 21184,
+          "sha256": "f3e3ba1c77de45a6cbab5ecf69c176ce68fb2420b87f783a448475963bc81ad5"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 190544,
+          "sha256": "e66529c960d832c35b2239a1580884e41873fa5ded546bcf2734e238eae4b658"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 22630,
+          "sha256": "b5631c091bb03a681045766a8e2f67da12e43cc40b1c8c3a6bf220228d381c0c"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    }
+  },
+  "status": "NATIVE_PASS",
+  "measurements": [
+    {
+      "round": 0,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 1,
+      "nodes": 1371,
+      "jsEventListeners": 88
+    },
+    {
+      "round": 1,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 2,
+      "nodes": 1398,
+      "jsEventListeners": 97
+    },
+    {
+      "round": 2,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 3,
+      "nodes": 1425,
+      "jsEventListeners": 106
+    },
+    {
+      "round": 3,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 4,
+      "nodes": 1452,
+      "jsEventListeners": 115
+    },
+    {
+      "round": 4,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 5,
+      "nodes": 1479,
+      "jsEventListeners": 124
+    },
+    {
+      "round": 5,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 6,
+      "nodes": 1506,
+      "jsEventListeners": 133
+    },
+    {
+      "round": 6,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 7,
+      "nodes": 1533,
+      "jsEventListeners": 142
+    },
+    {
+      "round": 7,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 8,
+      "nodes": 1560,
+      "jsEventListeners": 151
+    },
+    {
+      "round": 8,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 9,
+      "nodes": 1587,
+      "jsEventListeners": 160
+    },
+    {
+      "round": 9,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 10,
+      "nodes": 1614,
+      "jsEventListeners": 169
+    },
+    {
+      "round": 10,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 11,
+      "nodes": 1641,
+      "jsEventListeners": 178
+    },
+    {
+      "round": 11,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 12,
+      "nodes": 1668,
+      "jsEventListeners": 187
+    },
+    {
+      "round": 12,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 13,
+      "nodes": 1695,
+      "jsEventListeners": 196
+    },
+    {
+      "round": 13,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 14,
+      "nodes": 1722,
+      "jsEventListeners": 205
+    },
+    {
+      "round": 14,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 15,
+      "nodes": 1749,
+      "jsEventListeners": 214
+    },
+    {
+      "round": 15,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 16,
+      "nodes": 1776,
+      "jsEventListeners": 223
+    },
+    {
+      "round": 16,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 17,
+      "nodes": 1803,
+      "jsEventListeners": 232
+    },
+    {
+      "round": 17,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 18,
+      "nodes": 1830,
+      "jsEventListeners": 241
+    },
+    {
+      "round": 18,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 19,
+      "nodes": 1857,
+      "jsEventListeners": 250
+    },
+    {
+      "round": 19,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 20,
+      "nodes": 1884,
+      "jsEventListeners": 259
+    },
+    {
+      "round": 20,
+      "iframeCount": 1,
+      "toolFrames": 1,
+      "messageListeners": 2,
+      "documents": 21,
+      "nodes": 1911,
+      "jsEventListeners": 268
+    }
+  ],
+  "closed": {
+    "toolFrames": 0,
+    "messageListeners": 2,
+    "inputs": [
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "sidebar-tool-file",
+        "text": "",
+        "isTrusted": true
+      },
+      {
+        "id": "sidebar-tool-install",
+        "text": "确认安装",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "React＋Tailwind",
+        "isTrusted": true
+      },
+      {
+        "id": "sidebar-tool-file",
+        "text": "",
+        "isTrusted": true
+      },
+      {
+        "id": "sidebar-tool-install",
+        "text": "确认安装",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "Vue 中文工具",
+        "isTrusted": true
+      },
+      {
+        "id": "tab-discover",
+        "text": "发现",
+        "isTrusted": true
+      },
+      {
+        "id": "local-discover-open-catalog",
+        "text": "导入",
+        "isTrusted": true
+      },
+      {
+        "id": "tab-develop",
+        "text": "开发",
+        "isTrusted": true
+      },
+      {
+        "id": "script-source",
+        "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+        "isTrusted": true
+      },
+      {
+        "id": "script-source",
+        "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+        "isTrusted": true
+      },
+      {
+        "id": "script-save",
+        "text": "保存版本",
+        "isTrusted": true
+      },
+      {
+        "id": "script-run",
+        "text": "运行草稿",
+        "isTrusted": true
+      },
+      {
+        "id": "script-run",
+        "text": "运行草稿",
+        "isTrusted": true
+      },
+      {
+        "id": "script-stop",
+        "text": "停止",
+        "isTrusted": true
+      },
+      {
+        "id": "tab-discover",
+        "text": "发现",
+        "isTrusted": true
+      },
+      {
+        "id": "local-discover-open-catalog",
+        "text": "导入",
+        "isTrusted": true
+      },
+      {
+        "id": "tab-my-tasks",
+        "text": "我的任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "task-run",
+        "text": "运行任务",
+        "isTrusted": true
+      },
+      {
+        "id": "task-run",
+        "text": "运行任务",
+        "isTrusted": true
+      },
+      {
+        "id": "task-stop",
+        "text": "停止",
+        "isTrusted": true
+      },
+      {
+        "id": "workspace-content",
+        "text": "\n  \n    \n      \n        我的工具\n        \n          导入工具包\n          选择本机 .opendesk-tool.json，先核对工具能力；安装不会自动运行。\n          工具包 JSON\n          \n          确认安装\n        \n      \n      任务网页笔记React＋TailwindVue 中文工具\n      网页笔记：工具已就绪\n      \n        卸载工具\n        \n      \n    \n    \n      已安装任务请选择已安装任务侧栏工具回归：只读网页信息 · v1.0.0\n      侧侧栏工具回归：只读网页信息仅在专属验收浏览器读取标题和URL，十秒等待可验证停止。\n      适用于当前网页\n      \n      本次任务：已停止\n      \n        最近结果\n        E_CANCELLED：Controller fenced\n      \n      运行记录已停止 · 最近第 1 次E_CANCELLED：Controller fenced技术信息runId：3c363053-f13f-403b-bf15-626f263a9657\n状态：stopped\n版本：1成功 · 最近第 2 次{\n  \"title\": \"OpenDesk Browser · Browser Test Lab\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\"\n}技术信息runId：f99ca7b7-2ff8-4a2b-8970-33f5444849bb\n状态：completed\n版本：1\n      网站与权限适用网站：http://127.0.0.1:43111\n所需能力：page.automation\n来源：local-acceptance · v1.0.0\n      更多操作\n        刷新任务复制草稿\n        任务管理\n          停用任务卸载当前版本导入/管理任务 ↗\n          卸载不删除已有结果；停用将阻止后续启动。\n        \n      \n      \n      \n    \n  \n  \n    \n      \n        搜索已安装任务\n        \n        导入\n      \n      \n        当前网页\n        全部\n        停用\n      \n      找到 1 个已安装任务 · 本机共 1 个\n      侧侧栏工具回归：只读网页信息仅在专属验收浏览器读取标题和URL，十秒等待可验证停止。\n      \n    \n  \n  \n  \n    \n      LOCAL TASK CATALOG发现本地任务\n      在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。\n      搜索任务\n      \n        全部\n        已安装\n        可安装\n        待验证\n      \n      共 1 个本地任务版本\n      \n        侧栏工具回归：只读网页信息仅在专属验收浏览器读取标题和URL，十秒等待可验证停止。本地可用 · v1.0.0 · 已安装\n        \n          候选版本请选择候选版本侧栏工具回归：只读网页信息 · v1.0.0 · 本地可用\n          请选择任务卡片，查看完整用途、来源和所需权限。\n      安装确定版本\n      开发者：核对证据与设为本地可用\n        已完成的真实运行 ID\n        \n        核对运行证据\n          设为本地可用\n      \n        \n      \n      导入任务包 JSON 或 JavaScript 草稿\n      \n      仅本机验证，不代表第三方审核或签名认证\n      刷新目录\n    \n  \n  \n  \n    可运行 · 当前窗口的 HTTP(S) 主文档\n    查看当前网页详细信息\n      OpenDesk Browser · Browser Test Lab\n      http://127.0.0.1:43111/demo-form.html\n    \n  \n  \n    \n    实际执行代码或项目源码快照\n    新建单文件草稿\n    JavaScript 编辑器，草稿可直接运行async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}\n    高级诊断：查看编译产物\n    参数 JSON（可选）参数 JSON{\"value\":0}\n\n    任务 81a9a9c2-b69e-47bc-b18d-3dd128fc5d52：已停止\n  已停止 · 资源已释放\n  运行目标与版本\n    runId：81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\n    运行目标：http://127.0.0.1:43111/demo-form.html\n    草稿快照 · SHA-256 fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\n  \n  结果与历史\n    {\n  \"runId\": \"81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n  \"state\": \"stopped\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n      \"resultId\": \"7556eb5e-a64a-4cef-b13e-6d81ceec0ac7\",\n      \"state\": \"stopped\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"error\": {\n        \"code\": \"E_CANCELLED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}\n    刷新持久结果\n    持久结果历史选择历史任务2ba0d630-ae5f-4646-886c-6083b90d4d94 · 草稿 · 已完成81a9a9c2-b69e-47bc-b18d-3dd128fc5d52 · 草稿 · 已停止f99ca7b7-2ff8-4a2b-8970-33f5444849bb · r1 · 已完成3c363053-f13f-403b-bf15-626f263a9657 · r1 · 已停止\n    查看选中任务\n    完整历史与版本身份{\n  \"runs\": [\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"2ba0d630-ae5f-4646-886c-6083b90d4d94\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"2ba0d630-ae5f-4646-886c-6083b90d4d94\",\n        \"hostInstanceId\": \"fb9fc8b0-d122-4703-8728-e37a788004cd\",\n        \"hostDocumentId\": \"2F6E6980CD5AFB2833A45947A102BF1A\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:2ba0d630-ae5f-4646-886c-6083b90d4d94\",\n        \"revision\": 1,\n        \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n        \"target\": {\n          \"tabId\": 664804246,\n          \"frameId\": 0,\n          \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n          \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43111\",\n          \"windowId\": 664804244,\n          \"targetSessionId\": \"539c3d16-13ca-4081-af98-9328ea5445d9\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"2fe2e9f1-7d51-4d90-9513-5f23da670b63\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 664804246,\n        \"frameId\": 0,\n        \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43111\",\n        \"windowId\": 664804244,\n        \"targetSessionId\": \"539c3d16-13ca-4081-af98-9328ea5445d9\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"2fe2e9f1-7d51-4d90-9513-5f23da670b63\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:2ba0d630-ae5f-4646-886c-6083b90d4d94\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"deadlineAt\": 1791536080886,\n      \"retirementId\": \"2e684ebc-3380-4549-a7f8-ac9c9b7f9b8a\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"2e26813b-6d5f-48aa-9944-5cd72da3103b\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:2ba0d630-ae5f-4646-886c-6083b90d4d94\",\n      \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n      \"state\": \"stopped\",\n      \"runRevision\": 5,\n      \"ownerEpoch\": 3,\n      \"cancelSeq\": 2,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n        \"hostInstanceId\": \"fb9fc8b0-d122-4703-8728-e37a788004cd\",\n        \"hostDocumentId\": \"2F6E6980CD5AFB2833A45947A102BF1A\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n        \"revision\": 1,\n        \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n        \"target\": {\n          \"tabId\": 664804246,\n          \"frameId\": 0,\n          \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n          \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43111\",\n          \"windowId\": 664804244,\n          \"targetSessionId\": \"799a5784-0d41-4583-852a-8c27caf072db\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"2fe2e9f1-7d51-4d90-9513-5f23da670b63\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 664804246,\n        \"frameId\": 0,\n        \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43111\",\n        \"windowId\": 664804244,\n        \"targetSessionId\": \"799a5784-0d41-4583-852a-8c27caf072db\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"2fe2e9f1-7d51-4d90-9513-5f23da670b63\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"deadlineAt\": 1791536163518,\n      \"retirementId\": \"32c4161b-1215-491e-912e-6642fbf07049\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"7556eb5e-a64a-4cef-b13e-6d81ceec0ac7\",\n      \"terminalReason\": {\n        \"code\": \"E_CANCELLED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n      \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"f99ca7b7-2ff8-4a2b-8970-33f5444849bb\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"f99ca7b7-2ff8-4a2b-8970-33f5444849bb\",\n        \"hostInstanceId\": \"fb9fc8b0-d122-4703-8728-e37a788004cd\",\n        \"hostDocumentId\": \"2F6E6980CD5AFB2833A45947A102BF1A\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"task:sample.sidebar-tool-r1-readonly:1.0.0\",\n        \"revision\": 1,\n        \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n        \"target\": {\n          \"tabId\": 664804246,\n          \"frameId\": 0,\n          \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n          \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43111\",\n          \"windowId\": 664804244,\n          \"targetSessionId\": \"741842d1-fb21-43eb-bb92-822de9dbade3\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"2fe2e9f1-7d51-4d90-9513-5f23da670b63\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 664804246,\n        \"frameId\": 0,\n        \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43111\",\n        \"windowId\": 664804244,\n        \"targetSessionId\": \"741842d1-fb21-43eb-bb92-822de9dbade3\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"2fe2e9f1-7d51-4d90-9513-5f23da670b63\"\n      },\n      \"revision\": {\n        \"scriptId\": \"task:sample.sidebar-tool-r1-readonly:1.0.0\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n        \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"f99ca7b7-2ff8-4a2b-8970-33f5444849bb\\\",\\\"3c31fb70-149a-4e0b-9667-b50749c9a9a4\\\",\\\"task:sample.sidebar-tool-r1-readonly:1.0.0\\\",1]\"\n      },\n      \"deadlineAt\": 1791536332634,\n      \"retirementId\": \"70bbe974-de98-4692-b6ad-6805c508c5e1\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"8193b222-7452-4316-8d21-5c92f5034eb1\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"task:sample.sidebar-tool-r1-readonly:1.0.0\",\n      \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"sourceKind\": \"saved\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"3c363053-f13f-403b-bf15-626f263a9657\",\n      \"state\": \"stopped\",\n      \"runRevision\": 5,\n      \"ownerEpoch\": 3,\n      \"cancelSeq\": 2,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"3c363053-f13f-403b-bf15-626f263a9657\",\n        \"hostInstanceId\": \"fb9fc8b0-d122-4703-8728-e37a788004cd\",\n        \"hostDocumentId\": \"2F6E6980CD5AFB2833A45947A102BF1A\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"task:sample.sidebar-tool-r1-readonly:1.0.0\",\n        \"revision\": 1,\n        \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n        \"target\": {\n          \"tabId\": 664804246,\n          \"frameId\": 0,\n          \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n          \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43111\",\n          \"windowId\": 664804244,\n          \"targetSessionId\": \"d7b5a0ae-c174-4358-8089-4c20b1fa63de\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"2fe2e9f1-7d51-4d90-9513-5f23da670b63\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 664804246,\n        \"frameId\": 0,\n        \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43111\",\n        \"windowId\": 664804244,\n        \"targetSessionId\": \"d7b5a0ae-c174-4358-8089-4c20b1fa63de\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"2fe2e9f1-7d51-4d90-9513-5f23da670b63\"\n      },\n      \"revision\": {\n        \"scriptId\": \"task:sample.sidebar-tool-r1-readonly:1.0.0\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n        \"pinKey\": \"script-pin:[\\\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\\\",\\\"3c363053-f13f-403b-bf15-626f263a9657\\\",\\\"62d424c0-94ec-47fb-93e9-48037c6409b9\\\",\\\"task:sample.sidebar-tool-r1-readonly:1.0.0\\\",1]\"\n      },\n      \"deadlineAt\": 1791536359032,\n      \"retirementId\": \"34e0dcdd-dbf7-4008-881d-36a3011d798a\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"a1fb4a3a-e7e6-4581-905d-d42cb9125872\",\n      \"terminalReason\": {\n        \"code\": \"E_CANCELLED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"task:sample.sidebar-tool-r1-readonly:1.0.0\",\n      \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"sourceKind\": \"saved\"\n    }\n  ],\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"2ba0d630-ae5f-4646-886c-6083b90d4d94\",\n      \"resultId\": \"2e26813b-6d5f-48aa-9944-5cd72da3103b\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:2ba0d630-ae5f-4646-886c-6083b90d4d94\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"value\": {\n        \"title\": \"OpenDesk Browser · Browser Test Lab\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n      \"resultId\": \"7556eb5e-a64a-4cef-b13e-6d81ceec0ac7\",\n      \"state\": \"stopped\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:81a9a9c2-b69e-47bc-b18d-3dd128fc5d52\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"error\": {\n        \"code\": \"E_CANCELLED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"f99ca7b7-2ff8-4a2b-8970-33f5444849bb\",\n      \"resultId\": \"8193b222-7452-4316-8d21-5c92f5034eb1\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"saved\",\n      \"revision\": {\n        \"scriptId\": \"task:sample.sidebar-tool-r1-readonly:1.0.0\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"value\": {\n        \"title\": \"OpenDesk Browser · Browser Test Lab\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"3c363053-f13f-403b-bf15-626f263a9657\",\n      \"resultId\": \"a1fb4a3a-e7e6-4581-905d-d42cb9125872\",\n      \"state\": \"stopped\",\n      \"sourceKind\": \"saved\",\n      \"revision\": {\n        \"scriptId\": \"task:sample.sidebar-tool-r1-readonly:1.0.0\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"error\": {\n        \"code\": \"E_CANCELLED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      }\n    }\n  ],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}\n    结果下载与任务查询\n      查询 runId（留空读取全部历史）\n      查询任务\n      已完成的持久结果请选择要下载的结果2ba0d630-ae5f-4646-886c-6083b90d4d94 · 草稿f99ca7b7-2ff8-4a2b-8970-33f5444849bb · r1下载结果 JSON\n      结果下载保留类型信息，包括 undefined。\n    \n  \n\n    网页用户脚本 · 依赖与试运行\n      使用上方编辑器的当前源码，可访问 document 和已锁定依赖。这里与 Controller 的 page / params 模式独立；调试无需保存。\n      页面脚本入口\n      OpenDesk · async function main()经典用户脚本 · 顶层 / IIFE\n      \n        添加 @require插入声明\n        源码没有 @require；可以直接试运行。\n        \n        固定依赖版本尚未锁定\n        读取资源并审核刷新本机版本\n        从本地文件提供依赖\n          选择一条 @require，再提供其 JavaScript 文件；审核会显示实际来源和哈希，不读取 file:// 地址。\n          对应声明选择对应声明\n          JavaScript 文件（最多 1 MiB）\n        \n        \n        确认来源并锁定\n        \n      \n      旧版 jQuery 试运行备用入口\n         加载扩展内固定 jQuery 3.7.1\n        仅用于没有 @require 的 async main 脚本；新依赖请使用上面的声明与锁定流程。原生迁移验收完成前保留此入口。\n      \n      在当前网页试运行 DOM 脚本\n      需先在扩展详情中允许用户脚本，并授权当前网站。\n      尚未运行\n    \n    版本管理与任务制作\n    已保存脚本\n    选择已保存脚本my-script · r1 · fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5刷新加载最新\n    脚本名称 / ID\n    revision加载版本\n    已保存 r1 · 可运行草稿；不自动创建新 revision\n    从已保存版本创建任务候选\n      先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。\n      稳定任务标识\n      任务版本\n      名称\n      用途\n      作者\n      参数 Schema（JSON）\n      {\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}\n      保存为待验证任务候选\n      候选需要真实运行验证后才能安装\n    \n    \n    高级脚本与目标设置\n      \n        网站权限 · 默认全部网站\n        Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）\n        安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。\n        全部网站已授权刷新授权状态\n        如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。\n      \n      默认使用当前网页；手动目标仅用于高级操作。\n      目标方式当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）\n      隔离网页地址\n      现有网页请选择具体网页[664804246] OpenDesk Browser · Browser Test Lab · http://127.0.0.1:43111/demo-form.html刷新网页列表\n      精确文档请选择当前精确文档\n      允许脚本访问目标网站的 Cookie\n      删除脚本\n      当前网页精确身份{\n  \"windowId\": 664804244,\n  \"tabId\": 664804246,\n  \"frameId\": 0,\n  \"documentId\": \"259D8F22AC84766EB9EA383482BD9BEA\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}\n    \n  \n  Advanced / Diagnostics\n  采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。\n  独立网页 SDK\n    选定一个网页及其当前文档，再选择允许的短服务。安装后网页可直接使用 OpenDeskSDK，无需运行控制脚本。导航后须重新选择并授权。\n    网页请选择具体网页[664804246] OpenDesk Browser · Browser Test Lab — http://127.0.0.1:43111/demo-form.html刷新网页列表\n    精确文档请选择当前精确文档\n    允许的服务（仅授予勾选项） HTTP 网络请求（仅本次精确批准的来源与目标）  持久存储  浏览器会话存储  通知  稳定应用 ID  外部网络信息（当前未启用）  service.log  service.time  resources.packaged \n    额外批准的目标 origin（每行一个，最多 8 条）\n    \n    留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。\n    本次批准快照（来源、精确 document、服务与目标）E_DOCUMENT_STALE：请选择一个精确的当前文档\n    明确批准此快照并安装 SDK\n    请选择网页、当前文档和服务\n  \n  目标健康检查\n    检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。\n    测试页面地址授权并创建检查页\n    检查原页面检查已绑定文档\n    环境入口已加载\n  \n    SDK 授权与自动化任务独立；健康检查只确认环境通信。\n  \n  \n",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "sidebar-tool-file",
+        "text": "",
+        "isTrusted": true
+      },
+      {
+        "id": "sidebar-tool-install",
+        "text": "确认安装",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "网页笔记",
+        "isTrusted": true
+      },
+      {
+        "id": "",
+        "text": "任务",
+        "isTrusted": true
+      }
+    ]
+  },
+  "baseline": {
+    "documents": 1,
+    "nodes": 1371,
+    "jsEventListeners": 88
+  },
+  "afterGc": {
+    "documents": 1,
+    "nodes": 1372,
+    "jsEventListeners": 87
+  },
+  "note": "Stable iframe/message-listener counts and bounded post-GC DOM counters; no claim of zero heap leakage."
+}

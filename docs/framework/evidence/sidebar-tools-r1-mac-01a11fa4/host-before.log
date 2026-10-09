@@ -1,0 +1,105 @@
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (6.215791ms)
+✖ queued task navigation loses authority when its tool is closed (1.616542ms)
+✖ uninstall waits for a committed write before deleting the namespace (1.542208ms)
+✖ two Side Panels preserve distinct fields through the same storage lock (1.461833ms)
+✖ a second iframe load revokes the old document instead of resending its token (0.627042ms)
+✖ cross-window uninstall rejects storage from a still open stale document (0.793084ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 1
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58.667042
+
+✖ failing tests:
+
+test at docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:129:1
+✖ queued task navigation loses authority when its tool is closed (1.616542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:134:38)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:136:1
+✖ uninstall waits for a committed write before deleting the namespace (1.542208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:143:63)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:145:1
+✖ two Side Panels preserve distinct fields through the same storage lock (1.461833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  -   alpha: 1,
+      beta: 2
+    }
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:149:38)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { beta: 2 },
+    expected: { alpha: 1, beta: 2 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:151:1
+✖ a second iframe load revokes the old document instead of resending its token (0.627042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:153:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:156:1
+✖ cross-window uninstall rejects storage from a still open stale document (0.793084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/host-baseline.test.mjs:159:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

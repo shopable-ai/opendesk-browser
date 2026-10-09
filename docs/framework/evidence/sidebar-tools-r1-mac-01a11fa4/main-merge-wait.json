@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-09T11:20:31.280307+00:00",
+  "status": "WAITING_EXISTING_MERGE",
+  "main": "4153a9794d0f34dbdf5cfb9be11c260a402c8768",
+  "mergeHead": "841fa9e455fcef2e75caafaeb5d8b3dde0c928ac",
+  "stagedPaths": [
+    ".github/workflows/program-project-source.yml",
+    "docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md",
+    "examples/programs/remote-esm-page/README.md",
+    "examples/programs/remote-esm-page/package.json",
+    "examples/programs/remote-esm-page/src/main.js",
+    "scripts/build-program-project.mjs",
+    "scripts/remote-esm-modules.mjs",
+    "scripts/validate-program-project.mjs",
+    "tests/environment/program-build.test.mjs",
+    "tests/environment/program-project.test.mjs",
+    "tests/environment/remote-esm-import.test.mjs"
+  ],
+  "stagedPatchSha256": "2e6fe1d3fd584e5cefc813bc93304596c2a413025ae92c2168b93e018284b5d9",
+  "ownAction": "Automatic source commit waits for MERGE_HEAD removal and no unmerged index. Preserve other merge/index. No push or abort."
+}

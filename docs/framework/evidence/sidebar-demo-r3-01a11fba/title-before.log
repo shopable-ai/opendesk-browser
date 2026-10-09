@@ -1,0 +1,64 @@
+✖ Page UI reads the title at click, trims input, and preserves that snapshot during busy (1.280375ms)
+✖ empty and whitespace input focus the field without scheduling or replacing a prior result (0.241125ms)
+✖ Enter and repeated clicks while busy schedule exactly one callback; next input has its own result (0.201916ms)
+✖ close, exit, pagehide and same-id replacement cancel pending work and retire old listeners (0.180084ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 93.989125
+
+✖ failing tests:
+
+test at tests/environment/page-ui-basic.test.mjs:40:1
+✖ Page UI reads the title at click, trims input, and preserves that snapshot during busy (1.280375ms)
+  TypeError: (doc.body || doc.documentElement).appendChild is not a function
+      at createPageUI (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/src/scripting/user-scripts/page-ui.js:110:35)
+      at Object.mount (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-ui-basic.test.mjs:30:14)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-ui-basic.test.mjs:42:15)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+
+test at tests/environment/page-ui-basic.test.mjs:49:1
+✖ empty and whitespace input focus the field without scheduling or replacing a prior result (0.241125ms)
+  TypeError: (doc.body || doc.documentElement).appendChild is not a function
+      at createPageUI (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/src/scripting/user-scripts/page-ui.js:110:35)
+      at Object.mount (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-ui-basic.test.mjs:30:14)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-ui-basic.test.mjs:51:15)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests/environment/page-ui-basic.test.mjs:56:1
+✖ Enter and repeated clicks while busy schedule exactly one callback; next input has its own result (0.201916ms)
+  TypeError: (doc.body || doc.documentElement).appendChild is not a function
+      at createPageUI (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/src/scripting/user-scripts/page-ui.js:110:35)
+      at Object.mount (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-ui-basic.test.mjs:30:14)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-ui-basic.test.mjs:58:15)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/environment/page-ui-basic.test.mjs:65:1
+✖ close, exit, pagehide and same-id replacement cancel pending work and retire old listeners (0.180084ms)
+  TypeError: (doc.body || doc.documentElement).appendChild is not a function
+      at createPageUI (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/src/scripting/user-scripts/page-ui.js:110:35)
+      at Object.mount (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-ui-basic.test.mjs:30:14)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-ui-basic.test.mjs:68:17)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

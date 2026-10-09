@@ -1,0 +1,49 @@
+{
+  "at": "2026-10-08T16:06:38.034Z",
+  "targetId": "E7FEBAD8C823E6EF14895C1B50B61A01",
+  "launchPid": 91159,
+  "method": "cross",
+  "result": {
+    "ordinary": {
+      "name": "TypeError",
+      "message": "Failed to fetch"
+    },
+    "admitted": {
+      "config": {
+        "method": "get",
+        "timeout": 5000,
+        "url": "http://127.0.0.1:43121/request-sample.json"
+      },
+      "data": {
+        "items": [
+          {
+            "id": 1,
+            "label": "文本读取"
+          },
+          {
+            "id": 2,
+            "label": "点击与 DOM 更新"
+          },
+          {
+            "id": 3,
+            "label": "真实 HTTP 响应"
+          }
+        ],
+        "message": "本地 HTTP JSON 请求成功",
+        "ok": true,
+        "source": "opendesk-browser-local-fixture"
+      },
+      "headers": {
+        "cache-control": "no-store",
+        "connection": "keep-alive",
+        "content-length": "260",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Thu, 08 Oct 2026 16:06:38 GMT",
+        "keep-alive": "timeout=5",
+        "x-content-type-options": "nosniff"
+      },
+      "status": 200,
+      "statusText": "OK"
+    }
+  }
+}

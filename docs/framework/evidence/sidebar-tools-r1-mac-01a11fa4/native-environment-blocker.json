@@ -1,0 +1,9 @@
+{
+  "status": "NATIVE_NOT_VERIFIED",
+  "scope": "Pure main Native permission retry",
+  "observationSource": "Native UI tool response observed during this chat; recorded summary, not a reconstructed raw screenshot or full tool payload",
+  "observedError": "The Mac is locked and automatic unlock could not unlock it.",
+  "userInput": "Manual unlock requested through asynchronous user-input tool; no response received as of this record",
+  "action": "Retry exited with its original FAILED receipt retained. No further identical attempt until environment changes. No security setting or permission bypass.",
+  "linkedFailure": "pure-main-7e80fa8f/native-retry.log"
+}

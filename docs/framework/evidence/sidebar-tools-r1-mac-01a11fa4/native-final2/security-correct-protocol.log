@@ -1,0 +1,20 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'ALLOWED'
+- 'EvalError'
+
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:70:153 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'ALLOWED',
+  expected: 'EvalError',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

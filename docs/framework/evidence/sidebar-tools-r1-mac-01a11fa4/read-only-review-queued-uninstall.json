@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-09T12:09:59.924Z",
+  "reviewer": "Hubble",
+  "scope": "Read-only queued uninstall and task Save/run evidence review; no browser or source mutation",
+  "result": {
+    "status": {
+      "01a11fb5-25e2-7130-b919-ce19a5e58d87": {
+        "completed": "结论：**APPROVE，限定为当前“queued public SDK request during uninstall”原生双面板存储 case**。未见伪造/放宽导致的 `NATIVE_PASS` 误报。\n\n证据满足你列的范围：\n\n- 两个真实 Chrome window ID 相异：`720946707` / `720946710`。\n- arm 阶段持有标准 browser Web Lock，实际 `OpenDeskTool.request(\"storage.set\")` 进入队列；`fromActualFrame: true` 证明 request 来自真实 iframe `WindowProxy`，不是 mock Chrome API。\n- uninstall 后 verdict 记录唯一可信点击：`#sidebar-tool-remove`，`isTrusted: true`，click 数 1，caller frame count 0。\n- release 前 `pending` 中同锁名有 2 个 pending 请求；release 后 catalog 删除 quick-notes、namespace 删除、两个 host frame count 都为 0。\n- scope 明确写成 queued SDK write，不宣称 already-committing Chrome I/O race。\n- `namespace-write-isolation.json` 证明 payload 里的 `toolId/namespace` 不能把写入重定向到 other namespace。\n\n需要记录的唯一失效路径：`native-queued-uninstall-probe.mjs` 在 arm 阶段用未 resolve 的 promise 持锁，release 只发生在 release 分支的显式 `__acceptanceReleaseLock()`。如果 release 分支在释放前断言失败，`finally` 只 `client.close()`，不会释放页面内 Web Lock；这不会制造 false PASS，但会污染同一浏览器会话的后续观察。建议账本记录“失败后需关闭相关 panel/window 或显式 cleanup release”。\n\n`task-and-save-verdict.json` 也符合限定：derived 明确不把 mutable shared host-slot 算第 3 个 run；只列 2 个真实 run，两个都有 `resultId`、自身 `revision.sourceHash`，`retirementState: \"released\"`；raw input 为 141 bytes，Save click 唯一且 trusted。未启动 CFT、未写入、未做额外广泛审计。"
+      }
+    },
+    "timed_out": false
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "commit": "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+  "parent": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "paths": [
+    ".github/workflows/native-agent-r1.yml"
+  ],
+  "otherStagedIdentical": true,
+  "stagedPatchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "pushExecutedByThisWorkstream": false
+}

@@ -1,0 +1,104 @@
+{
+  "status": "NATIVE_PASS",
+  "method": "Assertions over retained native snapshots and executed driver logs; not a fabricated native acknowledgement",
+  "inputs": [
+    "draft-entered.json",
+    "draft-stopped.json",
+    "click-1791542746527.json",
+    "draft-input.log",
+    "draft-save-ack.log"
+  ],
+  "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+  "sourceUtf8": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n",
+  "observedInput": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n",
+  "saveNativeAck": {
+    "rawFile": "click-1791542746527.json",
+    "rawHistoryCount": 8,
+    "lastObservedSaveEvent": {
+      "id": "script-save",
+      "text": "保存版本",
+      "isTrusted": true,
+      "selector": "#script-save",
+      "matched": true
+    },
+    "invocationCount": "The actual helper and successful draft-save-ack.log assert slice(before) length exactly 1. Raw file retains earlier events too."
+  },
+  "runs": [
+    {
+      "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+      "resultId": "8da91776-1a6f-459e-9c94-f6715339bf11",
+      "state": "completed",
+      "retirementState": "released"
+    },
+    {
+      "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+      "resultId": "45b5bb91-f430-4f40-b060-2aec522e8531",
+      "state": "stopped",
+      "retirementState": "released"
+    }
+  ],
+  "results": [
+    {
+      "tag": "controller-result",
+      "resultId": "45b5bb91-f430-4f40-b060-2aec522e8531",
+      "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+      "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+      "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+      },
+      "sourceKind": "draft",
+      "state": "stopped",
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_CANCELLED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        }
+      },
+      "committedAt": 1791542747234
+    },
+    {
+      "tag": "controller-result",
+      "resultId": "8da91776-1a6f-459e-9c94-f6715339bf11",
+      "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+      "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+      "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+      },
+      "sourceKind": "draft",
+      "state": "completed",
+      "outcome": {
+        "ok": true,
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "title",
+              {
+                "type": "string",
+                "value": "OpenDesk Browser · Browser Test Lab"
+              }
+            ],
+            [
+              "url",
+              {
+                "type": "string",
+                "value": "http://127.0.0.1:43111/demo-form.html"
+              }
+            ]
+          ]
+        }
+      },
+      "committedAt": 1791542666074
+    }
+  ]
+}

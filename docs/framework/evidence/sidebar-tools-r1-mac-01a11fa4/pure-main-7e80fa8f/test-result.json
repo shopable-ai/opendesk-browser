@@ -1,0 +1,20 @@
+{
+  "command": [
+    "npm",
+    "test"
+  ],
+  "exitCode": 1,
+  "seconds": 62.46362495422363,
+  "status": "FAILED",
+  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "counts": {
+    "tests": 355,
+    "pass": 354,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "chromeBinary": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "log": "test.log",
+  "failureReason": "Actual native permission approval timed out; local UI handled too late. Original full-suite log retained."
+}

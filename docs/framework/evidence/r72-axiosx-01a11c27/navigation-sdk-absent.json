@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-08T15:57:33.447Z",
+  "targetId": "E7FEBAD8C823E6EF14895C1B50B61A01",
+  "launchPid": 91159,
+  "method": "snapshot",
+  "result": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "sdk": "undefined",
+    "view": {
+      "api-channel": {
+        "text": "网页 FetchOpenDesk SDK axiosx",
+        "value": "fetch"
+      },
+      "api-method": {
+        "text": "GETPOST",
+        "value": "GET"
+      },
+      "api-url": {
+        "text": "",
+        "value": "./demo-form.html?test-response=1"
+      },
+      "api-status": {
+        "text": "尚未发送请求",
+        "state": "idle"
+      },
+      "api-status-text": {
+        "text": "尚未发送请求"
+      },
+      "api-http-status": {
+        "text": "—"
+      },
+      "api-duration": {
+        "text": "—"
+      },
+      "api-content-type": {
+        "text": "—"
+      },
+      "api-response": {
+        "text": ""
+      },
+      "api-error": {
+        "text": ""
+      },
+      "api-headers": {
+        "text": ""
+      }
+    },
+    "width": 814,
+    "scrollWidth": 814
+  }
+}

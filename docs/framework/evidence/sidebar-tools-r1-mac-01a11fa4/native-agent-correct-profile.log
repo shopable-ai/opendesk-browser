@@ -1,0 +1,38 @@
+REAL_CHROME_BINARY=cft VERSION=Google Chrome for Testing 155.0.8059.39
+﹣ real macOS Chrome: bare renderer/CDP control without extensions (0.365458ms) # SKIP
+REAL_CHROME_EXTENSION_LOADED=PASS id=efhcmggbgamacpfhhmooelgdkepdcghh
+MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser=cft
+REAL_CHROME_OPTIONS_TARGET={"id":"39F6B6C3EDABDF31BDC917BFCFDB98CF","type":"page","url":"about:blank","ws":"ws://127.0.0.1:49199/devtools/page/39F6B6C3EDABDF31BDC917BFCFDB98CF"}
+REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:49199/devtools/page/39F6B6C3EDABDF31BDC917BFCFDB98CF
+REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.
+REAL_CHROME_CDP_BROWSER_VERSION={"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.35.20"}
+REAL_CHROME_CDP_FRAME={"id":2,"result":{"result":{"type":"object","value":{"url":"about:blank","ready":"complete"}}}}
+REAL_CHROME_BLANK_CONTROL={"url":"about:blank","ready":"complete"}
+REAL_CHROME_CDP_FRAME={"id":3,"result":{}}
+REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedNavigating","params":{"frameId":"39F6B6C3EDABDF31BDC917BFCFDB98CF","url":"chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/native-agent/settings.html","loaderId":"586B970EB0EB9F9D6C3A77C6C098CB26","navigationType":"differentDocument"}}
+REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedLoading","params":{"frameId":"39F6B6C3EDABDF31BDC917BFCFDB98CF"}}
+REAL_CHROME_OPTIONS_NAVIGATION={"frameId":"39F6B6C3EDABDF31BDC917BFCFDB98CF","loaderId":"586B970EB0EB9F9D6C3A77C6C098CB26","isDownload":false}
+REAL_CHROME_OPTIONS_LOADED=PASS
+REAL_CHROME_NATIVE_ENABLE_CLICK=[{"isTrusted":true}]
+REAL_CHROME_NATIVE_HANDSHAKE=NOT_VERIFIED; Options status="Native Agent：已启用\nNative Host：未连接（检查 setup 与 CLI doctor）\n已注册工作台：0\nExtension ID：efhcmggbgamacpfhhmooelgdkepdcghh"
+✖ real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake (61603.68275ms)
+REAL_CHROME_PROCESS_EXIT={"code":null,"signal":"SIGKILL","stderr":"\nDevTools listening on ws://127.0.0.1:49199/devtools/browser/0d87c2fa-b0ae-4d65-a40e-02663c7799c0\n[9114:55223050:1009/162112.762876:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[9114:55223050:1009/162112.796762:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[9114:55223050:1009/162135.704811:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"}
+REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 61651.576583
+
+✖ failing tests:
+
+test at tests/environment/native-agent-chrome-real.test.mjs:148:1
+✖ real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake (61603.68275ms)
+  Error: Native handshake after Chrome Options trusted click and permission UI timed out
+      at eventually (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:18:9)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:289:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)

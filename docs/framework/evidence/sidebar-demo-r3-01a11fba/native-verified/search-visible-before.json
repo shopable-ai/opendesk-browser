@@ -1,0 +1,27 @@
+{
+  "at": "2026-10-09T11:02:08.980Z",
+  "targetId": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+  "method": "Readonly geometry and trusted native wheel",
+  "observations": [
+    {
+      "url": "http://127.0.0.1:43111/demo-form.html#lab-search",
+      "scrollY": 89,
+      "keywordY": 1245.8515625,
+      "keywordHit": false,
+      "buttonHit": false,
+      "value": "旧的预填内容",
+      "disabled": false,
+      "count": "提交次数：0"
+    },
+    {
+      "url": "http://127.0.0.1:43111/demo-form.html#lab-search",
+      "scrollY": 1067,
+      "keywordY": 267.8515625,
+      "keywordHit": true,
+      "buttonHit": true,
+      "value": "旧的预填内容",
+      "disabled": false,
+      "count": "提交次数：0"
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "at": "2026-10-09T11:33:26.265Z",
+  "nativeExecuted": false,
+  "denominators": {
+    "original": 603,
+    "api48": 192,
+    "connectedDriverCases": 26
+  },
+  "rows": [
+    {
+      "id": "NAV01-API10-LIMIT",
+      "sourceSymbol": "ChromePage.reload",
+      "contractSha256": "b8dd3280c38cbb1cf31c0cad3b7c1df2d3c84301899d7ea5abecf5b014dfde34",
+      "recipe": {
+        "body": "await reject('reload-networkidle',()=>page.reload({waitUntil:'networkidle0'}),['E_OPTION_UNSUPPORTED']);",
+        "gaps": [],
+        "external": [
+          "zero-page-dispatch"
+        ],
+        "userScripts": true
+      },
+      "params": {
+        "nativeBarrierURL": "http://127.0.0.1:1234/original-api48-barrier?token=unit-only"
+      },
+      "sourceSha256": "7129fd308868fd6874a1bbf9e02072b4ad35918a71f6466249d6213244a995f3",
+      "requiredAssertions": [
+        "reload-networkidle-rejected",
+        "reload-networkidle-code"
+      ],
+      "errors": {
+        "reload-networkidle": "E_OPTION_UNSUPPORTED"
+      },
+      "calls": [],
+      "zeroPageDispatch": true,
+      "fixtureFamily": "selector",
+      "userScripts": true
+    },
+    {
+      "id": "NAV01-API11-LIMIT",
+      "sourceSymbol": "ChromePage.goto",
+      "contractSha256": "cbac7086f6b9febdc67c4ac1f2f9d7740943f738fb8b770376acffcdb798d3bb",
+      "recipe": {
+        "body": "await reject('goto-options',()=>page.goto(params.nextURL,{referer:'x',waitUntil:'networkidle2'}),['E_OPTION_UNSUPPORTED']);",
+        "gaps": [],
+        "external": [
+          "zero-page-dispatch"
+        ],
+        "userScripts": true
+      },
+      "params": {
+        "nativeBarrierURL": "http://127.0.0.1:1234/original-api48-barrier?token=unit-only",
+        "nextURL": "http://127.0.0.1:1234/original-api48?role=next&family=selector#next-fragment"
+      },
+      "sourceSha256": "02cd1426b2f390bcb764a128cd460fc8f9f52bae8c83e7f1b9ab680ebe804312",
+      "requiredAssertions": [
+        "goto-options-rejected",
+        "goto-options-code"
+      ],
+      "errors": {
+        "goto-options": "E_OPTION_UNSUPPORTED"
+      },
+      "calls": [],
+      "zeroPageDispatch": true,
+      "fixtureFamily": "selector",
+      "userScripts": true
+    },
+    {
+      "id": "CMP04-API28-OK",
+      "sourceSymbol": "ChromePage.screenshotInWebview",
+      "contractSha256": "aee35c3a3a426af8a86de5ede89ffc8df7a1c6cca459f2564d875ac14d20b95f",
+      "recipe": {
+        "body": "await reject('webview',()=>page.screenshotInWebview(),['E_CAPABILITY_UNAVAILABLE']);",
+        "gaps": [],
+        "external": [],
+        "userScripts": true
+      },
+      "params": {
+        "nativeBarrierURL": "http://127.0.0.1:1234/original-api48-barrier?token=unit-only"
+      },
+      "sourceSha256": "f5c1e6788471c567f4bef088b592bb3161878be29004cd7274d671d38f4e6bef",
+      "requiredAssertions": [
+        "webview-rejected",
+        "webview-code"
+      ],
+      "errors": {
+        "webview": "E_CAPABILITY_UNAVAILABLE"
+      },
+      "calls": [],
+      "zeroPageDispatch": true,
+      "fixtureFamily": "selector",
+      "userScripts": true
+    }
+  ]
+}

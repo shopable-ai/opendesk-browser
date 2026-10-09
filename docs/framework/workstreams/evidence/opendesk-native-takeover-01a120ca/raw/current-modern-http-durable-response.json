@@ -1,0 +1,10 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "3b82236f-7c67-475b-af10-20b231b85f3d",
+  "error": {
+    "code": "E_HOST_AMBIGUOUS",
+    "message": "E_HOST_AMBIGUOUS",
+    "outcome": "NOT_DISPATCHED"
+  }
+}

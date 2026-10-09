@@ -1,0 +1,20 @@
+{
+  "target": "824E64A063A1FF05041113436B50D54C",
+  "events": [
+    {
+      "type": "click",
+      "id": "note-text",
+      "isTrusted": true
+    },
+    {
+      "type": "input",
+      "id": "note-text",
+      "isTrusted": true
+    },
+    {
+      "type": "click",
+      "id": "save-note",
+      "isTrusted": true
+    }
+  ]
+}

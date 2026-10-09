@@ -1,0 +1,43 @@
+{
+  "at": "2026-10-09T11:09:17.111Z",
+  "pid": 2652,
+  "targetId": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+  "before": {
+    "id": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+    "loaderId": "64B38483FB4D3AFEF7B257FBF3F66D79",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "urlFragment": "#lab-search",
+    "domainAndRegistry": "",
+    "securityOrigin": "http://127.0.0.1:43111",
+    "securityOriginDetails": {
+      "isLocalhost": true
+    },
+    "mimeType": "text/html",
+    "adFrameStatus": {
+      "adFrameType": "none"
+    },
+    "secureContextType": "SecureLocalhost",
+    "crossOriginIsolatedContextType": "NotIsolated",
+    "gatedAPIFeatures": []
+  },
+  "after": {
+    "id": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+    "loaderId": "963B7BC5F828C9CDAA15D18BC85C1933",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "urlFragment": "#lab-search",
+    "domainAndRegistry": "",
+    "securityOrigin": "http://127.0.0.1:43111",
+    "securityOriginDetails": {
+      "isLocalhost": true
+    },
+    "mimeType": "text/html",
+    "adFrameStatus": {
+      "adFrameType": "none"
+    },
+    "secureContextType": "SecureLocalhost",
+    "crossOriginIsolatedContextType": "NotIsolated",
+    "gatedAPIFeatures": []
+  },
+  "committed": true,
+  "method": "Native Chrome Cmd-R"
+}

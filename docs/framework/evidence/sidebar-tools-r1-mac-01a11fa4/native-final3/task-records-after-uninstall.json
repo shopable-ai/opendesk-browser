@@ -1,0 +1,103 @@
+{
+  "status": "NATIVE_PASS",
+  "method": "Read-only comparison of captured real IndexedDB snapshots",
+  "inputs": [
+    "before-restart.json",
+    "after-uninstall.json"
+  ],
+  "stores": [
+    "runs",
+    "results",
+    "scriptHeads",
+    "scriptRevisions"
+  ],
+  "runs": [
+    {
+      "runId": "2ba0d630-ae5f-4646-886c-6083b90d4d94",
+      "resultId": "2e26813b-6d5f-48aa-9944-5cd72da3103b",
+      "state": "completed",
+      "retirementState": "released"
+    },
+    {
+      "runId": "3c363053-f13f-403b-bf15-626f263a9657",
+      "resultId": "a1fb4a3a-e7e6-4581-905d-d42cb9125872",
+      "state": "stopped",
+      "retirementState": "released"
+    },
+    {
+      "runId": "81a9a9c2-b69e-47bc-b18d-3dd128fc5d52",
+      "resultId": "7556eb5e-a64a-4cef-b13e-6d81ceec0ac7",
+      "state": "stopped",
+      "retirementState": "released"
+    },
+    {
+      "runId": "8bdec406-32bb-423d-ba93-a8ebe6572f07",
+      "resultId": "7633549b-c608-43d7-a513-e20af4db2d63",
+      "state": "completed",
+      "retirementState": "released"
+    },
+    {
+      "runId": "f99ca7b7-2ff8-4a2b-8970-33f5444849bb",
+      "resultId": "8193b222-7452-4316-8d21-5c92f5034eb1",
+      "state": "completed",
+      "retirementState": "released"
+    }
+  ],
+  "results": [
+    {
+      "tag": "controller-result",
+      "runId": "2ba0d630-ae5f-4646-886c-6083b90d4d94",
+      "resultId": "2e26813b-6d5f-48aa-9944-5cd72da3103b",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:2ba0d630-ae5f-4646-886c-6083b90d4d94",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+      }
+    },
+    {
+      "tag": "controller-result",
+      "runId": "81a9a9c2-b69e-47bc-b18d-3dd128fc5d52",
+      "resultId": "7556eb5e-a64a-4cef-b13e-6d81ceec0ac7",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:81a9a9c2-b69e-47bc-b18d-3dd128fc5d52",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+      }
+    },
+    {
+      "tag": "controller-result",
+      "runId": "8bdec406-32bb-423d-ba93-a8ebe6572f07",
+      "resultId": "7633549b-c608-43d7-a513-e20af4db2d63",
+      "revision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"8bdec406-32bb-423d-ba93-a8ebe6572f07\",\"b5da60e9-49d1-45f4-be1d-7d21c3576db5\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    },
+    {
+      "tag": "controller-result",
+      "runId": "f99ca7b7-2ff8-4a2b-8970-33f5444849bb",
+      "resultId": "8193b222-7452-4316-8d21-5c92f5034eb1",
+      "revision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"f99ca7b7-2ff8-4a2b-8970-33f5444849bb\",\"3c31fb70-149a-4e0b-9667-b50749c9a9a4\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    },
+    {
+      "tag": "controller-result",
+      "runId": "3c363053-f13f-403b-bf15-626f263a9657",
+      "resultId": "a1fb4a3a-e7e6-4581-905d-d42cb9125872",
+      "revision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:efhcmggbgamacpfhhmooelgdkepdcghh\",\"3c363053-f13f-403b-bf15-626f263a9657\",\"62d424c0-94ec-47fb-93e9-48037c6409b9\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    }
+  ]
+}

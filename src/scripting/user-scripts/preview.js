@@ -98,16 +98,16 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       !tab.incognito && tab.url === t.expectedUrl && !tab.pendingUrl &&
       !['loading', 'unloaded'].includes(tab.status) &&
       Array.isArray(active) && active.length === 1 && active[0].id === t.tabId,
-      'E_DOCUMENT_STALE', 'Current page or window changed');
+      'E_DOCUMENT_STALE', 'Page changed');
     const frames = await api.webNavigation.getAllFrames({tabId:t.tabId});
     const root = frames?.find(row => row.frameId === 0);
     invariant(root?.documentId === t.documentId && root.url === t.expectedUrl &&
       !root.errorOccurred && (!root.documentLifecycle || root.documentLifecycle === 'active'),
-      'E_DOCUMENT_STALE', 'Current page document changed');
+      'E_DOCUMENT_STALE', 'Document changed');
     invariant(await api.permissions.contains({origins:[permissionPattern(t.expectedUrl)]}),
       'E_PERMISSION', 'Site permission was not granted or was revoked');
     const slot = await storage.transaction(['runs'], 'readonly', tx => tx.get('runs','@slot'));
-    invariant(!slot?.currentRunId&&(!slot?.preview||slot.preview.nonce===nonce), 'E_OWNER', 'A Controller task or page preview owns the run slot');
+    invariant(!slot?.currentRunId&&(!slot?.preview||slot.preview.nonce===nonce), 'E_OWNER', 'Controller/Page preview owns slot');
   }
   async function preview(request, sender) {
     invariant(!active, 'E_OWNER', '已有页面脚本试运行正在等待浏览器回执');
@@ -158,10 +158,13 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     const completion=receipt.result;
     invariant(completion && completion.format===PAGE_PREVIEW_RECEIPT_FORMAT && completion.nonce===receiptNonce &&
       typeof completion.ok==='boolean','E_PAGE_SCRIPT_EXECUTION',
-      '脚本未返回完成回执，可能存在语法错误、依赖异常或无法传回的结果；请查看网页控制台');
+      '脚本未返回完成回执，请查看网页控制台');
     if(managedRecord)await managed.mark(managedRecord,'evaluated');
     confirmed=true;
     invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error || '页面脚本执行失败');
+    // A real receipt proves the effect in the original document. Navigation
+    // while awaiting it must not be reported as current-document success or replayed.
+    await verifyTarget(frozen.target,receiptNonce);
     const value=completion.value;
     let resultText;
     try {resultText = value === undefined ? 'undefined' : JSON.stringify(value);}

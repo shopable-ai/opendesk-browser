@@ -1,0 +1,3 @@
+usage: launch.py [-h] [--executable EXECUTABLE] [--report REPORT]
+                 [--resolve-only]
+launch.py: error: This launcher only accepts Chrome for Testing, not your personal Chrome

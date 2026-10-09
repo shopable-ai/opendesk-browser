@@ -1,0 +1,6 @@
+
+DevTools listening on ws://127.0.0.1:49536/devtools/browser/5855c543-bfd7-42fa-a44d-f9681134968e
+[85063:55662483:1009/180709.586210:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[85063:55662483:1009/180709.596833:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[85063:55662483:1009/180739.731856:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[85063:55662483:1009/180829.728454:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT

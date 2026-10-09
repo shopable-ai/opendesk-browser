@@ -4,6 +4,11 @@ import {createNativeAgentService} from '../../src/native-agent/service-worker.js
 import {AGENT_LEDGER_KEY,AGENT_ENABLED_KEY} from '../../src/native-agent/protocol.js';
 
 const drain=()=>new Promise(resolve=>setTimeout(resolve,0));
+async function waitForObserved(predicate){
+  const deadline=Date.now()+1000;
+  while(!predicate()&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.ok(predicate(),'expected asynchronous bridge outcome within one second');
+}
 function mock({enabled=true,granted=true}={}){
   const stored={[AGENT_ENABLED_KEY]:enabled}, requests=[],responses=[],projectMessages=[];
   let native;
@@ -217,22 +222,22 @@ test('request hash journal deduplicates after real Host admission; conflicting b
     target:{windowId:1,tabId:2,frameId:0,documentId:'d',url:'https://example.test',origin:'https://example.test'},
     params:{}};
   f.native().onMessage.fire(message('call-1','run.start',payload));
-  await drain();await drain();
+  await waitForObserved(()=>f.requests.length>0);
   assert.equal(f.requests.length,1);
   const forwarded=f.requests[0];
   assert.equal(forwarded.request.requestId,'call-1','Controller admission retains the CLI request ID');
   assert.notEqual(forwarded.request.dispatchId,'call-1','Host ACK uses an independent dispatch correlation');
   f.service.acceptHostResponse(f.port,{type:'native-agent.response',registrationId:'registration-1',
     requestId:forwarded.request.dispatchId,result:{runId:'run-1',state:'running'}});
-  await drain();await drain();
+  await waitForObserved(()=>f.responses.some(x=>x.requestId==='call-1'&&x.result?.runId==='run-1'));
   assert.equal(f.responses.at(-1).result.runId,'run-1');
   assert.equal(f.stored[AGENT_LEDGER_KEY]['call-1'].runId,'run-1');
   f.native().onMessage.fire(message('call-1','run.start',payload));
-  await drain();await drain();
+  await waitForObserved(()=>f.responses.filter(x=>x.requestId==='call-1'&&x.result?.runId==='run-1').length===2);
   assert.equal(f.requests.length,1,'identical call never executes twice');
   assert.equal(f.responses.at(-1).result.runId,'run-1');
   f.native().onMessage.fire(message('call-1','run.start',{...payload,source:{kind:'draft',sourceUtf8:'DIFFERENT'}}));
-  await drain();await drain();
+  await waitForObserved(()=>f.responses.some(x=>x.requestId==='call-1'&&x.error?.code==='E_REQUEST_CONFLICT'));
   assert.equal(f.responses.at(-1).error.code,'E_REQUEST_CONFLICT');
 });
 test('dispatched but unanswered calls are never retried, even if same id reappears',async t=>{

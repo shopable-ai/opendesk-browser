@@ -1,0 +1,15 @@
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (7.030667ms)
+✔ queued task navigation loses authority when its tool is closed (1.264375ms)
+✔ uninstall waits for a committed write before deleting the namespace (1.131708ms)
+✔ two Side Panels preserve distinct fields through the same storage lock (1.056083ms)
+✔ a second iframe load revokes the old document instead of resending its token (0.439709ms)
+✔ cross-window uninstall rejects storage from a still open stale document (0.414333ms)
+✔ cross-window revocation also blocks stale page reads and task navigation (0.673ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57.9475

@@ -1,0 +1,1 @@
+$ node --check tests/framework/k5-controller-product-native-original-cases.mjs && node --check tests/framework/k5-controller-product-native-original-cases.test.mjs && node --check tests/framework/k5-controller-product-native.mjs

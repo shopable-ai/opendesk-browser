@@ -1,0 +1,9 @@
+file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-native-session.mjs:16
+export async function evaluate(client,expression,sessionId){const value=await client.send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true},sessionId);if(value.exceptionDetails)throw Error(JSON.stringify(value.exceptionDetails));return value.result.value;}
+                                                                                                                                                                                                          ^
+
+Error: {"exceptionId":1,"text":"Uncaught","lineNumber":0,"columnNumber":52,"scriptId":"60","exception":{"type":"object","subtype":"error","className":"TypeError","description":"TypeError: Cannot read properties of null (reading 'contentWindow')\n    at <anonymous>:1:53","objectId":"-7153148765654037060.7.2"}}
+    at evaluate (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-native-session.mjs:16:203)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:65:21
+
+Node.js v24.16.0

@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-08T15:54:17.560Z",
+  "targetId": "E7FEBAD8C823E6EF14895C1B50B61A01",
+  "launchPid": 91159,
+  "method": "cross",
+  "result": {
+    "ordinary": {
+      "name": "TypeError",
+      "message": "Failed to fetch"
+    },
+    "admitted": {
+      "code": "E_NETWORK",
+      "message": "HTTP transport failed"
+    }
+  }
+}

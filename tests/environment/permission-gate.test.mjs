@@ -14,6 +14,12 @@ test('manifest and build verifier accept broad required sites and a finite API p
   assert.deepEqual(manifest.optional_permissions,OPTIONAL_PLUGIN_API_PERMISSIONS);
   assert.equal(manifest.optional_host_permissions,undefined);
   assert.equal(verifyManifest(manifest),undefined);
+  assert(!manifest.permissions.includes('nativeMessaging'),'Native must remain a user-authorized optional permission');
+  assert(manifest.optional_permissions.includes('nativeMessaging'));
+  assert(manifest.permissions.every(name=>!manifest.optional_permissions.includes(name)));
+  const escalated=structuredClone(manifest);
+  escalated.permissions.push('nativeMessaging');
+  assert.throws(()=>verifyManifest(escalated),/required browser API/);
   assert.deepEqual(REQUIRED_BROWSER_API_PERMISSIONS.slice(-2),['cookies','notifications']);
   for (const prohibited of ['debugger','proxy','management'])
     assert(!manifest.permissions.includes(prohibited),prohibited+' must not be permanently granted');

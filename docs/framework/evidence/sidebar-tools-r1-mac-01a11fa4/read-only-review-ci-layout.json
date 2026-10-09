@@ -1,0 +1,8 @@
+{
+  "status": {
+    "01a11fa6-762f-74e0-bd75-b81362521d43": {
+      "completed": "**CLEAR：最新 workflow 小补丁未发现阻塞。**\n\n- `ditto` 复制完整目录到 `.app` 路径；两次 `cmp` 强断言 Info.plist、主可执行文件字节一致，`shasum` 输出身份。[恢复步骤](/Users/shopme/Documents/workspace/opendesk-browser/.github/workflows/native-agent-r1.yml:76)。\n- 后续原测试绑定恢复后的路径，未删除 case、增加 skip 或引入 sandbox bypass。[测试入口](/Users/shopme/Documents/workspace/opendesk-browser/.github/workflows/native-agent-r1.yml:88)。\n- HEAD 原 workflow 没有签名检查；此次撤回的是尚未提交的新 gate，不是删除原有保障。\n\n纠正此前结论：要求 vendor 自身不满足的整包签名验证作为此次修复前提不适用。**这里确认的是布局恢复及两文件字节一致，不是正式 sealed 签名通过。** 本地 `codesign` 失败仍保留，不能记为 PASS。[诊断记录](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/ci-restored-bundle-after.json:13)。\n\n本地 bare test 通过不等于 GitHub CI 通过；两个 runner 仍需实际通过恢复步骤及原测试。本轮仅只读检查。"
+    }
+  },
+  "timed_out": false
+}

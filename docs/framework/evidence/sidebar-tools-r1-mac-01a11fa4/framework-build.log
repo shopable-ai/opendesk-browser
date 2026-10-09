@@ -1,0 +1,30 @@
+[
+  {
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/react-acceptance/1.0.0/react-acceptance.opendesk-tool.json",
+    "bytes": 198690,
+    "id": "react-acceptance",
+    "version": "1.0.0",
+    "capabilities": [],
+    "validated": true,
+    "installed": false,
+    "framework": "react",
+    "sha256": "8947b76feaf75079deeea5b6a11c4a89e98c125bcb41c2762ce9441479ea3401",
+    "sourceCompiler": "existing local esbuild / Vue compiler-sfc",
+    "officialSourceImport": "NOT_SUPPORTED",
+    "native": "NATIVE_NOT_VERIFIED"
+  },
+  {
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/vue-acceptance/1.0.0/vue-acceptance.opendesk-tool.json",
+    "bytes": 60419,
+    "id": "vue-acceptance",
+    "version": "1.0.0",
+    "capabilities": [],
+    "validated": true,
+    "installed": false,
+    "framework": "vue",
+    "sha256": "2574f949913148e71bbe7333a027c73fd9d0160208d880aba479258021afb891",
+    "sourceCompiler": "existing local esbuild / Vue compiler-sfc",
+    "officialSourceImport": "NOT_SUPPORTED",
+    "native": "NATIVE_NOT_VERIFIED"
+  }
+]

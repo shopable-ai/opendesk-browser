@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-08T16:06:38.156Z",
+  "targetId": "E7FEBAD8C823E6EF14895C1B50B61A01",
+  "launchPid": 91159,
+  "method": "offline",
+  "result": {
+    "code": "E_NETWORK",
+    "message": "HTTP transport failed"
+  }
+}

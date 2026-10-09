@@ -1,0 +1,36 @@
+{
+  "at": "2026-10-09T10:48:54.796Z",
+  "sessionPath": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native-final/session.json",
+  "packageHashOnDisk": "239ab036ee4769d3f744e83c33a3ec01b52ba3165c7d897742253735eea69658",
+  "target": {
+    "targetId": "B5B5B3DCAE4D21DFBD446A4B5EFCFA24",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/sw.js",
+    "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/sw.js",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "script": {
+    "scriptId": "5",
+    "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/sw.js",
+    "startLine": 0,
+    "startColumn": 0,
+    "endLine": 1,
+    "endColumn": 0,
+    "executionContextId": 1,
+    "hash": "7137d2903f9caa5e4efc13cc0d55c2218524f02924d0b91b2316fafb030a19d7",
+    "buildId": "",
+    "isLiveEdit": false,
+    "sourceMapURL": "",
+    "hasSourceURL": false,
+    "isModule": false,
+    "length": 324921,
+    "scriptLanguage": "JavaScript",
+    "embedderName": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/sw.js"
+  },
+  "loadedSha256": "7137d2903f9caa5e4efc13cc0d55c2218524f02924d0b91b2316fafb030a19d7",
+  "diskSha256": "89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8",
+  "matches": false,
+  "loadedHasLateCheck": true
+}

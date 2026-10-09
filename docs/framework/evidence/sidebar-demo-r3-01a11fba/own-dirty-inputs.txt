@@ -1,0 +1,7 @@
+ M examples/programs/page-ui-basic/README.md
+ M examples/programs/page-ui-basic/src/main.js
+ M examples/programs/page-ui-basic/src/view.js
+ M examples/tasks/demo-form.html
+?? docs/framework/workstreams/sidebar-demo-r3-01a11fba.json
+?? node_modules
+?? tests/environment/page-ui-basic.test.mjs
