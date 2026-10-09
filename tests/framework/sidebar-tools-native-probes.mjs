@@ -42,14 +42,24 @@ async function click(id,selector,{timeoutMs=15000,deadline,beforeRead=async()=>{
   assert.equal(events[0].isTrusted,true);assert.equal(events[0].matched,true);
   return events;
 }
+async function toolNavigation(id){
+  return evaluate(client,`(()=>{
+    const list=document.querySelector('#sidebar-tool-list');
+    const buttons=[...(list||document.querySelector('#sidebar-tool-tabs'))?.querySelectorAll('button')||[]];
+    const matches=buttons.map((n,i)=>({n,i})).filter(({n})=>(n.querySelector('strong')?.textContent||n.textContent).trim()==='网页笔记');
+    if(matches.length!==1)throw Error('Exactly one installed acceptance notes tool required');
+    return {close:list?'#sidebar-tool-back':'#sidebar-tool-tabs button:first-child',open:(list?'#sidebar-tool-list':'#sidebar-tool-tabs')+' button:nth-child('+(matches[0].i+1)+')'};
+  })()`,id);
+}
 try{
   const host=await attach('/ui/tool.html?hostInstanceId=',undefined,['input','click','click-dialog'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined);
   if(mode==='cycle'){
+    const navigation=await toolNavigation(host.id);
     const measurements=[];
     await client.send('HeapProfiler.collectGarbage',{},host.id);
     const baseline=await client.send('Memory.getDOMCounters',{},host.id);
     for(let round=0;round<=20;round++){
-      if(round){await click(host.id,'#sidebar-tool-tabs button:first-child');await click(host.id,'#sidebar-tool-tabs button:nth-child(2)');}
+      if(round){await click(host.id,navigation.close);await click(host.id,navigation.open);}
       await pause(100);
       const state=await inspect(`({iframeCount:document.querySelectorAll('iframe').length,toolFrames:document.querySelectorAll('#sidebar-tool-frame iframe').length,messageListeners:getEventListeners(window).message.length})`,host.id);
       const memory=await client.send('Memory.getDOMCounters',{},host.id);
@@ -59,14 +69,14 @@ try{
       measurements.push({round,...state,...memory});
       assert.equal(state.toolFrames,1);assert.equal(state.messageListeners,measurements[0].messageListeners);
     }
-    await click(host.id,'#sidebar-tool-tabs button:first-child');await pause(100);
+    await click(host.id,navigation.close);await pause(100);
     const closed=await inspect(`({toolFrames:document.querySelectorAll('#sidebar-tool-frame iframe').length,messageListeners:getEventListeners(window).message.length,inputs:__acceptanceNativeClicks})`,host.id);
     assert.equal(closed.toolFrames,0);assert.equal(closed.messageListeners,measurements[0].messageListeners);
     await client.send('HeapProfiler.collectGarbage',{},host.id);
     const afterGc=await client.send('Memory.getDOMCounters',{},host.id);
     assert(afterGc.nodes<=baseline.nodes+50);assert(afterGc.jsEventListeners<=baseline.jsEventListeners+5);
     await save('cycles-20',{status:'NATIVE_PASS',measurements,closed,baseline,afterGc,note:'Stable iframe/message-listener counts and bounded post-GC DOM counters; no claim of zero heap leakage.'});
-    await click(host.id,'#sidebar-tool-tabs button:nth-child(2)');
+    await click(host.id,navigation.open);
   }else if(mode==='layout'){
     // Observe the genuine Side Panel; never substitute the catalog-only tab.
     const tool=await attach('/sidebar-tools/sandbox.html','iframe','#note-text');
@@ -80,6 +90,7 @@ try{
     const shot=await client.send('Page.captureScreenshot',{format:'png'},host.id);
     await writeFile(path.join(directory,`width-${state.host.width}-panel.png`),Buffer.from(shot.data,'base64'));
   }else if(mode==='security'){
+    const navigation=await toolNavigation(host.id);
     const tool=await attach('/sidebar-tools/sandbox.html','iframe');
     await evaluate(client,`(()=>{globalThis.__messages=[];document.defaultView.addEventListener('message',e=>{if(e.data?.protocol===${JSON.stringify(SIDEBAR_TOOL_PROTOCOL)})__messages.push({origin:e.origin,data:e.data});});})()`,host.id);
     await click(tool.id,'#refresh-page');await pause(100);
@@ -103,12 +114,13 @@ try{
     await evaluate(client,`parent.postMessage(${JSON.stringify({...envelope,operation:'storage.set',payload:{key:'intrusion',value:'cross-frame'}})},'*')`,sid);
     await pause(200);const after=await storage();assert.deepEqual(after,before);
     await evaluate(client,`document.querySelector('#acceptance-attacker').remove()`,host.id);
-    await click(host.id,'#sidebar-tool-tabs button:first-child');await click(host.id,'#sidebar-tool-tabs button:nth-child(2)');await pause(200);
+    await click(host.id,navigation.close);await click(host.id,navigation.open);await pause(200);
     const fresh=await attach('/sidebar-tools/sandbox.html','iframe');
     await evaluate(client,`parent.postMessage(${JSON.stringify({...envelope,operation:'storage.set',payload:{key:'intrusion',value:'old-replay'}})},'*')`,fresh.id);
     await pause(200);assert.deepEqual(await storage(),before);
     await save('security',{status:'NATIVE_PASS',actual,forgeries:['wrong instance','wrong tool ID','actual sibling iframe / origin null','old instance replay from new iframe'],before,after,note:'Adversarial JavaScript executes in actual unprivileged sandbox; native acknowledgments never synthesized.'});
   }else if(mode==='navigation-security'){
+    const navigation=await toolNavigation(host.id);
     const requests=[],server=createServer((req,res)=>{requests.push(req.url);res.end('Acceptance-only navigation trap');});
     await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
     try{
@@ -124,7 +136,7 @@ try{
       const state=await evaluate(client,"({count:document.querySelectorAll('#sidebar-tool-frame iframe').length,status:document.querySelector('#sidebar-tool-status').textContent})",host.id);
       assert.equal(state.count,0);assert.match(state.status,/导航/);
       await save(process.argv[3]||'navigation-security',{status:'NATIVE_PASS',url,requests,violations,state});
-      await click(host.id,'#sidebar-tool-tabs button:nth-child(2)');
+      await click(host.id,navigation.open);
     }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   }else if(mode==='computation-csp'){
     const compute=await attach('/scripting/sandbox/sandbox.html','iframe');
